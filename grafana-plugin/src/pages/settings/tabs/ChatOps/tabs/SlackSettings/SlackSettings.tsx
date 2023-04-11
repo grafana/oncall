@@ -10,13 +10,14 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SlackNewIcon } from 'icons';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
 
@@ -49,7 +50,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   handleOpenSlackInstructions = () => {
     const { store } = this.props;
-    store.slackStore.installSlackIntegration();
+    store.slackStore.installSlackIntegration().catch(showApiError);
   };
 
   update = () => {
@@ -109,7 +110,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                 </div>
               </Field>
               <Field label="Default channel for Slack notifications">
-                <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
+                <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
                   <GSelect
                     showSearch
                     className={cx('select', 'control')}
@@ -121,10 +122,10 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                     onChange={this.handleSlackChannelChange}
                     nullItemName={PRIVATE_CHANNEL_NAME}
                   />
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </Field>
             </HorizontalGroup>
-            <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
+            <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
               <WithConfirm
                 title="Remove Slack Integration for all of OnCall"
                 description={
@@ -152,7 +153,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   Disconnect
                 </Button>
               </WithConfirm>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         </div>
         <div className={cx('slack-settings')}>
@@ -161,7 +162,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           </Text.Title>
           <Field label="Timeout for acknowledged alerts">
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   showSearch={false}
@@ -169,8 +170,8 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   value={slackStore.slackSettings?.acknowledge_remind_timeout}
                   onChange={this.getSlackSettingsChangeHandler('acknowledge_remind_timeout')}
                 />
-              </WithPermissionControl>
-              <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   disabled={slackStore.slackSettings?.acknowledge_remind_timeout === 0}
@@ -179,7 +180,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   value={slackStore.slackSettings?.unacknowledge_timeout}
                   onChange={this.getSlackSettingsChangeHandler('unacknowledge_timeout')}
                 />
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </Field>
         </div>
@@ -195,7 +196,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   renderSlackChannels = () => {
     const { store } = this.props;
     return (
-      <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
+      <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
         <GSelect
           showSearch
           className={cx('select', 'control')}
@@ -207,15 +208,18 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           onChange={this.handleSlackChannelChange}
           nullItemName={PRIVATE_CHANNEL_NAME}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   };
 
   removeSlackIntegration = () => {
     const { store } = this.props;
-    store.slackStore.removeSlackIntegration().then(() => {
-      store.teamStore.loadCurrentTeam();
-    });
+    store.slackStore
+      .removeSlackIntegration()
+      .then(() => {
+        store.teamStore.loadCurrentTeam();
+      })
+      .catch(showApiError);
   };
 
   getSlackSettingsChangeHandler = (field: string) => {

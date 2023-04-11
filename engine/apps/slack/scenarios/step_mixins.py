@@ -10,9 +10,9 @@ class AccessControl(ABC):
     REQUIRED_PERMISSIONS = []
     ACTION_VERBOSE = ""
 
-    def dispatch(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         if self.check_membership():
-            return super().dispatch(slack_user_identity, slack_team_identity, payload, action=None)
+            return super().process_scenario(slack_user_identity, slack_team_identity, payload)
         else:
             self.send_denied_message(payload)
 
@@ -41,7 +41,7 @@ class IncidentActionsAccessControlMixin(AccessControl):
 
         text = "Attempted to {} by {}, but failed due to a lack of permissions.".format(
             self.ACTION_VERBOSE,
-            self.user.get_user_verbal_for_team_for_slack(),
+            self.user.get_username_with_slack_verbal(),
         )
 
         self._slack_client.api_call(

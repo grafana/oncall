@@ -13,6 +13,9 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
         model = OnCallScheduleWeb
         fields = [*ScheduleBaseSerializer.Meta.fields, "slack_channel", "time_zone"]
 
+    def get_enable_web_overrides(self, obj):
+        return True
+
 
 class ScheduleWebCreateSerializer(ScheduleWebSerializer):
     slack_channel_id = OrganizationFilteredPrimaryKeyRelatedField(

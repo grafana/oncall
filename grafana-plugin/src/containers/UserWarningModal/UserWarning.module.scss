@@ -1,0 +1,26 @@
+.user-warning {
+  margin: 16px;
+}
+
+.users {
+  list-style-type: none;
+  margin-left: 23px;
+  width: 100%;
+
+  & > li {
+    width: 100%;
+    background: var(--background-secondary);
+    margin-bottom: 4px;
+    padding: 14px 12px;
+  }
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6ccf8e;
+}
+
+.modal {
+  width: 650px;
+}

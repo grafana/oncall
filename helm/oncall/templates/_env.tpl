@@ -137,6 +137,10 @@ MIRAGE_SECRET_KEY
 - name: TWILIO_API_KEY_SECRET
   value: {{ .apiKeySecret | quote }}
 {{- end -}}
+{{- if .limitPhone }}
+- name: PHONE_NOTIFICATIONS_LIMIT
+  value: {{ .limitPhone | quote }}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -431,6 +435,8 @@ rabbitmq-password
   value: {{ .Values.oncall.smtp.tls | default true | toString | title | quote }}
 - name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
+- name: EMAIL_NOTIFICATIONS_LIMIT
+  value: {{ .Values.oncall.smtp.limitEmail | default "200" | quote }}
 {{- else -}}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED
   value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}

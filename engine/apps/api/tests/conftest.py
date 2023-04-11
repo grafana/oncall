@@ -61,8 +61,8 @@ def make_resolved_ack_new_silenced_alert_groups(make_alert_group, make_alert_rec
 
 
 @pytest.fixture()
-def mock_alert_shooting_step_publish_slack_messages(monkeypatch):
-    def mock_publish_slack_messages(*args, **kwargs):
+def mock_alert_shooting_step_post_alert_group_to_slack(monkeypatch):
+    def mock_post_alert_group_to_slack(*args, **kwargs):
         return None
 
-    monkeypatch.setattr(AlertShootingStep, "publish_slack_messages", mock_publish_slack_messages)
+    monkeypatch.setattr(AlertShootingStep, "_post_alert_group_to_slack", mock_post_alert_group_to_slack)

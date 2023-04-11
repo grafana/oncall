@@ -375,3 +375,45 @@ def test_delete_on_call_shift(make_organization_and_user_with_token, make_on_cal
 
     with pytest.raises(CustomOnCallShift.DoesNotExist):
         on_call_shift.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_create_web_override(make_organization_and_user_with_token, make_on_call_shift):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+    data = {
+        "team_id": None,
+        "name": "test web override",
+        "type": "override",
+        "source": 0,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 3600,
+        "users": [user.public_primary_key],
+        "time_zone": "UTC",
+    }
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    shift = CustomOnCallShift.objects.get(name="test web override")
+    expected_response = {
+        "id": shift.public_primary_key,
+        "team_id": None,
+        "name": "test web override",
+        "type": "override",
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 3600,
+        "users": [user.public_primary_key],
+        "time_zone": "UTC",
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+    assert shift.rolling_users == [{str(user.pk): user.public_primary_key}]
+    assert shift.priority_level == 99
+    assert shift.start == start
+    assert shift.rotation_start == start

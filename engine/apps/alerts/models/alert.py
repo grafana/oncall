@@ -89,9 +89,7 @@ class Alert(models.Model):
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
         if channel_filter is None:
-            channel_filter = ChannelFilter.select_filter(
-                alert_receive_channel, raw_request_data, title, message, force_route_id
-            )
+            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
 
         group, group_created = AlertGroup.all_objects.get_or_create_grouping(
             channel=alert_receive_channel,
@@ -127,29 +125,31 @@ class Alert(models.Model):
 
         alert.save()
 
-        maintenance_uuid = None
-        if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
+        if group_created:
+            # all code below related to maintenance mode
+            maintenance_uuid = None
+            if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+                maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
 
-        elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.maintenance_uuid
+            elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+                maintenance_uuid = alert_receive_channel.maintenance_uuid
 
-        if maintenance_uuid is not None:
-            try:
-                maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
-                group.root_alert_group = maintenance_incident
-                group.save(update_fields=["root_alert_group"])
-                log_record_for_root_incident = maintenance_incident.log_records.create(
-                    type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
-                )
-                logger.debug(
-                    f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
-                    f"log record {log_record_for_root_incident.pk} with type "
-                    f"'{log_record_for_root_incident.get_type_display()}'"
-                )
-                send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
-            except AlertGroup.DoesNotExist:
-                pass
+            if maintenance_uuid is not None:
+                try:
+                    maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
+                    group.root_alert_group = maintenance_incident
+                    group.save(update_fields=["root_alert_group"])
+                    log_record_for_root_incident = maintenance_incident.log_records.create(
+                        type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
+                    )
+                    logger.debug(
+                        f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
+                        f"log record {log_record_for_root_incident.pk} with type "
+                        f"'{log_record_for_root_incident.get_type_display()}'"
+                    )
+                    send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
+                except AlertGroup.DoesNotExist:
+                    pass
 
         return alert
 
@@ -264,7 +264,7 @@ def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
     """
     Here we invoke AlertShootingStep by model saving action.
     """
-    if created and instance.group.maintenance_uuid is None:
+    if created:
         # RFCT - why additinal save ?
         instance.save()
 

@@ -9,7 +9,7 @@ import NotificationPolicy from 'components/Policy/NotificationPolicy';
 import SortableList from 'components/SortableList/SortableList';
 import Text from 'components/Text/Text';
 import Timeline from 'components/Timeline/Timeline';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { NotificationPolicyType } from 'models/notification_policy';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -150,15 +150,16 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             waitDelays={get(userStore.notificationChoices, 'wait_delay.choices', [])}
             notifyByOptions={userStore.notifyByOptions}
             color={getColor(index)}
+            store={store}
           />
         ))}
         <Timeline.Item number={notificationPolicies.length + 1} color={getColor(notificationPolicies.length)}>
           <div className={cx('step')}>
-            <WithPermissionControl userAction={userAction}>
+            <WithPermissionControlTooltip userAction={userAction}>
               <Button icon="plus" variant="secondary" fill="text" onClick={getAddNotificationPolicyHandler()}>
                 Add Notification Step
               </Button>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </div>
         </Timeline.Item>
       </SortableList>

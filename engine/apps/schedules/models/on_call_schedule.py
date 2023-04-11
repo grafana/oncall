@@ -1,6 +1,9 @@
 import datetime
 import functools
 import itertools
+from collections import defaultdict
+from enum import Enum
+from typing import Iterable, Optional, TypedDict
 
 import icalendar
 import pytz
@@ -8,10 +11,10 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
-from icalendar.cal import Calendar
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 from polymorphic.query import PolymorphicQuerySet
@@ -24,7 +27,32 @@ from apps.schedules.ical_utils import (
     list_of_oncall_shifts_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
+from apps.user_management.models import User
+from common.database import NON_POLYMORPHIC_CASCADE, NON_POLYMORPHIC_SET_NULL
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+
+# Utility classes for schedule quality report
+class QualityReportCommentType(str, Enum):
+    INFO = "info"
+    WARNING = "warning"
+
+
+class QualityReportComment(TypedDict):
+    type: QualityReportCommentType
+    text: str
+
+
+class QualityReportOverloadedUser(TypedDict):
+    id: str
+    username: str
+    score: int
+
+
+class QualityReport(TypedDict):
+    total_score: int
+    comments: list[QualityReportComment]
+    overloaded_users: list[QualityReportOverloadedUser]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():
@@ -44,6 +72,15 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
         return get_oncall_users_for_multiple_schedules(self, events_datetime)
+
+    def related_to_user(self, user):
+        return self.filter(
+            Q(cached_ical_file_primary__contains=user.username)
+            | Q(cached_ical_file_primary__contains=user.email)
+            | Q(cached_ical_file_overrides__contains=user.username)
+            | Q(cached_ical_file_overrides__contains=user.username),
+            organization=user.organization,
+        )
 
 
 class OnCallSchedule(PolymorphicModel):
@@ -70,12 +107,12 @@ class OnCallSchedule(PolymorphicModel):
     prev_ical_file_overrides = models.TextField(null=True, default=None)
 
     organization = models.ForeignKey(
-        "user_management.Organization", on_delete=models.CASCADE, related_name="oncall_schedules"
+        "user_management.Organization", on_delete=NON_POLYMORPHIC_CASCADE, related_name="oncall_schedules"
     )
 
     team = models.ForeignKey(
         "user_management.Team",
-        on_delete=models.SET_NULL,
+        on_delete=NON_POLYMORPHIC_SET_NULL,
         related_name="oncall_schedules",
         null=True,
         default=None,
@@ -86,7 +123,7 @@ class OnCallSchedule(PolymorphicModel):
 
     # Slack user group to be updated when on-call users change for this schedule
     user_group = models.ForeignKey(
-        to="slack.SlackUserGroup", null=True, on_delete=models.SET_NULL, related_name="oncall_schedules"
+        to="slack.SlackUserGroup", null=True, on_delete=NON_POLYMORPHIC_SET_NULL, related_name="oncall_schedules"
     )
 
     # schedule reminder related fields
@@ -128,9 +165,11 @@ class OnCallSchedule(PolymorphicModel):
         """Returns list of calendars. Primary calendar should always be the first"""
         calendar_primary = None
         calendar_overrides = None
-        if self._ical_file_primary is not None:
+        # if self._ical_file_(primary|overrides) is None -> no cache, will trigger a refresh
+        # if self._ical_file_(primary|overrides) == "" -> cached value for an empty schedule
+        if self._ical_file_primary:
             calendar_primary = icalendar.Calendar.from_ical(self._ical_file_primary)
-        if self._ical_file_overrides is not None:
+        if self._ical_file_overrides:
             calendar_overrides = icalendar.Calendar.from_ical(self._ical_file_overrides)
         return calendar_primary, calendar_overrides
 
@@ -254,6 +293,148 @@ class OnCallSchedule(PolymorphicModel):
         )
         events = self._resolve_schedule(events)
         return events
+
+    def upcoming_shift_for_user(self, user, days=7):
+        user_tz = user.timezone or "UTC"
+        now = timezone.now()
+        starting_date = now.date()
+        current_shift = upcoming_shift = None
+
+        events = self.final_events(user_tz, starting_date, days=days)
+        for e in events:
+            if e["end"] < now:
+                # shift is finished, ignore
+                continue
+            users = {u["pk"] for u in e["users"]}
+            if user.public_primary_key in users:
+                if e["start"] < now and e["end"] > now:
+                    # shift is in progress
+                    current_shift = e
+                    continue
+                upcoming_shift = e
+                break
+
+        return current_shift, upcoming_shift
+
+    def quality_report(self, date: Optional[timezone.datetime], days: Optional[int]) -> QualityReport:
+        """
+        Return schedule quality report to be used by the web UI.
+        TODO: Add scores on "inside working hours" and "balance outside working hours" when
+        TODO: working hours editor is implemented in the web UI.
+        """
+        # get events to consider for calculation
+        if date is None:
+            today = datetime.datetime.now(tz=datetime.timezone.utc)
+            date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
+        if days is None:
+            days = 52 * 7  # consider next 52 weeks (~1 year)
+
+        events = self.final_events(user_tz="UTC", starting_date=date, days=days)
+
+        # an event is “good” if it's not a gap and not empty
+        good_events = [event for event in events if not event["is_gap"] and not event["is_empty"]]
+        if not good_events:
+            return {
+                "total_score": 0,
+                "comments": [{"type": QualityReportCommentType.WARNING, "text": "Schedule is empty"}],
+                "overloaded_users": [],
+            }
+
+        def event_duration(ev: dict) -> datetime.timedelta:
+            return ev["end"] - ev["start"]
+
+        def timedelta_sum(deltas: Iterable[datetime.timedelta]) -> datetime.timedelta:
+            return sum(deltas, start=datetime.timedelta())
+
+        def score_to_percent(value: float) -> int:
+            return round(value * 100)
+
+        def get_duration_map(evs: list[dict]) -> dict[str, datetime.timedelta]:
+            """Return a map of user PKs to total duration of events they are in."""
+            result = defaultdict(datetime.timedelta)
+            for ev in evs:
+                for user in ev["users"]:
+                    user_pk = user["pk"]
+                    result[user_pk] += event_duration(ev)
+
+            return result
+
+        def get_balance_score_by_duration_map(dur_map: dict[str, datetime.timedelta]) -> float:
+            """
+            Return a score between 0 and 1, based on how balanced the durations are in the duration map.
+            The formula is taken from https://github.com/grafana/oncall/issues/118#issuecomment-1161787854.
+            """
+            if len(dur_map) <= 1:
+                return 1
+
+            result = 0
+            for key_1, key_2 in itertools.combinations(dur_map, 2):
+                duration_1 = dur_map[key_1]
+                duration_2 = dur_map[key_2]
+
+                result += min(duration_1, duration_2) / max(duration_1, duration_2)
+
+            number_of_pairs = len(dur_map) * (len(dur_map) - 1) // 2
+            return result / number_of_pairs
+
+        # calculate good event score
+        good_events_duration = timedelta_sum(event_duration(event) for event in good_events)
+        good_event_score = min(good_events_duration / datetime.timedelta(days=days), 1)
+        good_event_score = score_to_percent(good_event_score)
+
+        # calculate balance score
+        duration_map = get_duration_map(good_events)
+        balance_score = get_balance_score_by_duration_map(duration_map)
+        balance_score = score_to_percent(balance_score)
+
+        # calculate overloaded users
+        if balance_score >= 95:  # tolerate minor imbalance
+            balance_score = 100
+            overloaded_users = []
+        else:
+            average_duration = timedelta_sum(duration_map.values()) / len(duration_map)
+            overloaded_user_pks = [user_pk for user_pk, duration in duration_map.items() if duration > average_duration]
+            usernames = {
+                u.public_primary_key: u.username
+                for u in User.objects.filter(public_primary_key__in=overloaded_user_pks).only(
+                    "public_primary_key", "username"
+                )
+            }
+            overloaded_users = []
+            for user_pk in overloaded_user_pks:
+                score = score_to_percent(duration_map[user_pk] / average_duration) - 100
+                username = usernames.get(user_pk) or "unknown"  # fallback to "unknown" if user is not found
+                overloaded_users.append({"id": user_pk, "username": username, "score": score})
+
+            # show most overloaded users first
+            overloaded_users.sort(key=lambda u: (-u["score"], u["username"]))
+
+        # generate comments regarding gaps
+        comments = []
+        if good_event_score == 100:
+            comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule has no gaps"})
+        else:
+            not_covered = 100 - good_event_score
+            comments.append(
+                {"type": QualityReportCommentType.WARNING, "text": f"Schedule has gaps ({not_covered}% not covered)"}
+            )
+
+        # generate comments regarding balance
+        if balance_score == 100:
+            comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule is perfectly balanced"})
+        else:
+            comments.append(
+                {"type": QualityReportCommentType.WARNING, "text": "Schedule has balance issues (see overloaded users)"}
+            )
+
+        # calculate total score (weighted sum of good event score and balance score)
+        total_score = round((good_event_score + balance_score) / 2)
+
+        return {
+            "total_score": total_score,
+            "comments": comments,
+            "overloaded_users": overloaded_users,
+        }
 
     def _resolve_schedule(self, events):
         """Calculate final schedule shifts considering rotations and overrides."""
@@ -401,6 +582,83 @@ class OnCallSchedule(PolymorphicModel):
             events = merged
         return events
 
+    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None, allow_empty_users=False):
+        """Generate iCal events file from custom on-call shifts."""
+        # default to empty string since it is not possible to have a no-events ical file
+        ical = ""
+        if qs.exists() or extra_shifts is not None:
+            if extra_shifts is None:
+                extra_shifts = []
+            end_line = "END:VCALENDAR"
+            calendar = icalendar.Calendar()
+            calendar.add("prodid", "-//web schedule//oncall//")
+            calendar.add("version", "2.0")
+            calendar.add("method", "PUBLISH")
+            ical_file = calendar.to_ical().decode()
+            ical = ical_file.replace(end_line, "").strip()
+            ical = f"{ical}\r\n"
+            for event in itertools.chain(qs.all(), extra_shifts):
+                ical += event.convert_to_ical(self.time_zone, allow_empty_users=allow_empty_users)
+            ical += f"{end_line}\r\n"
+        return ical
+
+    def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
+        """Return unsaved rotation and final schedule preview events."""
+        if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
+            qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
+            ical_attr = "cached_ical_file_overrides"
+            ical_property = "_ical_file_overrides"
+        elif custom_shift.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+            qs = self.custom_shifts.exclude(type=CustomOnCallShift.TYPE_OVERRIDE)
+            ical_attr = "cached_ical_file_primary"
+            ical_property = "_ical_file_primary"
+        else:
+            raise ValueError("Invalid shift type")
+
+        def _invalidate_cache(schedule, prop_name):
+            """Invalidate cached property cache"""
+            try:
+                delattr(schedule, prop_name)
+            except AttributeError:
+                pass
+
+        extra_shifts = [custom_shift]
+        if updated_shift_pk is not None:
+            try:
+                update_shift = qs.get(public_primary_key=updated_shift_pk)
+            except CustomOnCallShift.DoesNotExist:
+                pass
+            else:
+                if update_shift.event_is_started:
+                    custom_shift.rotation_start = max(
+                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
+                    )
+                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
+                    update_shift.until = custom_shift.rotation_start
+                    extra_shifts.append(update_shift)
+                else:
+                    # only reuse PK for preview when updating a rotation that won't be started after the update
+                    custom_shift.public_primary_key = updated_shift_pk
+                qs = qs.exclude(public_primary_key=updated_shift_pk)
+
+        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
+
+        original_value = getattr(self, ical_attr)
+        _invalidate_cache(self, ical_property)
+        setattr(self, ical_attr, ical_file)
+
+        # filter events using a temporal overriden calendar including the not-yet-saved shift
+        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
+        # return preview events for affected shifts
+        updated_shift_pks = {s.public_primary_key for s in extra_shifts}
+        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
+        final_events = self._resolve_schedule(events)
+
+        _invalidate_cache(self, ical_property)
+        setattr(self, ical_attr, original_value)
+
+        return shift_events, final_events
+
     # Insight logs
     @property
     def insight_logs_verbal(self):
@@ -517,6 +775,8 @@ class OnCallScheduleCalendar(OnCallSchedule):
     time_zone = models.CharField(max_length=100, default="UTC")
     custom_on_call_shifts = models.ManyToManyField("schedules.CustomOnCallShift", related_name="schedules")
 
+    enable_web_overrides = models.BooleanField(default=False, null=True)
+
     @cached_property
     def _ical_file_primary(self):
         """
@@ -532,14 +792,11 @@ class OnCallScheduleCalendar(OnCallSchedule):
         """
         Download iCal file imported from calendar
         """
-        cached_ical_file = self.cached_ical_file_overrides
-        if self.ical_url_overrides is not None and self.cached_ical_file_overrides is None:
-            self.cached_ical_file_overrides, self.ical_file_error_overrides = fetch_ical_file_or_get_error(
-                self.ical_url_overrides
-            )
-            self.save(update_fields=["cached_ical_file_overrides", "ical_file_error_overrides"])
-            cached_ical_file = self.cached_ical_file_overrides
-        return cached_ical_file
+        if self.cached_ical_file_overrides is not None:
+            return self.cached_ical_file_overrides
+
+        self._refresh_overrides_ical_file()
+        return self.cached_ical_file_overrides
 
     def _refresh_primary_ical_file(self):
         self.prev_ical_file_primary = self.cached_ical_file_primary
@@ -553,20 +810,27 @@ class OnCallScheduleCalendar(OnCallSchedule):
 
     def _refresh_overrides_ical_file(self):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
-        if self.ical_url_overrides is not None:
+
+        if self.enable_web_overrides:
+            # web overrides
+            qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
+            self.cached_ical_file_overrides = self._generate_ical_file_from_shifts(qs)
+        elif self.ical_url_overrides is not None:
             self.cached_ical_file_overrides, self.ical_file_error_overrides = fetch_ical_file_or_get_error(
                 self.ical_url_overrides,
             )
+
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides", "ical_file_error_overrides"])
 
     def _generate_ical_file_primary(self):
         """
         Generate iCal events file from custom on-call shifts (created via API)
         """
-        ical = None
+        # default to empty string since it is not possible to have a no-events ical file
+        ical = ""
         if self.custom_on_call_shifts.exists():
             end_line = "END:VCALENDAR"
-            calendar = Calendar()
+            calendar = icalendar.Calendar()
             calendar.add("prodid", "-//My calendar product//amixr//")
             calendar.add("version", "2.0")
             calendar.add("method", "PUBLISH")
@@ -577,6 +841,12 @@ class OnCallScheduleCalendar(OnCallSchedule):
                 ical += event.convert_to_ical(self.time_zone)
             ical += f"{end_line}\r\n"
         return ical
+
+    def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
+        """Return unsaved rotation and final schedule preview events."""
+        if custom_shift.type != CustomOnCallShift.TYPE_OVERRIDE:
+            raise ValueError("Invalid shift type")
+        return super().preview_shift(custom_shift, user_tz, starting_date, days, updated_shift_pk=updated_shift_pk)
 
     @property
     def insight_logs_type_verbal(self):
@@ -591,25 +861,6 @@ class OnCallScheduleCalendar(OnCallSchedule):
 
 class OnCallScheduleWeb(OnCallSchedule):
     time_zone = models.CharField(max_length=100, default="UTC")
-
-    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None, allow_empty_users=False):
-        """Generate iCal events file from custom on-call shifts."""
-        ical = None
-        if qs.exists() or extra_shifts is not None:
-            if extra_shifts is None:
-                extra_shifts = []
-            end_line = "END:VCALENDAR"
-            calendar = Calendar()
-            calendar.add("prodid", "-//web schedule//oncall//")
-            calendar.add("version", "2.0")
-            calendar.add("method", "PUBLISH")
-            ical_file = calendar.to_ical().decode()
-            ical = ical_file.replace(end_line, "").strip()
-            ical = f"{ical}\r\n"
-            for event in itertools.chain(qs.all(), extra_shifts):
-                ical += event.convert_to_ical(self.time_zone, allow_empty_users=allow_empty_users)
-            ical += f"{end_line}\r\n"
-        return ical
 
     def _generate_ical_file_primary(self):
         qs = self.custom_shifts.exclude(type=CustomOnCallShift.TYPE_OVERRIDE)
@@ -668,63 +919,6 @@ class OnCallScheduleWeb(OnCallSchedule):
             set(),
         )
         return users
-
-    def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
-        """Return unsaved rotation and final schedule preview events."""
-        if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
-            qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
-            ical_attr = "cached_ical_file_overrides"
-            ical_property = "_ical_file_overrides"
-        elif custom_shift.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
-            qs = self.custom_shifts.exclude(type=CustomOnCallShift.TYPE_OVERRIDE)
-            ical_attr = "cached_ical_file_primary"
-            ical_property = "_ical_file_primary"
-        else:
-            raise ValueError("Invalid shift type")
-
-        def _invalidate_cache(schedule, prop_name):
-            """Invalidate cached property cache"""
-            try:
-                delattr(schedule, prop_name)
-            except AttributeError:
-                pass
-
-        extra_shifts = [custom_shift]
-        if updated_shift_pk is not None:
-            try:
-                update_shift = qs.get(public_primary_key=updated_shift_pk)
-            except CustomOnCallShift.DoesNotExist:
-                pass
-            else:
-                if update_shift.event_is_started:
-                    custom_shift.rotation_start = max(
-                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
-                    )
-                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
-                    update_shift.until = custom_shift.rotation_start
-                    extra_shifts.append(update_shift)
-                else:
-                    # only reuse PK for preview when updating a rotation that won't be started after the update
-                    custom_shift.public_primary_key = updated_shift_pk
-                qs = qs.exclude(public_primary_key=updated_shift_pk)
-
-        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
-
-        original_value = getattr(self, ical_attr)
-        _invalidate_cache(self, ical_property)
-        setattr(self, ical_attr, ical_file)
-
-        # filter events using a temporal overriden calendar including the not-yet-saved shift
-        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
-        # return preview events for affected shifts
-        updated_shift_pks = {s.public_primary_key for s in extra_shifts}
-        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
-        final_events = self._resolve_schedule(events)
-
-        _invalidate_cache(self, ical_property)
-        setattr(self, ical_attr, original_value)
-
-        return shift_events, final_events
 
     # Insight logs
     @property

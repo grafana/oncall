@@ -8,7 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -20,6 +20,7 @@ from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
@@ -149,6 +150,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     is_finished_alerting_setup = models.BooleanField(default=False)
 
+    # *_*_template fields are legacy way of storing templates
+    # messaging_backends_templates for new integrations' templates
     slack_title_template = models.TextField(null=True, default=None)
     slack_message_template = models.TextField(null=True, default=None)
     slack_image_url_template = models.TextField(null=True, default=None)
@@ -175,33 +178,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     grouping_id_template = models.TextField(null=True, default=None)
     resolve_condition_template = models.TextField(null=True, default=None)
     acknowledge_condition_template = models.TextField(null=True, default=None)
-
-    PUBLIC_TEMPLATES_FIELDS = {
-        "grouping_key": "grouping_id_template",
-        "resolve_signal": "resolve_condition_template",
-        "acknowledge_signal": "acknowledge_condition_template",
-        "slack": {
-            "title": "slack_title_template",
-            "message": "slack_message_template",
-            "image_url": "slack_image_url_template",
-        },
-        "web": {
-            "title": "web_title_template",
-            "message": "web_message_template",
-            "image_url": "web_image_url_template",
-        },
-        "sms": {
-            "title": "sms_title_template",
-        },
-        "phone_call": {
-            "title": "phone_call_title_template",
-        },
-        "telegram": {
-            "title": "telegram_title_template",
-            "message": "telegram_message_template",
-            "image_url": "telegram_image_url_template",
-        },
-    }
 
     # additional messaging backends templates
     # e.g. {'<BACKEND-ID>': {'title': 'title template', 'message': 'message template', 'image_url': 'url template'}}
@@ -260,55 +236,16 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         super(AlertReceiveChannel, self).delete()
 
     def change_team(self, team_id, user):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
 
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
         if team_id is not None:
-            new_team = user.teams.filter(public_primary_key=team_id).first()
+            new_team = user.available_teams.filter(public_primary_key=team_id).first()
             if not new_team:
                 raise TeamCanNotBeChangedError("User is not a member of the selected team")
         else:
             new_team = None  # means General team
-
-        escalation_chains_pks = self.channel_filters.all().values_list("escalation_chain", flat=True)
-        escalation_chains = self.organization.escalation_chains.filter(pk__in=escalation_chains_pks).annotate(
-            num_integrations=Count(
-                "channel_filters__alert_receive_channel",
-                distinct=True,
-                filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
-            ),
-        )
-        if escalation_chains:
-            # check if escalation chains are connected to routes of other integrations
-            shared_escalation_chains = []
-            for escalation_chain in escalation_chains:
-                if escalation_chain.num_integrations > 1:
-                    shared_escalation_chains.append(escalation_chain)
-            if shared_escalation_chains:
-                shared_escalation_chains_verbal = ", ".join([ec.name for ec in shared_escalation_chains])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more escalation chain of integration routes "
-                    f"is connected to other integration: {shared_escalation_chains_verbal}"
-                )
-
-            escalation_policies = EscalationPolicy.objects.filter(escalation_chain__in=escalation_chains)
-
-            users_in_escalation = self.organization.users.filter(escalationpolicy__in=escalation_policies)
-            if new_team:
-                team_members = new_team.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            else:
-                team_members = self.organization.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            not_team_members = set(users_in_escalation) - set(team_members)
-            if not_team_members:
-                not_team_members_verbal = ", ".join([user.username for user in not_team_members])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more user from escalation chain(s) is not a member "
-                    f"of the selected team: {not_team_members_verbal}"
-                )
-
-            escalation_chains.update(team=new_team)
         self.team = new_team
         self.save(update_fields=["team"])
 
@@ -445,8 +382,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
-        # todo: implement inbound emails
-        pass
+        return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
     def default_channel_filter(self):
@@ -459,6 +395,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             "grouping_key": self.grouping_id_template,
             "resolve_signal": self.resolve_condition_template,
             "acknowledge_signal": self.acknowledge_condition_template,
+            "source_link": self.source_link_template,
             "slack": {
                 "title": self.slack_title_template,
                 "message": self.slack_message_template,
@@ -510,6 +447,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         disable_maintenance(alert_receive_channel_id=self.pk, force=True, user_id=user.pk)
 
     def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
+        # TODO: this method should be refactored.
+        # It's binded to slack and sending maintenance notification only there.
         channel_ids = list(
             self.channel_filters.filter(slack_channel_id__isnull=False, notify_in_slack=False).values_list(
                 "slack_channel_id", flat=True

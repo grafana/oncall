@@ -24,12 +24,20 @@ from apps.api.permissions import (
 )
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.throttlers import (
+    GetPhoneVerificationCodeThrottlerPerOrg,
+    GetPhoneVerificationCodeThrottlerPerUser,
+    TestCallThrottler,
+    VerifyPhoneNumberThrottlerPerOrg,
+    VerifyPhoneNumberThrottlerPerUser,
+)
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -46,6 +54,7 @@ from common.insight_log import (
     write_chatops_insight_log,
     write_resource_insight_log,
 )
+from common.recaptcha import check_recaptcha_internal_api
 
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
@@ -62,7 +71,7 @@ class CurrentUserView(APIView):
     def get(self, request):
         context = {"request": self.request, "format": self.format_kwarg, "view": self}
 
-        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
             connector = CloudConnector.objects.first()
@@ -76,7 +85,8 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
-        serializer = UserSerializer(request.user, data=self.request.data, context={"request": self.request})
+        data = self.request.data
+        serializer = UserSerializer(request.user, data=data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -130,6 +140,7 @@ class UserView(
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
     rbac_object_permissions = {
@@ -150,6 +161,7 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
+            "upcoming_shifts",
         ],
         IsOwnerOrHasUserSettingsReadPermission: [
             "check_availability",
@@ -196,9 +208,6 @@ class UserView(
 
         queryset = User.objects.filter(organization=self.request.user.organization)
 
-        if self.request.user.current_team is not None:
-            queryset = queryset.filter(teams=self.request.user.current_team).distinct()
-
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
 
         if slack_identity:
@@ -212,7 +221,7 @@ class UserView(
         page = self.paginate_queryset(queryset)
         if page is not None:
             context = {"request": self.request, "format": self.format_kwarg, "view": self}
-            if settings.OSS_INSTALLATION:
+            if settings.IS_OPEN_SOURCE:
                 if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                     from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
@@ -236,7 +245,7 @@ class UserView(
         except NotFound:
             return self.wrong_team_response()
 
-        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
             connector = CloudConnector.objects.first()
@@ -279,20 +288,40 @@ class UserView(
     def timezone_options(self, request):
         return Response(pytz.common_timezones)
 
-    @action(detail=True, methods=["get"])
+    @action(
+        detail=True,
+        methods=["get"],
+        throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
+    )
     def get_verification_code(self, request, pk):
+
+        logger.info("get_verification_code: validating reCAPTCHA code")
+        # valid = recaptcha.check_recaptcha_internal_api(request, "mobile_verification_code")
+        valid = check_recaptcha_internal_api(request, "mobile_verification_code")
+        if not valid:
+            logger.warning(f"get_verification_code: invalid reCAPTCHA validation")
+            return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
+        logger.info('get_verification_code: pass reCAPTCHA validation"')
+
         user = self.get_object()
         phone_manager = PhoneManager(user)
         code_sent = phone_manager.send_verification_code()
 
         if not code_sent:
+            logger.warning(f"Mobile app verification code was not successfully sent")
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["put"])
+    @action(
+        detail=True,
+        methods=["put"],
+        throttle_classes=[VerifyPhoneNumberThrottlerPerUser, VerifyPhoneNumberThrottlerPerOrg],
+    )
     def verify_number(self, request, pk):
         target_user = self.get_object()
         code = request.query_params.get("token", None)
+        if not code:
+            return Response("Invalid verification code", status=status.HTTP_400_BAD_REQUEST)
         prev_state = target_user.insight_logs_serialized
         phone_manager = PhoneManager(target_user)
         verified, error = phone_manager.verify_phone_number(code)
@@ -327,7 +356,7 @@ class UserView(
             )
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
     def make_test_call(self, request, pk):
         user = self.get_object()
         phone_number = user.verified_phone_number
@@ -433,6 +462,31 @@ class UserView(
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def upcoming_shifts(self, request, pk):
+        user = self.get_object()
+        try:
+            days = int(request.query_params.get("days", 7))  # fallback to a week
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # filter user-related schedules
+        schedules = OnCallSchedule.objects.related_to_user(user)
+
+        # check upcoming shifts
+        upcoming = {}
+        for schedule in schedules:
+            current_shift, upcoming_shift = schedule.upcoming_shift_for_user(user, days=days)
+            if current_shift or upcoming_shift:
+                upcoming[schedule.public_primary_key] = {
+                    "schedule": schedule.name,
+                    "is_oncall": current_shift is not None,
+                    "current_shift": current_shift,
+                    "next_shift": upcoming_shift,
+                }
+
+        return Response(upcoming, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):

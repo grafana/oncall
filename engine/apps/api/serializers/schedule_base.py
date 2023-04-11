@@ -17,6 +17,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     warnings = serializers.SerializerMethodField()
     on_call_now = serializers.SerializerMethodField()
     number_of_escalation_chains = serializers.SerializerMethodField()
+    enable_web_overrides = serializers.SerializerMethodField()
 
     class Meta:
         fields = [
@@ -33,6 +34,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "mention_oncall_start",
             "mention_oncall_next",
             "number_of_escalation_chains",
+            "enable_web_overrides",
         ]
 
     SELECT_RELATED = ["organization"]
@@ -74,6 +76,9 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         # return 0 for just created schedules
         num = getattr(obj, "num_escalation_chains", 0)
         return num or 0
+
+    def get_enable_web_overrides(self, obj):
+        return False
 
     def validate(self, attrs):
         if "slack_channel_id" in attrs:

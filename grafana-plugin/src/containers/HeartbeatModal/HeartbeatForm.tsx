@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { SelectOption } from 'state/types';
@@ -85,12 +85,12 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       <br />
       <br />
       <p>
-        A heartbeat acts as a healthcheck for incident monitoring. You can configure OnCall to regularly send alerts to
-        the heartbeat endpoint. If you don't receive one of these alerts, OnCall will issue an incident.
+        A heartbeat acts as a healthcheck for alert group monitoring. You can configure OnCall to regularly send alerts
+        to the heartbeat endpoint. If you don't receive one of these alerts, OnCall will issue an alert group.
       </p>
       <p>
-        <span>OnCall will issue an incident if no alert is received every</span>
-        <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+        <span>OnCall will issue an alert group if no alert is received every</span>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Select
             className={cx('select', 'timeout')}
             onChange={handleTimeoutChange}
@@ -101,7 +101,7 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
               label: timeoutOption.display_name,
             }))}
           />
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </p>
       {heartbeat && (
         <p>
@@ -125,11 +125,11 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
         </p>
       )}
       <HorizontalGroup className={cx('buttons')}>
-        <WithPermissionControl key="ok" userAction={UserActions.IntegrationsWrite}>
+        <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
           <Button variant="primary" onClick={handleOkClick}>
             {heartbeat ? 'Save' : 'Create'}
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </HorizontalGroup>
     </div>
   );

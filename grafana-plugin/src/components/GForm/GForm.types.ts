@@ -1,6 +1,7 @@
 export enum FormItemType {
   'Input' = 'input',
   'TextArea' = 'textarea',
+  'MultiSelect' = 'multiselect',
   'Select' = 'select',
   'GSelect' = 'gselect',
   'Switch' = 'switch',
@@ -13,6 +14,7 @@ export interface FormItem {
   type: FormItemType;
   description?: string;
   normalize?: (value: any) => any;
+  isVisible?: (data: any) => any;
   getDisabled?: (value: any) => any;
   validation?: {
     required?: boolean;

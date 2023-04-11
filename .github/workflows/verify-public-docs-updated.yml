@@ -12,7 +12,7 @@ jobs:
     name: Verify public documentation updated
     # Don't run this job if the "no public docs" label is applied to the PR
     # https://github.com/orgs/community/discussions/26712#discussioncomment-3253012
-    if: "!contains(github.event.pull_request.labels.*.name, 'no public docs')"
+    if: "!contains(github.event.pull_request.labels.*.name, 'pr:no public docs')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1

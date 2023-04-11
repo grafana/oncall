@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
+from apps.base.models import UserNotificationPolicyLogRecord
 
 alert_raw_request_data = {
     "evalMatches": [
@@ -588,6 +589,119 @@ def test_get_filter_invitees_are_ag_with_multiple_logs(
 
 
 @pytest.mark.django_db
+def test_get_filter_mine(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    client = APIClient()
+
+    organization, first_user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    acknowledged_alert_group = make_alert_group(
+        alert_receive_channel,
+        channel_filter=default_channel_filter,
+        acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
+        resolved_at=timezone.now() + datetime.timedelta(hours=2),
+        acknowledged=True,
+        acknowledged_by_user=first_user,
+    )
+    make_alert(alert_group=acknowledged_alert_group, raw_request_data=alert_raw_request_data)
+
+    # other alert group
+    make_alert_group(
+        alert_receive_channel,
+        channel_filter=default_channel_filter,
+    )
+    make_alert(alert_group=acknowledged_alert_group, raw_request_data=alert_raw_request_data)
+
+    url = reverse("api-internal:alertgroup-list")
+
+    first_response = client.get(
+        url + f"?mine=true",
+        format="json",
+        **make_user_auth_headers(first_user, token),
+    )
+    assert first_response.status_code == status.HTTP_200_OK
+    assert len(first_response.data["results"]) == 1
+
+    second_response = client.get(
+        url + f"?mine=false",
+        format="json",
+        **make_user_auth_headers(first_user, token),
+    )
+    assert second_response.status_code == status.HTTP_200_OK
+    assert len(second_response.data["results"]) == 2
+
+
+@pytest.mark.django_db
+def test_get_filter_involved_users(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    client = APIClient()
+
+    organization, first_user, token = make_organization_and_user_with_plugin_token()
+    second_user = make_user_for_organization(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+
+    acknowledged_alert_group = make_alert_group(
+        alert_receive_channel,
+        channel_filter=default_channel_filter,
+        acknowledged_at=timezone.now() + datetime.timedelta(hours=1),
+        resolved_at=timezone.now() + datetime.timedelta(hours=2),
+        acknowledged=True,
+        acknowledged_by_user=first_user,
+    )
+    make_alert(alert_group=acknowledged_alert_group, raw_request_data=alert_raw_request_data)
+
+    # other alert group
+    other_alert_group = make_alert_group(
+        alert_receive_channel,
+        channel_filter=default_channel_filter,
+    )
+    make_alert(alert_group=acknowledged_alert_group, raw_request_data=alert_raw_request_data)
+    # second user was notified
+    other_alert_group.personal_log_records.create(
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+        author=second_user,
+    )
+
+    url = reverse("api-internal:alertgroup-list")
+
+    first_response = client.get(
+        url + f"?acknowledged_by={first_user.public_primary_key}",
+        format="json",
+        **make_user_auth_headers(first_user, token),
+    )
+    assert first_response.status_code == status.HTTP_200_OK
+    assert len(first_response.data["results"]) == 1
+
+    second_response = client.get(
+        url
+        + f"?involved_users_are={first_user.public_primary_key}&involved_users_are={second_user.public_primary_key}",
+        format="json",
+        **make_user_auth_headers(first_user, token),
+    )
+    assert second_response.status_code == status.HTTP_200_OK
+    assert len(second_response.data["results"]) == 2
+
+
+@pytest.mark.django_db
 def test_get_filter_with_resolution_note(
     alert_group_internal_api_setup,
     make_resolution_note,
@@ -645,6 +759,53 @@ def test_get_filter_with_resolution_note_after_delete_resolution_note(
     response = client.get(url + "?with_resolution_note=true", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data["results"]) == 1
+
+
+@pytest.mark.django_db
+def test_get_filter_escalation_chain(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    client = APIClient()
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    escalation_chain_1 = make_escalation_chain(organization=organization)
+    escalation_chain_2 = make_escalation_chain(organization=organization)
+
+    channel_filter_1 = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain_1, is_default=True)
+    channel_filter_2 = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain_2, is_default=False)
+
+    alert_group_1 = make_alert_group(alert_receive_channel, channel_filter=channel_filter_1)
+    make_alert(alert_group=alert_group_1, raw_request_data=alert_raw_request_data)
+
+    alert_group_2 = make_alert_group(alert_receive_channel, channel_filter=channel_filter_2)
+    make_alert(alert_group=alert_group_2, raw_request_data=alert_raw_request_data)
+
+    url = reverse("api-internal:alertgroup-list")
+
+    # check when a single escalation chain is passed
+    response = client.get(
+        url + f"?escalation_chain={escalation_chain_1.public_primary_key}", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["pk"] == alert_group_1.public_primary_key
+
+    # check when multiple escalation chains are passed
+    response = client.get(
+        url
+        + f"?escalation_chain={escalation_chain_1.public_primary_key}&escalation_chain={escalation_chain_2.public_primary_key}",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 2
 
 
 @pytest.mark.django_db
@@ -1546,6 +1707,43 @@ def test_alert_group_preview_body_invalid_template_syntax(
     # Errors now returned preview content
     assert response.status_code == status.HTTP_200_OK
     assert response.data["preview"] == "Template Error: No test named &#x27;None&#x27; found."
+
+
+@pytest.mark.django_db
+def test_grouped_alerts(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    # create 101 alerts and check that only 100 are returned
+    for i in range(101):
+        make_alert(
+            alert_group=alert_group,
+            created_at=timezone.datetime.min + timezone.timedelta(minutes=i),
+            raw_request_data=alert_receive_channel.config.example_payload,
+        )
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["alerts"]) == 100
+
+    first_alert_created_at = response.json()["alerts"][0]["created_at"]
+    last_alert_created_at = response.json()["alerts"][-1]["created_at"]
+
+    first_alert_created_at = timezone.datetime.strptime(first_alert_created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
+    last_alert_created_at = timezone.datetime.strptime(last_alert_created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+    assert first_alert_created_at > last_alert_created_at
 
 
 @pytest.mark.django_db

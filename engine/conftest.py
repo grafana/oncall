@@ -55,6 +55,7 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
+from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
@@ -80,6 +81,7 @@ from apps.telegram.tests.factories import (
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
+from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -173,6 +175,22 @@ def make_token_for_organization():
         return PluginAuthToken.create_auth_token(organization)
 
     return _make_token_for_organization
+
+
+@pytest.fixture
+def make_mobile_app_verification_token_for_user():
+    def _make_mobile_app_verification_token_for_user(user, organization):
+        return MobileAppVerificationToken.create_auth_token(user, organization)
+
+    return _make_mobile_app_verification_token_for_user
+
+
+@pytest.fixture
+def make_mobile_app_auth_token_for_user():
+    def _make_mobile_app_auth_token_for_user(user, organization):
+        return MobileAppAuthToken.create_auth_token(user, organization)
+
+    return _make_mobile_app_auth_token_for_user
 
 
 @pytest.fixture
@@ -608,6 +626,24 @@ def make_custom_action():
 
 
 @pytest.fixture
+def make_custom_webhook():
+    def _make_custom_webhook(organization, **kwargs):
+        custom_webhook = CustomWebhookFactory(organization=organization, **kwargs)
+        return custom_webhook
+
+    return _make_custom_webhook
+
+
+@pytest.fixture
+def make_webhook_response():
+    def _make_webhook_response(**kwargs):
+        webhook_response = WebhookResponseFactory(**kwargs)
+        return webhook_response
+
+    return _make_webhook_response
+
+
+@pytest.fixture
 def make_slack_user_group():
     def _make_slack_user_group(slack_team_identity, **kwargs):
         slack_user_group = SlackUserGroupFactory(slack_team_identity=slack_team_identity, **kwargs)
@@ -641,6 +677,34 @@ def make_organization_and_user_with_plugin_token(make_organization_and_user, mak
         return organization, user, token
 
     return _make_organization_and_user_with_plugin_token
+
+
+@pytest.fixture()
+def make_organization_and_user_with_mobile_app_verification_token(
+    make_organization_and_user, make_mobile_app_verification_token_for_user
+):
+    def _make_organization_and_user_with_mobile_app_verification_token(
+        role: typing.Optional[LegacyAccessControlRole] = None,
+    ):
+        organization, user = make_organization_and_user(role)
+        _, token = make_mobile_app_verification_token_for_user(user, organization)
+        return organization, user, token
+
+    return _make_organization_and_user_with_mobile_app_verification_token
+
+
+@pytest.fixture()
+def make_organization_and_user_with_mobile_app_auth_token(
+    make_organization_and_user, make_mobile_app_auth_token_for_user
+):
+    def _make_organization_and_user_with_mobile_app_auth_token(
+        role: typing.Optional[LegacyAccessControlRole] = None,
+    ):
+        organization, user = make_organization_and_user(role)
+        _, token = make_mobile_app_auth_token_for_user(user, organization)
+        return organization, user, token
+
+    return _make_organization_and_user_with_mobile_app_auth_token
 
 
 @pytest.fixture()
@@ -752,12 +816,6 @@ def reload_urls(settings):
 @pytest.fixture()
 def load_slack_urls(settings):
     settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
-    reload_urls(settings)
-
-
-@pytest.fixture()
-def load_mobile_app_urls(settings):
-    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
     reload_urls(settings)
 
 

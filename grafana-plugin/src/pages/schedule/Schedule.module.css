@@ -1,9 +1,16 @@
 .root {
-  max-width: 1600px;
-  margin: 0 auto;
-
   --rotations-border: var(--border-weak);
   --rotations-background: var(--background-secondary);
+}
+
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  column-gap: 8px;
+  row-gap: 8px;
+  min-width: 250px;
+  align-items: center;
 }
 
 .header {
@@ -29,4 +36,9 @@
   gap: 16px;
   position: relative;
   width: 100%;
+}
+
+.not-found {
+  margin: 50px auto;
+  text-align: center;
 }

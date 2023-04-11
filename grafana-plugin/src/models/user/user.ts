@@ -8,6 +8,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
+import { throttlingError } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
@@ -105,30 +106,34 @@ export class UserStore extends BaseStore {
 
   @action
   async updateItems(f: any = { searchTerm: '' }, page = 1) {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search } = filters;
-    const { count, results } = await makeRequest(this.path, {
-      params: { search, page },
+    return new Promise<void>(async (resolve) => {
+      const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
+      const { searchTerm: search } = filters;
+      const { count, results } = await makeRequest(this.path, {
+        params: { search, page },
+      });
+
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: User }, item: User) => ({
+            ...acc,
+            [item.pk]: {
+              ...item,
+              timezone: getTimezone(item),
+            },
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        count,
+        results: results.map((item: User) => item.pk),
+      };
+
+      resolve();
     });
-
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: User }, item: User) => ({
-          ...acc,
-          [item.pk]: {
-            ...item,
-            timezone: getTimezone(item),
-          },
-        }),
-        {}
-      ),
-    };
-
-    this.searchResult = {
-      count,
-      results: results.map((item: User) => item.pk),
-    };
   }
 
   getSearchResult() {
@@ -233,17 +238,18 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async fetchVerificationCode(userPk: User['pk']) {
+  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
-    });
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
+    }).catch(throttlingError);
   }
 
   @action
   async verifyPhone(userPk: User['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
-    });
+    }).catch(throttlingError);
   }
 
   @action
@@ -375,6 +381,12 @@ export class UserStore extends BaseStore {
   async deleteiCalLink(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'DELETE',
+    });
+  }
+
+  async checkUserAvailability(userPk: User['pk']) {
+    return await makeRequest(`/users/${userPk}/check_availability/`, {
+      method: 'GET',
     });
   }
 }

@@ -9,14 +9,17 @@ import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_fi
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
 import { CloudStore } from 'models/cloud/cloud';
+import { DirectPagingStore } from 'models/direct_paging/direct_paging';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
+import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { MaintenanceStore } from 'models/maintenance/maintenance';
 import { OrganizationLogStore } from 'models/organization_log/organization_log';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -45,6 +48,9 @@ export class RootBaseStore {
 
   @observable
   backendLicense = '';
+
+  @observable
+  recaptchaSiteKey = '';
 
   @observable
   initializationError = null;
@@ -76,9 +82,12 @@ export class RootBaseStore {
 
   userStore: UserStore = new UserStore(this);
   cloudStore: CloudStore = new CloudStore(this);
+  directPagingStore: DirectPagingStore = new DirectPagingStore(this);
   grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
+
+  outgoingWebhook2Store: OutgoingWebhook2Store = new OutgoingWebhook2Store(this);
   alertReceiveChannelFiltersStore: AlertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
   escalationChainStore: EscalationChainStore = new EscalationChainStore(this);
   escalationPolicyStore: EscalationPolicyStore = new EscalationPolicyStore(this);
@@ -95,6 +104,7 @@ export class RootBaseStore {
   apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
   OrganizationLogStore: OrganizationLogStore = new OrganizationLogStore(this);
   globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
+  filtersStore: FiltersStore = new FiltersStore(this);
   // stores
 
   async updateBasicData() {
@@ -193,6 +203,7 @@ export class RootBaseStore {
       // everything is all synced successfully at this point..
       this.backendVersion = syncDataResponse.version;
       this.backendLicense = syncDataResponse.license;
+      this.recaptchaSiteKey = syncDataResponse.recaptcha_site_key;
     }
 
     try {

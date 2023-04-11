@@ -2,8 +2,18 @@
   display: block;
 }
 
+.title {
+  background: var(--background-primary);
+  top: -15px;
+  position: sticky;
+  margin: -15px -15px 0 -15px;
+  padding: 15px;
+  z-index: 10;
+}
+
 .draggable {
-  top: 0;
+  top: 10%;
+  position: absolute;
 
   /* transition: transform 300ms ease; */
 }
@@ -71,4 +81,8 @@
 
 .content {
   margin: 8px 0 16px 0;
+}
+
+.confirmation-modal {
+  width: 500px;
 }

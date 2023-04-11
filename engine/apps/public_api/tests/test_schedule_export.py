@@ -7,7 +7,44 @@ from rest_framework.test import APIClient
 from apps.auth_token.models import ScheduleExportAuthToken, UserScheduleExportAuthToken
 from apps.schedules.models import OnCallScheduleICal
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/c_6i1aprpgaqu89hqeelv7mrj264%40group.calendar.google.com/private-6a995cea6e74dd2cdc5d8c75bee06a2f/basic.ics"  # noqa
+ICAL_DATA = """
+BEGIN:VCALENDAR
+PRODID://Grafana Labs//Grafana On-Call//
+CALSCALE:GREGORIAN
+X-WR-CALNAME:test_ical_schedule
+X-WR-TIMEZONE:UTC
+BEGIN:VEVENT
+SUMMARY:justin.hunthrop@grafana.com
+DTSTART;TZID=America/Chicago:20211015T000000
+DTEND;TZID=America/Chicago:20211015T120000
+DTSTAMP:20230223T144743Z
+UID:03vjiku070po61a9t8t7ln9q4o@google.com
+SEQUENCE:1
+RRULE:FREQ=DAILY
+CREATED:20211015T013834Z
+DESCRIPTION:
+LAST-MODIFIED:20211015T142118Z
+LOCATION:
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:amixr
+DTSTART;TZID=America/Chicago:20211015T120000
+DTEND;TZID=America/Chicago:20211016T000000
+DTSTAMP:20230223T144743Z
+UID:0g1cuqi56qtaqvgb38crsh0mpa@google.com
+SEQUENCE:1
+RRULE:FREQ=DAILY
+CREATED:20211015T020105Z
+DESCRIPTION:
+LAST-MODIFIED:20211015T140758Z
+LOCATION:
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
+"""
 
 
 @pytest.mark.django_db
@@ -19,7 +56,7 @@ def test_export_calendar(make_organization_and_user_with_token, make_schedule):
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        ical_url_primary=ICAL_URL,
+        cached_ical_file_primary=ICAL_DATA,
     )
     _, schedule_token = ScheduleExportAuthToken.create_auth_token(
         user=user, organization=organization, schedule=schedule
@@ -51,7 +88,7 @@ def test_export_user_calendar(make_organization_and_user_with_token, make_schedu
         organization,
         schedule_class=OnCallScheduleICal,
         name="test_ical_schedule",
-        ical_url_primary=ICAL_URL,
+        cached_ical_file_primary=ICAL_DATA,
     )
 
     _, schedule_token = UserScheduleExportAuthToken.create_auth_token(user=user, organization=organization)

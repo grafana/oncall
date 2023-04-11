@@ -28,14 +28,6 @@ def escalate_alert_group(alert_group_pk):
         except IndexError:
             return f"Alert group with pk {alert_group_pk} doesn't exist"
 
-        if (
-            alert_group.channel.maintenance_mode is not None
-            or alert_group.channel.organization.maintenance_mode is not None
-        ):
-            task_logger.info(f"alert_group {alert_group.pk} organization or alert_receive_channel on maintenance.")
-            alert_group.stop_escalation()
-            return
-
         if not compare_escalations(escalate_alert_group.request.id, alert_group.active_escalation_id):
             return "Active escalation ID mismatch. Duplication or non-active escalation triggered. Active: {}".format(
                 alert_group.active_escalation_id

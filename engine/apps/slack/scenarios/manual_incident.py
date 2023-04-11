@@ -28,7 +28,7 @@ class StartCreateIncidentFromMessage(scenario_step.ScenarioStep):
         "incident_create_develop",
     ]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         input_id_prefix = _generate_input_id_prefix()
 
         channel_id = payload["channel"]["id"]
@@ -67,7 +67,7 @@ class FinishCreateIncidentFromMessage(scenario_step.ScenarioStep):
     FinishCreateIncidentFromMessage creates a manual incident from the slack message via submenu
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         Alert = apps.get_model("alerts", "Alert")
 
         private_metadata = json.loads(payload["view"]["private_metadata"])
@@ -122,7 +122,7 @@ class FinishCreateIncidentFromMessage(scenario_step.ScenarioStep):
             link_to_upstream_details=None,
             alert_receive_channel=alert_receive_channel,
             raw_request_data=payload,
-            integration_unique_data={"created_by": user.get_user_verbal_for_team_for_slack()},
+            integration_unique_data={"created_by": user.get_username_with_slack_verbal()},
             force_route_id=selected_route.pk,
         )
 
@@ -154,7 +154,7 @@ class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
     TITLE_INPUT_BLOCK_ID = "TITLE_INPUT"
     MESSAGE_INPUT_BLOCK_ID = "MESSAGE_INPUT"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         input_id_prefix = _generate_input_id_prefix()
 
         try:
@@ -188,7 +188,7 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
     FinishCreateIncidentFromSlashCommand creates a manual incident from the slack message via slash message
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         Alert = apps.get_model("alerts", "Alert")
 
         title = _get_title_from_payload(payload)
@@ -264,7 +264,7 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
 
 
 class OnOrgChange(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         with_title_and_message_inputs = private_metadata.get("with_title_and_message_inputs", False)
         submit_routing_uid = private_metadata.get("submit_routing_uid")
@@ -308,7 +308,7 @@ class OnOrgChange(scenario_step.ScenarioStep):
 
 
 class OnTeamChange(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         with_title_and_message_inputs = private_metadata.get("with_title_and_message_inputs", False)
         submit_routing_uid = private_metadata.get("submit_routing_uid")
@@ -355,7 +355,7 @@ class OnRouteChange(scenario_step.ScenarioStep):
     OnRouteChange is just a plug to handle change of value on route select
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         pass
 
 

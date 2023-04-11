@@ -381,11 +381,6 @@ class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
         return Response("Ok.")
 
 
-class InboundWebhookEmailView(AlertChannelDefiningMixin, APIView):
-    # todo: implement inbound emails
-    pass
-
-
 class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBeatRateLimitMixin, APIView):
     def get(self, request, alert_receive_channel):
         self._process_heartbeat_signal(request, alert_receive_channel)

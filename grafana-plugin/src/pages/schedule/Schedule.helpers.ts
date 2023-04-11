@@ -7,8 +7,17 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
+export const getNow = (tz: Timezone) => {
+  const now = dayjs().tz(tz);
+  return now.utcOffset() === 0 ? now.utc() : now;
+};
+
+export const getStartOfDay = (tz: Timezone) => {
+  return getNow(tz).startOf('day');
+};
+
 export const getStartOfWeek = (tz: Timezone) => {
-  return dayjs().tz(tz).utcOffset() === 0 ? dayjs().utc().startOf('isoWeek') : dayjs().tz(tz).startOf('isoWeek');
+  return getNow(tz).startOf('isoWeek');
 };
 
 export const getUTCString = (moment: dayjs.Dayjs) => {

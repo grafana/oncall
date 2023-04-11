@@ -18,6 +18,16 @@ export class GrafanaTeamStore extends BaseStore {
   }
 
   @action
+  async updateTeam(id: GrafanaTeam['id'], data: Partial<GrafanaTeam>) {
+    const result = await this.update(id, data);
+
+    this.items = {
+      ...this.items,
+      [id]: result,
+    };
+  }
+
+  @action
   async updateItems(query = '') {
     const result = await this.getAll();
 

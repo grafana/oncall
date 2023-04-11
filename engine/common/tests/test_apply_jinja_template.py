@@ -14,6 +14,18 @@ def test_apply_jinja_template():
     assert payload == result
 
 
+def test_apply_jinja_template_regex_match():
+    payload = {"name": "test"}
+
+    assert apply_jinja_template("{{ payload.name | regex_match('.*') }}", payload) == "True"
+    assert apply_jinja_template("{{ payload.name | regex_match('tes') }}", payload) == "True"
+    assert apply_jinja_template("{{ payload.name | regex_match('test1') }}", payload) == "False"
+
+    # Check that exception is raised when regex is invalid
+    with pytest.raises(JinjaTemplateError):
+        apply_jinja_template("{{ payload.name | regex_match('*') }}", payload)
+
+
 def test_apply_jinja_template_bad_syntax_error():
     with pytest.raises(JinjaTemplateError):
         apply_jinja_template("{{%", payload={})

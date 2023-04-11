@@ -1383,6 +1383,37 @@ def test_get_oncall_users_for_multiple_schedules(
 
 
 @pytest.mark.django_db
+def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
+    get_ical,
+    make_organization,
+    make_user_for_organization,
+    make_on_call_shift,
+    make_schedule,
+):
+    """
+    Test that emails are case insensitive when matching users to on-call shifts.
+    https://github.com/grafana/oncall/issues/1296
+    """
+    organization = make_organization()
+
+    # user's email case is the opposite of the one in the ICal file below (Test@TEST.test)
+    user = make_user_for_organization(organization, email="tEST@test.TEST")
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+
+    # Load ICal file with an event for user with email Test@TEST.test for 6 February 2023, 11:00 UTC - 12:00 UTC
+    calendar = get_ical("override_email_case_sensitivity.ics")
+    schedule.cached_ical_file_overrides = calendar.to_ical().decode()
+    schedule.save(update_fields=["cached_ical_file_overrides"])
+
+    # Get on-call users for 6 February 2023 11:30 UTC
+    events_datetime = timezone.datetime(2023, 2, 6, 11, 30, tzinfo=timezone.utc)
+    schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
+    oncall_users = schedules.get_oncall_users(events_datetime=events_datetime)
+
+    assert oncall_users == {schedule.pk: [user]}
+
+
+@pytest.mark.django_db
 def test_shift_convert_to_ical(make_organization_and_user, make_on_call_shift):
     organization, user = make_organization_and_user()
 
@@ -1481,3 +1512,156 @@ def test_rolling_users_event_daily_by_day_start_none_convert_to_ical(
     ical_data = on_call_shift.convert_to_ical()
     # empty result since there is no event in the defined time range
     assert ical_data == ""
+
+
+@pytest.mark.django_db
+def test_etc_utc_timezone_convert_to_ical(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_on_call_shift,
+):
+    organization, user_1 = make_organization_and_user()
+    user_2 = make_user_for_organization(organization)
+
+    date = timezone.now().replace(microsecond=0)
+    until = date + timezone.timedelta(days=30)
+
+    data = {
+        "priority_level": 1,
+        "start": date,
+        "rotation_start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
+        "interval": 2,
+        "until": until,
+        "time_zone": "Etc/UTC",
+    }
+
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = [[user_1], [user_2]]
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    ical_rrule_until = on_call_shift.until.strftime("%Y%m%dT%H%M%S")
+    expected_rrule = f"RRULE:FREQ=HOURLY;UNTIL={ical_rrule_until}Z;INTERVAL=4;WKST=SU"
+
+    assert on_call_shift.event_interval == len(rolling_users) * data["interval"]
+    assert expected_rrule in ical_data
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "starting_day,force,deleted",
+    [
+        (-1, False, False),
+        (-1, True, True),
+        (1, False, True),
+    ],
+)
+def test_delete_shift(make_organization_and_user, make_schedule, make_on_call_shift, starting_day, force, deleted):
+    organization, user_1 = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = (timezone.now() + timezone.timedelta(days=starting_day)).replace(microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+
+    on_call_shift.delete(force=force)
+
+    if deleted:
+        with pytest.raises(CustomOnCallShift.DoesNotExist):
+            on_call_shift.refresh_from_db()
+    else:
+        on_call_shift.refresh_from_db()
+        assert on_call_shift.until is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "starting_day,duration,deleted",
+    [
+        (-1, 2, False),
+        (-2, 1, False),
+        (1, 1, True),
+    ],
+)
+def test_delete_override(
+    make_organization_and_user, make_schedule, make_on_call_shift, starting_day, duration, deleted
+):
+    organization, _ = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = (timezone.now() + timezone.timedelta(days=starting_day)).replace(microsecond=0)
+
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(days=duration),
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+    original_duration = on_call_shift.duration
+
+    on_call_shift.delete()
+
+    if deleted:
+        with pytest.raises(CustomOnCallShift.DoesNotExist):
+            on_call_shift.refresh_from_db()
+    else:
+        on_call_shift.refresh_from_db()
+        assert on_call_shift.until is not None
+        assert (
+            on_call_shift.duration == original_duration
+            if (starting_day + duration) < 0
+            else on_call_shift.duration < original_duration
+        )
+
+
+@pytest.mark.django_db
+def test_until_rrule_must_be_utc(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user_1 = make_organization_and_user()
+    user_2 = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, time_zone="Europe/Warsaw")
+
+    date = timezone.now().replace(microsecond=0) - timezone.timedelta(days=7)
+    data = {
+        "priority_level": 1,
+        "start": date,
+        "rotation_start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "interval": 2,
+        "time_zone": "Europe/Warsaw",
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = [[user_1], [user_2]]
+    on_call_shift.add_rolling_users(rolling_users)
+
+    # finish the rotation, will set until value
+    on_call_shift.delete()
+
+    on_call_shift.refresh_from_db()
+    assert on_call_shift.until.tzname() == "UTC"
+    ical_data = on_call_shift.convert_to_ical()
+    ical_rrule_until = on_call_shift.until.strftime("%Y%m%dT%H%M%S")
+    expected_rrule = f"RRULE:FREQ=WEEKLY;UNTIL={ical_rrule_until}Z;INTERVAL=4;WKST=SU"
+
+    assert expected_rrule in ical_data

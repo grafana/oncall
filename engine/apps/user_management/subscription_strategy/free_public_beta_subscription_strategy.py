@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.conf import settings
 from django.utils import timezone
 
 from apps.email.models import EmailMessage
@@ -12,9 +13,6 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
     This subscription is responsible only for limiting calls, sms and emails. Notifications limited per user per day.
     User management and limitations happens on grafana side.
     """
-
-    PHONE_NOTIFICATIONS_LIMIT = 200
-    EMAILS_LIMIT = 200
 
     def phone_calls_left(self, user):
         return self._calculate_phone_notifications_left(user)
@@ -76,8 +74,8 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
 
     @property
     def _phone_notifications_limit(self):
-        return self.PHONE_NOTIFICATIONS_LIMIT
+        return settings.PHONE_NOTIFICATIONS_LIMIT
 
     @property
     def _emails_limit(self):
-        return self.EMAILS_LIMIT
+        return settings.EMAIL_NOTIFICATIONS_LIMIT

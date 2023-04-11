@@ -41,6 +41,7 @@ from .views.telegram_channels import TelegramChannelViewSet
 from .views.test_insight_logs import TestInsightLogsAPIView
 from .views.user import CurrentUserView, UserView
 from .views.user_group import UserGroupViewSet
+from .views.webhooks import WebhooksView
 
 app_name = "api-internal"
 
@@ -58,6 +59,7 @@ router.register(
 router.register(r"channel_filters", ChannelFilterView, basename="channel_filter")
 router.register(r"schedules", ScheduleView, basename="schedule")
 router.register(r"custom_buttons", CustomButtonView, basename="custom_button")
+router.register(r"webhooks", WebhooksView, basename="webhooks")
 router.register(r"resolution_notes", ResolutionNoteView, basename="resolution_note")
 router.register(r"telegram_channels", TelegramChannelViewSet, basename="telegram_channel")
 router.register(r"slack_channels", SlackChannelView, basename="slack_channel")

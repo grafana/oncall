@@ -21,7 +21,7 @@ PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP = {
     "sms_contact_method": "notify_by_sms",
     "phone_contact_method": "notify_by_phone_call",
     "email_contact_method": "notify_by_email",
-    "push_notification_contact_method": ONCALL_DEFAULT_CONTACT_METHOD,
+    "push_notification_contact_method": "notify_by_mobile_app",
 }
 PAGERDUTY_TO_ONCALL_VENDOR_MAP = {
     "Datadog": "datadog",
@@ -35,3 +35,18 @@ PAGERDUTY_TO_ONCALL_VENDOR_MAP = {
     "Elastic Alerts": "elastalert",
     "Firebase": "fabric",
 }
+
+SCHEDULE_MIGRATION_MODE_ICAL = "ical"
+SCHEDULE_MIGRATION_MODE_WEB = "web"
+SCHEDULE_MIGRATION_MODE = os.getenv(
+    "SCHEDULE_MIGRATION_MODE", SCHEDULE_MIGRATION_MODE_ICAL
+)
+
+# Experimental feature to migrate PD rulesets to OnCall integrations
+EXPERIMENTAL_MIGRATE_EVENT_RULES = (
+    os.getenv("EXPERIMENTAL_MIGRATE_EVENT_RULES", "false").lower() == "true"
+)
+# Set to true to include service & integration names in the ruleset name
+EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES = (
+    os.getenv("EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES", "false").lower() == "true"
+)

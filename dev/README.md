@@ -6,6 +6,7 @@
   - [Configuring Grafana](#configuring-grafana)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
+- [UI Integration Tests](#ui-integration-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -20,6 +21,7 @@
   - [symbol not found in flat namespace '\_EVP_DigestSignUpdate'](#symbol-not-found-in-flat-namespace-_evp_digestsignupdate)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
+- [How to write database migrations](#how-to-write-database-migrations)
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
@@ -37,8 +39,8 @@ environment variable.
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
-4. You should now see the OnCall plugin configuration page.  You may safely ignore the warning about the invalid
-   plugin signature.  When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
+4. You should now see the OnCall plugin configuration page. You may safely ignore the warning about the invalid
+   plugin signature. When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
    communication channels.
 5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack,
    Telegram, Twilio or SMS/calls through Grafana Cloud.
@@ -137,42 +139,25 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
+## UI Integration Tests
+
+We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
+are run on pull request CI builds. New features should ideally include a new/modified integration test.
+
+To run these tests locally simply do the following:
+
+```bash
+npx playwright install  # install playwright dependencies
+cp ./grafana-plugin/.env.example ./grafana-plugin/.env
+# you may need to tweak the values in ./grafana-plugin/.env according to your local setup
+cd grafana-plugin
+yarn test:integration
+```
+
 ## Useful `make` commands
 
 See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
-
-```bash
-make init # build the frontend plugin code then run make start
-make start # start all of the docker containers
-make stop # stop all of the docker containers
-make restart # restart all docker containers
-make build # rebuild images (e.g. when changing requirements.txt)
-# run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
-# e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make engine-manage CMD="..."
-
-make backend-debug-enable # enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
-make backend-debug-disable # disable Django's debug mode and Silk profiling
-
-# this will remove all of the images, containers, volumes, and networks
-# associated with your local OnCall developer setup
-make cleanup
-
-make start-celery-beat # start celery beat
-make purge-queues # purge celery queues
-make shell # starts an OnCall engine Django shell
-make dbshell # opens a DB shell
-make exec-engine # exec into engine container's bash
-make test # run backend tests
-
-# run Django's `manage.py` script, passing `$CMD` as arguments.
-# e.g. `make backend-manage-command CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make backend-manage-command CMD="..."
-
-# run both frontend and backend linters
-# may need to run `yarn install` from within `grafana-plugin` to install several `pre-commit` dependencies
-make lint
-```
+> 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
 ## Setting environment variables
 
@@ -397,3 +382,15 @@ make run-backend-celery
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env.dev file
    - Change port from 8000 to 8080
+
+## How to write database migrations
+
+We use [django-migration-linter](https://github.com/3YOURMIND/django-migration-linter) to keep database migrations
+backwards compatible
+
+- we can automatically run migrations and they are zero-downtime, e.g. old code can work with the migrated database
+- we can run and rollback migrations without worrying about data safety
+- OnCall is deployed to the multiple environments core team is not able to control
+
+See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
+for the common mistakes and best practices

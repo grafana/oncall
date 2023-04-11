@@ -4,7 +4,6 @@ import { Card } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { APP_SUBTITLE, GRAFANA_LICENSE_OSS } from 'utils/consts';
@@ -21,11 +20,7 @@ export default function Header({ backendLicense }: { backendLicense: string }) {
           <span className="page-header__logo">
             <img className="page-header__img" src={logo} alt="Grafana OnCall" />
           </span>
-
           <div className="page-header__info-block">{renderHeading()}</div>
-        </div>
-        <div className={cx('navbar-right')}>
-          <GrafanaTeamSelect />
         </div>
       </div>
     </div>
@@ -36,7 +31,7 @@ export default function Header({ backendLicense }: { backendLicense: string }) {
       return (
         <div className={cx('heading')}>
           <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
-          <div className="u-flex u-align-items-center">
+          <div className={cx('navbar-heading-container')}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
             <Card heading={undefined} className={cx('navbar-heading')}>
               <a

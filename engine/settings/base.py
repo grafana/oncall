@@ -2,19 +2,18 @@ import os
 from random import randrange
 
 from celery.schedules import crontab
+from firebase_admin import initialize_app
 
 from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
-# Indicates if instance is OSS installation.
-# It is needed to plug-in oss application and urls.
-OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
 CLOUD_LICENSE_NAME = "Cloud"
 LICENSE = os.environ.get("ONCALL_LICENSE", default=OPEN_SOURCE_LICENSE_NAME)
+IS_OPEN_SOURCE = LICENSE == OPEN_SOURCE_LICENSE_NAME
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -57,9 +56,9 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
-FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=False)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
+FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -69,6 +68,7 @@ TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_NUMBER = os.environ.get("TWILIO_NUMBER")
 TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
+PHONE_NOTIFICATIONS_LIMIT = getenv_integer("PHONE_NOTIFICATIONS_LIMIT", 200)
 
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -215,10 +215,12 @@ INSTALLED_APPS = [
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
+    "apps.webhooks",
     "corsheaders",
     "debug_toolbar",
     "social_django",
     "polymorphic",
+    "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
 ]
@@ -393,6 +395,10 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
+ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
+    "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
+)
+
 CELERY_BEAT_SCHEDULE = {
     "restore_heartbeat_tasks": {
         "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
@@ -401,7 +407,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     "check_escalations": {
         "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
-        "schedule": 10 * 60,
+        # the task should be executed a minute or two less than the integration's configured interval
+        #
+        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
+        # to something like 13 * 60 (every 13 minutes)
+        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
         "args": (),
     },
     "start_refresh_ical_files": {
@@ -507,6 +517,9 @@ SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
 SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
 
+# Controls if slack integration can be installed/uninstalled.
+SLACK_INTEGRATION_MAINTENANCE_ENABLED = os.environ.get("SLACK_INTEGRATION_MAINTENANCE_ENABLED", False)
+
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
 
@@ -537,9 +550,6 @@ SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = []
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = getenv_boolean("SOCIAL_AUTH_REDIRECT_IS_HTTPS", default=True)
 SOCIAL_AUTH_SLUGIFY_USERNAMES = True
 
-FEATURE_CAPTCHA_ENABLED = getenv_boolean("FEATURE_CAPTCHA_ENABLED", default=False)
-RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
-
 PUBLIC_PRIMARY_KEY_MIN_LENGTH = 12
 # excluding (O,0) Result: (25 + 9)^12 combinations
 PUBLIC_PRIMARY_KEY_ALLOWED_CHARS = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"
@@ -559,16 +569,12 @@ GRAFANA_COM_ADMIN_API_TOKEN = os.environ.get("GRAFANA_COM_ADMIN_API_TOKEN", None
 
 GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
-EXTRA_MESSAGING_BACKENDS = []
-if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
-    from firebase_admin import initialize_app
+EXTRA_MESSAGING_BACKENDS = [
+    ("apps.mobile_app.backend.MobileAppBackend", 5),
+    ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
+]
 
-    EXTRA_MESSAGING_BACKENDS += [
-        ("apps.mobile_app.backend.MobileAppBackend", 5),
-        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
-    ]
-
-    FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
 
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 FCM_DJANGO_SETTINGS = {
@@ -590,6 +596,7 @@ SELF_HOSTED_SETTINGS = {
     "ORG_TITLE": "Self-Hosted Organization",
     "REGION_SLUG": "self_hosted_region",
     "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
+    "CLUSTER_SLUG": "self_hosted_cluster",
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
@@ -610,9 +617,15 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
 EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
+EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
+
+# Inbound email settings
+INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
+INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
+INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",
@@ -631,7 +644,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.direct_paging",
 ]
 
-if OSS_INSTALLATION:
+if IS_OPEN_SOURCE:
     INSTALLED_APPS += ["apps.oss_installation"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
@@ -654,16 +667,17 @@ if OSS_INSTALLATION:
         "args": (),
     }  # noqa
 
-PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
-if PYROSCOPE_PROFILER_ENABLED:
-    import pyroscope
+# RECAPTCHA_V3 settings
+RECAPTCHA_V3_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", default="6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1")
+RECAPTCHA_V3_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", default=None)
+RECAPTCHA_V3_ENABLED = os.environ.get("RECAPTCHA_ENABLED", default=False)
+RECAPTCHA_V3_HOSTNAME_VALIDATION = os.environ.get("RECAPTCHA_HOSTNAME_VALIDATION", default=False)
 
-    pyroscope.configure(
-        application_name=os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall"),
-        server_address=os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040"),
-        auth_token=os.getenv("PYROSCOPE_AUTH_TOKEN", ""),
-        detect_subprocesses=True,
-        tags={
-            "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
-        },
-    )
+MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}
+# Run migrations linter on each `python manage.py makemigrations`
+MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
+
+PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
+PYROSCOPE_APPLICATION_NAME = os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall")
+PYROSCOPE_SERVER_ADDRESS = os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040")
+PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")

@@ -54,9 +54,9 @@ from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
-from common.oncall_gateway import delete_slack_connector_async
+from common.oncall_gateway import delete_slack_connector
 
-from .models import SlackActionRecord, SlackMessage, SlackTeamIdentity, SlackUserIdentity
+from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
 SCENARIOS_ROUTES = []  # Add all other routes here
 SCENARIOS_ROUTES.extend(ONBOARDING_STEPS_ROUTING)
@@ -74,6 +74,8 @@ SCENARIOS_ROUTES.extend(DIRECT_PAGE_ROUTING)
 SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
 
 logger = logging.getLogger(__name__)
+
+SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID = "SELECT_ORGANIZATION_AND_ROUTE"
 
 
 class StopAnalyticsReporting(APIView):
@@ -289,8 +291,6 @@ class SlackEventApiEndpointView(APIView):
             self._open_warning_for_unconnected_user(sc, payload)
             return Response(status=200)
 
-        action_record = SlackActionRecord(user=user, organization=organization, payload=payload)
-
         # Capture cases when we expect stateful message from user
         if not step_was_found and "type" in payload and payload["type"] == PAYLOAD_TYPE_EVENT_CALLBACK:
             # Message event is from channel
@@ -313,98 +313,86 @@ class SlackEventApiEndpointView(APIView):
                         Step = route["step"]
                         logger.info("Routing to {}".format(Step))
                         step = Step(slack_team_identity, organization, user)
-                        step.dispatch(slack_user_identity, slack_team_identity, payload)
+                        step.process_scenario(slack_user_identity, slack_team_identity, payload)
                         step_was_found = True
             # We don't do anything on app mention, but we doesn't want to unsubscribe from this event yet.
             if payload["event"]["type"] == EVENT_TYPE_APP_MENTION:
                 logger.info(f"Received event of type {EVENT_TYPE_APP_MENTION} from slack. Skipping.")
                 return Response(status=200)
         # Routing to Steps based on routing rules
-        try:
-            if not step_was_found:
-                for route in SCENARIOS_ROUTES:
-                    # Slash commands have to "type"
-                    if "command" in payload and route["payload_type"] == PAYLOAD_TYPE_SLASH_COMMAND:
-                        if payload["command"] in route["command_name"]:
-                            Step = route["step"]
-                            action_record.step = Step.routing_uid()
-                            logger.info("Routing to {}".format(Step))
-                            step = Step(slack_team_identity, organization, user)
-                            step.dispatch(slack_user_identity, slack_team_identity, payload)
-                            step_was_found = True
+        if not step_was_found:
+            for route in SCENARIOS_ROUTES:
+                # Slash commands have to "type"
+                if "command" in payload and route["payload_type"] == PAYLOAD_TYPE_SLASH_COMMAND:
+                    if payload["command"] in route["command_name"]:
+                        Step = route["step"]
+                        logger.info("Routing to {}".format(Step))
+                        step = Step(slack_team_identity, organization, user)
+                        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                        step_was_found = True
 
-                    if "type" in payload and payload["type"] == route["payload_type"]:
-                        if payload["type"] == PAYLOAD_TYPE_EVENT_CALLBACK:
-                            if payload["event"]["type"] == route["event_type"]:
-                                # event_name is used for stateful
-                                if "event_name" not in route:
+                if "type" in payload and payload["type"] == route["payload_type"]:
+                    if payload["type"] == PAYLOAD_TYPE_EVENT_CALLBACK:
+                        if payload["event"]["type"] == route["event_type"]:
+                            # event_name is used for stateful
+                            if "event_name" not in route:
+                                Step = route["step"]
+                                logger.info("Routing to {}".format(Step))
+                                step = Step(slack_team_identity, organization, user)
+                                step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                                step_was_found = True
+
+                    if payload["type"] == PAYLOAD_TYPE_INTERACTIVE_MESSAGE:
+                        for action in payload["actions"]:
+                            if action["type"] == route["action_type"]:
+                                # Action name may also contain action arguments.
+                                # So only beginning is used for routing.
+                                if action["name"].startswith(route["action_name"]):
                                     Step = route["step"]
-                                    action_record.step = Step.routing_uid()
                                     logger.info("Routing to {}".format(Step))
                                     step = Step(slack_team_identity, organization, user)
-                                    step.dispatch(slack_user_identity, slack_team_identity, payload)
+                                    result = step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                                    if result is not None:
+                                        return result
                                     step_was_found = True
 
-                        if payload["type"] == PAYLOAD_TYPE_INTERACTIVE_MESSAGE:
-                            for action in payload["actions"]:
-                                if action["type"] == route["action_type"]:
-                                    # Action name may also contain action arguments.
-                                    # So only beginning is used for routing.
-                                    if action["name"].startswith(route["action_name"]):
-                                        Step = route["step"]
-                                        action_record.step = Step.routing_uid()
-                                        logger.info("Routing to {}".format(Step))
-                                        step = Step(slack_team_identity, organization, user)
-                                        result = step.dispatch(slack_user_identity, slack_team_identity, payload)
-                                        if result is not None:
-                                            return result
-                                        step_was_found = True
+                    if payload["type"] == PAYLOAD_TYPE_BLOCK_ACTIONS:
+                        for action in payload["actions"]:
+                            if action["type"] == route["block_action_type"]:
+                                if action["action_id"].startswith(route["block_action_id"]):
+                                    Step = route["step"]
+                                    logger.info("Routing to {}".format(Step))
+                                    step = Step(slack_team_identity, organization, user)
+                                    step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                                    step_was_found = True
 
-                        if payload["type"] == PAYLOAD_TYPE_BLOCK_ACTIONS:
-                            for action in payload["actions"]:
-                                if action["type"] == route["block_action_type"]:
-                                    if action["action_id"].startswith(route["block_action_id"]):
-                                        Step = route["step"]
-                                        action_record.step = Step.routing_uid()
-                                        logger.info("Routing to {}".format(Step))
-                                        step = Step(slack_team_identity, organization, user)
-                                        step.dispatch(slack_user_identity, slack_team_identity, payload)
-                                        step_was_found = True
+                    if payload["type"] == PAYLOAD_TYPE_DIALOG_SUBMISSION:
+                        if payload["callback_id"] == route["dialog_callback_id"]:
+                            Step = route["step"]
+                            logger.info("Routing to {}".format(Step))
+                            step = Step(slack_team_identity, organization, user)
+                            result = step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                            if result is not None:
+                                return result
+                            step_was_found = True
 
-                        if payload["type"] == PAYLOAD_TYPE_DIALOG_SUBMISSION:
-                            if payload["callback_id"] == route["dialog_callback_id"]:
-                                Step = route["step"]
-                                action_record.step = Step.routing_uid()
-                                logger.info("Routing to {}".format(Step))
-                                step = Step(slack_team_identity, organization, user)
-                                result = step.dispatch(slack_user_identity, slack_team_identity, payload)
-                                if result is not None:
-                                    return result
-                                step_was_found = True
+                    if payload["type"] == PAYLOAD_TYPE_VIEW_SUBMISSION:
+                        if payload["view"]["callback_id"].startswith(route["view_callback_id"]):
+                            Step = route["step"]
+                            logger.info("Routing to {}".format(Step))
+                            step = Step(slack_team_identity, organization, user)
+                            result = step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                            if result is not None:
+                                return result
+                            step_was_found = True
 
-                        if payload["type"] == PAYLOAD_TYPE_VIEW_SUBMISSION:
-                            if payload["view"]["callback_id"].startswith(route["view_callback_id"]):
-                                Step = route["step"]
-                                action_record.step = Step.routing_uid()
-                                logger.info("Routing to {}".format(Step))
-                                step = Step(slack_team_identity, organization, user)
-                                result = step.dispatch(slack_user_identity, slack_team_identity, payload)
-                                if result is not None:
-                                    return result
-                                step_was_found = True
-
-                        if payload["type"] == PAYLOAD_TYPE_MESSAGE_ACTION:
-                            if payload["callback_id"] in route["message_action_callback_id"]:
-                                Step = route["step"]
-                                action_record.step = Step.routing_uid()
-                                logger.info("Routing to {}".format(Step))
-                                step = Step(slack_team_identity, organization, user)
-                                step.dispatch(slack_user_identity, slack_team_identity, payload)
-                                step_was_found = True
-
-        finally:
-            if Step is not None and Step.need_to_be_logged and organization:
-                action_record.save()
+                    if payload["type"] == PAYLOAD_TYPE_MESSAGE_ACTION:
+                        if payload["callback_id"] in route["message_action_callback_id"]:
+                            Step = route["step"]
+                            logger.info("Routing to {}".format(Step))
+                            step = Step(slack_team_identity, organization, user)
+                            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+                            step_was_found = True
 
         if not step_was_found:
             raise Exception("Step is undefined" + str(payload))
@@ -440,12 +428,10 @@ class SlackEventApiEndpointView(APIView):
             if private_metadata and "organization_id" in private_metadata:
                 organization_id = json.loads(private_metadata).get("organization_id")
             # steps with organization selection in view (e.g. slash commands)
-            elif ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload["view"].get("state", {}).get(
-                "values", {}
-            ):
+            elif SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload["view"].get("state", {}).get("values", {}):
                 payload_values = payload["view"]["state"]["values"]
-                selected_value = payload_values[ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
-                    ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
+                selected_value = payload_values[SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
+                    SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
                 ]["selected_option"]["value"]
                 organization_id = int(selected_value.split("-")[0])
             if organization_id:
@@ -554,20 +540,25 @@ class ResetSlackView(APIView):
     }
 
     def post(self, request):
-        organization = request.auth.organization
-        slack_team_identity = organization.slack_team_identity
-        if slack_team_identity is not None:
-            clean_slack_integration_leftovers.apply_async((organization.pk,))
-            if settings.FEATURE_MULTIREGION_ENABLED:
-                delete_slack_connector_async.apply_async((slack_team_identity.slack_id,))
-            write_chatops_insight_log(
-                author=request.user,
-                event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
-                chatops_type=ChatOpsType.SLACK,
+        if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
+            response = Response(
+                "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+                status=400,
             )
-            unpopulate_slack_user_identities(organization.pk, True)
-            response = Response(status=200)
         else:
-            response = Response(status=400)
-
+            organization = request.auth.organization
+            slack_team_identity = organization.slack_team_identity
+            if slack_team_identity is not None:
+                clean_slack_integration_leftovers.apply_async((organization.pk,))
+                if settings.FEATURE_MULTIREGION_ENABLED:
+                    delete_slack_connector(str(organization.uuid))
+                write_chatops_insight_log(
+                    author=request.user,
+                    event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
+                    chatops_type=ChatOpsType.SLACK,
+                )
+                unpopulate_slack_user_identities(organization.pk, True)
+                response = Response(status=200)
+            else:
+                response = Response(status=400)
         return response

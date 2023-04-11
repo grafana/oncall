@@ -7,6 +7,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
@@ -184,6 +185,12 @@ class User(models.Model):
         return f"{self.pk}: {self.username}"
 
     @property
+    def available_teams(self):
+        if self.role == LegacyAccessControlRole.ADMIN:
+            return self.organization.teams.all()
+        return self.organization.teams.filter(Q(is_sharing_resources_to_all=True) | Q(users=self)).distinct()
+
+    @property
     def is_authenticated(self):
         return True
 
@@ -221,11 +228,8 @@ class User(models.Model):
     def is_notification_allowed(self):
         return user_is_authorized(self, [RBACPermission.Permissions.NOTIFICATIONS_READ])
 
-    # using in-memory cache instead of redis to avoid pickling  python objects
-    # @timed_lru_cache(timeout=100)
-    def get_user_verbal_for_team_for_slack(self, amixr_team=None, slack_team_identity=None, mention=False):
+    def get_username_with_slack_verbal(self, mention=False):
         slack_verbal = None
-        verbal = self.username
 
         if self.slack_user_identity:
             slack_verbal = (
@@ -235,10 +239,9 @@ class User(models.Model):
             )
 
         if slack_verbal:
-            slack_verbal_str = f" ({slack_verbal})"
-            verbal = f"{verbal}{slack_verbal_str}"
+            return f"{self.username} ({slack_verbal})"
 
-        return verbal
+        return self.username
 
     @property
     def timezone(self):

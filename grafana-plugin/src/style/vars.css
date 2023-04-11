@@ -1,9 +1,10 @@
 :root {
   --maintenance-background: repeating-linear-gradient(45deg, #f6ba52, #f6ba52 20px, #ffd180 20px, #ffd180 40px);
-  --gren-5: #6ccf8e;
+  --green-5: #6ccf8e;
   --green-6: #73d13d;
   --red-5: #ff4d4f;
   --orange-5: #ffa940;
+  --warning-1: #f8d06b;
   --blue-2: #bae7ff;
   --gray-5: #d9d9d9;
   --gray-8: #595959;
@@ -15,6 +16,17 @@
   --gradient-brandVertical: linear-gradient(0.01deg, #f53e4c -31.2%, #f83 113.07%);
   --always-gray: #ccccdc;
   --title-marginBottom: 16px;
+  --opacity: 0.5;
+  --tag-danger: #e02f44;
+  --tag-warning: #c69b06;
+  --tag-primary: #299c46;
+  --tag-secondary: #464c54;
+  --tag-border-danger: rgb(151, 11, 27);
+  --tag-text-danger: rgb(247, 144, 156);
+  --tag-border-warning: rgb(150, 75, 0);
+  --tag-text-warning: rgb(255, 190, 124);
+  --tag-border-success: rgb(49, 100, 43);
+  --tag-text-success: rgb(165, 214, 159);
 }
 
 .theme-light {
@@ -27,9 +39,9 @@
   --primary-text-color: rgb(36, 41, 46);
   --secondary-text-color: rgba(36, 41, 46, 0.75);
   --disabled-text-color: rgba(36, 41, 46, 0.5);
-  --warning-text-color: #8a6c00;
-  --success-text-color: rgb(10, 118, 78);
-  --error-text-color: rgb(207, 14, 91);
+  --warning-text-color: #f5b73d;
+  --success-text-color: #1a7f4b;
+  --error-text-color: #ff5286;
   --primary-text-link: #1f62e0;
   --timeline-icon-background: rgba(70, 76, 84, 0);
   --timeline-icon-background-resolution-note: rgba(50, 116, 217, 0);
@@ -56,9 +68,9 @@
   --primary-text-color: rgb(204, 204, 220);
   --secondary-text-color: rgba(204, 204, 220, 0.65);
   --disabled-text-color: rgba(204, 204, 220, 0.4);
-  --warning-text-color: #f8d06b;
-  --success-text-color: rgb(108, 207, 142);
-  --error-text-color: rgb(255, 82, 134);
+  --warning-text-color: #f5b73d;
+  --success-text-color: #1a7f4b;
+  --error-text-color: #ff5286;
   --primary-text-link: #6e9fff;
   --timeline-icon-background: rgba(70, 76, 84, 1);
   --timeline-icon-background-resolution-note: rgba(50, 116, 217, 1);

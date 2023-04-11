@@ -52,7 +52,7 @@ send a demo alert.
 
 #### Configure your first integration
 
-1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration for receiving alerts**.
+1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration to receive alerts**.
 2. Select an integration from the provided options, if the integration you’re looking for isn’t listed, then select Webhook.
 3. Follow the configuration steps on the integration settings page.
 4. Complete any necessary configurations in your monitoring system to send alerts to Grafana OnCall.
@@ -65,6 +65,31 @@ send a demo alert.
 
 For more information on Grafana OnCall integrations and further configuration guidance, refer to
 [Grafana OnCall integrations]({{< relref "../integrations" >}})
+
+### Learn Alert Flow
+
+All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "../alert-behavior/alert-templates" >}})). Alert Group could have mutually
+exclusive states:
+
+- **Firing:** Once Alert Group is registered, Escalation Policy associated with it is getting started. Escalation policy will work while Alert Group is in this status.
+- **Acknowledged:** Ongoing Escalation Chain will be interrupted. Unacknowledge will move Alert Group to the "Firing" state and will re-launch Escalation Chain.
+- **Silenced:** Similar to "Acknowledged" but designed to be temporary with a timeout. Once time is out, will re-launch Escalation Chain and move Alert Group
+to the "Firing" state.
+- **Resolved:** Similar to "Acknowledged".
+
+Possible transitions:
+
+- Firing -> Acknowledged
+- Firing -> Silenced
+- Firing -> Resolved
+- Silenced -> Firing
+- Silenced -> Acknowledged
+- Silenced -> Resolved
+- Acknowledged -> Firing
+- Acknowledged -> Resolved
+- Resolved -> Firing
+
+Transitions change trigger Escalation Chain launch with a few-seconds delay to avoid unexpected notifications.
 
 ### Configure Escalation Chains
 

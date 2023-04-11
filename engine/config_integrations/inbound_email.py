@@ -1,19 +1,20 @@
+from django.conf import settings
+
 # Main
 enabled = True
-title = "Inboubd Email"
+title = "Inbound Email"
 slug = "inbound_email"
 short_description = None
 description = None
-is_displayed_on_web = False
+is_displayed_on_web = settings.FEATURE_INBOUND_EMAIL_ENABLED
 is_featured = False
-is_able_to_autoresolve = False
+is_able_to_autoresolve = True
 is_demo_alert_enabled = False
 
-description = None
 
 # Default templates
 slack_title = """\
-*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ payload.get("title", "Title undefined (check Slack Title Template)") }}>* via {{ integration_name }}
+*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ payload.get("subject", "Title undefined (check Slack Title Template)") }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
 {%- endif %}"""
@@ -22,7 +23,7 @@ slack_message = "{{ payload.message }}"
 
 slack_image_url = "{{ payload.image_url }}"
 
-web_title = '{{ payload.get("title", "Title undefined (check Web Title Template)") }}'
+web_title = '{{ payload.get("subject", "Title undefined (check Web Title Template)") }}'
 
 web_message = slack_message
 
@@ -38,10 +39,10 @@ telegram_message = slack_message
 
 telegram_image_url = slack_image_url
 
-source_link = "{{ payload.link_to_upstream_details }}"
+source_link = None
 
-grouping_id = '{{ payload.get("title", "")}}'
+grouping_id = '{{ payload.get("subject", "").upper() }}'
 
-resolve_condition = '{{ payload.get("state", "").upper() == "OK" }}'
+resolve_condition = '{{ payload.get("message", "").upper() == "OK" }}'
 
 acknowledge_condition = None

@@ -8,7 +8,7 @@ import { openNotification } from 'utils';
 
 import styles from './Text.module.scss';
 
-export type TextType = 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning';
+export type TextType = 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning' | 'danger';
 
 interface TextProps extends HTMLAttributes<HTMLElement> {
   type?: TextType;
@@ -52,6 +52,7 @@ const Text: TextInterface = (props) => {
     hidden = false,
     editModalTitle = 'New value',
     style,
+    ...rest
   } = props;
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -88,6 +89,7 @@ const Text: TextInterface = (props) => {
         keyboard,
       })}
       style={style}
+      {...rest}
     >
       {hidden ? PLACEHOLDER : children}
       {editable && (

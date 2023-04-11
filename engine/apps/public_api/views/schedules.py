@@ -56,9 +56,6 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
             raise NotFound
 
     def perform_create(self, serializer):
-        if serializer.validated_data["type"] == "web":
-            raise BadRequest(detail="Web schedule creation is not enabled through API")
-
         serializer.save()
         instance = serializer.instance
 

@@ -16,6 +16,7 @@ from apps.alerts.tasks import custom_button_result
 from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
+from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
 from apps.slack.slack_client import SlackClientWithErrorHandling
@@ -41,13 +42,72 @@ logger.setLevel(logging.DEBUG)
 
 
 class AlertShootingStep(scenario_step.ScenarioStep):
+    def process_signal(self, alert):
+        # do not try to post alert group message to slack if its channel is rate limited
+        if alert.group.channel.is_rate_limited_in_slack:
+            logger.info("Skip posting or updating alert_group in Slack due to rate limit")
+            AlertGroup.all_objects.filter(
+                pk=alert.group.pk,
+                slack_message_sent=False,
+            ).update(slack_message_sent=True, reason_to_skip_escalation=AlertGroup.RATE_LIMITED)
+            return
 
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
+        num_updated_rows = AlertGroup.all_objects.filter(pk=alert.group.pk, slack_message_sent=False).update(
+            slack_message_sent=True
+        )
 
-    def publish_slack_messages(self, slack_team_identity, alert_group, alert, attachments, channel_id, blocks):
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        if num_updated_rows == 1:
+            try:
+                channel_id = alert.group.channel_filter.slack_channel_id_or_general_log_id
+                self._send_first_alert(alert, channel_id)
+            except SlackAPIException as e:
+                AlertGroup.all_objects.filter(pk=alert.group.pk).update(slack_message_sent=False)
+                raise e
+
+            is_on_debug_mode = (
+                alert.group.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
+                or alert.group.channel.organization.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
+            )
+
+            if is_on_debug_mode:
+                self._send_debug_mode_notice(alert.group, channel_id)
+
+            if alert.group.is_maintenance_incident:
+                # not sending log report message for maintenance incident
+                pass
+            else:
+                # check if alert group was posted to slack before posting message to thread
+                if not alert.group.skip_escalation_in_slack:
+                    self._send_log_report_message(alert.group, channel_id)
+                    self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
+        else:
+            # check if alert group was posted to slack before updating its message
+            if not alert.group.skip_escalation_in_slack:
+                update_task_id = update_incident_slack_message.apply_async(
+                    (self.slack_team_identity.pk, alert.group.pk),
+                    countdown=10,
+                )
+                cache.set(
+                    get_cache_key_update_incident_slack_message(alert.group.pk),
+                    update_task_id,
+                    timeout=CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME,
+                )
+            else:
+                logger.info("Skip updating alert_group in Slack due to rate limit")
+
+    def _send_first_alert(self, alert, channel_id):
+        attachments = alert.group.render_slack_attachments()
+        blocks = alert.group.render_slack_blocks()
+        self._post_alert_group_to_slack(
+            slack_team_identity=self.slack_team_identity,
+            alert_group=alert.group,
+            alert=alert,
+            attachments=attachments,
+            channel_id=channel_id,
+            blocks=blocks,
+        )
+
+    def _post_alert_group_to_slack(self, slack_team_identity, alert_group, alert, attachments, channel_id, blocks):
         # channel_id can be None if general log channel for slack_team_identity is not set
         if channel_id is None:
             logger.info(f"Failed to post message to Slack for alert_group {alert_group.pk} because channel_id is None")
@@ -125,65 +185,6 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         finally:
             alert.save()
 
-    def process_signal(self, alert):
-        # do not try to post alert group message to slack if its channel is rate limited
-        if alert.group.channel.is_rate_limited_in_slack:
-            logger.info("Skip posting or updating alert_group in Slack due to rate limit")
-            AlertGroup.all_objects.filter(
-                pk=alert.group.pk,
-                slack_message_sent=False,
-            ).update(slack_message_sent=True, reason_to_skip_escalation=AlertGroup.RATE_LIMITED)
-            return
-
-        num_updated_rows = AlertGroup.all_objects.filter(pk=alert.group.pk, slack_message_sent=False).update(
-            slack_message_sent=True
-        )
-
-        if num_updated_rows == 1:
-            try:
-                channel_id = alert.group.channel_filter.slack_channel_id_or_general_log_id
-                self._send_first_alert(alert, channel_id)
-            except SlackAPIException as e:
-                AlertGroup.all_objects.filter(pk=alert.group.pk).update(slack_message_sent=False)
-                raise e
-
-            is_debug_mode = (
-                alert.group.channel.maintenance_mode is not None
-                or alert.group.channel.organization.maintenance_mode is not None
-            )
-            if is_debug_mode:
-                self._send_debug_mode_notice(alert.group, channel_id)
-            else:
-                # check if alert group was posted to slack before posting message to thread
-                if not alert.group.skip_escalation_in_slack:
-                    self._send_thread_messages(alert.group, channel_id)
-        else:
-            # check if alert group was posted to slack before updating its message
-            if not alert.group.skip_escalation_in_slack:
-                update_task_id = update_incident_slack_message.apply_async(
-                    (self.slack_team_identity.pk, alert.group.pk),
-                    countdown=10,
-                )
-                cache.set(
-                    get_cache_key_update_incident_slack_message(alert.group.pk),
-                    update_task_id,
-                    timeout=CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME,
-                )
-            else:
-                logger.info("Skip updating alert_group in Slack due to rate limit")
-
-    def _send_first_alert(self, alert, channel_id):
-        attachments = alert.group.render_slack_attachments()
-        blocks = alert.group.render_slack_blocks()
-        self.publish_slack_messages(
-            slack_team_identity=self.slack_team_identity,
-            alert_group=alert.group,
-            alert=alert,
-            attachments=attachments,
-            channel_id=channel_id,
-            blocks=blocks,
-        )
-
     def _send_debug_mode_notice(self, alert_group, channel_id):
         blocks = []
         text = "Escalations are silenced due to Debug mode"
@@ -198,17 +199,18 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             blocks=blocks,
         )
 
-    def _send_thread_messages(self, alert_group, channel_id):
+    def _send_log_report_message(self, alert_group, channel_id):
         post_or_update_log_report_message_task.apply_async(
             (alert_group.pk, self.slack_team_identity.pk),
         )
 
+    def _send_message_to_thread_if_bot_not_in_channel(self, alert_group, channel_id):
         send_message_to_thread_if_bot_not_in_channel.apply_async(
             (alert_group.pk, self.slack_team_identity.pk, channel_id),
             countdown=1,  # delay for message so that the log report is published first
         )
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, alert, payload=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         pass
 
 
@@ -218,17 +220,13 @@ class InviteOtherPersonToIncident(
     scenario_step.ScenarioStep,
 ):
 
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "invite to incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         User = apps.get_model("user_management", "User")
 
-        alert_group = self.get_alert_group_from_slack_message(payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         selected_user = None
 
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
@@ -246,11 +244,11 @@ class InviteOtherPersonToIncident(
         if selected_user is not None:
             Invitation.invite_user(selected_user, alert_group, self.user)
         else:
-            self._update_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class SilenceGroupStep(
@@ -259,28 +257,24 @@ class SilenceGroupStep(
     scenario_step.ScenarioStep,
 ):
 
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "silence incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
 
         try:
             silence_delay = int(payload["actions"][0]["selected_options"][0]["value"])
         except KeyError:
             silence_delay = int(payload["actions"][0]["selected_option"]["value"])
 
-        alert_group = self.get_alert_group_from_slack_message(payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
 
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class UnSilenceGroupStep(
@@ -288,23 +282,18 @@ class UnSilenceGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unsilence incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
 
-        alert_group = self.get_alert_group_from_slack_message(payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class SelectAttachGroupStep(
@@ -312,15 +301,10 @@ class SelectAttachGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "Select Incident for Attaching to"
+    ACTION_VERBOSE = "Select Alert Group for Attaching to"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         value = json.loads(payload["actions"][0]["value"])
         alert_group_pk = value.get("alert_group_pk")
@@ -335,7 +319,7 @@ class SelectAttachGroupStep(
             "type": "modal",
             "title": {
                 "type": "plain_text",
-                "text": "Attach to Incident",
+                "text": "Attach to Alert Group",
             },
             "private_metadata": json.dumps(
                 {
@@ -468,11 +452,6 @@ class AttachGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Attach incident"
 
@@ -481,7 +460,7 @@ class AttachGroupStep(
 
         if log_record.type == AlertGroupLogRecord.TYPE_ATTACHED and log_record.alert_group.is_maintenance_incident:
             text = f"{log_record.rendered_log_line_action(for_slack=True)}"
-            self.publish_message_to_thread(alert_group, text=text)
+            self.alert_group_slack_service.publish_message_to_alert_group_thread(alert_group, text=text)
 
         if log_record.type == AlertGroupLogRecord.TYPE_FAILED_ATTACHMENT:
             ephemeral_text = log_record.rendered_log_line_action(for_slack=True)
@@ -496,9 +475,9 @@ class AttachGroupStep(
                     unfurl_links=True,
                 )
 
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
 
         # submit selection in modal window
         if payload["type"] == scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION:
@@ -516,14 +495,14 @@ class AttachGroupStep(
                 root_alert_group_pk = int(payload["actions"][0]["selected_option"]["value"])
 
             root_alert_group = AlertGroup.all_objects.get(pk=root_alert_group_pk)
-            alert_group = self.get_alert_group_from_slack_message(payload)
+            alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
 
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group) and self.check_alert_is_unarchived(
             slack_team_identity, payload, root_alert_group
         ):
             alert_group.attach_by_user(self.user, root_alert_group, action_source=ActionSource.SLACK)
         else:
-            self._update_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class UnAttachGroupStep(
@@ -531,35 +510,25 @@ class UnAttachGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Unattach incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
-        alert_group = self.get_alert_group_from_slack_message(payload)
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_attach_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin, scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "stop invitation"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
-        alert_group = self.get_alert_group_from_slack_message(payload)
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
@@ -567,7 +536,7 @@ class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessCo
         Invitation.stop_invitation(invitation_pk, self.user)
 
     def process_signal(self, log_record):
-        self._update_slack_message(log_record.invitation.alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
 
 
 class CustomButtonProcessStep(
@@ -575,18 +544,13 @@ class CustomButtonProcessStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     # TODO:
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "click custom button"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         CustomButtom = apps.get_model("alerts", "CustomButton")
-        alert_group = self.get_alert_group_from_slack_message(payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             custom_button_pk = payload["actions"][0]["name"].split("_")[1]
             alert_group_pk = payload["actions"][0]["name"].split("_")[2]
@@ -595,7 +559,7 @@ class CustomButtonProcessStep(
             except CustomButtom.DoesNotExist:
                 warning_text = "Oops! This button was deleted"
                 self.open_warning_window(payload, warning_text=warning_text)
-                self._update_slack_message(alert_group)
+                self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
             else:
                 custom_button_result.apply_async(
                     args=(
@@ -617,7 +581,7 @@ class CustomButtonProcessStep(
                 debug_message = f"```{curl_request}```"
 
         if log_record.author is not None:
-            user_verbal = log_record.author.get_user_verbal_for_team_for_slack(mention=True)
+            user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
             text = (
                 f"{user_verbal} sent a request from an outgoing webhook `{log_record.custom_button.name}` "
                 f"with the result `{result_message}`"
@@ -630,7 +594,9 @@ class CustomButtonProcessStep(
         attachments = [
             {"callback_id": "alert", "text": debug_message},
         ]
-        self.publish_message_to_thread(alert_group, attachments=attachments, text=text)
+        self.alert_group_slack_service.publish_message_to_alert_group_thread(
+            alert_group, attachments=attachments, text=text
+        )
 
 
 class ResolveGroupStep(
@@ -638,24 +604,21 @@ class ResolveGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "resolve incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         ResolutionNoteModalStep = scenario_step.ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
 
-        alert_group = self.get_alert_group_from_slack_message(payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
 
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
-        if alert_group.maintenance_uuid is None:
-
+        if alert_group.is_maintenance_incident:
+            alert_group.stop_maintenance(self.user)
+        else:
+            # TODO: refactor that check, it should be in alert core, not in slack.
             if self.organization.is_resolution_note_required and not alert_group.has_resolution_notes:
 
                 resolution_note_data = {
@@ -669,14 +632,13 @@ class ResolveGroupStep(
                 return
 
             alert_group.resolve_by_user(self.user, action_source=ActionSource.SLACK)
-        else:
-            alert_group.stop_maintenance(self.user)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-
+        # Do not rerender alert_groups which happened while maintenance.
+        # They have no slack messages, since they just attached to the maintenance incident.
         if not alert_group.happened_while_maintenance:
-            self._update_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class UnResolveGroupStep(
@@ -684,22 +646,17 @@ class UnResolveGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unresolve incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
-        alert_group = self.get_alert_group_from_slack_message(payload)
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class AcknowledgeGroupStep(
@@ -707,16 +664,11 @@ class AcknowledgeGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "acknowledge incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
-        alert_group = self.get_alert_group_from_slack_message(payload)
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         logger.debug(f"process_scenario in AcknowledgeGroupStep for alert_group {alert_group.pk}")
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
@@ -724,7 +676,7 @@ class AcknowledgeGroupStep(
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         logger.debug(f"Started process_signal in AcknowledgeGroupStep for alert_group {alert_group.pk}")
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
         logger.debug(f"Finished process_signal in AcknowledgeGroupStep for alert_group {alert_group.pk}")
 
 
@@ -733,16 +685,11 @@ class UnAcknowledgeGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unacknowledge incident"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
-        alert_group = self.get_alert_group_from_slack_message(payload)
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         logger.debug(f"process_scenario in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
@@ -755,7 +702,7 @@ class UnAcknowledgeGroupStep(
         if log_record.type == AlertGroupLogRecord.TYPE_AUTO_UN_ACK:
             channel_id = alert_group.slack_message.channel_id
             if log_record.author is not None:
-                user_verbal = log_record.author.get_user_verbal_for_team_for_slack(mention=True)
+                user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
             else:
                 user_verbal = "No one"
 
@@ -768,7 +715,7 @@ class UnAcknowledgeGroupStep(
             ]
             text = (
                 f"{user_verbal} hasn't responded to an acknowledge timeout reminder."
-                f" Incident is unacknowledged automatically"
+                f" Alert Group is unacknowledged automatically"
             )
             if alert_group.slack_message.ack_reminder_message_ts:
                 try:
@@ -782,7 +729,9 @@ class UnAcknowledgeGroupStep(
                 except SlackAPIException as e:
                     # post to thread if ack reminder message was deleted in Slack
                     if e.response["error"] == "message_not_found":
-                        self.publish_message_to_thread(alert_group, attachments=message_attachments, text=text)
+                        self.alert_group_slack_service.publish_message_to_alert_group_thread(
+                            alert_group, attachments=message_attachments, text=text
+                        )
                     elif e.response["error"] == "account_inactive":
                         logger.info(
                             f"Skip unacknowledge slack message for alert_group {alert_group.pk} due to account_inactive"
@@ -790,15 +739,17 @@ class UnAcknowledgeGroupStep(
                     else:
                         raise
             else:
-                self.publish_message_to_thread(alert_group, attachments=message_attachments, text=text)
-        self._update_slack_message(alert_group)
+                self.alert_group_slack_service.publish_message_to_alert_group_thread(
+                    alert_group, attachments=message_attachments, text=text
+                )
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
         logger.debug(f"Finished process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
 
 
 class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
     ACTION_VERBOSE = "confirm acknowledge status"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         alert_group_id = payload["actions"][0]["value"].split("_")[1]
         alert_group = AlertGroup.all_objects.get(pk=alert_group_id)
@@ -808,7 +759,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
         if alert_group.acknowledged:
             if alert_group.acknowledged_by == AlertGroup.USER:
                 if self.user == alert_group.acknowledged_by_user:
-                    user_verbal = alert_group.acknowledged_by_user.get_user_verbal_for_team_for_slack()
+                    user_verbal = alert_group.acknowledged_by_user.get_username_with_slack_verbal()
                     text = f"{user_verbal} confirmed that the incident is still acknowledged"
                     self._slack_client.api_call(
                         "chat.update",
@@ -826,7 +777,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                         text="This alert is acknowledged by another user. Acknowledge it yourself first.",
                     )
             elif alert_group.acknowledged_by == AlertGroup.SOURCE:
-                user_verbal = self.user.get_user_verbal_for_team_for_slack()
+                user_verbal = self.user.get_username_with_slack_verbal()
                 text = f"{user_verbal} confirmed that the incident is still acknowledged"
                 self._slack_client.api_call(
                     "chat.update",
@@ -855,7 +806,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
 
         alert_group = log_record.alert_group
         channel_id = alert_group.slack_message.channel_id
-        user_verbal = log_record.author.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
         text = f"{user_verbal}, please confirm that you're still working on this incident."
 
         if alert_group.channel.organization.unacknowledge_timeout != Organization.UNACKNOWLEDGE_TIMEOUT_NEVER:
@@ -865,7 +816,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                     "text": text,
                     "callback_id": "alert",
                     "attachment_type": "default",
-                    "footer": "This is a reminder that the incident is still acknowledged"
+                    "footer": "This is a reminder that the Alert Group is still acknowledged"
                     " and not resolved. It will be unacknowledged automatically and escalation will"
                     " start again soon.",
                     "actions": [
@@ -925,32 +876,22 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 alert_group.slack_message.ack_reminder_message_ts = response["ts"]
                 alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])
         else:
-            text = f"This is a reminder that the incident is still acknowledged by {user_verbal}"
-            self.publish_message_to_thread(alert_group, text=text)
+            text = f"This is a reminder that the Alert Group is still acknowledged by {user_verbal}"
+            self.alert_group_slack_service.publish_message_to_alert_group_thread(alert_group, text=text)
 
 
 class WipeGroupStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     ACTION_VERBOSE = "wipe incident"
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        user_verbal = log_record.author.get_user_verbal_for_team_for_slack()
+        user_verbal = log_record.author.get_username_with_slack_verbal()
         text = f"Wiped by {user_verbal}"
-        self.publish_message_to_thread(alert_group, text=text)
-        self._update_slack_message(alert_group)
+        self.alert_group_slack_service.publish_message_to_alert_group_thread(alert_group, text=text)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class DeleteGroupStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     ACTION_VERBOSE = "delete incident"
 
     def process_signal(self, log_record):
