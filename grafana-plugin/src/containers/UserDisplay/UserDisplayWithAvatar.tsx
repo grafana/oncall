@@ -1,9 +1,11 @@
+import React, { useEffect } from 'react';
+
 import { HorizontalGroup } from '@grafana/ui';
+import { observer } from 'mobx-react';
+
 import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
-import { observer } from 'mobx-react';
 import { User } from 'models/user/user.types';
-import React, { useEffect } from 'react';
 import { useStore } from 'state/useStore';
 
 interface UserDisplayProps {
@@ -20,7 +22,9 @@ const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
   }, [id]);
 
   const user = userStore.items[id];
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   return (
     <HorizontalGroup spacing="xs">

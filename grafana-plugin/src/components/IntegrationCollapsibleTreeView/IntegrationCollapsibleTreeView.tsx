@@ -1,8 +1,9 @@
 import React from 'react';
+
+import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
-import { Icon } from '@grafana/ui';
 
 const cx = cn.bind(styles);
 
