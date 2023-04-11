@@ -118,7 +118,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "the_webhook",
         "url": TEST_URL,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
@@ -173,7 +173,7 @@ def test_create_valid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
 
@@ -230,7 +230,7 @@ def test_create_invalid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
 
@@ -248,7 +248,7 @@ def test_update_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "github_button_updated",
         "url": "https://github.com/",
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
     response = client.put(

@@ -25,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 
 
 TRIGGER_TYPE_TO_LABEL = {
-    Webhook.TRIGGER_NEW: "firing",
+    Webhook.TRIGGER_FIRING: "firing",
     Webhook.TRIGGER_ACKNOWLEDGE: "acknowledge",
     Webhook.TRIGGER_RESOLVE: "resolve",
     Webhook.TRIGGER_SILENCE: "silence",
@@ -40,7 +40,9 @@ TRIGGER_TYPE_TO_LABEL = {
 )
 def send_webhook_event(trigger_type, alert_group_id, team_id=None, organization_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
-    webhooks_qs = Webhooks.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)
+    webhooks_qs = Webhooks.objects.filter(
+        trigger_type=trigger_type, organization_id=organization_id, team_id=team_id
+    ).exclude(is_webhook_enabled=False)
 
     for webhook in webhooks_qs:
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None))
@@ -54,7 +56,7 @@ def _build_payload(trigger_type, alert_group, user):
     event = {
         "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
     }
-    if trigger_type == Webhook.TRIGGER_NEW:
+    if trigger_type == Webhook.TRIGGER_FIRING:
         event["time"] = _isoformat_date(alert_group.started_at)
     elif trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
         event["time"] = _isoformat_date(alert_group.acknowledged_at)
@@ -123,6 +125,10 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
 
     exception = error = None
     try:
+        if not webhook.check_integration_filter(alert_group):
+            status["request_trigger"] = f"Alert group was not from a selected integration"
+            return
+
         triggered, status["request_trigger"] = webhook.check_trigger(data)
         if triggered:
             status["url"] = webhook.build_url(data)

@@ -31,6 +31,7 @@ class WebhookSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=CurrentUserDefault())
     last_run = serializers.SerializerMethodField()
     trigger_type = serializers.CharField(required=True)
+    http_method = serializers.CharField(required=True)
     forward_all = serializers.BooleanField(allow_null=True, required=False)
     last_response_log = serializers.SerializerMethodField()
     trigger_type_name = serializers.SerializerMethodField()
@@ -40,6 +41,7 @@ class WebhookSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "is_webhook_enabled",
             "team",
             "data",
             "user",

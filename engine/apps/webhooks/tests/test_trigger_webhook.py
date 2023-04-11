@@ -39,7 +39,7 @@ def test_send_webhook_event_filters(
     other_team_webhook = make_custom_webhook(
         organization=organization, team=other_team, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE
     )
-    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_NEW)
+    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_FIRING)
 
     for trigger_type, _ in Webhook.TRIGGER_TYPES:
         with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
@@ -59,7 +59,7 @@ def test_send_webhook_event_filters(
     alert_receive_channel = make_alert_receive_channel(other_organization)
     alert_group = make_alert_group(alert_receive_channel)
     with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
-        send_webhook_event(Webhook.TRIGGER_NEW, alert_group.pk, organization_id=other_organization.pk)
+        send_webhook_event(Webhook.TRIGGER_FIRING, alert_group.pk, organization_id=other_organization.pk)
     assert mock_execute.call_args == call((other_org_webhook.pk, alert_group.pk, None, None))
 
 
@@ -290,7 +290,7 @@ def test_execute_webhook_using_responses_data(
     )
     # add previous webhook responses for the related alert group
     make_webhook_response(
-        alert_group=alert_group, trigger_type=Webhook.TRIGGER_NEW, content=json.dumps({"id": "third-party-id"})
+        alert_group=alert_group, trigger_type=Webhook.TRIGGER_FIRING, content=json.dumps({"id": "third-party-id"})
     )
     make_webhook_response(
         alert_group=alert_group,
