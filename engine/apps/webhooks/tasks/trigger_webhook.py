@@ -5,8 +5,10 @@ from json import JSONDecodeError
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
+from django.db.models import Prefetch
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
+from apps.base.models import UserNotificationPolicyLogRecord
 from apps.user_management.models import User
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.utils import (
@@ -89,7 +91,18 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
         return
 
     try:
-        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+        personal_log_records = UserNotificationPolicyLogRecord.objects.filter(
+            alert_group_id=alert_group_id,
+            author__isnull=False,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+        ).select_related("author")
+        alert_group = (
+            AlertGroup.unarchived_objects.prefetch_related(
+                Prefetch("personal_log_records", queryset=personal_log_records, to_attr="sent_notifications")
+            )
+            .select_related("channel")
+            .get(pk=alert_group_id)
+        )
     except AlertGroup.DoesNotExist:
         return
 

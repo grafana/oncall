@@ -17,17 +17,19 @@ const nullNormalizer = (value: string) => {
   return value || null;
 };
 
-function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: () => void) {
+function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: (field, value) => void) {
   switch (formItem.type) {
     case FormItemType.Input:
-      return <Input {...register(formItem.name, formItem.validation)} onChange={onChangeFn} />;
+      return (
+        <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+      );
 
     case FormItemType.TextArea:
       return (
         <TextArea
           rows={formItem.extra?.rows || 4}
           {...register(formItem.name, formItem.validation)}
-          onChange={onChangeFn}
+          onChange={(value) => onChangeFn(undefined, value)}
         />
       );
 
@@ -36,15 +38,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
         <InputControl
           render={({ field }) => {
             return (
-              <GSelect
-                isMulti={true}
-                {...field}
-                {...formItem.extra}
-                onChange={(value) => {
-                  field.onChange(value);
-                  onChangeFn();
-                }}
-              />
+              <GSelect isMulti={true} {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />
             );
           }}
           control={control}
@@ -55,17 +49,8 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
     case FormItemType.Select:
       return (
         <InputControl
-          render={({ field: { onChange, ...field } }) => {
-            return (
-              <Select
-                {...field}
-                {...formItem.extra}
-                onChange={(value) => {
-                  onChange(value.value);
-                  onChangeFn();
-                }}
-              />
-            );
+          render={({ field: { ...field } }) => {
+            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
           }}
           control={control}
           name={formItem.name}
@@ -75,17 +60,8 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
     case FormItemType.GSelect:
       return (
         <InputControl
-          render={({ field: { onChange, ...field } }) => {
-            return (
-              <GSelect
-                {...field}
-                {...formItem.extra}
-                onChange={(value) => {
-                  onChange(value);
-                  onChangeFn();
-                }}
-              />
-            );
+          render={({ field: { ...field } }) => {
+            return <GSelect {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
           }}
           control={control}
           name={formItem.name}
@@ -93,13 +69,15 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       );
 
     case FormItemType.Switch:
-      return <Switch {...register(formItem.name, formItem.validation)} onChange={onChangeFn} />;
+      return (
+        <Switch {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+      );
 
     case FormItemType.RemoteSelect:
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <RemoteSelect {...field} {...formItem.extra} onChange={onChangeFn} />;
+            return <RemoteSelect {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
           }}
           control={control}
           name={formItem.name}
@@ -133,7 +111,10 @@ class GForm extends React.Component<GFormProps, {}> {
                 error={`${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
-                {renderFormControl(formItem, register, control, () => this.forceUpdate())}
+                {renderFormControl(formItem, register, control, (field, value) => {
+                  field?.onChange(value);
+                  this.forceUpdate();
+                })}
               </Field>
             );
           });

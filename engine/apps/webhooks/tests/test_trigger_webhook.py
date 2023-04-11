@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
+from apps.base.models import UserNotificationPolicyLogRecord
 from apps.public_api.serializers import IncidentSerializer
 from apps.webhooks.models import Webhook
 from apps.webhooks.tasks import execute_webhook, send_webhook_event
@@ -180,13 +181,31 @@ def test_execute_webhook_via_escalation_ok(
 
 @pytest.mark.django_db
 def test_execute_webhook_ok_forward_all(
-    make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+    make_custom_webhook,
 ):
     organization = make_organization()
     user = make_user_for_organization(organization)
+    notified_user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(
         alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+    )
+    for i in range(3):
+        make_user_notification_policy_log_record(
+            author=notified_user,
+            alert_group=alert_group,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+        )
+    make_user_notification_policy_log_record(
+        author=other_user,
+        alert_group=alert_group,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
     )
     webhook = make_custom_webhook(
         organization=organization,
@@ -209,7 +228,24 @@ def test_execute_webhook_ok_forward_all(
             "type": "acknowledge",
             "time": alert_group.acknowledged_at.isoformat(),
         },
-        "user": user.username,
+        "user": {
+            "id": user.public_primary_key,
+            "username": user.username,
+            "email": user.email,
+        },
+        "integration": {
+            "id": alert_receive_channel.public_primary_key,
+            "type": alert_receive_channel.integration,
+            "name": alert_receive_channel.short_name,
+            "team": None,
+        },
+        "notified_users": [
+            {
+                "id": notified_user.public_primary_key,
+                "username": notified_user.username,
+                "email": notified_user.email,
+            }
+        ],
         "alert_group": IncidentSerializer(alert_group).data,
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
