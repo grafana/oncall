@@ -19,6 +19,7 @@ export interface EscalationPolicy {
   to_time: string | null;
   notify_to_channel: Channel['id'] | null;
   custom_button_trigger: ActionDTO['id'] | null;
+  custom_webhook: ActionDTO['id'] | null;
   notify_to_group: UserGroup['id'] | null;
   notify_schedule: Schedule['id'] | null;
   important: boolean | null;

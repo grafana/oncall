@@ -8,6 +8,7 @@ from .check_escalation_finished import check_escalation_finished_task  # noqa: F
 from .create_contact_points_for_datasource import create_contact_points_for_datasource  # noqa: F401
 from .create_contact_points_for_datasource import schedule_create_contact_points_for_datasource  # noqa: F401
 from .custom_button_result import custom_button_result  # noqa: F401
+from .custom_webhook_result import custom_webhook_result  # noqa: F401
 from .delete_alert_group import delete_alert_group  # noqa: F401
 from .distribute_alert import distribute_alert  # noqa: F401
 from .escalate_alert_group import escalate_alert_group  # noqa: F401
