@@ -16,6 +16,12 @@ export class EscalationChainStore extends BaseStore {
   @observable.shallow
   searchResult: { [key: string]: Array<EscalationChain['id']> } = {};
 
+  @observable
+  loading = false;
+
+  @observable
+  incidentFilters: any;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -65,9 +71,38 @@ export class EscalationChainStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItem(id: EscalationChain['id'], skipErrorHandling = false): Promise<EscalationChain> {
+    let escalationChain;
+    try {
+      escalationChain = await this.getById(id, skipErrorHandling);
+    } catch (error) {
+      if (error.response.data.error_code === 'wrong_team') {
+        escalationChain = {
+          id,
+          name: '🔒 Private escalation chain',
+          private: true,
+        };
+      }
+    }
+
+    if (escalationChain) {
+      this.items = {
+        ...this.items,
+        [id]: escalationChain,
+      };
+    }
+
+    return escalationChain;
+  }
+
+  @action
+  async updateItems(query: any = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
+    this.loading = true;
+
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params,
     });
 
     this.items = {
@@ -81,10 +116,14 @@ export class EscalationChainStore extends BaseStore {
       ),
     };
 
+    const key = typeof query === 'string' ? query : '';
+
     this.searchResult = {
       ...this.searchResult,
-      [query]: results.map((item: EscalationChain) => item.id),
+      [key]: results.map((item: EscalationChain) => item.id),
     };
+
+    this.loading = false;
   }
 
   getSearchResult(query = '') {

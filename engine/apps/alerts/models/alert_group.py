@@ -5,7 +5,6 @@ from typing import Optional, TypedDict
 from urllib.parse import urljoin
 from uuid import uuid1
 
-import pytz
 from celery import uuid as celery_uuid
 from django.apps import apps
 from django.conf import settings
@@ -14,6 +13,7 @@ from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django_deprecate_fields import deprecate_field
 
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
@@ -337,7 +337,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     maintenance_uuid = models.CharField(max_length=100, unique=True, null=True, default=None)
 
     raw_escalation_snapshot = JSONField(null=True, default=None)
-    estimate_escalation_finish_time = models.DateTimeField(null=True, default=None)
+
+    # THIS FIELD IS DEPRECATED AND SHOULD EVENTUALLY BE REMOVED
+    estimate_escalation_finish_time = deprecate_field(models.DateTimeField(null=True, default=None))
 
     # This field is used for constraints so we can use get_or_create() in concurrent calls
     # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#get-or-create
@@ -480,6 +482,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         incident_link = urljoin(self.channel.organization.grafana_url, "a/grafana-incident-app/incidents/declare/")
         caption = urllib.parse.quote_plus("OnCall Alert Group")
         title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
+        title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
         link = urllib.parse.quote_plus(self.web_link)
         return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}")
 
@@ -1464,14 +1467,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def start_unsilence_task(self, countdown):
         task_id = celery_uuid()
         self.unsilence_task_uuid = task_id
-
-        # recalculate finish escalation time
-        escalation_start_time = timezone.now() + timezone.timedelta(seconds=countdown)
-        self.estimate_escalation_finish_time = self.calculate_eta_for_finish_escalation(
-            start_time=escalation_start_time
-        )
-
-        self.save(update_fields=["unsilence_task_uuid", "estimate_escalation_finish_time"])
+        self.save(update_fields=["unsilence_task_uuid"])
         unsilence_task.apply_async((self.pk,), task_id=task_id, countdown=countdown)
 
     @property
@@ -1574,7 +1570,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             return "Resolved by stop maintenance"
         else:
             if self.resolved_by_user is not None:
-                user_text = self.resolved_by_user.get_user_verbal_for_team_for_slack(mention=mention_user)
+                user_text = self.resolved_by_user.get_username_with_slack_verbal(mention=mention_user)
                 return f"Resolved by {user_text}"
             else:
                 return "Resolved"
@@ -1583,7 +1579,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         if self.acknowledged_by == AlertGroup.SOURCE:
             return "Acknowledged by alert source"
         elif self.acknowledged_by == AlertGroup.USER and self.acknowledged_by_user is not None:
-            user_text = self.acknowledged_by_user.get_user_verbal_for_team_for_slack(mention=mention_user)
+            user_text = self.acknowledged_by_user.get_username_with_slack_verbal(mention=mention_user)
             return f"Acknowledged by {user_text}"
         else:
             return "Acknowledged"
@@ -1609,24 +1605,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def has_resolution_notes(self):
         return self.resolution_notes.exists()
-
-    def render_resolution_notes_for_csv_report(self):
-        result = ""
-
-        resolution_notes = self.resolution_notes.all().prefetch_related("resolution_note_slack_message")
-        if len(resolution_notes) > 0:
-            result += "Notes: "
-            result += " ".join(
-                [
-                    "{} ({} by {}), ".format(
-                        resolution_note.text,
-                        resolution_note.created_at.astimezone(pytz.utc),
-                        resolution_note.author_verbal(mention=True),
-                    )
-                    for resolution_note in resolution_notes
-                ]
-            )
-        return result
 
     @property
     def state(self):

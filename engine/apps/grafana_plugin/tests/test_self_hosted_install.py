@@ -18,6 +18,7 @@ STACK_SLUG = "asdfasdf"
 ORG_SLUG = "hellooo"
 ORG_TITLE = "nmvcnmvnmvc"
 REGION_SLUG = "nmcvnmcvnmcvnmcv"
+CLUSTER_SLUG = "nmcvnmcvnmcvnmcvnmcv"
 SELF_HOSTED_SETTINGS = {
     "GRAFANA_API_URL": GRAFANA_API_URL,
     "STACK_ID": STACK_ID,
@@ -27,6 +28,7 @@ SELF_HOSTED_SETTINGS = {
     "ORG_SLUG": ORG_SLUG,
     "ORG_TITLE": ORG_TITLE,
     "REGION_SLUG": REGION_SLUG,
+    "CLUSTER_SLUG": CLUSTER_SLUG,
 }
 
 UNABLE_TO_FIND_GRAFANA_ERROR_MSG = f"Unable to connect to the specified Grafana API - {GRAFANA_API_URL}"

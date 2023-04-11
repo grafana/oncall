@@ -1,0 +1,15 @@
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-top: 12px;
+}
+
+.header__title {
+  display: flex;
+  align-items: baseline;
+}
+
+.header__desc {
+  margin-bottom: 12px;
+}

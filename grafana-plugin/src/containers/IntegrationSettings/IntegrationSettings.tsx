@@ -59,6 +59,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const [expanded, _setExpanded] = useState(false);
 
   const handleSwitchToTemplate = (templateName: string) => {
+    setActiveTab(IntegrationSettingsTab.Templates);
     setSelectedTemplate(templateName);
   };
 
@@ -136,22 +137,26 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
         {activeTab === IntegrationSettingsTab.HowToConnect && (
           <div className="container">
             <VerticalGroup>
-              <h4>This is the unique webhook URL for the integration:</h4>
-              <div style={{ width: '70%' }}>
-                <Input
-                  value={alertReceiveChannel.integration_url}
-                  addonAfter={
-                    <CopyToClipboard
-                      text={alertReceiveChannel.integration_url}
-                      onCopy={() => {
-                        openNotification('Unique webhook URL copied');
-                      }}
-                    >
-                      <Button icon="copy" variant="primary" />
-                    </CopyToClipboard>
-                  }
-                />
-              </div>
+              {alertReceiveChannel.integration_url && (
+                <div>
+                  <h4>This is the unique webhook URL for the integration:</h4>
+                  <div style={{ width: '70%' }}>
+                    <Input
+                      value={alertReceiveChannel.integration_url}
+                      addonAfter={
+                        <CopyToClipboard
+                          text={alertReceiveChannel.integration_url}
+                          onCopy={() => {
+                            openNotification('Unique webhook URL copied');
+                          }}
+                        >
+                          <Button icon="copy" variant="primary" />
+                        </CopyToClipboard>
+                      }
+                    />
+                  </div>
+                </div>
+              )}
               <div dangerouslySetInnerHTML={{ __html: alertReceiveChannel?.instructions }} />
               <Button variant="primary" onClick={onHide}>
                 Open Escalations Settings

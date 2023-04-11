@@ -11,7 +11,7 @@ Resources that can be migrated using this tool:
 
 ## Limitations
 
-- Not all integration types are supported (e.g. inbound email is not supported)
+- Not all integration types are supported
 - Migrated on-call schedules in Grafana OnCall will use ICalendar files from PagerDuty
 - Delays between migrated notification/escalation rules could be slightly different from original.
   E.g. if you have a 4-minute delay between rules in PagerDuty, the resulting delay in Grafana OnCall will be 5 minutes
@@ -86,7 +86,7 @@ pd-oncall-migrator
 
 It's possible to specify a default contact method type for user notification rules that cannot be migrated as-is by
 changing the `ONCALL_DEFAULT_CONTACT_METHOD` env variable.
-Options are: `email`, `sms`, `phone_call`, `slack`, `telegram` (default is `email`).
+Options are: `email`, `sms`, `phone_call`, `slack`, `telegram`, `mobile_app` (default is `email`).
 
 ### After migration
 

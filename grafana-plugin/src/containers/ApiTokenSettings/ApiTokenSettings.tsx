@@ -8,7 +8,7 @@ import moment from 'moment-timezone';
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -85,7 +85,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
               <HorizontalGroup align="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
               </HorizontalGroup>
-              <WithPermissionControl userAction={UserActions.APIKeysWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
                 <Button
                   icon="plus"
                   disabled={apiTokens && apiTokens.length >= MAX_TOKENS_PER_USER}
@@ -95,7 +95,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
                 >
                   Create
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             </div>
           )}
           rowKey="id"
@@ -120,13 +120,13 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
   renderActionButtons = (record: ApiToken) => {
     const revokeButton = (
-      <WithPermissionControl userAction={UserActions.APIKeysWrite}>
+      <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
         <WithConfirm title={`Are you sure to revoke "${record.name}" API token?`} confirmText="Revoke token">
           <Button fill="text" variant="destructive" onClick={this.getRevokeTokenClickHandler(record.id)}>
             Revoke
           </Button>
         </WithConfirm>
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
 
     return revokeButton;

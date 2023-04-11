@@ -17,8 +17,16 @@ def format_user(user: dict) -> str:
 
 
 def format_schedule(schedule: dict) -> str:
-    if schedule["unmatched_users"]:
+    if schedule["unmatched_users"] and schedule["migration_errors"]:
+        result = "{} {} — schedule references unmatched users and some layers cannot be migrated".format(
+            ERROR_SIGN, schedule["name"]
+        )
+    elif schedule["unmatched_users"]:
         result = "{} {} — schedule references unmatched users".format(
+            ERROR_SIGN, schedule["name"]
+        )
+    elif schedule["migration_errors"]:
+        result = "{} {} — some layers cannot be migrated".format(
             ERROR_SIGN, schedule["name"]
         )
     else:
@@ -29,7 +37,7 @@ def format_schedule(schedule: dict) -> str:
 
 def format_escalation_policy(policy: dict) -> str:
     if policy["unmatched_users"] and policy["flawed_schedules"]:
-        result = "{} {} — policy references unmatched users and schedules with unmatched users".format(
+        result = "{} {} — policy references unmatched users and schedules that cannot be migrated".format(
             ERROR_SIGN, policy["name"]
         )
     elif policy["unmatched_users"]:
@@ -37,7 +45,7 @@ def format_escalation_policy(policy: dict) -> str:
             ERROR_SIGN, policy["name"]
         )
     elif policy["flawed_schedules"]:
-        result = "{} {} — policy references schedules with unmatched users".format(
+        result = "{} {} — policy references schedules that cannot be migrated".format(
             ERROR_SIGN, policy["name"]
         )
     else:
@@ -47,7 +55,7 @@ def format_escalation_policy(policy: dict) -> str:
 
 
 def format_integration(integration: dict) -> str:
-    result = integration["service"]["name"] + " - " + integration["name"]
+    result = "{} - {}".format(integration["service"]["name"], integration["name"])
 
     if not integration["oncall_type"]:
         result = (
@@ -61,7 +69,7 @@ def format_integration(integration: dict) -> str:
 
     elif integration["is_escalation_policy_flawed"]:
         policy_name = integration["service"]["escalation_policy"]["summary"]
-        result = "{} {} — escalation policy '{}' references unmatched users or schedules with unmatched users".format(
+        result = "{} {} — escalation policy '{}' references unmatched users or schedules that cannot be migrated".format(
             ERROR_SIGN, result, policy_name
         )
     else:
@@ -85,16 +93,25 @@ def user_report(users: list[dict]) -> str:
 def schedule_report(schedules: list[dict]) -> str:
     result = "Schedule report:"
 
-    for schedule in sorted(schedules, key=lambda s: bool(s["unmatched_users"])):
+    for schedule in sorted(
+        schedules, key=lambda s: bool(s["unmatched_users"] or s["migration_errors"])
+    ):
         result += "\n" + TAB + format_schedule(schedule)
 
-        if not schedule["unmatched_users"] and schedule["oncall_schedule"]:
+        if (
+            not schedule["unmatched_users"]
+            and schedule["oncall_schedule"]
+            and not schedule["migration_errors"]
+        ):
             result += " (existing schedule with name '{}' will be deleted)".format(
-                schedule["name"]
+                schedule["oncall_schedule"]["name"]
             )
 
         for user in schedule["unmatched_users"]:
             result += "\n" + TAB * 2 + format_user(user)
+
+        for error in schedule["migration_errors"]:
+            result += "\n" + TAB * 2 + "{} {}".format(ERROR_SIGN, error)
 
     return result
 
@@ -120,7 +137,7 @@ def escalation_policy_report(policies: list[dict]) -> str:
         ):
             result += (
                 " (existing escalation chain with name '{}' will be deleted)".format(
-                    policy["name"]
+                    policy["oncall_escalation_chain"]["name"]
                 )
             )
 
@@ -141,10 +158,39 @@ def integration_report(integrations: list[dict]) -> str:
             and not integration["is_escalation_policy_flawed"]
             and integration["oncall_integration"]
         ):
-            result += (
-                " (existing integration with name '{} - {}' will be deleted)".format(
-                    integration["service"]["name"], integration["name"]
-                )
+            result += " (existing integration with name '{}' will be deleted)".format(
+                integration["oncall_integration"]["name"]
+            )
+
+    return result
+
+
+def format_ruleset(ruleset: dict) -> str:
+    if ruleset["flawed_escalation_policies"]:
+        escalation_policy_names = [
+            p["name"] for p in ruleset["flawed_escalation_policies"]
+        ]
+        result = "{} {} — escalation policies '{}' reference unmatched users or schedules that cannot be migrated".format(
+            ERROR_SIGN, ruleset["name"], ", ".join(escalation_policy_names)
+        )
+    else:
+        result = "{} {}".format(SUCCESS_SIGN, ruleset["name"])
+
+    return result
+
+
+def ruleset_report(rulesets: list[dict]) -> str:
+    result = "Event rules (rulesets) report:"
+
+    for ruleset in sorted(
+        rulesets,
+        key=lambda r: bool(r["flawed_escalation_policies"]),
+        reverse=True,
+    ):
+        result += "\n" + TAB + format_ruleset(ruleset)
+        if not ruleset["flawed_escalation_policies"] and ruleset["oncall_integration"]:
+            result += " (existing integration with name '{}' will be deleted)".format(
+                ruleset["oncall_name"]
             )
 
     return result

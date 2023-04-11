@@ -1,0 +1,78 @@
+.select {
+  width: 400px;
+}
+
+.action-buttons {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.filters {
+  margin-bottom: 20px;
+}
+
+.above-incidents-table {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bulk-actions {
+  margin: 10px 0 10px 0;
+}
+
+.other-users {
+  color: var(--secondary-text-color);
+}
+
+.silence-button-inline {
+  font-size: 12px;
+  height: 24px;
+  margin-right: 0;
+}
+
+.pagination {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.title {
+  margin-bottom: 24px;
+  right: 0;
+}
+
+/* filter cards */
+
+.cards {
+  margin-top: 25px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -8px;
+  margin-right: -8px;
+  row-gap: 16px;
+}
+
+.col {
+  padding-left: 8px;
+  padding-right: 8px;
+  display: block;
+  flex: 0 0 25%;
+  max-width: 25%;
+}
+
+@media (max-width: 1200px) {
+  .col {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 800px) {
+  .col {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

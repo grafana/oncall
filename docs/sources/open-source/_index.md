@@ -96,7 +96,11 @@ features:
   slash_commands:
     - command: /oncall
       url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
-      description: oncall
+      description: Create a manual alert group
+      should_escape: false
+    - command: /escalate
+      url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
+      description: Direct page user(s) or schedule(s)
       should_escape: false
 oauth_config:
   redirect_urls:
@@ -220,9 +224,30 @@ the following env variables with your SMTP server credentials:
 
 After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
 
+## Inbound Email Setup
+
+Grafana OnCall is capable of creating alert groups from
+[Inbound Email integration]({{< relref "../integrations/available-integrations/configure-inbound-email" >}}).
+
+To configure Inbound Email integration for Grafana OnCall OSS populate env variables with your Email Service Provider data:
+
+- `INBOUND_EMAIL_ESP` - Inbound email ESP name. Available options: `amazon_ses`, `mailgun`, `mailjet`, `mandrill`, `postal`, `postmark`, `sendgrid`, `sparkpost`
+- `INBOUND_EMAIL_DOMAIN` - Inbound email domain
+- `INBOUND_EMAIL_WEBHOOK_SECRET` - Inbound email webhook secret
+
+You will also need to configure your ESP to forward messages to the following URL: `<ONCALL_ENGINE_PUBLIC_URL>/integrations/v1/inbound_email_webhook`.
+
+## Limits
+
+By default, Grafana OnCall limits email and phone notifications (calls, SMS) to 200 per user per day.
+The limit can be changed using env variables:
+
+- `PHONE_NOTIFICATIONS_LIMIT` (default is `200`) - phone notifications per user
+- `EMAIL_NOTIFICATIONS_LIMIT` (default is `200`) - emails per user
+
 ## Mobile application set up
 
->**Note**: This application is currently in beta
+> **Note**: This application is currently in beta
 
 Grafana OnCall OSS users can use the mobile app to receive push notifications from OnCall.
 Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
@@ -234,3 +259,29 @@ For Grafana OnCall OSS, the mobile app QR code includes an authentication token 
 Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
 
 For more information, see [Grafana OnCall mobile app]({{< relref "../mobile-app" >}})
+
+## Alert Group Escalation Auditor
+
+Grafana OnCall has a periodic background task, which runs to check that all alert group escalations have finished
+properly. This feature, if configured, can also ping an OnCall Webhook Integration's heartbeat URL, so that you can be
+alerted, in the event that something goes wrong.
+
+Logs originating from the celery worker, for the `apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task`
+task, that reference a `AlertGroupEscalationPolicyExecutionAuditException` exception
+indicate that the auditor periodic task is failing check(s) on one or more alert groups. Logs for this task which
+mention `.. passed the audit checks` indicate that there were no issues with with the escalation on the audited
+alert groups.
+
+To configure this feature as such:
+
+1. Create a Webhook, or Formatted Webhook, Integration type.
+1. Under the "Heartbeat" tab in the Integration modal, copy the unique heartbeat URL that is shown.
+1. Set the hearbeat's expected time interval to 15 minutes (see note below regarding `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL`)
+1. Configure the integration's escalation chain as necessary
+1. Populate the following env variables:
+
+- `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL` - integration's unique heartbeat URL
+- `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL` - how often the auditor task should run. By default the
+  task runs every 13 minutes so we therefore recommend setting the heartbeat's expected time interval to 15 minutes. If you
+  would like to modify this, we recommend configuring this env variable to 1 or 2 minutes less than the value set for the
+  integration's heartbeat expected time interval.

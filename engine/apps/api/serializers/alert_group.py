@@ -8,6 +8,7 @@ from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import 
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.user_management.models import User
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
 
 from .alert import AlertSerializer
@@ -82,6 +83,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
     related_users = serializers.SerializerMethodField()
     dependent_alert_groups = ShortAlertGroupSerializer(many=True)
     root_alert_group = ShortAlertGroupSerializer()
+    team = TeamPrimaryKeyRelatedField(source="channel.team", allow_null=True)
 
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
@@ -129,6 +131,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "root_alert_group",
             "status",
             "declare_incident_link",
+            "team",
         ]
 
     def get_render_for_web(self, obj):
@@ -204,12 +207,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         Overriding default alerts because there are alert_groups with thousands of them.
         It's just too slow, we need to cut here.
         """
-        alerts = obj.alerts.all()[:100]
-
-        if len(alerts) > 90:
-            for alert in alerts:
-                alert.title = str(alert.title) + " Only last 100 alerts are shown. Use OnCall API to fetch all of them."
-
+        alerts = obj.alerts.order_by("-pk")[:100]
         return AlertSerializer(alerts, many=True).data
 
     def get_paged_users(self, obj):

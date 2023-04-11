@@ -134,7 +134,7 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
         },
     )
 
-    api_check_token_call_status = {"status_code": 200}
+    api_check_token_call_status = {"connected": True}
 
     with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False):
         with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
@@ -203,7 +203,7 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
             "userId": 1,
         },
     )
-    api_check_token_call_status = {"status_code": 200}
+    api_check_token_call_status = {"connected": True}
 
     with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=grafana_api_response):
         with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
@@ -230,7 +230,7 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client,
     stack_id = 5
     organization = make_organization(stack_id=stack_id)
 
-    api_check_token_call_status = {"status_code": 200}
+    api_check_token_call_status = {"connected": True}
 
     mocked_gcom_client.return_value.is_rbac_enabled_for_stack.return_value = gcom_api_response
 

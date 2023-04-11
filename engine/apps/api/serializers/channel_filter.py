@@ -2,11 +2,13 @@ from django.apps import apps
 from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
+from apps.api.serializers.alert_receive_channel import valid_jinja_template_for_serializer_method_field
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.telegram.models import TelegramToOrganizationConnector
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin, OrderedModelSerializerMixin
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.utils import is_regex_valid
 
 
@@ -37,6 +39,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "slack_channel",
             "created_at",
             "filtering_term",
+            "filtering_term_type",
             "telegram_channel",
             "is_default",
             "notify_in_slack",
@@ -45,6 +48,22 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         ]
         read_only_fields = ["created_at", "is_default"]
         extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
+
+    def validate(self, data):
+        filtering_term = data.get("filtering_term")
+        filtering_term_type = data.get("filtering_term_type")
+        if filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
+            try:
+                valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
+            except JinjaTemplateError:
+                raise serializers.ValidationError([f"Jinja template is incorrect"])
+        elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or filtering_term_type is None:
+            if filtering_term is not None:
+                if not is_regex_valid(filtering_term):
+                    raise serializers.ValidationError(["Regular expression is incorrect"])
+        else:
+            raise serializers.ValidationError([f"Expression type is incorrect"])
+        return data
 
     def get_slack_channel(self, obj):
         if obj.slack_channel_id is None:
@@ -55,22 +74,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "slack_id": obj.slack_channel_id,
             "id": obj.slack_channel_pk,
         }
-
-    def validate(self, attrs):
-        alert_receive_channel = attrs.get("alert_receive_channel") or self.instance.alert_receive_channel
-        filtering_term = attrs.get("filtering_term")
-        if filtering_term is None:
-            return attrs
-        try:
-            obj = ChannelFilter.objects.get(alert_receive_channel=alert_receive_channel, filtering_term=filtering_term)
-        except ChannelFilter.DoesNotExist:
-            return attrs
-        if self.instance and obj.id == self.instance.id:
-            return attrs
-        else:
-            raise serializers.ValidationError(
-                {"filtering_term": ["Channel filter with this filtering term already exists"]}
-            )
 
     def validate_slack_channel(self, slack_channel_id):
         SlackChannel = apps.get_model("slack", "SlackChannel")
@@ -83,12 +86,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             except SlackChannel.DoesNotExist:
                 raise serializers.ValidationError(["Slack channel does not exist"])
         return slack_channel_id
-
-    def validate_filtering_term(self, filtering_term):
-        if filtering_term is not None:
-            if not is_regex_valid(filtering_term):
-                raise serializers.ValidationError(["Filtering term is incorrect"])
-        return filtering_term
 
     def validate_notification_backends(self, notification_backends):
         # NOTE: updates the whole field, handling dict updates per backend
@@ -125,6 +122,7 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "slack_channel",
             "created_at",
             "filtering_term",
+            "filtering_term_type",
             "telegram_channel",
             "is_default",
             "notify_in_slack",

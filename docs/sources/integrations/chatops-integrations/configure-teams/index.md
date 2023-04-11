@@ -75,6 +75,6 @@ send alerts from a specific integration to a channel in MS Teams.
 To automatically send alerts from an integration to MS Teams channels:
 
 1. Navigate to the **Integrations** tab in Grafana OnCall, select an existing integration or
-   click **+New integration for receiving alerts**.
+   click **+New integration to receive alerts**.
 1. From the integrations settings, navigate to the escalation chain panel.
 1. Enable **Post to Microsoft Teams channel** by selecting a channel to connect from the dropdown.

@@ -21,7 +21,6 @@ def on_create_alert_slack_representative_async(alert_pk):
     It's asynced in order to prevent Slack downtime causing issues with SMS and other destinations.
     """
     Alert = apps.get_model("alerts", "Alert")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
     alert = (
         Alert.objects.filter(pk=alert_pk)
@@ -34,17 +33,6 @@ def on_create_alert_slack_representative_async(alert_pk):
         .get()
     )
     logger.debug(f"Start on_create_alert_slack_representative for alert {alert_pk} from alert_group {alert.group_id}")
-
-    # don't need to publish in slack maintenance alert
-    # it was published earlier
-    if alert.group.maintenance_uuid is not None:
-        return
-    # don't need to publish alerts in slack while integration on maintenance
-    if (
-        alert.group.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-        or alert.group.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE is not None
-    ):
-        return
 
     organization = alert.group.channel.organization
     if organization.slack_team_identity:

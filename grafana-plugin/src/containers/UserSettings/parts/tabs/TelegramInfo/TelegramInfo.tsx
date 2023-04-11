@@ -8,10 +8,12 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { TelegramColorIcon } from 'icons';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
 
 import styles from './TelegramInfo.module.css';
@@ -37,7 +39,10 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
   }, []);
 
   return (
-    <>
+    <WithPermissionControlDisplay
+      userAction={UserActions.OtherSettingsWrite}
+      message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
+    >
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
         <VerticalGroup>
           <Text.Title level={5}>Manual connection</Text.Title>
@@ -96,7 +101,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
           )}
         </VerticalGroup>
       )}
-    </>
+    </WithPermissionControlDisplay>
   );
 });
 

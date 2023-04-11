@@ -220,6 +220,7 @@ describe('PluginState.getPluginSyncStatus', () => {
       license: 'asdasdf',
       version: 'asdasf',
       token_ok: true,
+      recaptcha_site_key: 'asdasdf',
     };
     makeRequest.mockResolvedValueOnce(mockedResp);
 

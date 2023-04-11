@@ -1,15 +1,20 @@
-from django.apps import apps
+import logging
+
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def is_insight_logs_enabled(organization):
     """
     is_insight_logs_enabled checks if inside logs enabled for given organization.
+    Now it checks if oncall is deployed on same cluster that its grafana instance to be able to forward logs.
+    Or if it's Open Source :)
     """
-    DynamicSetting = apps.get_model("base", "DynamicSetting")
-    org_id_to_enable_insight_logs, _ = DynamicSetting.objects.get_or_create(
-        name="org_id_to_enable_insight_logs",
-        defaults={"json_value": []},
+    logger.info(
+        "is_insight_logs_enabled: "
+        f"IS_OPEN_SOURCE={settings.IS_OPEN_SOURCE} "
+        f"ONCALL_BACKEND_REGION={settings.ONCALL_BACKEND_REGION} "
+        f"cluster_slug={organization.cluster_slug}"
     )
-    log_all = "all" in org_id_to_enable_insight_logs.json_value
-    insight_logs_enabled = organization.id in org_id_to_enable_insight_logs.json_value
-    return log_all or insight_logs_enabled
+    return settings.IS_OPEN_SOURCE or settings.ONCALL_BACKEND_REGION == organization.cluster_slug

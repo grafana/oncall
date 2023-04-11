@@ -1,15 +1,24 @@
+import datetime
+
 from pdpyras import APISession
 
 from migrator import oncall_api_client
-from migrator.config import MODE, MODE_PLAN, PAGERDUTY_API_TOKEN
+from migrator.config import (
+    EXPERIMENTAL_MIGRATE_EVENT_RULES,
+    MODE,
+    MODE_PLAN,
+    PAGERDUTY_API_TOKEN,
+)
 from migrator.report import (
     TAB,
     escalation_policy_report,
     format_escalation_policy,
     format_integration,
+    format_ruleset,
     format_schedule,
     format_user,
     integration_report,
+    ruleset_report,
     schedule_report,
     user_report,
 )
@@ -24,6 +33,7 @@ from migrator.resources.integrations import (
     migrate_integration,
 )
 from migrator.resources.notification_rules import migrate_notification_rules
+from migrator.resources.rulesets import match_ruleset, migrate_ruleset
 from migrator.resources.schedules import match_schedule, migrate_schedule
 from migrator.resources.users import (
     match_user,
@@ -49,7 +59,24 @@ def main() -> None:
         ]
 
     print("▶ Fetching schedules...")
-    schedules = session.list_all("schedules")
+    # Fetch schedules from PagerDuty
+    schedules = session.list_all(
+        "schedules", params={"include[]": "schedule_layers", "time_zone": "UTC"}
+    )
+
+    # Fetch overrides from PagerDuty
+    since = datetime.datetime.now(datetime.timezone.utc)
+    until = since + datetime.timedelta(
+        days=365
+    )  # fetch overrides up to 1 year from now
+    for schedule in schedules:
+        response = session.jget(
+            f"schedules/{schedule['id']}/overrides",
+            params={"since": since.isoformat(), "until": until.isoformat()},
+        )
+        schedule["overrides"] = response["overrides"]
+
+    # Fetch schedules from OnCall
     oncall_schedules = oncall_api_client.list_all("schedules")
 
     print("▶ Fetching escalation policies...")
@@ -69,11 +96,23 @@ def main() -> None:
 
     oncall_integrations = oncall_api_client.list_all("integrations")
 
+    rulesets = None
+    if EXPERIMENTAL_MIGRATE_EVENT_RULES:
+        print("▶ Fetching event rules (rulesets) ...")
+        rulesets = session.list_all("rulesets")
+        for ruleset in rulesets:
+            rules = session.list_all(f"rulesets/{ruleset['id']}/rules")
+            ruleset["rules"] = rules
+
     for user in users:
         match_user(user, oncall_users)
 
+    user_id_map = {
+        u["id"]: u["oncall_user"]["id"] if u["oncall_user"] else None for u in users
+    }
+
     for schedule in schedules:
-        match_schedule(schedule, oncall_schedules)
+        match_schedule(schedule, oncall_schedules, user_id_map)
         match_users_for_schedule(schedule, users)
 
     for policy in escalation_policies:
@@ -85,15 +124,24 @@ def main() -> None:
         match_integration_type(integration, vendors)
         match_escalation_policy_for_integration(integration, escalation_policies)
 
+    if rulesets is not None:
+        for ruleset in rulesets:
+            match_ruleset(
+                ruleset,
+                oncall_integrations,
+                escalation_policies,
+                services,
+                integrations,
+            )
+
     if MODE == MODE_PLAN:
-        print()
-        print(user_report(users))
-        print()
-        print(schedule_report(schedules))
-        print()
-        print(escalation_policy_report(escalation_policies))
-        print()
-        print(integration_report(integrations))
+        print(user_report(users), end="\n\n")
+        print(schedule_report(schedules), end="\n\n")
+        print(escalation_policy_report(escalation_policies), end="\n\n")
+        print(integration_report(integrations), end="\n\n")
+
+        if rulesets is not None:
+            print(ruleset_report(rulesets), end="\n\n")
 
         return
 
@@ -105,8 +153,8 @@ def main() -> None:
 
     print("▶ Migrating schedules...")
     for schedule in schedules:
-        if not schedule["unmatched_users"]:
-            migrate_schedule(schedule)
+        if not schedule["unmatched_users"] and not schedule["migration_errors"]:
+            migrate_schedule(schedule, user_id_map)
             print(TAB + format_schedule(schedule))
 
     print("▶ Migrating escalation policies...")
@@ -123,6 +171,13 @@ def main() -> None:
         ):
             migrate_integration(integration, escalation_policies)
             print(TAB + format_integration(integration))
+
+    if rulesets is not None:
+        print("▶ Migrating event rules (rulesets) ...")
+        for ruleset in rulesets:
+            if not ruleset["flawed_escalation_policies"]:
+                migrate_ruleset(ruleset, escalation_policies, services)
+                print(TAB + format_ruleset(ruleset))
 
 
 if __name__ == "__main__":

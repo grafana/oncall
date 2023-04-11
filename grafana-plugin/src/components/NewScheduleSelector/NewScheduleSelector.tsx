@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { UserActions } from 'utils/authorization';
 
@@ -49,11 +49,11 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
                     <Text type="secondary">Configure rotations and shifts directly in Grafana On-Call</Text>
                   </VerticalGroup>
                 </HorizontalGroup>
-                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
+                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
                     Create
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </HorizontalGroup>
             </Block>
             <Block bordered withBackground className={cx('block')}>

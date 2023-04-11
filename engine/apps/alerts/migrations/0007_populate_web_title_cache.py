@@ -4,6 +4,7 @@ from django.db import migrations
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.tasks import update_web_title_cache_for_alert_receive_channel
+import django_migration_linter as linter
 
 
 def populate_web_title_cache(apps, _):
@@ -19,6 +20,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.RenameField(
             model_name='alertgroup',
             old_name='verbose_name',

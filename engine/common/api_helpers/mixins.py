@@ -17,9 +17,8 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
-from apps.api.serializers.team import TeamSerializer
+from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
-from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -196,29 +195,26 @@ class TeamFilteringMixin:
 
     TEAM_LOOKUP = "team"
 
+    @property
+    def available_teams_lookup_args(self):
+        available_teams_lookup_args = []
+        if not self.request.user.role == LegacyAccessControlRole.ADMIN:
+            available_teams_lookup_args = [
+                Q(**{f"{self.TEAM_LOOKUP}__users": self.request.user})
+                | Q(**{f"{self.TEAM_LOOKUP}__is_sharing_resources_to_all": True})
+                | Q(**{f"{self.TEAM_LOOKUP}__isnull": True})
+            ]
+        return available_teams_lookup_args
+
     def retrieve(self, request, *args, **kwargs):
         try:
             return super().retrieve(request, *args, **kwargs)
         except NotFound:
-            queryset = self.filter_queryset(self.get_queryset())
-            self._remove_filter(self.TEAM_LOOKUP, queryset)
-
+            queryset = self.filter_queryset(self.get_queryset(ignore_filtering_by_available_teams=True))
             try:
-                obj = queryset.get(public_primary_key=self.kwargs["pk"])
+                queryset.get(public_primary_key=self.kwargs["pk"])
             except ObjectDoesNotExist:
                 raise NotFound
-
-            obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
-
-            if obj_team is None or obj_team in self.request.user.teams.all():
-                if obj_team is None:
-                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
-
-                return Response(
-                    data={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
     @staticmethod
@@ -257,7 +253,9 @@ WEB = "web"
 PHONE_CALL = "phone_call"
 SMS = "sms"
 TELEGRAM = "telegram"
+# templates with its own field in db, this concept replaced by messaging_backend_templates field
 NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
+
 TITLE = "title"
 MESSAGE = "message"
 IMAGE_URL = "image_url"
@@ -265,7 +263,7 @@ RESOLVE_CONDITION = "resolve_condition"
 ACKNOWLEDGE_CONDITION = "acknowledge_condition"
 GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
-TEMPLATE_NAME_OPTIONS = [TITLE, MESSAGE, IMAGE_URL, RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
+
 NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     SLACK: AlertSlackTemplater,
     WEB: AlertWebTemplater,
@@ -277,12 +275,12 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
 # add additionally supported messaging backends
 for backend_id, backend in get_messaging_backends():
     if backend.templater is not None:
-        backend_slug = backend_id.lower()
-        NOTIFICATION_CHANNEL_OPTIONS.append(backend_slug)
-        NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[backend_slug] = backend.get_templater_class()
+        NOTIFICATION_CHANNEL_OPTIONS.append(backend.slug)
+        NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[backend.slug] = backend.get_templater_class()
 
-TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL = [TITLE, MESSAGE, IMAGE_URL]
-TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
+APPEARANCE_TEMPLATE_NAMES = [TITLE, MESSAGE, IMAGE_URL]
+BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
+ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
 
 class PreviewTemplateMixin:
@@ -298,9 +296,9 @@ class PreviewTemplateMixin:
         notification_channel, attr_name = self.parse_name_and_notification_channel(template_name)
         if attr_name is None:
             raise BadRequest(detail={"template_name": "Attr name is required"})
-        if attr_name not in TEMPLATE_NAME_OPTIONS:
+        if attr_name not in ALL_TEMPLATE_NAMES:
             raise BadRequest(detail={"template_name": "Unknown attr name"})
-        if attr_name in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
+        if attr_name in APPEARANCE_TEMPLATE_NAMES:
             if notification_channel is None:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
@@ -310,7 +308,7 @@ class PreviewTemplateMixin:
         if alert_to_template is None:
             raise BadRequest(detail="Alert to preview does not exist")
 
-        if attr_name in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
+        if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
             class PreviewTemplateLoader(TemplateLoader):
                 def get_attr_template(self, attr, alert_receive_channel, render_for=None):
@@ -329,7 +327,7 @@ class PreviewTemplateMixin:
 
             templated_attr = getattr(templated_alert, attr_name)
 
-        elif attr_name in TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL:
+        elif attr_name in BEHAVIOUR_TEMPLATE_NAMES:
             try:
                 templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
@@ -347,7 +345,7 @@ class PreviewTemplateMixin:
         template_param = template_param.replace("_template", "")
         attr_name = None
         destination = None
-        if template_param.startswith(tuple(TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL)):
+        if template_param.startswith(tuple(BEHAVIOUR_TEMPLATE_NAMES)):
             attr_name = template_param
         elif template_param.startswith(tuple(NOTIFICATION_CHANNEL_OPTIONS)):
             for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:

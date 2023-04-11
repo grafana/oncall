@@ -11,7 +11,7 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
@@ -131,7 +131,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     </Text>
                   </VerticalGroup>
                 </div>
-                <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
+                <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
                   <Button
                     onClick={() => {
                       this.setState({ maintenanceData: {} });
@@ -139,9 +139,9 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     variant="primary"
                     icon="plus"
                   >
-                    Create
+                    New maintenance
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </div>
             )}
             rowKey="id"
@@ -185,13 +185,13 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderActionButtons = (maintenance: Maintenance) => {
     return (
       <div className={cx('buttons')}>
-        <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
+        <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
           <WithConfirm title="Are you sure to stop?" confirmText="Stop">
             <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
               Stop
             </Button>
           </WithConfirm>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </div>
     );
   };

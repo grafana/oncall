@@ -20,9 +20,10 @@ class DirectPagingAPIView(APIView):
     def post(self, request):
         organization = request.auth.organization
         from_user = request.user
-        team = from_user.current_team
 
-        serializer = DirectPagingSerializer(data=request.data, context={"organization": organization})
+        serializer = DirectPagingSerializer(
+            data=request.data, context={"organization": organization, "request": request}
+        )
         serializer.is_valid(raise_exception=True)
 
         users = [(user["instance"], user["important"]) for user in serializer.validated_data["users"]]
@@ -32,7 +33,7 @@ class DirectPagingAPIView(APIView):
 
         alert_group = direct_paging(
             organization=organization,
-            team=team,
+            team=serializer.validated_data["team"],
             from_user=from_user,
             title=serializer.validated_data["title"],
             message=serializer.validated_data["message"],

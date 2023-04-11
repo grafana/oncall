@@ -30,3 +30,10 @@ def regex_replace(value, find, replace):
         return re.sub(find, replace, value)
     except (ValueError, AttributeError, TypeError):
         return None
+
+
+def regex_match(pattern, value):
+    try:
+        return bool(re.match(value, pattern))
+    except (ValueError, AttributeError, TypeError):
+        return None

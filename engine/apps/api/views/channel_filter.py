@@ -16,12 +16,19 @@ from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
 from apps.slack.models import SlackChannel
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import (
+    CreateSerializerMixin,
+    PublicPrimaryKeyMixin,
+    TeamFilteringMixin,
+    UpdateSerializerMixin,
+)
 from common.exceptions import UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
+class ChannelFilterView(
+    TeamFilteringMixin, PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
@@ -41,7 +48,9 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
     update_serializer_class = ChannelFilterUpdateSerializer
     create_serializer_class = ChannelFilterCreateSerializer
 
-    def get_queryset(self):
+    TEAM_LOOKUP = "alert_receive_channel__team"
+
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         alert_receive_channel_id = self.request.query_params.get("alert_receive_channel", None)
         lookup_kwargs = {}
         if alert_receive_channel_id:
@@ -53,14 +62,15 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         ).order_by("pk")
 
         queryset = ChannelFilter.objects.filter(
-            **lookup_kwargs,
             alert_receive_channel__organization=self.request.auth.organization,
-            alert_receive_channel__team=self.request.user.current_team,
             alert_receive_channel__deleted_at=None,
+            **lookup_kwargs,
         ).annotate(
             slack_channel_name=Subquery(slack_channels_subq.values("name")[:1]),
             slack_channel_pk=Subquery(slack_channels_subq.values("public_primary_key")[:1]),
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 

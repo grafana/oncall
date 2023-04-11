@@ -5,7 +5,6 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import URLValidator
 from django.template.loader import render_to_string
 from django.utils import timezone
 from jinja2 import TemplateSyntaxError
@@ -19,7 +18,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, WritableSerializerMethodField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import IMAGE_URL, TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL, EagerLoadingMixin
+from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import apply_jinja_template, jinja_template_env
 from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
@@ -552,17 +551,19 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def _handle_messaging_backend_updates(self, data, ret):
         """Update additional messaging backend templates if needed."""
         errors = {}
-        for backend_id, _ in get_messaging_backends():
+        for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             # fetch existing templates if any
             backend_templates = {}
             if self.instance.messaging_backends_templates is not None:
                 backend_templates = self.instance.messaging_backends_templates.get(backend_id, {})
             # validate updated templates if any
             backend_updates = {}
-            for field in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
-                field_name = f"{backend_id.lower()}_{field}_template"
+            for field in APPEARANCE_TEMPLATE_NAMES:
+                field_name = f"{backend.slug}_{field}_template"
                 value = data.get(field_name)
-                validator = jinja_template_env.from_string if field != IMAGE_URL else URLValidator()
+                validator = jinja_template_env.from_string
                 if value is not None:
                     try:
                         if value:
@@ -616,12 +617,14 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         """Return additional messaging backend templates if any."""
         templates = {}
         for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             for field in backend.template_fields:
                 value = None
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if value is None:
+                if not value:
                     value = obj.get_default_template_attribute(backend_id, field)
-                field_name = f"{backend_id.lower()}_{field}_template"
+                field_name = f"{backend.slug}_{field}_template"
                 templates[field_name] = value
         return templates

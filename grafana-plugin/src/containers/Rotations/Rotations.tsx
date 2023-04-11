@@ -11,7 +11,7 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getFromString } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -104,7 +104,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               </div>
               {disabled ? (
                 isTypeReadOnly ? (
-                  <Tooltip content="Ical and API/Terraform schedules are read-only" placement="top">
+                  <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">
                     <div>
                       <Button variant="primary" icon="plus" disabled>
                         Add rotation
@@ -112,11 +112,11 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     </div>
                   </Tooltip>
                 ) : (
-                  <WithPermissionControl userAction={UserActions.SchedulesWrite}>
+                  <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                     <Button variant="primary" icon="plus" disabled>
                       Add rotation
                     </Button>
-                  </WithPermissionControl>
+                  </WithPermissionControlTooltip>
                 )
               ) : (
                 <ValuePicker

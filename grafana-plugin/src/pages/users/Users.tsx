@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -15,11 +15,13 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User as UserType } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -188,8 +190,11 @@ class Users extends React.Component<UsersProps, UsersState> {
                       </LegacyNavHeading>
                       {authorizedToViewUsers && (
                         <Text type="secondary">
-                          To manage permissions or add users, please visit{' '}
-                          <a href="/org/users">Grafana user management</a>
+                          All Grafana users listed below to set notification preferences. To manage permissions or add
+                          new users, please visit{' '}
+                          <a href="/org/users" target="_blank">
+                            Grafana user management
+                          </a>
                         </Text>
                       )}
                     </div>
@@ -280,10 +285,13 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   renderContacts = (user: UserType) => {
+    const { store } = this.props;
     return (
       <div className={cx('contacts')}>
         <div className={cx('contact')}>Slack: {user.slack_user_identity?.name || '-'}</div>
-        <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+        {store.hasFeature(AppFeature.Telegram) && (
+          <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+        )}
       </div>
     );
   };
@@ -298,7 +306,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     return (
       <VerticalGroup justify="center">
         <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
-          <WithPermissionControl userAction={action}>
+          <WithPermissionControlTooltip userAction={action}>
             <Button
               className={cx({
                 'TEST-edit-my-own-settings-button': isCurrent,
@@ -307,13 +315,14 @@ class Users extends React.Component<UsersProps, UsersState> {
             >
               Edit
             </Button>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </PluginLink>
       </VerticalGroup>
     );
   };
 
   renderNote = (user: UserType) => {
+    const { store } = this.props;
     if (user.hidden_fields === true) {
       return null;
     }
@@ -346,15 +355,27 @@ class Users extends React.Component<UsersProps, UsersState> {
       if (!user.slack_user_identity) {
         texts.push('Slack not verified');
       }
-      if (!user.telegram_configuration) {
+      if (store.hasFeature(AppFeature.Telegram) && !user.telegram_configuration) {
         texts.push('Telegram not verified');
       }
 
       return (
-        <div>
-          <Icon className={cx('warning-message-icon')} name="exclamation-triangle" />
-          {texts.join(', ')}
-        </div>
+        <HorizontalGroup>
+          <StatusCounterBadgeWithTooltip
+            type="warning"
+            count={texts.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {texts.map((warning, index) => (
+                  <Text type="primary" key={index}>
+                    {warning}
+                  </Text>
+                ))}
+              </VerticalGroup>
+            }
+          />
+        </HorizontalGroup>
       );
     }
 

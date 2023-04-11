@@ -61,9 +61,7 @@ export class CloudStore extends BaseStore {
   }
 
   async getCloudHeartbeat() {
-    return await makeRequest(`/cloud_heartbeat/`, { method: 'POST' }).catch((error) => {
-      console.log(error);
-    });
+    return await makeRequest(`/cloud_heartbeat/`, { method: 'POST' });
   }
 
   async getCloudUser(id: string) {

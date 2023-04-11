@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
@@ -88,7 +88,7 @@ const ICalConnector = (props: ICalConnectorProps) => {
                     <Text type="secondary">
                       In case you lost your iCal link you can revoke it and generate a new one.
                     </Text>
-                    <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
+                    <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                       <Button
                         icon="trash-alt"
                         onClick={handleRevokeiCalLink}
@@ -98,16 +98,16 @@ const ICalConnector = (props: ICalConnectorProps) => {
                       >
                         Revoke iCal link
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                   </>
                 )}
               </>
             ) : (
-              <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                 <Button icon="plus" onClick={handleCreateiCalLink} className={cx('iCal-button')} variant="secondary">
                   Create iCal link
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
           </>
         )}

@@ -28,13 +28,14 @@ export interface Schedule {
   warnings: string[];
   user_group: UserGroup;
   send_empty_shifts_report: boolean;
-  team: GrafanaTeam | null;
+  team: GrafanaTeam['id'];
   on_call_now: User[];
   notify_oncall_shift_freq: number;
   mention_oncall_next: boolean;
   mention_oncall_start: boolean;
   notify_empty_oncall: number;
   number_of_escalation_chains: number;
+  enable_web_overrides: boolean;
 }
 
 export interface ScheduleEvent {
@@ -109,4 +110,18 @@ export interface ShiftEvents {
   shiftId: string;
   events: Event[];
   isPreview?: boolean;
+}
+
+export interface ScheduleScoreQualityResponse {
+  total_score: number;
+  comments: Array<{ type: 'warning' | 'info'; text: string }>;
+  overloaded_users: Array<{ id: string; username: string; score: number }>;
+}
+
+export enum ScheduleScoreQualityResult {
+  Bad = 'Bad',
+  Low = 'Low',
+  Medium = 'Medium',
+  Good = 'Good',
+  Great = 'Great',
 }

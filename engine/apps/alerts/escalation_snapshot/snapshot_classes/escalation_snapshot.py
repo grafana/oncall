@@ -1,14 +1,22 @@
 import logging
-from typing import Optional
+import typing
 
 from celery.utils.log import get_task_logger
+from django.utils import timezone
 
 from apps.alerts.escalation_snapshot.serializers import EscalationSnapshotSerializer
-from apps.alerts.escalation_snapshot.snapshot_classes.escalation_policy_snapshot import EscalationPolicySnapshot
 from apps.alerts.models.alert_group_log_record import AlertGroupLogRecord
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.escalation_snapshot.snapshot_classes import (
+        ChannelFilterSnapshot,
+        EscalationChainSnapshot,
+        EscalationPolicySnapshot,
+    )
+    from apps.alerts.models import AlertGroup
 
 
 class EscalationSnapshot:
@@ -28,34 +36,34 @@ class EscalationSnapshot:
 
     def __init__(
         self,
-        alert_group,
-        channel_filter_snapshot,
-        escalation_chain_snapshot,
-        last_active_escalation_policy_order,
-        escalation_policies_snapshots,
-        slack_channel_id,
-        pause_escalation,
-        next_step_eta,
+        alert_group: "AlertGroup",
+        channel_filter_snapshot: "ChannelFilterSnapshot",
+        escalation_chain_snapshot: "EscalationChainSnapshot",
+        last_active_escalation_policy_order: int,
+        escalation_policies_snapshots: typing.List["EscalationPolicySnapshot"],
+        slack_channel_id: str,
+        pause_escalation: bool,
+        next_step_eta: typing.Optional[str],
     ):
         self.alert_group = alert_group
-        self.channel_filter_snapshot = channel_filter_snapshot  # ChannelFilterSnapshot object
-        self.escalation_chain_snapshot = escalation_chain_snapshot  # EscalationChainSnapshot object
+        self.channel_filter_snapshot = channel_filter_snapshot
+        self.escalation_chain_snapshot = escalation_chain_snapshot
         self.last_active_escalation_policy_order = last_active_escalation_policy_order
-        self.escalation_policies_snapshots = escalation_policies_snapshots  # list of EscalationPolicySnapshot objects
+        self.escalation_policies_snapshots = escalation_policies_snapshots
         self.slack_channel_id = slack_channel_id
         self.pause_escalation = pause_escalation
         self.next_step_eta = next_step_eta
         self.stop_escalation = False
 
     @property
-    def last_active_escalation_policy_snapshot(self) -> Optional[EscalationPolicySnapshot]:
+    def last_active_escalation_policy_snapshot(self) -> typing.Optional["EscalationPolicySnapshot"]:
         order = self.last_active_escalation_policy_order
         if order is None:
             return None
         return self.escalation_policies_snapshots[order]
 
     @property
-    def next_active_escalation_policy_snapshot(self) -> Optional[EscalationPolicySnapshot]:
+    def next_active_escalation_policy_snapshot(self) -> typing.Optional["EscalationPolicySnapshot"]:
         order = self.next_active_escalation_policy_order
         if len(self.escalation_policies_snapshots) < order + 1:
             next_link = None
@@ -71,6 +79,31 @@ class EscalationSnapshot:
             next_order = self.last_active_escalation_policy_order + 1
         return next_order
 
+    @property
+    def executed_escalation_policy_snapshots(self) -> typing.List["EscalationPolicySnapshot"]:
+        """
+        Returns a list of escalation policy snapshots that have already been executed, according
+        to the value of last_active_escalation_policy_order
+        """
+        if self.last_active_escalation_policy_order is None:
+            return []
+        elif self.last_active_escalation_policy_order == 0:
+            return [self.escalation_policies_snapshots[0]]
+        return self.escalation_policies_snapshots[: self.last_active_escalation_policy_order]
+
+    def next_step_eta_is_valid(self) -> typing.Union[None, bool]:
+        """
+        `next_step_eta` should never be less than the current time (with a 5 minute buffer provided)
+        as this field should be updated as the escalation policy is executed over time. If it is, this means that
+        an escalation policy step has been missed, or is substantially delayed
+
+        if `next_step_eta` is `None` then `None` is returned, otherwise a boolean is returned
+        representing the result of the time comparision
+        """
+        if self.next_step_eta is None:
+            return None
+        return self.next_step_eta > (timezone.now() - timezone.timedelta(minutes=5))
+
     def save_to_alert_group(self) -> None:
         self.alert_group.raw_escalation_snapshot = self.convert_to_dict()
         self.alert_group.save(update_fields=["raw_escalation_snapshot"])
@@ -83,7 +116,6 @@ class EscalationSnapshot:
         Executes actual escalation step and saves result of execution like stop_escalation param and eta,
         that will be used for start next escalate_alert_group task.
         Also updates self.last_active_escalation_policy_order if escalation step was executed.
-        :return: None
         """
         escalation_policy_snapshot = self.next_active_escalation_policy_snapshot
         if escalation_policy_snapshot is None:

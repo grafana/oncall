@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from rest_framework import status
 
 from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 
@@ -44,17 +43,17 @@ class TestGetUsersPermissions:
 
 class TestIsRbacEnabledForOrganization:
     @pytest.mark.parametrize(
-        "grafana_api_status_code,expected",
+        "api_response_connected,expected",
         [
-            (status.HTTP_200_OK, True),
-            (status.HTTP_404_NOT_FOUND, False),
+            (True, True),
+            (False, False),
         ],
     )
     @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_head")
     def test_it_returns_based_on_status_code_of_head_call(
-        self, mocked_grafana_api_client_api_head, grafana_api_status_code, expected
+        self, mocked_grafana_api_client_api_head, api_response_connected, expected
     ):
-        mocked_grafana_api_client_api_head.return_value = (None, {"status_code": grafana_api_status_code})
+        mocked_grafana_api_client_api_head.return_value = (None, {"connected": api_response_connected})
 
         api_client = GrafanaAPIClient(API_URL, API_TOKEN)
         assert api_client.is_rbac_enabled_for_organization() == expected

@@ -61,4 +61,4 @@ via Terraform are automatically added to your schedules in Grafana OnCall. Simil
 read-only and cannot be edited from the UI.
 
 To learn more, read our [Get started with Grafana OnCall and Terraform](
-https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/) blog post.
+<https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/>) blog post.

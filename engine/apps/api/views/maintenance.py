@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -43,6 +44,7 @@ class MaintenanceAPIView(APIView):
 
     rbac_permissions = {
         "get": [RBACPermission.Permissions.MAINTENANCE_READ],
+        "filters": [RBACPermission.Permissions.MAINTENANCE_READ],
     }
 
     def get(self, request):
@@ -77,6 +79,25 @@ class MaintenanceAPIView(APIView):
             )
 
         return Response(response, status=200)
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+                "global": True,
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)
 
 
 class MaintenanceStartAPIView(GetObjectMixin, APIView):

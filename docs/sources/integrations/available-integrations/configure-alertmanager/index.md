@@ -25,7 +25,7 @@ alerts from Alertmanager, including initial deduplicating, grouping, and routing
 
 You must have an Admin role to create integrations in Grafana OnCall.
 
-1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
+1. In the **Integrations** tab, click **+ New integration to receive alerts**.
 2. Select **Alertmanager** from the list of available integrations.
 3. Follow the instructions in the **How to connect** window to get your unique integration URL and identify next steps.
 

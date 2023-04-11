@@ -4,10 +4,13 @@ from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import dateparse, timezone
 from django.utils.functional import cached_property
-from rest_framework import status
+from django_filters import rest_framework as filters
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.fields import BooleanField
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
@@ -24,10 +27,10 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
-from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -48,6 +51,17 @@ SCHEDULE_TYPE_TO_CLASS = {
 }
 
 
+class SchedulePagination(PageNumberPagination):
+    page_size = 10
+    page_query_param = "page"
+    page_size_query_param = "perpage"
+    max_page_size = 50
+
+
+class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
+    team = TeamModelMultipleChoiceFilter()
+
+
 class ScheduleView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin,
@@ -55,6 +69,7 @@ class ScheduleView(
     CreateSerializerMixin,
     UpdateSerializerMixin,
     ModelViewSet,
+    mixins.ListModelMixin,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
@@ -76,16 +91,19 @@ class ScheduleView(
         "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "reload_ical": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "export_token": [RBACPermission.Permissions.SCHEDULES_EXPORT],
+        "filters": [RBACPermission.Permissions.SCHEDULES_READ],
     }
 
-    filter_backends = [SearchFilter]
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ("name",)
+    filterset_class = ScheduleFilter
 
     queryset = OnCallSchedule.objects.all()
     serializer_class = PolymorphicScheduleSerializer
     create_serializer_class = PolymorphicScheduleCreateSerializer
     update_serializer_class = PolymorphicScheduleUpdateSerializer
     short_serializer_class = ScheduleFastSerializer
+    pagination_class = SchedulePagination
 
     @cached_property
     def can_update_user_groups(self):
@@ -110,7 +128,9 @@ class ScheduleView(
         The result of this method is cached and is reused for the whole lifetime of a request,
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
-        queryset = self.get_queryset()
+        current_page_schedules = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
+        pks = [schedule.pk for schedule in current_page_schedules]
+        queryset = OnCallSchedule.objects.filter(pk__in=pks)
         return queryset.get_oncall_users()
 
     def get_serializer_context(self):
@@ -139,20 +159,27 @@ class ScheduleView(
         )
         return queryset
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.get("type")
+        used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
-        queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
+        queryset = OnCallSchedule.objects.filter(organization=organization).defer(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
         if filter_by_type is not None and filter_by_type in SCHEDULE_TYPE_TO_CLASS:
             queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
+        if used is not None:
+            queryset = queryset.filter(escalation_policies__isnull=not used).distinct()
+
+        queryset = queryset.order_by("pk")
         return queryset
 
     def perform_create(self, serializer):
@@ -195,13 +222,15 @@ class ScheduleView(
             return self.get_object_from_organization()
         return super().get_object()
 
-    def get_object_from_organization(self):
+    def get_object_from_organization(self, ignore_filtering_by_available_teams=False):
         # use this method to get the object from the whole organization instead of the current team
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
         queryset = organization.oncall_schedules.filter(
             public_primary_key=pk,
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         queryset = self._annotate_queryset(queryset)
 
         try:
@@ -323,13 +352,12 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def quality(self, request, pk):
         schedule = self.get_object()
-        user_tz, date = self.get_request_timezone()
-        days = int(self.request.query_params.get("days", 90))  # todo: check if days could be calculated more precisely
 
-        events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
+        _, date = self.get_request_timezone()
+        days = self.request.query_params.get("days")
+        days = int(days) if days else None
 
-        schedule_score = get_schedule_quality_score(events, days)
-        return Response(schedule_score)
+        return Response(schedule.quality_report(date, days))
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):
@@ -434,3 +462,37 @@ class ScheduleView(
             },
         ]
         return Response(options)
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+                "global": True,
+            },
+            {
+                "name": "used",
+                "type": "boolean",
+                "display_name": "Used in escalations",
+                "default": "false",
+            },
+            {
+                "name": "type",
+                "type": "options",
+                "options": [
+                    {"display_name": "API", "value": 0},
+                    {"display_name": "Ical", "value": 1},
+                    {"display_name": "Web", "value": 2},
+                ],
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)

@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 from django.db.models import F
+import django_migration_linter as linter
 
 
 def fill_rotation_start_field(apps, schema_editor):
@@ -16,6 +17,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.AddField(
             model_name='customoncallshift',
             name='rotation_start',

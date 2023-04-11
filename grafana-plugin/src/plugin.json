@@ -31,11 +31,19 @@
   "includes": [
     {
       "type": "page",
-      "name": "Incidents",
-      "path": "/a/grafana-oncall-app/incidents",
+      "name": "Home",
+      "path": "/a/grafana-oncall-app",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
       "defaultNav": true,
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Alert Groups",
+      "path": "/a/grafana-oncall-app/alert-groups",
+      "role": "Viewer",
+      "action": "grafana-oncall-app.alert-groups:read",
       "addToNav": true
     },
     {
@@ -70,7 +78,6 @@
       "action": "grafana-oncall-app.schedules:read",
       "addToNav": true
     },
-
     {
       "type": "page",
       "name": "Outgoing Webhooks",
@@ -78,6 +85,14 @@
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
       "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Outgoing Webhooks 2",
+      "path": "/a/grafana-oncall-app/outgoing_webhooks_2",
+      "role": "Viewer",
+      "action": "grafana-oncall-app.outgoing-webhooks:read",
+      "addToNav": false
     },
     {
       "type": "page",

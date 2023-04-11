@@ -18,6 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
     PreviewTemplateMixin,
@@ -29,11 +30,12 @@ from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class AlertReceiveChannelFilter(filters.FilterSet):
+class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
     integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
+    team = TeamModelMultipleChoiceFilter()
 
     class Meta:
         model = AlertReceiveChannel
@@ -92,6 +94,7 @@ class AlertReceiveChannelView(
         "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "change_team": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
     }
 
     def create(self, request, *args, **kwargs):
@@ -121,24 +124,26 @@ class AlertReceiveChannelView(
         )
         instance.delete()
 
-    def get_queryset(self, eager=True):
+    def get_queryset(self, eager=True, ignore_filtering_by_available_teams=False):
         is_filters_request = self.request.query_params.get("filters", "false") == "true"
         organization = self.request.auth.organization
         if is_filters_request:
             queryset = AlertReceiveChannel.objects_with_maintenance.filter(
                 organization=organization,
-                team=self.request.user.current_team,
             )
         else:
             queryset = AlertReceiveChannel.objects.filter(
                 organization=organization,
-                team=self.request.user.current_team,
             )
             if eager:
                 queryset = self.serializer_class.setup_eager_loading(queryset)
 
-        # Hide direct paging integrations
-        queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
+
+        # Hide direct paging integrations from the list view, but not from the filters
+        if not is_filters_request:
+            queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
         return queryset
 
@@ -215,3 +220,22 @@ class AlertReceiveChannelView(
             return self.get_object().alert_groups.last().alerts.first()
         except AttributeError:
             return None
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+                "global": True,
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)

@@ -1,11 +1,20 @@
 /* Navigation/Layout */
 
+.drawer-content,
+.rc-drawer-content {
+  overflow: auto !important; /* fix https://github.com/grafana/oncall/issues/415 */
+}
+
 .page-body {
   max-width: unset !important;
 }
 
 [class$='-page-header'] {
   display: none; /* hide header that comes from Grafana (topnavbar) and instead use ours */
+}
+
+[class$='-page-container'] {
+  min-width: 0; /* top navbar container overflows for a few screens */
 }
 
 .page-container {

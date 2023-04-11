@@ -18,13 +18,13 @@ class GrafanaPluginConfig(AppConfig):
         For OSS installations, validate that GRAFANA_API_URL environment variable is specified, otherwise
         abort app startup.
 
-        We only care to run this for OSS_INSTALLATIONS. The STARTUP_COMMANDS check is to avoid running this check
+        We only care to run this for OSS INSTALLATIONS. The STARTUP_COMMANDS check is to avoid running this check
         for the django migrate command. For a fresh installation this would crash because user_management table would
         [not exist](https://stackoverflow.com/a/63326719).
         """
         # TODO: this logic should probably be moved out to a common utility
         is_not_migration_script = any(startup_command in sys.argv for startup_command in STARTUP_COMMANDS)
-        if is_not_migration_script and settings.OSS_INSTALLATION is True:
+        if is_not_migration_script and settings.IS_OPEN_SOURCE:
             Organization = apps.get_model("user_management", "Organization")
             has_existing_org = Organization.objects.first() is not None
 

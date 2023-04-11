@@ -1,6 +1,7 @@
+from django.utils import timezone
 from rest_framework import serializers
 
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
     OrganizationFilteredPrimaryKeyRelatedField,
@@ -18,7 +19,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         required=True,
         choices=CustomOnCallShift.WEB_TYPES,
     )
-    schedule = OrganizationFilteredPrimaryKeyRelatedField(queryset=OnCallScheduleWeb.objects)
+    schedule = OrganizationFilteredPrimaryKeyRelatedField(queryset=OnCallSchedule.objects)
     frequency = serializers.ChoiceField(required=False, choices=CustomOnCallShift.FREQUENCY_CHOICES, allow_null=True)
     shift_start = serializers.DateTimeField(source="start")
     shift_end = serializers.SerializerMethodField()
@@ -93,9 +94,12 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 result.append(users_dict)
         return result
 
-    def _validate_shift_end(self, start, end):
+    def _validate_shift_end(self, start, end, event_type):
         if end <= start:
             raise serializers.ValidationError({"shift_end": ["Incorrect shift end date"]})
+
+        if event_type == CustomOnCallShift.TYPE_OVERRIDE and timezone.now() > end:
+            raise serializers.ValidationError({"shift_end": ["Cannot create or update an override in the past"]})
 
     def _validate_frequency(self, frequency, event_type, rolling_users, interval, by_day, until):
         if frequency is None:
@@ -157,7 +161,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         # convert shift_end into internal value and validate
         raw_shift_end = self.initial_data["shift_end"]
         shift_end = serializers.DateTimeField().to_internal_value(raw_shift_end)
-        self._validate_shift_end(validated_data["start"], shift_end)
+        self._validate_shift_end(validated_data["start"], shift_end, event_type)
 
         validated_data["duration"] = shift_end - validated_data["start"]
         if validated_data.get("schedule"):

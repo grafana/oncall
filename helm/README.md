@@ -18,11 +18,13 @@
 4. Install the helm chart
 
    ```bash
-   helm install helm-testing \
-   ./oncall --wait --timeout 30m \
-   --wait-for-jobs \
-   --values simple.yml \
-   --values values-arm64.yml
+      helm install helm-testing \
+      --wait \
+      --timeout 30m \
+      --wait-for-jobs \
+      --values ./simple.yml \
+      --values ./values-arm64.yml \
+      ./oncall
    ```
 
 5. Get credentials

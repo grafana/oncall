@@ -16,10 +16,11 @@
 
 .new-escalation-chain {
   margin: 16px;
+  width: calc(100% - 32px);
 }
 
 .left-column {
-  width: 400px;
+  width: 300px;
   flex-shrink: 0;
   border-right: var(--border);
 }

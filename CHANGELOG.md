@@ -5,6 +5,307 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Fixed a bug in GForm's RemoteSelect where the value for Dropdown could not change
+
+## v1.2.8 (2023-04-06)
+
+### Changed
+
+- Allow editing assigned team via public api ([1619](https://github.com/grafana/oncall/pull/1619))
+- Disable mentions when resolution note is created by @iskhakov ([1696](https://github.com/grafana/oncall/pull/1696))
+- Display warnings on users page in a clean and consistent way by @iskhakov ([#1681](https://github.com/grafana/oncall/pull/1681))
+
+## v1.2.7 (2023-04-03)
+
+### Added
+
+- Save selected teams filter in local storage ([1611](https://github.com/grafana/oncall/issues/1611))
+
+### Changed
+
+- Renamed routes from /incidents to /alert-groups ([#1678](https://github.com/grafana/oncall/pull/1678))
+
+### Fixed
+
+- Fix team search when filtering resources by @vadimkerr ([#1680](https://github.com/grafana/oncall/pull/1680))
+- Fix issue when trying to scroll in Safari ([#415](https://github.com/grafana/oncall/issues/415))
+
+## v1.2.6 (2023-03-30)
+
+### Fixed
+
+- Fixed bug when web schedules/shifts use non-UTC timezone and shift is deleted by @matiasb ([#1661](https://github.com/grafana/oncall/pull/1661))
+
+## v1.2.5 (2023-03-30)
+
+### Fixed
+
+- Fixed a bug with Slack links not working in the plugin UI ([#1671](https://github.com/grafana/oncall/pull/1671))
+
+## v1.2.4 (2023-03-30)
+
+### Added
+
+- Added the ability to change the team for escalation chains by @maskin25, @iskhakov and @vadimkerr ([#1658](https://github.com/grafana/oncall/pull/1658))
+
+### Fixed
+
+- Addressed bug with iOS mobile push notifications always being set to critical by @imtoori and @joeyorlando ([#1646](https://github.com/grafana/oncall/pull/1646))
+- Fixed issue where Viewer was not able to view which people were oncall in a schedule ([#999](https://github.com/grafana/oncall/issues/999))
+- Fixed a bug with syncing teams from Grafana API by @vadimkerr ([#1652](https://github.com/grafana/oncall/pull/1652))
+
+## v1.2.3 (2023-03-28)
+
+Only some minor performance/developer setup changes to report in this version.
+
+## v1.2.2 (2023-03-27)
+
+### Changed
+
+- Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X (by @Ukochka in [#1608](https://github.com/grafana/oncall/pull/1608))
+- When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
+  using URLs without a top-level domain (by @hoptical in [#1398](https://github.com/grafana/oncall/pull/1398))
+- Updated wording when creating an integration (by @callmehyde in [#1572](https://github.com/grafana/oncall/pull/1572))
+- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications (by @joeyorlando in [#1612](https://github.com/grafana/oncall/pull/1612))
+- Improve schedule quality feature (by @vadimkerr in [#1602](https://github.com/grafana/oncall/pull/1602))
+
+### Fixed
+
+- Update override deletion changes to set its final duration (by @matiasb in [#1599](https://github.com/grafana/oncall/pull/1599))
+
+## v1.2.1 (2023-03-23)
+
+### Changed
+
+- Mobile app settings backend by @vadimkerr in ([1571](https://github.com/grafana/oncall/pull/1571))
+- Fix integrations and escalations autoselect, improve GList by @maskin25 in ([1601](https://github.com/grafana/oncall/pull/1601))
+- Add filters to outgoing webhooks 2 by @iskhakov in ([1598](https://github.com/grafana/oncall/pull/1598))
+
+## v1.2.0 (2023-03-21)
+
+### Changed
+
+- Add team-based filtering for resources, so that users can see multiple resources at once and link them together ([1528](https://github.com/grafana/oncall/pull/1528))
+
+## v1.1.41 (2023-03-21)
+
+### Added
+
+- Modified `check_escalation_finished_task` celery task to use read-only databases for its query, if one is defined +
+  make the validation logic stricter + ping a configurable heartbeat on successful completion of this task ([1266](https://github.com/grafana/oncall/pull/1266))
+
+### Changed
+
+- Updated wording throughout plugin to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565),
+  [1576](https://github.com/grafana/oncall/pull/1576))
+- Check for enabled Telegram feature was added to ChatOps and to User pages ([319](https://github.com/grafana/oncall/issues/319))
+- Filtering for Editors/Admins was added to rotation form. It is not allowed to assign Viewer to rotation ([1124](https://github.com/grafana/oncall/issues/1124))
+- Modified search behaviour on the Escalation Chains page to allow for "partial searching" ([1578](https://github.com/grafana/oncall/pull/1578))
+
+### Fixed
+
+- Fixed a few permission issues on the UI ([1448](https://github.com/grafana/oncall/pull/1448))
+- Fix resolution note rendering in Slack message threads where the Slack username was not
+  being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
+
+## v1.1.40 (2023-03-16)
+
+### Fixed
+
+- Check for duplicated positions in terraform escalation policies create/update
+
+### Added
+
+- Add `regex_match` Jinja filter ([1556](https://github.com/grafana/oncall/pull/1556))
+
+### Changed
+
+- Allow passing `null` as a value for `escalation_chain` when creating routes via the public API ([1557](https://github.com/grafana/oncall/pull/1557))
+
+## v1.1.39 (2023-03-16)
+
+### Added
+
+- Inbound email integration ([837](https://github.com/grafana/oncall/pull/837))
+
+## v1.1.38 (2023-03-14)
+
+### Added
+
+- Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
+
+### Fixed
+
+- Improve tasks checking/triggering webhooks in new backend
+
+## v1.1.37 (2023-03-14)
+
+### Fixed
+
+- Fixed redirection issue on integrations screen
+
+### Added
+
+- Enable web overrides for Terraform-based schedules
+- Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
+- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
+
+## v1.1.36 (2023-03-09)
+
+### Fixed
+
+- Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
+
+## v1.1.35 (2023-03-09)
+
+### Added
+
+- Insight logs
+
+### Fixed
+
+- Fixed issue with Alert group involved users filter
+- Fixed email sending failure due to newline in title
+
+## v1.1.34 (2023-03-08)
+
+### Added
+
+- Jinja2 based routes ([1319](https://github.com/grafana/oncall/pull/1319))
+
+### Changed
+
+- Remove mobile app feature flag ([1484](https://github.com/grafana/oncall/pull/1484))
+
+### Fixed
+
+- Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
+
+## v1.1.33 (2023-03-07)
+
+### Fixed
+
+- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
+
+### Changed
+
+- Pass email and phone limits as environment variables ([1219](https://github.com/grafana/oncall/pull/1219))
+
+## v1.1.32 (2023-03-01)
+
+### Fixed
+
+- Schedule filters improvements ([941](https://github.com/grafana/oncall/issues/941))
+- Fix pagination issue on schedules page ([1437](https://github.com/grafana/oncall/pull/1437))
+
+## v1.1.31 (2023-03-01)
+
+### Added
+
+- Add acknowledge_signal and source link to public api
+
+## v1.1.30 (2023-03-01)
+
+### Fixed
+
+- Fixed importing of global grafana styles ([672](https://github.com/grafana/oncall/issues/672))
+- Fixed UI permission related bug where Editors could not export their user iCal link
+- Fixed error when a shift is created using Etc/UTC as timezone
+- Fixed issue with refresh ical file task not considering empty string values
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup ([1002](https://github.com/grafana/oncall/issues/1002))
+- Can't scroll on integration settings page ([415](https://github.com/grafana/oncall/issues/415))
+- Team change in the Integration page always causes 403 ([1292](https://github.com/grafana/oncall/issues/1292))
+- Schedules: Permalink doesn't work with multi-teams ([940](https://github.com/grafana/oncall/issues/940))
+- Schedules list -> expanded schedule blows page width ([1293](https://github.com/grafana/oncall/issues/1293))
+
+### Changed
+
+- Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
+- Add pagination to schedule listing
+- Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
+
+## v1.1.29 (2023-02-23)
+
+### Changed
+
+- Allow creating schedules with type "web" using public API
+
+### Fixed
+
+- Fixed minor issue during the sync process where an HTTP 302 (redirect) status code from the Grafana
+  instance would cause the sync to not properly finish
+
+## v1.1.28 (2023-02-23)
+
+### Fixed
+
+- Fixed maintenance mode for Telegram and MSTeams
+
+## v1.1.27 (2023-02-22)
+
+### Added
+
+- Added reCAPTCHA validation for requesting a mobile verification code
+
+### Changed
+
+- Added ratelimits for phone verification
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
+
+### Fixed
+
+- Fixed HTTP request to Google where when fetching an iCal, the response would sometimes contain HTML instead
+  of the expected iCal data
+
+## v1.1.26 (2023-02-20)
+
+### Fixed
+
+- Make alert group filters persistent ([482](https://github.com/grafana/oncall/issues/482))
+
+### Changed
+
+- Update phone verification error message
+
+## v1.1.25 (2023-02-20)
+
+### Fixed
+
+- Fixed too long declare incident link in Slack
+
+## v1.1.24 (2023-02-16)
+
+### Added
+
+- Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
+- Add App Store link to web UI ([1328](https://github.com/grafana/oncall/pull/1328))
+
+### Fixed
+
+- Cleaning of the name "Incident" ([704](https://github.com/grafana/oncall/pull/704))
+- Alert Group/Alert Groups naming polishing. All the names should be with capital letters
+- Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
+- Not showing contact details in User tooltip if User does not have edit/admin access
+- Updated slack link account to redirect back to user profile instead of chatops
+
+### Changed
+
+- Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Add pagination to schedule listing
+
+## v1.1.23 (2023-02-06)
+
+### Fixed
+
+- Fix bug with email case sensitivity for ICal on-call schedules ([1297](https://github.com/grafana/oncall/pull/1297))
+
 ## v1.1.22 (2023-02-03)
 
 ### Fixed

@@ -35,9 +35,11 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
+import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
+import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
   Alert,
@@ -47,6 +49,7 @@ import {
   GroupedAlert,
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
+import { User } from 'models/user/user.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -55,11 +58,12 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
-import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
-
-import styles from './Incident.module.css';
+import { getActionButtons, getIncidentStatusTag } from './Incident.helpers';
+import styles from './Incident.module.scss';
+import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
+const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
 interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
@@ -126,7 +130,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     if (!incident && !isNotFoundError && !isWrongTeamError) {
       return (
         <div className={cx('root')}>
-          <LoadingPlaceholder text="Loading alert group..." />
+          <LoadingPlaceholder text="Loading Alert Group..." />
         </div>
       );
     }
@@ -139,10 +143,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               <div className={cx('not-found')}>
                 <VerticalGroup spacing="lg" align="center">
                   <Text.Title level={1}>404</Text.Title>
-                  <Text.Title level={4}>Incident not found</Text.Title>
-                  <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+                  <Text.Title level={4}>Alert group not found</Text.Title>
+                  <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
                     <Button variant="secondary" icon="arrow-left" size="md">
-                      Go to incidents page
+                      Go to Alert Groups page
                     </Button>
                   </PluginLink>
                 </VerticalGroup>
@@ -159,7 +163,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
-                  <div className={cx('column')}>{this.renderTimeline()}</div>
+                  <div className={cx('column')}>
+                    <VerticalGroup>
+                      <PagedUsers pagedUsers={incident.paged_users} onRemove={this.handlePagedUserRemove} />
+                      {this.renderTimeline()}
+                    </VerticalGroup>
+                  </div>
                 </div>
                 {showIntegrationSettings && (
                   <IntegrationSettings
@@ -198,6 +207,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     );
   }
 
+  handlePagedUserRemove = async (userId: User['pk']) => {
+    const {
+      store,
+      match: {
+        params: { id: alertId },
+      },
+    } = this.props;
+
+    await store.alertGroupStore.unpageUser(alertId, userId);
+
+    this.update();
+  };
+
   renderHeader = () => {
     const {
       store,
@@ -214,12 +236,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
 
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
+
+    const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
+
     return (
       <Block withBackground className={cx('block')}>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
-              <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+              <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
                 <IconButton name="arrow-left" size="xxl" />
               </PluginLink>
               {/* @ts-ignore*/}
@@ -231,50 +256,100 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 {incident.root_alert_group && (
                   <Text type="secondary">
                     Attached to{' '}
-                    <PluginLink query={{ page: 'incident', id: incident.root_alert_group.pk }}>
+                    <PluginLink query={{ page: 'alert-groups', id: incident.root_alert_group.pk }}>
                       #{incident.root_alert_group.inside_organization_number}{' '}
                       {incident.root_alert_group.render_for_web.title}
                     </PluginLink>{' '}
-                    <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
-                      <Button variant="secondary" onClick={this.getUnattachClickHandler(incident.pk)} size="sm">
+                    <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+                      <Button variant="secondary" onClick={() => this.getUnattachClickHandler(incident.pk)} size="sm">
                         Unattach
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                   </Text>
                 )}
               </HorizontalGroup>
             </HorizontalGroup>
             <HorizontalGroup align="center">
               <Text>
+                {showLinkTo && (
+                  <IconButton
+                    name="code-branch"
+                    onClick={this.showAttachIncidentForm}
+                    tooltip="Attach to another Alert Group"
+                    className={cx('title-icon')}
+                  />
+                )}
+                <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
+                  <IconButton name="slack" tooltip="View in Slack" className={cx('title-icon')} />
+                </a>
                 <CopyToClipboard
                   text={window.location.href}
                   onCopy={() => {
                     openNotification('Link copied');
                   }}
                 >
-                  <IconButton name="code-branch" tooltip="Copy link" className={cx('title-icon')} />
+                  <IconButton name="copy" tooltip="Copy link" className={cx('title-icon')} />
                 </CopyToClipboard>
-                <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
-                  <IconButton name="slack" tooltip="View in Slack" className={cx('title-icon')} />
-                </a>
-                {showLinkTo && (
-                  <IconButton
-                    name="share-alt"
-                    onClick={this.showAttachIncidentForm}
-                    tooltip="Attach to another alert group"
-                    className={cx('title-icon')}
-                  />
-                )}
               </Text>
             </HorizontalGroup>
           </HorizontalGroup>
           <div className={cx('info-row')}>
             <HorizontalGroup>
-              {getIncidentStatusTag(incident)} | <Emoji text={incident.alert_receive_channel.verbal_name} />|
-              <IntegrationLogo integration={integration} scale={0.1} />
-              {integration && <Text type="secondary"> {integration?.display_name}</Text>}
-              {integration && '|'}
-              <Text type="secondary">{renderRelatedUsers(incident, true)}</Text>
+              <div className={cx('status-tag-container')}>{getIncidentStatusTag(incident)}</div>
+              {integration && (
+                <HorizontalGroup>
+                  <PluginLink
+                    disabled={incident.alert_receive_channel.deleted}
+                    query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
+                  >
+                    <Button
+                      disabled={incident.alert_receive_channel.deleted}
+                      variant="secondary"
+                      fill="outline"
+                      size="sm"
+                      className={cx('label-button')}
+                    >
+                      <Tooltip
+                        placement="top"
+                        content={
+                          incident.alert_receive_channel.verbal_name.length > INTEGRATION_NAME_LENGTH_LIMIT
+                            ? integrationNameWithEmojies
+                            : 'Go to Integration'
+                        }
+                      >
+                        <div className={cx('label-button-text', 'source-name')}>
+                          <div className={cx('integration-logo')}>
+                            <IntegrationLogo integration={integration} scale={0.08} />
+                          </div>
+                          <div className={cx('label-button-text')}>{integrationNameWithEmojies}</div>
+                        </div>
+                      </Tooltip>
+                    </Button>
+                  </PluginLink>
+
+                  <Tooltip
+                    placement="top"
+                    content={
+                      incident.render_for_web.source_link === null
+                        ? `The integration template Source Link is empty`
+                        : 'Go to source'
+                    }
+                  >
+                    <a href={incident.render_for_web.source_link} target="_blank" rel="noreferrer">
+                      <Button
+                        variant="secondary"
+                        fill="outline"
+                        size="sm"
+                        disabled={incident.render_for_web.source_link === null}
+                        className={cx('label-button')}
+                        icon="external-link-alt"
+                      >
+                        Source
+                      </Button>
+                    </a>
+                  </Tooltip>
+                </HorizontalGroup>
+              )}
             </HorizontalGroup>
           </div>
           <HorizontalGroup justify="space-between" className={cx('buttons-row')}>
@@ -289,7 +364,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               })}
               <PluginBridge plugin={SupportedPlugin.Incident}>
                 <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                  <Button variant="primary" size="sm" icon="fire">
+                  <Button variant="secondary" size="md" icon="fire">
                     Declare incident
                   </Button>
                 </a>
@@ -297,28 +372,42 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </HorizontalGroup>
 
             <HorizontalGroup>
-              <PluginLink
-                disabled={incident.alert_receive_channel.deleted}
-                query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
-              >
-                <Button disabled={incident.alert_receive_channel.deleted} variant="secondary" size="sm" icon="compass">
-                  Go to Integration
-                </Button>
-              </PluginLink>
+              <EscalationVariants
+                variant="secondary"
+                hideSelected
+                value={prepareForEdit(incident.paged_users)}
+                onUpdateEscalationVariants={this.handleAddResponders}
+              />
+
               <Button
                 disabled={incident.alert_receive_channel.deleted}
                 variant="secondary"
-                size="sm"
                 icon="edit"
                 onClick={this.showIntegrationSettings}
               >
-                Edit rendering, grouping and other templates
+                Edit templates
               </Button>
             </HorizontalGroup>
           </HorizontalGroup>
         </VerticalGroup>
       </Block>
     );
+  };
+
+  handleAddResponders = async (data) => {
+    const {
+      store,
+      match: {
+        params: { id: alertId },
+      },
+    } = this.props;
+
+    await store.directPagingStore.updateAlertGroup(
+      alertId,
+      prepareForUpdate(data.userResponders, data.scheduleResponders)
+    );
+
+    this.update();
   };
 
   showIntegrationSettings = () => {
@@ -332,9 +421,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   getUnattachClickHandler = (pk: Alert['pk']) => {
     const { store } = this.props;
 
-    return () => {
-      store.alertGroupStore.unattachAlert(pk).then(this.update);
-    };
+    return store.alertGroupStore.unattachAlert(pk).then(this.update);
   };
 
   renderTimeline = () => {
@@ -356,7 +443,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { timelineFilter, resolutionNoteText } = this.state;
     const isResolutionNoteTextEmpty = resolutionNoteText === '';
     return (
-      <>
+      <div>
         <Text.Title type="primary" level={4} className={cx('timeline-title')}>
           Timeline
         </Text.Title>
@@ -371,7 +458,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             this.setState({ timelineFilter: value });
           }}
         />
-        <ul className={cx('timeline')}>
+        <ul className={cx('timeline')} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
             <li key={idx} className={cx('timeline-item')}>
               <HorizontalGroup align="flex-start">
@@ -395,21 +482,26 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </li>
           ))}
         </ul>
-        <Field label="Leave a resolution note" description="Will also show up in the thread of incident in Slack">
+        <Field
+          label="Leave a resolution note"
+          description="Will also show up in the thread of the Alert Group in Slack"
+        >
           <TextArea
             value={resolutionNoteText}
             onChange={(e: any) => this.setState({ resolutionNoteText: e.target.value })}
           />
         </Field>
-        <ToolbarButton
-          icon="plus"
-          variant="primary"
-          onClick={this.handleCreateResolutionNote}
-          disabled={isResolutionNoteTextEmpty}
-        >
-          Add resolution note
-        </ToolbarButton>
-      </>
+        <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+          <ToolbarButton
+            icon="plus"
+            variant="primary"
+            onClick={this.handleCreateResolutionNote}
+            disabled={isResolutionNoteTextEmpty}
+          >
+            Add resolution note
+          </ToolbarButton>
+        </WithPermissionControlTooltip>
+      </div>
     );
   };
 
@@ -462,8 +554,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </span>
           );
         default:
-          console.warn('Unknown render_after_resolve_report_json entity placeholder');
-          return '';
+          return '{{' + match + '}}';
       }
     };
   };
@@ -546,7 +637,7 @@ function GroupedIncidentsList({
     return null;
   }
 
-  const latestAlert = alerts[alerts.length - 1];
+  const latestAlert = alerts[0];
   const latestAlertMoment = moment(latestAlert.created_at);
 
   return (
@@ -663,20 +754,20 @@ function AttachedIncidentsList({
       headerWithBackground
       className={cx('collapse')}
       isOpen
-      label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Incidents</HorizontalGroup>}
+      label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Alert Groups</HorizontalGroup>}
       contentClassName={cx('incidents-content')}
     >
       {alerts.map((incident) => {
         return (
           <HorizontalGroup key={incident.pk} justify={'space-between'}>
-            <PluginLink query={{ page: 'incident', id: incident.pk }}>
+            <PluginLink query={{ page: 'alert-groups', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
                 Unattach
               </Button>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         );
       })}

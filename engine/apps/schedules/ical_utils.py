@@ -72,7 +72,11 @@ def users_in_ical(
 
     if users_to_filter is not None:
         return list(
-            {user for user in users_to_filter if user.username in usernames_from_ical or user.email in emails_from_ical}
+            {
+                user
+                for user in users_to_filter
+                if user.username in usernames_from_ical or user.email.lower() in emails_from_ical
+            }
         )
 
     users_found_in_ical = organization.users
@@ -572,7 +576,7 @@ def fetch_ical_file_or_get_error(ical_url):
     cached_ical_file = None
     ical_file_error = None
     try:
-        new_ical_file = requests.get(ical_url, timeout=10).text
+        new_ical_file = fetch_ical_file(ical_url)
         Calendar.from_ical(new_ical_file)
         cached_ical_file = new_ical_file
     except requests.exceptions.RequestException:
@@ -581,6 +585,15 @@ def fetch_ical_file_or_get_error(ical_url):
         ical_file_error = "wrong iCal"
     # TODO: catch icalendar exceptions
     return cached_ical_file, ical_file_error
+
+
+def fetch_ical_file(ical_url):
+    # without user-agent header google calendar sometimes returns text/html instead of text/calendar
+    headers = {"User-Agent": "Grafana OnCall"}
+    r = requests.get(ical_url, headers=headers, timeout=10)
+    logger.info(f"fetch_ical_file: content-type={r.headers.get('Content-Type')}")
+    ical_file = r.text
+    return ical_file
 
 
 def create_base_icalendar(name: str) -> Calendar:

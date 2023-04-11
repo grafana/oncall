@@ -1,96 +1,131 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
-import { HorizontalGroup, VerticalGroup, Icon, IconButton, Tooltip } from '@grafana/ui';
+import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import PluginLink from 'components/PluginLink/PluginLink';
+import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
+import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
+import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
+import { useStore } from 'state/useStore';
 
-import styles from './ScheduleQuality.module.css';
-
-interface ScheduleQualityProps {
-  quality: number;
-}
+import styles from './ScheduleQuality.module.scss';
 
 const cx = cn.bind(styles);
 
-const ScheduleQuality: FC<ScheduleQualityProps> = (props) => {
-  const { quality } = props;
-
-  return (
-    <Tooltip placement="bottom-end" interactive content={<SheduleQualityDetails quality={quality} />}>
-      <div className={cx('root')}>
-        <HorizontalGroup spacing="sm">
-          <Text type="secondary">Quality:</Text>
-          <Text type="primary">{Math.floor(quality * 100)}%</Text>
-        </HorizontalGroup>
-      </div>
-    </Tooltip>
-  );
-};
-
-interface ScheduleQualityDetailsProps {
-  quality: number;
+interface ScheduleQualityProps {
+  schedule: Schedule;
+  lastUpdated: number;
 }
 
-const SheduleQualityDetails = (props: ScheduleQualityDetailsProps) => {
-  const { quality } = props;
+const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) => {
+  const { scheduleStore } = useStore();
+  const [qualityResponse, setQualityResponse] = useState<ScheduleScoreQualityResponse>(undefined);
 
-  const [expanded, setExpanded] = useState<boolean>(false);
+  useEffect(() => {
+    if (schedule.id) {
+      fetchScoreQuality();
+    }
+  }, [schedule.id, lastUpdated]);
 
-  const type = quality > 0.8 ? 'success' : 'warning';
+  if (!qualityResponse) {
+    return null;
+  }
 
-  const qualityPercent = quality * 100;
-
-  const handleExpandClick = useCallback(() => {
-    setExpanded((expanded) => !expanded);
-  }, []);
+  const relatedEscalationChains = scheduleStore.relatedEscalationChains[schedule.id];
 
   return (
-    <div className={cx('details')}>
-      <VerticalGroup>
-        <Text type="secondary">Schedule quality</Text>
-        <div className={cx('progress')}>
-          <div
-            style={{ width: `${qualityPercent}%` }}
-            className={cx('progress-filler', {
-              [`progress-filler__type_${type}`]: true,
-            })}
-          >
-            <div
-              className={cx('quality-text', {
-                [`quality-text__type_${type}`]: true,
-              })}
-            >
-              {qualityPercent}%
-            </div>{' '}
-          </div>
-        </div>
-        {type === 'success' && (
-          <Text type="primary">
-            You are doing a great job! <br />
-            Schedule is well balanced for all members.
-          </Text>
+    <>
+      <div className={cx('root')}>
+        {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
+          <StatusCounterBadgeWithTooltip
+            type="link"
+            addPadding
+            count={schedule.number_of_escalation_chains}
+            tooltipTitle="Used in escalations"
+            tooltipContent={
+              <VerticalGroup spacing="sm">
+                {relatedEscalationChains.map((escalationChain) => (
+                  <div key={escalationChain.pk}>
+                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className="link">
+                      <Text type="link">{escalationChain.name}</Text>
+                    </PluginLink>
+                  </div>
+                ))}
+              </VerticalGroup>
+            }
+          />
         )}
-        {type === 'warning' && <Text type="primary">Your schedule has balance problems.</Text>}
-        <hr style={{ width: '100%' }} />
-        <VerticalGroup>
-          <HorizontalGroup justify="space-between">
-            <HorizontalGroup spacing="sm">
-              <Icon name="info-circle" />
-              <Text type="secondary">Calculation methodology</Text>
-            </HorizontalGroup>
-            <IconButton name="angle-down" onClick={handleExpandClick} />
-          </HorizontalGroup>
-          {expanded && (
-            <Text type="secondary">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer elementum purus egestas porta ultricies.
-              Sed quis maximus sem. Phasellus semper pulvinar sapien ac euismod.
-            </Text>
-          )}
-        </VerticalGroup>
-      </VerticalGroup>
-    </div>
+
+        {schedule.warnings?.length > 0 && (
+          <StatusCounterBadgeWithTooltip
+            type="warning"
+            addPadding
+            count={schedule.warnings.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {schedule.warnings.map((warning, index) => (
+                  <Text type="primary" key={index}>
+                    {warning}
+                  </Text>
+                ))}
+              </VerticalGroup>
+            }
+          />
+        )}
+
+        <Tooltip
+          placement="bottom-start"
+          interactive
+          content={
+            <ScheduleQualityDetails quality={qualityResponse} getScheduleQualityString={getScheduleQualityString} />
+          }
+        >
+          <div className={cx('u-cursor-default')}>
+            <Tag className={cx('tag', getTagClass())}>
+              Quality: <strong>{getScheduleQualityString(qualityResponse.total_score)}</strong>
+            </Tag>
+          </div>
+        </Tooltip>
+      </div>
+    </>
   );
+
+  function getScheduleQualityString(score: number): ScheduleScoreQualityResult {
+    if (score < 20) {
+      return ScheduleScoreQualityResult.Bad;
+    }
+    if (score < 40) {
+      return ScheduleScoreQualityResult.Low;
+    }
+    if (score < 60) {
+      return ScheduleScoreQualityResult.Medium;
+    }
+    if (score < 80) {
+      return ScheduleScoreQualityResult.Good;
+    }
+    return ScheduleScoreQualityResult.Great;
+  }
+
+  async function fetchScoreQuality() {
+    await Promise.all([
+      scheduleStore.getScoreQuality(schedule.id).then((qualityResponse) => setQualityResponse(qualityResponse)),
+      scheduleStore.updateRelatedEscalationChains(schedule.id),
+    ]);
+  }
+
+  function getTagClass() {
+    if (qualityResponse?.total_score < 20) {
+      return 'tag--danger';
+    }
+    if (qualityResponse?.total_score < 60) {
+      return 'tag--warning';
+    }
+    return 'tag--primary';
+  }
 };
 
 export default ScheduleQuality;

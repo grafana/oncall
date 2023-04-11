@@ -2,12 +2,12 @@ import React from 'react';
 
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GList from 'components/GList/GList';
-import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
+import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -21,9 +21,13 @@ import AlertRules from 'containers/AlertRules/AlertRules';
 import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
-import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import {
+  AlertReceiveChannel,
+  AlertReceiveChannelOption,
+} from 'models/alert_receive_channel/alert_receive_channel.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -39,6 +43,7 @@ interface IntegrationsState extends PageBaseState {
   showCreateIntegrationModal: boolean;
   alertReceiveChannelToShowSettings?: AlertReceiveChannel['id'];
   integrationSettingsTab?: IntegrationSettingsTab;
+  extraAlertReceiveChannels?: AlertReceiveChannel[];
 }
 
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
@@ -54,20 +59,22 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   private alertReceiveChanneltoPoll: { [key: string]: number } = {};
   private alertReceiveChannelTimerId: ReturnType<typeof setTimeout>;
 
-  async componentDidMount() {
-    this.update().then(() => this.parseQueryParams(true));
+  componentWillUnmount() {
+    clearInterval(this.alertReceiveChannelTimerId);
   }
 
-  setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id'], shouldRedirect = false) => {
-    const { store, history } = this.props;
-    store.selectedAlertReceiveChannel = alertReceiveChannelId;
-
-    if (shouldRedirect) {
-      history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId || ''}`);
+  componentDidUpdate(prevProps: Readonly<IntegrationsProps>): void {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
+      this.parseQueryParams();
     }
+  }
+
+  setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
+    const { store } = this.props;
+    store.selectedAlertReceiveChannel = alertReceiveChannelId;
   };
 
-  parseQueryParams = async (isMounting = false) => {
+  parseQueryParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse // reset wrong team error to false
 
     const {
@@ -79,8 +86,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     } = this.props;
     const { alertReceiveChannelStore } = store;
 
-    const searchResult = alertReceiveChannelStore.getSearchResult();
-    let selectedAlertReceiveChannel = store.selectedAlertReceiveChannel;
+    let selectedAlertReceiveChannel = undefined;
 
     if (id) {
       let alertReceiveChannel = await alertReceiveChannelStore
@@ -91,7 +97,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         return;
       }
 
-      if (alertReceiveChannel.id) {
+      alertReceiveChannel = alertReceiveChannelStore.items[id];
+      if (alertReceiveChannel) {
         selectedAlertReceiveChannel = alertReceiveChannel.id;
       }
 
@@ -101,23 +108,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       }
     }
 
-    if (!selectedAlertReceiveChannel) {
-      selectedAlertReceiveChannel = searchResult[0]?.id;
-    }
-
     if (selectedAlertReceiveChannel) {
-      this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel, isMounting);
+      this.enrichAlertReceiveChannelsAndSelect(selectedAlertReceiveChannel);
+    } else {
+      store.selectedAlertReceiveChannel = undefined;
     }
   };
-
-  update = () => {
-    const { store } = this.props;
-    return store.alertReceiveChannelStore.updateItems();
-  };
-
-  componentWillUnmount() {
-    clearInterval(this.alertReceiveChannelTimerId);
-  }
 
   render() {
     const {
@@ -125,17 +121,24 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       match: {
         params: { id },
       },
+      query,
     } = this.props;
     const {
-      integrationsFilters,
       alertReceiveChannelToShowSettings,
       integrationSettingsTab,
       showCreateIntegrationModal,
       errorData,
+      extraAlertReceiveChannels,
     } = this.state;
 
-    const { alertReceiveChannelStore } = store;
+    const { alertReceiveChannelStore, selectedAlertReceiveChannel } = store;
+
     const searchResult = alertReceiveChannelStore.getSearchResult();
+
+    let data = searchResult;
+    if (extraAlertReceiveChannels && extraAlertReceiveChannels.length) {
+      data = [...extraAlertReceiveChannels, ...searchResult];
+    }
 
     return (
       <PageErrorHandlingWrapper
@@ -148,12 +151,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <>
             <div className={cx('root')}>
               <div className={cx('filters')}>
-                <IntegrationsFilters value={integrationsFilters} onChange={this.handleIntegrationsFiltersChange} />
+                <RemoteFilters
+                  query={query}
+                  page="integrations"
+                  grafanaTeamStore={store.grafanaTeamStore}
+                  onChange={this.handleIntegrationsFiltersChange}
+                />
               </div>
-              {searchResult?.length ? (
+              {data?.length ? (
                 <div className={cx('integrations')}>
                   <div className={cx('integrationsList')}>
-                    <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Button
                         onClick={() => {
                           this.setState({ showCreateIntegrationModal: true });
@@ -161,14 +169,14 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                         icon="plus"
                         className={cx('newIntegrationButton')}
                       >
-                        New integration for receiving alerts
+                        New integration to receive alerts
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                     <div className={cx('alert-receive-channels-list')}>
                       <GList
                         autoScroll
-                        selectedId={store.selectedAlertReceiveChannel}
-                        items={searchResult}
+                        selectedId={selectedAlertReceiveChannel}
+                        items={data}
                         itemKey="id"
                         onSelect={this.handleAlertReceiveChannelSelect}
                       >
@@ -201,13 +209,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                     />
                   </div>
                 </div>
-              ) : searchResult ? (
+              ) : data ? (
                 <Tutorial
                   step={TutorialStep.Integrations}
                   title={
                     <VerticalGroup align="center" spacing="lg">
                       <Text type="secondary">No integrations found. Review your filter and team settings.</Text>
-                      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                         <Button
                           icon="plus"
                           variant="primary"
@@ -216,9 +224,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                             this.setState({ showCreateIntegrationModal: true });
                           }}
                         >
-                          New integration for receiving alerts
+                          New integration to receive alerts
                         </Button>
-                      </WithPermissionControl>
+                      </WithPermissionControlTooltip>
                     </VerticalGroup>
                   }
                 />
@@ -256,20 +264,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  handleCreateNewAlertReceiveChannel = (option: AlertReceiveChannelOption) => {
-    const { store } = this.props;
+  handleCreateNewAlertReceiveChannel = (option: AlertReceiveChannelOption, team: GrafanaTeam['id']) => {
+    const { store, history } = this.props;
 
     store.alertReceiveChannelStore
-      .create({ integration: option.value })
+      .create({ integration: option.value, team })
       .then(async (alertReceiveChannel: AlertReceiveChannel) => {
-        await store.alertReceiveChannelStore.updateItems();
+        await this.applyFilters();
 
-        this.setSelectedAlertReceiveChannel(alertReceiveChannel.id, true);
+        const query = { ...qs.parse(window.location.search), tab: IntegrationSettingsTab.HowToConnect };
 
-        this.setState({
-          alertReceiveChannelToShowSettings: alertReceiveChannel.id,
-          integrationSettingsTab: IntegrationSettingsTab.HowToConnect,
-        });
+        history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannel.id}?${qs.stringify(query)}`);
 
         const integration = store.alertReceiveChannelStore.getIntegration(alertReceiveChannel);
         if (integration?.display_name === 'Grafana Alerting') {
@@ -296,7 +301,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   handleDeleteAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    const { store } = this.props;
+    const { store, history } = this.props;
+    const { extraAlertReceiveChannels } = this.state;
     const { alertReceiveChanneltoPoll } = this;
 
     const { alertReceiveChannelStore } = store;
@@ -305,15 +311,29 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       delete alertReceiveChanneltoPoll[alertReceiveChannelId];
     }
 
-    alertReceiveChannelStore.deleteAlertReceiveChannel(alertReceiveChannelId).then(async () => {
-      await alertReceiveChannelStore.updateItems();
+    alertReceiveChannelStore
+      .deleteAlertReceiveChannel(alertReceiveChannelId)
+      .then(this.applyFilters)
+      .then(() => {
+        if (alertReceiveChannelId === store.selectedAlertReceiveChannel) {
+          if (extraAlertReceiveChannels) {
+            const newExtraAlertReceiveChannels = extraAlertReceiveChannels.filter(
+              (alertReceiveChannel) => alertReceiveChannel.id !== alertReceiveChannelId
+            );
 
-      if (alertReceiveChannelId === store.selectedAlertReceiveChannel) {
-        const searchResult = alertReceiveChannelStore.getSearchResult();
+            this.setState({ extraAlertReceiveChannels: newExtraAlertReceiveChannels });
+          }
 
-        this.setSelectedAlertReceiveChannel(searchResult && searchResult[0]?.id, true);
-      }
-    });
+          const searchResult = alertReceiveChannelStore.getSearchResult();
+
+          const index = searchResult.findIndex(
+            (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
+          );
+          const newSelected = searchResult[index - 1] || searchResult[0];
+
+          history.push(`${PLUGIN_ROOT}/integrations/${newSelected?.id || ''}${window.location.search}`);
+        }
+      });
   };
 
   applyFilters = () => {
@@ -321,27 +341,75 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters } = this.state;
 
-    alertReceiveChannelStore.updateItems(integrationsFilters.searchTerm).then(() => {
-      const searchResult = alertReceiveChannelStore.getSearchResult();
+    return alertReceiveChannelStore.updateItems(integrationsFilters);
+  };
 
-      if (
-        !searchResult.find(
-          (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
-        )
-      ) {
-        store.selectedAlertReceiveChannel = searchResult.length ? searchResult[0].id : undefined;
-      }
+  autoSelectAlertReceiveChannel = () => {
+    const { store, history } = this.props;
+    const { alertReceiveChannelStore } = store;
+    const searchResult = alertReceiveChannelStore.getSearchResult();
+
+    if (
+      !searchResult.some(
+        (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
+      )
+    ) {
+      const id = searchResult[0]?.id;
+      history.push(`${PLUGIN_ROOT}/integrations/${id || ''}${window.location.search}`);
+    }
+  };
+
+  handleIntegrationsFiltersChange = (integrationsFilters: Filters, isOnMount: boolean) => {
+    const {
+      match: {
+        params: { id },
+      },
+    } = this.props;
+
+    this.setState({ integrationsFilters, extraAlertReceiveChannels: undefined }, () => {
+      this.applyFilters().then(() => {
+        if (isOnMount && id) {
+          this.parseQueryParams();
+        } else {
+          this.autoSelectAlertReceiveChannel();
+        }
+      });
     });
   };
 
-  debouncedUpdateIntegrations = debounce(this.applyFilters, 1000);
+  handleAlertReceiveChannelSelect = (id: AlertReceiveChannel['id']) => {
+    const { history } = this.props;
 
-  handleIntegrationsFiltersChange = (integrationsFilters: Filters) => {
-    this.setState({ integrationsFilters }, this.debouncedUpdateIntegrations);
+    history.push(`${PLUGIN_ROOT}/integrations/${id}${window.location.search}`);
   };
 
-  handleAlertReceiveChannelSelect = (id: AlertReceiveChannel['id']) => {
-    this.setSelectedAlertReceiveChannel(id, true);
+  enrichAlertReceiveChannelsAndSelect = async (id: AlertReceiveChannel['id']) => {
+    const { store } = this.props;
+    const { extraAlertReceiveChannels } = this.state;
+    const { alertReceiveChannelStore } = store;
+
+    const searchResult = alertReceiveChannelStore.getSearchResult();
+    if (
+      !searchResult.some((alertReceiveChannel) => alertReceiveChannel.id === id) &&
+      (!extraAlertReceiveChannels ||
+        (extraAlertReceiveChannels &&
+          !extraAlertReceiveChannels.some((alertReceiveChannel) => alertReceiveChannel.id === id)))
+    ) {
+      let alertReceiveChannel = await alertReceiveChannelStore
+        .loadItem(id, true)
+        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+
+      if (alertReceiveChannel) {
+        this.setState(
+          { extraAlertReceiveChannels: [...(this.state.extraAlertReceiveChannels || []), alertReceiveChannel] },
+          () => {
+            this.setSelectedAlertReceiveChannel(id);
+          }
+        );
+      }
+    } else {
+      this.setSelectedAlertReceiveChannel(id);
+    }
   };
 }
 

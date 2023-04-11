@@ -22,4 +22,5 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
   testTimeout: 10000,
+  testPathIgnorePatterns: ['/node_modules/', '/integration-tests/'],
 };

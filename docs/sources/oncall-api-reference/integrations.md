@@ -34,9 +34,11 @@ The above command returns JSON structured in the following way:
       "channel_id": "CH23212D"
     }
   },
-  "templates": {
+    "templates": {
     "grouping_key": null,
     "resolve_signal": null,
+    "acknowledge_signal": null,
+    "source_link": null,
     "slack": {
       "title": null,
       "message": null,
@@ -47,10 +49,6 @@ The above command returns JSON structured in the following way:
       "message": null,
       "image_url": null
     },
-    "email": {
-      "title": null,
-      "message": null
-    },
     "sms": {
       "title": null
     },
@@ -58,6 +56,15 @@ The above command returns JSON structured in the following way:
       "title": null
     },
     "telegram": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "msteams": {
       "title": null,
       "message": null,
       "image_url": null
@@ -102,6 +109,8 @@ The above command returns JSON structured in the following way:
   "templates": {
     "grouping_key": null,
     "resolve_signal": null,
+    "acknowledge_signal": null,
+    "source_link": null,
     "slack": {
       "title": null,
       "message": null,
@@ -112,10 +121,6 @@ The above command returns JSON structured in the following way:
       "message": null,
       "image_url": null
     },
-    "email": {
-      "title": null,
-      "message": null
-    },
     "sms": {
       "title": null
     },
@@ -123,6 +128,15 @@ The above command returns JSON structured in the following way:
       "title": null
     },
     "telegram": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "msteams": {
       "title": null,
       "message": null,
       "image_url": null
@@ -170,6 +184,8 @@ The above command returns JSON structured in the following way:
       "templates": {
         "grouping_key": null,
         "resolve_signal": null,
+        "acknowledge_signal": null,
+        "source_link": null,
         "slack": {
           "title": null,
           "message": null,
@@ -180,10 +196,6 @@ The above command returns JSON structured in the following way:
           "message": null,
           "image_url": null
         },
-        "email": {
-          "title": null,
-          "message": null
-        },
         "sms": {
           "title": null
         },
@@ -191,6 +203,15 @@ The above command returns JSON structured in the following way:
           "title": null
         },
         "telegram": {
+          "title": null,
+          "message": null,
+          "image_url": null
+        },
+        "email": {
+          "title": null,
+          "message": null
+        },
+        "msteams": {
           "title": null,
           "message": null,
           "image_url": null

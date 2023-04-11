@@ -14,7 +14,7 @@ from apps.schedules.models import (
     OnCallScheduleWeb,
 )
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
+ICAL_URL = "https://some.calendar.url"
 
 
 @pytest.mark.django_db
@@ -230,25 +230,6 @@ def test_get_web_schedule(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == result
-
-
-@pytest.mark.django_db
-def test_create_web_schedule(make_organization_and_user_with_token):
-    _, _, token = make_organization_and_user_with_token()
-    client = APIClient()
-
-    url = reverse("api-public:schedules-list")
-
-    data = {
-        "team_id": None,
-        "name": "schedule test name",
-        "time_zone": "Europe/Moscow",
-        "type": "web",
-    }
-
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Web schedule creation is not enabled through API"}
 
 
 @pytest.mark.django_db
@@ -743,7 +724,6 @@ def test_create_schedule_invalid_timezone(make_organization_and_user_with_token,
 
     url = reverse("api-public:schedules-list")
 
-    print(schedule_type)
     data = {
         "team_id": None,
         "name": "schedule test name",

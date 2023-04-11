@@ -35,6 +35,31 @@ exports[`DownloadIcons it renders properly 1`] = `
           class="css-bxa289-layoutChildrenWrapper"
         >
           <a
+            href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+            rel="noreferrer"
+            style="width: 100%;"
+            target="_blank"
+          >
+            <div
+              class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+            >
+              <img
+                alt="Apple"
+                class="icon"
+                src="[object Object]"
+              />
+              <span
+                class="root text icon-text text--primary text--medium"
+              >
+                iOS
+              </span>
+            </div>
+          </a>
+        </div>
+        <div
+          class="css-bxa289-layoutChildrenWrapper"
+        >
+          <a
             href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
             rel="noreferrer"
             style="width: 100%;"
@@ -55,30 +80,6 @@ exports[`DownloadIcons it renders properly 1`] = `
               </span>
             </div>
           </a>
-        </div>
-        <div
-          class="css-bxa289-layoutChildrenWrapper"
-        >
-          <div
-            class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
-          >
-            <img
-              alt="Apple"
-              class="icon"
-              src="[object Object]"
-            />
-            <span
-              class="root text icon-text text--primary text--medium"
-            >
-              iOS
-            </span>
-            <span
-              class="root icon-tag"
-              style="background-color: rgb(41, 156, 70);"
-            >
-              Coming Soon
-            </span>
-          </div>
         </div>
       </div>
     </div>

@@ -6,9 +6,12 @@ from migrator.utils import find_by_id
 def match_integration(integration: dict, oncall_integrations: list[dict]) -> None:
     oncall_integration = None
     for candidate in oncall_integrations:
-        if candidate["name"] == "{} - {}".format(
-            integration["service"]["name"], integration["name"]
-        ):
+        name = (
+            "{} - {}".format(integration["service"]["name"], integration["name"])
+            .lower()
+            .strip()
+        )
+        if candidate["name"].lower().strip() == name:
             oncall_integration = candidate
 
     integration["oncall_integration"] = oncall_integration
@@ -16,6 +19,12 @@ def match_integration(integration: dict, oncall_integrations: list[dict]) -> Non
 
 def match_integration_type(integration: dict, vendors: list[dict]) -> None:
     vendors_map = {vendor["id"]: vendor for vendor in vendors}
+
+    if integration["type"] == "generic_email_inbound_integration":
+        # ignore vendor name for generic email inbound integrations
+        integration["vendor_name"] = None
+        integration["oncall_type"] = "inbound_email"
+        return
 
     if integration["vendor"] is None:
         integration["vendor_name"] = None

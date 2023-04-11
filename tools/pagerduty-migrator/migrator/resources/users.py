@@ -53,7 +53,7 @@ def match_users_and_schedules_for_escalation_policy(
                 if not schedule:
                     continue
 
-                if schedule["unmatched_users"]:
+                if schedule["unmatched_users"] or schedule["migration_errors"]:
                     flawed_schedule_ids.add(target_id)
 
     policy["unmatched_users"] = [
