@@ -11,7 +11,14 @@
 
 Developer-friendly incident response with brilliant Slack integration.
 
-<img width="60%" src="screenshot.png">
+<table>
+  <tbody>
+    <tr>
+      <td width="60%"><img width="100%" src="screenshot.png"></td>
+      <td><div align="center"><a href="https://grafana.com/docs/oncall/latest/mobile-app/">Android & iOS</a>:</div><br><img height="100%" src="screenshot_mobile.png"></td>
+    </tr>
+  </tbody>
+</table>
 
 - Collect and analyze alerts from multiple monitoring systems
 - On-call rotations based on schedules
