@@ -510,6 +510,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         >
           <TextArea
             value={resolutionNoteText}
+            disabled={incident.is_restricted}
             onChange={(e: any) => this.setState({ resolutionNoteText: e.target.value })}
           />
         </Field>

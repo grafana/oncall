@@ -88,7 +88,7 @@ export interface Alert {
 
 export enum IRMPlanStatus {
   WithinLimits = 'within-limits',
-  NearLimits = 'near-limit',
+  NearLimit = 'near-limit',
   AtLimit = 'at-limit',
 }
 

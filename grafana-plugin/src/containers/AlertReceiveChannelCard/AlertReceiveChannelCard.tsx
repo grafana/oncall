@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Badge, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Badge, HorizontalGroup, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -11,7 +11,6 @@ import Text from 'components/Text/Text';
 import TeamName from 'containers/TeamName/TeamName';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { IRMPlanStatus } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 
 import styles from './AlertReceiveChannelCard.module.scss';
@@ -92,42 +91,10 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
             </Text>
           </HorizontalGroup>
           <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
-          {renderIRMLimitMaybe()}
         </VerticalGroup>
       </HorizontalGroup>
     </div>
   );
-
-  function renderIRMLimitMaybe() {
-    if (alertReceiveChannel.status === IRMPlanStatus.WithinLimits) {
-      return null;
-    }
-    if ([IRMPlanStatus.NearLimits, IRMPlanStatus.AtLimit].indexOf(alertReceiveChannel.status) === -1) {
-      return null;
-    }
-
-    const statusMapping = {
-      [IRMPlanStatus.NearLimits]: {
-        message: `You're close to reaching your IRM Lite Alert Group Limit`,
-        className: 'warning',
-      },
-      [IRMPlanStatus.AtLimit]: {
-        message: `You have reached your IRM Lite Alert Group limit`,
-        className: 'danger',
-      },
-    };
-
-    return (
-      <Tooltip content={statusMapping[alertReceiveChannel.status].message} placement={'bottom-start'}>
-        <div>
-          <Icon
-            name={'exclamation-triangle'}
-            className={cx('tag__icon', `tag__icon--${statusMapping[alertReceiveChannel.status].className}`)}
-          />
-        </div>
-      </Tooltip>
-    );
-  }
 });
 
 export default AlertReceiveChannelCard;

@@ -185,7 +185,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const statusSeverity: { [key: string]: AlertVariant } = {
       [IRMPlanStatus.WithinLimits]: 'success',
-      [IRMPlanStatus.NearLimits]: 'warning',
+      [IRMPlanStatus.NearLimit]: 'warning',
       [IRMPlanStatus.AtLimit]: 'error',
     };
 
