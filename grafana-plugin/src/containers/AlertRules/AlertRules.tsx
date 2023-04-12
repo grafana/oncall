@@ -348,7 +348,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             )}
             {channelFilterIdToCopyEscalationChain && (
               <EscalationChainForm
-                mode={EscalationChainFormMode.Copy}
+                mode={escalationChainIdToCopy ? EscalationChainFormMode.Copy : EscalationChainFormMode.Create}
                 escalationChainId={escalationChainIdToCopy}
                 onHide={() => {
                   this.setState({
