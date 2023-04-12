@@ -3,7 +3,6 @@ import React from 'react';
 import { PluginPageProps, PluginPage as RealPluginPage } from '@grafana/runtime';
 import Header from 'navbar/Header/Header';
 
-import Alerts from 'containers/Alerts/Alerts';
 import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 
@@ -19,7 +18,6 @@ function RealPlugin(props: AppPluginPageProps): React.ReactNode {
   return (
     <RealPluginPage {...props}>
       <Header />
-      <Alerts />
       {pages[page]?.text && !pages[page]?.hideTitle && (
         <h3 className="page-title" data-testid="page-title">
           {pages[page].text}

@@ -6,6 +6,8 @@ import { observer } from 'mobx-react';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
 import Tag from 'components/Tag/Tag';
+import Alerts from 'containers/Alerts/Alerts';
+import IRMBanner from 'containers/IRMBanner/IRMBanner';
 import logo from 'img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
@@ -19,16 +21,20 @@ const Header = observer(() => {
   const store = useStore();
 
   return (
-    <div className={cx('root')}>
-      <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
-        <div className={cx('navbar-left')}>
-          <span className="page-header__logo">
-            <img className="page-header__img" src={logo} alt="Grafana OnCall" />
-          </span>
-          <div className="page-header__info-block">{renderHeading()}</div>
+    <>
+      <div className={cx('root')}>
+        <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
+          <div className={cx('navbar-left')}>
+            <span className="page-header__logo">
+              <img className="page-header__img" src={logo} alt="Grafana OnCall" />
+            </span>
+            <div className="page-header__info-block">{renderHeading()}</div>
+          </div>
         </div>
       </div>
-    </div>
+      <Alerts />
+      <IRMBanner />
+    </>
   );
 
   function renderHeading() {
