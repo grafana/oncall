@@ -326,7 +326,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     'Not used yet'
                   )
                 ) : (
-                  <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
+                  <LoadingPlaceholder text="Loading related escalation chains..." />
                 )}
               </VerticalGroup>
             }

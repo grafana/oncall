@@ -283,7 +283,7 @@ function QRLoading() {
       <Text type="primary" className={cx('qr-loader__text')}>
         Regenerating QR code...
       </Text>
-      <LoadingPlaceholder />
+      <LoadingPlaceholder text="Loading..." />
     </div>
   );
 }

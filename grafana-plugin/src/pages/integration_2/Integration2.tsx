@@ -8,9 +8,7 @@ import {
   Icon,
   LoadingPlaceholder,
   Tooltip,
-  Input,
   InlineLabel,
-  TextArea,
   Modal,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -45,6 +43,7 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integration2.module.scss';
+import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 
 const cx = cn.bind(styles);
 
@@ -57,6 +56,22 @@ interface Integration2State extends PageBaseState {
 // This can be further improved by using a ref instead
 const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
+
+const MONACO_OPTIONS = {
+  renderLineHighlight: false,
+  readOnly: true,
+  scrollbars: {
+    vertical: 'hidden',
+    horizontal: 'hidden',
+    verticalScrollbarSize: 0,
+    handleMouseWheel: false,
+  },
+  hideCursorInOverviewRuler: true,
+  minimap: { enabled: false },
+};
+
+const MONACO_INPUT_HEIGHT_SMALL = 32;
+const MONACO_INPUT_HEIGHT_TALL = 120;
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -280,7 +295,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 content={
                   <div className={cx('integration__alertsPanel')}>
                     <HorizontalGroup justify={'flex-start'} spacing={'xs'}>
-                      <LoadingPlaceholder className={cx('loadingPlaceholder')} />
+                      <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
                       <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
 
                       <Icon name="list-ui-alt" size="md" />
@@ -317,11 +332,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Grouping'}
                           renderInput={() => (
-                            <Input
-                              value={templates['grouping_id_template']}
-                              className={cx('input', 'input--short')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--short')}>
+                              <MonacoJinja2Editor
+                                value={templates['grouping_id_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           showHelp
                           onEdit={undefined}
@@ -330,11 +350,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Auto resolve'}
                           renderInput={() => (
-                            <Input
-                              value={templates['resolve_condition_template']}
-                              className={cx('input', 'input--short')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--short')}>
+                              <MonacoJinja2Editor
+                                value={templates['resolve_condition_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -348,11 +373,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Title'}
                           renderInput={() => (
-                            <Input
-                              value={templates['web_title_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['web_title_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -360,12 +390,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Message'}
                           renderInput={() => (
-                            <TextArea
-                              rows={5}
-                              value={templates['web_message_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['web_message_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -373,11 +407,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Image'}
                           renderInput={() => (
-                            <Input
-                              value={templates['web_image_url_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['web_image_url_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -389,11 +428,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Auto acknowledge'}
                           renderInput={() => (
-                            <Input
-                              value={templates['acknowledge_condition_template']}
-                              className={cx('input', 'input--short')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--short')}>
+                              <MonacoJinja2Editor
+                                value={templates['acknowledge_condition_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                           showHelp
@@ -402,11 +446,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Source Link'}
                           renderInput={() => (
-                            <Input
-                              value={templates['source_link_template']}
-                              className={cx('input', 'input--short')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--short')}>
+                              <MonacoJinja2Editor
+                                value={templates['source_link_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -418,11 +467,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Phone Call'}
                           renderInput={() => (
-                            <Input
-                              value={templates['phone_call_title_template']}
-                              className={cx('input', 'input--short')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--short')}>
+                              <MonacoJinja2Editor
+                                value={templates['phone_call_title_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                           showHelp
@@ -431,11 +485,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'SMS'}
                           renderInput={() => (
-                            <Input
-                              value={templates['sms_title_template']}
-                              className={cx('input', 'input--short')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--short')}>
+                              <MonacoJinja2Editor
+                                value={templates['sms_title_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -449,11 +508,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Title'}
                           renderInput={() => (
-                            <Input
-                              value={templates['slack_message_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['slack_message_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -461,12 +525,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Message'}
                           renderInput={() => (
-                            <TextArea
-                              rows={5}
-                              value={templates['slack_title_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['slack_title_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -474,11 +542,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Image'}
                           renderInput={() => (
-                            <Input
-                              value={templates['slack_image_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['slack_image_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -491,11 +564,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Title'}
                           renderInput={() => (
-                            <Input
-                              value={templates['telegram_title_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['telegram_title_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -503,12 +581,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Message'}
                           renderInput={() => (
-                            <TextArea
-                              rows={5}
-                              value={templates['telegram_message_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['telegram_message_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -516,12 +598,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Image'}
                           renderInput={() => (
-                            <TextArea
-                              rows={5}
-                              value={templates['telegram_image_url_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['telegram_image_url_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -534,11 +620,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Title'}
                           renderInput={() => (
-                            <Input
-                              value={templates['email_title_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['email_title_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -546,11 +637,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <IntegrationTemplateBlock
                           label={'Message'}
                           renderInput={() => (
-                            <Input
-                              value={templates['email_message_template']}
-                              className={cx('input', 'input--long')}
-                              readOnly
-                            />
+                            <div className={cx('input', 'input--long')}>
+                              <MonacoJinja2Editor
+                                value={templates['email_message_template'] || ''}
+                                disabled={true}
+                                height={MONACO_INPUT_HEIGHT_TALL}
+                                data={templates}
+                                showLineNumbers={false}
+                                monacoOptions={MONACO_OPTIONS}
+                              />
+                            </div>
                           )}
                           onEdit={undefined}
                         />
@@ -778,7 +874,7 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   }
 
   return (
-    <HorizontalGroup>
+    <HorizontalGroup align={'flex-start'}>
       <InlineLabel width={20} {...inlineLabelProps}>
         {label}
       </InlineLabel>

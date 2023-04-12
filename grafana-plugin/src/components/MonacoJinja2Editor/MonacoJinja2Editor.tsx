@@ -13,8 +13,10 @@ interface MonacoJinja2EditorProps {
   disabled?: boolean;
   height?: number;
   data: any;
+  showLineNumbers?: boolean;
   onChange?: (value: string) => void;
   loading?: boolean;
+  monacoOptions?: any;
 }
 
 const PREDEFINED_TERMS = [
@@ -26,7 +28,7 @@ const PREDEFINED_TERMS = [
 ];
 
 const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
-  const { value, onChange, disabled, data, height, loading = false } = props;
+  const { value, onChange, disabled, data, height, monacoOptions, showLineNumbers = true, loading = false } = props;
 
   const autoCompleteList = useCallback(
     () =>
@@ -59,9 +61,10 @@ const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
 
   return (
     <CodeEditor
+      monacoOptions={monacoOptions}
       showMiniMap={false}
       readOnly={disabled}
-      showLineNumbers
+      showLineNumbers={showLineNumbers}
       value={value}
       language="jinja2"
       width="100%"
