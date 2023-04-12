@@ -341,8 +341,8 @@ def test_execute_webhook_trigger_false(
         execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
-    # check no logs
-    assert webhook.responses.count() == 0
+    # check log should exist but have no status
+    assert webhook.responses.count() == 1 and webhook.responses.first().status_code is None
 
 
 @pytest.mark.django_db
