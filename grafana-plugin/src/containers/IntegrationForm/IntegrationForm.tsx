@@ -4,6 +4,7 @@ import { Drawer, VerticalGroup, HorizontalGroup, Input, Tag, EmptySearchResult, 
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import GForm from 'components/GForm/GForm';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
@@ -37,7 +38,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const user = userStore.currentUser;
 
   const [filterValue, setFilterValue] = useState('');
-  const [integrationName, setIntegrationName] = useState<string>(undefined);
+
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
 
@@ -50,15 +51,10 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const handleSubmit = useCallback(
     (data: Partial<AlertReceiveChannel>) => {
-      setIntegrationName(data?.verbal_name);
-      (id === 'new' ? alertReceiveChannelStore.create(data) : alertReceiveChannelStore.update(id, data))
-        .then((response) => {
-          handleChangeAlertReceiveChannelName(response?.id);
-        })
-        .then(() => {
-          onHide();
-          onUpdate();
-        });
+      (id === 'new' ? alertReceiveChannelStore.create(data) : alertReceiveChannelStore.update(id, data)).then(() => {
+        onHide();
+        onUpdate();
+      });
     },
     [id]
   );
@@ -69,13 +65,6 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       setShowNewIntegrationForm(true);
     };
   }, []);
-
-  const handleChangeAlertReceiveChannelName = (id) => {
-    store.alertReceiveChannelStore.saveAlertReceiveChannel(id, { verbal_name: integrationName }).then(() => {
-      store.alertReceiveChannelStore.updateItem(id);
-    });
-    setIntegrationName(undefined);
-  };
 
   const handleChangeFilter = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setFilterValue(e.currentTarget.value);
@@ -155,9 +144,41 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
           <div className={cx('content')}>
             <VerticalGroup>
               <GForm form={form} data={data} onSubmit={handleSubmit} />
+              <Collapse
+                headerWithBackground
+                className={cx('collapse')}
+                isOpen={false}
+                label={<Text type="link">How the integration works</Text>}
+                contentClassName={cx('collapsable-content')}
+              >
+                <Text type="secondary">
+                  The integration will generate the following:
+                  <ul className={cx('integration-info-list')}>
+                    <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
+                    <li className={cx('integration-info-item')}>
+                      Templates to interpret alerts, tailored for Grafana Alerting{' '}
+                    </li>
+                    <li className={cx('integration-info-item')}>Grafana Alerting contact point </li>
+                    <li className={cx('integration-info-item')}>Grafana Alerting notification</li>
+                  </ul>
+                  What you’ll need to do next:
+                  <ul className={cx('integration-info-list')}>
+                    <li className={cx('integration-info-item')}>
+                      Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
+                    </li>
+                    <li className={cx('integration-info-item')}>
+                      Set up routes that are based on alert content, such as severity, region, and service{' '}
+                    </li>
+                    <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
+                    <li className={cx('integration-info-item')}>
+                      Review templates and personalize according to your requirements
+                    </li>
+                  </ul>
+                </Text>
+              </Collapse>
               <HorizontalGroup justify="flex-end">
                 <Button variant="secondary" onClick={onHide}>
-                  Cancel
+                  {id === 'new' ? 'Back' : 'Cancel'}
                 </Button>
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button form={form.name} type="submit">

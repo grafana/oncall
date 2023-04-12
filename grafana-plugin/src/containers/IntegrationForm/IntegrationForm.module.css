@@ -55,3 +55,23 @@
   width: 400px;
   margin-bottom: 24px;
 }
+
+.collapse {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.collapsable-content {
+  width: 100%;
+  background-color: var(--background-secondary);
+  font-size: small;
+}
+
+.integration-info-list {
+  list-style-position: inside;
+  margin: 16px 0;
+}
+
+.integration-info-item {
+  margin-left: 16px;
+}

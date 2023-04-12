@@ -23,10 +23,11 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel';
+import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { UserActions, isUserActionAllowed } from 'utils/authorization';
 
 import styles from './Integrations2.module.scss';
 
@@ -97,7 +98,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   render() {
     const { store, query } = this.props;
     const { alertReceiveChannelId } = this.state;
-    const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore } = store;
+    const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore, maintenanceStore } = store;
 
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
@@ -108,6 +109,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         key: 'name',
         render: this.renderName,
       },
+
+      {
+        width: '15%',
+        title: 'Status',
+        key: 'status',
+        render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
+      },
       {
         width: '25%',
         title: 'Datasource',
@@ -115,13 +123,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
       {
-        width: '15%',
-        title: 'Alert Groups/Alerts',
-        key: 'alerts',
-        render: (item: AlertReceiveChannel) => this.renderAlertsCount(item, alertReceiveChannelStore),
+        width: '10%',
+        title: 'Maintenance',
+        key: 'maintenance',
+        render: (item: AlertReceiveChannel) => this.renderMaintenance(item, maintenanceStore, alertReceiveChannelStore),
       },
       {
-        width: '15%',
+        width: '5%',
         title: 'Heartbeat',
         key: 'heartbeat',
         render: (item: AlertReceiveChannel) => this.renderHeartbeat(item, alertReceiveChannelStore, heartbeatStore),
@@ -142,14 +150,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return (
       <>
         <div className={cx('root')}>
-          <VerticalGroup>
+          <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
-              <RemoteFilters
-                query={query}
-                page="integrations"
-                grafanaTeamStore={store.grafanaTeamStore}
-                onChange={this.handleIntegrationsFiltersChange}
-              />
+              <Text.Title level={3}>Integrations</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   onClick={() => {
@@ -162,6 +165,14 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                 </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
+          </div>
+          <VerticalGroup spacing="lg">
+            <RemoteFilters
+              query={query}
+              page="integrations"
+              grafanaTeamStore={store.grafanaTeamStore}
+              onChange={this.handleIntegrationsFiltersChange}
+            />
             <Table
               columns={columns}
               data={searchResult}
@@ -194,9 +205,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   renderName(item: AlertReceiveChannel) {
     return (
-      <Text type="primary" size="medium">
-        <Emoji className={cx('title')} text={item.verbal_name} />
-      </Text>
+      <PluginLink query={{ page: 'integrations_2', id: item.id }}>
+        <Text type="link" size="medium">
+          <Emoji className={cx('title')} text={item.verbal_name} />
+        </Text>
+      </PluginLink>
     );
   }
 
@@ -213,7 +226,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  renderAlertsCount(item: AlertReceiveChannel, alertReceiveChannelStore) {
+  renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
     return (
       alertReceiveChannelCounter && (
@@ -262,6 +275,30 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       </div>
     );
   }
+
+  renderMaintenance(item: AlertReceiveChannel, maintenanceStore, alertReceiveChannelStore) {
+    const maintenanceMode = item.maintenance_mode;
+    if (maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance) {
+      return (
+        <Tooltip placement="top" content="Stop maintenance mode">
+          <Button
+            className="grey-button"
+            disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
+            fill="text"
+            icon="square-shape"
+            onClick={() => this.handleStopMaintenance(item, maintenanceStore, alertReceiveChannelStore)}
+          />
+        </Tooltip>
+      );
+    }
+    return null;
+  }
+
+  handleStopMaintenance = (item: AlertReceiveChannel, maintenanceStore, alertReceiveChannelStore) => {
+    maintenanceStore.stopMaintenanceMode(MaintenanceType.alert_receive_channel, item.id).then(() => {
+      alertReceiveChannelStore.updateItem(item.id);
+    });
+  };
 
   renderTeam(item: AlertReceiveChannel, teams: any) {
     return <TeamName team={teams[item.team]} />;
