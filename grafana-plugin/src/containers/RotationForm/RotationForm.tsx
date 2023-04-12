@@ -74,6 +74,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     shiftColor = '#3D71D9',
   } = props;
 
+  const [rotationTitle, setRotationTitle] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [offsetTop, setOffsetTop] = useState<number>(0);
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
@@ -172,6 +173,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           ? getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart)
           : null,
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
+      title: rotationTitle,
     }),
     [
       rotationStart,
@@ -187,12 +189,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       layerPriority,
       shift,
       endLess,
+      rotationTitle,
     ]
   );
 
   const handleCreate = useCallback(() => {
     if (shiftId === 'new') {
-      store.scheduleStore.createRotation(scheduleId, false, params).then(() => {
+      store.scheduleStore.createRotation(scheduleId, false, { ...params, title: rotationTitle }).then(() => {
         onCreate();
       });
     } else {
@@ -222,6 +225,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   useEffect(() => {
     if (shift) {
+      setRotationTitle(shift.title || `[L${shift.priority_level}] Rotation`);
       setRotationStart(getDateTime(shift.rotation_start));
       setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
       setShiftStart(getDateTime(shift.shift_start));
@@ -235,6 +239,20 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       setUserGroups(shift.rolling_users);
     }
   }, [shift]);
+
+  const handleRotationTitleChange = useCallback(
+    (title: string) => {
+      setRotationTitle(title);
+      if (shiftId !== 'new') {
+        store.scheduleStore.updateRotation(shiftId, { ...params, title }).catch((error) => {
+          if (error.response?.data?.title) {
+            setRotationTitle(shift.title || `[L${shift.priority_level}] Rotation`);
+          }
+        });
+      }
+    },
+    [shiftId, params, shift]
+  );
 
   const handleChangeEndless = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,12 +303,9 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       <>
         <div className={cx('title')}>
           <HorizontalGroup justify="space-between">
-            <Text size="medium">
-              <HorizontalGroup spacing="sm">
-                <span>[L{shiftId === 'new' ? layerPriority : shift?.priority_level}]</span>
-                {shiftId === 'new' ? 'New Rotation' : 'Update Rotation'}
-              </HorizontalGroup>
-            </Text>
+            <Text.Title onTextChange={handleRotationTitleChange} level={5} editable>
+              {rotationTitle}
+            </Text.Title>
             <HorizontalGroup>
               {shiftId !== 'new' && (
                 <IconButton

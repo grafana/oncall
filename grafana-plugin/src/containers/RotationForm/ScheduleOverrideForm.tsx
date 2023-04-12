@@ -58,6 +58,8 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const store = useStore();
 
+  const [rotationTitle, setRotationTitle] = useState<string>(shiftId === 'new' ? 'New override' : 'Update override');
+
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || propsShiftStart.add(24, 'hours'));
 
@@ -132,18 +134,34 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       shift_end: getUTCString(shiftEnd),
       rolling_users: userGroups,
       frequency: null,
+      title: rotationTitle,
     }),
-    [currentTimezone, shiftStart, shiftEnd, userGroups]
+    [currentTimezone, shiftStart, shiftEnd, userGroups, rotationTitle]
   );
 
   useEffect(() => {
     if (shift) {
+      setRotationTitle(shift.title || 'Update override');
       setShiftStart(getDateTime(shift.shift_start));
       setShiftEnd(getDateTime(shift.shift_end));
 
       setUserGroups(shift.rolling_users);
     }
   }, [shift]);
+
+  const handleRotationTitleChange = useCallback(
+    (title: string) => {
+      setRotationTitle(title);
+      if (shiftId !== 'new') {
+        store.scheduleStore.updateRotation(shiftId, { ...params, title }).catch((error) => {
+          if (error.response?.data?.title) {
+            setRotationTitle(shift.title || `Update override`);
+          }
+        });
+      }
+    },
+    [shiftId, params, shift]
+  );
 
   const handleDeleteClick = useCallback(() => {
     store.scheduleStore.deleteOncallShift(shiftId).then(() => {
@@ -199,7 +217,9 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     >
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text size="medium">{shiftId === 'new' ? 'New Override' : 'Update Override'}</Text>
+          <Text.Title onTextChange={handleRotationTitleChange} level={5} editable>
+            {rotationTitle}
+          </Text.Title>
           <HorizontalGroup>
             {shiftId !== 'new' && (
               <WithConfirm>

@@ -353,6 +353,18 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  @action
+  async saveOncallShift(shiftId: Shift['id'], data: Partial<Shift>) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, { method: 'PUT', data });
+
+    this.shifts = {
+      ...this.shifts,
+      [shiftId]: response,
+    };
+
+    return response;
+  }
+
   async deleteOncallShift(shiftId: Shift['id'], force?: boolean) {
     return await makeRequest(`/oncall_shifts/${shiftId}`, {
       method: 'DELETE',
