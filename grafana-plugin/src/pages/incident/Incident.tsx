@@ -159,6 +159,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
                     <GroupedIncidentsList
                       id={incident.pk}
+                      disabled={incident.is_restricted}
                       getIncidentDatetimeReference={this.getIncidentDatetimeReference}
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
@@ -646,8 +647,10 @@ function Incident({ incident, datetimeReference }: { incident: Alert; datetimeRe
 function GroupedIncidentsList({
   id,
   getIncidentDatetimeReference,
+  disabled,
 }: {
   id: string;
+  disabled: boolean;
   getIncidentDatetimeReference: (incident: GroupedAlert) => string;
 }) {
   const store = useStore();
@@ -677,13 +680,26 @@ function GroupedIncidentsList({
       contentClassName={cx('incidents-content')}
     >
       {alerts.map((alert) => (
-        <GroupedIncident key={alert.id} incident={alert} datetimeReference={getIncidentDatetimeReference(alert)} />
+        <GroupedIncident
+          key={alert.id}
+          incident={alert}
+          disabled={disabled}
+          datetimeReference={getIncidentDatetimeReference(alert)}
+        />
       ))}
     </Collapse>
   );
 }
 
-function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAlert; datetimeReference: string }) {
+function GroupedIncident({
+  incident,
+  datetimeReference,
+  disabled,
+}: {
+  incident: GroupedAlert;
+  datetimeReference: string;
+  disabled: boolean;
+}) {
   const store = useStore();
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -731,7 +747,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
           <div className={cx('incident-row-right')}>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
-                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} />
+                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} disabled={disabled} />
               </Tooltip>
             </HorizontalGroup>
           </div>

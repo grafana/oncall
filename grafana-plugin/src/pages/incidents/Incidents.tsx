@@ -114,11 +114,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
   async componentDidMount() {
-    const {
-      store: { alertGroupStore },
-    } = this.props;
+    const { store } = this.props;
 
-    await alertGroupStore.fetchIRMPlan();
+    if (!store.isOpenSource()) {
+      await store.alertGroupStore.fetchIRMPlan();
+    }
   }
 
   componentWillUnmount(): void {
@@ -170,12 +170,16 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderIRMPlanAlertMaybe() {
     const {
+      store,
       store: {
         alertGroupStore: { irmPlan },
       },
     } = this.props;
 
-    if (irmPlan.limits.status === IRMPlanStatus.WithinLimits) {
+    if (store.isOpenSource) {
+      return null;
+    }
+    if (irmPlan.limits.isIrmPro || irmPlan.limits.status === IRMPlanStatus.WithinLimits) {
       return null;
     }
 
@@ -201,7 +205,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         }
         severity={statusSeverity[irmPlan.limits.status]}
         buttonContent={undefined}
-      ></UIAlert>
+      />
     );
   }
 

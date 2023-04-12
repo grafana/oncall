@@ -88,23 +88,18 @@ export interface Alert {
 
 export enum IRMPlanStatus {
   WithinLimits = 'within-limits',
-  NearLimits = 'near-limits',
+  NearLimits = 'near-limit',
   AtLimit = 'at-limit',
 }
 
 export interface ResponseIRMPlan {
   limits: {
     id: string;
-    title: string;
-    start: string;
-    end: string;
-    max: number;
-    used: number;
+    irmProductStartDate: null;
+    isIrmPro: boolean;
     status: IRMPlanStatus;
     reasonHTML: string;
     upgradeURL: string;
-    gcomProductName: string;
-    gcomProductStartDate: string;
   };
 }
 

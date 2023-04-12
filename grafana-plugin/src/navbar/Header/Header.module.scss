@@ -35,3 +35,10 @@
   column-gap: 8px;
   row-gap: 8px;
 }
+
+.irm-icon {
+  font-size: 12px;
+  padding: 2px 4px;
+  border: 1px solid var(--tag-border-warning);
+  color: var(--tag-text-warning);
+}

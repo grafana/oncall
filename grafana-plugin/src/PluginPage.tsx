@@ -6,7 +6,6 @@ import Header from 'navbar/Header/Header';
 import Alerts from 'containers/Alerts/Alerts';
 import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-import { useStore } from 'state/useStore';
 
 interface AppPluginPageProps extends PluginPageProps {
   page?: string;
@@ -16,13 +15,11 @@ export const PluginPage = (isTopNavbar() ? RealPlugin : PluginPageFallback) as R
 
 function RealPlugin(props: AppPluginPageProps): React.ReactNode {
   const { page } = props;
-  const store = useStore();
 
   return (
     <RealPluginPage {...props}>
-      {/* Render alerts at the top */}
+      <Header />
       <Alerts />
-      <Header backendLicense={store.backendLicense} />
       {pages[page]?.text && !pages[page]?.hideTitle && (
         <h3 className="page-title" data-testid="page-title">
           {pages[page].text}
