@@ -16,8 +16,6 @@ import UsersPage from 'pages/users/Users';
 
 import IntegrationsPage2 from './integrations_2/Integrations2';
 
-import IntegrationsPage2 from './integrations_2/Integrations2';
-
 export interface NavRoute {
   id: string;
   component: (props?: any) => JSX.Element;
