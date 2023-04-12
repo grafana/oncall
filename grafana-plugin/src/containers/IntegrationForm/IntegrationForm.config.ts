@@ -9,6 +9,10 @@ export const form: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
+      name: 'description',
+      type: FormItemType.TextArea,
+    },
+    {
       name: 'team',
       label: 'Assign to team',
       description:
