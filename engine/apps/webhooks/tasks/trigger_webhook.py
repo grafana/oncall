@@ -81,6 +81,55 @@ def _build_payload(trigger_type, alert_group, user):
     return data
 
 
+def make_request(webhook, alert_group, data):
+    status = {
+        "url": None,
+        "request_trigger": None,
+        "request_headers": None,
+        "request_data": data,
+        "status_code": None,
+        "content": None,
+        "webhook": webhook,
+    }
+
+    exception = error = None
+    try:
+        if not webhook.check_integration_filter(alert_group):
+            status["request_trigger"] = f"Alert group was not from a selected integration"
+            return status, None, None
+
+        triggered, status["request_trigger"] = webhook.check_trigger(data)
+        if triggered:
+            status["url"] = webhook.build_url(data)
+            request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
+            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
+            if "json" in request_kwargs:
+                status["request_data"] = json.dumps(request_kwargs["json"])
+            else:
+                status["request_data"] = request_kwargs.get("data")
+            response = webhook.make_request(status["url"], request_kwargs)
+            status["status_code"] = response.status_code
+            try:
+                status["content"] = json.dumps(response.json())
+            except JSONDecodeError:
+                status["content"] = response.content.decode("utf-8")
+        else:
+            return status, None, None
+    except InvalidWebhookUrl as e:
+        status["url"] = error = e.message
+    except InvalidWebhookTrigger as e:
+        status["request_trigger"] = error = e.message
+    except InvalidWebhookHeaders as e:
+        status["request_headers"] = error = e.message
+    except InvalidWebhookData as e:
+        status["request_data"] = error = e.message
+    except Exception as e:
+        status["content"] = error = str(e)
+        exception = e
+
+    return status, error, exception
+
+
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
@@ -113,51 +162,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
         user = User.objects.filter(pk=user_id).first()
 
     data = _build_payload(webhook.trigger_type, alert_group, user)
-    status = {
-        "url": None,
-        "request_trigger": None,
-        "request_headers": None,
-        "request_data": data,
-        "status_code": None,
-        "content": None,
-        "webhook": webhook,
-    }
-
-    exception = error = None
-    try:
-        if not webhook.check_integration_filter(alert_group):
-            status["request_trigger"] = f"Alert group was not from a selected integration"
-            return
-
-        triggered, status["request_trigger"] = webhook.check_trigger(data)
-        if triggered:
-            status["url"] = webhook.build_url(data)
-            request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
-            if "json" in request_kwargs:
-                status["request_data"] = json.dumps(request_kwargs["json"])
-            else:
-                status["request_data"] = request_kwargs.get("data")
-            response = webhook.make_request(status["url"], request_kwargs)
-            status["status_code"] = response.status_code
-            try:
-                status["content"] = json.dumps(response.json())
-            except JSONDecodeError:
-                status["content"] = response.content.decode("utf-8")
-        else:
-            # do not add a log entry if the webhook is not triggered
-            return
-    except InvalidWebhookUrl as e:
-        status["url"] = error = e.message
-    except InvalidWebhookTrigger as e:
-        status["request_trigger"] = error = e.message
-    except InvalidWebhookHeaders as e:
-        status["request_headers"] = error = e.message
-    except InvalidWebhookData as e:
-        status["request_data"] = error = e.message
-    except Exception as e:
-        status["content"] = error = str(e)
-        exception = e
+    status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry
     WebhookResponse.objects.create(

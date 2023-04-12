@@ -1,3 +1,8 @@
+import React from 'react';
+
+import { SelectableValue } from '@grafana/data';
+import Emoji from 'react-emoji-render';
+
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { KeyValuePair } from 'utils';
 
@@ -24,7 +29,6 @@ export const form: { name: string; fields: FormItem[] } = {
       label: 'Enabled',
       normalize: (value) => Boolean(value),
       type: FormItemType.Switch,
-      description: 'Controls if this webhook will execute when the event is triggered',
     },
     {
       name: 'team',
@@ -110,10 +114,8 @@ export const form: { name: string; fields: FormItem[] } = {
       validation: { required: true },
       normalize: (value) => value,
     },
-    /*
-     * TODO: Uncomment once backend implements it too
     {
-      name: 'alert_receive_channel_id',
+      name: 'integration_filter',
       label: 'Integrations',
       type: FormItemType.MultiSelect,
       isVisible: (data) => {
@@ -127,8 +129,9 @@ export const form: { name: string; fields: FormItem[] } = {
         getOptionLabel: (item: SelectableValue) => <Emoji text={item?.label || ''} />,
       },
       validation: { required: true },
+      description:
+        'Integrations that this webhook applies to. If this is empty the webhook will apply to all integrations',
     },
-    */
     {
       name: 'url',
       label: 'Webhook URL',
@@ -140,7 +143,7 @@ export const form: { name: string; fields: FormItem[] } = {
       label: 'Webhook Headers',
       type: FormItemType.TextArea,
       extra: {
-        rows: 5,
+        rows: 3,
       },
     },
     {
@@ -149,7 +152,7 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'password',
-      type: FormItemType.Input,
+      type: FormItemType.Password,
     },
     {
       name: 'authorization_header',
@@ -158,7 +161,8 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'trigger_template',
       type: FormItemType.TextArea,
-      description: 'Trigger template must be empty or evaluate to true or 1 for webhook to be sent',
+      description:
+        'Trigger template is used to conditionally execute the webhook based on incoming data. The trigger template must be empty or evaluate to true or 1 for the webhook to be sent',
       extra: {
         rows: 2,
       },
@@ -176,7 +180,7 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'forward_all',
       normalize: (value) => Boolean(value),
       type: FormItemType.Switch,
-      description: "Forwards whole payload of the alert to the webhook's url as POST data",
+      description: "Forwards whole payload of the alert to the webhook's url as POST/PUT data",
     },
   ],
 };

@@ -24,6 +24,15 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
         <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
       );
 
+    case FormItemType.Password:
+      return (
+        <Input
+          {...register(formItem.name, formItem.validation)}
+          type="password"
+          onChange={(value) => onChangeFn(undefined, value)}
+        />
+      );
+
     case FormItemType.TextArea:
       return (
         <TextArea

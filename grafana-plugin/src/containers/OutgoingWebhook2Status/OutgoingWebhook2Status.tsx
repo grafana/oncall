@@ -66,7 +66,7 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
           <Label>Trigger Type</Label>
           <SourceCode showClipboardIconOnly>{data.trigger_type_name}</SourceCode>
 
-          {data.last_run ? (
+          {data.last_response_log ? (
             <VerticalGroup>
               <Label>Last Run Time</Label>
               <SourceCode showClipboardIconOnly>{data.last_response_log.timestamp}</SourceCode>
