@@ -58,7 +58,9 @@ User groups that contain
 multiple users results in all users in the group being included in corresponding shifts.
 1. When you’re satisfied with the rotation preview, click **Create**.
 
-Oncall supports multiple **layer** for rotation which allows for overlapping schedule. Layer defines the schedule priority, for example *Layer 2* rotation override *Layer 1* rotation. In this case, users under *Layer 1* would not receive notification during the overlapping time with users under *Layer 2*
+Oncall supports multiple **layer** for rotation which allows for overlapping schedule.
+Layer defines the schedule priority, for example *Layer 2* rotation override *Layer 1* rotation.
+In this case, users under *Layer 1* would not receive notification during the overlapping time with users under *Layer 2*
 
 ### Add an on-call schedule to escalation chains
 
