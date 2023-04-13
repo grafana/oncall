@@ -62,6 +62,10 @@ export default function Alerts() {
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
+  if (!showSlackInstallAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
+    return null;
+  }
+
   return (
     <div className={cx('alerts-container', { 'alerts-container--legacy': !isTopNavbar() })}>
       {showSlackInstallAlert && (
@@ -78,7 +82,7 @@ export default function Alerts() {
           )}
         </Alert>
       )}
-      {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
+      {showBannerTeam() && (
         <Alert
           className={cx('alert')}
           severity="success"
@@ -92,41 +96,31 @@ export default function Alerts() {
           />
         </Alert>
       )}
-      {store.isOpenSource() &&
-        store.backendVersion &&
-        plugin?.version &&
-        store.backendVersion !== plugin?.version &&
-        !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
-          <Alert
-            className={cx('alert')}
-            severity="warning"
-            title={'Version mismatch!'}
-            onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+      {showMismatchWarning() && (
+        <Alert
+          className={cx('alert')}
+          severity="warning"
+          title={'Version mismatch!'}
+          onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+        >
+          Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
+          otherwise there could be issues with your Grafana OnCall installation!
+          <br />
+          {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
+          <br />
+          Please see{' '}
+          <a
+            href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
+            target="_blank"
+            rel="noreferrer"
+            className={cx('instructions-link')}
           >
-            Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
-            otherwise there could be issues with your Grafana OnCall installation!
-            <br />
-            {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
-            <br />
-            Please see{' '}
-            <a
-              href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
-              target="_blank"
-              rel="noreferrer"
-              className={cx('instructions-link')}
-            >
-              the update instructions
-            </a>
-            .
-          </Alert>
-        )}
-      {Boolean(
-        currentTeam &&
-          currentUser &&
-          isUserActionAllowed(UserActions.UserSettingsWrite) &&
-          (!isPhoneVerified || !isChatOpsConnected) &&
-          !getItem(AlertID.CONNECTIVITY_WARNING)
-      ) && (
+            the update instructions
+          </a>
+          .
+        </Alert>
+      )}
+      {showChannelWarnings() && (
         <Alert
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
           className={cx('alert')}
@@ -150,4 +144,28 @@ export default function Alerts() {
       )}
     </div>
   );
+
+  function showBannerTeam(): boolean {
+    return currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title);
+  }
+
+  function showMismatchWarning(): boolean {
+    return (
+      store.isOpenSource() &&
+      store.backendVersion &&
+      plugin?.version &&
+      store.backendVersion !== plugin?.version &&
+      !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`)
+    );
+  }
+
+  function showChannelWarnings(): boolean {
+    return Boolean(
+      currentTeam &&
+        currentUser &&
+        isUserActionAllowed(UserActions.UserSettingsWrite) &&
+        (!isPhoneVerified || !isChatOpsConnected) &&
+        !getItem(AlertID.CONNECTIVITY_WARNING)
+    );
+  }
 }

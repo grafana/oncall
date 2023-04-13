@@ -1,17 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Alert, AlertVariant, Button, HorizontalGroup } from '@grafana/ui';
+import { observer } from 'mobx-react';
+
 import Text from 'components/Text/Text';
 import { IRMPlanStatus } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 
-const IRMBanner: React.FC = () => {
+const IRMBanner: React.FC = observer(() => {
   const store = useStore();
   const {
+    alertGroupStore,
     alertGroupStore: { irmPlan },
   } = store;
 
-  if (store.isOpenSource()) {
+  useEffect(() => {
+    if (store.isOpenSource()) {
+      alertGroupStore.fetchIRMPlan();
+    }
+  }, []);
+
+  if (store.isOpenSource() || !irmPlan?.limits) {
     return null;
   }
   if (irmPlan.limits.isIrmPro || irmPlan.limits.status === IRMPlanStatus.WithinLimits) {
@@ -33,7 +42,7 @@ const IRMBanner: React.FC = () => {
               <div dangerouslySetInnerHTML={{ __html: irmPlan.limits.reasonHTML }} />
             </Text>
             <Button variant={'secondary'} onClick={() => window.open(irmPlan.limits.upgradeURL, '_blank')}>
-              Upgrade to Pro
+              Upgrade
             </Button>
           </HorizontalGroup>
         ) as any
@@ -42,6 +51,6 @@ const IRMBanner: React.FC = () => {
       buttonContent={undefined}
     />
   );
-};
+});
 
 export default IRMBanner;

@@ -32,8 +32,7 @@ const Header = observer(() => {
           </div>
         </div>
       </div>
-      <Alerts />
-      <IRMBanner />
+      <Banners />
     </>
   );
 
@@ -72,5 +71,14 @@ const Header = observer(() => {
     );
   }
 });
+
+const Banners: React.FC = () => {
+  return (
+    <div className={cx('banners')}>
+      <Alerts />
+      <IRMBanner />
+    </div>
+  );
+};
 
 export default Header;
