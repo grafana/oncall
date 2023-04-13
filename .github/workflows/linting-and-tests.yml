@@ -269,6 +269,7 @@ jobs:
     strategy:
       matrix:
         grafana-image-tag:
+          - 8.5.22
           - 9.2.6
           - main
           - latest
