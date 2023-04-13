@@ -24,6 +24,7 @@ import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
 import Incidents from 'pages/incidents/Incidents';
+import Integration2 from 'pages/integration_2/Integration2';
 import Integrations from 'pages/integrations/Integrations';
 import Integrations2 from 'pages/integrations_2/Integrations2';
 import Maintenance from 'pages/maintenance/Maintenance';
@@ -62,8 +63,6 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
-
-import Integration2 from 'pages/integration_2/Integration2';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (

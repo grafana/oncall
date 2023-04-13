@@ -15,9 +15,9 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   const { children } = props;
   return (
     <div className={cx('integrationTree__container')}>
-      {children.map((itemNode: React.ReactNode) => {
+      {children.map((itemNode: React.ReactNode, idx) => {
         return (
-          <div className={cx('integrationTree__group')}>
+          <div className={cx('integrationTree__group')} key={idx}>
             <div className={cx('integrationTree__icon')}>
               <Icon name="arrow-down" size="lg" />
             </div>
