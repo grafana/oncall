@@ -282,18 +282,29 @@ def test_execute_webhook_using_responses_data(
     )
     webhook = make_custom_webhook(
         organization=organization,
-        url="https://something/{{ responses.firing.id }}/",
+        url='https://something/{{ responses["response-1"].id }}/',
         http_method="POST",
         trigger_type=Webhook.TRIGGER_RESOLVE,
-        data='{"value": "{{ responses.acknowledge.status }}"}',
+        data='{"value": "{{ responses["response-2"].status }}"}',
         forward_all=False,
     )
+
     # add previous webhook responses for the related alert group
     make_webhook_response(
-        alert_group=alert_group, trigger_type=Webhook.TRIGGER_FIRING, content=json.dumps({"id": "third-party-id"})
+        alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-1",
+        ),
+        trigger_type=Webhook.TRIGGER_FIRING,
+        content=json.dumps({"id": "third-party-id"}),
     )
     make_webhook_response(
         alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-2",
+        ),
         trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
         content=json.dumps({"id": "third-party-id", "status": "updated"}),
     )
