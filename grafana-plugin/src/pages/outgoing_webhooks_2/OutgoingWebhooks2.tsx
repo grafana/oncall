@@ -55,10 +55,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     errorData: initErrorDataState(),
   };
 
-  async componentDidMount() {
-    this.update().then(this.parseQueryParams);
-  }
-
   componentDidUpdate(prevProps: OutgoingWebhooks2Props) {
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
@@ -115,6 +111,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         width: '25%',
         title: 'Name',
         dataIndex: 'name',
+        render: this.renderName,
       },
       {
         width: '5%',
@@ -135,7 +132,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       {
         width: '10%',
         title: 'Last run',
-        dataIndex: 'last_run',
         render: this.renderLastRun,
       },
       {
@@ -270,6 +266,14 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   };
 
+  renderName(name: String) {
+    return (
+      <div className="u-break-word">
+        <span>{name}</span>
+      </div>
+    );
+  }
+
   renderUrl(url: string) {
     return (
       <div className="u-break-word">
@@ -278,14 +282,22 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   }
 
-  renderLastRun(lastRun: string) {
-    // TODO: remove replace when backend will update lastRun to a correct timestamp
-    const lastRunMoment = moment(lastRun.replace(' (200 OK)', ''));
+  renderLastRun(record: OutgoingWebhook2) {
+    const lastRunMoment = moment(record.last_response_log?.timestamp);
 
-    return (
+    return !record.is_webhook_enabled ? (
+      <Text type="secondary">Disabled</Text>
+    ) : (
       <VerticalGroup spacing="none">
         <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('MMM DD, YYYY') : '-'}</Text>
         <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('hh:mm A') : ''}</Text>
+        <Text type="secondary">
+          {lastRunMoment.isValid()
+            ? record.last_response_log?.status_code
+              ? 'Status: ' + record.last_response_log?.status_code
+              : 'Check Status'
+            : ''}
+        </Text>
       </VerticalGroup>
     );
   }

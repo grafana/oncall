@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.2.10 (2023-04-13)
+
+### Fixed
+
+- Fixed a bug in GForm's RemoteSelect where the value for Dropdown could not change
+- Fixed the URL attached to an Incident created via the 'Declare Incident' button of a Slack alert by @sd2k ([#1738](https://github.com/grafana/oncall/pull/1738))
+
 ## v1.2.9 (2023-04-11)
 
 ### Fixed

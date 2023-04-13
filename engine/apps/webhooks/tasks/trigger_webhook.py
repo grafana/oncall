@@ -5,8 +5,10 @@ from json import JSONDecodeError
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
+from django.db.models import Prefetch
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
+from apps.base.models import UserNotificationPolicyLogRecord
 from apps.user_management.models import User
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.utils import (
@@ -23,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 
 
 TRIGGER_TYPE_TO_LABEL = {
-    Webhook.TRIGGER_NEW: "firing",
+    Webhook.TRIGGER_FIRING: "firing",
     Webhook.TRIGGER_ACKNOWLEDGE: "acknowledge",
     Webhook.TRIGGER_RESOLVE: "resolve",
     Webhook.TRIGGER_SILENCE: "silence",
@@ -38,7 +40,9 @@ TRIGGER_TYPE_TO_LABEL = {
 )
 def send_webhook_event(trigger_type, alert_group_id, team_id=None, organization_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
-    webhooks_qs = Webhooks.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)
+    webhooks_qs = Webhooks.objects.filter(
+        trigger_type=trigger_type, organization_id=organization_id, team_id=team_id
+    ).exclude(is_webhook_enabled=False)
 
     for webhook in webhooks_qs:
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None))
@@ -48,11 +52,12 @@ def _isoformat_date(date_value):
     return date_value.isoformat() if date_value else None
 
 
-def _build_payload(trigger_type, alert_group, user):
+def _build_payload(webhook, alert_group, user):
+    trigger_type = webhook.trigger_type
     event = {
         "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
     }
-    if trigger_type == Webhook.TRIGGER_NEW:
+    if trigger_type == Webhook.TRIGGER_FIRING:
         event["time"] = _isoformat_date(alert_group.started_at)
     elif trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
         event["time"] = _isoformat_date(alert_group.acknowledged_at)
@@ -62,42 +67,28 @@ def _build_payload(trigger_type, alert_group, user):
         event["time"] = _isoformat_date(alert_group.silenced_at)
         event["until"] = _isoformat_date(alert_group.silenced_until)
 
-    # include latest response data per trigger in the event input data
+    # include latest response data per webhook in the event input data
+    # exclude past responses from webhook being executed
     responses_data = {}
-    responses = alert_group.webhook_responses.all().order_by("timestamp")
+    responses = (
+        alert_group.webhook_responses.all()
+        .exclude(webhook__public_primary_key=webhook.public_primary_key)
+        .order_by("-timestamp")
+    )
     for r in responses:
-        try:
-            response_data = r.json()
-        except JSONDecodeError:
-            response_data = r.content
-        responses_data[TRIGGER_TYPE_TO_LABEL[r.trigger_type]] = response_data
+        if r.webhook.public_primary_key not in responses_data:
+            try:
+                response_data = r.json()
+            except JSONDecodeError:
+                response_data = r.content
+            responses_data[r.webhook.public_primary_key] = response_data
 
     data = serialize_event(event, alert_group, user, responses_data)
 
     return data
 
 
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
-)
-def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
-    Webhooks = apps.get_model("webhooks", "Webhook")
-    try:
-        webhook = Webhooks.objects.get(pk=webhook_pk)
-    except Webhooks.DoesNotExist:
-        logger.warn(f"Webhook {webhook_pk} does not exist")
-        return
-
-    try:
-        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
-    except AlertGroup.DoesNotExist:
-        return
-
-    user = None
-    if user_id is not None:
-        user = User.objects.filter(pk=user_id).first()
-
-    data = _build_payload(webhook.trigger_type, alert_group, user)
+def make_request(webhook, alert_group, data):
     status = {
         "url": None,
         "request_trigger": None,
@@ -110,6 +101,10 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
 
     exception = error = None
     try:
+        if not webhook.check_integration_filter(alert_group):
+            status["request_trigger"] = f"Alert group was not from a selected integration"
+            return status, None, None
+
         triggered, status["request_trigger"] = webhook.check_trigger(data)
         if triggered:
             status["url"] = webhook.build_url(data)
@@ -126,8 +121,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
             except JSONDecodeError:
                 status["content"] = response.content.decode("utf-8")
         else:
-            # do not add a log entry if the webhook is not triggered
-            return
+            return status, None, None
     except InvalidWebhookUrl as e:
         status["url"] = error = e.message
     except InvalidWebhookTrigger as e:
@@ -139,6 +133,43 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
     except Exception as e:
         status["content"] = error = str(e)
         exception = e
+
+    return status, error, exception
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+)
+def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
+    Webhooks = apps.get_model("webhooks", "Webhook")
+    try:
+        webhook = Webhooks.objects.get(pk=webhook_pk)
+    except Webhooks.DoesNotExist:
+        logger.warn(f"Webhook {webhook_pk} does not exist")
+        return
+
+    try:
+        personal_log_records = UserNotificationPolicyLogRecord.objects.filter(
+            alert_group_id=alert_group_id,
+            author__isnull=False,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+        ).select_related("author")
+        alert_group = (
+            AlertGroup.unarchived_objects.prefetch_related(
+                Prefetch("personal_log_records", queryset=personal_log_records, to_attr="sent_notifications")
+            )
+            .select_related("channel")
+            .get(pk=alert_group_id)
+        )
+    except AlertGroup.DoesNotExist:
+        return
+
+    user = None
+    if user_id is not None:
+        user = User.objects.filter(pk=user_id).first()
+
+    data = _build_payload(webhook, alert_group, user)
+    status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry
     WebhookResponse.objects.create(
