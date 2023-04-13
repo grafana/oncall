@@ -52,7 +52,8 @@ def _isoformat_date(date_value):
     return date_value.isoformat() if date_value else None
 
 
-def _build_payload(trigger_type, alert_group, user):
+def _build_payload(webhook, alert_group, user):
+    trigger_type = webhook.trigger_type
     event = {
         "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
     }
@@ -68,13 +69,18 @@ def _build_payload(trigger_type, alert_group, user):
 
     # include latest response data per trigger in the event input data
     responses_data = {}
-    responses = alert_group.webhook_responses.all().order_by("timestamp")
+    responses = (
+        alert_group.webhook_responses.all()
+        .exclude(webhook__public_primary_key=webhook.public_primary_key)
+        .order_by("-timestamp")
+    )
     for r in responses:
-        try:
-            response_data = r.json()
-        except JSONDecodeError:
-            response_data = r.content
-        responses_data[TRIGGER_TYPE_TO_LABEL[r.trigger_type]] = response_data
+        if r.webhook.public_primary_key not in responses_data:
+            try:
+                response_data = r.json()
+            except JSONDecodeError:
+                response_data = r.content
+            responses_data[r.webhook.public_primary_key] = response_data
 
     data = serialize_event(event, alert_group, user, responses_data)
 
@@ -161,7 +167,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
     if user_id is not None:
         user = User.objects.filter(pk=user_id).first()
 
-    data = _build_payload(webhook.trigger_type, alert_group, user)
+    data = _build_payload(webhook, alert_group, user)
     status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry
