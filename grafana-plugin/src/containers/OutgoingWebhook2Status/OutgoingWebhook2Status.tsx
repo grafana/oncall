@@ -63,6 +63,8 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
         <VerticalGroup>
           <Label>Webhook Name</Label>
           <SourceCode showClipboardIconOnly>{data.name}</SourceCode>
+          <Label>Webhook ID</Label>
+          <SourceCode showClipboardIconOnly>{data.id}</SourceCode>
           <Label>Trigger Type</Label>
           <SourceCode showClipboardIconOnly>{data.trigger_type_name}</SourceCode>
 
