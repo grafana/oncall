@@ -11,6 +11,7 @@
 
 Developer-friendly incident response with brilliant Slack integration.
 
+<!-- markdownlint-disable -->
 <table>
   <tbody>
     <tr>
@@ -19,6 +20,7 @@ Developer-friendly incident response with brilliant Slack integration.
     </tr>
   </tbody>
 </table>
+<!-- markdownlint-enable -->
 
 - Collect and analyze alerts from multiple monitoring systems
 - On-call rotations based on schedules
