@@ -10,6 +10,8 @@ import {
   Tooltip,
   InlineLabel,
   Modal,
+  ButtonCascader,
+  CascaderOption,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -22,6 +24,7 @@ import Block from 'components/GBlock/Block';
 import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import MaskedInputField from 'components/MaskedInputField/MaskedInputField';
+import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -37,13 +40,12 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { openNotification } from 'utils';
+import { KeyValuePair, openNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integration2.module.scss';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 
 const cx = cn.bind(styles);
 
@@ -52,6 +54,30 @@ interface Integration2Props extends WithStoreProps, PageProps, RouteComponentPro
 interface Integration2State extends PageBaseState {
   isDemoModalOpen: boolean;
 }
+
+// TODO: All display right now, these should be based on the configured channels instead
+const TemplateOptions = {
+  SourceLink: new KeyValuePair('Source Link', 'Source Link'),
+  Autoacknowledge: new KeyValuePair('Autoacknowledge', 'Autoacknowledge'),
+  Phone: new KeyValuePair('Phone', 'Phone'),
+  SMS: new KeyValuePair('SMS', 'SMS'),
+  SlackTitle: new KeyValuePair('Slack Title', 'Title'),
+  SlackMessage: new KeyValuePair('Slack Message', 'Message'),
+  SlackImage: new KeyValuePair('Slack Image', 'Image'),
+  EmailTitle: new KeyValuePair('Email Title', 'Title'),
+  EmailMessage: new KeyValuePair('Email Message', 'Message'),
+  TelegramTitle: new KeyValuePair('Telegram Title', 'Title'),
+  TelegramMessage: new KeyValuePair('Telegram Message', 'Message'),
+  TelegramImage: new KeyValuePair('Telegram Image', 'Image'),
+  MSTeamsTitle: new KeyValuePair('MSTeams Title', 'Title'),
+  MSTeamsMessage: new KeyValuePair('MSTeams Message', 'Message'),
+  MSTeamsImage: new KeyValuePair('MSTeams Image', 'Image'),
+
+  Email: new KeyValuePair('Email', 'Email'),
+  Slack: new KeyValuePair('Slack', 'Slack'),
+  MSTeams: new KeyValuePair('Microsoft Teams', 'Microsoft Teams'),
+  Telegram: new KeyValuePair('Telegram', 'Telegram'),
+};
 
 // This can be further improved by using a ref instead
 const ACTIONS_LIST_WIDTH = 160;
@@ -68,6 +94,9 @@ const MONACO_OPTIONS = {
   },
   hideCursorInOverviewRuler: true,
   minimap: { enabled: false },
+  cursorStyle: {
+    display: 'none',
+  },
 };
 
 const MONACO_INPUT_HEIGHT_SMALL = 32;
@@ -411,7 +440,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               <MonacoJinja2Editor
                                 value={templates['web_image_url_template'] || ''}
                                 disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
                                 showLineNumbers={false}
                                 monacoOptions={MONACO_OPTIONS}
@@ -510,9 +539,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['slack_message_template'] || ''}
+                                value={templates['slack_title_template'] || ''}
                                 disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
                                 showLineNumbers={false}
                                 monacoOptions={MONACO_OPTIONS}
@@ -527,7 +556,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['slack_title_template'] || ''}
+                                value={templates['slack_message_template'] || ''}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_TALL}
                                 data={templates}
@@ -546,7 +575,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               <MonacoJinja2Editor
                                 value={templates['slack_image_template'] || ''}
                                 disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
                                 showLineNumbers={false}
                                 monacoOptions={MONACO_OPTIONS}
@@ -568,7 +597,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               <MonacoJinja2Editor
                                 value={templates['telegram_title_template'] || ''}
                                 disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
                                 showLineNumbers={false}
                                 monacoOptions={MONACO_OPTIONS}
@@ -602,7 +631,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               <MonacoJinja2Editor
                                 value={templates['telegram_image_url_template'] || ''}
                                 disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
                                 showLineNumbers={false}
                                 monacoOptions={MONACO_OPTIONS}
@@ -624,7 +653,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               <MonacoJinja2Editor
                                 value={templates['email_title_template'] || ''}
                                 disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
+                                height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
                                 showLineNumbers={false}
                                 monacoOptions={MONACO_OPTIONS}
@@ -659,12 +688,19 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <Text type={'secondary'}>
                           Customise how they rendered in SMS, Phone Calls, Mobile App, Slack, Telegram, MS Teams{' '}
                         </Text>
-                        <Button variant={'secondary'} size={'md'}>
-                          <HorizontalGroup spacing={'xs'}>
-                            <Icon name={'plus'} size={'md'} />
+
+                        <div className={cx('customise-button')}>
+                          <ButtonCascader
+                            variant="secondary"
+                            onChange={(_value) => {}}
+                            options={this.getTemplatesList()}
+                            icon="plus"
+                            value={undefined}
+                            buttonProps={{ size: 'sm' }}
+                          >
                             Customise templates
-                          </HorizontalGroup>
-                        </Button>
+                          </ButtonCascader>
+                        </div>
                       </VerticalGroup>
                     </IntegrationBlockItem>
                   </div>
@@ -682,6 +718,95 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       </PageErrorHandlingWrapper>
     );
   }
+
+  getTemplatesList = (): CascaderOption[] => {
+    return [
+      {
+        label: TemplateOptions.SourceLink.value,
+        value: TemplateOptions.SourceLink.key,
+      },
+      {
+        label: TemplateOptions.Autoacknowledge.value,
+        value: TemplateOptions.Autoacknowledge.key,
+      },
+      {
+        label: TemplateOptions.Phone.value,
+        value: TemplateOptions.Phone.key,
+      },
+      {
+        label: TemplateOptions.SMS.value,
+        value: TemplateOptions.SMS.key,
+      },
+      {
+        label: TemplateOptions.Email.value,
+        value: TemplateOptions.Email.key,
+        children: [
+          {
+            label: TemplateOptions.EmailTitle.value,
+            value: TemplateOptions.EmailTitle.key,
+          },
+          {
+            label: TemplateOptions.EmailMessage.value,
+            value: TemplateOptions.EmailMessage.key,
+          },
+        ],
+      },
+      {
+        label: TemplateOptions.Slack.value,
+        value: TemplateOptions.Slack.key,
+        children: [
+          {
+            label: TemplateOptions.SlackTitle.value,
+            value: TemplateOptions.SlackTitle.key,
+          },
+          {
+            label: TemplateOptions.SlackMessage.value,
+            value: TemplateOptions.SlackMessage.key,
+          },
+          {
+            label: TemplateOptions.SlackImage.value,
+            value: TemplateOptions.SlackImage.key,
+          },
+        ],
+      },
+      {
+        label: TemplateOptions.MSTeams.value,
+        value: TemplateOptions.MSTeams.key,
+        children: [
+          {
+            label: TemplateOptions.MSTeamsTitle.value,
+            value: TemplateOptions.MSTeamsTitle.key,
+          },
+          {
+            label: TemplateOptions.MSTeamsMessage.value,
+            value: TemplateOptions.MSTeamsMessage.key,
+          },
+          {
+            label: TemplateOptions.MSTeamsImage.value,
+            value: TemplateOptions.MSTeamsImage.key,
+          },
+        ],
+      },
+      {
+        label: TemplateOptions.Telegram.value,
+        value: TemplateOptions.Telegram.key,
+        children: [
+          {
+            label: TemplateOptions.TelegramTitle.value,
+            value: TemplateOptions.TelegramTitle.key,
+          },
+          {
+            label: TemplateOptions.TelegramMessage.value,
+            value: TemplateOptions.TelegramMessage.key,
+          },
+          {
+            label: TemplateOptions.TelegramImage.value,
+            value: TemplateOptions.TelegramImage.key,
+          },
+        ],
+      },
+    ];
+  };
 
   onRemovalFn = (id: AlertReceiveChannel['id']) => {
     const {
