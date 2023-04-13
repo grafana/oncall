@@ -50,7 +50,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
+            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value.value)} />;
           }}
           control={control}
           name={formItem.name}

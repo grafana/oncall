@@ -50,3 +50,9 @@ EXPERIMENTAL_MIGRATE_EVENT_RULES = (
 EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES = (
     os.getenv("EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES", "false").lower() == "true"
 )
+
+# Set to true to migrate unsupported integrations to OnCall webhook integration
+# https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-webhook/
+UNSUPPORTED_INTEGRATION_TO_WEBHOOKS = (
+    os.getenv("UNSUPPORTED_INTEGRATION_TO_WEBHOOKS", "false").lower() == "true"
+)
