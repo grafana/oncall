@@ -67,7 +67,8 @@ def _build_payload(webhook, alert_group, user):
         event["time"] = _isoformat_date(alert_group.silenced_at)
         event["until"] = _isoformat_date(alert_group.silenced_until)
 
-    # include latest response data per trigger in the event input data
+    # include latest response data per webhook in the event input data
+    # exclude past responses from webhook being executed
     responses_data = {}
     responses = (
         alert_group.webhook_responses.all()
