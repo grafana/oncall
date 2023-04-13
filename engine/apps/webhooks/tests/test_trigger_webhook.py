@@ -39,7 +39,7 @@ def test_send_webhook_event_filters(
     other_team_webhook = make_custom_webhook(
         organization=organization, team=other_team, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE
     )
-    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_NEW)
+    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_FIRING)
 
     for trigger_type, _ in Webhook.TRIGGER_TYPES:
         with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
@@ -59,7 +59,7 @@ def test_send_webhook_event_filters(
     alert_receive_channel = make_alert_receive_channel(other_organization)
     alert_group = make_alert_group(alert_receive_channel)
     with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
-        send_webhook_event(Webhook.TRIGGER_NEW, alert_group.pk, organization_id=other_organization.pk)
+        send_webhook_event(Webhook.TRIGGER_FIRING, alert_group.pk, organization_id=other_organization.pk)
     assert mock_execute.call_args == call((other_org_webhook.pk, alert_group.pk, None, None))
 
 
@@ -282,18 +282,29 @@ def test_execute_webhook_using_responses_data(
     )
     webhook = make_custom_webhook(
         organization=organization,
-        url="https://something/{{ responses.firing.id }}/",
+        url='https://something/{{ responses["response-1"].id }}/',
         http_method="POST",
         trigger_type=Webhook.TRIGGER_RESOLVE,
-        data='{"value": "{{ responses.acknowledge.status }}"}',
+        data='{"value": "{{ responses["response-2"].status }}"}',
         forward_all=False,
     )
+
     # add previous webhook responses for the related alert group
     make_webhook_response(
-        alert_group=alert_group, trigger_type=Webhook.TRIGGER_NEW, content=json.dumps({"id": "third-party-id"})
+        alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-1",
+        ),
+        trigger_type=Webhook.TRIGGER_FIRING,
+        content=json.dumps({"id": "third-party-id"}),
     )
     make_webhook_response(
         alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-2",
+        ),
         trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
         content=json.dumps({"id": "third-party-id", "status": "updated"}),
     )
@@ -341,8 +352,8 @@ def test_execute_webhook_trigger_false(
         execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
-    # check no logs
-    assert webhook.responses.count() == 0
+    # check log should exist but have no status
+    assert webhook.responses.count() == 1 and webhook.responses.first().status_code is None
 
 
 @pytest.mark.django_db

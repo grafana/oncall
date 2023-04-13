@@ -49,7 +49,8 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "forward_all": False,
             "headers": None,
             "http_method": "POST",
-            "last_run": "",
+            "integration_filter": None,
+            "is_webhook_enabled": True,
             "last_response_log": {
                 "request_data": "",
                 "request_headers": "",
@@ -88,7 +89,8 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "forward_all": False,
         "headers": None,
         "http_method": "POST",
-        "last_run": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -118,7 +120,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "the_webhook",
         "url": TEST_URL,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
@@ -132,7 +134,8 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
         "forward_all": True,
         "headers": None,
         "http_method": "POST",
-        "last_run": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -143,7 +146,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Triggered",
+        "trigger_type_name": "Firing",
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -173,7 +176,7 @@ def test_create_valid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
 
@@ -189,7 +192,8 @@ def test_create_valid_templated_field(
         "headers": None,
         "data": None,
         "http_method": "POST",
-        "last_run": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -200,7 +204,7 @@ def test_create_valid_templated_field(
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Triggered",
+        "trigger_type_name": "Firing",
     }
     # update expected value for changed field
     expected_response[field_name] = value
@@ -230,7 +234,7 @@ def test_create_invalid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
 
@@ -248,7 +252,7 @@ def test_update_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "github_button_updated",
         "url": "https://github.com/",
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_FIRING),
         "team": None,
     }
     response = client.put(
