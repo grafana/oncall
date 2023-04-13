@@ -76,9 +76,6 @@ export class RootBaseStore {
   @observable
   onCallApiUrl: string;
 
-  @observable
-  alertsIRMPlan: any;
-
   // --------------------------
 
   userStore: UserStore = new UserStore(this);
