@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Added mine filter to schedules listing
+
 ### Fixed
 
 - Fixed a bug in GForm's RemoteSelect where the value for Dropdown could not change
