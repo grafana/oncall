@@ -88,9 +88,11 @@ class AlertGroupQuerySet(models.QuerySet):
 
         # Create a new group if we couldn't group it to any existing ones
         try:
-            ag = self.create(**search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache)
-            alert_group_created_signal.send(sender=self.__class__, alert_group=ag)
-            return (ag, True)
+            alert_group = self.create(
+                **search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache
+            )
+            alert_group_created_signal.send(sender=self.__class__, alert_group=alert_group)
+            return (alert_group, True)
         except IntegrityError:
             try:
                 return self.get(**search_params, is_open_for_grouping__isnull=False), False
