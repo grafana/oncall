@@ -153,7 +153,7 @@ class AlertReceiveChannelView(
     def send_demo_alert(self, request, pk):
         alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=pk)
         if not request.data:
-            # If no payload provided, use the demo payload for backword compatibility
+            # If no payload provided, use the demo payload for backwards compatibility
             payload = alert_receive_channel.config.example_payload
         else:
             try:
