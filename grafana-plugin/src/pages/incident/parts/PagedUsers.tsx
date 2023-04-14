@@ -20,11 +20,13 @@ const cx = cn.bind(styles);
 
 interface PagedUsersProps {
   pagedUsers: Alert['paged_users'];
+  disabled: boolean;
+
   onRemove: (id: User['pk']) => void;
 }
 
 const PagedUsers = observer((props: PagedUsersProps) => {
-  const { pagedUsers, onRemove } = props;
+  const { pagedUsers, disabled, onRemove } = props;
 
   const getPagedUserRemoveHandler = useCallback((id: User['pk']) => {
     return () => {
@@ -94,6 +96,7 @@ const PagedUsers = observer((props: PagedUsersProps) => {
                         onClick={getPagedUserRemoveHandler(pagedUser.pk)}
                         tooltip="Remove from responders"
                         name="trash-alt"
+                        disabled={disabled}
                       />
                     </WithConfirm>
                   </WithPermissionControlTooltip>

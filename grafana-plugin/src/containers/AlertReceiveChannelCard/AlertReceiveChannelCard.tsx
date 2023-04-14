@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Tooltip, HorizontalGroup, VerticalGroup, Badge } from '@grafana/ui';
+import { Badge, HorizontalGroup, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -13,7 +13,7 @@ import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
 
-import styles from './AlertReceiveChannelCard.module.css';
+import styles from './AlertReceiveChannelCard.module.scss';
 
 const cx = cn.bind(styles);
 

@@ -13,13 +13,16 @@ from common.api_helpers.mixins import EagerLoadingMixin
 
 from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
+from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
 from .user import FastUserSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class AlertGroupFieldsCacheSerializerMixin:
+class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
+    CACHE_KEY_FORMAT_TEMPLATE = "{field_name}_alert_group_{object_id}"
+
     @classmethod
     def get_or_set_web_template_field(
         cls,
@@ -29,7 +32,7 @@ class AlertGroupFieldsCacheSerializerMixin:
         renderer_class,
         cache_lifetime=60 * 60 * 24,
     ):
-        CACHE_KEY = f"{field_name}_alert_group_{obj.id}"
+        CACHE_KEY = cls.calculate_cache_key(field_name, obj)
         cached_field = cache.get(CACHE_KEY, None)
 
         web_templates_modified_at = obj.channel.web_templates_modified_at
@@ -68,7 +71,7 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             last_alert,
-            "render_for_web",
+            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_WEB_FIELD_NAME,
             AlertGroupWebRenderer,
         )
 
@@ -132,6 +135,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "status",
             "declare_incident_link",
             "team",
+            "is_restricted",
         ]
 
     def get_render_for_web(self, obj):
@@ -140,7 +144,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             obj.last_alert,
-            "render_for_web",
+            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_WEB_FIELD_NAME,
             AlertGroupWebRenderer,
         )
 
@@ -150,7 +154,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             obj.last_alert,
-            "render_for_classic_markdown",
+            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_CLASSIC_MARKDOWN_FIELD_NAME,
             AlertGroupClassicMarkdownRenderer,
         )
 
