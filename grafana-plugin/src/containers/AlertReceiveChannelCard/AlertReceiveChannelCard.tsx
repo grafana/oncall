@@ -69,7 +69,13 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
               <CopyToClipboard text={alertReceiveChannel.id}>
                 <IconButton
                   variant="primary"
-                  tooltip={'ID ' + alertReceiveChannel.id + ' click to copy to clipboard'}
+                  tooltip={
+                    <div>
+                      ID {alertReceiveChannel.id}
+                      <br />
+                      (click to copy ID to clipboard)
+                    </div>
+                  }
                   tooltipPlacement="top"
                   name="info-circle"
                 />

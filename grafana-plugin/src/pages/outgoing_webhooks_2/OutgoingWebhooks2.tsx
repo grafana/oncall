@@ -252,7 +252,13 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         <CopyToClipboard text={record.id}>
           <IconButton
             variant="primary"
-            tooltip={'ID ' + record.id + ' click to copy to clipboard'}
+            tooltip={
+              <div>
+                ID {record.id}
+                <br />
+                (click to copy ID to clipboard)
+              </div>
+            }
             tooltipPlacement="top"
             name="info-circle"
           />

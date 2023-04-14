@@ -689,7 +689,13 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
           <CopyToClipboard text={channelFilter.id}>
             <IconButton
               variant="primary"
-              tooltip={'ID ' + channelFilter.id + ' click to copy to clipboard'}
+              tooltip={
+                <div>
+                  ID {channelFilter.id}
+                  <br />
+                  (click to copy ID to clipboard)
+                </div>
+              }
               tooltipPlacement="top"
               name="info-circle"
             />
