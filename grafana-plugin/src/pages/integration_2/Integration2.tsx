@@ -19,6 +19,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import CounterBadge from 'components/CounterBadge/CounterBadge';
 import Block from 'components/GBlock/Block';
 import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -33,6 +34,7 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -53,6 +55,8 @@ interface Integration2Props extends WithStoreProps, PageProps, RouteComponentPro
 
 interface Integration2State extends PageBaseState {
   isDemoModalOpen: boolean;
+  isEditTemplateModalOpen: boolean;
+  selectedTemplate: TemplateForEdit;
 }
 
 // TODO: All display right now, these should be based on the configured channels instead
@@ -99,8 +103,8 @@ const MONACO_OPTIONS = {
   },
 };
 
-const MONACO_INPUT_HEIGHT_SMALL = 32;
-const MONACO_INPUT_HEIGHT_TALL = 120;
+const MONACO_INPUT_HEIGHT_SMALL = '32px';
+const MONACO_INPUT_HEIGHT_TALL = '120px';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -110,6 +114,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     this.state = {
       errorData: initErrorDataState(),
       isDemoModalOpen: false,
+      isEditTemplateModalOpen: false,
+      selectedTemplate: undefined,
     };
   }
 
@@ -127,7 +133,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   }
 
   render() {
-    const { errorData, isDemoModalOpen } = this.state;
+    const { errorData, isDemoModalOpen, isEditTemplateModalOpen, selectedTemplate } = this.state;
     const {
       store: { alertReceiveChannelStore, grafanaTeamStore },
       match: {
@@ -373,7 +379,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                             </div>
                           )}
                           showHelp
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Grouping',
+                              templates['grouping_id_template'],
+                              'grouping_id_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -390,7 +402,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Autoresolve',
+                              templates['resolve_condition_template'],
+                              'resolve_condition_template'
+                            )
+                          }
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -413,7 +431,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Web title',
+                              templates['web_title_template'],
+                              'web_title_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -430,7 +454,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Web message',
+                              templates['web_message_template'],
+                              'web_message_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -447,7 +477,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Web image',
+                              templates['web_image_url_template'],
+                              'web_image_url_template'
+                            )
+                          }
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -468,7 +504,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Auto acknowledge',
+                              templates['acknowledge_condition_template'],
+                              'acknowledge_condition_template'
+                            )
+                          }
                           showHelp
                         />
 
@@ -486,7 +528,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Source link',
+                              templates['source_link_template'],
+                              'source_link_template'
+                            )
+                          }
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -507,7 +555,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Phone call',
+                              templates['phone_call_title_template'],
+                              'phone_call_title_template'
+                            )
+                          }
                           showHelp
                         />
 
@@ -525,7 +579,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal('SMS', templates['sms_title_template'], 'sms_title_template')
+                          }
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -548,7 +604,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Slack title',
+                              templates['slack_title_template'],
+                              'slack_title_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -565,7 +627,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Slack message',
+                              templates['slack_message_template'],
+                              'slack_message_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -582,7 +650,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Slack image',
+                              templates['slack_image_template'],
+                              'slack_image_template'
+                            )
+                          }
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -604,7 +678,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Telegram title',
+                              templates['telegram_title_template'],
+                              'telegram_title_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -621,7 +701,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Telegram message',
+                              templates['telegram_message_template'],
+                              'telegram_message_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -638,7 +724,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Telegram image',
+                              templates['telegram_image_url_template'],
+                              'telegram_image_url_template'
+                            )
+                          }
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -660,7 +752,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Email title',
+                              templates['email_title_template'],
+                              'email_title_template'
+                            )
+                          }
                         />
 
                         <IntegrationTemplateBlock
@@ -677,7 +775,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={undefined}
+                          onEdit={() =>
+                            this.openEditTemplateModal(
+                              'Email message',
+                              templates['email_message_template'],
+                              'email_message_template'
+                            )
+                          }
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -713,6 +817,20 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               isOpen={isDemoModalOpen}
               onCancel={() => this.setState({ isDemoModalOpen: false })}
             />
+            {isEditTemplateModalOpen && (
+              <IntegrationTemplate
+                id={id}
+                onHide={() => {
+                  this.setState({
+                    isEditTemplateModalOpen: undefined,
+                  });
+                }}
+                onUpdate={() => {
+                  alertReceiveChannelStore.updateItem(id);
+                }}
+                template={selectedTemplate}
+              />
+            )}
           </div>
         )}
       </PageErrorHandlingWrapper>
@@ -806,6 +924,12 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         ],
       },
     ];
+  };
+
+  openEditTemplateModal = (templateNameForWeb, templatePayload, templateName) => {
+    this.setState({ isEditTemplateModalOpen: true });
+    const template: TemplateForEdit = { displayName: templateNameForWeb, payload: templatePayload, name: templateName };
+    this.setState({ selectedTemplate: template });
   };
 
   onRemovalFn = (id: AlertReceiveChannel['id']) => {
@@ -978,7 +1102,7 @@ interface IntegrationTemplateBlockProps {
   showClose?: boolean;
   showHelp?: boolean;
 
-  onEdit: () => void;
+  onEdit: (templateName) => void;
   onRemove?: () => void;
   onHelp?: () => void;
 }

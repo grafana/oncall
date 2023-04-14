@@ -19,7 +19,7 @@ interface TemplatePreviewProps {
   templateName: string;
   templateBody: string | null;
   alertReceiveChannelId: AlertReceiveChannel['id'];
-  onEditClick: () => void;
+  onEditClick?: () => void;
   alertGroupId?: Alert['pk'];
   active?: boolean;
 }
