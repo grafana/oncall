@@ -525,15 +525,21 @@ def test_channel_filter_convert_from_regex_to_jinja2(
     alert_receive_channel = make_alert_receive_channel(organization)
 
     make_channel_filter(alert_receive_channel, is_default=True)
+
+    # r"..." used to keep this string as raw string
+    regex_filtering_term = r"\".*\": \"This alert was sent by user for the demonstration purposes\""
+    final_filtering_term = r'{{ payload | json_dumps | regex_search("\".*\": \"This alert was sent by user for the demonstration purposes\"") }}'
+    payload = {"description": "This alert was sent by user for the demonstration purposes"}
+
     regex_channel_filter = make_channel_filter(
         alert_receive_channel,
-        filtering_term='".*": "This alert was sent by user for the demonstration purposes"',
+        filtering_term=regex_filtering_term,
         is_default=False,
     )
     # Check if the filtering term is a regex
     assert regex_channel_filter.filtering_term_type == regex_channel_filter.FILTERING_TERM_TYPE_REGEX
-
-    final_filtering_term = '{{ payload | json_dumps | regex_search("".*": "This alert was sent by user for the demonstration purposes"") }}'
+    # Check if the alert is matched to the channel filter (route) regex
+    assert bool(regex_channel_filter.is_satisfying(payload)) is True
 
     client = APIClient()
     url = reverse("api-internal:channel_filter-detail", kwargs={"pk": regex_channel_filter.public_primary_key})
@@ -553,6 +559,10 @@ def test_channel_filter_convert_from_regex_to_jinja2(
     assert response.status_code == expected_status
     if expected_status == status.HTTP_200_OK:
         regex_channel_filter.refresh_from_db()
+        # Regex is now converted to jinja2
+        jinja2_channel_filter = regex_channel_filter
         # Check if the filtering term is a jinja2, and if it is correct
-        assert regex_channel_filter.filtering_term_type == regex_channel_filter.FILTERING_TERM_TYPE_JINJA2
-        assert regex_channel_filter.filtering_term == final_filtering_term
+        assert jinja2_channel_filter.filtering_term_type == jinja2_channel_filter.FILTERING_TERM_TYPE_JINJA2
+        assert jinja2_channel_filter.filtering_term == final_filtering_term
+        # Check if the same alert is matched to the channel filter (route) new jinja2
+        assert bool(jinja2_channel_filter.is_satisfying(payload)) is True
