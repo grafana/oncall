@@ -507,15 +507,20 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             payload = self.config.example_payload
         if self.is_demo_alert_enabled:
             if self.has_alertmanager_payload_structure:
-                for alert in payload.get("alerts", []):
-                    create_alertmanager_alerts.apply_async(
-                        [],
-                        {
-                            "alert_receive_channel_pk": self.pk,
-                            "alert": alert,
-                            "is_demo": True,
-                            "force_route_id": force_route_id,
-                        },
+                if (alerts := payload.get("alerts", None)) and type(alerts) == list and len(alerts):
+                    for alert in alerts:
+                        create_alertmanager_alerts.apply_async(
+                            [],
+                            {
+                                "alert_receive_channel_pk": self.pk,
+                                "alert": alert,
+                                "is_demo": True,
+                                "force_route_id": force_route_id,
+                            },
+                        )
+                else:
+                    raise UnableToSendDemoAlert(
+                        "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
                     )
             else:
                 create_alert.apply_async(

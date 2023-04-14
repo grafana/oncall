@@ -3,9 +3,7 @@ from django_filters import rest_framework as filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ParseError
 from rest_framework.filters import SearchFilter
-from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -152,14 +150,15 @@ class AlertReceiveChannelView(
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
         alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=pk)
-        if not request.data:
-            # If no payload provided, use the demo payload for backwards compatibility
+        demo_alert_payload = request.data.get("demo_alert_payload", None)
+
+        if not demo_alert_payload:
+            # If no payload provided, use the demo payload for backword compatibility
             payload = alert_receive_channel.config.example_payload
         else:
-            try:
-                payload = JSONParser().parse(request)
-            except ParseError:
-                return Response("Invalid payload", status=status.HTTP_400_BAD_REQUEST)
+            if type(demo_alert_payload) != dict:
+                raise BadRequest(detail="Payload for demo alert must be a valid json object")
+            payload = demo_alert_payload
 
         try:
             alert_receive_channel.send_demo_alert(payload=payload)
