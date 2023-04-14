@@ -163,6 +163,7 @@ def test_update_integration_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
         "type": "grafana",
         "default_route": {
