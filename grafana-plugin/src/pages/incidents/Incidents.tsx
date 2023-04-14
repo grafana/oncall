@@ -1,6 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip, Icon } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -98,6 +98,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
+  async componentDidMount() {
+    const { store } = this.props;
+
+    if (!store.isOpenSource()) {
+      await store.alertGroupStore.fetchIRMPlan();
+    }
+  }
+
   componentWillUnmount(): void {
     this.clearPollingInterval();
   }
@@ -105,6 +113,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   render() {
     const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
+    const {
+      store,
+      store: { alertGroupStore },
+    } = this.props;
+
+    if (!alertGroupStore.irmPlan && !store.isOpenSource()) {
+      return <LoadingPlaceholder text={'Loading...'} />;
+    }
+
     return (
       <>
         <div className={cx('root')}>
@@ -511,7 +528,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
           loading={alertGroupsLoading}
           className={cx('incidents-table')}
-          rowSelection={{ selectedRowKeys: selectedIncidentIds, onChange: this.handleSelectedIncidentIdsChange }}
+          rowSelection={{
+            selectedRowKeys: selectedIncidentIds,
+            onChange: this.handleSelectedIncidentIdsChange,
+          }}
           rowKey="pk"
           data={results}
           columns={columns}

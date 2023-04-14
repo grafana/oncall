@@ -19,7 +19,7 @@ from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
-from apps.alerts.signals import alert_group_action_triggered_signal
+from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
 from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
@@ -88,10 +88,11 @@ class AlertGroupQuerySet(models.QuerySet):
 
         # Create a new group if we couldn't group it to any existing ones
         try:
-            return (
-                self.create(**search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache),
-                True,
+            alert_group = self.create(
+                **search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache
             )
+            alert_group_created_signal.send(sender=self.__class__, alert_group=alert_group)
+            return (alert_group, True)
         except IntegrityError:
             try:
                 return self.get(**search_params, is_open_for_grouping__isnull=False), False
@@ -350,6 +351,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # We just don't care about that because we'll use only get_or_create(...is_open_for_grouping=True...)
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
+
+    is_restricted = models.BooleanField(default=False, null=True)
 
     @staticmethod
     def get_silenced_state_filter():

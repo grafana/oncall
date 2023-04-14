@@ -133,6 +133,9 @@ class Organization(MaintainableObject):
 
     gcom_token = mirage_fields.EncryptedCharField(max_length=300, null=True, default=None)
     gcom_token_org_last_time_synced = models.DateTimeField(null=True, default=None)
+    gcom_org_contract_type = models.CharField(max_length=300, null=True, default=None)
+    gcom_org_irm_sku_subscription_start_date = models.DateTimeField(null=True, default=None)
+    gcom_org_oldest_admin_with_billing_privileges_user_id = models.PositiveIntegerField(null=True)
 
     last_time_synced = models.DateTimeField(null=True, default=None)
 

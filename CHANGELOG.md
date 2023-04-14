@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.2.10 (2023-04-13)
 
+### Added
+
+- add new columns `gcom_org_contract_type`, `gcom_org_irm_sku_subscription_start_date`,
+  and `gcom_org_oldest_admin_with_billing_privileges_user_id` to `user_management_organization` table,
+  plus `is_restricted` column to `alerts_alertgroup` table by @joeyorlando and @teodosii ([1522](https://github.com/grafana/oncall/pull/1522))
+- emit two new Django signals by @joeyorlando and @teodosii ([1522](https://github.com/grafana/oncall/pull/1522))
+  - `org_sync_signal` at the end of the `engine/apps/user_management/sync.py::sync_organization` method
+  - `alert_group_created_signal` when a new Alert Group is created
+
 ### Fixed
 
 - Fixed a bug in GForm's RemoteSelect where the value for Dropdown could not change
