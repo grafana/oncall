@@ -111,7 +111,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
 
     def get_filtering_term_as_jinja2(self, obj):
         """
-        Returns the regex filtering term as a jinja2, we need to display it during migration from regex to jinja2"""
+        Returns the regex filtering term as a jinja2, for the preview before migration from regex to jinja2"""
         if obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             return obj.filtering_term
         elif obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
