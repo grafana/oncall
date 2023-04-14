@@ -31,7 +31,11 @@ def match_integration_type(integration: dict, vendors: list[dict]) -> None:
 
     if integration["vendor"] is None:
         integration["vendor_name"] = None
-        integration["oncall_type"] = None
+        if UNSUPPORTED_INTEGRATION_TO_WEBHOOKS:
+            integration["oncall_type"] = "webhook"
+            integration["converted_to_webhook"] = True
+        else:
+            integration["oncall_type"] = None
         return
 
     vendor_id = integration["vendor"]["id"]
