@@ -15,9 +15,7 @@ const IRMBanner: React.FC = observer(() => {
   } = store;
 
   useEffect(() => {
-    if (store.isOpenSource()) {
-      alertGroupStore.fetchIRMPlan();
-    }
+    alertGroupStore.fetchIRMPlan();
   }, []);
 
   if (store.isOpenSource() || !irmPlan?.limits) {

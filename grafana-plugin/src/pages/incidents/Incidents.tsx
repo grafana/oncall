@@ -99,11 +99,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
   async componentDidMount() {
-    const { store } = this.props;
-
-    if (!store.isOpenSource()) {
-      await store.alertGroupStore.fetchIRMPlan();
-    }
+    await this.props.store.alertGroupStore.fetchIRMPlan();
   }
 
   componentWillUnmount(): void {

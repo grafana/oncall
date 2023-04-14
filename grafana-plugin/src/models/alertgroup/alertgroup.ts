@@ -208,7 +208,9 @@ export class AlertGroupStore extends BaseStore {
   }
 
   async fetchIRMPlan() {
-    this.irmPlan = await makeRequest(`/usage-limits`, { method: 'GET' });
+    if (!this.rootStore.isOpenSource()) {
+      this.irmPlan = await makeRequest(`/usage-limits`, { method: 'GET' });
+    }
   }
 
   // methods were moved from rootBaseStore.
