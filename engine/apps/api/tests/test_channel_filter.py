@@ -530,6 +530,7 @@ def test_channel_filter_convert_from_regex_to_jinja2(
         filtering_term='".*": "This alert was sent by user for the demonstration purposes"',
         is_default=False,
     )
+    # Check if the filtering term is a regex
     assert regex_channel_filter.filtering_term_type == regex_channel_filter.FILTERING_TERM_TYPE_REGEX
 
     final_filtering_term = '{{ payload | json_dumps | regex_search("".*": "This alert was sent by user for the demonstration purposes"") }}'
@@ -540,6 +541,7 @@ def test_channel_filter_convert_from_regex_to_jinja2(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
+    # Check if preview of the filtering term migration is correct
     assert response.json()["filtering_term_as_jinja2"] == final_filtering_term
 
     url = reverse(
@@ -547,8 +549,10 @@ def test_channel_filter_convert_from_regex_to_jinja2(
         kwargs={"pk": regex_channel_filter.public_primary_key},
     )
     response = client.post(url, **make_user_auth_headers(user, token))
+    # Only admins can convert from regex to jinja2
     assert response.status_code == expected_status
     if expected_status == status.HTTP_200_OK:
         regex_channel_filter.refresh_from_db()
+        # Check if the filtering term is a jinja2, and if it is correct
         assert regex_channel_filter.filtering_term_type == regex_channel_filter.FILTERING_TERM_TYPE_JINJA2
         assert regex_channel_filter.filtering_term == final_filtering_term
