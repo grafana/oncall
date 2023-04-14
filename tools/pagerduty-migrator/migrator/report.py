@@ -1,6 +1,7 @@
 TAB = " " * 4
 SUCCESS_SIGN = "✅"
 ERROR_SIGN = "❌"
+WARNING_SIGN = "⚠️"  # TODO: warning sign does not renders properly
 
 
 def format_user(user: dict) -> str:
@@ -73,7 +74,13 @@ def format_integration(integration: dict) -> str:
             ERROR_SIGN, result, policy_name
         )
     else:
-        result = "{} {}".format(SUCCESS_SIGN, result)
+        # check if integration not supported, but UNSUPPORTED_INTEGRATION_TO_WEBHOOKS set
+        if integration.get("converted_to_webhook", False):
+            result = "{} {} – Webhook integration will be created, Grafana OnCall not support this type directly ".format(
+                WARNING_SIGN, result
+            )
+        else:
+            result = "{} {}".format(SUCCESS_SIGN, result)
 
     return result
 
