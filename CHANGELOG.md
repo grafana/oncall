@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.2.10 (2023-04-13)
+## Unreleased
 
 ### Added
 
@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - emit two new Django signals by @joeyorlando and @teodosii ([1522](https://github.com/grafana/oncall/pull/1522))
   - `org_sync_signal` at the end of the `engine/apps/user_management/sync.py::sync_organization` method
   - `alert_group_created_signal` when a new Alert Group is created
+
+## v1.2.10 (2023-04-13)
 
 ### Fixed
 
