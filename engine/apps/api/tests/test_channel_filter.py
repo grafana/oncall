@@ -525,10 +525,14 @@ def test_channel_filter_convert_from_regex_to_jinja2(
     alert_receive_channel = make_alert_receive_channel(organization)
 
     make_channel_filter(alert_receive_channel, is_default=True)
-    regex_channel_filter = make_channel_filter(alert_receive_channel, filtering_term=".*", is_default=False)
+    regex_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        filtering_term='".*": "This alert was sent by user for the demonstration purposes"',
+        is_default=False,
+    )
     assert regex_channel_filter.filtering_term_type == regex_channel_filter.FILTERING_TERM_TYPE_REGEX
 
-    final_filtering_term = '{{ payload | json_dumps | regex_search(".*") }}'
+    final_filtering_term = '{{ payload | json_dumps | regex_search("".*": "This alert was sent by user for the demonstration purposes"") }}'
 
     client = APIClient()
     url = reverse("api-internal:channel_filter-detail", kwargs={"pk": regex_channel_filter.public_primary_key})
