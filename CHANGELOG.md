@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add new field description_short to private api ([#1698](https://github.com/grafana/oncall/pull/1698))
+
 ## v1.2.10 (2023-04-13)
 
 ### Fixed
@@ -19,10 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Catch the new Slack error - "message_limit_exceeded"
 
 ## v1.2.8 (2023-04-06)
-
-### Added
-
-- Add new field description_short to private api ([#1698](https://github.com/grafana/oncall/pull/1698))
 
 ### Changed
 
