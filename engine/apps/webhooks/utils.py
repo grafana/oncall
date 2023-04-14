@@ -4,6 +4,7 @@ import re
 import socket
 from urllib.parse import urlparse
 
+from django.apps import apps
 from django.conf import settings
 
 from apps.base.utils import live_settings
@@ -113,6 +114,16 @@ class EscapeDoubleQuotesDict(dict):
         return original_str
 
 
+def _serialize_event_user(user):
+    if not user:
+        return None
+    return {
+        "id": user.public_primary_key,
+        "username": user.username,
+        "email": user.email,
+    }
+
+
 def serialize_event(event, alert_group, user, responses=None):
     from apps.public_api.serializers import IncidentSerializer
 
@@ -123,12 +134,35 @@ def serialize_event(event, alert_group, user, responses=None):
 
     data = {
         "event": event,
-        "user": user.username if user else None,
+        "user": _serialize_event_user(user),
         "alert_group": IncidentSerializer(alert_group).data,
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": alert_payload_raw,
+        "integration": {
+            "id": alert_group.channel.public_primary_key,
+            "type": alert_group.channel.integration,
+            "name": alert_group.channel.short_name,
+            "team": alert_group.channel.team.name if alert_group.channel.team else None,
+        },
+        "notified_users": [
+            _serialize_event_user(user)
+            for user in set(notification.author for notification in alert_group.sent_notifications)
+        ],
     }
     if responses:
         data["responses"] = responses
 
     return data
+
+
+def is_webhooks_enabled_for_organization(organization_id):
+    DynamicSetting = apps.get_model("base", "DynamicSetting")
+    enabled_webhooks_orgs = DynamicSetting.objects.get_or_create(
+        name="enabled_webhooks_2_orgs",
+        defaults={
+            "json_value": {
+                "org_ids": [],
+            }
+        },
+    )[0]
+    return organization_id in enabled_webhooks_orgs.json_value["org_ids"]

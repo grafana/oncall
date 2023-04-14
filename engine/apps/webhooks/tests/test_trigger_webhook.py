@@ -4,6 +4,8 @@ from unittest.mock import call, patch
 import pytest
 from django.utils import timezone
 
+from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
+from apps.base.models import UserNotificationPolicyLogRecord
 from apps.public_api.serializers import IncidentSerializer
 from apps.webhooks.models import Webhook
 from apps.webhooks.tasks import execute_webhook, send_webhook_event
@@ -37,12 +39,12 @@ def test_send_webhook_event_filters(
     other_team_webhook = make_custom_webhook(
         organization=organization, team=other_team, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE
     )
-    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_NEW)
+    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_FIRING)
 
     for trigger_type, _ in Webhook.TRIGGER_TYPES:
         with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
             send_webhook_event(trigger_type, alert_group.pk, organization_id=organization.pk)
-        assert mock_execute.call_args == call((webhooks[trigger_type].pk, alert_group.pk, None))
+        assert mock_execute.call_args == call((webhooks[trigger_type].pk, alert_group.pk, None, None))
 
     # other team
     alert_receive_channel = make_alert_receive_channel(organization, team=other_team)
@@ -51,14 +53,14 @@ def test_send_webhook_event_filters(
         send_webhook_event(
             Webhook.TRIGGER_ACKNOWLEDGE, alert_group.pk, organization_id=organization.pk, team_id=other_team.pk
         )
-    assert mock_execute.call_args == call((other_team_webhook.pk, alert_group.pk, None))
+    assert mock_execute.call_args == call((other_team_webhook.pk, alert_group.pk, None, None))
 
     # other org
     alert_receive_channel = make_alert_receive_channel(other_organization)
     alert_group = make_alert_group(alert_receive_channel)
     with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
-        send_webhook_event(Webhook.TRIGGER_NEW, alert_group.pk, organization_id=other_organization.pk)
-    assert mock_execute.call_args == call((other_org_webhook.pk, alert_group.pk, None))
+        send_webhook_event(Webhook.TRIGGER_FIRING, alert_group.pk, organization_id=other_organization.pk)
+    assert mock_execute.call_args == call((other_org_webhook.pk, alert_group.pk, None, None))
 
 
 @pytest.mark.django_db
@@ -89,7 +91,7 @@ def test_execute_webhook_ok(
         mock_gethostbyname.return_value = "8.8.8.8"
         with patch("apps.webhooks.models.webhook.requests") as mock_requests:
             mock_requests.post.return_value = mock_response
-            execute_webhook(webhook.pk, alert_group.pk, user.pk)
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None)
 
     assert mock_requests.post.called
     expected_call = call(
@@ -106,17 +108,104 @@ def test_execute_webhook_ok(
     assert log.request_data == json.dumps({"value": alert_group.public_primary_key})
     assert log.request_headers == json.dumps({"some-header": alert_group.public_primary_key})
     assert log.url == "https://something/{}/".format(alert_group.public_primary_key)
+    # check log record
+    log_record = alert_group.log_records.last()
+    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    expected_info = {
+        "trigger": "acknowledge",
+        "webhook_id": webhook.public_primary_key,
+        "webhook_name": webhook.name,
+    }
+    assert log_record.step_specific_info == expected_info
+    assert log_record.escalation_policy is None
+    assert log_record.escalation_policy_step is None
+    assert log_record.rendered_log_line_action() == f"outgoing webhook `{webhook.name}` triggered by acknowledge"
 
 
 @pytest.mark.django_db
-def test_execute_webhook_ok_forward_all(
-    make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group, make_custom_webhook
+def test_execute_webhook_via_escalation_ok(
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+    make_escalation_chain,
+    make_escalation_policy,
 ):
     organization = make_organization()
     user = make_user_for_organization(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(
         alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+    )
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://something/{{ alert_group_id }}/",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_ESCALATION_STEP,
+        trigger_template="{{{{ alert_group.integration_id == '{}' }}}}".format(
+            alert_receive_channel.public_primary_key
+        ),
+        headers='{"some-header": "{{ alert_group_id }}"}',
+        data='{"value": "{{ alert_group_id }}"}',
+        forward_all=False,
+    )
+    escalation_chain = make_escalation_chain(organization)
+    escalation_policy = make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
+        custom_webhook=webhook,
+    )
+
+    mock_response = MockResponse()
+    with patch("apps.webhooks.utils.socket.gethostbyname") as mock_gethostbyname:
+        mock_gethostbyname.return_value = "8.8.8.8"
+        with patch("apps.webhooks.models.webhook.requests") as mock_requests:
+            mock_requests.post.return_value = mock_response
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, escalation_policy.pk)
+
+    assert mock_requests.post.called
+    # check log record
+    log_record = alert_group.log_records.last()
+    assert log_record.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED
+    expected_info = {
+        "trigger": "escalation",
+        "webhook_id": webhook.public_primary_key,
+        "webhook_name": webhook.name,
+    }
+    assert log_record.step_specific_info == expected_info
+    assert log_record.escalation_policy == escalation_policy
+    assert log_record.escalation_policy_step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK
+    assert log_record.rendered_log_line_action() == f"outgoing webhook `{webhook.name}` triggered by escalation"
+
+
+@pytest.mark.django_db
+def test_execute_webhook_ok_forward_all(
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy_log_record,
+    make_custom_webhook,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    notified_user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(
+        alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+    )
+    for i in range(3):
+        make_user_notification_policy_log_record(
+            author=notified_user,
+            alert_group=alert_group,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
+        )
+    make_user_notification_policy_log_record(
+        author=other_user,
+        alert_group=alert_group,
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
     )
     webhook = make_custom_webhook(
         organization=organization,
@@ -131,7 +220,7 @@ def test_execute_webhook_ok_forward_all(
         mock_gethostbyname.return_value = "8.8.8.8"
         with patch("apps.webhooks.models.webhook.requests") as mock_requests:
             mock_requests.post.return_value = mock_response
-            execute_webhook(webhook.pk, alert_group.pk, user.pk)
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None)
 
     assert mock_requests.post.called
     expected_data = {
@@ -139,7 +228,24 @@ def test_execute_webhook_ok_forward_all(
             "type": "acknowledge",
             "time": alert_group.acknowledged_at.isoformat(),
         },
-        "user": user.username,
+        "user": {
+            "id": user.public_primary_key,
+            "username": user.username,
+            "email": user.email,
+        },
+        "integration": {
+            "id": alert_receive_channel.public_primary_key,
+            "type": alert_receive_channel.integration,
+            "name": alert_receive_channel.short_name,
+            "team": None,
+        },
+        "notified_users": [
+            {
+                "id": notified_user.public_primary_key,
+                "username": notified_user.username,
+                "email": notified_user.email,
+            }
+        ],
         "alert_group": IncidentSerializer(alert_group).data,
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
@@ -176,18 +282,29 @@ def test_execute_webhook_using_responses_data(
     )
     webhook = make_custom_webhook(
         organization=organization,
-        url="https://something/{{ responses.firing.id }}/",
+        url='https://something/{{ responses["response-1"].id }}/',
         http_method="POST",
         trigger_type=Webhook.TRIGGER_RESOLVE,
-        data='{"value": "{{ responses.acknowledge.status }}"}',
+        data='{"value": "{{ responses["response-2"].status }}"}',
         forward_all=False,
     )
+
     # add previous webhook responses for the related alert group
     make_webhook_response(
-        alert_group=alert_group, trigger_type=Webhook.TRIGGER_NEW, content=json.dumps({"id": "third-party-id"})
+        alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-1",
+        ),
+        trigger_type=Webhook.TRIGGER_FIRING,
+        content=json.dumps({"id": "third-party-id"}),
     )
     make_webhook_response(
         alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-2",
+        ),
         trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
         content=json.dumps({"id": "third-party-id", "status": "updated"}),
     )
@@ -197,7 +314,7 @@ def test_execute_webhook_using_responses_data(
         mock_gethostbyname.return_value = "8.8.8.8"
         with patch("apps.webhooks.models.webhook.requests") as mock_requests:
             mock_requests.post.return_value = mock_response
-            execute_webhook(webhook.pk, alert_group.pk, user.pk)
+            execute_webhook(webhook.pk, alert_group.pk, user.pk, None)
 
     assert mock_requests.post.called
     expected_data = {"value": "updated"}
@@ -232,11 +349,11 @@ def test_execute_webhook_trigger_false(
     )
 
     with patch("apps.webhooks.models.webhook.requests") as mock_requests:
-        execute_webhook(webhook.pk, alert_group.pk, None)
+        execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
-    # check no logs
-    assert webhook.responses.count() == 0
+    # check log should exist but have no status
+    assert webhook.responses.count() == 1 and webhook.responses.first().status_code is None
 
 
 @pytest.mark.django_db
@@ -293,7 +410,7 @@ def test_execute_webhook_errors(
         # make it a valid URL when resolving name
         mock_gethostbyname.return_value = "8.8.8.8"
         with patch("apps.webhooks.models.webhook.requests") as mock_requests:
-            execute_webhook(webhook.pk, alert_group.pk, None)
+            execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
     log = webhook.responses.all()[0]
@@ -301,3 +418,16 @@ def test_execute_webhook_errors(
     assert log.content is None
     error = getattr(log, log_field_name)
     assert error == expected_error
+    # check log record
+    log_record = alert_group.log_records.last()
+    assert log_record.type == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR
+    expected_info = {
+        "trigger": "resolve",
+        "webhook_id": webhook.public_primary_key,
+        "webhook_name": webhook.name,
+    }
+    assert log_record.step_specific_info == expected_info
+    assert log_record.reason == expected_error
+    assert (
+        log_record.rendered_log_line_action() == f"skipped resolve outgoing webhook `{webhook.name}`: {expected_error}"
+    )

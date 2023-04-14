@@ -22,6 +22,7 @@ import {
 } from 'models/escalation_policy/escalation_policy.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
@@ -47,6 +48,7 @@ export interface EscalationPolicyProps {
   isSlackInstalled: boolean;
   teamStore: GrafanaTeamStore;
   outgoingWebhookStore: OutgoingWebhookStore;
+  outgoingWebhook2Store: OutgoingWebhook2Store;
   scheduleStore: ScheduleStore;
 }
 
@@ -99,6 +101,8 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         return this._renderNotifySchedule();
       case 'custom_action':
         return this._renderTriggerCustomAction();
+      case 'custom_webhook':
+        return this._renderTriggerCustomWebhook();
       case 'num_alerts_in_window':
         return this.renderNumAlertsInWindow();
       case 'num_minutes_in_window':
@@ -178,8 +182,30 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           // @ts-ignore
           onChange={this._getOnSelectChangeHandler('important')}
           options={[
-            { value: 0, label: 'Default' },
-            { value: 1, label: 'Important' },
+            {
+              value: 0,
+              label: 'Default',
+              // @ts-ignore
+              description: (
+                <>
+                  Manage&nbsp;"Default&nbsp;notifications"
+                  <br />
+                  in personal settings
+                </>
+              ),
+            },
+            {
+              value: 1,
+              label: 'Important',
+              // @ts-ignore
+              description: (
+                <>
+                  Manage&nbsp;"Important&nbsp;notifications"
+                  <br />
+                  in personal settings
+                </>
+              ),
+            },
           ]}
           width={'auto'}
         />
@@ -352,6 +378,40 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           onChange={this._getOnChangeHandler('custom_button_trigger')}
           getOptionLabel={(item: SelectableValue) => {
             const team = teamStore.items[outgoingWebhookStore.items[item.value].team];
+            return (
+              <>
+                <Text>{item.label} </Text>
+                <TeamName team={team} size="small" />
+              </>
+            );
+          }}
+          width={'auto'}
+        />
+      </WithPermissionControlTooltip>
+    );
+  }
+
+  private _renderTriggerCustomWebhook() {
+    const { data, teamStore, outgoingWebhook2Store } = this.props;
+    const { custom_webhook } = data;
+
+    return (
+      <WithPermissionControlTooltip
+        key="custom-webhook"
+        disableByPaywall
+        userAction={UserActions.EscalationChainsWrite}
+      >
+        <GSelect
+          showSearch
+          modelName="outgoingWebhook2Store"
+          displayField="name"
+          valueField="id"
+          placeholder="Select Webhook"
+          className={cx('select', 'control')}
+          value={custom_webhook}
+          onChange={this._getOnChangeHandler('custom_webhook')}
+          getOptionLabel={(item: SelectableValue) => {
+            const team = teamStore.items[outgoingWebhook2Store.items[item.value].team];
             return (
               <>
                 <Text>{item.label} </Text>
