@@ -117,7 +117,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         elif obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
             # Four curly braces will result in two curly braces in the final string
             return f'{{{{ payload | json_dumps | regex_search("{obj.filtering_term}") }}}}'
-        return obj.filtering_term
 
 
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):
