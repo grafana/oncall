@@ -477,7 +477,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def web_link(self) -> str:
-        return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
+        return urljoin(self.channel.organization.web_link, f"alert-groups/{self.public_primary_key}")
 
     @property
     def declare_incident_link(self) -> str:
