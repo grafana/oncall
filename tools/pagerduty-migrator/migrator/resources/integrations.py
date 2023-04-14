@@ -1,5 +1,8 @@
 from migrator import oncall_api_client
-from migrator.config import PAGERDUTY_TO_ONCALL_VENDOR_MAP
+from migrator.config import (
+    PAGERDUTY_TO_ONCALL_VENDOR_MAP,
+    UNSUPPORTED_INTEGRATION_TO_WEBHOOKS,
+)
 from migrator.utils import find_by_id
 
 
@@ -36,6 +39,9 @@ def match_integration_type(integration: dict, vendors: list[dict]) -> None:
 
     integration["vendor_name"] = vendor_name
     integration["oncall_type"] = PAGERDUTY_TO_ONCALL_VENDOR_MAP.get(vendor_name)
+    if UNSUPPORTED_INTEGRATION_TO_WEBHOOKS and integration["oncall_type"] is None:
+        integration["oncall_type"] = "webhook"
+        integration["converted_to_webhook"] = True
 
 
 def migrate_integration(integration: dict, escalation_policies: list[dict]) -> None:

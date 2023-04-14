@@ -359,7 +359,6 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
     name = serializers.CharField(required=False)
     start = serializers.DateTimeField(required=False)
     rotation_start = serializers.DateTimeField(required=False)
-    team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
 
     def update(self, instance, validated_data):
         event_type = validated_data.get("type", instance.type)

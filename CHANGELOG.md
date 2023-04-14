@@ -5,10 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.10 (2023-04-13)
+
+### Fixed
+
+- Fixed a bug in GForm's RemoteSelect where the value for Dropdown could not change
+- Fixed the URL attached to an Incident created via the 'Declare Incident' button of a Slack alert by @sd2k ([#1738](https://github.com/grafana/oncall/pull/1738))
+
+## v1.2.9 (2023-04-11)
+
+### Fixed
+
+- Catch the new Slack error - "message_limit_exceeded"
+
+## v1.2.8 (2023-04-06)
 
 ### Changed
 
+- Allow editing assigned team via public api ([1619](https://github.com/grafana/oncall/pull/1619))
 - Disable mentions when resolution note is created by @iskhakov ([1696](https://github.com/grafana/oncall/pull/1696))
 - Display warnings on users page in a clean and consistent way by @iskhakov ([#1681](https://github.com/grafana/oncall/pull/1681))
 
