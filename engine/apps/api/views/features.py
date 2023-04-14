@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.webhooks.utils import is_webhooks_enabled_for_organization
 
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
@@ -59,15 +60,7 @@ class FeaturesAPIView(APIView):
             if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
                 enabled_features.append(FEATURE_WEB_SCHEDULES)
 
-        enabled_webhooks2_orgs = DynamicSetting.objects.get_or_create(
-            name="enabled_webhooks_2_orgs",
-            defaults={
-                "json_value": {
-                    "org_ids": [],
-                }
-            },
-        )[0]
-        if request.auth.organization.pk in enabled_webhooks2_orgs.json_value["org_ids"]:
+        if is_webhooks_enabled_for_organization(request.auth.organization.pk):
             enabled_features.append(FEATURE_WEBHOOKS2)
 
         return enabled_features

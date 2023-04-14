@@ -69,10 +69,9 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
               <CopyToClipboard text={alertReceiveChannel.id}>
                 <IconButton
                   variant="primary"
-                  className={cx('icon-button')}
-                  tooltip="Copy integration ID to clipboard"
+                  tooltip={'ID ' + alertReceiveChannel.id + ' click to copy to clipboard'}
                   tooltipPlacement="top"
-                  name="copy"
+                  name="info-circle"
                 />
               </CopyToClipboard>
             )}
