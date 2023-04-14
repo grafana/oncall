@@ -20,60 +20,83 @@ Alerts from Grafana Alertmanager are automatically routed to this integration.
 <br>Creating contact points and routes for other alertmanagers...
 {% endif %}"""
 
-# Default templates
+# Web
+web_title = """{{- payload.labels.alertname }}
+"""
+web_message = """\
+{%- set annotations = payload.annotations -%}
+{%- set labels = payload.labels -%}
+
+{%- set severity = payload.labels.severity | default("Unknown") -%}
+{%- set severity_emoji = {"critical": "🚨", "warning": "⚠️" }[severity] | default("⁉️") -%}
+**Severity**: {{ severity }}{{ severity_emoji }}
+
+{% set status = payload.status | default("") -%}
+{%- set status_emoji = {"firing": "🔥", "resolved": "✅"}[status] | default("⚠️") -%}
+**Status**: {{ status }}{{ status_emoji }}
+
+{%- if "message" in payload.annotations %}
+{{ annotations.message }}
+{% set _ = annotations.pop('message') %}
+{% endif %}
+
+{%- if "runbook_url" in payload.annotations %}
+[📖 Runbook]({{ payload.annotations.runbook_url }})
+{% set _ = annotations.pop('runbook_url') %}
+{% endif %}
+
+**🏷️ Labels:**
+```
+{% for k, v in payload["labels"].items() -%}
+{{ k }}={{ v }}
+{% endfor %}
+```
+
+{%- if annotations |length > 0%}
+**Other annotations:** 
+{%- for k, v in payload["annotations"].items() %}
+{#- render annotation as markdown url if it starts with http #}
+*{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
+{% endfor %}
+{% endif %}
+"""  # noqa: W291
+
+web_image_url = None
+
+# Behaviour
+source_link = "{{ payload.generatorURL }}"
+
+grouping_id = "{{ payload.labels }}"
+
+resolve_condition = """\
+{{ payload.status == "resolved" }}
+"""
+
+acknowledge_condition = None
+
+# Slack
 slack_title = """\
-{# Usually title is located in payload.labels.alertname #}
-{% set title = payload.get("labels", {}).get("alertname", "No title (check Web Title Template)") %}
-{# Combine the title from different built-in variables into slack-formatted url #}
-*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ title }}>* via {{ integration_name }}
+*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title_template }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
 {%- endif %}
 """
 
 slack_message = """\
-{{- payload.message }}
-{%- if "status" in payload -%}
-*Status*: {{ payload.status }}
-{% endif -%}
-*Labels:* {% for k, v in payload["labels"].items() %}
-{{ k }}: {{ v }}{% endfor %}
-*Annotations:* 
-{%- for k, v in payload.get("annotations", {}).items() %}
-{#- render annotation as slack markdown url if it starts with http #}
-{{ k }}: {% if v.startswith("http") %} <{{v}}|here> {% else %} {{v}} {% endif -%}
-{% endfor %}
+{{ web_message_template }}
 """  # noqa: W291
 
 
-slack_image_url = None
+slack_image_url = web_image_url
 
-web_title = """\
-{# Usually title is located in payload.labels.alertname #}
-{{- payload.get("labels", {}).get("alertname", "No title (check Web Title Template)") }}
-"""
+# SMS
+sms_title = web_title
 
-web_message = """\
-{{- payload.message }}
-{%- if "status" in payload %}
-**Status**: {{ payload.status }}
-{% endif -%}
-**Labels:** {% for k, v in payload["labels"].items() %}
-*{{ k }}*: {{ v }}{% endfor %}
-**Annotations:** 
-{%- for k, v in payload.get("annotations", {}).items() %}
-{#- render annotation as markdown url if it starts with http #}
-*{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
-{% endfor %}
-"""  # noqa: W291
+# Phone
+phone_call_title = web_title
 
-
-web_image_url = slack_image_url
-
-sms_title = '{{ payload.get("labels", {}).get("alertname", "Title undefined") }}'
-phone_call_title = sms_title
-
-telegram_title = sms_title
+# Telegram
+telegram_title = web_title
 
 telegram_message = """\
 {{- payload.messsage }}
@@ -88,17 +111,7 @@ telegram_message = """\
 {{ k }}: {{ v }}
 {% endfor %}"""  # noqa: W291
 
-telegram_image_url = slack_image_url
-
-source_link = "{{ payload.generatorURL }}"
-
-grouping_id = "{{ payload.labels }}"
-
-resolve_condition = """\
-{{ payload.get("status", "") == "resolved" }}
-"""
-
-acknowledge_condition = None
+telegram_image_url = web_image_url
 
 tests = {
     "payload": {
