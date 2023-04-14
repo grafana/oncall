@@ -274,4 +274,5 @@ class WebhookResponse(models.Model):
     content = models.TextField(null=True, default=None)
 
     def json(self):
-        return json.loads(self.content)
+        if self.content:
+            return json.loads(self.content)
