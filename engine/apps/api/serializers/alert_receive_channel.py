@@ -50,6 +50,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
+    description_short = serializers.CharField(max_length=250, required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
