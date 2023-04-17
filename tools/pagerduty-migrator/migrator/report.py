@@ -187,7 +187,7 @@ def format_ruleset(ruleset: dict) -> str:
 
 
 def ruleset_report(rulesets: list[dict]) -> str:
-    result = "Event rules (rulesets) report:"
+    result = "Event rules (global rulesets) report:"
 
     for ruleset in sorted(
         rulesets,
