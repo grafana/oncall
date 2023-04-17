@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, SkipField, get_error_detail, set_value
+from rest_framework.fields import SerializerMethodField, set_value
 from rest_framework.settings import api_settings
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
@@ -246,23 +246,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
         ret = OrderedDict()
         errors = OrderedDict()
-        fields = self._writable_fields
-
-        for field in fields:
-            validate_method = getattr(self, "validate_" + field.field_name, None)
-            primitive_value = field.get_value(data)
-            try:
-                validated_value = field.run_validation(primitive_value)
-                if validate_method is not None:
-                    validated_value = validate_method(validated_value)
-            except ValidationError as exc:
-                errors[field.field_name] = exc.detail
-            except DjangoValidationError as exc:
-                errors[field.field_name] = get_error_detail(exc)
-            except SkipField:
-                pass
-            else:
-                set_value(ret, field.source_attrs, validated_value)
 
         # handle updates for core templates
         core_template_errors = self._handle_core_template_updates(data, ret)
