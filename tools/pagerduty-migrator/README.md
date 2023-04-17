@@ -79,16 +79,9 @@ docker run --rm \
 -e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
 -e ONCALL_API_URL="<ONCALL_API_URL>" \
 -e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
--e ONCALL_DEFAULT_CONTACT_METHOD="sms" \
 -e MODE="migrate" \
 pd-oncall-migrator
 ```
-
-### Migrate unsupported user notification rules
-
-It's possible to specify a default contact method type for user notification rules that cannot be migrated as-is by
-changing the `ONCALL_DEFAULT_CONTACT_METHOD` env variable.
-Options are: `email`, `sms`, `phone_call`, `slack`, `telegram`, `mobile_app` (default is `email`).
 
 ### Migrate unsupported integration types
 
@@ -100,9 +93,8 @@ docker run --rm \
 -e PAGERDUTY_API_TOKEN="<PAGERDUTY_API_TOKEN>" \
 -e ONCALL_API_URL="<ONCALL_API_URL>" \
 -e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
--e ONCALL_DEFAULT_CONTACT_METHOD="sms" \
--e MODE="migrate" \
 -e UNSUPPORTED_INTEGRATION_TO_WEBHOOKS="true" \
+-e MODE="migrate" \
 pd-oncall-migrator
 ```
 
