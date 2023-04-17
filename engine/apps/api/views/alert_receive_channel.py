@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
@@ -26,7 +27,7 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
-from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -95,6 +96,8 @@ class AlertReceiveChannelView(
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "change_team": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def create(self, request, *args, **kwargs):
@@ -239,3 +242,40 @@ class AlertReceiveChannelView(
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
 
         return Response(filter_options)
+
+    @action(detail=True, methods=["post"])
+    def start_maintenance(self, request, pk):
+        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+
+        mode = request.data.get("mode", None)
+        duration = request.data.get("duration", None)
+        try:
+            mode = int(mode)
+        except (ValueError, TypeError):
+            raise BadRequest(detail={"mode": ["Invalid mode"]})
+        if mode not in [MaintainableObject.DEBUG_MAINTENANCE, MaintainableObject.MAINTENANCE]:
+            raise BadRequest(detail={"mode": ["Unknown mode"]})
+        try:
+            duration = int(duration)
+        except (ValueError, TypeError):
+            raise BadRequest(detail={"duration": ["Invalid duration"]})
+        if duration not in MaintainableObject.maintenance_duration_options_in_seconds():
+            raise BadRequest(detail={"mode": ["Unknown duration"]})
+
+        try:
+            instance.start_maintenance(mode, duration, request.user)
+        except MaintenanceCouldNotBeStartedError as e:
+            if type(instance) == AlertReceiveChannel:
+                detail = {"alert_receive_channel_id": ["Already on maintenance"]}
+            else:
+                detail = str(e)
+            raise BadRequest(detail=detail)
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def stop_maintenance(self, request, pk):
+        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+        user = request.user
+        instance.force_disable_maintenance(user)
+        return Response(status=status.HTTP_200_OK)
