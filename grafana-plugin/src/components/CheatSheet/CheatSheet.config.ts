@@ -40,3 +40,115 @@ export const groupingTemplateCheatSheet: CheatSheetInterface = {
     },
   ],
 };
+
+export const webTitleTemplateCheatSheet: CheatSheetInterface = {
+  name: 'Web title template cheatsheet',
+  description: 'Jinja2 is used for templating (docs). \n Markdown is used for markup',
+  fields: [
+    {
+      name: 'Markdown refresher',
+      listItems: [
+        { codeExample: '**bold**, _italic_, >quote, `code`, ```multiline code```, [``](url), - bullet list' },
+      ],
+    },
+    {
+      name: 'Jinja2 refresher ',
+      listItems: [
+        { listItemName: ' {{ payload.labels.foo }} - extract field value' },
+        {
+          listItemName: 'Conditions',
+          codeExample: '{%- if "status" in payload %} \n {{ payload.status }} \n {% endif -%}',
+        },
+        { listItemName: 'Booleans', codeExample: '{{ payload.status == “resolved” }}' },
+        { listItemName: 'Loops', codeExample: '{% for label in labels %} \n {{ label.title }} \n {% endfor %}' },
+      ],
+    },
+    {
+      name: 'Additional jinja2 variables',
+      listItems: [
+        { listItemName: 'payload - payload of last alert in the group' },
+        { listItemName: 'web_title, web_mesage, web_image_url - templates from Web' },
+        { listItemName: 'payload, grafana_oncall_link, grafana_oncall_incident_id, integration_name, source_link' },
+        { listItemName: 'time(), datetimeformat, iso8601_to_time' },
+        { listItemName: 'to_pretty_json' },
+        { listItemName: 'regex_replace, regex_match' },
+      ],
+    },
+    {
+      name: 'Examples',
+      listItems: [
+        {
+          listItemName: 'Show status if exists',
+          codeExample: '{%- if "status" in payload %} \n **Status**: {{ payload.status }} \n {% endif -%}',
+        },
+        {
+          listItemName: 'Show field value or “N/A” is not exist',
+          codeExample: '{{ payload.labels.foo | default(“N/A”) }}',
+        },
+        {
+          listItemName: 'Iterate over labels dictionary',
+          codeExample:
+            '**Labels:** \n {% for k, v in payload["labels"].items() %} \n *{{ k }}*: {{ v }} \n {% endfor %} ',
+        },
+      ],
+    },
+  ],
+};
+
+export const slackMessageTemplateCheatSheet: CheatSheetInterface = {
+  name: 'Slack message template cheatsheet',
+  description: 'Jinja2 is used for templating (docs). \n Markdown is used for markup',
+  fields: [
+    {
+      name: 'Slack Markdown refresher',
+      listItems: [
+        { listItemName: '**bold**, _italic_, >quote, `code`, ```multiline code```,  <slug|url> - bullet list' },
+      ],
+    },
+    {
+      name: 'Jinja2 refresher ',
+      listItems: [
+        { listItemName: ' {{ payload.labels.foo }} - extract field value' },
+        {
+          listItemName: 'Conditions',
+          codeExample: '{%- if "status" in payload %} \n {{ payload.status }} \n {% endif -%}',
+        },
+        { listItemName: 'Booleans', codeExample: '{{ payload.status == “resolved” }}' },
+        { listItemName: 'Loops', codeExample: '{% for label in labels %} \n {{ label.title }} \n {% endfor %}' },
+      ],
+    },
+    {
+      name: 'Additional jinja2 variables',
+      listItems: [
+        { listItemName: 'payload - payload of last alert in the group' },
+        { listItemName: 'web_title, web_mesage, web_image_url - templates from Web' },
+        { listItemName: 'payload, grafana_oncall_link, grafana_oncall_incident_id, integration_name, source_link' },
+        { listItemName: 'time(), datetimeformat, iso8601_to_time' },
+        { listItemName: 'to_pretty_json' },
+        { listItemName: 'regex_replace, regex_match' },
+      ],
+    },
+    {
+      name: 'Examples',
+      listItems: [
+        {
+          listItemName: 'Examples Convert Web template in Classic Markdown to Slack markdown',
+          codeExample: '{{ web_message \n| replace("**", "*") \n| regex_replace("/((.*))[(.*)]/", "<$2|$1>") }}',
+        },
+        {
+          listItemName: 'Show status if exists',
+          codeExample: '{%- if "status" in payload %} \n **Status**: {{ payload.status }} \n {% endif -%}',
+        },
+        {
+          listItemName: 'Show field value or “N/A” is not exist',
+          codeExample: '{{ payload.labels.foo | default(“N/A”) }}',
+        },
+        {
+          listItemName: 'Iterate over labels dictionary',
+          codeExample:
+            '**Labels:** \n {% for k, v in payload["labels"].items() %} \n *{{ k }}*: {{ v }} \n {% endfor %} ',
+        },
+      ],
+    },
+  ],
+};

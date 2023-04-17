@@ -42,7 +42,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { KeyValuePair, openNotification } from 'utils';
+import { KeyValuePair, openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
@@ -796,7 +796,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <div className={cx('customise-button')}>
                           <ButtonCascader
                             variant="secondary"
-                            onChange={(_value) => {}}
+                            onChange={(_value) => {
+                              console.log('VALUE', _value);
+                            }}
                             options={this.getTemplatesList()}
                             icon="plus"
                             value={undefined}
@@ -825,9 +827,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                     isEditTemplateModalOpen: undefined,
                   });
                 }}
-                onUpdate={() => {
-                  alertReceiveChannelStore.updateItem(id);
-                }}
+                onUpdateTemplates={this.onUpdateTemplatesCallback}
                 template={selectedTemplate}
               />
             )}
@@ -836,6 +836,30 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       </PageErrorHandlingWrapper>
     );
   }
+
+  onUpdateTemplatesCallback = (data) => {
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
+    store.alertReceiveChannelStore
+      .saveTemplates(id, data)
+      .then(() => {
+        openNotification('Alert templates are successfully updated');
+        // if (onUpdateTemplates) {
+        //   onUpdateTemplates();
+        // }
+      })
+      .catch((err) => {
+        if (err.response?.data?.length > 0) {
+          openErrorNotification(err.response.data);
+        } else {
+          openErrorNotification(err.message);
+        }
+      });
+  };
 
   getTemplatesList = (): CascaderOption[] => {
     return [

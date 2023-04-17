@@ -22,10 +22,11 @@ interface TemplatePreviewProps {
   onEditClick?: () => void;
   alertGroupId?: Alert['pk'];
   active?: boolean;
+  onResult?: (result) => void;
 }
 
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, alertReceiveChannelId, alertGroupId } = props;
+  const { templateName, templateBody, alertReceiveChannelId, alertGroupId, onResult } = props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
 
@@ -48,6 +49,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   }, 1000);
 
   useEffect(handleTemplateBodyChange, [templateBody]);
+  onResult(result);
 
   return result ? (
     <div

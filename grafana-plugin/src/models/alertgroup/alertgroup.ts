@@ -139,6 +139,10 @@ export class AlertGroupStore extends BaseStore {
     return results;
   }
 
+  async getAlertsFromGroup(pk: Alert['pk']) {
+    return await makeRequest(`${this.path}${pk}`, {});
+  }
+
   @action
   async updateSilenceOptions() {
     this.silenceOptions = await makeRequest(`${this.path}silence_options/`, {});

@@ -1,17 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Tooltip, Icon, Drawer, VerticalGroup, IconButton } from '@grafana/ui';
+import { Button, HorizontalGroup, Tooltip, Icon, Drawer, VerticalGroup, IconButton, InfoBox } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import CheatSheet from 'components/CheatSheet/CheatSheet';
-import { groupingTemplateCheatSheet } from 'components/CheatSheet/CheatSheet.config';
+import {
+  groupingTemplateCheatSheet,
+  slackMessageTemplateCheatSheet,
+  webTitleTemplateCheatSheet,
+} from 'components/CheatSheet/CheatSheet.config';
 import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 
 import styles from './IntegrationTemplate.module.css';
@@ -22,12 +27,16 @@ interface IntegrationTemplateProps {
   id: AlertReceiveChannel['id'];
   template: TemplateForEdit;
   onHide: () => void;
-  onUpdate?: () => void;
+  onUpdateTemplates: (values: any) => void;
 }
 
 const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
+  const { id, onHide, template, onUpdateTemplates } = props;
+
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
-  const { id, onHide, onUpdate, template } = props;
+  const [tempValues, setTempValues] = useState<{
+    [key: string]: string | null;
+  }>({});
 
   const onShowCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(true);
@@ -36,6 +45,46 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const onCloseCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(false);
   }, []);
+
+  const getChangeHandler = (templateName: string) => {
+    return (value: string) => {
+      setTempValues(() => ({
+        [templateName]: value,
+      }));
+    };
+  };
+
+  const handleSubmit = useCallback(() => {
+    onUpdateTemplates(tempValues);
+    onHide();
+  }, [onUpdateTemplates, tempValues]);
+
+  const getCheatSheet = (templateName) => {
+    switch (templateName) {
+      case 'Grouping':
+      case 'Autoresolve':
+        return groupingTemplateCheatSheet;
+      case 'Web titile':
+      case 'Web message':
+      case 'Web image':
+        return webTitleTemplateCheatSheet;
+      case 'Auto acknowledge':
+      case 'Source link':
+      case 'Phone call':
+      case 'SMS':
+      case 'Slack title':
+      case 'Slack message':
+      case 'Slack image':
+      case 'Telegram title':
+      case 'Telegram message':
+      case 'Telegram image':
+      case 'Email title':
+      case 'Email message':
+        return slackMessageTemplateCheatSheet;
+      default:
+        return webTitleTemplateCheatSheet;
+    }
+  };
   return (
     <>
       <Drawer
@@ -54,7 +103,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
-                <Button variant="primary" onClick={onUpdate}>
+                <Button variant="primary" onClick={handleSubmit}>
                   Save
                 </Button>
               </HorizontalGroup>
@@ -68,11 +117,31 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
         <div className={cx('container')}>
           <AlertGroupsList alertReceiveChannelId={id} />
           {isCheatSheetVisible ? (
-            <CheatSheet cheatSheetData={groupingTemplateCheatSheet} onClose={onCloseCheatSheet} />
+            <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
           ) : (
-            <TemplateEditor payload={template.payload} onShowCheatSheet={onShowCheatSheet} />
+            <>
+              <div className={cx('template-block-codeeditor')}>
+                <div className={cx('template-editor-block-title')}>
+                  <HorizontalGroup justify="space-between">
+                    <Text>Template editor</Text>
+
+                    <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
+                      Cheatsheat
+                    </Button>
+                  </HorizontalGroup>
+                </div>
+
+                <MonacoJinja2Editor
+                  value={template.payload}
+                  data={undefined}
+                  showLineNumbers={true}
+                  height={'1000px'}
+                  onChange={getChangeHandler(template.name)}
+                />
+              </div>
+            </>
           )}
-          <Result alertReceiveChannelId={id} template={template} />
+          <Result alertReceiveChannelId={id} template={template} alertGroup={undefined} />
         </div>
       </Drawer>
     </>
@@ -97,6 +166,14 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
     // const payload = store.alertReceiveChannelStore.templates[alertReceiveChannelId];
   }, []);
 
+  const getAlertGroupPayload = async (id) => {
+    const payloadIncident = await store.alertGroupStore.getAlertsFromGroup(id);
+    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(
+      payloadIncident?.alerts[0]?.id
+    );
+    setSelectedAlertPayload(currentIncidentRawResponse);
+  };
+
   return (
     <div className={cx('template-block-list')}>
       {selectedAlertPayload ? (
@@ -113,7 +190,11 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
           </div>
           <div className={cx('alert-groups-list')}>
             {isEditMode ? (
-              <MonacoJinja2Editor value={selectedAlertPayload} data={undefined} />
+              <MonacoJinja2Editor
+                value={JSON.stringify(selectedAlertPayload, null, 4)}
+                data={undefined}
+                height={'600px'}
+              />
             ) : (
               <SourceCode>{JSON.stringify(selectedAlertPayload, null, 4)}</SourceCode>
             )}
@@ -141,7 +222,7 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
                 {alertGroupsList.map((alertGroup) => {
                   return (
                     <div key={alertGroup.pk}>
-                      <Button fill="text" onClick={() => setSelectedAlertPayload(alertGroup?.render_for_web.message)}>
+                      <Button fill="text" onClick={() => getAlertGroupPayload(alertGroup.pk)}>
                         {alertGroup?.render_for_web.title}
                       </Button>
                     </div>
@@ -156,36 +237,78 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
   );
 };
 
-interface TemplateEditorProps {
-  payload: any;
-  onShowCheatSheet: () => void;
-}
-const TemplateEditor = (props: TemplateEditorProps) => {
-  const { payload, onShowCheatSheet } = props;
-  return (
-    <div className={cx('template-block-codeeditor')}>
-      <div className={cx('template-editor-block-title')}>
-        <HorizontalGroup justify="space-between">
-          <Text>Template editor</Text>
+// interface TemplateEditorProps {
+//   templateBody: any;
+//   templateName: string;
+//   onShowCheatSheet: () => void;
+//   onEdit: () => void;
+// }
+// const TemplateEditor = (props: TemplateEditorProps) => {
+//   const { templateBody, templateName, onShowCheatSheet } = props;
 
-          <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-            Cheatsheat
-          </Button>
-        </HorizontalGroup>
-      </div>
+//   const [tempValues, setTempValues] = useState<{
+//     [key: string]: string | null;
+//   }>({});
 
-      <MonacoJinja2Editor value={payload} data={undefined} showLineNumbers={true} height={'1000px'} />
-    </div>
-  );
-};
+//   const getChangeHandler = (templateName: string) => {
+//     return (value: string) => {
+//       setTempValues((oldTempValues) => ({
+//         ...oldTempValues, // erase another edited templates
+//         [templateName]: value,
+//       }));
+//     };
+//   };
+
+//   const handleSubmit = useCallback(() => {
+//     const data = Object.keys(tempValues).reduce((acc: { [key: string]: string }, key: string) => {
+//       if (templates[key] !== tempValues[key]) {
+//         acc = { ...acc, [key]: tempValues[key] };
+//       }
+//       return acc;
+//     }, {});
+//     onUpdateTemplates(data);
+//   }, [onUpdateTemplates, tempValues]);
+
+//   return (
+//     <div className={cx('template-block-codeeditor')}>
+//       <div className={cx('template-editor-block-title')}>
+//         <HorizontalGroup justify="space-between">
+//           <Text>Template editor</Text>
+
+//           <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
+//             Cheatsheat
+//           </Button>
+//         </HorizontalGroup>
+//       </div>
+
+//       <MonacoJinja2Editor
+//         value={templateBody}
+//         data={undefined}
+//         showLineNumbers={true}
+//         height={'1000px'}
+//         onChange={getChangeHandler(templateName)}
+//       />
+//     </div>
+//   );
+// };
 
 interface ResultProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   template: TemplateForEdit;
+  alertGroup?: Alert;
 }
 
 const Result = (props: ResultProps) => {
-  const { alertReceiveChannelId, template } = props;
+  const { alertReceiveChannelId, template, alertGroup } = props;
+  const [isCondition, setIsCondition] = useState(false);
+
+  const handleResult = (result) => {
+    if (result?.preview === 'True') {
+      setIsCondition(true);
+    } else {
+      setIsCondition(false);
+    }
+  };
 
   return (
     <div className={cx('template-block-result')}>
@@ -200,7 +323,20 @@ const Result = (props: ResultProps) => {
           templateName={template.name}
           templateBody={template.payload}
           alertReceiveChannelId={alertReceiveChannelId}
+          onResult={handleResult}
         />
+        {template.name.includes('slack') && alertGroup?.slack_permalink && (
+          <>
+            <a href={alertGroup?.slack_permalink} target="_blank" rel="noreferrer">
+              <Button>Save and open Alert Group in Slack</Button>
+            </a>
+
+            <Text type="secondary">Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.</Text>
+          </>
+        )}
+        {template.name.includes('condition_template') && (
+          <InfoBox severity={isCondition ? 'success' : 'error'}>{isCondition ? 'success' : 'error'}</InfoBox>
+        )}
       </div>
     </div>
   );

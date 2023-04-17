@@ -32,7 +32,7 @@ const CheatSheet = (props: CheatSheetProps) => {
         <div>
           {cheatSheetData.fields?.map((field: CheatSheetItem) => {
             return (
-              <div key={field.name}>
+              <div key={field.name} className={cx('cheatsheet-item')}>
                 <CheatSheetListItem field={field} />
               </div>
             );
@@ -50,22 +50,24 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
   const { field } = props;
   return (
     <>
-      <Text>{field.name}</Text>;
-      {field.listItems?.map((item) => {
+      <Text.Title level={6}>{field.name}</Text.Title>
+      {field.listItems?.map((item, key) => {
         return (
-          <>
-            {item.listItemName && <Text>- {item.listItemName}</Text>}
-            {item.codeExample && (
-              <Block bordered>
-                <HorizontalGroup justify="space-between">
-                  <Text type="link">{item.codeExample}</Text>
-                  <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
-                    <IconButton name="copy" />
-                  </CopyToClipboard>
-                </HorizontalGroup>
-              </Block>
-            )}
-          </>
+          <div key={key}>
+            <VerticalGroup>
+              {item.listItemName && <Text>- {item.listItemName}</Text>}
+              {item.codeExample && (
+                <Block bordered withBackground>
+                  <HorizontalGroup justify="space-between">
+                    <Text type="link">{item.codeExample}</Text>
+                    <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
+                      <IconButton name="copy" />
+                    </CopyToClipboard>
+                  </HorizontalGroup>
+                </Block>
+              )}
+            </VerticalGroup>
+          </div>
         );
       })}
     </>
