@@ -14,9 +14,6 @@ ONCALL_API_URL = urljoin(
 )
 
 ONCALL_DELAY_OPTIONS = [1, 5, 15, 30, 60]
-ONCALL_DEFAULT_CONTACT_METHOD = "notify_by_" + os.getenv(
-    "ONCALL_DEFAULT_CONTACT_METHOD", default="email"
-)
 PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP = {
     "sms_contact_method": "notify_by_sms",
     "phone_contact_method": "notify_by_phone_call",
