@@ -45,8 +45,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
 
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
-# TODO: update link to up-to-date docs
-DOCS_URL = "https://grafana.com/docs/grafana-cloud/oncall/"
+DOCS_URL = "https://grafana.com/docs/oncall/latest/"
 
 # Settings of running OnCall instance.
 BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
