@@ -76,7 +76,7 @@ def format_integration(integration: dict) -> str:
     else:
         # check if integration not supported, but UNSUPPORTED_INTEGRATION_TO_WEBHOOKS set
         if integration.get("converted_to_webhook", False):
-            result = "{} {} – Webhook integration will be created, Grafana OnCall not support this type directly ".format(
+            result = "{} {} – cannot find appropriate Grafana OnCall integration type, integration will be migrated with type 'webhook'".format(
                 WARNING_SIGN, result
             )
         else:
