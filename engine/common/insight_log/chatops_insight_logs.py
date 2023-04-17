@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class ChatOpsEvent(enum.Enum):
-    WORKSPACE_CONNECTED = "started"
-    WORKSPACE_DISCONNECTED = "finished"
+    WORKSPACE_CONNECTED = "workspace_connected"
+    WORKSPACE_DISCONNECTED = "workspace_disconnected"
     CHANNEL_CONNECTED = "channel_connected"
     CHANNEL_DISCONNECTED = "channel_disconnected"
     USER_LINKED = "user_linked"
