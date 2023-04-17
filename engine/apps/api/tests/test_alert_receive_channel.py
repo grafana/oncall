@@ -506,6 +506,44 @@ def test_alert_receive_channel_preview_template_require_notification_channel(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("template_name", ["title", "message", "image_url"])
+@pytest.mark.parametrize("notification_channel", ["slack", "web", "telegram"])
+def test_alert_receive_channel_preview_template_dynamic_payload(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    template_name,
+    notification_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-preview-template", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    data = {
+        "template_body": "{{ payload.foo }}",
+        "template_name": f"{notification_channel}_{template_name}",
+        "payload": {"foo": "bar"},
+    }
+
+    response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    if notification_channel == "web" and template_name == "message":
+        assert response.data["preview"] == "<p>bar</p>"
+    else:
+        assert response.data["preview"] == "bar"
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [

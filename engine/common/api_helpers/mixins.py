@@ -17,6 +17,7 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.exceptions import BadRequest
@@ -288,6 +289,7 @@ class PreviewTemplateMixin:
     def preview_template(self, request, pk):
         template_body = request.data.get("template_body", None)
         template_name = request.data.get("template_name", None)
+        payload = request.data.get("payload", None)
 
         if template_body is None or template_name is None:
             response = {"preview": None}
@@ -295,18 +297,30 @@ class PreviewTemplateMixin:
 
         notification_channel, attr_name = self.parse_name_and_notification_channel(template_name)
         if attr_name is None:
-            raise BadRequest(detail={"template_name": "Attr name is required"})
+            raise BadRequest(detail={"template_name": "Template name is missing"})
         if attr_name not in ALL_TEMPLATE_NAMES:
-            raise BadRequest(detail={"template_name": "Unknown attr name"})
+            raise BadRequest(detail={"template_name": "Unknown template name"})
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
             if notification_channel is None:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
 
-        alert_to_template = self.get_alert_to_template()
-        if alert_to_template is None:
-            raise BadRequest(detail="Alert to preview does not exist")
+        if isinstance(self.get_object(), AlertReceiveChannel):
+            if type(payload) != dict:
+                raise BadRequest(detail="Payload must be a valid json object")
+            # Build Alert and AlertGroup objects to pass to templater without saving them to db
+            alert_group_to_template = AlertGroup(channel=self.get_object())
+            alert_to_template = Alert(raw_request_data=payload, group=alert_group_to_template)
+        elif isinstance(self.get_object(), AlertGroup):
+            if payload is None:
+                alert_to_template = self.get_alert_to_template()
+            else:
+                raise BadRequest(detail="Field payload is not supported for alert groups")
+            if alert_to_template is None:
+                raise BadRequest(detail="Unable to preview template for this alert")
+        else:
+            raise BadRequest(detail="Unable to preview template for this object")
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
