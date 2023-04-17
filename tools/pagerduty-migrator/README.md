@@ -86,7 +86,7 @@ pd-oncall-migrator
 ### Migrate unsupported integration types
 
 It's possible to migrate unsupported integration types to [Grafana OnCall incoming webhooks](https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-webhook/).
-by changing UNSUPPORTED_INTEGRATION_TO_WEBHOOKS env variable:
+To enable this feature, set env variable `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS` to `true`:
 
 ```shell
 docker run --rm \
