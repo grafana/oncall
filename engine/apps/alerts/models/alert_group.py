@@ -353,7 +353,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
 
-    is_restricted = models.BooleanField(default=False, null=True)
+    @property
+    def is_restricted(self):
+        integration_restricted_at = self.channel.restricted_at
+        if integration_restricted_at is None:
+            return False
+        return self.started_at >= integration_restricted_at
 
     @staticmethod
     def get_silenced_state_filter():

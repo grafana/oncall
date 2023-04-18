@@ -14,6 +14,14 @@ def test_apply_jinja_template():
     assert payload == result
 
 
+def test_apply_jinja_template_json_dumps():
+    payload = {"name": "test"}
+
+    result = apply_jinja_template("{{ payload | json_dumps }}", payload)
+    expected = json.dumps(payload)
+    assert result == expected
+
+
 def test_apply_jinja_template_regex_match():
     payload = {"name": "test"}
 
@@ -24,6 +32,19 @@ def test_apply_jinja_template_regex_match():
     # Check that exception is raised when regex is invalid
     with pytest.raises(JinjaTemplateError):
         apply_jinja_template("{{ payload.name | regex_match('*') }}", payload)
+
+
+def test_apply_jinja_template_regex_search():
+    payload = {"name": "test"}
+
+    assert apply_jinja_template("{{ payload.name | regex_search('.*') }}", payload) == "True"
+    assert apply_jinja_template("{{ payload.name | regex_search('tes') }}", payload) == "True"
+    assert apply_jinja_template("{{ payload.name | regex_search('est') }}", payload) == "True"
+    assert apply_jinja_template("{{ payload.name | regex_search('test1') }}", payload) == "False"
+
+    # Check that exception is raised when regex is invalid
+    with pytest.raises(JinjaTemplateError):
+        apply_jinja_template("{{ payload.name | regex_search('*') }}", payload)
 
 
 def test_apply_jinja_template_bad_syntax_error():
