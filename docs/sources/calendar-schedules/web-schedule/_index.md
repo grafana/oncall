@@ -51,6 +51,29 @@ Understand your schedule view:
 - **Overrides:** The override calendar represents temporary adjustments to the recurring on-call schedule. Any events
 on this calendar will take precedence over the rotations calendar.
 
+## Schedule quality report
+
+The schedule view features a quality report that provides a score for your schedule based on rotations and overrides.
+It's calculated based on these key factors:
+
+- Gaps (amount of time when no one is on-call)
+- Balance (uneven distribution of on-call shifts between team members)
+
+To improve quality score:
+
+- Minimize the amount of time when no one is on-call.
+- Ensure users in the schedule have a similar amount of on-call time.
+
+Depending on the quality score, the report can also provide:
+
+- Percentage of time when no one is on-call. E.g. "29% not covered" means that 29% of the time no one is on-call for
+the schedule. 24/7/365 coverage is considered ideal, so reducing this number will improve the overall schedule quality.
+- List of overloaded users. A user is considered overloaded if they have more on-call time than average for the schedule.
+E.g. "+15% avg" in quality report means that user has 15% more on-call time than average for the schedule.
+A perfectly balanced schedule is considered ideal, so reducing this number will improve the overall schedule quality.
+
+>**Note**: Next 52 weeks (~1 year) are taken into account when generating the quality report.
+
 ## Schedule export
 
 Export on-call schedules from Grafana OnCall to your preferred calendar app with a one-time secret iCal URL. The
