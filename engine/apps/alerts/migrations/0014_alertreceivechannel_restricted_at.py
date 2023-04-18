@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0012_auto_20230406_1010'),
+        ('alerts', '0013_merge_20230418_0336'),
     ]
 
     operations = [
