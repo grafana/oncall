@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
@@ -21,6 +21,7 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
+    PreviewTemplateException,
     PreviewTemplateMixin,
     PublicPrimaryKeyMixin,
     TeamFilteringMixin,
@@ -215,9 +216,16 @@ class AlertReceiveChannelView(
         return Response(response)
 
     # This method is required for PreviewTemplateMixin
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         try:
-            return self.get_object().alert_groups.last().alerts.first()
+            if payload is None:
+                return self.get_object().alert_groups.last().alerts.first()
+            else:
+                if type(payload) != dict:
+                    raise PreviewTemplateException("Payload must be a valid json object")
+                # Build Alert and AlertGroup objects to pass to templater without saving them to db
+                alert_group_to_template = AlertGroup(channel=self.get_object())
+                return Alert(raw_request_data=payload, group=alert_group_to_template)
         except AttributeError:
             return None
 

@@ -17,7 +17,6 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
-from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.exceptions import BadRequest
@@ -284,6 +283,10 @@ BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_I
 ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
 
+class PreviewTemplateException(Exception):
+    pass
+
+
 class PreviewTemplateMixin:
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
@@ -306,21 +309,12 @@ class PreviewTemplateMixin:
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
 
-        if isinstance(self.get_object(), AlertReceiveChannel):
-            if type(payload) != dict:
-                raise BadRequest(detail="Payload must be a valid json object")
-            # Build Alert and AlertGroup objects to pass to templater without saving them to db
-            alert_group_to_template = AlertGroup(channel=self.get_object())
-            alert_to_template = Alert(raw_request_data=payload, group=alert_group_to_template)
-        elif isinstance(self.get_object(), AlertGroup):
-            if payload is None:
-                alert_to_template = self.get_alert_to_template()
-            else:
-                raise BadRequest(detail="Field payload is not supported for alert groups")
+        try:
+            alert_to_template = self.get_alert_to_template(payload=payload)
             if alert_to_template is None:
-                raise BadRequest(detail="Unable to preview template for this alert")
-        else:
-            raise BadRequest(detail="Unable to preview template for this object")
+                raise BadRequest(detail="Alert to preview does not exist")
+        except PreviewTemplateException as e:
+            raise BadRequest(detail=str(e))
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
