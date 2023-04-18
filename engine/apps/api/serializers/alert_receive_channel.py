@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from collections.abc import Mapping
 
 from django.apps import apps
 from django.conf import settings
@@ -10,7 +9,6 @@ from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, set_value
-from rest_framework.settings import api_settings
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
@@ -246,11 +244,10 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         """
         Dict of native values <- Dict of primitive datatypes.
         """
-        if not isinstance(data, Mapping):
-            message = self.error_messages["invalid"].format(datatype=type(data).__name__)
-            raise ValidationError({api_settings.NON_FIELD_ERRORS_KEY: [message]}, code="invalid")
+        # First validate and save data from serializer fields
+        ret = super().to_internal_value(data)
 
-        ret = OrderedDict()
+        # Separately validate and save template fields we generate dynamically
         errors = OrderedDict()
 
         # handle updates for core templates
