@@ -76,7 +76,7 @@ def format_integration(integration: dict) -> str:
     else:
         # check if integration not supported, but UNSUPPORTED_INTEGRATION_TO_WEBHOOKS set
         if integration.get("converted_to_webhook", False):
-            result = "{} {} – Webhook integration will be created, Grafana OnCall not support this type directly ".format(
+            result = "{} {} – cannot find appropriate Grafana OnCall integration type, integration will be migrated with type 'webhook'".format(
                 WARNING_SIGN, result
             )
         else:
@@ -187,7 +187,7 @@ def format_ruleset(ruleset: dict) -> str:
 
 
 def ruleset_report(rulesets: list[dict]) -> str:
-    result = "Event rules (rulesets) report:"
+    result = "Event rules (global rulesets) report:"
 
     for ruleset in sorted(
         rulesets,
