@@ -152,9 +152,19 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
-        instance = AlertReceiveChannel.objects.get(public_primary_key=pk)
+        alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=pk)
+        demo_alert_payload = request.data.get("demo_alert_payload", None)
+
+        if not demo_alert_payload:
+            # If no payload provided, use the demo payload for backword compatibility
+            payload = alert_receive_channel.config.example_payload
+        else:
+            if type(demo_alert_payload) != dict:
+                raise BadRequest(detail="Payload for demo alert must be a valid json object")
+            payload = demo_alert_payload
+
         try:
-            instance.send_demo_alert()
+            alert_receive_channel.send_demo_alert(payload=payload)
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
         return Response(status=status.HTTP_200_OK)

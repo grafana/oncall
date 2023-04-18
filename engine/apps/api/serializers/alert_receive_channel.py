@@ -50,6 +50,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
+    demo_alert_payload = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -82,6 +83,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "heartbeat",
             "is_available_for_integration_heartbeat",
             "allow_delete",
+            "demo_alert_payload",
         ]
         read_only_fields = [
             "created_at",
@@ -92,6 +94,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "instructions",
             "demo_alert_enabled",
             "maintenance_mode",
+            "demo_alert_payload",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
@@ -152,6 +155,9 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
 
     def get_alert_groups_count(self, obj):
         return 0
+
+    def get_demo_alert_payload(self, obj):
+        return obj.config.example_payload
 
 
 class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):
