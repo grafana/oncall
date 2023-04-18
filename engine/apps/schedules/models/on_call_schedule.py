@@ -393,7 +393,11 @@ class OnCallSchedule(PolymorphicModel):
             overloaded_users = []
         else:
             average_duration = timedelta_sum(duration_map.values()) / len(duration_map)
-            overloaded_user_pks = [user_pk for user_pk, duration in duration_map.items() if duration > average_duration]
+            overloaded_user_pks = [
+                user_pk
+                for user_pk, duration in duration_map.items()
+                if score_to_percent(duration / average_duration) > 100
+            ]
             usernames = {
                 u.public_primary_key: u.username
                 for u in User.objects.filter(public_primary_key__in=overloaded_user_pks).only(
