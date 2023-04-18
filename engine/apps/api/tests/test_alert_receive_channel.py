@@ -506,6 +506,44 @@ def test_alert_receive_channel_preview_template_require_notification_channel(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("template_name", ["title", "message", "image_url"])
+@pytest.mark.parametrize("notification_channel", ["slack", "web", "telegram"])
+def test_alert_receive_channel_preview_template_dynamic_payload(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    template_name,
+    notification_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:alert_receive_channel-preview-template", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    data = {
+        "template_body": "{{ payload.foo }}",
+        "template_name": f"{notification_channel}_{template_name}",
+        "payload": {"foo": "bar"},
+    }
+
+    response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    if notification_channel == "web" and template_name == "message":
+        assert response.data["preview"] == "<p>bar</p>"
+    else:
+        assert response.data["preview"] == "bar"
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
@@ -669,3 +707,68 @@ def test_get_alert_receive_channels_direct_paging_present_for_filters(
     # Check direct paging integration is in the response
     assert response.status_code == status.HTTP_200_OK
     assert response.json()[0]["value"] == alert_receive_channel.public_primary_key
+
+
+@pytest.mark.django_db
+def test_start_maintenance_integration(
+    make_user_auth_headers,
+    make_organization_and_user_with_plugin_token,
+    make_escalation_chain,
+    make_alert_receive_channel,
+):
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    make_escalation_chain(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel-start-maintenance", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    data = {
+        "mode": AlertReceiveChannel.MAINTENANCE,
+        "duration": AlertReceiveChannel.DURATION_ONE_HOUR.total_seconds(),
+        "type": "alert_receive_channel",
+    }
+    response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    alert_receive_channel.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
+    assert alert_receive_channel.maintenance_duration == AlertReceiveChannel.DURATION_ONE_HOUR
+    assert alert_receive_channel.maintenance_uuid is not None
+    assert alert_receive_channel.maintenance_started_at is not None
+    assert alert_receive_channel.maintenance_author is not None
+
+
+@pytest.mark.django_db
+def test_stop_maintenance_integration(
+    mock_start_disable_maintenance_task,
+    make_user_auth_headers,
+    make_organization_and_user_with_plugin_token,
+    make_escalation_chain,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    make_escalation_chain(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    client = APIClient()
+    mode = AlertReceiveChannel.MAINTENANCE
+    duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds
+    alert_receive_channel.start_maintenance(mode, duration, user)
+    url = reverse(
+        "api-internal:alert_receive_channel-stop-maintenance", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+    data = {
+        "type": "alert_receive_channel",
+    }
+    response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+    alert_receive_channel.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_receive_channel.maintenance_mode is None
+    assert alert_receive_channel.maintenance_duration is None
+    assert alert_receive_channel.maintenance_uuid is None
+    assert alert_receive_channel.maintenance_started_at is None
+    assert alert_receive_channel.maintenance_author is None
