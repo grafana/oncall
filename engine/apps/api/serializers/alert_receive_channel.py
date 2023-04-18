@@ -156,7 +156,12 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         return 0
 
     def get_demo_alert_payload(self, obj):
-        return obj.config.example_payload
+        if obj.is_demo_alert_enabled:
+            try:
+                return obj.config.example_payload
+            except AttributeError:
+                return "{}"
+        return None
 
 
 class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):
