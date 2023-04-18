@@ -376,4 +376,7 @@ def test_update_alert_receive_channel_templates(
     # check if updated templates are applied
     updated_templates_data = response.json()
     for template_name, prev_template_value in existing_templates_data.items():
-        assert updated_templates_data[template_name] == template_update_func(prev_template_value)
+        if template_name.endswith("_is_default"):
+            assert updated_templates_data[template_name] is False
+        else:
+            assert updated_templates_data[template_name] == template_update_func(prev_template_value)
