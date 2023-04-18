@@ -10,11 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # migrations.AddField(
-        #     model_name='alertgroup',
-        #     name='is_restricted',
-        #     field=models.BooleanField(default=False, null=True),
-        # ),
         migrations.AlterField(
             model_name='alertgrouplogrecord',
             name='type',
