@@ -1038,7 +1038,9 @@ def test_api_schedule_use_overrides_from_url(make_organization, make_schedule, g
 
 
 @pytest.mark.django_db
-def test_api_schedule_use_overrides_from_db(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
+def test_api_schedule_use_overrides_from_db(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
     organization = make_organization()
     user_1 = make_user_for_organization(organization)
     schedule = make_schedule(
@@ -1067,7 +1069,9 @@ def test_api_schedule_use_overrides_from_db(make_organization, make_user_for_org
 
 
 @pytest.mark.django_db
-def test_api_schedule_overrides_from_db_use_own_tz(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
+def test_api_schedule_overrides_from_db_use_own_tz(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
     organization = make_organization()
     user_1 = make_user_for_organization(organization)
     schedule = make_schedule(
