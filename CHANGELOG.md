@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added preview and migration API endpoints for route migration from regex into jinja2 ([1715](https://github.com/grafana/oncall/pull/1715))
 - Helm chart: add the option to use a helm hook for the migration job ([1386](https://github.com/grafana/oncall/pull/1386))
+- Add endpoints to start and stop maintenance in alert receive channel private api ([1755](https://github.com/grafana/oncall/pull/1755))
 - Send demo alert with dynamic payload and get demo payload example on private api ([1700](https://github.com/grafana/oncall/pull/1700))
 - Add is_default fields to templates, remove WritableSerialiserMethodField ([1759](https://github.com/grafana/oncall/pull/1759))
 
