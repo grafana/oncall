@@ -220,6 +220,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     ]
 
     payload_example = SerializerMethodField()
+    is_based_on_alertmanager = SerializerMethodField()
 
     class Meta:
         model = AlertReceiveChannel
@@ -245,6 +246,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 return obj.alert_groups.last().alerts.first().raw_request_data
             except AttributeError:
                 return None
+
+    def get_is_based_on_alertmanager(self, obj):
+        return obj.has_alertmanager_payload_structure
 
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
     def to_internal_value(self, data):
