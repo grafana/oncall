@@ -186,6 +186,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
+    restricted_at = models.DateTimeField(null=True, default=None)
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
