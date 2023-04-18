@@ -13,7 +13,6 @@ import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -171,7 +170,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
-        {store.backendLicense === GRAFANA_LICENSE_OSS && QRCodeDataParsed && (
+        {store.isOpenSource() && QRCodeDataParsed && (
           <Text type="secondary">
             Server URL embedded in this QR:
             <br />

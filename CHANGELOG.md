@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added preview and migration API endpoints for route migration from regex into jinja2 ([1715](https://github.com/grafana/oncall/pull/1715))
+- Helm chart: add the option to use a helm hook for the migration job ([1386](https://github.com/grafana/oncall/pull/1386))
+
+## v1.2.11 (2023-04-14)
+
+### Added
+
+- add new columns `gcom_org_contract_type`, `gcom_org_irm_sku_subscription_start_date`,
+  and `gcom_org_oldest_admin_with_billing_privileges_user_id` to `user_management_organization` table,
+  plus `is_restricted` column to `alerts_alertgroup` table by @joeyorlando and @teodosii ([1522](https://github.com/grafana/oncall/pull/1522))
+- emit two new Django signals by @joeyorlando and @teodosii ([1522](https://github.com/grafana/oncall/pull/1522))
+  - `org_sync_signal` at the end of the `engine/apps/user_management/sync.py::sync_organization` method
+  - `alert_group_created_signal` when a new Alert Group is created
 
 ## v1.2.10 (2023-04-13)
 
