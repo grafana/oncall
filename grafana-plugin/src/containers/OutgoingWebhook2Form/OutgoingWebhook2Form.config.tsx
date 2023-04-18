@@ -14,6 +14,7 @@ export const WebhookTriggerType = {
   Silenced: new KeyValuePair('4', 'Silenced'),
   Unsilenced: new KeyValuePair('5', 'Unsilenced'),
   Unresolved: new KeyValuePair('6', 'Unresolved'),
+  Unacknowledged: new KeyValuePair('7', 'Unacknowledged'),
 };
 
 export const form: { name: string; fields: FormItem[] } = {
@@ -77,6 +78,10 @@ export const form: { name: string; fields: FormItem[] } = {
           {
             value: WebhookTriggerType.Unresolved.key,
             label: WebhookTriggerType.Unresolved.value,
+          },
+          {
+            value: WebhookTriggerType.Unacknowledged.key,
+            label: WebhookTriggerType.Unacknowledged.value,
           },
         ],
       },
