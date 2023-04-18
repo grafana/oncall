@@ -345,7 +345,7 @@ class PreviewTemplateMixin:
         response = {"preview": templated_attr}
         return Response(response, status=status.HTTP_200_OK)
 
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         raise NotImplementedError
 
     @staticmethod
