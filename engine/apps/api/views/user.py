@@ -49,7 +49,7 @@ from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.insight_log import (
     ChatOpsEvent,
-    ChatOpsType,
+    ChatOpsTypePlug,
     EntityEvent,
     write_chatops_insight_log,
     write_resource_insight_log,
@@ -417,7 +417,7 @@ class UserView(
         write_chatops_insight_log(
             author=request.user,
             event_name=ChatOpsEvent.USER_UNLINKED,
-            chatops_type=ChatOpsType.SLACK,
+            chatops_type=ChatOpsTypePlug.SLACK.value,
             linked_user=user.username,
             linked_user_id=user.public_primary_key,
         )
@@ -433,7 +433,7 @@ class UserView(
             write_chatops_insight_log(
                 author=request.user,
                 event_name=ChatOpsEvent.USER_UNLINKED,
-                chatops_type=ChatOpsType.TELEGRAM,
+                chatops_type=ChatOpsTypePlug.TELEGRAM.value,
                 linked_user=user.username,
                 linked_user_id=user.public_primary_key,
             )
