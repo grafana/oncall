@@ -47,6 +47,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
+    description_short = serializers.CharField(max_length=250, required=False)
     demo_alert_payload = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
@@ -60,6 +61,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         fields = [
             "id",
             "description",
+            "description_short",
             "integration",
             "smile_code",
             "verbal_name",
