@@ -41,6 +41,7 @@ class ChannelFilterView(
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "move_to_position": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_TEST],
+        "convert_from_regex_to_jinja2": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     model = ChannelFilter
@@ -144,3 +145,16 @@ class ChannelFilterView(
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def convert_from_regex_to_jinja2(self, request, pk):
+        instance = self.get_queryset().get(public_primary_key=pk)
+        if not instance.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
+            raise BadRequest(detail="Only regex filtering term type is supported")
+
+        serializer_class = self.serializer_class
+
+        instance.filtering_term = serializer_class(instance).get_filtering_term_as_jinja2(instance)
+        instance.filtering_term_type = ChannelFilter.FILTERING_TERM_TYPE_JINJA2
+        instance.save()
+        return Response(status=status.HTTP_200_OK, data=serializer_class(instance).data)
