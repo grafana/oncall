@@ -303,6 +303,7 @@ def test_update_resolve_signal_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
         "type": "grafana",
         "default_route": {
@@ -412,6 +413,7 @@ def test_update_sms_template_with_empty_dict(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
         "type": "grafana",
         "default_route": {
@@ -473,6 +475,7 @@ def test_update_integration_name(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana_updated",
+        "description_short": None,
         "link": integration.integration_url,
         "type": "grafana",
         "default_route": {
@@ -534,7 +537,7 @@ def test_update_integration_name_and_description_short(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana_updated",
-        "description_short": "Soe description",
+        "description_short": "Some description",
         "link": integration.integration_url,
         "type": "grafana",
         "default_route": {
@@ -599,6 +602,7 @@ def test_set_default_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
         "type": "grafana",
         "default_route": {
@@ -666,6 +670,7 @@ def test_set_default_messaging_backend_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
         "type": "grafana",
         "default_route": {
