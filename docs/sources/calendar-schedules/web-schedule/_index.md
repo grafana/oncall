@@ -59,6 +59,15 @@ It's calculated based on these key factors:
 - Gaps (amount of time when no one is on-call)
 - Balance (uneven distribution of on-call shifts between team members)
 
+Quality score is a numeric value between 0 and 100. The higher the score, the better the schedule quality.
+Web UI uses the following scale to show the quality score:
+
+- 0-20: Bad
+- 20-40: Low
+- 40-60: Medium
+- 60-80: Good
+- 80-100: Great
+
 To improve quality score:
 
 - Minimize the amount of time when no one is on-call.
