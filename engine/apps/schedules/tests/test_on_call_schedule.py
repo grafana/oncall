@@ -1203,7 +1203,7 @@ def test_user_related_schedules(
     make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
     schedules = OnCallSchedule.objects.related_to_user(admin)
-    assert list(schedules) == [schedule1, schedule2]
+    assert set(schedules) == {schedule1, schedule2}
 
 
 @pytest.mark.django_db
@@ -1268,7 +1268,7 @@ def test_user_related_schedules_only_username(
     schedule3.refresh_ical_file()
 
     schedules = OnCallSchedule.objects.related_to_user(user)
-    assert list(schedules) == [schedule1, schedule2]
+    assert set(schedules) == {schedule1, schedule2}
 
 
 @pytest.mark.django_db
