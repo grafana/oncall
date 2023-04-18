@@ -74,11 +74,12 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
         return get_oncall_users_for_multiple_schedules(self, events_datetime)
 
     def related_to_user(self, user):
+        username_regex = r"SUMMARY:(\[L[0-9]+\] )?{}".format(user.username)
         return self.filter(
-            Q(cached_ical_file_primary__contains=user.username)
+            Q(cached_ical_file_primary__regex=username_regex)
             | Q(cached_ical_file_primary__contains=user.email)
-            | Q(cached_ical_file_overrides__contains=user.username)
-            | Q(cached_ical_file_overrides__contains=user.username),
+            | Q(cached_ical_file_overrides__regex=username_regex)
+            | Q(cached_ical_file_overrides__contains=user.email),
             organization=user.organization,
         )
 

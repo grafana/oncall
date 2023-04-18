@@ -1199,10 +1199,75 @@ def test_user_related_schedules(
     override.add_rolling_users([[admin]])
     schedule2.refresh_ical_file()
 
-    # schedule2
+    # schedule3
     make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
     schedules = OnCallSchedule.objects.related_to_user(admin)
+    assert list(schedules) == [schedule1, schedule2]
+
+
+@pytest.mark.django_db
+def test_user_related_schedules_only_username(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    # oncall is used as keyword in the ical calendar definition,
+    # shouldn't be associated to the user
+    user = make_user_for_organization(organization, username="oncall")
+    other_user = make_user_for_organization(organization, username="other")
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule1 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    shifts = (
+        # user, priority, start time (h), duration (seconds)
+        (user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule1,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+    schedule1.refresh_ical_file()
+
+    schedule2 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    override_data = {
+        "start": today + timezone.timedelta(hours=22),
+        "rotation_start": today + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule2,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user]])
+    schedule2.refresh_ical_file()
+
+    # schedule3
+    schedule3 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    override_data = {
+        "start": today + timezone.timedelta(hours=22),
+        "rotation_start": today + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule3,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[other_user]])
+    schedule3.refresh_ical_file()
+
+    schedules = OnCallSchedule.objects.related_to_user(user)
     assert list(schedules) == [schedule1, schedule2]
 
 

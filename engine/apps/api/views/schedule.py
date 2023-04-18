@@ -162,6 +162,7 @@ class ScheduleView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.get("type")
+        mine = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("mine"))
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization).defer(
@@ -178,6 +179,9 @@ class ScheduleView(
             queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
         if used is not None:
             queryset = queryset.filter(escalation_policies__isnull=not used).distinct()
+        if mine:
+            user = self.request.user
+            queryset = queryset.related_to_user(user)
 
         queryset = queryset.order_by("pk")
         return queryset
@@ -474,6 +478,12 @@ class ScheduleView(
                 "type": "team_select",
                 "href": api_root + "teams/",
                 "global": True,
+            },
+            {
+                "name": "mine",
+                "type": "boolean",
+                "display_name": "Mine",
+                "default": "true",
             },
             {
                 "name": "used",
