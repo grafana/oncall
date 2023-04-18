@@ -21,6 +21,7 @@ ACTION_TO_TRIGGER_TYPE = {
     AlertGroupLogRecord.TYPE_SILENCE: Webhook.TRIGGER_SILENCE,
     AlertGroupLogRecord.TYPE_UN_SILENCE: Webhook.TRIGGER_UNSILENCE,
     AlertGroupLogRecord.TYPE_UN_RESOLVED: Webhook.TRIGGER_UNRESOLVE,
+    AlertGroupLogRecord.TYPE_UN_ACK: Webhook.TRIGGER_UNACKNOWLEDGE,
 }
 
 
