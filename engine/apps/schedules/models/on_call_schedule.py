@@ -687,7 +687,7 @@ class OnCallSchedule(PolymorphicModel):
             result["notification_frequency"] = self.get_notify_oncall_shift_freq_display()
             result["current_shift_notification"] = self.mention_oncall_start
             result["next_shift_notification"] = self.mention_oncall_next
-            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display
+            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display()
         return result
 
     @property

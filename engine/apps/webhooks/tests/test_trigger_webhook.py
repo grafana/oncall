@@ -297,6 +297,7 @@ def test_execute_webhook_using_responses_data(
             public_primary_key="response-1",
         ),
         trigger_type=Webhook.TRIGGER_FIRING,
+        status_code=200,
         content=json.dumps({"id": "third-party-id"}),
     )
     make_webhook_response(
@@ -306,7 +307,19 @@ def test_execute_webhook_using_responses_data(
             public_primary_key="response-2",
         ),
         trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
+        status_code=200,
         content=json.dumps({"id": "third-party-id", "status": "updated"}),
+    )
+    # webhook wasn't executed because of some error, there is no content or status_code
+    make_webhook_response(
+        alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-3",
+        ),
+        trigger_type=Webhook.TRIGGER_SILENCE,
+        content=None,
+        status_code=None,
     )
 
     mock_response = MockResponse()

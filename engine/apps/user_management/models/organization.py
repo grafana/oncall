@@ -14,7 +14,7 @@ from apps.alerts.models import MaintainableObject
 from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
-from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -302,7 +302,7 @@ class Organization(MaintainableObject):
             write_chatops_insight_log(
                 author=user,
                 event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
-                chatops_type=ChatOpsType.SLACK,
+                chatops_type=ChatOpsTypePlug.SLACK.value,
                 prev_channel=old_channel_name,
                 new_channel=channel_name,
             )

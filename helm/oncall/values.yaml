@@ -150,6 +150,8 @@ migrate:
   enabled: true
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
+  # use a helm hook to manage the migration job
+  useHook: false
 
 # Additional env variables to add to deployments
 env: {}
