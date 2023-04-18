@@ -156,7 +156,8 @@ migrated.
 
 When running the plan with `SCHEDULE_MIGRATION_MODE=web`, there could be a number of errors regarding on-call schedules.
 These errors are expected and are caused by the fact that the tool can't always automatically migrate on-call shifts
-due to differences in scheduling systems in PD and Grafana OnCall.
+due to differences in scheduling systems in PD and Grafana OnCall. To fix these errors, you need to manually change
+on-call shifts in PD and re-run the migration.
 
 ### Escalation policies
 
