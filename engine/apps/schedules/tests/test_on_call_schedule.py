@@ -1437,7 +1437,7 @@ def test_refresh_ical_final_schedule_cancel_deleted_events(
     u1 = make_user_for_organization(organization)
     u2 = make_user_for_organization(organization)
 
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     shifts = (
         # user, priority, start time (h), duration (seconds)
@@ -1445,8 +1445,8 @@ def test_refresh_ical_final_schedule_cancel_deleted_events(
     )
     for user, priority, start_h, duration in shifts:
         data = {
-            "start": today + timezone.timedelta(hours=start_h),
-            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "start": tomorrow + timezone.timedelta(hours=start_h),
+            "rotation_start": tomorrow + timezone.timedelta(hours=start_h),
             "duration": timezone.timedelta(seconds=duration),
             "priority_level": priority,
             "frequency": CustomOnCallShift.FREQUENCY_DAILY,
@@ -1458,8 +1458,8 @@ def test_refresh_ical_final_schedule_cancel_deleted_events(
         on_call_shift.add_rolling_users([[user]])
 
     override_data = {
-        "start": today + timezone.timedelta(hours=22),
-        "rotation_start": today + timezone.timedelta(hours=22),
+        "start": tomorrow + timezone.timedelta(hours=22),
+        "rotation_start": tomorrow + timezone.timedelta(hours=22),
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }

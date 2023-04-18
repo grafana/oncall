@@ -1749,11 +1749,11 @@ def test_upcoming_shifts_override(
         organization,
         schedule_class=OnCallScheduleWeb,
     )
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
 
     override_data = {
-        "start": today + timezone.timedelta(hours=22),
-        "rotation_start": today + timezone.timedelta(hours=22),
+        "start": tomorrow + timezone.timedelta(hours=22),
+        "rotation_start": tomorrow + timezone.timedelta(hours=22),
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }
