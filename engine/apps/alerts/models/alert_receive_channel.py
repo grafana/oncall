@@ -145,6 +145,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     smile_code = models.TextField(default=":slightly_smiling_face:")
 
     verbal_name = models.CharField(max_length=150, null=True, default=None)
+    description_short = models.CharField(max_length=250, null=True, default=None)
 
     integration_slack_channel_id = models.CharField(max_length=150, null=True, default=None)
 
