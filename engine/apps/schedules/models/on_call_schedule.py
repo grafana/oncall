@@ -672,7 +672,7 @@ class OnCallSchedule(PolymorphicModel):
             ical = ical_file.replace(end_line, "").strip()
             ical = f"{ical}\r\n"
             for event in itertools.chain(qs.all(), extra_shifts):
-                ical += event.convert_to_ical(self.time_zone, allow_empty_users=allow_empty_users)
+                ical += event.convert_to_ical(allow_empty_users=allow_empty_users)
             ical += f"{end_line}\r\n"
         return ical
 

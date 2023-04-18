@@ -1038,8 +1038,9 @@ def test_api_schedule_use_overrides_from_url(make_organization, make_schedule, g
 
 
 @pytest.mark.django_db
-def test_api_schedule_use_overrides_from_db(make_organization, make_schedule, make_on_call_shift):
+def test_api_schedule_use_overrides_from_db(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
     organization = make_organization()
+    user_1 = make_user_for_organization(organization)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
@@ -1057,6 +1058,37 @@ def test_api_schedule_use_overrides_from_db(make_organization, make_schedule, ma
         source=CustomOnCallShift.SOURCE_WEB,
         schedule=schedule,
     )
+    override.add_rolling_users([[user_1]])
+
+    schedule.refresh_ical_file()
+
+    ical_event = override.convert_to_ical()
+    assert ical_event in schedule.cached_ical_file_overrides
+
+
+@pytest.mark.django_db
+def test_api_schedule_overrides_from_db_use_own_tz(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
+    organization = make_organization()
+    user_1 = make_user_for_organization(organization)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        ical_url_overrides=None,
+        enable_web_overrides=True,
+        time_zone="Etc/GMT-2",
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    override = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_OVERRIDE,
+        priority_level=1,
+        start=now,
+        rotation_start=now,
+        duration=timezone.timedelta(hours=12),
+        source=CustomOnCallShift.SOURCE_WEB,
+        schedule=schedule,
+    )
+    override.add_rolling_users([[user_1]])
 
     schedule.refresh_ical_file()
 
