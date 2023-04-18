@@ -33,6 +33,7 @@ import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 // ------ Dashboard ------ //
 
@@ -62,9 +63,6 @@ export class RootBaseStore {
 
   @observable
   selectedAlertReceiveChannel?: AlertReceiveChannel['id'];
-
-  @observable
-  isLess1280: boolean;
 
   @observable
   features?: { [key: string]: boolean };
@@ -218,6 +216,10 @@ export class RootBaseStore {
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only
     return this.features?.[feature];
+  }
+
+  isOpenSource(): boolean {
+    return this.backendLicense === GRAFANA_LICENSE_OSS;
   }
 
   @observable
