@@ -169,6 +169,7 @@ class ScheduleView(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",
+            "cached_ical_final_schedule",
         )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
