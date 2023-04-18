@@ -72,7 +72,7 @@ the schedule. 24/7/365 coverage is considered ideal, so reducing this number wil
 E.g. "+15% avg" in quality report means that user has 15% more on-call time than average for the schedule.
 A perfectly balanced schedule is considered ideal, so reducing this number will improve the overall schedule quality.
 
->**Note**: Next 52 weeks (~1 year) are taken into account when generating the quality report.
+>**Note**: The next 52 weeks (~1 year) are taken into account when generating the quality report.
 
 ## Schedule export
 
