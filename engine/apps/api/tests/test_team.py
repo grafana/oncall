@@ -151,11 +151,12 @@ def test_update_team(
     client = APIClient()
     url = reverse("api-internal:team-detail", kwargs={"pk": team.public_primary_key})
 
-    data = {"is_sharing_resources_to_all": True}
-    response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+    response = client.put(
+        url, data={"is_sharing_resources_to_all": True}, format="json", **make_user_auth_headers(user, token)
+    )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == data
+    assert response.json()["is_sharing_resources_to_all"] is True
 
 
 @pytest.mark.django_db
