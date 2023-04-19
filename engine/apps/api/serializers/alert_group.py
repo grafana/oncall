@@ -36,7 +36,7 @@ class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
         cached_field = cache.get(CACHE_KEY, None)
 
         web_templates_modified_at = obj.channel.web_templates_modified_at
-        alert_receive_channel_restricted_at = obj.channel.resricted_at
+        alert_receive_channel_restricted_at = obj.channel.restricted_at
         last_alert_created_at = last_alert.created_at
 
         # use cache
