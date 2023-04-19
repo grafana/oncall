@@ -228,6 +228,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "id",
             "verbal_name",
             "payload_example",
+            "is_based_on_alertmanager",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
