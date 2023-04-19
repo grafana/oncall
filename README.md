@@ -33,7 +33,7 @@ Developer-friendly incident response with brilliant Slack integration.
 
 We prepared multiple environments:
 
-- [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment)
+- [production](https://grafana.com/docs/oncall/latest/open-source/#production-environment)
 - [developer](./dev/README.md)
 - hobby (described in the following steps)
 
@@ -65,7 +65,7 @@ We prepared multiple environments:
    OnCall backend URL: http://engine:8080
    ```
 
-5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up
+5. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up
    Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 
 ## Update version
@@ -97,7 +97,7 @@ info on updating Grafana plugins.
 ## Further Reading
 
 - _Migration from PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
-- _Documentation_ - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
+- _Documentation_ - [Grafana OnCall](https://grafana.com/docs/oncall/latest/)
 - _Overview Webinar_ - [YouTube](https://www.youtube.com/watch?v=7uSe1pulgs8)
 - _How To Add Integration_ - [How to Add Integration](https://github.com/grafana/oncall/tree/dev/engine/config_integrations/README.md)
 - _Blog Post_ - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)

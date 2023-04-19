@@ -42,7 +42,7 @@ environment variable.
 4. You should now see the OnCall plugin configuration page. You may safely ignore the warning about the invalid
    plugin signature. Set "OnCall backend URL" as "http://host.docker.internal:8080". When opening the main plugin page,
    you may also ignore warnings about version mismatch and lack of communication channels.
-5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack,
+5. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up Slack,
    Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`
 
@@ -167,7 +167,7 @@ and also overrides any defaults that are set in other `.env*` files
 
 ## Slack application setup
 
-For Slack app configuration check our docs: <https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup>
+For Slack app configuration check our docs: <https://grafana.com/docs/oncall/latest/open-source/#slack-setup>
 
 ## Update drone build
 
