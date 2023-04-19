@@ -1038,8 +1038,11 @@ def test_api_schedule_use_overrides_from_url(make_organization, make_schedule, g
 
 
 @pytest.mark.django_db
-def test_api_schedule_use_overrides_from_db(make_organization, make_schedule, make_on_call_shift):
+def test_api_schedule_use_overrides_from_db(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
     organization = make_organization()
+    user_1 = make_user_for_organization(organization)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
@@ -1057,6 +1060,39 @@ def test_api_schedule_use_overrides_from_db(make_organization, make_schedule, ma
         source=CustomOnCallShift.SOURCE_WEB,
         schedule=schedule,
     )
+    override.add_rolling_users([[user_1]])
+
+    schedule.refresh_ical_file()
+
+    ical_event = override.convert_to_ical()
+    assert ical_event in schedule.cached_ical_file_overrides
+
+
+@pytest.mark.django_db
+def test_api_schedule_overrides_from_db_use_own_tz(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    user_1 = make_user_for_organization(organization)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        ical_url_overrides=None,
+        enable_web_overrides=True,
+        time_zone="Etc/GMT-2",
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    override = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_OVERRIDE,
+        priority_level=1,
+        start=now,
+        rotation_start=now,
+        duration=timezone.timedelta(hours=12),
+        source=CustomOnCallShift.SOURCE_WEB,
+        schedule=schedule,
+    )
+    override.add_rolling_users([[user_1]])
 
     schedule.refresh_ical_file()
 
@@ -1401,7 +1437,7 @@ def test_refresh_ical_final_schedule_cancel_deleted_events(
     u1 = make_user_for_organization(organization)
     u2 = make_user_for_organization(organization)
 
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     shifts = (
         # user, priority, start time (h), duration (seconds)
@@ -1409,8 +1445,8 @@ def test_refresh_ical_final_schedule_cancel_deleted_events(
     )
     for user, priority, start_h, duration in shifts:
         data = {
-            "start": today + timezone.timedelta(hours=start_h),
-            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "start": tomorrow + timezone.timedelta(hours=start_h),
+            "rotation_start": tomorrow + timezone.timedelta(hours=start_h),
             "duration": timezone.timedelta(seconds=duration),
             "priority_level": priority,
             "frequency": CustomOnCallShift.FREQUENCY_DAILY,
@@ -1422,8 +1458,8 @@ def test_refresh_ical_final_schedule_cancel_deleted_events(
         on_call_shift.add_rolling_users([[user]])
 
     override_data = {
-        "start": today + timezone.timedelta(hours=22),
-        "rotation_start": today + timezone.timedelta(hours=22),
+        "start": tomorrow + timezone.timedelta(hours=22),
+        "rotation_start": tomorrow + timezone.timedelta(hours=22),
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }
