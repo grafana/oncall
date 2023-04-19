@@ -9,7 +9,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def on_alert_group_created(**kwargs):
-    alert_group_created.apply_async((kwargs["alert_group"],))
+    alert_group_created.apply_async((kwargs["alert_group"].id,))
 
 
 def on_action_triggered(**kwargs):

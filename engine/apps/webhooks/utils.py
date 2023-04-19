@@ -126,14 +126,26 @@ def _serialize_event_user(user):
 
 
 def _extract_users_from_escalation_snapshot(escalation_snapshot):
+    from apps.alerts.models import EscalationPolicy
+
     users = []
     if escalation_snapshot:
         for policy_snapshot in escalation_snapshot.escalation_policies_snapshots:
-            for user in policy_snapshot.notify_to_users_queue:
-                users.append(_serialize_event_user(user))
-            if policy_snapshot.notify_schedule:
-                for user in list_users_to_notify_from_ical(policy_snapshot.notify_schedule):
+            if policy_snapshot.step in [
+                EscalationPolicy.STEP_NOTIFY,
+                EscalationPolicy.STEP_NOTIFY_IMPORTANT,
+                EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+                EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+            ]:
+                for user in policy_snapshot.notify_to_users_queue:
                     users.append(_serialize_event_user(user))
+            elif policy_snapshot.step in [
+                EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+                EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT,
+            ]:
+                if policy_snapshot.notify_schedule:
+                    for user in list_users_to_notify_from_ical(policy_snapshot.notify_schedule):
+                        users.append(_serialize_event_user(user))
     return list({u["id"]: u for u in users}.values())
 
 
