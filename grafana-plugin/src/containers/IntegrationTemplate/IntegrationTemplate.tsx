@@ -34,6 +34,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const { id, onHide, template, onUpdateTemplates } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
+  const [slackPermalink, setSlackPermalink] = useState<string>(undefined);
   const [tempValues, setTempValues] = useState<{
     [key: string]: string | null;
   }>({});
@@ -53,6 +54,12 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       }));
     };
   };
+
+  const onSelectAlertGroup = useCallback((alert: Alert) => {
+    if (alert?.slack_permalink) {
+      setSlackPermalink(alert?.slack_permalink);
+    }
+  }, []);
 
   const handleSubmit = useCallback(() => {
     onUpdateTemplates(tempValues);
@@ -115,7 +122,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
         width={'95%'}
       >
         <div className={cx('container')}>
-          <AlertGroupsList alertReceiveChannelId={id} />
+          <AlertGroupsList alertReceiveChannelId={id} onSelectAlertGroup={onSelectAlertGroup} />
           {isCheatSheetVisible ? (
             <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
           ) : (
@@ -141,7 +148,12 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
               </div>
             </>
           )}
-          <Result alertReceiveChannelId={id} template={template} alertGroup={undefined} />
+          <Result
+            alertReceiveChannelId={id}
+            template={template}
+            alertGroup={undefined}
+            slackPermalink={slackPermalink}
+          />
         </div>
       </Drawer>
     </>
@@ -150,10 +162,11 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
 interface AlertGroupsListProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
+  onSelectAlertGroup?: (alertGroup: Alert) => void;
 }
 
 const AlertGroupsList = (props: AlertGroupsListProps) => {
-  const { alertReceiveChannelId } = props;
+  const { alertReceiveChannelId, onSelectAlertGroup } = props;
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
   const [selectedAlertPayload, setSelectedAlertPayload] = useState(undefined);
@@ -171,6 +184,7 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
     const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(
       payloadIncident?.alerts[0]?.id
     );
+    onSelectAlertGroup(payloadIncident);
     setSelectedAlertPayload(currentIncidentRawResponse);
   };
 
@@ -296,10 +310,11 @@ interface ResultProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   template: TemplateForEdit;
   alertGroup?: Alert;
+  slackPermalink?: string;
 }
 
 const Result = (props: ResultProps) => {
-  const { alertReceiveChannelId, template, alertGroup } = props;
+  const { alertReceiveChannelId, template, slackPermalink } = props;
   const [isCondition, setIsCondition] = useState(false);
 
   const handleResult = (result) => {
@@ -325,9 +340,9 @@ const Result = (props: ResultProps) => {
           alertReceiveChannelId={alertReceiveChannelId}
           onResult={handleResult}
         />
-        {template.name.includes('slack') && alertGroup?.slack_permalink && (
+        {template.name.includes('slack') && slackPermalink && (
           <>
-            <a href={alertGroup?.slack_permalink} target="_blank" rel="noreferrer">
+            <a href={slackPermalink} target="_blank" rel="noreferrer">
               <Button>Save and open Alert Group in Slack</Button>
             </a>
 
