@@ -36,16 +36,24 @@ class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
         cached_field = cache.get(CACHE_KEY, None)
 
         web_templates_modified_at = obj.channel.web_templates_modified_at
+        alert_receive_channel_restricted_at = obj.channel.resricted_at
         last_alert_created_at = last_alert.created_at
 
-        # use cache only if cache exists
-        # and cache was created after the last alert created
-        # and either web templates never modified
-        # or cache was created after templates were modified
+        # use cache
+        # (only if cache exists)
+        # and (cache was created after the last alert created)
+        # and (either web templates never modified
+        # or cache was created after templates were modified)
+        # and (alert receive channel is not restricted
+        # or cache was created after restriction applied)
         if (
             cached_field is not None
             and cached_field.get("cache_created_at") > last_alert_created_at
             and (web_templates_modified_at is None or cached_field.get("cache_created_at") > web_templates_modified_at)
+            and (
+                alert_receive_channel_restricted_at is None
+                or cached_field.get("cache_created_at") > alert_receive_channel_restricted_at
+            )
         ):
             field = cached_field.get(field_name)
         else:
