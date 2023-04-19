@@ -47,9 +47,27 @@ web_message = """\
 
 **🏷️ Labels:**
 ```
-{% for k, v in payload["labels"].items() -%}
+{%- for k, v in payload["labels"].items() %}
 {{ k }}={{ v }}
+{%- endfor %}
+```
+
+{%- if annotations |length > 0%}
+**Other annotations:**
+{% for k, v in payload["annotations"].items() %}
+{#- render annotation as markdown url if it starts with http #}
+- *{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
 {% endfor %}
+{% endif %}
+```
+
+{%- if annotations |length > 0%}
+**Other annotations:**
+{% for k, v in payload["annotations"].items() %}
+{#- render annotation as markdown url if it starts with http #}
+- *{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
+{% endfor %}
+{% endif %}
 ```
 
 {%- if annotations |length > 0%}
