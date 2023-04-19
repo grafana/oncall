@@ -5,8 +5,12 @@ from rest_framework import serializers
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertWebRenderer
 from apps.alerts.models import Alert
 
+from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
 
-class AlertFieldsCacheSerializerMixin:
+
+class AlertFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
+    CACHE_KEY_FORMAT_TEMPLATE = "{field_name}_alert_{object_id}"
+
     @classmethod
     def get_or_set_web_template_field(
         cls,
@@ -15,7 +19,7 @@ class AlertFieldsCacheSerializerMixin:
         renderer_class,
         cache_lifetime=60 * 60 * 24,
     ):
-        CACHE_KEY = f"{field_name}_alert_{obj.id}"
+        CACHE_KEY = cls.calculate_cache_key(field_name, obj)
         cached_field = cache.get(CACHE_KEY, None)
 
         web_templates_modified_at = obj.group.channel.web_templates_modified_at
@@ -50,13 +54,14 @@ class AlertSerializer(AlertFieldsCacheSerializerMixin, serializers.ModelSerializ
     def get_render_for_web(self, obj):
         return AlertFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
-            "render_for_web",
+            AlertFieldsCacheSerializerMixin.RENDER_FOR_WEB_FIELD_NAME,
             AlertWebRenderer,
         )
 
 
 class AlertRawSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
+    raw_request_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Alert
@@ -64,3 +69,7 @@ class AlertRawSerializer(serializers.ModelSerializer):
             "id",
             "raw_request_data",
         ]
+
+    def get_raw_request_data(self, obj):
+        # TODO:
+        return {} if obj.group.is_restricted else obj.raw_request_data

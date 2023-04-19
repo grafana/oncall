@@ -30,7 +30,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
 
   const { outgoingWebhook2Store } = store;
 
-  const data = id === 'new' ? {} : outgoingWebhook2Store.items[id];
+  const data = id === 'new' ? { is_webhook_enabled: true } : outgoingWebhook2Store.items[id];
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook2>) => {

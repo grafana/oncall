@@ -6,7 +6,7 @@ from django.db import IntegrityError, models
 from django.utils import timezone
 
 from apps.telegram.models import TelegramToUserConnector
-from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
 
 class TelegramVerificationCode(models.Model):
@@ -48,7 +48,7 @@ class TelegramVerificationCode(models.Model):
             write_chatops_insight_log(
                 author=user,
                 event_name=ChatOpsEvent.USER_LINKED,
-                chatops_type=ChatOpsType.TELEGRAM,
+                chatops_type=ChatOpsTypePlug.TELEGRAM.value,
                 linked_user=user.username,
                 linked_user_id=user.public_primary_key,
             )

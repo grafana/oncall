@@ -283,11 +283,16 @@ BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_I
 ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
 
+class PreviewTemplateException(Exception):
+    pass
+
+
 class PreviewTemplateMixin:
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
         template_body = request.data.get("template_body", None)
         template_name = request.data.get("template_name", None)
+        payload = request.data.get("payload", None)
 
         if template_body is None or template_name is None:
             response = {"preview": None}
@@ -295,18 +300,21 @@ class PreviewTemplateMixin:
 
         notification_channel, attr_name = self.parse_name_and_notification_channel(template_name)
         if attr_name is None:
-            raise BadRequest(detail={"template_name": "Attr name is required"})
+            raise BadRequest(detail={"template_name": "Template name is missing"})
         if attr_name not in ALL_TEMPLATE_NAMES:
-            raise BadRequest(detail={"template_name": "Unknown attr name"})
+            raise BadRequest(detail={"template_name": "Unknown template name"})
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
             if notification_channel is None:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
 
-        alert_to_template = self.get_alert_to_template()
-        if alert_to_template is None:
-            raise BadRequest(detail="Alert to preview does not exist")
+        try:
+            alert_to_template = self.get_alert_to_template(payload=payload)
+            if alert_to_template is None:
+                raise BadRequest(detail="Alert to preview does not exist")
+        except PreviewTemplateException as e:
+            raise BadRequest(detail=str(e))
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
@@ -337,7 +345,7 @@ class PreviewTemplateMixin:
         response = {"preview": templated_attr}
         return Response(response, status=status.HTTP_200_OK)
 
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         raise NotImplementedError
 
     @staticmethod
