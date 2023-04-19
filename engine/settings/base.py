@@ -414,6 +414,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
         "args": (),
     },
+    "start_refresh_ical_final_schedules": {
+        "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
+        "schedule": crontab(minute=15, hour=0),
+        "args": (),
+    },
     "start_refresh_ical_files": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files",
         "schedule": 10 * 60,
