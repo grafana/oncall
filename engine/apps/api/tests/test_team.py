@@ -134,6 +134,31 @@ def test_list_teams_permissions(
 
 
 @pytest.mark.django_db
+def test_update_team(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    team = make_team(organization)
+    team.users.add(user)
+
+    client = APIClient()
+    url = reverse("api-internal:team-detail", kwargs={"pk": team.public_primary_key})
+
+    data = {"is_sharing_resources_to_all": True}
+    response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == data
+
+
+@pytest.mark.django_db
 def test_team_permissions_wrong_team(
     make_organization,
     make_team,
