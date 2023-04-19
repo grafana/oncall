@@ -1,11 +1,22 @@
 import datetime
+import textwrap
 from unittest.mock import patch
 
+import icalendar
 import pytest
 import pytz
 from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
+from apps.schedules.constants import (
+    ICAL_COMPONENT_VEVENT,
+    ICAL_DATETIME_END,
+    ICAL_DATETIME_START,
+    ICAL_LAST_MODIFIED,
+    ICAL_STATUS,
+    ICAL_STATUS_CANCELLED,
+    ICAL_SUMMARY,
+)
 from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import (
     CustomOnCallShift,
@@ -1027,8 +1038,11 @@ def test_api_schedule_use_overrides_from_url(make_organization, make_schedule, g
 
 
 @pytest.mark.django_db
-def test_api_schedule_use_overrides_from_db(make_organization, make_schedule, make_on_call_shift):
+def test_api_schedule_use_overrides_from_db(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
     organization = make_organization()
+    user_1 = make_user_for_organization(organization)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleCalendar,
@@ -1046,6 +1060,39 @@ def test_api_schedule_use_overrides_from_db(make_organization, make_schedule, ma
         source=CustomOnCallShift.SOURCE_WEB,
         schedule=schedule,
     )
+    override.add_rolling_users([[user_1]])
+
+    schedule.refresh_ical_file()
+
+    ical_event = override.convert_to_ical()
+    assert ical_event in schedule.cached_ical_file_overrides
+
+
+@pytest.mark.django_db
+def test_api_schedule_overrides_from_db_use_own_tz(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    user_1 = make_user_for_organization(organization)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        ical_url_overrides=None,
+        enable_web_overrides=True,
+        time_zone="Etc/GMT-2",
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    override = make_on_call_shift(
+        organization=organization,
+        shift_type=CustomOnCallShift.TYPE_OVERRIDE,
+        priority_level=1,
+        start=now,
+        rotation_start=now,
+        duration=timezone.timedelta(hours=12),
+        source=CustomOnCallShift.SOURCE_WEB,
+        schedule=schedule,
+    )
+    override.add_rolling_users([[user_1]])
 
     schedule.refresh_ical_file()
 
@@ -1199,11 +1246,76 @@ def test_user_related_schedules(
     override.add_rolling_users([[admin]])
     schedule2.refresh_ical_file()
 
-    # schedule2
+    # schedule3
     make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
     schedules = OnCallSchedule.objects.related_to_user(admin)
-    assert list(schedules) == [schedule1, schedule2]
+    assert set(schedules) == {schedule1, schedule2}
+
+
+@pytest.mark.django_db
+def test_user_related_schedules_only_username(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    # oncall is used as keyword in the ical calendar definition,
+    # shouldn't be associated to the user
+    user = make_user_for_organization(organization, username="oncall")
+    other_user = make_user_for_organization(organization, username="other")
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule1 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    shifts = (
+        # user, priority, start time (h), duration (seconds)
+        (user, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule1,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+    schedule1.refresh_ical_file()
+
+    schedule2 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    override_data = {
+        "start": today + timezone.timedelta(hours=22),
+        "rotation_start": today + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule2,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user]])
+    schedule2.refresh_ical_file()
+
+    # schedule3
+    schedule3 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    override_data = {
+        "start": today + timezone.timedelta(hours=22),
+        "rotation_start": today + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule3,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[other_user]])
+    schedule3.refresh_ical_file()
+
+    schedules = OnCallSchedule.objects.related_to_user(user)
+    assert set(schedules) == {schedule1, schedule2}
 
 
 @pytest.mark.django_db
@@ -1246,3 +1358,248 @@ def test_upcoming_shift_for_user(
     current_shift, upcoming_shift = schedule.upcoming_shift_for_user(other_user)
     assert current_shift is None
     assert upcoming_shift is None
+
+
+@pytest.mark.django_db
+def test_refresh_ical_final_schedule_ok(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+    u2 = make_user_for_organization(organization)
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    shifts = (
+        # user, priority, start time (h), duration (seconds)
+        (u1, 1, 0, (12 * 60 * 60) - 1),  # r1-1: 0-11:59:59
+        (u2, 1, 12, (12 * 60 * 60) - 1),  # r1-1: 12-23:59:59
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+    override_data = {
+        "start": today + timezone.timedelta(hours=22),
+        "rotation_start": today + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[u1]])
+    schedule.refresh_ical_file()
+
+    expected_events = {
+        # user, start, end
+        (u1.username, today, today + timezone.timedelta(seconds=(12 * 60 * 60) - 1)),
+        (u2.username, today + timezone.timedelta(hours=12), today + timezone.timedelta(hours=22)),
+        (u1.username, today + timezone.timedelta(hours=22), today + timezone.timedelta(hours=23)),
+        (u2.username, today + timezone.timedelta(hours=23), today + timezone.timedelta(seconds=(24 * 60 * 60) - 1)),
+    }
+
+    for i in range(2):
+        # running multiple times keeps the same events in place
+        with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_AFTER", 1):
+            with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_BEFORE", 0):
+                schedule.refresh_ical_final_schedule()
+
+        assert schedule.cached_ical_final_schedule
+        calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
+        for component in calendar.walk():
+            if component.name == ICAL_COMPONENT_VEVENT:
+                event = (component[ICAL_SUMMARY], component[ICAL_DATETIME_START].dt, component[ICAL_DATETIME_END].dt)
+                assert event in expected_events
+
+
+@pytest.mark.django_db
+def test_refresh_ical_final_schedule_cancel_deleted_events(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+    u2 = make_user_for_organization(organization)
+
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    shifts = (
+        # user, priority, start time (h), duration (seconds)
+        (u1, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": tomorrow + timezone.timedelta(hours=start_h),
+            "rotation_start": tomorrow + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+    override_data = {
+        "start": tomorrow + timezone.timedelta(hours=22),
+        "rotation_start": tomorrow + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[u2]])
+
+    # refresh ical files
+    schedule.refresh_ical_file()
+    with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_AFTER", 1):
+        with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_BEFORE", 0):
+            schedule.refresh_ical_final_schedule()
+
+    # delete override, re-check the final refresh
+    override.delete()
+
+    # reload instance to avoid cached properties issue
+    schedule = OnCallScheduleWeb.objects.get(id=schedule.id)
+    schedule.refresh_ical_file()
+
+    with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_AFTER", 1):
+        with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_BEFORE", 0):
+            schedule.refresh_ical_final_schedule()
+
+    # check for deleted override
+    calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
+    for component in calendar.walk():
+        if component.name == ICAL_COMPONENT_VEVENT and component[ICAL_SUMMARY] == u2.username:
+            # check event is cancelled
+            assert component[ICAL_DATETIME_START].dt == component[ICAL_DATETIME_END].dt
+            assert component[ICAL_LAST_MODIFIED]
+            assert component[ICAL_STATUS] == ICAL_STATUS_CANCELLED
+
+
+@pytest.mark.django_db
+def test_refresh_ical_final_schedule_cancelled_not_updated(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+    u2 = make_user_for_organization(organization)
+    last_week = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timezone.timedelta(days=7)
+    last_week_timestamp = last_week.strftime("%Y%m%dT%H%M%S")
+    cached_ical_final_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID://Grafana Labs//Grafana On-Call//
+        CALSCALE:GREGORIAN
+        X-WR-CALNAME:Cup cut.
+        X-WR-TIMEZONE:UTC
+        BEGIN:VEVENT
+        SUMMARY:{}
+        DTSTART;VALUE=DATE-TIME:20220414T000000Z
+        DTEND;VALUE=DATE-TIME:20220414T000000Z
+        DTSTAMP;VALUE=DATE-TIME:20220414T190951Z
+        UID:O231U3VXVIYRX-202304140000-U5FWIHEASEWS2
+        LAST-MODIFIED;VALUE=DATE-TIME:20220414T190951Z
+        STATUS:CANCELLED
+        END:VEVENT
+        BEGIN:VEVENT
+        SUMMARY:{}
+        DTSTART;VALUE=DATE-TIME:{}Z
+        DTEND;VALUE=DATE-TIME:{}Z
+        DTSTAMP;VALUE=DATE-TIME:20230414T190951Z
+        UID:OBPQ1TI99E4DG-202304141200-U2G6RZQM3S3I9
+        LAST-MODIFIED;VALUE=DATE-TIME:{}Z
+        STATUS:CANCELLED
+        END:VEVENT
+        END:VCALENDAR
+    """.format(
+            u1.username, u2.username, last_week_timestamp, last_week_timestamp, last_week_timestamp
+        )
+    )
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        cached_ical_final_schedule=cached_ical_final_schedule,
+    )
+
+    schedule.refresh_ical_final_schedule()
+
+    # check old event is dropped, recent one is kept unchanged
+    event_count = 0
+    calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
+    for component in calendar.walk():
+        if component.name == ICAL_COMPONENT_VEVENT:
+            event_count += 1
+            if component[ICAL_SUMMARY] == u2.username:
+                # check event is unchanged
+                assert component[ICAL_DATETIME_START].dt == last_week
+                assert component[ICAL_DATETIME_END].dt == last_week
+                assert component[ICAL_LAST_MODIFIED].dt == last_week
+                assert component[ICAL_STATUS] == ICAL_STATUS_CANCELLED
+    assert event_count == 1
+
+
+@pytest.mark.django_db
+def test_refresh_ical_final_schedule_event_in_the_past(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+    cached_ical_final_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID://Grafana Labs//Grafana On-Call//
+        CALSCALE:GREGORIAN
+        X-WR-CALNAME:Cup cut.
+        X-WR-TIMEZONE:UTC
+        BEGIN:VEVENT
+        SUMMARY:{}
+        DTSTART;VALUE=DATE-TIME:20220414T000000Z
+        DTEND;VALUE=DATE-TIME:20220414T000000Z
+        DTSTAMP;VALUE=DATE-TIME:20220414T190951Z
+        UID:O231U3VXVIYRX-202304140000-U5FWIHEASEWS2
+        LAST-MODIFIED;VALUE=DATE-TIME:20220414T190951Z
+        END:VEVENT
+        END:VCALENDAR
+    """.format(
+            u1.username
+        )
+    )
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        cached_ical_final_schedule=cached_ical_final_schedule,
+    )
+
+    schedule.refresh_ical_final_schedule()
+
+    # check old event is dropped, recent one is kept unchanged
+    calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
+    events = [component for component in calendar.walk() if component.name == ICAL_COMPONENT_VEVENT]
+    assert len(events) == 0

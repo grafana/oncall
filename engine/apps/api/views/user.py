@@ -475,16 +475,26 @@ class UserView(
         schedules = OnCallSchedule.objects.related_to_user(user)
 
         # check upcoming shifts
-        upcoming = {}
+        upcoming = []
         for schedule in schedules:
             current_shift, upcoming_shift = schedule.upcoming_shift_for_user(user, days=days)
             if current_shift or upcoming_shift:
-                upcoming[schedule.public_primary_key] = {
-                    "schedule": schedule.name,
-                    "is_oncall": current_shift is not None,
-                    "current_shift": current_shift,
-                    "next_shift": upcoming_shift,
-                }
+                upcoming.append(
+                    {
+                        "schedule_id": schedule.public_primary_key,
+                        "schedule_name": schedule.name,
+                        "is_oncall": current_shift is not None,
+                        "current_shift": current_shift,
+                        "next_shift": upcoming_shift,
+                    }
+                )
+
+        # sort entries by start timestamp
+        def sorting_key(entry):
+            shift = entry["current_shift"] if entry["current_shift"] else entry["next_shift"]
+            return shift["start"]
+
+        upcoming.sort(key=sorting_key)
 
         return Response(upcoming, status=status.HTTP_200_OK)
 
