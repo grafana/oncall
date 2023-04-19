@@ -13,4 +13,9 @@ from .notify_about_gaps_in_schedule import (  # noqa: F401
     start_check_gaps_in_schedule,
     start_notify_about_gaps_in_schedule,
 )
-from .refresh_ical_files import refresh_ical_file, start_refresh_ical_files  # noqa: F401
+from .refresh_ical_files import (  # noqa: F401
+    refresh_ical_file,
+    refresh_ical_final_schedule,
+    start_refresh_ical_files,
+    start_refresh_ical_final_schedules,
+)
