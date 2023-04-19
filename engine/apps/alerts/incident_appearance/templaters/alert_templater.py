@@ -176,19 +176,22 @@ class AlertTemplater(ABC):
                 "grafana_oncall_link": self.link,
                 "amixr_link": self.link,  # Keep for backward compatibility
             }
-            if self._render_for() != "web":
+            # Hardcoding, as AlertWebTemplater.RENDER_FOR_WEB cause circular import
+            render_for_web = "web"
+            # Propagate rendered web templates to the other templates
+            if self._render_for() != render_for_web:
                 added_context = {
-                    "web_title_template": apply_jinja_template(
-                        self.template_manager.get_attr_template("title", channel, "web"),
+                    "web_title": apply_jinja_template(
+                        self.template_manager.get_attr_template("title", channel, render_for_web),
                         data,
                         result_length_limit=settings.JINJA_RESULT_TITLE_MAX_LENGTH,
                         **context,
                     ),
-                    "web_message_template": apply_jinja_template(
-                        self.template_manager.get_attr_template("message", channel, "web"), data, **context
+                    "web_message": apply_jinja_template(
+                        self.template_manager.get_attr_template("message", channel, render_for_web), data, **context
                     ),
-                    "web_image_url_template": apply_jinja_template(
-                        self.template_manager.get_attr_template("image_url", channel, "web"), data, **context
+                    "web_image_url": apply_jinja_template(
+                        self.template_manager.get_attr_template("image_url", channel, render_for_web), data, **context
                     ),
                 }
                 context = {**context, **added_context}
