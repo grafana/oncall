@@ -9,6 +9,7 @@ from apps.base.models import UserNotificationPolicyLogRecord
 from apps.public_api.serializers import IncidentSerializer
 from apps.webhooks.models import Webhook
 from apps.webhooks.tasks import execute_webhook, send_webhook_event
+from apps.webhooks.tasks.trigger_webhook import NOT_FROM_SELECTED_INTEGRATION
 
 
 class MockResponse:
@@ -39,7 +40,7 @@ def test_send_webhook_event_filters(
     other_team_webhook = make_custom_webhook(
         organization=organization, team=other_team, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE
     )
-    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_NEW)
+    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_FIRING)
 
     for trigger_type, _ in Webhook.TRIGGER_TYPES:
         with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
@@ -59,8 +60,74 @@ def test_send_webhook_event_filters(
     alert_receive_channel = make_alert_receive_channel(other_organization)
     alert_group = make_alert_group(alert_receive_channel)
     with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
-        send_webhook_event(Webhook.TRIGGER_NEW, alert_group.pk, organization_id=other_organization.pk)
+        send_webhook_event(Webhook.TRIGGER_FIRING, alert_group.pk, organization_id=other_organization.pk)
     assert mock_execute.call_args == call((other_org_webhook.pk, alert_group.pk, None, None))
+
+
+@pytest.mark.django_db
+def test_execute_webhook_disabled(
+    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_FIRING)
+    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_FIRING, is_webhook_enabled=False)
+
+    with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
+        send_webhook_event(Webhook.TRIGGER_FIRING, alert_group.pk, organization_id=organization.pk)
+    mock_execute.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_execute_webhook_integration_filter_not_matching(
+    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    webhook = make_custom_webhook(
+        organization=organization, trigger_type=Webhook.TRIGGER_FIRING, integration_filter=["does-not-match"]
+    )
+
+    with patch("apps.webhooks.models.webhook.requests") as mock_requests:
+        execute_webhook(webhook.pk, alert_group.pk, None, None)
+
+    assert not mock_requests.post.called
+    # check log should exist but have no status code
+    assert (
+        webhook.responses.count() == 1
+        and webhook.responses.first().status_code is None
+        and webhook.responses.first().request_trigger == NOT_FROM_SELECTED_INTEGRATION
+    )
+
+
+@pytest.mark.django_db
+def test_execute_webhook_integration_filter_matching(
+    make_organization, make_team, make_alert_receive_channel, make_alert_group, make_custom_webhook
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization, public_primary_key="test-integration-1")
+    alert_group = make_alert_group(alert_receive_channel)
+    webhook = make_custom_webhook(
+        organization=organization,
+        trigger_type=Webhook.TRIGGER_FIRING,
+        integration_filter=["test-integration-1"],
+        # Check we get past integration filter but exit early to keep test simple
+        trigger_template="False",
+    )
+
+    with patch("apps.webhooks.models.webhook.requests") as mock_requests:
+        execute_webhook(webhook.pk, alert_group.pk, None, None)
+
+    assert not mock_requests.post.called
+    # check log should exist but have no status code
+    assert (
+        webhook.responses.count() == 1
+        and webhook.responses.first().status_code is None
+        # Matches evaluated trigger_template
+        and webhook.responses.first().request_trigger == "False"
+    )
 
 
 @pytest.mark.django_db
@@ -282,20 +349,44 @@ def test_execute_webhook_using_responses_data(
     )
     webhook = make_custom_webhook(
         organization=organization,
-        url="https://something/{{ responses.firing.id }}/",
+        url='https://something/{{ responses["response-1"].id }}/',
         http_method="POST",
         trigger_type=Webhook.TRIGGER_RESOLVE,
-        data='{"value": "{{ responses.acknowledge.status }}"}',
+        data='{"value": "{{ responses["response-2"].status }}"}',
         forward_all=False,
     )
+
     # add previous webhook responses for the related alert group
     make_webhook_response(
-        alert_group=alert_group, trigger_type=Webhook.TRIGGER_NEW, content=json.dumps({"id": "third-party-id"})
+        alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-1",
+        ),
+        trigger_type=Webhook.TRIGGER_FIRING,
+        status_code=200,
+        content=json.dumps({"id": "third-party-id"}),
     )
     make_webhook_response(
         alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-2",
+        ),
         trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
+        status_code=200,
         content=json.dumps({"id": "third-party-id", "status": "updated"}),
+    )
+    # webhook wasn't executed because of some error, there is no content or status_code
+    make_webhook_response(
+        alert_group=alert_group,
+        webhook=make_custom_webhook(
+            organization=organization,
+            public_primary_key="response-3",
+        ),
+        trigger_type=Webhook.TRIGGER_SILENCE,
+        content=None,
+        status_code=None,
     )
 
     mock_response = MockResponse()
@@ -341,8 +432,8 @@ def test_execute_webhook_trigger_false(
         execute_webhook(webhook.pk, alert_group.pk, None, None)
 
     assert not mock_requests.post.called
-    # check no logs
-    assert webhook.responses.count() == 0
+    # check log should exist but have no status
+    assert webhook.responses.count() == 1 and webhook.responses.first().status_code is None
 
 
 @pytest.mark.django_db

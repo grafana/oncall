@@ -107,6 +107,7 @@ export const Root = observer((props: AppRootProps) => {
 
   const updateBasicData = async () => {
     await store.updateBasicData();
+    await store.alertGroupStore.fetchIRMPlan();
     setDidFinishLoading(true);
   };
 
@@ -127,7 +128,7 @@ export const Root = observer((props: AppRootProps) => {
     <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
-          <Header backendLicense={store.backendLicense} />
+          <Header />
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}

@@ -20,18 +20,21 @@ from apps.webhooks.utils import (
 )
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
+NOT_FROM_SELECTED_INTEGRATION = "Alert group was not from a selected integration"
+
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 TRIGGER_TYPE_TO_LABEL = {
-    Webhook.TRIGGER_NEW: "firing",
+    Webhook.TRIGGER_FIRING: "firing",
     Webhook.TRIGGER_ACKNOWLEDGE: "acknowledge",
     Webhook.TRIGGER_RESOLVE: "resolve",
     Webhook.TRIGGER_SILENCE: "silence",
     Webhook.TRIGGER_UNSILENCE: "unsilence",
     Webhook.TRIGGER_UNRESOLVE: "unresolve",
     Webhook.TRIGGER_ESCALATION_STEP: "escalation",
+    Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
 }
 
 
@@ -40,7 +43,9 @@ TRIGGER_TYPE_TO_LABEL = {
 )
 def send_webhook_event(trigger_type, alert_group_id, team_id=None, organization_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
-    webhooks_qs = Webhooks.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)
+    webhooks_qs = Webhooks.objects.filter(
+        trigger_type=trigger_type, organization_id=organization_id, team_id=team_id
+    ).exclude(is_webhook_enabled=False)
 
     for webhook in webhooks_qs:
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None))
@@ -50,11 +55,12 @@ def _isoformat_date(date_value):
     return date_value.isoformat() if date_value else None
 
 
-def _build_payload(trigger_type, alert_group, user):
+def _build_payload(webhook, alert_group, user):
+    trigger_type = webhook.trigger_type
     event = {
         "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
     }
-    if trigger_type == Webhook.TRIGGER_NEW:
+    if trigger_type == Webhook.TRIGGER_FIRING:
         event["time"] = _isoformat_date(alert_group.started_at)
     elif trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
         event["time"] = _isoformat_date(alert_group.acknowledged_at)
@@ -64,19 +70,74 @@ def _build_payload(trigger_type, alert_group, user):
         event["time"] = _isoformat_date(alert_group.silenced_at)
         event["until"] = _isoformat_date(alert_group.silenced_until)
 
-    # include latest response data per trigger in the event input data
+    # include latest response data per webhook in the event input data
+    # exclude past responses from webhook being executed
     responses_data = {}
-    responses = alert_group.webhook_responses.all().order_by("timestamp")
+    responses = (
+        alert_group.webhook_responses.all()
+        .exclude(webhook__public_primary_key=webhook.public_primary_key)
+        .order_by("-timestamp")
+    )
     for r in responses:
-        try:
-            response_data = r.json()
-        except JSONDecodeError:
-            response_data = r.content
-        responses_data[TRIGGER_TYPE_TO_LABEL[r.trigger_type]] = response_data
+        if r.webhook.public_primary_key not in responses_data:
+            try:
+                response_data = r.json()
+            except JSONDecodeError:
+                response_data = r.content
+            responses_data[r.webhook.public_primary_key] = response_data
 
     data = serialize_event(event, alert_group, user, responses_data)
 
     return data
+
+
+def make_request(webhook, alert_group, data):
+    status = {
+        "url": None,
+        "request_trigger": None,
+        "request_headers": None,
+        "request_data": data,
+        "status_code": None,
+        "content": None,
+        "webhook": webhook,
+    }
+
+    exception = error = None
+    try:
+        if not webhook.check_integration_filter(alert_group):
+            status["request_trigger"] = NOT_FROM_SELECTED_INTEGRATION
+            return status, None, None
+
+        triggered, status["request_trigger"] = webhook.check_trigger(data)
+        if triggered:
+            status["url"] = webhook.build_url(data)
+            request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
+            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
+            if "json" in request_kwargs:
+                status["request_data"] = json.dumps(request_kwargs["json"])
+            else:
+                status["request_data"] = request_kwargs.get("data")
+            response = webhook.make_request(status["url"], request_kwargs)
+            status["status_code"] = response.status_code
+            try:
+                status["content"] = json.dumps(response.json())
+            except JSONDecodeError:
+                status["content"] = response.content.decode("utf-8")
+        else:
+            return status, None, None
+    except InvalidWebhookUrl as e:
+        status["url"] = error = e.message
+    except InvalidWebhookTrigger as e:
+        status["request_trigger"] = error = e.message
+    except InvalidWebhookHeaders as e:
+        status["request_headers"] = error = e.message
+    except InvalidWebhookData as e:
+        status["request_data"] = error = e.message
+    except Exception as e:
+        status["content"] = error = str(e)
+        exception = e
+
+    return status, error, exception
 
 
 @shared_dedicated_queue_retry_task(
@@ -110,48 +171,8 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
     if user_id is not None:
         user = User.objects.filter(pk=user_id).first()
 
-    data = _build_payload(webhook.trigger_type, alert_group, user)
-    status = {
-        "url": None,
-        "request_trigger": None,
-        "request_headers": None,
-        "request_data": data,
-        "status_code": None,
-        "content": None,
-        "webhook": webhook,
-    }
-
-    exception = error = None
-    try:
-        triggered, status["request_trigger"] = webhook.check_trigger(data)
-        if triggered:
-            status["url"] = webhook.build_url(data)
-            request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
-            if "json" in request_kwargs:
-                status["request_data"] = json.dumps(request_kwargs["json"])
-            else:
-                status["request_data"] = request_kwargs.get("data")
-            response = webhook.make_request(status["url"], request_kwargs)
-            status["status_code"] = response.status_code
-            try:
-                status["content"] = json.dumps(response.json())
-            except JSONDecodeError:
-                status["content"] = response.content.decode("utf-8")
-        else:
-            # do not add a log entry if the webhook is not triggered
-            return
-    except InvalidWebhookUrl as e:
-        status["url"] = error = e.message
-    except InvalidWebhookTrigger as e:
-        status["request_trigger"] = error = e.message
-    except InvalidWebhookHeaders as e:
-        status["request_headers"] = error = e.message
-    except InvalidWebhookData as e:
-        status["request_data"] = error = e.message
-    except Exception as e:
-        status["content"] = error = str(e)
-        exception = e
+    data = _build_payload(webhook, alert_group, user)
+    status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry
     WebhookResponse.objects.create(
