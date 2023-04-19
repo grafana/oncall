@@ -1,16 +1,14 @@
 ---
-title: Export on-call schedules
-aliases:
-  - /docs/oncall/latest/calendar-schedules/web-schedule/calendar-export/
 canonical: https://grafana.com/docs/oncall/latest/calendar-schedules/web-schedule/calendar-export/
-description: "Learn how to export an on-call schedule from Grafana OnCall"
+description: Learn how to export an on-call schedule from Grafana OnCall
 keywords:
   - Grafana
   - oncall
   - on-call
   - calendar
-  - iCal export 
-weight: 500 
+  - iCal export
+title: Export on-call schedules
+weight: 500
 ---
 
 # Export on-call schedules

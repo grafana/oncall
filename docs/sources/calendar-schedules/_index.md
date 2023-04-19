@@ -1,14 +1,12 @@
 ---
-title: On-call schedules
-aliases:
-  - /docs/oncall/latest/calendar-schedules/
 canonical: https://grafana.com/docs/oncall/latest/calendar-schedules/
-description: "Learn more about on-call schedules"
+description: Learn more about on-call schedules
 keywords:
   - Grafana
   - oncall
   - schedule
   - calendar
+title: On-call schedules
 weight: 1100
 ---
 

@@ -1,7 +1,6 @@
 ---
 aliases:
   - ../integrations/create-custom-templates/
-  - /docs/oncall/latest/alert-behavior/alert-templates/
 canonical: https://grafana.com/docs/oncall/latest/alert-behavior/alert-templates/
 keywords:
   - Grafana Cloud

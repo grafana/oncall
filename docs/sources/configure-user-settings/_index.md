@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/configure-user-settings/
 canonical: https://grafana.com/docs/oncall/latest/configure-user-setting/
 keywords:
   - Grafana Cloud

@@ -1,14 +1,12 @@
 ---
-title: Web-based schedules
-aliases:
-  - /docs/oncall/latest/calendar-schedules/web-schedule/
 canonical: https://grafana.com/docs/oncall/latest/calendar-schedules/web-schedule/
-description: "Learn more about Grafana OnCalls built in schedule tool"
+description: Learn more about Grafana OnCalls built in schedule tool
 keywords:
   - Grafana
   - oncall
   - schedule
   - calendar
+title: Web-based schedules
 weight: 100
 ---
 

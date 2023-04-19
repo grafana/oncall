@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/escalation-policies/configure-escalation-chains/
 canonical: https://grafana.com/docs/oncall/latest/escalation-policies/configure-escalation-chains/
 keywords:
   - Grafana Cloud

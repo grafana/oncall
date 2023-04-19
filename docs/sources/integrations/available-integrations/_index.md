@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/integrations/available-integrations/
 canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/
 keywords:
   - Grafana Cloud

@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/escalation-policies/configure-routes/
 canonical: https://grafana.com/docs/oncall/latest/escalation-policies/configure-routes/
 keywords:
   - Grafana Cloud

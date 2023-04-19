@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/escalation-policies/
 canonical: https://grafana.com/docs/oncall/latest/escalation-policies/
 title: Escalation Chains and Routes
 weight: 700

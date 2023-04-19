@@ -1,15 +1,13 @@
 ---
-title: Create on-call schedules
-aliases:
-  - /docs/oncall/latest/calendar-schedules/web-schedule/create-schedule/
 canonical: https://grafana.com/docs/oncall/latest/calendar-schedules/web-schedule/create-schedule/
-description: "Create on-call schedules with Grafana OnCall"
+description: Create on-call schedules with Grafana OnCall
 keywords:
   - Grafana
   - oncall
   - on-call
   - schedule
   - calendar
+title: Create on-call schedules
 weight: 300
 ---
 

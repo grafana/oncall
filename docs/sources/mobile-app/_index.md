@@ -1,12 +1,10 @@
 ---
-title: Grafana OnCall mobile app
-aliases:
-  - /docs/oncall/latest/mobile-app/
 keywords:
   - Mobile App
   - oncall
   - notification
   - push notification
+title: Grafana OnCall mobile app
 weight: 1200
 ---
 

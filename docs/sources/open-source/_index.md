@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/open-source/
 keywords:
   - Open Source
 title: Open Source
