@@ -99,6 +99,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
 
     SELECT_RELATED = [
         "channel__organization",
+        "channel__team",
         "root_alert_group",
         "resolved_by_user",
         "acknowledged_by_user",
