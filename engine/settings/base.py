@@ -45,8 +45,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
 
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
-# TODO: update link to up-to-date docs
-DOCS_URL = "https://grafana.com/docs/grafana-cloud/oncall/"
+DOCS_URL = "https://grafana.com/docs/oncall/latest/"
 
 # Settings of running OnCall instance.
 BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
@@ -412,6 +411,11 @@ CELERY_BEAT_SCHEDULE = {
         # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
         # to something like 13 * 60 (every 13 minutes)
         "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "args": (),
+    },
+    "start_refresh_ical_final_schedules": {
+        "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
+        "schedule": crontab(minute=15, hour=0),
         "args": (),
     },
     "start_refresh_ical_files": {

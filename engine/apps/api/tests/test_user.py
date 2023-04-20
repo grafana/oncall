@@ -1716,19 +1716,20 @@ def test_upcoming_shifts_oncall(
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
 
     assert response.status_code == status.HTTP_200_OK
-    returned_data = response.data
-    assert returned_data[schedule.public_primary_key]["schedule"] == schedule.name
-    assert returned_data[schedule.public_primary_key]["is_oncall"]
-    assert returned_data[schedule.public_primary_key]["current_shift"]["start"] == on_call_shift.start
+    returned_data = response.data[0]
+    assert returned_data["schedule_id"] == schedule.public_primary_key
+    assert returned_data["schedule_name"] == schedule.name
+    assert returned_data["is_oncall"]
+    assert returned_data["current_shift"]["start"] == on_call_shift.start
     next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
-    assert returned_data[schedule.public_primary_key]["next_shift"]["start"] == next_shift_start
+    assert returned_data["next_shift"]["start"] == next_shift_start
 
     # empty response for other user
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": other_user.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == {}
+    assert response.data == []
 
 
 @pytest.mark.django_db
@@ -1748,11 +1749,11 @@ def test_upcoming_shifts_override(
         organization,
         schedule_class=OnCallScheduleWeb,
     )
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
 
     override_data = {
-        "start": today + timezone.timedelta(hours=22),
-        "rotation_start": today + timezone.timedelta(hours=22),
+        "start": tomorrow + timezone.timedelta(hours=22),
+        "rotation_start": tomorrow + timezone.timedelta(hours=22),
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }
@@ -1768,11 +1769,12 @@ def test_upcoming_shifts_override(
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
 
     assert response.status_code == status.HTTP_200_OK
-    returned_data = response.data
-    assert returned_data[schedule.public_primary_key]["schedule"] == schedule.name
-    assert returned_data[schedule.public_primary_key]["is_oncall"] is False
-    assert returned_data[schedule.public_primary_key]["current_shift"] is None
-    assert returned_data[schedule.public_primary_key]["next_shift"]["start"] == override.start
+    returned_data = response.data[0]
+    assert returned_data["schedule_id"] == schedule.public_primary_key
+    assert returned_data["schedule_name"] == schedule.name
+    assert returned_data["is_oncall"] is False
+    assert returned_data["current_shift"] is None
+    assert returned_data["next_shift"]["start"] == override.start
 
 
 @pytest.mark.django_db
@@ -1789,7 +1791,8 @@ def test_upcoming_shifts_multiple_schedules(
     _, token = make_token_for_organization(organization)
 
     schedules = []
-    for i in range(3):
+    # create schedules in a reversed order to check the output is sorted later
+    for i in range(2, -1, -1):
         schedule = make_schedule(
             organization,
             schedule_class=OnCallScheduleWeb,
@@ -1822,16 +1825,14 @@ def test_upcoming_shifts_multiple_schedules(
 
     assert response.status_code == status.HTTP_200_OK
     returned_data = response.data
-    for i, schedule in enumerate(schedules):
-        assert returned_data[schedule.public_primary_key]["schedule"] == schedule.name
+    for i, schedule in enumerate(reversed(schedules)):
+        assert returned_data[i]["schedule_name"] == schedule.name
         expected_start = today + timezone.timedelta(hours=start_h) + timezone.timedelta(days=i)
         if i == 0:
-            assert returned_data[schedule.public_primary_key]["is_oncall"]
-            assert returned_data[schedule.public_primary_key]["current_shift"]["start"] == expected_start
-            assert returned_data[schedule.public_primary_key]["next_shift"][
-                "start"
-            ] == expected_start + timezone.timedelta(days=1)
+            assert returned_data[i]["is_oncall"]
+            assert returned_data[i]["current_shift"]["start"] == expected_start
+            assert returned_data[i]["next_shift"]["start"] == expected_start + timezone.timedelta(days=1)
         else:
-            assert returned_data[schedule.public_primary_key]["is_oncall"] is False
-            assert returned_data[schedule.public_primary_key]["current_shift"] is None
-            assert returned_data[schedule.public_primary_key]["next_shift"]["start"] == expected_start
+            assert returned_data[i]["is_oncall"] is False
+            assert returned_data[i]["current_shift"] is None
+            assert returned_data[i]["next_shift"]["start"] == expected_start

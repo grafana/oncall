@@ -11,6 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Limit number of alertmanager alerts in alert group to autoresolveby 500 ([1779](https://github.com/grafana/oncall/pull/1779))
 
+### Fixed
+
+- Helm chart: Fix helm hook for db migration job
+
+## v1.2.14 (2023-04-19)
+
+### Fixed
+
+- Fix broken documentation links by @shantanualsi ([#1766](https://github.com/grafana/oncall/pull/1766))
+- Fix bug when updating team access settings by @vadimkerr ([#1794](https://github.com/grafana/oncall/pull/1794))
+
+## v1.2.13 (2023-04-18)
+
+### Changed
+
+- Rework ical schedule export to include final events; also improve changing shifts sync
+
+### Fixed
+
+- Fix issue when creating web overrides for TF schedules using a non-UTC timezone
 
 ## v1.2.12 (2023-04-18)
 
@@ -40,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `alert_group_created_signal` when a new Alert Group is created
 
 ## v1.2.10 (2023-04-13)
+
+### Added
+
+- Added mine filter to schedules listing
 
 ### Fixed
 

@@ -121,7 +121,7 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateItems(
-    f: SchedulesFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
+    f: SchedulesFiltersType | string = { searchTerm: '', type: undefined, used: undefined, mine: undefined },
     page = 1,
     shouldUpdateFn: () => boolean = undefined
   ) {

@@ -20,6 +20,8 @@ from apps.webhooks.utils import (
 )
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
+NOT_FROM_SELECTED_INTEGRATION = "Alert group was not from a selected integration"
+
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -32,6 +34,7 @@ TRIGGER_TYPE_TO_LABEL = {
     Webhook.TRIGGER_UNSILENCE: "unsilence",
     Webhook.TRIGGER_UNRESOLVE: "unresolve",
     Webhook.TRIGGER_ESCALATION_STEP: "escalation",
+    Webhook.TRIGGER_UNACKNOWLEDGE: "unacknowledge",
 }
 
 
@@ -102,7 +105,7 @@ def make_request(webhook, alert_group, data):
     exception = error = None
     try:
         if not webhook.check_integration_filter(alert_group):
-            status["request_trigger"] = f"Alert group was not from a selected integration"
+            status["request_trigger"] = NOT_FROM_SELECTED_INTEGRATION
             return status, None, None
 
         triggered, status["request_trigger"] = webhook.check_trigger(data)

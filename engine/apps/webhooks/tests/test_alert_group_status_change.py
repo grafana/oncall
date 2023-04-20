@@ -67,6 +67,7 @@ def test_alert_group_created_does_not_exist(make_organization, make_custom_webho
         (AlertGroupLogRecord.TYPE_SILENCE, Webhook.TRIGGER_SILENCE),
         (AlertGroupLogRecord.TYPE_UN_SILENCE, Webhook.TRIGGER_UNSILENCE),
         (AlertGroupLogRecord.TYPE_UN_RESOLVED, Webhook.TRIGGER_UNRESOLVE),
+        (AlertGroupLogRecord.TYPE_UN_ACK, Webhook.TRIGGER_UNACKNOWLEDGE),
     ],
 )
 def test_alert_group_status_change(
