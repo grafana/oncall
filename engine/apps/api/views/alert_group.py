@@ -192,7 +192,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
 
 
 class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
-    TEAM_LOOKUP = "channel__team"
+    TEAM_LOOKUP = "team"
 
     def retrieve(self, request, *args, **kwargs):
         try:
