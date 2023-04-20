@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.2.15 (2023-04-24)
 
+### Changed
+
+- Update schedule and personal ical exports to use final shift events
+
 ### Fixed
 
 - Helm chart: Fix helm hook for db migration job
