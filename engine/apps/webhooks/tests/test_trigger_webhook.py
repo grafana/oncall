@@ -316,6 +316,7 @@ def test_execute_webhook_ok_forward_all(
         "alert_group": IncidentSerializer(alert_group).data,
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": "",
+        "users_to_be_notified": [],
     }
     expected_call = call(
         "https://something/{}/".format(alert_group.public_primary_key),
