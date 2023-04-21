@@ -179,6 +179,88 @@ def test_create_on_call_shift(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
+def test_create_on_call_shift_using_default_interval(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = datetime.datetime.now()
+    until = start + datetime.timedelta(days=30)
+    data = {
+        "team_id": None,
+        "name": "test name",
+        "type": "recurrent_event",
+        "level": 1,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 10800,
+        "users": [user.public_primary_key],
+        "week_start": "MO",
+        "frequency": "weekly",
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
+        "by_day": ["MO", "WE", "FR"],
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    on_call_shift = CustomOnCallShift.objects.get(public_primary_key=response.data["id"])
+
+    expected = {
+        "id": on_call_shift.public_primary_key,
+        "team_id": None,
+        "name": data["name"],
+        "type": "recurrent_event",
+        "time_zone": None,
+        "level": data["level"],
+        "start": data["start"],
+        "rotation_start": data["rotation_start"],
+        "duration": data["duration"],
+        "frequency": data["frequency"],
+        "interval": 1,
+        "until": data["until"],
+        "week_start": data["week_start"],
+        "by_day": data["by_day"],
+        "users": [user.public_primary_key],
+        "by_month": None,
+        "by_monthday": None,
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data == expected
+
+
+@pytest.mark.django_db
+def test_create_on_call_shift_using_none_interval_fails(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = datetime.datetime.now()
+    until = start + datetime.timedelta(days=30)
+    data = {
+        "team_id": None,
+        "name": "test name",
+        "type": "recurrent_event",
+        "level": 1,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 10800,
+        "users": [user.public_primary_key],
+        "week_start": "MO",
+        "frequency": "weekly",
+        "interval": None,
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
+        "by_day": ["MO", "WE", "FR"],
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Field 'interval' must be a positive integer"}
+
+
+@pytest.mark.django_db
 def test_create_override_on_call_shift(make_organization_and_user_with_token):
     _, user, token = make_organization_and_user_with_token()
     client = APIClient()
