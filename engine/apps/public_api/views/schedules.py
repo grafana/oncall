@@ -38,7 +38,12 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
     def get_queryset(self):
         name = self.request.query_params.get("name", None)
 
-        queryset = OnCallSchedule.objects.filter(organization=self.request.auth.organization)
+        queryset = OnCallSchedule.objects.filter(organization=self.request.auth.organization).defer(
+            # avoid requesting large text fields which are not used when listing schedules
+            "prev_ical_file_primary",
+            "prev_ical_file_overrides",
+            "cached_ical_final_schedule",
+        )
 
         if name is not None:
             queryset = queryset.filter(name=name)

@@ -32,10 +32,6 @@ sms_title = web_title
 
 phone_call_title = sms_title
 
-email_title = web_title
-
-email_message = web_message
-
 telegram_title = sms_title
 
 telegram_message = slack_message

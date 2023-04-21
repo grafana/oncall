@@ -1,5 +1,5 @@
 $padding: 8px;
-$width: 280px;
+$width: 340px;
 
 .root {
   width: $width;
@@ -53,7 +53,7 @@ $width: 280px;
   padding-left: 24px;
 }
 
-.email {
+.username {
   max-width: calc($width - $padding);
   white-space: nowrap;
   text-overflow: ellipsis;

@@ -103,11 +103,12 @@ const TelegramModal = (props: TelegramModalProps) => {
           <Text type="primary">Sign Messages</Text> in settings.
         </Text>
         <Text type="secondary">
-          2. Create a new <Text type="primary">Discussion group</Text>. This group handles alert actions and comments.{' '}
+          2. Create a new <Text type="primary">Discussion group</Text>. This group handles alert actions, comments and
+          must be unique for each OnCall telegram channel.{' '}
         </Text>
         <Text type="secondary">
           3. Connect the discussion group with the channel. In <Text type="primary">Manage Channel</Text>, click{' '}
-          <Text type="primary">Discussion</Text> to find and add your group.{' '}
+          <Text type="primary">Discussion</Text> to find and add the freshly created group.{' '}
         </Text>
         <Text type="secondary">
           4. Go to{' '}

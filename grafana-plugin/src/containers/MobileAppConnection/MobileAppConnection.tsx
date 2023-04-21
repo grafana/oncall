@@ -13,7 +13,6 @@ import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -40,20 +39,25 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   // Show link to cloud page for OSS instances with no cloud connection
   if (store.hasFeature(AppFeature.CloudConnection) && !cloudStore.cloudConnectionStatus.cloud_connection_status) {
     return (
-      <VerticalGroup spacing="lg">
-        <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
-        <WithPermissionControlDisplay
-          userAction={UserActions.OtherSettingsWrite}
-          message="You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
+      <WithPermissionControlDisplay
+        userAction={UserActions.UserSettingsWrite}
+        message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
+      >
+        <VerticalGroup spacing="lg">
+          <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
+          <WithPermissionControlDisplay
+            userAction={UserActions.OtherSettingsWrite}
+            message="You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
             permissions."
-        >
-          <PluginLink query={{ page: 'cloud' }}>
-            <Button variant="secondary" icon="external-link-alt">
-              Connect Cloud OnCall
-            </Button>
-          </PluginLink>
-        </WithPermissionControlDisplay>
-      </VerticalGroup>
+          >
+            <PluginLink query={{ page: 'cloud' }}>
+              <Button variant="secondary" icon="external-link-alt">
+                Connect Cloud OnCall
+              </Button>
+            </PluginLink>
+          </WithPermissionControlDisplay>
+        </VerticalGroup>
+      </WithPermissionControlDisplay>
     );
   }
 
@@ -166,7 +170,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
-        {store.backendLicense === GRAFANA_LICENSE_OSS && QRCodeDataParsed && (
+        {store.isOpenSource() && QRCodeDataParsed && (
           <Text type="secondary">
             Server URL embedded in this QR:
             <br />
@@ -180,14 +184,19 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   return (
-    <div className={cx('container')}>
-      <Block shadowed bordered withBackground className={cx('container__box')}>
-        <DownloadIcons />
-      </Block>
-      <Block shadowed bordered withBackground className={cx('container__box')}>
-        {content}
-      </Block>
-    </div>
+    <WithPermissionControlDisplay
+      userAction={UserActions.UserSettingsWrite}
+      message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
+    >
+      <div className={cx('container')}>
+        <Block shadowed bordered withBackground className={cx('container__box')}>
+          <DownloadIcons />
+        </Block>
+        <Block shadowed bordered withBackground className={cx('container__box')}>
+          {content}
+        </Block>
+      </div>
+    </WithPermissionControlDisplay>
   );
 
   function getParsedQRCodeValue() {

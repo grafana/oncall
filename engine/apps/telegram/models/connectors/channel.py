@@ -10,7 +10,7 @@ from telegram import error
 from apps.alerts.models import AlertGroup
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramMessage
-from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ class TelegramToOrganizationConnector(models.Model):
         write_chatops_insight_log(
             author=author,
             event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
-            chatops_type=ChatOpsType.TELEGRAM,
+            chatops_type=ChatOpsTypePlug.TELEGRAM.value,
             prev_channel=old_default_channel.channel_name if old_default_channel else None,
             new_channel=self.channel_name,
         )

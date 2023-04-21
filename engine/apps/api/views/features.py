@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.webhooks.utils import is_webhooks_enabled_for_organization
 
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
@@ -12,6 +13,7 @@ FEATURE_LIVE_SETTINGS = "live_settings"
 FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 FEATURE_WEB_SCHEDULES = "web_schedules"
+FEATURE_WEBHOOKS2 = "webhooks2"
 
 
 class FeaturesAPIView(APIView):
@@ -57,5 +59,8 @@ class FeaturesAPIView(APIView):
             )[0]
             if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
                 enabled_features.append(FEATURE_WEB_SCHEDULES)
+
+        if is_webhooks_enabled_for_organization(request.auth.organization.pk):
+            enabled_features.append(FEATURE_WEBHOOKS2)
 
         return enabled_features

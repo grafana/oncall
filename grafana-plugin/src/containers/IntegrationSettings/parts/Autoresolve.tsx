@@ -34,7 +34,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceiveChannelId];
 
-  const [teamId, setTeamId] = useState<Team['pk']>(currentTeam);
+  const [teamId, setTeamId] = useState<Team['pk']>(alertReceiveChannel.team);
   const [showSaveConfirmationModal, setShowSaveConfirmationModal] = useState<boolean>(false);
   const [autoresolveChanged, setAutoresolveChanged] = useState<boolean>(false);
   const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannel?.allow_source_based_resolving);
@@ -125,27 +125,32 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           <Label>
             <div className={cx('settings-label')}>
               OnCall team
-              <Text type="secondary">Which team should this integration belong to?</Text>
+              <Text type="secondary">
+                {'Assigning to the teams allows you to filter Integrations and configure their visibility.'}
+                {'Go to OnCall -> Settings -> Team and Access Settings for more details'}
+              </Text>
             </div>
           </Label>
-          <GSelect
-            modelName="grafanaTeamStore"
-            displayField="name"
-            valueField="id"
-            showSearch
-            allowClear
-            placeholder="Select a team"
-            className={cx('team-select')}
-            onChange={handleChangeTeam}
-            value={teamId}
-            showError={showErrorOnTeamSelect}
-          />
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+            <GSelect
+              modelName="grafanaTeamStore"
+              displayField="name"
+              valueField="id"
+              showSearch
+              allowClear
+              placeholder="Select a team"
+              className={cx('team-select')}
+              onChange={handleChangeTeam}
+              value={teamId}
+              showError={showErrorOnTeamSelect}
+            />
+          </WithPermissionControlTooltip>
         </div>
         <div className={cx('border-container')}>
           <Label>
             <div className={cx('settings-label')}>
               Autoresolve
-              <Text type="secondary">How should this integration resolve incidents?</Text>
+              <Text type="secondary">How should this integration resolve alert groups?</Text>
             </div>
           </Label>
           <div className={cx('team-select')}>
@@ -167,9 +172,9 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           {autoresolveSelected && (
             <>
               <Block shadowed bordered className={cx('autoresolve-block')}>
-                <div>
+                <div className={cx('autoresolve-div')}>
                   <Text type="secondary" size="small">
-                    <Icon name="info-circle" /> Incident will be automatically resolved when it matches{' '}
+                    <Icon name="info-circle" /> Alert group will be automatically resolved when it matches{' '}
                   </Text>
                   <Button fill="text" size="sm" onClick={handleGoToTemplateSettingsCllick}>
                     autoresolve condition
@@ -193,9 +198,11 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           )}
         </div>
         <div className={cx('team-select-actionbuttons')}>
-          <Button variant="primary" onClick={handleSaveClick}>
-            Save changes
-          </Button>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+            <Button variant="primary" onClick={handleSaveClick}>
+              Save changes
+            </Button>
+          </WithPermissionControlTooltip>
         </div>
       </Block>
       {showSaveConfirmationModal && (
@@ -205,15 +212,10 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           onDismiss={() => setShowSaveConfirmationModal(false)}
         >
           <div className={cx('root')}>
-            <Alert title="When changing the onCall team" severity="info">
+            <Alert title="When changing assigned team for the integration" severity="info">
               <ul>
-                <li>
-                  If this integration is linked to multiple escalation chains belonging to its current team, you cannot
-                  move it.
-                </li>
-                <li>If this integration is linked to users belonging to its current team, you cannot move it.</li>
-                <li>The selected schedule will remain the same, even if it’s from another team.</li>
-                <li>Any outgoing webhooks will remain the same, even if it’s from another team.</li>
+                <li>Alert Groups will move to the new team</li>
+                <li>Escalation Chains will remain assigned to their teams</li>
               </ul>
             </Alert>
             <div className={cx('confirmation-buttons')}>

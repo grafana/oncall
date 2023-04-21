@@ -101,7 +101,7 @@ const IncidentMatcher = observer((props: IncidentMatcherProps) => {
           {selectedAlertItem ? (
             <SourceCode noMaxHeight>{JSON.stringify(selectedAlertItem, null, 2)}</SourceCode>
           ) : (
-            <Text type="secondary">← Select incident first</Text>
+            <Text type="secondary">← Select alert group first</Text>
           )}
         </div>
       </div>

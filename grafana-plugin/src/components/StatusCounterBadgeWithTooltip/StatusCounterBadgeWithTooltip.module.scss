@@ -1,0 +1,35 @@
+.element {
+  font-size: 12px;
+  line-height: 16px;
+  padding: 3px 4px;
+
+  &--link {
+    background: rgba(27, 133, 94, 0.15);
+    border: 1px solid var(--tag-border-success);
+    border-radius: 2px;
+  }
+
+  &--warning {
+    background: rgba(245, 183, 61, 0.18);
+    border: 1px solid var(--tag-border-warning);
+    border-radius: 2px;
+  }
+
+  &--padding {
+    padding: 3px 10px;
+  }
+}
+
+.element__text--link,
+.element__icon--link {
+  color: var(--tag-text-success);
+}
+
+.element__text--warning,
+.element__icon--warning {
+  color: var(--tag-text-warning);
+}
+
+.tooltip {
+  width: auto;
+}

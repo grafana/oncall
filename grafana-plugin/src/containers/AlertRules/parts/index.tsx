@@ -6,6 +6,7 @@ import Timeline from 'components/Timeline/Timeline';
 import SlackConnector from 'containers/AlertRules/parts/connectors/SlackConnector';
 import TelegramConnector from 'containers/AlertRules/parts/connectors/TelegramConnector';
 import { ChannelFilter } from 'models/channel_filter';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
 
@@ -20,7 +21,8 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   const { telegramChannelStore } = store;
 
   const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
-  const isTelegramInstalled = Boolean(telegramChannelStore.currentTeamToTelegramChannel?.length > 0);
+  const isTelegramInstalled =
+    store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
 
   if (!isSlackInstalled && !isTelegramInstalled) {
     return null;

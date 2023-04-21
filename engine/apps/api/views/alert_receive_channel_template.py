@@ -6,12 +6,13 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import AlertReceiveChannelTemplatesSerializer
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 
 
 class AlertReceiveChannelTemplateView(
+    TeamFilteringMixin,
     PublicPrimaryKeyMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -31,11 +32,13 @@ class AlertReceiveChannelTemplateView(
     model = AlertReceiveChannel
     serializer_class = AlertReceiveChannelTemplatesSerializer
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         queryset = AlertReceiveChannel.objects.filter(
             organization=self.request.auth.organization,
-            team=self.request.user.current_team,
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
+
         return queryset
 
     def update(self, request, *args, **kwargs):

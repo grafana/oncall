@@ -12,6 +12,7 @@ import { CloudStore } from 'models/cloud/cloud';
 import { DirectPagingStore } from 'models/direct_paging/direct_paging';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
+import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
@@ -32,6 +33,7 @@ import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 // ------ Dashboard ------ //
 
@@ -61,9 +63,6 @@ export class RootBaseStore {
 
   @observable
   selectedAlertReceiveChannel?: AlertReceiveChannel['id'];
-
-  @observable
-  isLess1280: boolean;
 
   @observable
   features?: { [key: string]: boolean };
@@ -103,6 +102,7 @@ export class RootBaseStore {
   apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
   OrganizationLogStore: OrganizationLogStore = new OrganizationLogStore(this);
   globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
+  filtersStore: FiltersStore = new FiltersStore(this);
   // stores
 
   async updateBasicData() {
@@ -216,6 +216,10 @@ export class RootBaseStore {
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only
     return this.features?.[feature];
+  }
+
+  isOpenSource(): boolean {
+    return this.backendLicense === GRAFANA_LICENSE_OSS;
   }
 
   @observable

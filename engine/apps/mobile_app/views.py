@@ -1,11 +1,13 @@
 from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
-from apps.mobile_app.models import MobileAppAuthToken
+from apps.mobile_app.models import MobileAppAuthToken, MobileAppUserSettings
+from apps.mobile_app.serializers import MobileAppUserSettingsSerializer
 
 
 class FCMDeviceAuthorizedViewSet(BaseFCMDeviceAuthorizedViewSet):
@@ -50,3 +52,13 @@ class MobileAppAuthTokenAPIView(APIView):
             raise NotFound
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MobileAppUserSettingsAPIView(generics.RetrieveUpdateAPIView):
+    authentication_classes = (MobileAppAuthTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MobileAppUserSettingsSerializer
+
+    def get_object(self):
+        mobile_app_settings, _ = MobileAppUserSettings.objects.get_or_create(user=self.request.user)
+        return mobile_app_settings

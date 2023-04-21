@@ -116,7 +116,7 @@ class SlackMessage(models.Model):
 
         slack_user_identity = user.slack_user_identity
         if slack_user_identity is None:
-            text = "{}\nTried to invite {} to look at incident. Unfortunately {} is not in slack.".format(
+            text = "{}\nTried to invite {} to look at the alert group. Unfortunately {} is not in slack.".format(
                 alert_group.long_verbose_name, user_verbal, user_verbal
             )
 
@@ -131,7 +131,7 @@ class SlackMessage(models.Model):
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_SLACK,
             ).save()
         else:
-            text = "{}\nInviting {} to look at incident.".format(alert_group.long_verbose_name, user_verbal)
+            text = "{}\nInviting {} to look at the alert group.".format(alert_group.long_verbose_name, user_verbal)
 
         blocks = [
             {

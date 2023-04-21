@@ -2,6 +2,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.utils import CurrentTeamDefault
 
 
 class UserReferenceSerializer(serializers.Serializer):
@@ -48,6 +50,8 @@ class DirectPagingSerializer(serializers.Serializer):
 
     title = serializers.CharField(required=False, default=None)
     message = serializers.CharField(required=False, default=None)
+
+    team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
 
     def validate(self, attrs):
         organization = self.context["organization"]

@@ -13,12 +13,13 @@ from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django_deprecate_fields import deprecate_field
 
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
-from apps.alerts.signals import alert_group_action_triggered_signal
+from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
 from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
@@ -87,10 +88,11 @@ class AlertGroupQuerySet(models.QuerySet):
 
         # Create a new group if we couldn't group it to any existing ones
         try:
-            return (
-                self.create(**search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache),
-                True,
+            alert_group = self.create(
+                **search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache
             )
+            alert_group_created_signal.send(sender=self.__class__, alert_group=alert_group)
+            return (alert_group, True)
         except IntegrityError:
             try:
                 return self.get(**search_params, is_open_for_grouping__isnull=False), False
@@ -336,7 +338,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     maintenance_uuid = models.CharField(max_length=100, unique=True, null=True, default=None)
 
     raw_escalation_snapshot = JSONField(null=True, default=None)
-    estimate_escalation_finish_time = models.DateTimeField(null=True, default=None)
+
+    # THIS FIELD IS DEPRECATED AND SHOULD EVENTUALLY BE REMOVED
+    estimate_escalation_finish_time = deprecate_field(models.DateTimeField(null=True, default=None))
 
     # This field is used for constraints so we can use get_or_create() in concurrent calls
     # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#get-or-create
@@ -347,6 +351,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # We just don't care about that because we'll use only get_or_create(...is_open_for_grouping=True...)
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
+
+    @property
+    def is_restricted(self):
+        integration_restricted_at = self.channel.restricted_at
+        if integration_restricted_at is None:
+            return False
+        return self.started_at >= integration_restricted_at
 
     @staticmethod
     def get_silenced_state_filter():
@@ -471,7 +482,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def web_link(self) -> str:
-        return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
+        return urljoin(self.channel.organization.web_link, f"alert-groups/{self.public_primary_key}")
 
     @property
     def declare_incident_link(self) -> str:
@@ -1464,14 +1475,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def start_unsilence_task(self, countdown):
         task_id = celery_uuid()
         self.unsilence_task_uuid = task_id
-
-        # recalculate finish escalation time
-        escalation_start_time = timezone.now() + timezone.timedelta(seconds=countdown)
-        self.estimate_escalation_finish_time = self.calculate_eta_for_finish_escalation(
-            start_time=escalation_start_time
-        )
-
-        self.save(update_fields=["unsilence_task_uuid", "estimate_escalation_finish_time"])
+        self.save(update_fields=["unsilence_task_uuid"])
         unsilence_task.apply_async((self.pk,), task_id=task_id, countdown=countdown)
 
     @property

@@ -1,6 +1,9 @@
 import datetime
 import functools
 import itertools
+from collections import defaultdict
+from enum import Enum
+from typing import Iterable, Optional, TypedDict
 
 import icalendar
 import pytz
@@ -8,6 +11,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -15,7 +19,21 @@ from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 from polymorphic.query import PolymorphicQuerySet
 
+from apps.schedules.constants import (
+    EXPORT_WINDOW_DAYS_AFTER,
+    EXPORT_WINDOW_DAYS_BEFORE,
+    ICAL_COMPONENT_VEVENT,
+    ICAL_DATETIME_END,
+    ICAL_DATETIME_STAMP,
+    ICAL_DATETIME_START,
+    ICAL_LAST_MODIFIED,
+    ICAL_STATUS,
+    ICAL_STATUS_CANCELLED,
+    ICAL_SUMMARY,
+    ICAL_UID,
+)
 from apps.schedules.ical_utils import (
+    create_base_icalendar,
     fetch_ical_file_or_get_error,
     get_oncall_users_for_multiple_schedules,
     list_of_empty_shifts_in_schedule,
@@ -23,7 +41,32 @@ from apps.schedules.ical_utils import (
     list_of_oncall_shifts_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
+from apps.user_management.models import User
+from common.database import NON_POLYMORPHIC_CASCADE, NON_POLYMORPHIC_SET_NULL
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+
+# Utility classes for schedule quality report
+class QualityReportCommentType(str, Enum):
+    INFO = "info"
+    WARNING = "warning"
+
+
+class QualityReportComment(TypedDict):
+    type: QualityReportCommentType
+    text: str
+
+
+class QualityReportOverloadedUser(TypedDict):
+    id: str
+    username: str
+    score: int
+
+
+class QualityReport(TypedDict):
+    total_score: int
+    comments: list[QualityReportComment]
+    overloaded_users: list[QualityReportOverloadedUser]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():
@@ -43,6 +86,16 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
         return get_oncall_users_for_multiple_schedules(self, events_datetime)
+
+    def related_to_user(self, user):
+        username_regex = r"SUMMARY:(\[L[0-9]+\] )?{}".format(user.username)
+        return self.filter(
+            Q(cached_ical_file_primary__regex=username_regex)
+            | Q(cached_ical_file_primary__contains=user.email)
+            | Q(cached_ical_file_overrides__regex=username_regex)
+            | Q(cached_ical_file_overrides__contains=user.email),
+            organization=user.organization,
+        )
 
 
 class OnCallSchedule(PolymorphicModel):
@@ -68,13 +121,15 @@ class OnCallSchedule(PolymorphicModel):
     cached_ical_file_overrides = models.TextField(null=True, default=None)
     prev_ical_file_overrides = models.TextField(null=True, default=None)
 
+    cached_ical_final_schedule = models.TextField(null=True, default=None)
+
     organization = models.ForeignKey(
-        "user_management.Organization", on_delete=models.CASCADE, related_name="oncall_schedules"
+        "user_management.Organization", on_delete=NON_POLYMORPHIC_CASCADE, related_name="oncall_schedules"
     )
 
     team = models.ForeignKey(
         "user_management.Team",
-        on_delete=models.SET_NULL,
+        on_delete=NON_POLYMORPHIC_SET_NULL,
         related_name="oncall_schedules",
         null=True,
         default=None,
@@ -85,7 +140,7 @@ class OnCallSchedule(PolymorphicModel):
 
     # Slack user group to be updated when on-call users change for this schedule
     user_group = models.ForeignKey(
-        to="slack.SlackUserGroup", null=True, on_delete=models.SET_NULL, related_name="oncall_schedules"
+        to="slack.SlackUserGroup", null=True, on_delete=NON_POLYMORPHIC_SET_NULL, related_name="oncall_schedules"
     )
 
     # schedule reminder related fields
@@ -256,6 +311,209 @@ class OnCallSchedule(PolymorphicModel):
         events = self._resolve_schedule(events)
         return events
 
+    def refresh_ical_final_schedule(self):
+        # TODO: check flag?
+        tz = "UTC"
+        now = timezone.now()
+        # window to consider: from now, -15 days + 6 months
+        delta = EXPORT_WINDOW_DAYS_BEFORE
+        starting_datetime = now - timezone.timedelta(days=delta)
+        starting_date = starting_datetime.date()
+        days = EXPORT_WINDOW_DAYS_AFTER + delta
+
+        # setup calendar with final schedule shift events
+        calendar = create_base_icalendar(self.name)
+        events = self.final_events(tz, starting_date, days)
+        updated_ids = set()
+        for e in events:
+            for u in e["users"]:
+                event = icalendar.Event()
+                event.add(ICAL_SUMMARY, u["display_name"])
+                event.add(ICAL_DATETIME_START, e["start"])
+                event.add(ICAL_DATETIME_END, e["end"])
+                event.add(ICAL_DATETIME_STAMP, now)
+                event.add(ICAL_LAST_MODIFIED, now)
+                event_uid = "{}-{}-{}".format(e["shift"]["pk"], e["start"].strftime("%Y%m%d%H%S"), u["pk"])
+                event[ICAL_UID] = event_uid
+                calendar.add_component(event)
+                updated_ids.add(event_uid)
+
+        # check previously cached final schedule for potentially cancelled events
+        if self.cached_ical_final_schedule:
+            previous = icalendar.Calendar.from_ical(self.cached_ical_final_schedule)
+            for component in previous.walk():
+                if component.name == ICAL_COMPONENT_VEVENT and component[ICAL_UID] not in updated_ids:
+                    # check if event was ended or cancelled, update ical
+                    dtend = component.get(ICAL_DATETIME_END)
+                    if dtend and dtend.dt < starting_datetime:
+                        # event ended before window start
+                        continue
+                    is_cancelled = component.get(ICAL_STATUS)
+                    last_modified = component.get(ICAL_LAST_MODIFIED)
+                    if is_cancelled and last_modified and last_modified.dt < starting_datetime:
+                        # drop already ended events older than the window we consider
+                        continue
+                    elif is_cancelled and not last_modified:
+                        # set last_modified if it was missing (e.g. from previous export ical implementation)
+                        component[ICAL_LAST_MODIFIED] = icalendar.vDatetime(now).to_ical()
+                    elif not is_cancelled:
+                        # set the event as cancelled
+                        component[ICAL_DATETIME_END] = component[ICAL_DATETIME_START]
+                        component[ICAL_STATUS] = ICAL_STATUS_CANCELLED
+                        component[ICAL_LAST_MODIFIED] = icalendar.vDatetime(now).to_ical()
+                    # include just cancelled events as well as those that were cancelled during the time window
+                    calendar.add_component(component)
+
+        ical_data = calendar.to_ical().decode()
+        self.cached_ical_final_schedule = ical_data
+        self.save(update_fields=["cached_ical_final_schedule"])
+
+    def upcoming_shift_for_user(self, user, days=7):
+        user_tz = user.timezone or "UTC"
+        now = timezone.now()
+        starting_date = now.date()
+        current_shift = upcoming_shift = None
+
+        events = self.final_events(user_tz, starting_date, days=days)
+        for e in events:
+            if e["end"] < now:
+                # shift is finished, ignore
+                continue
+            users = {u["pk"] for u in e["users"]}
+            if user.public_primary_key in users:
+                if e["start"] < now and e["end"] > now:
+                    # shift is in progress
+                    current_shift = e
+                    continue
+                upcoming_shift = e
+                break
+
+        return current_shift, upcoming_shift
+
+    def quality_report(self, date: Optional[timezone.datetime], days: Optional[int]) -> QualityReport:
+        """
+        Return schedule quality report to be used by the web UI.
+        TODO: Add scores on "inside working hours" and "balance outside working hours" when
+        TODO: working hours editor is implemented in the web UI.
+        """
+        # get events to consider for calculation
+        if date is None:
+            today = datetime.datetime.now(tz=datetime.timezone.utc)
+            date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
+        if days is None:
+            days = 52 * 7  # consider next 52 weeks (~1 year)
+
+        events = self.final_events(user_tz="UTC", starting_date=date, days=days)
+
+        # an event is “good” if it's not a gap and not empty
+        good_events = [event for event in events if not event["is_gap"] and not event["is_empty"]]
+        if not good_events:
+            return {
+                "total_score": 0,
+                "comments": [{"type": QualityReportCommentType.WARNING, "text": "Schedule is empty"}],
+                "overloaded_users": [],
+            }
+
+        def event_duration(ev: dict) -> datetime.timedelta:
+            return ev["end"] - ev["start"]
+
+        def timedelta_sum(deltas: Iterable[datetime.timedelta]) -> datetime.timedelta:
+            return sum(deltas, start=datetime.timedelta())
+
+        def score_to_percent(value: float) -> int:
+            return round(value * 100)
+
+        def get_duration_map(evs: list[dict]) -> dict[str, datetime.timedelta]:
+            """Return a map of user PKs to total duration of events they are in."""
+            result = defaultdict(datetime.timedelta)
+            for ev in evs:
+                for user in ev["users"]:
+                    user_pk = user["pk"]
+                    result[user_pk] += event_duration(ev)
+
+            return result
+
+        def get_balance_score_by_duration_map(dur_map: dict[str, datetime.timedelta]) -> float:
+            """
+            Return a score between 0 and 1, based on how balanced the durations are in the duration map.
+            The formula is taken from https://github.com/grafana/oncall/issues/118#issuecomment-1161787854.
+            """
+            if len(dur_map) <= 1:
+                return 1
+
+            result = 0
+            for key_1, key_2 in itertools.combinations(dur_map, 2):
+                duration_1 = dur_map[key_1]
+                duration_2 = dur_map[key_2]
+
+                result += min(duration_1, duration_2) / max(duration_1, duration_2)
+
+            number_of_pairs = len(dur_map) * (len(dur_map) - 1) // 2
+            return result / number_of_pairs
+
+        # calculate good event score
+        good_events_duration = timedelta_sum(event_duration(event) for event in good_events)
+        good_event_score = min(good_events_duration / datetime.timedelta(days=days), 1)
+        good_event_score = score_to_percent(good_event_score)
+
+        # calculate balance score
+        duration_map = get_duration_map(good_events)
+        balance_score = get_balance_score_by_duration_map(duration_map)
+        balance_score = score_to_percent(balance_score)
+
+        # calculate overloaded users
+        if balance_score >= 95:  # tolerate minor imbalance
+            balance_score = 100
+            overloaded_users = []
+        else:
+            average_duration = timedelta_sum(duration_map.values()) / len(duration_map)
+            overloaded_user_pks = [
+                user_pk
+                for user_pk, duration in duration_map.items()
+                if score_to_percent(duration / average_duration) > 100
+            ]
+            usernames = {
+                u.public_primary_key: u.username
+                for u in User.objects.filter(public_primary_key__in=overloaded_user_pks).only(
+                    "public_primary_key", "username"
+                )
+            }
+            overloaded_users = []
+            for user_pk in overloaded_user_pks:
+                score = score_to_percent(duration_map[user_pk] / average_duration) - 100
+                username = usernames.get(user_pk) or "unknown"  # fallback to "unknown" if user is not found
+                overloaded_users.append({"id": user_pk, "username": username, "score": score})
+
+            # show most overloaded users first
+            overloaded_users.sort(key=lambda u: (-u["score"], u["username"]))
+
+        # generate comments regarding gaps
+        comments = []
+        if good_event_score == 100:
+            comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule has no gaps"})
+        else:
+            not_covered = 100 - good_event_score
+            comments.append(
+                {"type": QualityReportCommentType.WARNING, "text": f"Schedule has gaps ({not_covered}% not covered)"}
+            )
+
+        # generate comments regarding balance
+        if balance_score == 100:
+            comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule is perfectly balanced"})
+        else:
+            comments.append(
+                {"type": QualityReportCommentType.WARNING, "text": "Schedule has balance issues (see overloaded users)"}
+            )
+
+        # calculate total score (weighted sum of good event score and balance score)
+        total_score = round((good_event_score + balance_score) / 2)
+
+        return {
+            "total_score": total_score,
+            "comments": comments,
+            "overloaded_users": overloaded_users,
+        }
+
     def _resolve_schedule(self, events):
         """Calculate final schedule shifts considering rotations and overrides."""
         if not events:
@@ -418,7 +676,7 @@ class OnCallSchedule(PolymorphicModel):
             ical = ical_file.replace(end_line, "").strip()
             ical = f"{ical}\r\n"
             for event in itertools.chain(qs.all(), extra_shifts):
-                ical += event.convert_to_ical(self.time_zone, allow_empty_users=allow_empty_users)
+                ical += event.convert_to_ical(allow_empty_users=allow_empty_users)
             ical += f"{end_line}\r\n"
         return ical
 
@@ -507,7 +765,7 @@ class OnCallSchedule(PolymorphicModel):
             result["notification_frequency"] = self.get_notify_oncall_shift_freq_display()
             result["current_shift_notification"] = self.mention_oncall_start
             result["next_shift_notification"] = self.mention_oncall_next
-            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display
+            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display()
         return result
 
     @property

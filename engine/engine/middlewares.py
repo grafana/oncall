@@ -40,7 +40,14 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
             if request.path.startswith("/integrations/v1"):
                 split_path = request.path.split("/")
                 integration_type = split_path[3]
-                integration_token = split_path[4]
+
+                # integration token is not always present in the URL,
+                # e.g. for inbound emails integration token is passed in the request payload
+                if len(split_path) >= 5:
+                    integration_token = split_path[4]
+                else:
+                    integration_token = None
+
                 message += f"integration_type={integration_type} integration_token={integration_token} "
             logging.info(message)
 

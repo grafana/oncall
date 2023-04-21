@@ -1,3 +1,7 @@
+.link {
+  text-decoration: none !important;
+}
+
 .u-position-relative {
   position: relative;
 }

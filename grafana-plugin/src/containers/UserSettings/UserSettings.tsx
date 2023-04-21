@@ -7,6 +7,7 @@ import { useMediaQuery } from 'react-responsive';
 
 import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { BREAKPOINT_TABS } from 'utils/consts';
@@ -51,7 +52,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
   const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppConnectionTab] = [
     !isDesktopOrLaptop,
     isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
-    isCurrent && !storeUser.telegram_configuration,
+    isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
     isCurrent && isUserActionAllowed(UserActions.UserSettingsWrite),
   ];
 

@@ -8,7 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -20,6 +20,7 @@ from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
@@ -144,6 +145,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     smile_code = models.TextField(default=":slightly_smiling_face:")
 
     verbal_name = models.CharField(max_length=150, null=True, default=None)
+    description_short = models.CharField(max_length=250, null=True, default=None)
 
     integration_slack_channel_id = models.CharField(max_length=150, null=True, default=None)
 
@@ -184,6 +186,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
+
+    restricted_at = models.DateTimeField(null=True, default=None)
 
     class Meta:
         constraints = [
@@ -235,55 +239,16 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         super(AlertReceiveChannel, self).delete()
 
     def change_team(self, team_id, user):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
 
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
         if team_id is not None:
-            new_team = user.teams.filter(public_primary_key=team_id).first()
+            new_team = user.available_teams.filter(public_primary_key=team_id).first()
             if not new_team:
                 raise TeamCanNotBeChangedError("User is not a member of the selected team")
         else:
             new_team = None  # means General team
-
-        escalation_chains_pks = self.channel_filters.all().values_list("escalation_chain", flat=True)
-        escalation_chains = self.organization.escalation_chains.filter(pk__in=escalation_chains_pks).annotate(
-            num_integrations=Count(
-                "channel_filters__alert_receive_channel",
-                distinct=True,
-                filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
-            ),
-        )
-        if escalation_chains:
-            # check if escalation chains are connected to routes of other integrations
-            shared_escalation_chains = []
-            for escalation_chain in escalation_chains:
-                if escalation_chain.num_integrations > 1:
-                    shared_escalation_chains.append(escalation_chain)
-            if shared_escalation_chains:
-                shared_escalation_chains_verbal = ", ".join([ec.name for ec in shared_escalation_chains])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more escalation chain of integration routes "
-                    f"is connected to other integration: {shared_escalation_chains_verbal}"
-                )
-
-            escalation_policies = EscalationPolicy.objects.filter(escalation_chain__in=escalation_chains)
-
-            users_in_escalation = self.organization.users.filter(escalationpolicy__in=escalation_policies)
-            if new_team:
-                team_members = new_team.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            else:
-                team_members = self.organization.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            not_team_members = set(users_in_escalation) - set(team_members)
-            if not_team_members:
-                not_team_members_verbal = ", ".join([user.username for user in not_team_members])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more user from escalation chain(s) is not a member "
-                    f"of the selected team: {not_team_members_verbal}"
-                )
-
-            escalation_chains.update(team=new_team)
         self.team = new_team
         self.save(update_fields=["team"])
 
@@ -420,8 +385,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
-        # todo: implement inbound emails
-        pass
+        return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
     def default_channel_filter(self):
@@ -540,19 +504,26 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(heartbeat, self.INTEGRATIONS_TO_REVERSE_URL_MAP[self.integration], None)
 
     # Demo alerts
-    def send_demo_alert(self, force_route_id=None):
+    def send_demo_alert(self, force_route_id=None, payload=None):
         logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
+        if payload is None:
+            payload = self.config.example_payload
         if self.is_demo_alert_enabled:
             if self.has_alertmanager_payload_structure:
-                for alert in self.config.example_payload.get("alerts", []):
-                    create_alertmanager_alerts.apply_async(
-                        [],
-                        {
-                            "alert_receive_channel_pk": self.pk,
-                            "alert": alert,
-                            "is_demo": True,
-                            "force_route_id": force_route_id,
-                        },
+                if (alerts := payload.get("alerts", None)) and type(alerts) == list and len(alerts):
+                    for alert in alerts:
+                        create_alertmanager_alerts.apply_async(
+                            [],
+                            {
+                                "alert_receive_channel_pk": self.pk,
+                                "alert": alert,
+                                "is_demo": True,
+                                "force_route_id": force_route_id,
+                            },
+                        )
+                else:
+                    raise UnableToSendDemoAlert(
+                        "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
                     )
             else:
                 create_alert.apply_async(
@@ -564,7 +535,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                         "link_to_upstream_details": None,
                         "alert_receive_channel_pk": self.pk,
                         "integration_unique_data": None,
-                        "raw_request_data": self.config.example_payload,
+                        "raw_request_data": payload,
                         "is_demo": True,
                         "force_route_id": force_route_id,
                     },

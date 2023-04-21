@@ -40,3 +40,39 @@
   margin-bottom: 24px;
   right: 0;
 }
+
+/* filter cards */
+
+.cards {
+  margin-top: 25px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -8px;
+  margin-right: -8px;
+  row-gap: 16px;
+}
+
+.col {
+  padding-left: 8px;
+  padding-right: 8px;
+  display: block;
+  flex: 0 0 25%;
+  max-width: 25%;
+}
+
+@media (max-width: 1200px) {
+  .col {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 800px) {
+  .col {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

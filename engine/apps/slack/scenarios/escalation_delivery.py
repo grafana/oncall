@@ -33,4 +33,4 @@ class EscalationDeliveryStep(scenario_step.ScenarioStep):
             # Don't mention if asked to notify somehow else but drop a note for colleagues
             user_mention_as = user_verbal
             notify_by = " by {}".format(UserNotificationPolicy.NotificationChannel(notification_channel).label)
-        return "Inviting {}{} to look at incident.".format(user_mention_as, notify_by)
+        return "Inviting {}{} to look at the alert group.".format(user_mention_as, notify_by)

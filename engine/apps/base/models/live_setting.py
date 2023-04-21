@@ -39,6 +39,9 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_PASSWORD",
         "EMAIL_USE_TLS",
         "EMAIL_FROM_ADDRESS",
+        "INBOUND_EMAIL_ESP",
+        "INBOUND_EMAIL_DOMAIN",
+        "INBOUND_EMAIL_WEBHOOK_SECRET",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",
@@ -65,30 +68,36 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_PASSWORD": "SMTP server password",
         "EMAIL_USE_TLS": "SMTP enable/disable TLS",
         "EMAIL_FROM_ADDRESS": "Email address used to send emails. If not specified, EMAIL_HOST_USER will be used.",
+        "INBOUND_EMAIL_DOMAIN": "Inbound email domain",
+        "INBOUND_EMAIL_ESP": (
+            "Inbound email ESP name. "
+            "Available options: amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost"
+        ),
+        "INBOUND_EMAIL_WEBHOOK_SECRET": "Inbound email webhook secret",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_SECRET": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_ID": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_INSTALL_RETURN_REDIRECT_HOST": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
@@ -141,6 +150,7 @@ class LiveSetting(models.Model):
 
     SECRET_SETTING_NAMES = (
         "EMAIL_HOST_PASSWORD",
+        "INBOUND_EMAIL_WEBHOOK_SECRET",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",

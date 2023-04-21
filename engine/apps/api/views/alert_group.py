@@ -22,7 +22,12 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
+from common.api_helpers.filters import (
+    ByTeamModelFieldFilterMixin,
+    DateRangeFilterMixin,
+    ModelFieldFilterMixin,
+    TeamModelMultipleChoiceFilter,
+)
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import TwentyFiveCursorPaginator
 
@@ -48,7 +53,7 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
-class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
+class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
     """
@@ -103,6 +108,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
+    team = TeamModelMultipleChoiceFilter(field_name="channel__team")
 
     class Meta:
         model = AlertGroup
@@ -186,7 +192,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 
 
 class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
-    TEAM_LOOKUP = "channel__team"
+    TEAM_LOOKUP = "team"
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -275,17 +281,22 @@ class AlertGroupView(
 
         return super().get_serializer_class()
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
-        alert_receive_channels_ids = list(
-            AlertReceiveChannel.objects.filter(
-                organization_id=self.request.auth.organization.id,
-                team_id=self.request.user.current_team,
-            ).values_list("id", flat=True)
+
+        alert_receive_channels_qs = AlertReceiveChannel.objects.filter(
+            organization_id=self.request.auth.organization.id
         )
+        if not ignore_filtering_by_available_teams:
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
+
+        alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
+
         queryset = AlertGroup.unarchived_objects.filter(
             channel__in=alert_receive_channels_ids,
-        ).only("id")
+        )
+
+        queryset = queryset.only("id")
 
         return queryset
 
@@ -538,6 +549,12 @@ class AlertGroupView(
         )
 
         filter_options = [
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+                "global": True,
+            },
             {"name": "search", "type": "search"},
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
             {"name": "escalation_chain", "type": "options", "href": api_root + "escalation_chains/?filters=true"},
@@ -572,7 +589,7 @@ class AlertGroupView(
                 "name": "status",
                 "type": "options",
                 "options": [
-                    {"display_name": "new", "value": AlertGroup.NEW},
+                    {"display_name": "firing", "value": AlertGroup.NEW},
                     {"display_name": "acknowledged", "value": AlertGroup.ACKNOWLEDGED},
                     {"display_name": "resolved", "value": AlertGroup.RESOLVED},
                     {"display_name": "silenced", "value": AlertGroup.SILENCED},
@@ -640,5 +657,5 @@ class AlertGroupView(
         )
 
     # This method is required for PreviewTemplateMixin
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         return self.get_object().alerts.first()

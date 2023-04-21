@@ -1,18 +1,21 @@
 import React from 'react';
 
-import { Tooltip, HorizontalGroup, VerticalGroup, Badge } from '@grafana/ui';
+import { Badge, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TeamName from 'containers/TeamName/TeamName';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
-import styles from './AlertReceiveChannelCard.module.css';
+import styles from './AlertReceiveChannelCard.module.scss';
 
 const cx = cn.bind(styles);
 
@@ -26,7 +29,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
 
   const store = useStore();
 
-  const { alertReceiveChannelStore, heartbeatStore } = store;
+  const { alertReceiveChannelStore, heartbeatStore, grafanaTeamStore } = store;
 
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
@@ -62,9 +65,25 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
             <Text type="primary" size="medium">
               <Emoji className={cx('title')} text={alertReceiveChannel.verbal_name} />
             </Text>
+            {store.hasFeature(AppFeature.Webhooks2) && (
+              <CopyToClipboard text={alertReceiveChannel.id}>
+                <IconButton
+                  variant="primary"
+                  tooltip={
+                    <div>
+                      ID {alertReceiveChannel.id}
+                      <br />
+                      (click to copy ID to clipboard)
+                    </div>
+                  }
+                  tooltipPlacement="top"
+                  name="info-circle"
+                />
+              </CopyToClipboard>
+            )}
             {alertReceiveChannelCounter && (
               <PluginLink
-                query={{ page: 'incidents', integration: alertReceiveChannel.id }}
+                query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
                 className={cx('alertsInfoText')}
               >
                 <Badge
@@ -83,12 +102,13 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
               </PluginLink>
             )}
           </HorizontalGroup>
-          <HorizontalGroup>
+          <HorizontalGroup spacing="xs">
             <IntegrationLogo scale={0.08} integration={integration} />
             <Text type="secondary" size="small">
               {integration?.display_name}
             </Text>
           </HorizontalGroup>
+          <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
         </VerticalGroup>
       </HorizontalGroup>
     </div>

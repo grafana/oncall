@@ -4,8 +4,8 @@ import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
+import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
@@ -40,7 +40,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
     <>
       <div className={cx('root')}>
         {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
-          <ScheduleCounter
+          <StatusCounterBadgeWithTooltip
             type="link"
             addPadding
             count={schedule.number_of_escalation_chains}
@@ -49,7 +49,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
               <VerticalGroup spacing="sm">
                 {relatedEscalationChains.map((escalationChain) => (
                   <div key={escalationChain.pk}>
-                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className={cx('link')}>
+                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className="link">
                       <Text type="link">{escalationChain.name}</Text>
                     </PluginLink>
                   </div>
@@ -60,7 +60,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
         )}
 
         {schedule.warnings?.length > 0 && (
-          <ScheduleCounter
+          <StatusCounterBadgeWithTooltip
             type="warning"
             addPadding
             count={schedule.warnings.length}

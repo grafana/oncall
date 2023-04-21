@@ -52,6 +52,7 @@ const Text: TextInterface = (props) => {
     hidden = false,
     editModalTitle = 'New value',
     style,
+    ...rest
   } = props;
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -88,6 +89,7 @@ const Text: TextInterface = (props) => {
         keyboard,
       })}
       style={style}
+      {...rest}
     >
       {hidden ? PLACEHOLDER : children}
       {editable && (

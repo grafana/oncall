@@ -39,6 +39,7 @@ const EscalationsFilters: FC<EscalationsFiltersProps> = (props) => {
     <div className={cx('root')}>
       <Input
         autoFocus
+        data-testid="escalation-chain-search-input"
         className={cx('search')}
         prefix={<Icon name="search" />}
         placeholder="Search escalations..."

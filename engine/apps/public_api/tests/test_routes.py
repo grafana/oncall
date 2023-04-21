@@ -163,6 +163,37 @@ def test_create_route(
 
 
 @pytest.mark.django_db
+def test_create_route_without_escalation_chain(route_public_api_setup):
+    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+
+    client = APIClient()
+    url = reverse("api-public:routes-list")
+
+    data = {
+        "integration_id": alert_receive_channel.public_primary_key,
+        "routing_regex": "testreg",
+        "escalation_chain_id": None,
+    }
+    response = client.post(url, format="json", HTTP_AUTHORIZATION=token, data=data)
+
+    expected_response = {
+        "id": response.data["id"],
+        "integration_id": alert_receive_channel.public_primary_key,
+        "escalation_chain_id": None,
+        "routing_type": "regex",
+        "routing_regex": data["routing_regex"],
+        "position": 0,
+        "is_the_last_route": False,
+        "slack": {"channel_id": None, "enabled": True},
+        "telegram": {"id": None, "enabled": False},
+        TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
 def test_invalid_route_data(
     route_public_api_setup,
 ):
