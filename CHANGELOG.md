@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Helm chart: Fix helm hook for db migration job
 - Performance improvements to `GET /api/internal/v1/alertgroups` endpoint by @joeyorlando and @iskhakov ([#1805](https://github.com/grafana/oncall/pull/1805))
 
+### Added
+
+- Add helm chart support for twilio existing secrets by @atownsend247 ([#1435](https://github.com/grafana/oncall/pull/1435))
+
 ## v1.2.14 (2023-04-19)
 
 ### Fixed
@@ -227,10 +231,6 @@ Only some minor performance/developer setup changes to report in this version.
 ### Added
 
 - Insight logs
-
-### Added
-
-- Add helm chart support for twilio existing secrets
 
 ### Fixed
 
