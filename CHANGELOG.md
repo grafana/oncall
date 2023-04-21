@@ -228,6 +228,10 @@ Only some minor performance/developer setup changes to report in this version.
 
 - Insight logs
 
+### Added
+
+- Add helm chart support for twilio existing secrets
+
 ### Fixed
 
 - Fixed issue with Alert group involved users filter
