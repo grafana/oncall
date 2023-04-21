@@ -11,6 +11,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -18,7 +19,21 @@ from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 from polymorphic.query import PolymorphicQuerySet
 
+from apps.schedules.constants import (
+    EXPORT_WINDOW_DAYS_AFTER,
+    EXPORT_WINDOW_DAYS_BEFORE,
+    ICAL_COMPONENT_VEVENT,
+    ICAL_DATETIME_END,
+    ICAL_DATETIME_STAMP,
+    ICAL_DATETIME_START,
+    ICAL_LAST_MODIFIED,
+    ICAL_STATUS,
+    ICAL_STATUS_CANCELLED,
+    ICAL_SUMMARY,
+    ICAL_UID,
+)
 from apps.schedules.ical_utils import (
+    create_base_icalendar,
     fetch_ical_file_or_get_error,
     get_oncall_users_for_multiple_schedules,
     list_of_empty_shifts_in_schedule,
@@ -72,6 +87,16 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
         return get_oncall_users_for_multiple_schedules(self, events_datetime)
 
+    def related_to_user(self, user):
+        username_regex = r"SUMMARY:(\[L[0-9]+\] )?{}".format(user.username)
+        return self.filter(
+            Q(cached_ical_file_primary__regex=username_regex)
+            | Q(cached_ical_file_primary__contains=user.email)
+            | Q(cached_ical_file_overrides__regex=username_regex)
+            | Q(cached_ical_file_overrides__contains=user.email),
+            organization=user.organization,
+        )
+
 
 class OnCallSchedule(PolymorphicModel):
     objects = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
@@ -95,6 +120,8 @@ class OnCallSchedule(PolymorphicModel):
 
     cached_ical_file_overrides = models.TextField(null=True, default=None)
     prev_ical_file_overrides = models.TextField(null=True, default=None)
+
+    cached_ical_final_schedule = models.TextField(null=True, default=None)
 
     organization = models.ForeignKey(
         "user_management.Organization", on_delete=NON_POLYMORPHIC_CASCADE, related_name="oncall_schedules"
@@ -284,6 +311,85 @@ class OnCallSchedule(PolymorphicModel):
         events = self._resolve_schedule(events)
         return events
 
+    def refresh_ical_final_schedule(self):
+        # TODO: check flag?
+        tz = "UTC"
+        now = timezone.now()
+        # window to consider: from now, -15 days + 6 months
+        delta = EXPORT_WINDOW_DAYS_BEFORE
+        starting_datetime = now - timezone.timedelta(days=delta)
+        starting_date = starting_datetime.date()
+        days = EXPORT_WINDOW_DAYS_AFTER + delta
+
+        # setup calendar with final schedule shift events
+        calendar = create_base_icalendar(self.name)
+        events = self.final_events(tz, starting_date, days)
+        updated_ids = set()
+        for e in events:
+            for u in e["users"]:
+                event = icalendar.Event()
+                event.add(ICAL_SUMMARY, u["display_name"])
+                event.add(ICAL_DATETIME_START, e["start"])
+                event.add(ICAL_DATETIME_END, e["end"])
+                event.add(ICAL_DATETIME_STAMP, now)
+                event.add(ICAL_LAST_MODIFIED, now)
+                event_uid = "{}-{}-{}".format(e["shift"]["pk"], e["start"].strftime("%Y%m%d%H%S"), u["pk"])
+                event[ICAL_UID] = event_uid
+                calendar.add_component(event)
+                updated_ids.add(event_uid)
+
+        # check previously cached final schedule for potentially cancelled events
+        if self.cached_ical_final_schedule:
+            previous = icalendar.Calendar.from_ical(self.cached_ical_final_schedule)
+            for component in previous.walk():
+                if component.name == ICAL_COMPONENT_VEVENT and component[ICAL_UID] not in updated_ids:
+                    # check if event was ended or cancelled, update ical
+                    dtend = component.get(ICAL_DATETIME_END)
+                    if dtend and dtend.dt < starting_datetime:
+                        # event ended before window start
+                        continue
+                    is_cancelled = component.get(ICAL_STATUS)
+                    last_modified = component.get(ICAL_LAST_MODIFIED)
+                    if is_cancelled and last_modified and last_modified.dt < starting_datetime:
+                        # drop already ended events older than the window we consider
+                        continue
+                    elif is_cancelled and not last_modified:
+                        # set last_modified if it was missing (e.g. from previous export ical implementation)
+                        component[ICAL_LAST_MODIFIED] = icalendar.vDatetime(now).to_ical()
+                    elif not is_cancelled:
+                        # set the event as cancelled
+                        component[ICAL_DATETIME_END] = component[ICAL_DATETIME_START]
+                        component[ICAL_STATUS] = ICAL_STATUS_CANCELLED
+                        component[ICAL_LAST_MODIFIED] = icalendar.vDatetime(now).to_ical()
+                    # include just cancelled events as well as those that were cancelled during the time window
+                    calendar.add_component(component)
+
+        ical_data = calendar.to_ical().decode()
+        self.cached_ical_final_schedule = ical_data
+        self.save(update_fields=["cached_ical_final_schedule"])
+
+    def upcoming_shift_for_user(self, user, days=7):
+        user_tz = user.timezone or "UTC"
+        now = timezone.now()
+        starting_date = now.date()
+        current_shift = upcoming_shift = None
+
+        events = self.final_events(user_tz, starting_date, days=days)
+        for e in events:
+            if e["end"] < now:
+                # shift is finished, ignore
+                continue
+            users = {u["pk"] for u in e["users"]}
+            if user.public_primary_key in users:
+                if e["start"] < now and e["end"] > now:
+                    # shift is in progress
+                    current_shift = e
+                    continue
+                upcoming_shift = e
+                break
+
+        return current_shift, upcoming_shift
+
     def quality_report(self, date: Optional[timezone.datetime], days: Optional[int]) -> QualityReport:
         """
         Return schedule quality report to be used by the web UI.
@@ -361,7 +467,11 @@ class OnCallSchedule(PolymorphicModel):
             overloaded_users = []
         else:
             average_duration = timedelta_sum(duration_map.values()) / len(duration_map)
-            overloaded_user_pks = [user_pk for user_pk, duration in duration_map.items() if duration > average_duration]
+            overloaded_user_pks = [
+                user_pk
+                for user_pk, duration in duration_map.items()
+                if score_to_percent(duration / average_duration) > 100
+            ]
             usernames = {
                 u.public_primary_key: u.username
                 for u in User.objects.filter(public_primary_key__in=overloaded_user_pks).only(
@@ -566,7 +676,7 @@ class OnCallSchedule(PolymorphicModel):
             ical = ical_file.replace(end_line, "").strip()
             ical = f"{ical}\r\n"
             for event in itertools.chain(qs.all(), extra_shifts):
-                ical += event.convert_to_ical(self.time_zone, allow_empty_users=allow_empty_users)
+                ical += event.convert_to_ical(allow_empty_users=allow_empty_users)
             ical += f"{end_line}\r\n"
         return ical
 
@@ -655,7 +765,7 @@ class OnCallSchedule(PolymorphicModel):
             result["notification_frequency"] = self.get_notify_oncall_shift_freq_display()
             result["current_shift_notification"] = self.mention_oncall_start
             result["next_shift_notification"] = self.mention_oncall_next
-            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display
+            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display()
         return result
 
     @property

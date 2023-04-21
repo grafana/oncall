@@ -98,7 +98,7 @@ def main() -> None:
 
     rulesets = None
     if EXPERIMENTAL_MIGRATE_EVENT_RULES:
-        print("▶ Fetching event rules (rulesets) ...")
+        print("▶ Fetching event rules (global rulesets)...")
         rulesets = session.list_all("rulesets")
         for ruleset in rulesets:
             rules = session.list_all(f"rulesets/{ruleset['id']}/rules")
@@ -126,7 +126,13 @@ def main() -> None:
 
     if rulesets is not None:
         for ruleset in rulesets:
-            match_ruleset(ruleset, oncall_integrations, escalation_policies, services)
+            match_ruleset(
+                ruleset,
+                oncall_integrations,
+                escalation_policies,
+                services,
+                integrations,
+            )
 
     if MODE == MODE_PLAN:
         print(user_report(users), end="\n\n")
@@ -167,7 +173,7 @@ def main() -> None:
             print(TAB + format_integration(integration))
 
     if rulesets is not None:
-        print("▶ Migrating event rules (rulesets) ...")
+        print("▶ Migrating event rules (global rulesets)...")
         for ruleset in rulesets:
             if not ruleset["flawed_escalation_policies"]:
                 migrate_ruleset(ruleset, escalation_policies, services)

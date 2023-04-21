@@ -57,23 +57,25 @@ class Webhook(models.Model):
 
     (
         TRIGGER_ESCALATION_STEP,
-        TRIGGER_NEW,
+        TRIGGER_FIRING,
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
         TRIGGER_UNSILENCE,
         TRIGGER_UNRESOLVE,
-    ) = range(7)
+        TRIGGER_UNACKNOWLEDGE,
+    ) = range(8)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
         (TRIGGER_ESCALATION_STEP, "Escalation step"),
-        (TRIGGER_NEW, "Triggered"),
+        (TRIGGER_FIRING, "Firing"),
         (TRIGGER_ACKNOWLEDGE, "Acknowledged"),
         (TRIGGER_RESOLVE, "Resolved"),
         (TRIGGER_SILENCE, "Silenced"),
         (TRIGGER_UNSILENCE, "Unsilenced"),
         (TRIGGER_UNRESOLVE, "Unresolved"),
+        (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
 
     public_primary_key = models.CharField(
@@ -108,6 +110,8 @@ class Webhook(models.Model):
     forward_all = models.BooleanField(default=True)
     http_method = models.CharField(max_length=32, default="POST")
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
+    is_webhook_enabled = models.BooleanField(null=True, default=True)
+    integration_filter = models.JSONField(default=None, null=True, blank=True)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -183,6 +187,11 @@ class Webhook(models.Model):
         parse_url(url)
 
         return url
+
+    def check_integration_filter(self, alert_group):
+        if not self.integration_filter:
+            return True
+        return alert_group.channel.public_primary_key in self.integration_filter
 
     def check_trigger(self, event_data):
         if not self.trigger_template:
@@ -267,4 +276,5 @@ class WebhookResponse(models.Model):
     content = models.TextField(null=True, default=None)
 
     def json(self):
-        return json.loads(self.content)
+        if self.content:
+            return json.loads(self.content)

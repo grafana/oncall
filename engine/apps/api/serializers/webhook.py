@@ -29,7 +29,6 @@ class WebhookSerializer(serializers.ModelSerializer):
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
     user = serializers.HiddenField(default=CurrentUserDefault())
-    last_run = serializers.SerializerMethodField()
     trigger_type = serializers.CharField(required=True)
     forward_all = serializers.BooleanField(allow_null=True, required=False)
     last_response_log = serializers.SerializerMethodField()
@@ -40,6 +39,7 @@ class WebhookSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "is_webhook_enabled",
             "team",
             "data",
             "user",
@@ -55,13 +55,11 @@ class WebhookSerializer(serializers.ModelSerializer):
             "http_method",
             "trigger_type",
             "trigger_type_name",
-            "last_run",
             "last_response_log",
+            "integration_filter",
         ]
         extra_kwargs = {
-            "authorization_header": {"write_only": True},
             "name": {"required": True, "allow_null": False, "allow_blank": False},
-            "password": {"write_only": True},
             "url": {"required": True, "allow_null": False, "allow_blank": False},
         }
 
@@ -102,17 +100,11 @@ class WebhookSerializer(serializers.ModelSerializer):
             return False
         return data
 
-    def get_last_run(self, obj):
-        last_run = ""
-        if last_log := obj.responses.all().last():
-            last_run = last_log.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
-        return last_run
-
     def get_last_response_log(self, obj):
         return WebhookResponseSerializer(obj.responses.all().last()).data
 
     def get_trigger_type_name(self, obj):
         trigger_type_name = ""
-        if obj.trigger_type:
+        if obj.trigger_type is not None:
             trigger_type_name = Webhook.TRIGGER_TYPES[int(obj.trigger_type)][1]
         return trigger_type_name

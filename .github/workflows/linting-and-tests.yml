@@ -262,11 +262,14 @@ jobs:
           pytest -x
 
   end-to-end-tests:
+    # TODO: reenable this job once https://github.com/grafana/oncall/issues/1692 is fixed
+    if: ${{ false }}
     runs-on: ubuntu-latest
     name: "End to end tests - Grafana: ${{ matrix.grafana-image-tag }}"
     strategy:
       matrix:
         grafana-image-tag:
+          - 8.5.22
           - 9.2.6
           - main
           - latest
@@ -373,16 +376,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "~/.cache/ms-playwright"
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium-firefox-webkit
 
       - name: Install Playwright binaries/dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        # if more browsers are added, will need to modify the "npx playwright install" command
         # https://stackoverflow.com/questions/65900299/install-single-dependency-from-package-json-with-yarn
         run: |
           yarn add "@playwright/test@${{ env.PLAYWRIGHT_VERSION }}"
-          npx playwright install --with-deps chromium firefox
-          npx playwright install-deps
+          npx playwright install --with-deps chromium firefox webkit
 
       - name: Await k8s pods and other resources up
         uses: jupyterhub/action-k8s-await-workloads@v1

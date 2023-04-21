@@ -5,6 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Helm chart: Fix helm hook for db migration job
+- Performance improvements to `GET /api/internal/v1/alertgroups` endpoint by @joeyorlando and @iskhakov ([#1805](https://github.com/grafana/oncall/pull/1805))
+
+## v1.2.14 (2023-04-19)
+
+### Fixed
+
+- Fix broken documentation links by @shantanualsi ([#1766](https://github.com/grafana/oncall/pull/1766))
+- Fix bug when updating team access settings by @vadimkerr ([#1794](https://github.com/grafana/oncall/pull/1794))
+
+## v1.2.13 (2023-04-18)
+
+### Changed
+
+- Rework ical schedule export to include final events; also improve changing shifts sync
+
+### Fixed
+
+- Fix issue when creating web overrides for TF schedules using a non-UTC timezone
+
+## v1.2.12 (2023-04-18)
+
+### Changed
+
+- Move `alerts_alertgroup.is_restricted` column to `alerts_alertreceivechannel.restricted_at` by @joeyorlando ([#1770](https://github.com/grafana/oncall/pull/1770))
+
+### Added
+
+- Add new field description_short to private api ([#1698](https://github.com/grafana/oncall/pull/1698))
+- Added preview and migration API endpoints for route migration from regex into jinja2 ([1715](https://github.com/grafana/oncall/pull/1715))
+- Helm chart: add the option to use a helm hook for the migration job ([1386](https://github.com/grafana/oncall/pull/1386))
+- Add endpoints to start and stop maintenance in alert receive channel private api ([1755](https://github.com/grafana/oncall/pull/1755))
+- Send demo alert with dynamic payload and get demo payload example on private api ([1700](https://github.com/grafana/oncall/pull/1700))
+- Add is_default fields to templates, remove WritableSerialiserMethodField ([1759](https://github.com/grafana/oncall/pull/1759))
+- Allow use of dynamic payloads in alert receive channels preview template in private api ([1756](https://github.com/grafana/oncall/pull/1756))
+
+## v1.2.11 (2023-04-14)
+
+### Added
+
+- add new columns `gcom_org_contract_type`, `gcom_org_irm_sku_subscription_start_date`,
+  and `gcom_org_oldest_admin_with_billing_privileges_user_id` to `user_management_organization` table,
+  plus `is_restricted` column to `alerts_alertgroup` table by @joeyorlando and @teodosii ([1522](https://github.com/grafana/oncall/pull/1522))
+- emit two new Django signals by @joeyorlando and @teodosii ([1522](https://github.com/grafana/oncall/pull/1522))
+  - `org_sync_signal` at the end of the `engine/apps/user_management/sync.py::sync_organization` method
+  - `alert_group_created_signal` when a new Alert Group is created
+
+## v1.2.10 (2023-04-13)
+
+### Added
+
+- Added mine filter to schedules listing
+
+### Fixed
+
+- Fixed a bug in GForm's RemoteSelect where the value for Dropdown could not change
+- Fixed the URL attached to an Incident created via the 'Declare Incident' button of a Slack alert by @sd2k ([#1738](https://github.com/grafana/oncall/pull/1738))
+
+## v1.2.9 (2023-04-11)
+
+### Fixed
+
+- Catch the new Slack error - "message_limit_exceeded"
+
+## v1.2.8 (2023-04-06)
+
+### Changed
+
+- Allow editing assigned team via public api ([1619](https://github.com/grafana/oncall/pull/1619))
+- Disable mentions when resolution note is created by @iskhakov ([1696](https://github.com/grafana/oncall/pull/1696))
+- Display warnings on users page in a clean and consistent way by @iskhakov ([#1681](https://github.com/grafana/oncall/pull/1681))
+
+## v1.2.7 (2023-04-03)
+
+### Added
+
+- Save selected teams filter in local storage ([#1611](https://github.com/grafana/oncall/issues/1611))
+
+### Changed
+
+- Renamed routes from /incidents to /alert-groups ([#1678](https://github.com/grafana/oncall/pull/1678))
+
+### Fixed
+
+- Fix team search when filtering resources by @vadimkerr ([#1680](https://github.com/grafana/oncall/pull/1680))
+- Fix issue when trying to scroll in Safari ([#415](https://github.com/grafana/oncall/issues/415))
+
 ## v1.2.6 (2023-03-30)
 
 ### Fixed

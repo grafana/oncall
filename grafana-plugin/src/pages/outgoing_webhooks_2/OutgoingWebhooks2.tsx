@@ -1,10 +1,11 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
@@ -25,6 +26,7 @@ import { ActionDTO } from 'models/action';
 import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
@@ -54,10 +56,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   state: OutgoingWebhooks2State = {
     errorData: initErrorDataState(),
   };
-
-  async componentDidMount() {
-    this.update().then(this.parseQueryParams);
-  }
 
   componentDidUpdate(prevProps: OutgoingWebhooks2Props) {
     if (prevProps.match.params.id !== this.props.match.params.id) {
@@ -115,6 +113,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         width: '25%',
         title: 'Name',
         dataIndex: 'name',
+        render: this.renderName,
       },
       {
         width: '5%',
@@ -135,7 +134,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       {
         width: '10%',
         title: 'Last run',
-        dataIndex: 'last_run',
         render: this.renderLastRun,
       },
       {
@@ -150,7 +148,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       },
     ];
 
-    return (
+    return store.hasFeature(AppFeature.Webhooks2) ? (
       <PageErrorHandlingWrapper
         errorData={errorData}
         objectName="outgoing webhook 2"
@@ -213,6 +211,8 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
           </>
         )}
       </PageErrorHandlingWrapper>
+    ) : (
+      <Text>Outgoing webhooks 2 functionality is not enabled.</Text>
     );
   }
 
@@ -249,6 +249,20 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   renderActionButtons = (record: ActionDTO) => {
     return (
       <HorizontalGroup justify="flex-end">
+        <CopyToClipboard text={record.id}>
+          <IconButton
+            variant="primary"
+            tooltip={
+              <div>
+                ID {record.id}
+                <br />
+                (click to copy ID to clipboard)
+              </div>
+            }
+            tooltipPlacement="top"
+            name="info-circle"
+          />
+        </CopyToClipboard>
         <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
           <Button onClick={() => this.onStatusClick(record.id)} fill="text">
             Status
@@ -270,6 +284,14 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   };
 
+  renderName(name: String) {
+    return (
+      <div className="u-break-word">
+        <span>{name}</span>
+      </div>
+    );
+  }
+
   renderUrl(url: string) {
     return (
       <div className="u-break-word">
@@ -278,14 +300,22 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   }
 
-  renderLastRun(lastRun: string) {
-    // TODO: remove replace when backend will update lastRun to a correct timestamp
-    const lastRunMoment = moment(lastRun.replace(' (200 OK)', ''));
+  renderLastRun(record: OutgoingWebhook2) {
+    const lastRunMoment = moment(record.last_response_log?.timestamp);
 
-    return (
+    return !record.is_webhook_enabled ? (
+      <Text type="secondary">Disabled</Text>
+    ) : (
       <VerticalGroup spacing="none">
         <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('MMM DD, YYYY') : '-'}</Text>
         <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('hh:mm A') : ''}</Text>
+        <Text type="secondary">
+          {lastRunMoment.isValid()
+            ? record.last_response_log?.status_code
+              ? 'Status: ' + record.last_response_log?.status_code
+              : 'Check Status'
+            : ''}
+        </Text>
       </VerticalGroup>
     );
   }
