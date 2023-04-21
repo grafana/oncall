@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
@@ -30,6 +31,7 @@ interface ScheduleFinalProps extends WithStoreProps {
   onClick: (shiftId: Shift['id']) => void;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
   disabled?: boolean;
+  filters: ScheduleFiltersType;
 }
 
 interface ScheduleOverridesState {
@@ -43,7 +45,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   };
 
   render() {
-    const { startMoment, currentTimezone, store, simplified, scheduleId } = this.props;
+    const { startMoment, currentTimezone, store, simplified, scheduleId, filters } = this.props;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -90,6 +92,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                         onClick={this.getRotationClickHandler(shiftId)}
                         handleAddOverride={this.handleShowOverrideForm}
                         simplified={simplified}
+                        filters={filters}
                       />
                     </CSSTransition>
                   );

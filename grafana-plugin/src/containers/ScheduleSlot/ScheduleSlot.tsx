@@ -5,10 +5,12 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
+import { getShiftTitle } from 'models/schedule/schedule.helpers';
 import { Event, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
@@ -27,12 +29,13 @@ interface ScheduleSlotProps {
   color?: string;
   label?: string;
   simplified?: boolean;
+  filters?: ScheduleFiltersType;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { event, scheduleId, currentTimezone, color, label, handleAddOverride, simplified } = props;
+  const { event, scheduleId, currentTimezone, color, label, handleAddOverride, simplified, filters } = props;
   const { users } = event;
 
   const start = dayjs(event.start);
@@ -70,10 +73,10 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           )}
         </div>
       ) : (
-        users.map(({ display_name, pk: userPk }, userIndex) => {
+        users.map(({ display_name, pk: userPk }) => {
           const storeUser = store.userStore.items[userPk];
 
-          const inactive = false;
+          const inactive = filters && filters.users.length && !filters.users.includes(userPk);
 
           const title = storeUser ? getTitle(storeUser) : display_name;
 
@@ -97,14 +100,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   duration={duration}
                 />
               )}
-              <div className={cx('title')}>
-                {userIndex === 0 && label && (
-                  <div className={cx('label')} style={{ color }}>
-                    {label}
-                  </div>
-                )}
-                {title}
-              </div>
+              <div className={cx('title')}>{title}</div>
             </div>
           );
 
@@ -124,6 +120,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   event={event}
                   handleAddOverride={handleAddOverride}
                   simplified={simplified}
+                  color={color}
                 />
               }
             >
@@ -145,14 +142,29 @@ interface ScheduleSlotDetailsProps {
   event: Event;
   handleAddOverride: (event: React.SyntheticEvent) => void;
   simplified?: boolean;
+  color: string;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentTimezone, event, isOncall, handleAddOverride, simplified } = props;
+  const { user, currentTimezone, event, isOncall, handleAddOverride, simplified, color } = props;
+
+  const store = useStore();
+  const { scheduleStore } = store;
+
+  const shift = scheduleStore.shifts[event.shift?.pk];
+
+  console.log('shift', shift);
 
   return (
     <div className={cx('details')}>
       <VerticalGroup>
+        <HorizontalGroup>
+          <div className={cx('badge')} style={{ backgroundColor: color }} />
+          <Text className={cx('details-title')} type="primary">
+            {getShiftTitle(shift)}
+            {/* property only affects content that is overflowing a block container element in its */}
+          </Text>
+        </HorizontalGroup>
         <HorizontalGroup>
           <VerticalGroup spacing="sm">
             <HorizontalGroup spacing="sm">

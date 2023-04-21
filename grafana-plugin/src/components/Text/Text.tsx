@@ -95,11 +95,10 @@ const Text: TextInterface = (props) => {
       {editable && (
         <IconButton
           onClick={handleEditClick}
-          variant="primary"
           className={cx('icon-button')}
           tooltip="Edit"
           tooltipPlacement="top"
-          name="edit"
+          name="pen"
         />
       )}
       {copyable && (

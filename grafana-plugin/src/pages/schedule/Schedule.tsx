@@ -12,6 +12,8 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import ScheduleFilters from 'components/ScheduleFilters/ScheduleFilters';
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
@@ -50,6 +52,7 @@ interface SchedulePageState extends PageBaseState {
   showEditForm: boolean;
   showScheduleICalSettings: boolean;
   lastUpdated: number;
+  filters: ScheduleFiltersType;
 }
 
 @observer
@@ -69,6 +72,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       showScheduleICalSettings: false,
       errorData: initErrorDataState(),
       lastUpdated: 0,
+      filters: { users: [] },
     };
   }
 
@@ -114,6 +118,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       errorData,
       shiftStartToShowOverrideForm,
       shiftEndToShowOverrideForm,
+      filters,
     } = this.state;
 
     const { isNotFoundError } = errorData;
@@ -243,6 +248,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                             {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
                           </Text.Title>
                         </HorizontalGroup>
+                        <ScheduleFilters
+                          value={filters}
+                          onChange={(value) => this.setState({ filters: value })}
+                          currentUserPk={store.userStore.currentUserPk}
+                        />
                       </HorizontalGroup>
                     </div>
                     <ScheduleFinal
@@ -252,6 +262,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onClick={this.handleShowForm}
                       disabled={disabledRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
+                      filters={filters}
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -264,6 +275,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onShowRotationForm={this.handleShowRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
                       disabled={disabledRotationForm}
+                      filters={filters}
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
@@ -277,6 +289,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledOverrideForm}
                       shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
                       shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
+                      filters={filters}
                     />
                   </div>
                 </VerticalGroup>

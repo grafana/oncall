@@ -1,0 +1,51 @@
+.body {
+  max-height: calc(100vh - 300px);
+  overflow: scroll;
+  margin: 15px -15px;
+}
+
+.content {
+  padding: 0 15px;
+}
+
+.two-fields {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.two-fields > div {
+  width: 50%;
+}
+
+.three-fields {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.three-fields > div {
+  width: 33%;
+}
+
+.inline-switch {
+  height: 18px;
+}
+
+.active-periods {
+  width: 100%;
+}
+
+.working-hours {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  pointer-events: none;
+}
+
+.active-periods-content {
+  padding-top: 8px;
+}

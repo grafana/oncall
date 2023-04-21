@@ -4,6 +4,7 @@ import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
 import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -29,6 +30,7 @@ interface RotationProps {
   transparent?: boolean;
   tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
+  filters?: ScheduleFiltersType;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
@@ -46,6 +48,7 @@ const Rotation: FC<RotationProps> = (props) => {
     onClick,
     handleAddOverride,
     simplified,
+    filters,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
@@ -110,6 +113,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     label={index === eventIndexToShowLabel && getLabel(layerIndex, rotationIndex)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     simplified={simplified}
+                    filters={filters}
                   />
                 );
               })}

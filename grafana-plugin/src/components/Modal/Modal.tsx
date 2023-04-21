@@ -17,12 +17,13 @@ export interface ModalProps {
   width: string;
   contentElement?: (props, children: React.ReactNode) => React.ReactNode;
   isOpen: boolean;
+  top?: string;
 }
 
 const cx = cn.bind(styles);
 
 const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
-  const { title, children, onDismiss, width = '600px', contentElement, isOpen = true } = props;
+  const { title, children, onDismiss, width = '600px', contentElement, isOpen = true, top } = props;
 
   return (
     <ReactModal
@@ -31,6 +32,7 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
         overlay: {},
         content: {
           width,
+          top,
         },
       }}
       isOpen={isOpen}

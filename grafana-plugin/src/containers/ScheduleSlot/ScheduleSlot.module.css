@@ -8,6 +8,7 @@
   margin: 0 1px;
   padding: 4px;
   align-items: center;
+  transition: opacity 0.2s ease;
 }
 
 .working-hours {
@@ -32,7 +33,7 @@
 }
 
 .root__inactive {
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .title {
@@ -60,6 +61,14 @@
 
 .details {
   width: auto;
+  max-width: 250px;
+}
+
+.details-title {
+  width: 200px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .details-user-status {
@@ -84,4 +93,10 @@
 .is-oncall-icon {
   color: var(--oncall-icon-stroke-color);
   margin-left: -2px;
+}
+
+.badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }

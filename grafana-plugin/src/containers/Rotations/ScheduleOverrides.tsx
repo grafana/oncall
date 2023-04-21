@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
@@ -38,6 +39,7 @@ interface ScheduleOverridesProps extends WithStoreProps {
   onUpdate: () => void;
   onDelete: () => void;
   disabled: boolean;
+  filters: ScheduleFiltersType;
 }
 
 interface ScheduleOverridesState {
@@ -65,6 +67,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
       disabled,
       shiftStartToShowOverrideForm: propsShiftStartToShowOverrideForm,
       shiftEndToShowOverrideForm: propsShiftEndToShowOverrideForm,
+      filters,
     } = this.props;
     const { shiftStartToShowOverrideForm, shiftEndToShowOverrideForm } = this.state;
 
@@ -126,6 +129,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                         this.onRotationClick(shiftId, shiftStart, shiftEnd);
                       }}
                       transparent={isPreview}
+                      filters={filters}
                     />
                   </CSSTransition>
                 ))

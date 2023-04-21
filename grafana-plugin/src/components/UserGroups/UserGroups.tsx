@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { VerticalGroup, HorizontalGroup, IconButton } from '@grafana/ui';
 import { arrayMoveImmutable } from 'array-move';
@@ -32,6 +32,8 @@ const SortableHandleHoc = SortableHandle(DragHandle);
 const UserGroups = (props: UserGroupsProps) => {
   const { value, onChange, isMultipleGroups, renderUser, showError } = props;
 
+  const rootRef = useRef<HTMLDivElement>();
+
   const handleAddUserGroup = useCallback(() => {
     onChange([...value, []]);
   }, [value]);
@@ -62,12 +64,11 @@ const UserGroups = (props: UserGroupsProps) => {
 
       const newGroups = [...value];
       let lastGroup = newGroups[newGroups.length - 1];
-      if (!lastGroup) {
-        lastGroup = [];
-        newGroups.push(lastGroup);
+      if (!isMultipleGroups || (lastGroup && !lastGroup.length)) {
+        lastGroup.push(pk);
+      } else {
+        newGroups.push([pk]);
       }
-
-      lastGroup.push(pk);
 
       onChange(newGroups);
     },
@@ -91,6 +92,17 @@ const UserGroups = (props: UserGroupsProps) => {
     };
   };
 
+  useEffect(() => {
+    const container = rootRef.current.parentElement.parentElement.parentElement;
+    const containerParent = container.parentElement;
+
+    containerParent.scroll({
+      left: 0,
+      top: container.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [value]);
+
   const renderItem = (item: Item, index: number) => (
     <li className={cx('user')}>
       {renderUser(item.data)}
@@ -104,7 +116,7 @@ const UserGroups = (props: UserGroupsProps) => {
   );
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} ref={rootRef}>
       <VerticalGroup>
         <RemoteSelect
           key={items.length}
@@ -167,7 +179,7 @@ const SortableList = SortableContainer<SortableListProps>(({ items, handleAddGro
       {isMultipleGroups && items[items.length - 1]?.type === 'item' && (
         <SortableItem disabled key="New Group" index={items.length + 1}>
           <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
-            <Text type="secondary">Add user group +</Text>
+            <Text type="primary">+ Add user group</Text>
           </li>
         </SortableItem>
       )}

@@ -7,10 +7,11 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import RotationForm from 'containers/RotationForm/RotationForm';
+import RotationForm from 'containers/RotationForm2/RotationForm2';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getFromString } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
@@ -38,6 +39,7 @@ interface RotationsProps extends WithStoreProps {
   onUpdate: () => void;
   onDelete: () => void;
   disabled: boolean;
+  filters: ScheduleFiltersType;
 }
 
 interface RotationsState {
@@ -65,6 +67,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       store,
       shiftIdToShowRotationForm,
       disabled,
+      filters,
     } = this.props;
     const { layerPriority, shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
@@ -81,14 +84,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     const options = layers
       ? layers.map((layer) => ({
-          label: `Layer ${layer.priority}`,
+          label: `Layer ${layer.priority} rotation`,
           value: layer.priority,
         }))
       : [];
 
     const nextPriority = layers && layers.length ? layers[layers.length - 1].priority + 1 : 1;
-
-    options.push({ label: 'New Layer', value: nextPriority });
 
     const schedule = store.scheduleStore.items[scheduleId];
 
@@ -121,7 +122,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     </Button>
                   </WithPermissionControlTooltip>
                 )
-              ) : (
+              ) : options.length > 0 ? (
                 <ValuePicker
                   label="Add rotation"
                   options={options}
@@ -129,6 +130,10 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   variant="primary"
                   size="md"
                 />
+              ) : (
+                <Button variant="primary" icon="plus" onClick={() => this.handleAddLayer(nextPriority, startMoment)}>
+                  Add rotation
+                </Button>
               )}
             </HorizontalGroup>
           </div>
@@ -169,6 +174,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                 currentTimezone={currentTimezone}
                                 transparent={isPreview}
                                 tutorialParams={isPreview && store.scheduleStore.rotationFormLiveParams}
+                                filters={filters}
                               />
                             </CSSTransition>
                           ))}
@@ -216,7 +222,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   this.handleAddLayer(nextPriority, startMoment);
                 }}
               >
-                <Text type={disabled ? 'disabled' : 'primary'}>+ Add rotations layer</Text>
+                <Text type={disabled ? 'disabled' : 'primary'}>+ Add new layer with rotation</Text>
               </div>
             )}
           </div>

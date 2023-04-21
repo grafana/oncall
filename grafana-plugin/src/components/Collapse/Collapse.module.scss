@@ -25,4 +25,10 @@
 
 .icon {
   color: var(--secondary-text-color);
+  transform-origin: center;
+  transition: transform 0.2s;
+
+  &--rotated {
+    transform: rotate(90deg);
+  }
 }

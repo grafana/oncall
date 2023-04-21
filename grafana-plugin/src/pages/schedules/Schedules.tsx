@@ -12,13 +12,13 @@ import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaToolti
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
-import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import TeamName from 'containers/TeamName/TeamName';
@@ -43,7 +43,7 @@ interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PagePr
 
 interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
-  filters: SchedulesFiltersType;
+  filters: RemoteFiltersType;
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
   scheduleIdToEdit?: Schedule['id'];
@@ -428,11 +428,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   };
 
-  handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
+  handleSchedulesFiltersChange = (filters: RemoteFiltersType) => {
     this.setState({ filters }, () => this.debouncedUpdateSchedules(filters));
   };
 
-  applyFilters = (filters: SchedulesFiltersType) => {
+  applyFilters = (filters: RemoteFiltersType) => {
     const { scheduleStore } = this.props.store;
     const shouldUpdateFn = () => this.state.filters === filters;
     scheduleStore.updateItems(filters, 1, shouldUpdateFn).then(() => {

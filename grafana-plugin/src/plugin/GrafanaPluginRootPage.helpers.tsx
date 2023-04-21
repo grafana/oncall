@@ -1,7 +1,9 @@
 import { config } from '@grafana/runtime';
 
+console.log(Number(config.buildInfo.version.charAt(0)));
+
 export function isTopNavbar(): boolean {
-  return !!config.featureToggles.topnav;
+  return Number(config.buildInfo.version.charAt(0)) >= 9 && !!config.featureToggles.topnav;
 }
 
 export function getQueryParams(): any {

@@ -80,7 +80,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
         strong
         startMoment={currentMoment.startOf('day')}
         duration={24 * 60 * 60}
-        timezone={tz}
+        timezone={userStore.currentUser.timezone}
         workingHours={userStore.currentUser.working_hours}
         className={cx('working-hours')}
       />

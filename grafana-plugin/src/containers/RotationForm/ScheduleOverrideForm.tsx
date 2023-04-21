@@ -6,11 +6,11 @@ import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
+import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { getFromString } from 'models/schedule/schedule.helpers';
+import { getFromString, getShiftTitle } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -21,7 +21,8 @@ import { getCoords, getVar, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import DateTimePicker from './DateTimePicker';
+import DateTimePicker from './parts/DateTimePicker';
+import UserItem from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 
@@ -58,7 +59,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const store = useStore();
 
-  const [rotationTitle, setRotationTitle] = useState<string>(shiftId === 'new' ? 'New override' : 'Update override');
+  const [rotationTitle, setRotationTitle] = useState<string>(shiftId === 'new' ? 'Override' : 'Update override');
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || propsShiftStart.add(24, 'hours'));
@@ -96,29 +97,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const [userGroups, setUserGroups] = useState([[]]);
 
-  const renderUser = (userPk: User['pk']) => {
-    const name = store.userStore.items[userPk]?.username;
-    const desc = store.userStore.items[userPk]?.timezone;
-    const workingHours = store.userStore.items[userPk]?.working_hours;
-    const timezone = store.userStore.items[userPk]?.timezone;
-
-    return (
-      <>
-        <div className={cx('user-title')}>
-          <Text strong>{name}</Text> <Text style={{ color: 'var(--always-gray)' }}>({desc})</Text>
-        </div>
-        <WorkingHours
-          timezone={timezone}
-          workingHours={workingHours}
-          startMoment={dayjs(params.shift_start)}
-          duration={dayjs(params.shift_end).diff(dayjs(params.shift_start), 'seconds')}
-          className={cx('working-hours')}
-          style={{ backgroundColor: shiftColor }}
-        />
-      </>
-    );
-  };
-
   const shift = store.scheduleStore.shifts[shiftId];
 
   useEffect(() => {
@@ -141,7 +119,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   useEffect(() => {
     if (shift) {
-      setRotationTitle(shift.title || 'Update override');
+      setRotationTitle(getShiftTitle(shift));
       setShiftStart(getDateTime(shift.shift_start));
       setShiftEnd(getDateTime(shift.shift_end));
 
@@ -155,7 +133,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       if (shiftId !== 'new') {
         store.scheduleStore.updateRotation(shiftId, { ...params, title }).catch((error) => {
           if (error.response?.data?.title) {
-            setRotationTitle(shift.title || `Update override`);
+            setRotationTitle(getShiftTitle(shift));
           }
         });
       }
@@ -218,7 +196,10 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
           <Text.Title onTextChange={handleRotationTitleChange} level={5} editable>
-            {rotationTitle}
+            <HorizontalGroup spacing="sm">
+              {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
+              {rotationTitle}
+            </HorizontalGroup>
           </Text.Title>
           <HorizontalGroup>
             {shiftId !== 'new' && (
@@ -236,7 +217,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 className={cx('date-time-picker')}
                 label={
                   <Text type="primary" size="small">
-                    Override start
+                    Override period start
                   </Text>
                 }
               >
@@ -246,7 +227,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 className={cx('date-time-picker')}
                 label={
                   <Text type="primary" size="small">
-                    Override end
+                    Override period end
                   </Text>
                 }
               >
@@ -257,7 +238,9 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
               value={userGroups}
               onChange={setUserGroups}
               isMultipleGroups={false}
-              renderUser={renderUser}
+              renderUser={(pk: User['pk']) => (
+                <UserItem pk={pk} shiftColor={shiftColor} shiftStart={params.shift_start} shiftEnd={params.shift_end} />
+              )}
               showError={!isFormValid}
             />
           </VerticalGroup>

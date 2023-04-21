@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { action, observable } from 'mobx';
 
-import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
+import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { makeRequest } from 'network';
@@ -121,7 +121,7 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateItems(
-    f: SchedulesFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
+    f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
     page = 1,
     shouldUpdateFn: () => boolean = undefined
   ) {

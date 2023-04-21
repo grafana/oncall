@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { DateTime, dateTime } from '@grafana/data';
-import { DatePickerWithInput, HorizontalGroup, TimeOfDayPicker } from '@grafana/ui';
+import { DatePickerWithInput, TimeOfDayPicker } from '@grafana/ui';
 import dayjs from 'dayjs';
 
+import { toDate } from 'containers/RotationForm/RotationForm.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 
 interface UserTooltipProps {
@@ -15,19 +16,6 @@ interface UserTooltipProps {
   onFocus?: () => void;
   onBlur?: () => void;
 }
-
-const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
-  const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? moment : moment.tz(timezone);
-
-  return new Date(
-    localMoment.get('year'),
-    localMoment.get('month'),
-    localMoment.get('date'),
-    localMoment.get('hour'),
-    localMoment.get('minute'),
-    localMoment.get('second')
-  );
-};
 
 const DateTimePicker = (props: UserTooltipProps) => {
   const { value: propValue, minMoment, timezone, onChange, disabled, onFocus, onBlur } = props;
@@ -67,14 +55,14 @@ const DateTimePicker = (props: UserTooltipProps) => {
   );
 
   return (
-    <HorizontalGroup spacing="sm">
-      <div onFocus={onFocus} onBlur={onBlur}>
-        <DatePickerWithInput minDate={minDate} disabled={disabled} value={value} onChange={handleDateChange} />
+    <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
+      <div onFocus={onFocus} onBlur={onBlur} style={{ width: '58%' }}>
+        <DatePickerWithInput open minDate={minDate} disabled={disabled} value={value} onChange={handleDateChange} />
       </div>
-      <div onFocus={onFocus} onBlur={onBlur}>
+      <div onFocus={onFocus} onBlur={onBlur} style={{ width: '42%' }}>
         <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
       </div>
-    </HorizontalGroup>
+    </div>
   );
 };
 

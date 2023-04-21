@@ -1,5 +1,6 @@
 .root {
-  display: inline;
+  display: inline-flex;
+  align-items: center;
 }
 
 .text {
@@ -67,7 +68,7 @@
 }
 
 .icon-button {
-  margin-left: 4px;
+  margin-left: 8px;
   display: none;
 }
 
