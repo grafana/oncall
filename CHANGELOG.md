@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update shift API to use a default interval value (`1`) when a `frequency` is set and no `interval` is given
+- Limit number of alertmanager alerts in alert group to autoresolve by 500 ([1779](https://github.com/grafana/oncall/pull/1779))
 
 ## v1.2.14 (2023-04-19)
 
