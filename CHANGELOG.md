@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Limit number of alertmanager alerts in alert group to autoresolveby 500 ([1779](https://github.com/grafana/oncall/pull/1779))
+- Limit number of alertmanager alerts in alert group to autoresolve by 500 ([1779](https://github.com/grafana/oncall/pull/1779))
 
 ### Fixed
 
