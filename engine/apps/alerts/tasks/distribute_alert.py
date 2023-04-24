@@ -2,7 +2,7 @@ from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.constants import TASK_DELAY_SECONDS
-from apps.alerts.signals import alert_create_signal
+from apps.alerts.signals import alert_create_signal, alert_group_escalation_snapshot_built
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -26,6 +26,7 @@ def distribute_alert(alert_id):
     if alert.is_the_first_alert_in_group:
         alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
         alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+        alert_group_escalation_snapshot_built.send(sender=distribute_alert, alert_group=alert_group)
 
     updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
     if updated_rows != 1:
