@@ -30,7 +30,7 @@ $(error "PROJECTS variable must be defined in variables.mk")
 endif
 
 # First project is considered the primary one used for doc-validator.
-PRIMARY_PROJECT := $(firstword $(subst /,-,$(PROJECTS)))
+PRIMARY_PROJECT := $(subst /,-,$(firstword $(subst :, ,$(firstword $(PROJECTS)))))
 
 # Name for the container.
 ifeq ($(origin DOCS_CONTAINER), undefined)
