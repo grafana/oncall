@@ -179,21 +179,21 @@ class AlertTemplater(ABC):
             # Hardcoding, as AlertWebTemplater.RENDER_FOR_WEB cause circular import
             render_for_web = "web"
             # Propagate rendered web templates to the other templates
+            added_context = {}
             if self._render_for() != render_for_web:
-                added_context = {
-                    "web_title": apply_jinja_template(
-                        self.template_manager.get_attr_template("title", channel, render_for_web),
-                        data,
-                        result_length_limit=settings.JINJA_RESULT_TITLE_MAX_LENGTH,
-                        **context,
-                    ),
-                    "web_message": apply_jinja_template(
-                        self.template_manager.get_attr_template("message", channel, render_for_web), data, **context
-                    ),
-                    "web_image_url": apply_jinja_template(
-                        self.template_manager.get_attr_template("image_url", channel, render_for_web), data, **context
-                    ),
-                }
+                for attr in ["title", "message", "image_url"]:
+                    added_attr_template = self.template_manager.get_attr_template(attr, channel, render_for_web)
+                    if added_attr_template is not None:
+                        result_length_limit = (
+                            settings.JINJA_RESULT_TITLE_MAX_LENGTH
+                            if attr == "title"
+                            else settings.JINJA_RESULT_MAX_LENGTH
+                        )
+                        added_context[f"web_{attr}"] = apply_jinja_template(
+                            added_attr_template, data, result_length_limit=result_length_limit, **context
+                        )
+                    else:
+                        added_context[f"web_{attr}"] = f"web_{attr} is not set"
                 context = {**context, **added_context}
 
             try:
