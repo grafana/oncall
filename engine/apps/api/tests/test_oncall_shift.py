@@ -41,7 +41,7 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
         "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": None,
         "frequency": 1,
-        "interval": None,
+        "interval": 1,
         "by_day": [
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
@@ -451,7 +451,7 @@ def test_update_old_on_call_shift_with_future_version(
         "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": None,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "interval": None,
+        "interval": 1,
         "by_day": None,
         "rolling_users": [[user1.public_primary_key]],
     }
@@ -715,7 +715,7 @@ def test_create_on_call_shift_invalid_data_until(on_call_shift_internal_api_setu
         "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": (start_date - timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "frequency": 1,
-        "interval": None,
+        "interval": 1,
         "by_day": [
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
@@ -828,26 +828,32 @@ def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_s
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["interval"][0] == "Cannot set interval for non-recurrent shifts"
 
-    # by_day, daily, interval > len(by_day)
-    data = {
-        "title": "Test Shift 2",
-        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
-        "schedule": schedule.public_primary_key,
-        "priority_level": 0,
-        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "until": None,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "interval": 2,
-        "by_day": [CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY]],
-        "rolling_users": [[user1.public_primary_key]],
-    }
+    invalid_intervals = (
+        (None, "If frequency is set, interval must be a positive integer"),
+        (2, "Interval must be less than or equal to the number of selected days"),
+    )
+    for interval, expected_error in invalid_intervals:
+        # by_day, daily shift
+        data = {
+            "title": "Test Shift 2",
+            "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+            "schedule": schedule.public_primary_key,
+            "priority_level": 0,
+            "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "until": None,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "by_day": [CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY]],
+            "rolling_users": [[user1.public_primary_key]],
+        }
+        if interval:
+            data["interval"] = interval
 
-    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
+        response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["interval"][0] == "Interval must be less than or equal to the number of selected days"
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["interval"][0] == expected_error
 
 
 @pytest.mark.django_db
@@ -1275,6 +1281,7 @@ def test_on_call_shift_preview_permissions(
         "rolling_users": [[user.public_primary_key]],
         "priority_level": 2,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
     }
 
     url = reverse("api-internal:oncall_shifts-preview")
@@ -1299,6 +1306,7 @@ def test_on_call_shift_preview_missing_data(
         "rolling_users": [[user.public_primary_key]],
         "priority_level": 2,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
     }
 
     url = reverse("api-internal:oncall_shifts-preview")
@@ -1336,6 +1344,7 @@ def test_on_call_shift_preview(
         "duration": timezone.timedelta(hours=9),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
         "schedule": schedule,
     }
     on_call_shift = make_on_call_shift(
@@ -1357,6 +1366,7 @@ def test_on_call_shift_preview(
         "rolling_users": [[other_user.public_primary_key]],
         "priority_level": 2,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
     }
     response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -1450,6 +1460,7 @@ def test_on_call_shift_preview_without_users(
         "rolling_users": [],
         "priority_level": 2,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
     }
     response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -1528,6 +1539,7 @@ def test_on_call_shift_preview_merge_events(
         "rolling_users": [[user.public_primary_key, other_user.public_primary_key]],
         "priority_level": 2,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
     }
     response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -1637,6 +1649,7 @@ def test_on_call_shift_preview_update(
         "rolling_users": [[other_user.public_primary_key]],
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
     }
     response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -1752,6 +1765,7 @@ def test_on_call_shift_preview_update_not_started_reuse_pk(
         "rolling_users": [[other_user.public_primary_key]],
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
     }
     response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
