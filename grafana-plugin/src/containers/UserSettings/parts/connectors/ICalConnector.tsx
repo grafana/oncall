@@ -57,7 +57,11 @@ const ICalConnector = (props: ICalConnectorProps) => {
   return (
     <div className={cx('user-item')}>
       <Label>iCal link:</Label>
-      <Text type="secondary">Secret iCal export link to add your assigned on call shifts to your calendar.</Text>
+      <Text type="secondary">
+        Secret iCal export link to add your assigned on call shifts to your calendar.
+        <br />
+        NOTE: We do not have control over when a client refreshes an imported calendar.
+      </Text>
       <div className={cx('iCal-settings')}>
         {iCalLoading ? (
           <LoadingPlaceholder text="Loading..." />
