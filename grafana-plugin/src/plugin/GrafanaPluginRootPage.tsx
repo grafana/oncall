@@ -105,6 +105,7 @@ export const Root = observer((props: AppRootProps) => {
 
   const updateBasicData = async () => {
     await store.updateBasicData();
+    await store.alertGroupStore.fetchIRMPlan();
     setDidFinishLoading(true);
   };
 
@@ -125,7 +126,7 @@ export const Root = observer((props: AppRootProps) => {
     <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
-          <Header backendLicense={store.backendLicense} />
+          <Header />
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}
@@ -163,7 +164,7 @@ export const Root = observer((props: AppRootProps) => {
               <OutgoingWebhooks query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
-              <OutgoingWebhooks2 />
+              <OutgoingWebhooks2 query={query} />
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
               <Maintenance query={query} />

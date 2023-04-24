@@ -12,6 +12,7 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING, LegacyAccessControlRole
 from apps.base.models import UserNotificationPolicy
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
 
 
@@ -1650,3 +1651,188 @@ def test_phone_number_verification_recaptcha(
             mock_verification_start.assert_called_once_with()
         else:
             mock_verification_start.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_upcoming_shifts_invalid_days(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key}) + "?days=invalid"
+
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_upcoming_shifts_oncall(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+    shifts = (
+        # user, priority, start time (h), duration (seconds)
+        (admin, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+
+    client = APIClient()
+
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_data = response.data[0]
+    assert returned_data["schedule_id"] == schedule.public_primary_key
+    assert returned_data["schedule_name"] == schedule.name
+    assert returned_data["is_oncall"]
+    assert returned_data["current_shift"]["start"] == on_call_shift.start
+    next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
+    assert returned_data["next_shift"]["start"] == next_shift_start
+
+    # empty response for other user
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": other_user.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == []
+
+
+@pytest.mark.django_db
+def test_upcoming_shifts_override(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
+
+    override_data = {
+        "start": tomorrow + timezone.timedelta(hours=22),
+        "rotation_start": tomorrow + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[admin]])
+    schedule.refresh_ical_file()
+
+    client = APIClient()
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_data = response.data[0]
+    assert returned_data["schedule_id"] == schedule.public_primary_key
+    assert returned_data["schedule_name"] == schedule.name
+    assert returned_data["is_oncall"] is False
+    assert returned_data["current_shift"] is None
+    assert returned_data["next_shift"]["start"] == override.start
+
+
+@pytest.mark.django_db
+def test_upcoming_shifts_multiple_schedules(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedules = []
+    # create schedules in a reversed order to check the output is sorted later
+    for i in range(2, -1, -1):
+        schedule = make_schedule(
+            organization,
+            schedule_class=OnCallScheduleWeb,
+        )
+        shifts = (
+            # user, priority, start time (h), duration (seconds)
+            (admin, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+        )
+        today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        for user, priority, start_h, duration in shifts:
+            data = {
+                "start": today + timezone.timedelta(hours=start_h) + timezone.timedelta(days=i),
+                "rotation_start": today + timezone.timedelta(hours=start_h) + timezone.timedelta(days=i),
+                "duration": timezone.timedelta(seconds=duration),
+                "priority_level": priority,
+                "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+                "schedule": schedule,
+            }
+            on_call_shift = make_on_call_shift(
+                organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+            )
+            on_call_shift.add_rolling_users([[user]])
+        schedule.refresh_ical_file()
+        schedules.append(schedule)
+
+    client = APIClient()
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_data = response.data
+    for i, schedule in enumerate(reversed(schedules)):
+        assert returned_data[i]["schedule_name"] == schedule.name
+        expected_start = today + timezone.timedelta(hours=start_h) + timezone.timedelta(days=i)
+        if i == 0:
+            assert returned_data[i]["is_oncall"]
+            assert returned_data[i]["current_shift"]["start"] == expected_start
+            assert returned_data[i]["next_shift"]["start"] == expected_start + timezone.timedelta(days=1)
+        else:
+            assert returned_data[i]["is_oncall"] is False
+            assert returned_data[i]["current_shift"] is None
+            assert returned_data[i]["next_shift"]["start"] == expected_start

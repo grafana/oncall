@@ -27,7 +27,6 @@ ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano
 @pytest.fixture()
 def schedule_internal_api_setup(
     make_organization_and_user_with_plugin_token,
-    make_user_auth_headers,
     make_slack_channel,
     make_schedule,
 ):
@@ -366,6 +365,50 @@ def test_get_list_schedules_by_used(
         escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
         notify_schedule=web_schedule,
     )
+
+    url = reverse("api-internal:schedule-list") + query_param
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == len(expected_schedule_names)
+
+    schedule_names = [schedule["name"] for schedule in response.json()["results"]]
+    assert set(schedule_names) == set(expected_schedule_names)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query_param, expected_schedule_names",
+    [
+        ("?mine=true", ["test_web_schedule"]),
+        ("?mine=false", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
+        ("?mine=null", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
+        ("", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
+    ],
+)
+def test_get_list_schedules_by_mine(
+    schedule_internal_api_setup,
+    make_user_auth_headers,
+    make_on_call_shift,
+    query_param,
+    expected_schedule_names,
+):
+    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    client = APIClient()
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    # setup user shift in web schedule
+    override_data = {
+        "start": today + timezone.timedelta(hours=22),
+        "rotation_start": today + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": web_schedule,
+    }
+    override = make_on_call_shift(
+        organization=user.organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user]])
+    web_schedule.refresh_ical_file()
 
     url = reverse("api-internal:schedule-list") + query_param
     response = client.get(url, format="json", **make_user_auth_headers(user, token))

@@ -39,6 +39,8 @@ class GetObjectMixin:
 
 
 class MaintenanceAPIView(APIView):
+    """Deprecated. Maintenance management is now performed on integrations page (alert_receive_channel/ endpoint))"""
+
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -101,6 +103,8 @@ class MaintenanceAPIView(APIView):
 
 
 class MaintenanceStartAPIView(GetObjectMixin, APIView):
+    """Deprecated. Maintenance management is now performed on integrations page (alert_receive_channel/ endpoint))"""
+
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
@@ -137,6 +141,8 @@ class MaintenanceStartAPIView(GetObjectMixin, APIView):
 
 
 class MaintenanceStopAPIView(GetObjectMixin, APIView):
+    """Deprecated. Maintenance management is now performed on integrations page (alert_receive_channel/ endpoint))"""
+
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {

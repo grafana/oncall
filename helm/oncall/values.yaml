@@ -144,12 +144,27 @@ oncall:
     apiKeySid: ""
     # Twilio API key secret/password to allow OnCall to send SMSes and make phone calls
     apiKeySecret: ""
+    # Use existing secret for authToken, phoneNumber, verifySid, apiKeySid and apiKeySecret.
+    existingSecret: ""
+    # Twilio password to allow OnCall to send SMSes and make calls
+    # the key in the secret containing the auth token
+    authTokenKey: ""
+    # the key in the secret containing the phone number
+    phoneNumberKey: ""
+    # the key in the secret containing verify service sid
+    verifySidKey: ""
+    # the key in the secret containing api key sid
+    apiKeySidKey: ""
+    # the key in the secret containing the api key secret
+    apiKeySecretKey: ""
 
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
+  # use a helm hook to manage the migration job
+  useHook: false
 
 # Additional env variables to add to deployments
 env: {}

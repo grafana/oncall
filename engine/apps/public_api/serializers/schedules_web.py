@@ -11,6 +11,7 @@ from common.timezones import TimeZoneField
 
 
 class ScheduleWebSerializer(ScheduleBaseSerializer):
+    team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,
@@ -49,7 +50,6 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
 
 class ScheduleWebUpdateSerializer(ScheduleWebSerializer):
     time_zone = TimeZoneField(required=False)
-    team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
 
     class Meta:
         model = OnCallScheduleWeb

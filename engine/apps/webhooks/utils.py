@@ -4,9 +4,11 @@ import re
 import socket
 from urllib.parse import urlparse
 
+from django.apps import apps
 from django.conf import settings
 
 from apps.base.utils import live_settings
+from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from common.jinja_templater import apply_jinja_template
 
 
@@ -113,6 +115,40 @@ class EscapeDoubleQuotesDict(dict):
         return original_str
 
 
+def _serialize_event_user(user):
+    if not user:
+        return None
+    return {
+        "id": user.public_primary_key,
+        "username": user.username,
+        "email": user.email,
+    }
+
+
+def _extract_users_from_escalation_snapshot(escalation_snapshot):
+    from apps.alerts.models import EscalationPolicy
+
+    users = []
+    if escalation_snapshot:
+        for policy_snapshot in escalation_snapshot.escalation_policies_snapshots:
+            if policy_snapshot.step in [
+                EscalationPolicy.STEP_NOTIFY,
+                EscalationPolicy.STEP_NOTIFY_IMPORTANT,
+                EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+                EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+            ]:
+                for user in policy_snapshot.notify_to_users_queue:
+                    users.append(_serialize_event_user(user))
+            elif policy_snapshot.step in [
+                EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+                EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT,
+            ]:
+                if policy_snapshot.notify_schedule:
+                    for user in list_users_to_notify_from_ical(policy_snapshot.notify_schedule):
+                        users.append(_serialize_event_user(user))
+    return list({u["id"]: u for u in users}.values())
+
+
 def serialize_event(event, alert_group, user, responses=None):
     from apps.public_api.serializers import IncidentSerializer
 
@@ -123,12 +159,36 @@ def serialize_event(event, alert_group, user, responses=None):
 
     data = {
         "event": event,
-        "user": user.username if user else None,
+        "user": _serialize_event_user(user),
         "alert_group": IncidentSerializer(alert_group).data,
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": alert_payload_raw,
+        "integration": {
+            "id": alert_group.channel.public_primary_key,
+            "type": alert_group.channel.integration,
+            "name": alert_group.channel.short_name,
+            "team": alert_group.channel.team.name if alert_group.channel.team else None,
+        },
+        "notified_users": [
+            _serialize_event_user(user)
+            for user in set(notification.author for notification in alert_group.sent_notifications)
+        ],
+        "users_to_be_notified": _extract_users_from_escalation_snapshot(alert_group.escalation_snapshot),
     }
     if responses:
         data["responses"] = responses
 
     return data
+
+
+def is_webhooks_enabled_for_organization(organization_id):
+    DynamicSetting = apps.get_model("base", "DynamicSetting")
+    enabled_webhooks_orgs = DynamicSetting.objects.get_or_create(
+        name="enabled_webhooks_2_orgs",
+        defaults={
+            "json_value": {
+                "org_ids": [],
+            }
+        },
+    )[0]
+    return organization_id in enabled_webhooks_orgs.json_value["org_ids"]
