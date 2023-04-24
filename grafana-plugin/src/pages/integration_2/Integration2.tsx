@@ -950,9 +950,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     ];
   };
 
-  openEditTemplateModal = (templateNameForWeb, templatePayload, templateName) => {
+  openEditTemplateModal = (templateNameForWeb, templateBody, templateName) => {
     this.setState({ isEditTemplateModalOpen: true });
-    const template: TemplateForEdit = { displayName: templateNameForWeb, payload: templatePayload, name: templateName };
+    const template: TemplateForEdit = { displayName: templateNameForWeb, body: templateBody, name: templateName };
     this.setState({ selectedTemplate: template });
   };
 

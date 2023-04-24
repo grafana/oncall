@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Tooltip, Icon, Drawer, VerticalGroup, IconButton, InfoBox } from '@grafana/ui';
+import { Button, HorizontalGroup, Tooltip, Icon, Drawer, VerticalGroup, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+// import { useDebouncedCallback } from 'utils/hooks';
 
 import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import CheatSheet from 'components/CheatSheet/CheatSheet';
@@ -22,6 +24,7 @@ import { useStore } from 'state/useStore';
 import styles from './IntegrationTemplate.module.css';
 
 const cx = cn.bind(styles);
+// const PAYLOAD_CHANGE_DEBOUNCE_MS = 1000;
 
 interface IntegrationTemplateProps {
   id: AlertReceiveChannel['id'];
@@ -35,9 +38,8 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [slackPermalink, setSlackPermalink] = useState<string>(undefined);
-  const [tempValues, setTempValues] = useState<{
-    [key: string]: string | null;
-  }>({});
+  const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
+  const [templateBody, setTemplateBody] = useState<string>(template.body);
 
   const onShowCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(true);
@@ -47,24 +49,24 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     setIsCheatSheetVisible(false);
   }, []);
 
-  const getChangeHandler = (templateName: string) => {
+  const getChangeHandler = () => {
     return (value: string) => {
-      setTempValues(() => ({
-        [templateName]: value,
-      }));
+      setTemplateBody(value);
     };
   };
 
-  const onSelectAlertGroup = useCallback((alert: Alert) => {
-    if (alert?.slack_permalink) {
-      setSlackPermalink(alert?.slack_permalink);
-    }
+  const onEditPayload = (alertPayload: JSON) => {
+    setAlertGroupPayload(alertPayload);
+  };
+
+  const onSelectAlertGroup = useCallback((alertGroup: Alert) => {
+    setSlackPermalink(alertGroup?.slack_permalink);
   }, []);
 
   const handleSubmit = useCallback(() => {
-    onUpdateTemplates(tempValues);
+    onUpdateTemplates({ [template.name]: templateBody });
     onHide();
-  }, [onUpdateTemplates, tempValues]);
+  }, [onUpdateTemplates, templateBody]);
 
   const getCheatSheet = (templateName) => {
     switch (templateName) {
@@ -122,7 +124,11 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
         width={'95%'}
       >
         <div className={cx('container')}>
-          <AlertGroupsList alertReceiveChannelId={id} onSelectAlertGroup={onSelectAlertGroup} />
+          <AlertGroupsList
+            alertReceiveChannelId={id}
+            onEditPayload={onEditPayload}
+            onSelectAlertGroup={onSelectAlertGroup}
+          />
           {isCheatSheetVisible ? (
             <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
           ) : (
@@ -139,21 +145,31 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                 </div>
 
                 <MonacoJinja2Editor
-                  value={template.payload}
+                  value={template.body}
                   data={undefined}
                   showLineNumbers={true}
                   height={'1000px'}
-                  onChange={getChangeHandler(template.name)}
+                  onChange={getChangeHandler()}
                 />
               </div>
             </>
           )}
-          <Result
-            alertReceiveChannelId={id}
-            template={template}
-            alertGroup={undefined}
-            slackPermalink={slackPermalink}
-          />
+          {alertGroupPayload ? (
+            <Result
+              alertReceiveChannelId={id}
+              templateName={template.name}
+              templateBody={templateBody}
+              alertGroup={undefined}
+              slackPermalink={slackPermalink}
+              payload={alertGroupPayload}
+            />
+          ) : (
+            <div className={cx('template-block-result')}>
+              <div className={cx('template-editor-block-title')}>
+                <Text>Please select Alert group to see end result</Text>
+              </div>
+            </div>
+          )}
         </div>
       </Drawer>
     </>
@@ -163,29 +179,34 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 interface AlertGroupsListProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   onSelectAlertGroup?: (alertGroup: Alert) => void;
+  onEditPayload?: (payload: JSON) => void;
 }
 
 const AlertGroupsList = (props: AlertGroupsListProps) => {
-  const { alertReceiveChannelId, onSelectAlertGroup } = props;
+  const { alertReceiveChannelId, onEditPayload, onSelectAlertGroup } = props;
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
-  const [selectedAlertPayload, setSelectedAlertPayload] = useState(undefined);
+  const [selectedAlertPayload, setSelectedAlertPayload] = useState<string>(undefined);
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     store.alertGroupStore
       .getAlertGroupsForIntegration(alertReceiveChannelId)
       .then((result) => setAlertGroupsList(result));
-    // const payload = store.alertReceiveChannelStore.templates[alertReceiveChannelId];
   }, []);
 
+  const getChangeHandler = () => {
+    return debounce((value: string) => {
+      onEditPayload(JSON.parse(value));
+    }, 1000);
+  };
+
   const getAlertGroupPayload = async (id) => {
-    const payloadIncident = await store.alertGroupStore.getAlertsFromGroup(id);
-    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(
-      payloadIncident?.alerts[0]?.id
-    );
-    onSelectAlertGroup(payloadIncident);
-    setSelectedAlertPayload(currentIncidentRawResponse);
+    const groupedAlert = await store.alertGroupStore.getAlertsFromGroup(id);
+    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(groupedAlert?.alerts[0]?.id);
+    setSelectedAlertPayload(currentIncidentRawResponse?.raw_request_data);
+    onSelectAlertGroup(groupedAlert);
+    onEditPayload(currentIncidentRawResponse?.raw_request_data);
   };
 
   return (
@@ -208,6 +229,8 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
                 value={JSON.stringify(selectedAlertPayload, null, 4)}
                 data={undefined}
                 height={'600px'}
+                onChange={getChangeHandler()}
+                showLineNumbers
               />
             ) : (
               <SourceCode>{JSON.stringify(selectedAlertPayload, null, 4)}</SourceCode>
@@ -225,23 +248,35 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
                 </Tooltip>
               </HorizontalGroup>
 
-              <Button variant="secondary" fill="outline" onClick={undefined} size="sm">
+              <Button variant="secondary" fill="outline" onClick={() => setIsEditMode(true)} size="sm">
                 Use custom payload
               </Button>
             </HorizontalGroup>
           </div>
           <div className={cx('alert-groups-list')}>
-            {alertGroupsList && (
+            {isEditMode ? (
+              <MonacoJinja2Editor
+                value={null}
+                data={undefined}
+                height={'600px'}
+                onChange={getChangeHandler()}
+                showLineNumbers
+              />
+            ) : (
               <>
-                {alertGroupsList.map((alertGroup) => {
-                  return (
-                    <div key={alertGroup.pk}>
-                      <Button fill="text" onClick={() => getAlertGroupPayload(alertGroup.pk)}>
-                        {alertGroup?.render_for_web.title}
-                      </Button>
-                    </div>
-                  );
-                })}
+                {alertGroupsList && (
+                  <>
+                    {alertGroupsList.map((alertGroup) => {
+                      return (
+                        <div key={alertGroup.pk}>
+                          <Button fill="text" onClick={() => getAlertGroupPayload(alertGroup.pk)}>
+                            {alertGroup?.render_for_web.title}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
               </>
             )}
           </div>
@@ -251,79 +286,17 @@ const AlertGroupsList = (props: AlertGroupsListProps) => {
   );
 };
 
-// interface TemplateEditorProps {
-//   templateBody: any;
-//   templateName: string;
-//   onShowCheatSheet: () => void;
-//   onEdit: () => void;
-// }
-// const TemplateEditor = (props: TemplateEditorProps) => {
-//   const { templateBody, templateName, onShowCheatSheet } = props;
-
-//   const [tempValues, setTempValues] = useState<{
-//     [key: string]: string | null;
-//   }>({});
-
-//   const getChangeHandler = (templateName: string) => {
-//     return (value: string) => {
-//       setTempValues((oldTempValues) => ({
-//         ...oldTempValues, // erase another edited templates
-//         [templateName]: value,
-//       }));
-//     };
-//   };
-
-//   const handleSubmit = useCallback(() => {
-//     const data = Object.keys(tempValues).reduce((acc: { [key: string]: string }, key: string) => {
-//       if (templates[key] !== tempValues[key]) {
-//         acc = { ...acc, [key]: tempValues[key] };
-//       }
-//       return acc;
-//     }, {});
-//     onUpdateTemplates(data);
-//   }, [onUpdateTemplates, tempValues]);
-
-//   return (
-//     <div className={cx('template-block-codeeditor')}>
-//       <div className={cx('template-editor-block-title')}>
-//         <HorizontalGroup justify="space-between">
-//           <Text>Template editor</Text>
-
-//           <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-//             Cheatsheat
-//           </Button>
-//         </HorizontalGroup>
-//       </div>
-
-//       <MonacoJinja2Editor
-//         value={templateBody}
-//         data={undefined}
-//         showLineNumbers={true}
-//         height={'1000px'}
-//         onChange={getChangeHandler(templateName)}
-//       />
-//     </div>
-//   );
-// };
-
 interface ResultProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
-  template: TemplateForEdit;
+  templateName: string;
+  templateBody: string;
   alertGroup?: Alert;
   slackPermalink?: string;
+  payload?: JSON;
 }
 
 const Result = (props: ResultProps) => {
-  const { alertReceiveChannelId, template, slackPermalink } = props;
-  const [isCondition, setIsCondition] = useState(false);
-
-  const handleResult = (result) => {
-    if (result?.preview === 'True') {
-      setIsCondition(true);
-    } else {
-      setIsCondition(false);
-    }
-  };
+  const { alertReceiveChannelId, templateName, slackPermalink, payload, templateBody } = props;
 
   return (
     <div className={cx('template-block-result')}>
@@ -334,13 +307,14 @@ const Result = (props: ResultProps) => {
       </div>
       <div className={cx('result')}>
         <TemplatePreview
-          key={template.name}
-          templateName={template.name}
-          templateBody={template.payload}
+          key={templateName}
+          templateName={templateName}
+          templateBody={templateBody}
           alertReceiveChannelId={alertReceiveChannelId}
-          onResult={handleResult}
+          // onResult={handleResult}
+          payload={payload}
         />
-        {template.name.includes('slack') && slackPermalink && (
+        {templateName.includes('slack') && slackPermalink && (
           <>
             <a href={slackPermalink} target="_blank" rel="noreferrer">
               <Button>Save and open Alert Group in Slack</Button>
@@ -348,9 +322,6 @@ const Result = (props: ResultProps) => {
 
             <Text type="secondary">Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.</Text>
           </>
-        )}
-        {template.name.includes('condition_template') && (
-          <InfoBox severity={isCondition ? 'success' : 'error'}>{isCondition ? 'success' : 'error'}</InfoBox>
         )}
       </div>
     </div>

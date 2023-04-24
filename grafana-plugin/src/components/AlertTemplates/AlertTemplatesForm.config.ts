@@ -6,7 +6,11 @@ export interface Template {
 export interface TemplateForEdit {
   displayName: string;
   name: string;
-  payload: any;
+  body: string;
+  description?: string;
+  additionalData?: {
+    data: string;
+  };
 }
 
 export const templatesToRender: Template[] = [

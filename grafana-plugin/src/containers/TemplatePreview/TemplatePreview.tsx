@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { LoadingPlaceholder } from '@grafana/ui';
+import { LoadingPlaceholder, Alert as AlertComponent } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -18,6 +18,7 @@ const cx = cn.bind(styles);
 interface TemplatePreviewProps {
   templateName: string;
   templateBody: string | null;
+  payload?: JSON;
   alertReceiveChannelId: AlertReceiveChannel['id'];
   onEditClick?: () => void;
   alertGroupId?: Alert['pk'];
@@ -26,9 +27,11 @@ interface TemplatePreviewProps {
 }
 
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, alertReceiveChannelId, alertGroupId, onResult } = props;
+  const { templateName, templateBody, payload, alertReceiveChannelId, alertGroupId } = props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
+  const [isCondition, setIsCondition] = useState(false);
+  // const [conditionalResult, setConditionalResult] = useState()
 
   const store = useStore();
   const { alertReceiveChannelStore, alertGroupStore } = store;
@@ -36,9 +39,16 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const handleTemplateBodyChange = useDebouncedCallback(() => {
     (alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
-      : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody)
+      : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )
-      .then(setResult)
+      .then((data) => {
+        setResult(data);
+        if (data?.preview === 'True') {
+          setIsCondition(true);
+        } else {
+          setIsCondition(false);
+        }
+      })
       .catch((err) => {
         if (err.response?.data?.length > 0) {
           openErrorNotification(err.response.data);
@@ -48,16 +58,33 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
       });
   }, 1000);
 
-  useEffect(handleTemplateBodyChange, [templateBody]);
-  onResult(result);
+  useEffect(handleTemplateBodyChange, [templateBody, payload]);
+  // onResult(result);
 
   return result ? (
-    <div
-      className={cx('message')}
-      dangerouslySetInnerHTML={{
-        __html: sanitize(result.preview || ''),
-      }}
-    />
+    <>
+      {templateName.includes('condition_template') ? (
+        <AlertComponent severity={isCondition ? 'success' : 'error'} title="">
+          {isCondition ? (
+            'True'
+          ) : (
+            <div
+              className={cx('message')}
+              dangerouslySetInnerHTML={{
+                __html: sanitize(result.preview || ''),
+              }}
+            />
+          )}
+        </AlertComponent>
+      ) : (
+        <div
+          className={cx('message')}
+          dangerouslySetInnerHTML={{
+            __html: sanitize(result.preview || ''),
+          }}
+        />
+      )}
+    </>
   ) : (
     <LoadingPlaceholder text="Loading..." />
   );
