@@ -107,3 +107,7 @@ class MobileAppUserSettings(models.Model):
     # For the "Mobile push important" step it's possible to make notifications non-critical
     # if "override DND" setting is disabled in the app
     important_notification_override_dnd = models.BooleanField(default=True)
+
+    # this is used for non escalation related push notifications such as the
+    # "You're going OnCall soon" push notification
+    info_notifications_enabled = models.BooleanField(default=True)

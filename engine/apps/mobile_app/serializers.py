@@ -15,4 +15,5 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
             "important_notification_volume_type",
             "important_notification_volume",
             "important_notification_override_dnd",
+            "info_notifications_enabled",
         )

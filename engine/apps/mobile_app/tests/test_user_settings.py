@@ -24,6 +24,7 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
         "important_notification_volume_type": "constant",
         "important_notification_volume": 0.8,
         "important_notification_override_dnd": True,
+        "info_notifications_enabled": True,
     }
 
 
@@ -42,6 +43,7 @@ def test_user_settings_put(make_organization_and_user_with_mobile_app_auth_token
         "important_notification_volume_type": "intensifying",
         "important_notification_volume": 1,
         "important_notification_override_dnd": False,
+        "info_notifications_enabled": False,
     }
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=auth_token)
