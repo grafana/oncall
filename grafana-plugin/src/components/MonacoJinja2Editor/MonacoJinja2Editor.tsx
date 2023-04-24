@@ -11,7 +11,7 @@ declare const monaco: any;
 interface MonacoJinja2EditorProps {
   value: string;
   disabled?: boolean;
-  height?: number;
+  height?: string;
   data: any;
   showLineNumbers?: boolean;
   onChange?: (value: string) => void;
@@ -68,7 +68,7 @@ const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
       value={value}
       language="jinja2"
       width="100%"
-      height={height ? `${height}px` : `130px`}
+      height={height ? `${height}` : `130px`}
       onEditorDidMount={handleMount}
       getSuggestions={autoCompleteList}
     />

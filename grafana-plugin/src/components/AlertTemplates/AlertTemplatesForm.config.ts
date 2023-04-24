@@ -3,6 +3,16 @@ export interface Template {
   group: string;
 }
 
+export interface TemplateForEdit {
+  displayName: string;
+  name: string;
+  body: string;
+  description?: string;
+  additionalData?: {
+    data: string;
+  };
+}
+
 export const templatesToRender: Template[] = [
   {
     name: 'web_title_template',

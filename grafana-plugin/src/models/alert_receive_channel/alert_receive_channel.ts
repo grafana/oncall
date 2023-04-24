@@ -341,10 +341,10 @@ export class AlertReceiveChannelStore extends BaseStore {
     await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
   }
 
-  async renderPreview(id: AlertReceiveChannel['id'], template_name: string, template_body: string) {
+  async renderPreview(id: AlertReceiveChannel['id'], template_name: string, template_body: string, payload: JSON) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
-      data: { template_name, template_body },
+      data: { template_name, template_body, payload },
     });
   }
 
