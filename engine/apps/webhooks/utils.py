@@ -8,6 +8,7 @@ from django.apps import apps
 from django.conf import settings
 
 from apps.base.utils import live_settings
+from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from common.jinja_templater import apply_jinja_template
 
 
@@ -124,6 +125,30 @@ def _serialize_event_user(user):
     }
 
 
+def _extract_users_from_escalation_snapshot(escalation_snapshot):
+    from apps.alerts.models import EscalationPolicy
+
+    users = []
+    if escalation_snapshot:
+        for policy_snapshot in escalation_snapshot.escalation_policies_snapshots:
+            if policy_snapshot.step in [
+                EscalationPolicy.STEP_NOTIFY,
+                EscalationPolicy.STEP_NOTIFY_IMPORTANT,
+                EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+                EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+            ]:
+                for user in policy_snapshot.notify_to_users_queue:
+                    users.append(_serialize_event_user(user))
+            elif policy_snapshot.step in [
+                EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+                EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT,
+            ]:
+                if policy_snapshot.notify_schedule:
+                    for user in list_users_to_notify_from_ical(policy_snapshot.notify_schedule):
+                        users.append(_serialize_event_user(user))
+    return list({u["id"]: u for u in users}.values())
+
+
 def serialize_event(event, alert_group, user, responses=None):
     from apps.public_api.serializers import IncidentSerializer
 
@@ -148,6 +173,7 @@ def serialize_event(event, alert_group, user, responses=None):
             _serialize_event_user(user)
             for user in set(notification.author for notification in alert_group.sent_notifications)
         ],
+        "users_to_be_notified": _extract_users_from_escalation_snapshot(alert_group.escalation_snapshot),
     }
     if responses:
         data["responses"] = responses

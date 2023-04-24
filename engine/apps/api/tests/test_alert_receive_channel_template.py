@@ -365,6 +365,7 @@ def test_update_alert_receive_channel_templates(
     del existing_templates_data["id"]
     del existing_templates_data["verbal_name"]
     del existing_templates_data["payload_example"]
+    del existing_templates_data["is_based_on_alertmanager"]
 
     # update each template
     new_templates_data = {}
