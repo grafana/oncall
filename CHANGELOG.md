@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.15 (2023-04-24)
 
 ### Fixed
 
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add helm chart support for twilio existing secrets by @atownsend247 ([#1435](https://github.com/grafana/oncall/pull/1435))
+- Add web_title, web_message and web_image_url attributes to templates ([1786](https://github.com/grafana/oncall/pull/1786))
 
 ### Changed
 
