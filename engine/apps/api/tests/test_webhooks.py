@@ -51,6 +51,7 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "http_method": "POST",
             "integration_filter": None,
             "is_webhook_enabled": True,
+            "is_legacy": False,
             "last_response_log": {
                 "request_data": "",
                 "request_headers": "",
@@ -91,6 +92,7 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "is_legacy": False,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -136,6 +138,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "is_legacy": False,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -194,6 +197,7 @@ def test_create_valid_templated_field(
         "http_method": "POST",
         "integration_filter": None,
         "is_webhook_enabled": True,
+        "is_legacy": False,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
