@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
- - Update schedule and personal ical exports to use final shift events
+- Update schedule and personal ical exports to use final shift events
 
 ## v1.2.15 (2023-04-24)
 
