@@ -48,6 +48,9 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integration2.module.scss';
+import IntegrationBlockItem from './IntegrationBlockItem';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from './Integration2.config';
+import IntegrationRouteDisplay from './IntegrationRouteDisplay';
 
 const cx = cn.bind(styles);
 
@@ -102,9 +105,6 @@ const MONACO_OPTIONS = {
     display: 'none',
   },
 };
-
-const MONACO_INPUT_HEIGHT_SMALL = '32px';
-const MONACO_INPUT_HEIGHT_TALL = '120px';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -812,6 +812,18 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   </div>
                 }
               />
+
+              <div className={cx('routesSection')}>
+                <VerticalGroup spacing="md">
+                  <div className="thin-line-break" />
+                  <Text type={'primary'}>Routes</Text>
+                  <Button variant={'primary'} onClick={() => {}}>
+                    Add route
+                  </Button>
+                </VerticalGroup>
+              </div>
+
+              {this.renderRoutes}
             </IntegrationCollapsibleTreeView>
 
             <IntegrationSendDemoPayloadModal
@@ -836,6 +848,27 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       </PageErrorHandlingWrapper>
     );
   }
+
+  renderRoutes = () => {
+    const {
+      store: { alertReceiveChannelStore },
+      match: {
+        params: { id },
+      },
+    } = this.props;
+
+    const templates = alertReceiveChannelStore.templates[id];
+
+    return Object.keys(alertReceiveChannelStore.channelFilters).map((channelFilterId, channelFilterIndex) => (
+      <IntegrationRouteDisplay
+        channelFilter={alertReceiveChannelStore.channelFilters[channelFilterId]}
+        routeIndex={channelFilterIndex}
+        templates={templates}
+      />
+    ));
+  };
+
+  handleSlackChannelChange = () => {};
 
   onUpdateTemplatesCallback = (data) => {
     const {
@@ -1029,19 +1062,6 @@ const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }
       }}
     >
       <Icon size="sm" name="ellipsis-v" />
-    </div>
-  );
-};
-
-interface IntegrationBlockItemProps {
-  children: React.ReactNode;
-}
-
-const IntegrationBlockItem: React.FC<IntegrationBlockItemProps> = (props) => {
-  return (
-    <div className={cx('blockItem')}>
-      <div className={cx('blockItem__leftDelimitator')} />
-      <div className={cx('blockItem__content')}>{props.children}</div>
     </div>
   );
 };
