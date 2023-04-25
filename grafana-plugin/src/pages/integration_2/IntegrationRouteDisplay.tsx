@@ -167,7 +167,7 @@ const ReadOnlyEscalationChain: React.FC<ReadOnlyEscalationChainProps> = ({ chann
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
   const escalationChainId = channelFilter.escalation_chain;
 
-  return <EscalationChainSteps id={escalationChainId} />;
+  return <EscalationChainSteps disabled id={escalationChainId} />;
 };
 
 export default IntegrationRouteDisplay;

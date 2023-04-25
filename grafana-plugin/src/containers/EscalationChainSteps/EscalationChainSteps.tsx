@@ -21,12 +21,13 @@ const cx = cn.bind(styles);
 
 interface EscalationChainStepsProps {
   id: EscalationChain['id'];
+  disabled?: boolean;
   addonBefore?: ReactElement;
   offset?: number;
 }
 
 const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
-  const { id, offset = 0, addonBefore } = props;
+  const { id, offset = 0, disabled = false, addonBefore } = props;
 
   const store = useStore();
 
@@ -79,6 +80,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
               index={index}
               // @ts-ignore
               data={escalationPolicy}
+              disabled={disabled}
               number={index + offset + 1}
               color={STEP_COLORS[index] || COLOR_RED}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
