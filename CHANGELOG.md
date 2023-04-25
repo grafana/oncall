@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.2.16 (2023-04-25)
+
+### Changed
+
+ - Update schedule and personal ical exports to use final shift events
+
 ## v1.2.15 (2023-04-24)
 
 ### Fixed
@@ -21,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update shift API to use a default interval value (`1`) when a `frequency` is set and no `interval` is given
 - Limit number of alertmanager alerts in alert group to autoresolve by 500 ([1779](https://github.com/grafana/oncall/pull/1779))
-- Update schedule and personal ical exports to use final shift events
 
 ## v1.2.14 (2023-04-19)
 
