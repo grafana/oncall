@@ -1,4 +1,5 @@
 import datetime
+import re
 from urllib.parse import urljoin
 
 import requests
@@ -124,3 +125,7 @@ def get_date_range_from_request(request):
         raise BadRequest(detail="Invalid days format")
 
     return user_tz, starting_date, days
+
+
+def check_phone_number_is_valid(phone_number):
+    return re.match(r"^\+\d{8,15}$", phone_number) is not None
