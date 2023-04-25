@@ -114,11 +114,7 @@ class MobileAppUserSettings(models.Model):
 
     # these choices + the below column are used to calculate when to send the "You're Going OnCall soon"
     # push notification
-    ONE_HOUR, TWELVE_HOURS, ONE_DAY, ONE_WEEK = range(4)
-    NOTIFICATION_TIMING_CHOICES = (
-        (ONE_HOUR, "one hour before"),
-        (TWELVE_HOURS, "twelve hours before"),
-        (ONE_DAY, "one day before"),
-        (ONE_WEEK, "one week before"),
-    )
+    # ONE_HOUR, TWELVE_HOURS, ONE_DAY, ONE_WEEK = range(4)
+    TWELVE_HOURS = 0
+    NOTIFICATION_TIMING_CHOICES = ((TWELVE_HOURS, "twelve hours before"),)
     going_oncall_notification_timing = models.IntegerField(choices=NOTIFICATION_TIMING_CHOICES, default=TWELVE_HOURS)
