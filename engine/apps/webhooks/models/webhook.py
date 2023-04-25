@@ -63,7 +63,8 @@ class Webhook(models.Model):
         TRIGGER_SILENCE,
         TRIGGER_UNSILENCE,
         TRIGGER_UNRESOLVE,
-    ) = range(7)
+        TRIGGER_UNACKNOWLEDGE,
+    ) = range(8)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -74,6 +75,7 @@ class Webhook(models.Model):
         (TRIGGER_SILENCE, "Silenced"),
         (TRIGGER_UNSILENCE, "Unsilenced"),
         (TRIGGER_UNRESOLVE, "Unresolved"),
+        (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
 
     public_primary_key = models.CharField(
