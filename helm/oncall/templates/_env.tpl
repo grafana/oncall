@@ -117,6 +117,33 @@ MIRAGE_SECRET_KEY
 - name: TWILIO_ACCOUNT_SID
   value: {{ .accountSid | quote }}
 {{- end -}}
+{{- if .existingSecret }}
+- name: TWILIO_AUTH_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ .existingSecret }}
+      key: {{ required ".authTokenKey is required if .existingSecret is not empty" .authTokenKey }}
+- name: TWILIO_NUMBER
+  valueFrom:
+    secretKeyRef:
+      name: {{ .existingSecret }}
+      key: {{ required ".phoneNumberKey is required if .existingSecret is not empty" .phoneNumberKey }}
+- name: TWILIO_VERIFY_SERVICE_SID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .existingSecret }}
+      key: {{ required ".verifySidKey is required if .existingSecret is not empty" .verifySidKey }}
+- name: TWILIO_API_KEY_SID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .existingSecret }}
+      key: {{ required ".apiKeySidKey is required if .existingSecret is not empty" .apiKeySidKey }}
+- name: TWILIO_API_KEY_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .existingSecret }}
+      key: {{ required ".apiKeySecretKey is required if .existingSecret is not empty" .apiKeySecretKey }}
+{{- else }}
 {{- if .authToken }}
 - name: TWILIO_AUTH_TOKEN
   value: {{ .authToken | quote }}
@@ -140,6 +167,7 @@ MIRAGE_SECRET_KEY
 {{- if .limitPhone }}
 - name: PHONE_NOTIFICATIONS_LIMIT
   value: {{ .limitPhone | quote }}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
