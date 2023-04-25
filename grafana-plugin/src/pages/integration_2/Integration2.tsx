@@ -8,7 +8,6 @@ import {
   Icon,
   LoadingPlaceholder,
   Tooltip,
-  InlineLabel,
   Modal,
   ButtonCascader,
   CascaderOption,
@@ -21,7 +20,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import CounterBadge from 'components/CounterBadge/CounterBadge';
-import Block from 'components/GBlock/Block';
 import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import MaskedInputField from 'components/MaskedInputField/MaskedInputField';
@@ -42,15 +40,22 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { KeyValuePair, openNotification, openErrorNotification } from 'utils';
+import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integration2.module.scss';
 import IntegrationBlockItem from './IntegrationBlockItem';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from './Integration2.config';
+import {
+  INTEGRATION_DEMO_PAYLOAD,
+  INTEGRATION_TEMPLATES_LIST,
+  MONACO_INPUT_HEIGHT_SMALL,
+  MONACO_INPUT_HEIGHT_TALL,
+} from './Integration2.config';
 import IntegrationRouteDisplay from './IntegrationRouteDisplay';
+import IntegrationBlock from './IntegrationBlock';
+import IntegrationTemplateBlock from './IntegrationTemplateBlock';
 
 const cx = cn.bind(styles);
 
@@ -62,31 +67,6 @@ interface Integration2State extends PageBaseState {
   selectedTemplate: TemplateForEdit;
 }
 
-// TODO: All display right now, these should be based on the configured channels instead
-const TemplateOptions = {
-  SourceLink: new KeyValuePair('Source Link', 'Source Link'),
-  Autoacknowledge: new KeyValuePair('Autoacknowledge', 'Autoacknowledge'),
-  Phone: new KeyValuePair('Phone', 'Phone'),
-  SMS: new KeyValuePair('SMS', 'SMS'),
-  SlackTitle: new KeyValuePair('Slack Title', 'Title'),
-  SlackMessage: new KeyValuePair('Slack Message', 'Message'),
-  SlackImage: new KeyValuePair('Slack Image', 'Image'),
-  EmailTitle: new KeyValuePair('Email Title', 'Title'),
-  EmailMessage: new KeyValuePair('Email Message', 'Message'),
-  TelegramTitle: new KeyValuePair('Telegram Title', 'Title'),
-  TelegramMessage: new KeyValuePair('Telegram Message', 'Message'),
-  TelegramImage: new KeyValuePair('Telegram Image', 'Image'),
-  MSTeamsTitle: new KeyValuePair('MSTeams Title', 'Title'),
-  MSTeamsMessage: new KeyValuePair('MSTeams Message', 'Message'),
-  MSTeamsImage: new KeyValuePair('MSTeams Image', 'Image'),
-
-  Email: new KeyValuePair('Email', 'Email'),
-  Slack: new KeyValuePair('Slack', 'Slack'),
-  MSTeams: new KeyValuePair('Microsoft Teams', 'Microsoft Teams'),
-  Telegram: new KeyValuePair('Telegram', 'Telegram'),
-};
-
-// This can be further improved by using a ref instead
 const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
 
@@ -894,94 +874,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       });
   };
 
-  getTemplatesList = (): CascaderOption[] => {
-    return [
-      {
-        label: TemplateOptions.SourceLink.value,
-        value: TemplateOptions.SourceLink.key,
-      },
-      {
-        label: TemplateOptions.Autoacknowledge.value,
-        value: TemplateOptions.Autoacknowledge.key,
-      },
-      {
-        label: TemplateOptions.Phone.value,
-        value: TemplateOptions.Phone.key,
-      },
-      {
-        label: TemplateOptions.SMS.value,
-        value: TemplateOptions.SMS.key,
-      },
-      {
-        label: TemplateOptions.Email.value,
-        value: TemplateOptions.Email.key,
-        children: [
-          {
-            label: TemplateOptions.EmailTitle.value,
-            value: TemplateOptions.EmailTitle.key,
-          },
-          {
-            label: TemplateOptions.EmailMessage.value,
-            value: TemplateOptions.EmailMessage.key,
-          },
-        ],
-      },
-      {
-        label: TemplateOptions.Slack.value,
-        value: TemplateOptions.Slack.key,
-        children: [
-          {
-            label: TemplateOptions.SlackTitle.value,
-            value: TemplateOptions.SlackTitle.key,
-          },
-          {
-            label: TemplateOptions.SlackMessage.value,
-            value: TemplateOptions.SlackMessage.key,
-          },
-          {
-            label: TemplateOptions.SlackImage.value,
-            value: TemplateOptions.SlackImage.key,
-          },
-        ],
-      },
-      {
-        label: TemplateOptions.MSTeams.value,
-        value: TemplateOptions.MSTeams.key,
-        children: [
-          {
-            label: TemplateOptions.MSTeamsTitle.value,
-            value: TemplateOptions.MSTeamsTitle.key,
-          },
-          {
-            label: TemplateOptions.MSTeamsMessage.value,
-            value: TemplateOptions.MSTeamsMessage.key,
-          },
-          {
-            label: TemplateOptions.MSTeamsImage.value,
-            value: TemplateOptions.MSTeamsImage.key,
-          },
-        ],
-      },
-      {
-        label: TemplateOptions.Telegram.value,
-        value: TemplateOptions.Telegram.key,
-        children: [
-          {
-            label: TemplateOptions.TelegramTitle.value,
-            value: TemplateOptions.TelegramTitle.key,
-          },
-          {
-            label: TemplateOptions.TelegramMessage.value,
-            value: TemplateOptions.TelegramMessage.key,
-          },
-          {
-            label: TemplateOptions.TelegramImage.value,
-            value: TemplateOptions.TelegramImage.key,
-          },
-        ],
-      },
-    ];
-  };
+  getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
 
   openEditTemplateModal = (templateNameForWeb, templateBody, templateName) => {
     this.setState({ isEditTemplateModalOpen: true });
@@ -1124,81 +1017,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   }
 
   function getDemoAlertJSON() {
-    return JSON.stringify(
-      {
-        alert_uid: '08d6891a-835c-e661-39fa-96b6a9e26552',
-        title: 'The whole system is down',
-        image_url: 'https://http.cat/500',
-        state: 'alerting',
-        link_to_upstream_details: 'https://en.wikipedia.org/wiki/Downtime',
-        message: 'Smth happened. Oh no!',
-      },
-      null,
-      4
-    );
+    return JSON.stringify(INTEGRATION_DEMO_PAYLOAD, null, 4);
   }
-};
-
-interface IntegrationTemplateBlockProps {
-  label: string;
-  labelTooltip?: string;
-  renderInput: () => React.ReactNode;
-  showClose?: boolean;
-  showHelp?: boolean;
-
-  onEdit: (templateName) => void;
-  onRemove?: () => void;
-  onHelp?: () => void;
-}
-
-const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
-  label,
-  labelTooltip,
-  renderInput,
-  showClose,
-  showHelp,
-  onEdit,
-  onHelp,
-  onRemove,
-}) => {
-  let inlineLabelProps = { labelTooltip };
-  if (!labelTooltip) {
-    delete inlineLabelProps.labelTooltip;
-  }
-
-  return (
-    <HorizontalGroup align={'flex-start'}>
-      <InlineLabel width={20} {...inlineLabelProps}>
-        {label}
-      </InlineLabel>
-      {renderInput()}
-      <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={onEdit} />
-      {showClose && <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />}
-      {showHelp && (
-        <Button variant="secondary" size="md" onClick={onHelp}>
-          <Text type="link">Help</Text>
-          <Icon name="angle-down" size="sm" />
-        </Button>
-      )}
-    </HorizontalGroup>
-  );
-};
-
-interface IntegrationBlockProps {
-  heading: React.ReactNode;
-  content: React.ReactNode;
-}
-
-const IntegrationBlock: React.FC<IntegrationBlockProps> = (props) => {
-  const { heading, content } = props;
-  return (
-    <div className={cx('integrationBlock')}>
-      <Block bordered shadowed className={cx('integrationBlock__heading')}>
-        {heading}
-      </Block>
-      <div className={cx('integrationBlock__content')}>{content}</div>
-    </div>
-  );
 };
 
 export default withRouter(withMobXProviderContext(Integration2));

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import GSelect from 'containers/GSelect/GSelect';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SelectableValue } from '@grafana/data';
@@ -20,6 +20,7 @@ import TeamName from 'containers/TeamName/TeamName';
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { useStore } from 'state/useStore';
+import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 
 const cx = cn.bind(styles);
 
@@ -31,6 +32,7 @@ interface IntegrationRouteDisplayProps {
 
 const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ channelFilter, templates, routeIndex }) => {
   const { teamStore, escalationChainStore, grafanaTeamStore } = useStore();
+  const [isEscalationCollapsed, setIsEscalationCollapsed] = useState(true);
 
   return (
     <IntegrationBlock
@@ -56,7 +58,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ chann
               </InlineLabel>
               <div className={cx('input', 'input--short')}>
                 <MonacoJinja2Editor
-                  value={'abracadabra'}
+                  value={channelFilter.filtering_term}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_SMALL}
                   data={templates}
@@ -136,14 +138,16 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ chann
                 </WithPermissionControlTooltip>
                 <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={undefined} />
                 <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={undefined} />
-                <Button variant={'secondary'}>
+                <Button variant={'secondary'} onClick={() => setIsEscalationCollapsed(!isEscalationCollapsed)}>
                   <HorizontalGroup>
                     <Text type="link">Show escalation chain</Text>
-                    <Icon name={'angle-down'} />
-                    <Icon name={'angle-up'} />
+                    {isEscalationCollapsed && <Icon name={'angle-down'} />}
+                    {!isEscalationCollapsed && <Icon name={'angle-up'} />}
                   </HorizontalGroup>
                 </Button>
               </HorizontalGroup>
+
+              {isEscalationCollapsed && <ReadOnlyEscalationChain channelFilterId={channelFilter.id} />}
             </VerticalGroup>
           </IntegrationBlockItem>
         </VerticalGroup>
@@ -152,6 +156,18 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ chann
   );
 
   function handleSlackChannelChange() {}
+};
+
+interface ReadOnlyEscalationChainProps {
+  channelFilterId: ChannelFilter['id'];
+}
+
+const ReadOnlyEscalationChain: React.FC<ReadOnlyEscalationChainProps> = ({ channelFilterId }) => {
+  const { alertReceiveChannelStore } = useStore();
+  const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+  const escalationChainId = channelFilter.escalation_chain;
+
+  return <EscalationChainSteps id={escalationChainId} />;
 };
 
 export default IntegrationRouteDisplay;
