@@ -115,8 +115,11 @@ _provider = None
 
 # TODO: phone_provider: store provider in global variable, or create instance each time to allow to modify it without restart of oncall
 def get_phone_provider() -> PhoneProvider:
+    # TODO: phone_provider: remove this, TwilioProvider hardcoded
+    from ..twilioapp.phone_provider import TwilioPhoneProvider
+    return TwilioPhoneProvider()
     global _provider
     if _provider is None:
-        PhoneNotificatorClass = import_string(settings.base.PHONE_NOTIFICATOR)
+        PhoneNotificatorClass = import_string(settings.PHONE_NOTIFICATOR)
         _provider = PhoneNotificatorClass()
     return _provider

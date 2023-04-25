@@ -14,16 +14,16 @@ from apps.phone_notifications.exceptions import (
     FailedToStartVerification,
 )
 from apps.phone_notifications.phone_provider import PhoneProvider
-from apps.twilioapp.models import TwilioCallStatuses, TwilioSMS
-from apps.twilioapp.utils import (
-    get_status_callback_url,
-)
+from apps.twilioapp.gather import get_gather_message, get_gather_url
+from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS
+from apps.twilioapp.status_callback import get_call_status_callback_url, get_sms_status_callback_url
 
 logger = logging.getLogger(__name__)
 
 
 class TwilioPhoneProvider(PhoneProvider):
     def make_notification_call(self, number, message, oncall_phone_call):
+        print("make_notification_call_started")
         message = self._escape_call_message(message)
 
         gather_subquery = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{get_gather_message()}</Say></Gather>'
@@ -38,6 +38,8 @@ class TwilioPhoneProvider(PhoneProvider):
         try:
             response = self._call_create(twiml_query, number, with_callback=True)
         except TwilioRestException as e:
+            # If status callback is not valid and not accessible from public url then trying to send message without it
+            # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
                 try_without_callback = True
             else:
@@ -50,10 +52,10 @@ class TwilioPhoneProvider(PhoneProvider):
                 raise FailedToMakeCall
 
         if response and response.status and response.sid:
-            twilio_call = TwilioCall(
+            twilio_call = TwilioPhoneCall(
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
-                phone_call=oncall_phone_call,
+                oncall_phone_call=oncall_phone_call,
             )
             twilio_call.save()
 
@@ -81,7 +83,7 @@ class TwilioPhoneProvider(PhoneProvider):
             twilio_sms = TwilioSMS(
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
-                sms=oncall_sms,
+                oncall_sms=oncall_sms,
             )
             twilio_sms.save()
 
@@ -98,7 +100,7 @@ class TwilioPhoneProvider(PhoneProvider):
                     live_settings.TWILIO_VERIFY_SERVICE_SID
                 ).verification_checks.create(to=normalized_number, code=code)
                 if verification_check.status == "approved":
-                    return True
+                    return normalized_number
             except TwilioRestException as e:
                 logger.error(f"twilio_client.finish_verification:" f" failed to verify number {number}: {e}")
                 raise FailedToFinishVerification
@@ -125,7 +127,7 @@ class TwilioPhoneProvider(PhoneProvider):
     def _call_create(self, twiml_query, to, with_callback):
         url = "http://twimlets.com/echo?Twiml=" + twiml_query
         if with_callback:
-            status_callback = get_status_callback_url()
+            status_callback = get_call_status_callback_url()
             status_callback_events = ["initiated", "ringing", "answered", "completed"]
             return self._twilio_api_client.calls.create(
                 url=url,
@@ -146,7 +148,7 @@ class TwilioPhoneProvider(PhoneProvider):
 
     def _messages_create(self, number, text, with_callback):
         if with_callback:
-            status_callback = get_status_callback_url()
+            status_callback = get_sms_status_callback_url()
             return self._twilio_api_client.messages.create(
                 body=text, to=number, from_=self._twilio_number, status_callback=status_callback
             )

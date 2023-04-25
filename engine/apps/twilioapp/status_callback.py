@@ -1,8 +1,9 @@
 from django.apps import apps
+from django.urls import reverse
 
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS, TwilioSMSstatuses
-from apps.twilioapp.models.twilio_sms import TwilioSMS
+from common.api_helpers.utils import create_engine_url
 
 
 def update_twilio_call_status(call_sid, call_status):
@@ -34,7 +35,7 @@ def update_twilio_call_status(call_sid, call_status):
             OnCallPhoneCall = apps.get_model("phone_notifications", "OnCallPhoneCall")
             oncall_phone_call = OnCallPhoneCall.objects.filter(sid=call_sid).first()
 
-        if oncall_phone_call.exists() and status:
+        if oncall_phone_call and status:
             log_record = None
             if status == TwilioCallStatuses.COMPLETED:
                 log_record = UserNotificationPolicyLogRecord(
@@ -94,7 +95,7 @@ def update_twilio_sms_status(message_sid, message_status):
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
 
     if message_sid and message_status:
-        status = TwilioCallStatuses.DETERMINANT.get(message_status)
+        status = TwilioSMSstatuses.DETERMINANT.get(message_status)
 
         twilio_sms = TwilioSMS.objects.filter(sid=message_sid).first()
 
@@ -110,7 +111,7 @@ def update_twilio_sms_status(message_sid, message_status):
 
         log_record = None
 
-        if status == TwilioMessageStatuses.DELIVERED:
+        if oncall_sms and status == TwilioSMSstatuses.DELIVERED:
             log_record = UserNotificationPolicyLogRecord(
                 author=oncall_sms.receiver,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
@@ -145,3 +146,11 @@ def get_sms_error_code_by_twilio_status(status):
         TwilioSMSstatuses.FAILED: UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_DELIVERY_FAILED,
     }
     return TWILIO_ERRORS_TO_ERROR_CODES_MAP.get(status, None)
+
+
+def get_call_status_callback_url():
+    return create_engine_url(reverse("twilioapp:call_status_events"))
+
+
+def get_sms_status_callback_url():
+    return create_engine_url(reverse("twilioapp:sms_status_events"))

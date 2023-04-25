@@ -1,9 +1,5 @@
 import logging
 import re
-from django.urls import reverse
-
-
-from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +15,6 @@ logger = logging.getLogger(__name__)
 #     return create_engine_url(reverse("twilioapp:gather"))
 
 # TODO: phone_provider - clean utils
-def get_status_callback_url():
-    return create_engine_url(reverse("twilioapp:call_status_events"))
 
 
 # def get_gather_message():

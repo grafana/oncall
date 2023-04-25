@@ -12,6 +12,7 @@ from apps.base.utils import live_settings
 from common.api_helpers.utils import create_engine_url
 
 from .gather import process_gather_data
+from .status_callback import update_twilio_call_status, update_twilio_sms_status
 
 logger = logging.getLogger(__name__)
 
@@ -50,20 +51,19 @@ class GatherView(APIView):
 
 # Receive SMS Status Update from Twilio
 class SMSStatusCallback(APIView):
-    permission_classes = [AllowOnlyTwilio]
+    permission_classes = []
 
     def post(self, request):
         message_sid = request.POST.get("MessageSid")
         message_status = request.POST.get("MessageStatus")
 
-        SMSMessage = apps.get_model("twilioapp", "SMSMessage")
-        SMSMessage.objects.update_status(message_sid=message_sid, message_status=message_status)
+        update_twilio_sms_status(message_sid=message_sid, message_status=message_status)
         return Response(data="", status=status.HTTP_204_NO_CONTENT)
 
 
 # Receive Call Status Update from Twilio
 class CallStatusCallback(APIView):
-    permission_classes = [AllowOnlyTwilio]
+    permission_classes = []
 
     def post(self, request):
         call_sid = request.POST.get("CallSid")
@@ -71,7 +71,6 @@ class CallStatusCallback(APIView):
 
         logging.info(f"SID: {call_sid}, Status: {call_status}")
 
-        PhoneCall = apps.get_model("twilioapp", "PhoneCall")
-        PhoneCall.objects.update_status(call_sid=call_sid, call_status=call_status)
+        update_twilio_call_status(call_sid=call_sid, call_status=call_status)
 
         return Response(data="", status=status.HTTP_204_NO_CONTENT)

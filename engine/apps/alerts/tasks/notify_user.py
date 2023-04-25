@@ -9,9 +9,9 @@ from kombu import uuid as celery_uuid
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.base.utils import live_settings
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
+from ...phone_notifications.phone_backend import PhoneBackend
 from .task_logger import task_logger
 
 
@@ -257,6 +257,8 @@ def perform_notification(log_record_pk):
         return
 
     if notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_sms(user, alert_group, notification_policy)
         # TODO: phone_notificator: use phone notificator
         pass
         # SMSMessage.send_sms(
@@ -267,6 +269,8 @@ def perform_notification(log_record_pk):
         # )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_call(user, alert_group, notification_policy)
         # TODO: phone_notificator: use phone notificator
         pass
         # PhoneCall.make_call(

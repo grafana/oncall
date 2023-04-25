@@ -29,6 +29,7 @@ class Migration(migrations.Migration):
                 ('status', models.PositiveSmallIntegerField(blank=True, choices=[(10, 'accepted'), (20, 'queued'), (30, 'sending'), (40, 'sent'), (50, 'failed'), (60, 'delivered'), (70, 'undelivered'), (80, 'receiving'), (90, 'received'), (100, 'read')], null=True)),
                 ('sid', models.CharField(blank=True, max_length=50)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('oncall_sms', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='twilio_sms', to='phone_notifications.oncallsms')),
             ],
         ),
         migrations.DeleteModel(

@@ -5,12 +5,12 @@ from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
+from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSmsRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.utils import live_settings
 from common.api_helpers.utils import create_engine_url
 from common.utils import clean_markup
 
-from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSmsRenderer
 from .exceptions import (
     CallsLimitExceeded,
     FailedToMakeCall,
@@ -21,7 +21,6 @@ from .exceptions import (
     SMSLimitExceeded,
 )
 from .models import OnCallPhoneCall, OnCallSMS
-
 from .phone_provider import PhoneProvider, get_phone_provider
 
 logger = logging.getLogger(__name__)
@@ -38,15 +37,15 @@ class PhoneBackend:
         renderer = AlertGroupPhoneCallRenderer(alert_group)
         message = renderer.render()
 
-        call = OnCallPhoneCall(
+        call = OnCallPhoneCall.objects.create(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,
-            exceed_limit=False,
+            exceeded_limit=False,
         )
 
         try:
-            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS:
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                 self.make_cloud_call(user, message)
             else:
                 if not user.verified_phone_number:
@@ -60,6 +59,7 @@ class PhoneBackend:
                     message += f"{calls_left} phone calls left. Contact your admin."
                 self.phone_provider.make_notification_call(user.verified_phone_number, message, call)
         except FailedToMakeCall:
+            call.delete()
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -70,7 +70,6 @@ class PhoneBackend:
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
         except CallsLimitExceeded:
-            call.exceeded_limit = True
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -81,6 +80,7 @@ class PhoneBackend:
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
         except NumberNotVerified:
+            call.delete()
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -91,6 +91,7 @@ class PhoneBackend:
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
         except ProviderNotSupports:
+            call.delete()
             # TODO: phone_provider: choose error code for ProviderNotSupports
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
@@ -101,8 +102,6 @@ class PhoneBackend:
                 notification_step=notification_policy.step if notification_policy else None,
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
-        finally:
-            call.save()
 
         # Why there is no log record for TYPE_PERSONAL_NOTIFICATION_SUCCESS?
         # For twilio we are receiving callback in Gather API View,
@@ -121,15 +120,15 @@ class PhoneBackend:
         renderer = AlertGroupSmsRenderer(alert_group)
         message = renderer.render()
 
-        sms = OnCallSMS(
+        sms = OnCallSMS.objects.create(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,
-            exceed_limit=False,
+            exceeded_limit=False,
         )
 
         try:
-            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS:
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                 self.send_cloud_sms(user, message)
             else:
                 if not user.verified_phone_number:
@@ -145,6 +144,7 @@ class PhoneBackend:
 
                 self.phone_provider.send_notification_sms(user.verified_phone_number, message, sms)
         except FailedToSendSMS:
+            sms.delete()
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -165,6 +165,7 @@ class PhoneBackend:
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
         except NumberNotVerified:
+            sms.delete()
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -175,6 +176,7 @@ class PhoneBackend:
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
         except ProviderNotSupports:
+            sms.delete()
             # TODO: phone_provider: choose error code for ProviderNotSupports
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
@@ -249,7 +251,7 @@ class PhoneBackend:
         if user.verified_phone_number:
             logger.info("Trying to verify already verified number")
             raise NumberAlreadyVerified
-        self.phone_provider.send_verification_sms(user)
+        self.phone_provider.send_verification_sms(user.unverified_phone_number)
 
     def make_verification_call(self, user):
         """
@@ -261,8 +263,9 @@ class PhoneBackend:
         self.phone_provider.make_verification_call(user)
 
     def verify_phone_number(self, user, code) -> bool:
-        prev_number, new_number, ok = self.phone_provider.finish_verification(user.unverified_phone_number, code)
-        if ok:
+        prev_number = user.verified_phone_number
+        new_number = self.phone_provider.finish_verification(user.unverified_phone_number, code)
+        if new_number:
             user.save_verified_phone_number(new_number)
             if prev_number:
                 self._notify_disconnected_number(user, prev_number)
@@ -292,7 +295,7 @@ class PhoneBackend:
             f'"{user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
-            self.phone_provider.send_sms(text, user.verified_phone_number)
+            self.phone_provider.send_sms(user.verified_phone_number, text)
         except (FailedToSendSMS, ProviderNotSupports):
             logger.error("tbd")
 
@@ -302,6 +305,6 @@ class PhoneBackend:
             f'"{user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
-            self.phone_provider.send_sms(text, number)
+            self.phone_provider.send_sms(number, text)
         except (FailedToSendSMS, ProviderNotSupports):
             logger.error("tbd")

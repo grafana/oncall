@@ -1,8 +1,8 @@
-class FailedToMakeCall:
+class FailedToMakeCall(Exception):
     pass
 
 
-class FailedToSendSMS:
+class FailedToSendSMS(Exception):
     pass
 
 
