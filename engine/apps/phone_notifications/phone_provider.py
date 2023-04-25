@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from typing import Optional
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -13,21 +14,27 @@ class PhoneProvider(ABC):
     """
     PhoneProvider is an interface to all phone providers.
     It is needed to hide details of external phone providers from core code.
-
-    If you are implementing custom phone provider consider to read doc
-    TODO: phone_notificator: doc
     """
 
     def make_notification_call(self, number: str, text: str, oncall_phone_call: OnCallPhoneCall):
         """
-        make_notification_call makes a call to notify user about alert group.
+        make_notification_call makes a call to notify about alert group.
 
-        Parameters:
+        make_notification_call is needed to be able to execute some logic only for notification calls,
+        but not for test/verification/etc.
+        For example receive status callback or react for number pressed.
+
+        If your provider doesn't perform any additional logic in notifications just wrap make_call:
+
+            def make_notification_call(self, number, text, oncall_phone_call):
+                self.make_call(number, text)
+
+
+        Args:
             number: phone number to call
             text: text of the call
-            oncall_phone_call: instance of OnCallPhoneCall
-                It's needed to link call from external provider to call in oncall.
-                Usually it is needed to support callbacks from external provider
+            oncall_phone_call: instance of OnCallPhoneCall.
+                You can use it to link provider phone call and oncall_phone_call (See TwilioPhoneProvider).
 
         Raises:
             FailedToMakeCall: if some exception in external provider happens
@@ -37,7 +44,25 @@ class PhoneProvider(ABC):
 
     def send_notification_sms(self, number: str, message: str, oncall_sms: OnCallSMS):
         """
-        send_notification_sms sends a sms to notify user about alert group
+        send_notification_sms sends a sms to notify about alert group
+
+        send_notification_sms is needed to be able to execute some logic only for notification sms,
+        but not for test/verification/etc. For example receive status callback (See TwilioPhoneProvider).
+        You can just wrap send_sms if no additional logic is performed for notification sms:
+
+            def send_notification_sms(self, number, text, oncall_phone_call):
+                self.send_sms(number, text)
+
+        Args:
+            number: phone number to send sms
+            text: text of the sms
+            oncall_phone_call: instance of OnCallSMS.
+                You can use it to link provider sms and oncall_sms (See TwilioPhoneProvider).
+
+
+        Raises:
+            FailedToSendSMS: if some exception in external provider happens
+            ProviderNotSupports: if provider not supports calls (it's a valid use-case)
         """
         raise ProviderNotSupports
 
@@ -45,7 +70,7 @@ class PhoneProvider(ABC):
         """
         make_call make a call with given text to given number.
 
-        Parameters:
+        Args:
             number: phone number to make a call
             text: call text to deliver to user
 
@@ -59,7 +84,7 @@ class PhoneProvider(ABC):
         """
         send_sms sends an SMS to the specified phone number with the given text message.
 
-        Parameters:
+        Args:
             number: phone number to send a sms
             text: text to deliver to user
 
@@ -74,7 +99,7 @@ class PhoneProvider(ABC):
         """
         send_verification_sms starts phone number verification by sending code via sms
 
-        Parameters:
+        Args:
             number: number to verify
 
         Raises:
@@ -87,7 +112,7 @@ class PhoneProvider(ABC):
         """
         make_verification_call starts phone number verification by calling to user
 
-        Parameters:
+        Args:
             number: number to verify
 
         Raises:
@@ -96,17 +121,19 @@ class PhoneProvider(ABC):
         """
         raise ProviderNotSupports
 
-    def finish_verification(self, number: str, code: str):
+    def finish_verification(self, number: str, code: str) -> Optional[str]:
         """
-        finish_verification validates the verification code
+        finish_verification validates the verification code.
 
-        Parameters:
+        Args:
              number: number to verify
-             code: veritication code
+             code: verification code
+        Returns:
+            verified phone number or None if code is invalid
 
         Raises:
-            FailedToFinishVerification, when some exception in external service occurred
-            ProviderNotSupports, if concrete provider not supports number verification
+            FailedToFinishVerification: when some exception in external service occurred
+            ProviderNotSupports: if concrete provider not supports number verification
         """
         raise ProviderNotSupports
 
@@ -117,6 +144,7 @@ _provider = None
 def get_phone_provider() -> PhoneProvider:
     # TODO: phone_provider: remove this, TwilioProvider hardcoded
     from ..twilioapp.phone_provider import TwilioPhoneProvider
+
     return TwilioPhoneProvider()
     global _provider
     if _provider is None:

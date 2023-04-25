@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 class TwilioPhoneProvider(PhoneProvider):
     def make_notification_call(self, number, message, oncall_phone_call):
-        print("make_notification_call_started")
         message = self._escape_call_message(message)
 
         gather_subquery = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{get_gather_message()}</Say></Gather>'
@@ -41,14 +40,17 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
+                logger.info(f"TwilioPhoneProvider.make_notification_call: error 21609, calling without callback_url")
                 try_without_callback = True
             else:
+                logger.error(f"TwilioPhoneProvider.make_notification_call: failed {e}")
                 raise FailedToMakeCall
 
         if try_without_callback:
             try:
                 response = self._call_create(twiml_query, number, with_callback=False)
-            except TwilioRestException:
+            except TwilioRestException as e:
+                logger.error(f"TwilioPhoneProvider.make_notification_call: failed {e}")
                 raise FailedToMakeCall
 
         if response and response.status and response.sid:
@@ -69,14 +71,17 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
+                logger.info(f"TwilioPhoneProvider.send_notification_sms: error 21609, sending without callback_url")
                 try_without_callback = True
             else:
+                logger.error(f"TwilioPhoneProvider.send_notification_sms: failed {e}")
                 raise FailedToSendSMS
 
         if try_without_callback:
             try:
                 response = self._messages_create(number, message, with_callback=True)
             except TwilioRestException as e:
+                logger.error(f"TwilioPhoneProvider.send_notification_sms: failed {e}")
                 raise FailedToSendSMS
 
         if response and response.status and response.sid:
@@ -88,21 +93,23 @@ class TwilioPhoneProvider(PhoneProvider):
             twilio_sms.save()
 
     def send_verification_sms(self, number):
-        return self._send_verification_code(number, via="sms")
+        self._send_verification_code(number, via="sms")
 
     def finish_verification(self, number, code):
         # I'm not sure if we need verification_and_parse via twilio pipeline here
-        # Verification code anyway is sent to not verified phone number
+        # Verification code anyway is sent to not verified phone number.
+        # Just leaving it as it was before phone_provider refactoring.
         normalized_number, _ = self._normalize_phone_number(number)
         if normalized_number:
             try:
                 verification_check = self._twilio_api_client.verify.services(
                     live_settings.TWILIO_VERIFY_SERVICE_SID
                 ).verification_checks.create(to=normalized_number, code=code)
+                logger.info(f"TwilioPhoneProvider.finish_verification: verification_status {verification_check.status}")
                 if verification_check.status == "approved":
                     return normalized_number
             except TwilioRestException as e:
-                logger.error(f"twilio_client.finish_verification:" f" failed to verify number {number}: {e}")
+                logger.error(f"TwilioPhoneProvider.finish_verification: failed to verify number {number}: {e}")
                 raise FailedToFinishVerification
         else:
             return None
@@ -116,12 +123,14 @@ class TwilioPhoneProvider(PhoneProvider):
         try:
             self._call_create(twiml_query, number, with_callback=False)
         except TwilioRestException as e:
+            logger.error(f"TwilioPhoneProvider.make_call: failed {e}")
             raise FailedToMakeCall
 
     def send_sms(self, number, message):
         try:
             self._messages_create(number, message, with_callback=True)
         except TwilioRestException as e:
+            logger.error(f"TwilioPhoneProvider.send_sms: failed {e}")
             raise FailedToSendSMS
 
     def _call_create(self, twiml_query, to, with_callback):
@@ -160,10 +169,12 @@ class TwilioPhoneProvider(PhoneProvider):
             )
 
     def _send_verification_code(self, number, via):
+        # https://www.twilio.com/docs/verify/api/verification?code-sample=code-start-a-verification-with-sms&code-language=Python&code-sdk-version=6.x
         try:
-            return self._twilio_api_client.verify.services(
+            verification = self._twilio_api_client.verify.services(
                 live_settings.TWILIO_VERIFY_SERVICE_SID
             ).verifications.create(to=number, channel=via)
+            logger.info(f"TwilioPhoneProvider._send_verification_code: verification status {verification.status}")
         except TwilioRestException as e:
             logger.error(f"Twilio verification start error: {e} to number {number}")
             raise FailedToStartVerification
@@ -203,7 +214,7 @@ class TwilioPhoneProvider(PhoneProvider):
                 raise e
         except KeyError as e:
             # Don't know why KeyError is gracefully handled here, probably exception raised by twilio_client.
-            logger.info(f"twilio_client._parse_number: KeyError: {e}")
+            logger.info(f"twilio_client._parse_number: Gracefully handle KeyError: {e}")
             return False, None, None
 
     @property

@@ -31,6 +31,11 @@ class PhoneBackend:
         self.phone_provider: PhoneProvider = get_phone_provider()
 
     def notify_by_call(self, user, alert_group, notification_policy):
+        """
+        notify_by_call makes a notification call to a user using configured phone provider.
+        It handles business logic - limits, cloud notifications and UserNotificationPolicyLogRecord creation.
+        Call itself is handled by phone provider.
+        """
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
         log_record = None
 
@@ -104,7 +109,7 @@ class PhoneBackend:
             )
 
         # Why there is no log record for TYPE_PERSONAL_NOTIFICATION_SUCCESS?
-        # For twilio we are receiving callback in Gather API View,
+        # For twilio we are receiving callback in Status API View,
         # CloudPhoneNotifications doesn't support sending statuses on call
         # If any of the future phone providers will have the ability to provide delivered status in the response to making call
         # Feel free to place it appropriate log record here.
@@ -114,6 +119,12 @@ class PhoneBackend:
             user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_call, log_record=log_record)
 
     def notify_by_sms(self, user, alert_group, notification_policy):
+        """
+        notify_by_sms sends a notification sms to a user using configured phone provider.
+        It handles business logic - limits, cloud notifications and UserNotificationPolicyLogRecord creation
+        SMS itself is handled by phone provider.
+        """
+
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
         log_record = None
 
@@ -193,11 +204,25 @@ class PhoneBackend:
             user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_sms, log_record=log_record)
 
     def relay_oss_call(self, user, message):
+        """
+        relay_oss_call execute phone call received from oss instances.
+        """
         # some additional cleaning, since message come from outside and wasn't cleaned by our renderer
         message = clean_markup(message)
         self.phone_provider.make_call(message, user.verified_phone_number)
 
+    def relay_oss_sms(self, user, message):
+        """
+        relay_oss_call execute phone call received from oss instances.
+        """
+        # some additional cleaning, since message come from outside and wasn't cleaned by our renderer
+        self.phone_provider.send_sms(message, user.verified_phone_number)
+
     def make_cloud_call(self, user, message):
+        """
+        make_cloud_call makes a call using connected Grafana Cloud Instances.
+        This method is used only in OSS instances.
+        """
         url = create_engine_url("api/v1/make_call", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
         auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
         data = {
@@ -222,6 +247,10 @@ class PhoneBackend:
             raise FailedToMakeCall
 
     def send_cloud_sms(self, user, message):
+        """
+        send_cloud_sms sends a sms using connected Grafana Cloud Instances.
+        This method is used only in OSS instances.
+        """
         url = create_engine_url("api/v1/send_sms", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
         auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
         data = {
@@ -246,23 +275,26 @@ class PhoneBackend:
     # Number verification related code
     def send_verification_sms(self, user):
         """
-        send_verification_code sends a verification code for a given user.
+        send_verification_sms sends a verification code to a user.
         """
+        logger.info(f"PhoneBackend.send_verification_sms: start verification for user {user.id}")
         if user.verified_phone_number:
-            logger.info("Trying to verify already verified number")
+            logger.info(f"PhoneBackend.send_verification_sms: number already verified for user {user.id}")
             raise NumberAlreadyVerified
         self.phone_provider.send_verification_sms(user.unverified_phone_number)
 
     def make_verification_call(self, user):
         """
-        make_verification_call sends a verification code for a given user.
+        make_verification_call makes a verification call  to a user.
         """
+        logger.info(f"PhoneBackend.make_verification_call: start verification for user {user.id}")
         if user.verified_phone_number:
-            logger.info("Trying to verify already verified number")
+            logger.info(f"PhoneBackend.make_verification_call: number already verified for user {user.id}")
             raise NumberAlreadyVerified
         self.phone_provider.make_verification_call(user)
 
     def verify_phone_number(self, user, code) -> bool:
+        logger.info(f"PhoneBackend.verify_phone_number: finish verification process for {user.id}")
         prev_number = user.verified_phone_number
         new_number = self.phone_provider.finish_verification(user.unverified_phone_number, code)
         if new_number:
