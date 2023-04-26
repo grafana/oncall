@@ -60,15 +60,21 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   async componentDidMount() {
     const { query, objectStore } = this.props;
 
-    const filterOptions = await makeRequest(objectStore.path + 'filters/', {});
+
+    console.log("objectStore")
+    console.log(objectStore.alertGroupStore.path)
+    const filterOptions = await makeRequest(objectStore.alertGroupStore.path + 'filters/', {});
 
     let { filters, values } = parseFilters(query, filterOptions);
+
+    console.log("VALUES")
+    console.log(values)
 
     if (isEmpty(values)) {
       // TODO fill filters if no filters in query
       let newQuery;
-      if (objectStore.incidentFilters) {
-        newQuery = { ...objectStore.incidentFilters };
+      if (objectStore.alertGroupStore.incidentFilters) {
+        newQuery = { ...objectStore.alertGroupStore.incidentFilters };
       } else {
         newQuery = {
           team: [],
@@ -84,7 +90,10 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   }
 
   render() {
-    return <div className={cx('root')}>{this.renderFilters()}</div>;
+    return <div className={cx('root')}>
+      {this.renderFilters()}
+      {this.renderCards()}
+    </div>;
   }
 
   renderFilters = () => {

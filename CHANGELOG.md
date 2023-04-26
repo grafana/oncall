@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add 2, 3 and 6 hours silence options
 
+### Fixed
+
+- Fix a regression bug where alertgroup filters cleared when going off the page 
+
 ## v1.2.15 (2023-04-24)
 
 ### Fixed
