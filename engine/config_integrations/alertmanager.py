@@ -77,7 +77,7 @@ acknowledge_condition = None
 
 # Slack
 slack_title = """\
-*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} { web_title_template }}>* via {{ integration_name }}
+*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
 {%- endif %}
@@ -91,13 +91,13 @@ slack_message = """\
 slack_image_url = None
 
 # SMS
-sms_title = """{{ web_title_template }}"""
+sms_title = """{{ web_title }}"""
 
 # Phone
-phone_call_title = """{{ web_title_template }}"""
+phone_call_title = """{{ web_title }}"""
 
 # Telegram
-telegram_title = """{{ web_title_template }}"""
+telegram_title = """{{ web_title }}"""
 
 telegram_message = """\
 {{- payload.messsage }}
