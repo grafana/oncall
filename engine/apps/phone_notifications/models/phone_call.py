@@ -1,7 +1,7 @@
 from django.db import models
 
 
-# Duplicate to avoid circular import
+# Duplicate to avoid circular import to provide values for status field
 class TwilioCallStatuses:
     QUEUED = 10
     RINGING = 20
@@ -29,7 +29,7 @@ class OnCallPhoneCall(models.Model):
     exceeded_limit = models.BooleanField(null=True, default=None)
     represents_alert = models.ForeignKey(
         "alerts.Alert", on_delete=models.SET_NULL, null=True, default=None
-    )  # deprecareed
+    )  # deprecateed
     represents_alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.SET_NULL, null=True, default=None)
     notification_policy = models.ForeignKey(
         "base.UserNotificationPolicy", on_delete=models.SET_NULL, null=True, default=None
@@ -42,7 +42,7 @@ class OnCallPhoneCall(models.Model):
     grafana_cloud_notification = models.BooleanField(default=False)  # rename
 
     # deprecated. It's here for backward compatibility for calls made during or shortly before migration.
-    # Should be removed in ~1 hour after migration
+    # Should be removed soon after migration
     status = models.PositiveSmallIntegerField(
         blank=True,
         null=True,

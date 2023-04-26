@@ -1,6 +1,7 @@
 from django.db import models
 
 
+# Duplicate to avoid circular import to provide values for status field
 class TwilioSMSstatuses:
     """
     https://www.twilio.com/docs/sms/tutorials/how-to-confirm-delivery-python?code-sample=code-handle-a-sms-statuscallback&code-language=Python&code-sdk-version=5.x#receive-status-events-in-your-web-application
@@ -35,7 +36,9 @@ class TwilioSMSstatuses:
 class OnCallSMS(models.Model):
 
     exceeded_limit = models.BooleanField(null=True, default=None)
-    represents_alert = models.ForeignKey("alerts.Alert", on_delete=models.SET_NULL, null=True, default=None)
+    represents_alert = models.ForeignKey(
+        "alerts.Alert", on_delete=models.SET_NULL, null=True, default=None
+    )  # deprecated
     represents_alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.SET_NULL, null=True, default=None)
     notification_policy = models.ForeignKey(
         "base.UserNotificationPolicy", on_delete=models.SET_NULL, null=True, default=None
@@ -46,7 +49,7 @@ class OnCallSMS(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     # deprecated. It's here for backward compatibility for sms sent during or shortly before migration.
-    # Should be removed in ~1 hour after migration
+    # Should be removed soon after migration
     status = models.PositiveSmallIntegerField(
         blank=True,
         null=True,

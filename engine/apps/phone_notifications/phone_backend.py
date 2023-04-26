@@ -164,6 +164,7 @@ class PhoneBackend:
             OnCallPhoneCall.objects.create(
                 receiver=user,
                 exceeded_limit=False,
+                grafana_cloud_notification=True,
             )
         except CallsLimitExceeded as e:
             # catch CallsLimitExceeded just to set exceeded_limit flag to OnCallSMS.
@@ -184,6 +185,7 @@ class PhoneBackend:
             OnCallSMS.objects.create(
                 receiver=user,
                 exceeded_limit=False,
+                grafana_cloud_notification=True,
             )
         except SMSLimitExceeded as e:
             # catch SMSLimitExceeded just to set exceeded_limit flag to OnCallSMS.
