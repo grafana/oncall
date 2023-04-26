@@ -149,7 +149,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Firing",
+        "trigger_type_name": "Alert Group Created",
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -208,7 +208,7 @@ def test_create_valid_templated_field(
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Firing",
+        "trigger_type_name": "Alert Group Created",
     }
     # update expected value for changed field
     expected_response[field_name] = value
