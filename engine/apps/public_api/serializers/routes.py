@@ -214,7 +214,6 @@ class ChannelFilterUpdateSerializer(ChannelFilterSerializer):
     integration_id = OrganizationFilteredPrimaryKeyRelatedField(source="alert_receive_channel", read_only=True)
     routing_regex = serializers.CharField(allow_null=False, required=False, source="filtering_term")
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
-        allow_null=True,
         queryset=EscalationChain.objects,
         source="escalation_chain",
         required=False,
