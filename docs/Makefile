@@ -1,11 +1,8 @@
-IMAGE = grafana/docs-base:latest
-CONTENT_PATH = /hugo/content/docs/oncall/latest
-PORT = 3002:3002
+.ONESHELL:
+.DELETE_ON_ERROR:
+export SHELL     := bash
+export SHELLOPTS := pipefail:errexit
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rule
 
-.PHONY: pull
-pull:
-	docker pull $(IMAGE)
-
-.PHONY: docs
-docs: pull
-	docker run -v '$(shell pwd)/sources:$(CONTENT_PATH):Z' -v '$(shell pwd)/sources:/jugo/content/docs/grafana-cloud/oncall:Z' -p $(PORT) --rm -it $(IMAGE)
+include docs.mk
