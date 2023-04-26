@@ -11,8 +11,8 @@ import Avatar from 'components/Avatar/Avatar';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
+import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
@@ -59,7 +59,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
-      filters: { searchTerm: '', type: undefined, used: undefined },
+      filters: { searchTerm: '', type: undefined, used: undefined, mine: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
@@ -306,7 +306,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return (
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
-          <ScheduleCounter
+          <StatusCounterBadgeWithTooltip
             type="link"
             count={item.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
@@ -334,7 +334,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         )}
 
         {item.warnings?.length > 0 && (
-          <ScheduleCounter
+          <StatusCounterBadgeWithTooltip
             type="warning"
             count={item.warnings.length}
             tooltipTitle="Warnings"

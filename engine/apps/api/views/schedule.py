@@ -27,7 +27,6 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
-from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -163,15 +162,17 @@ class ScheduleView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.get("type")
+        mine = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("mine"))
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization).defer(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",
+            "cached_ical_final_schedule",
         )
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
@@ -179,6 +180,9 @@ class ScheduleView(
             queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
         if used is not None:
             queryset = queryset.filter(escalation_policies__isnull=not used).distinct()
+        if mine:
+            user = self.request.user
+            queryset = queryset.related_to_user(user)
 
         queryset = queryset.order_by("pk")
         return queryset
@@ -231,7 +235,7 @@ class ScheduleView(
             public_primary_key=pk,
         )
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         queryset = self._annotate_queryset(queryset)
 
         try:
@@ -353,13 +357,12 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def quality(self, request, pk):
         schedule = self.get_object()
-        user_tz, date = self.get_request_timezone()
-        days = int(self.request.query_params.get("days", 90))  # todo: check if days could be calculated more precisely
 
-        events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
+        _, date = self.get_request_timezone()
+        days = self.request.query_params.get("days")
+        days = int(days) if days else None
 
-        schedule_score = get_schedule_quality_score(events, days)
-        return Response(schedule_score)
+        return Response(schedule.quality_report(date, days))
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):
@@ -476,6 +479,12 @@ class ScheduleView(
                 "type": "team_select",
                 "href": api_root + "teams/",
                 "global": True,
+            },
+            {
+                "name": "mine",
+                "type": "boolean",
+                "display_name": "Mine",
+                "default": "true",
             },
             {
                 "name": "used",

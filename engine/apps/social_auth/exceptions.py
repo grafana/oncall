@@ -1,0 +1,2 @@
+class InstallMultiRegionSlackException(Exception):
+    pass

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 
-import { Badge, Button, Field, HorizontalGroup, Modal, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Badge, Button, Field, HorizontalGroup, Modal, RadioButtonList, Tooltip, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -52,20 +52,20 @@ const TeamsList = observer(() => {
 
   const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
-      <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
-        <HorizontalGroup justify="flex-end">
-          <Tooltip content="Default team will be selected when creating new resources">
-            <Button
-              onClick={async () => {
-                await userStore.updateCurrentUser({ current_team: record.id });
-                store.grafanaTeamStore.updateItems();
-              }}
-              disabled={isTeamDefault(record)}
-              fill="text"
-            >
-              Make default
-            </Button>
-          </Tooltip>
+      <HorizontalGroup justify="flex-end">
+        <Tooltip content="Default team will be selected when creating new resources">
+          <Button
+            onClick={async () => {
+              await userStore.updateCurrentUser({ current_team: record.id });
+              store.grafanaTeamStore.updateItems();
+            }}
+            disabled={isTeamDefault(record)}
+            fill="text"
+          >
+            Make default
+          </Button>
+        </Tooltip>
+        <WithPermissionControlTooltip userAction={UserActions.TeamsWrite}>
           <Button
             fill="text"
             disabled={record.id === 'null'}
@@ -76,8 +76,8 @@ const TeamsList = observer(() => {
           >
             Edit
           </Button>
-        </HorizontalGroup>
-      </WithPermissionControlTooltip>
+        </WithPermissionControlTooltip>
+      </HorizontalGroup>
     );
     return editButton;
   };
@@ -146,12 +146,14 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
   const { grafanaTeamStore } = store;
   const team = grafanaTeamStore.items[teamId];
 
-  const [shareResourceToAll, setShareResourceToAll] = useState<boolean>(team.is_sharing_resources_to_all);
+  const [shareResourceToAll, setShareResourceToAll] = useState<string>(
+    String(Number(team.is_sharing_resources_to_all))
+  );
 
   const handleSubmit = useCallback(() => {
-    Promise.all([grafanaTeamStore.updateTeam(teamId, { is_sharing_resources_to_all: shareResourceToAll })]).then(
-      onHide
-    );
+    Promise.all([
+      grafanaTeamStore.updateTeam(teamId, { is_sharing_resources_to_all: Boolean(Number(shareResourceToAll)) }),
+    ]).then(onHide);
   }, [shareResourceToAll]);
 
   return (
@@ -167,14 +169,17 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
       <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
         <VerticalGroup>
           <Field label="Who can see the team name and access the team resources">
-            <RadioButtonGroup
-              options={[
-                { label: 'All Users', value: true },
-                { label: 'Team members and admins', value: false },
-              ]}
-              value={shareResourceToAll}
-              onChange={setShareResourceToAll}
-            />
+            <div style={{ marginTop: '8px' }}>
+              <RadioButtonList
+                name="shareResourceToAll"
+                options={[
+                  { label: 'All Users', value: '1' },
+                  { label: 'Team members and admins', value: '0' },
+                ]}
+                value={shareResourceToAll}
+                onChange={setShareResourceToAll}
+              />
+            </div>
           </Field>
         </VerticalGroup>
       </WithPermissionControlTooltip>
@@ -184,7 +189,7 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
           Cancel
         </Button>
         <Button onClick={handleSubmit} variant="primary">
-          Submit
+          Save
         </Button>
       </HorizontalGroup>
     </Modal>

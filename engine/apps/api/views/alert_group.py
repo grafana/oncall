@@ -192,7 +192,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
 
 
 class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
-    TEAM_LOOKUP = "channel__team"
+    TEAM_LOOKUP = "team"
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -283,18 +283,18 @@ class AlertGroupView(
 
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
-        alert_receive_channels_ids = list(
-            AlertReceiveChannel.objects.filter(
-                organization_id=self.request.auth.organization.id,
-            ).values_list("id", flat=True)
+
+        alert_receive_channels_qs = AlertReceiveChannel.objects.filter(
+            organization_id=self.request.auth.organization.id
         )
+        if not ignore_filtering_by_available_teams:
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
+
+        alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
 
         queryset = AlertGroup.unarchived_objects.filter(
             channel__in=alert_receive_channels_ids,
         )
-
-        if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
 
         queryset = queryset.only("id")
 
@@ -657,5 +657,5 @@ class AlertGroupView(
         )
 
     # This method is required for PreviewTemplateMixin
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         return self.get_object().alerts.first()

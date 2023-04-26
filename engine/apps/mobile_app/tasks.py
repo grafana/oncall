@@ -6,7 +6,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
-from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
+from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from requests import HTTPError
 from rest_framework import status
 
@@ -67,63 +67,8 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         logger.error(f"Error while sending a mobile push notification: user {user_pk} has no device set up")
         return
 
-    thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-    number_of_alerts = alert_group.alerts.count()
-
-    alert_title = "New Critical Alert" if critical else "New Alert"
-    alert_subtitle = get_push_notification_message(alert_group)
-
-    status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
-    if alert_group.resolved:
-        status_verbose = alert_group.get_resolve_text()
-    elif alert_group.acknowledged:
-        status_verbose = alert_group.get_acknowledge_text()
-
-    if number_of_alerts <= 10:
-        alerts_count_str = str(number_of_alerts)
-    else:
-        alert_count_rounded = (number_of_alerts // 10) * 10
-        alerts_count_str = f"{alert_count_rounded}+"
-
-    alert_body = f"Status: {status_verbose}, alerts: {alerts_count_str}"
-
-    message = Message(
-        token=device_to_notify.registration_id,
-        data={
-            # from the docs..
-            # A dictionary of data fields (optional). All keys and values in the dictionary must be strings
-            #
-            # alert_group.status is an int so it must be casted...
-            "orgId": alert_group.channel.organization.public_primary_key,
-            "orgName": alert_group.channel.organization.stack_slug,
-            "alertGroupId": alert_group.public_primary_key,
-            "status": str(alert_group.status),
-            "type": "oncall.critical_message" if critical else "oncall.message",
-            "title": alert_title,
-            "subtitle": alert_subtitle,
-            "body": alert_body,
-            "thread_id": thread_id,
-        },
-        apns=APNSConfig(
-            payload=APNSPayload(
-                aps=Aps(
-                    thread_id=thread_id,
-                    badge=number_of_alerts,
-                    alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
-                    sound=CriticalSound(
-                        critical=1 if critical else 0,
-                        name="ambulance.aiff" if critical else "bingbong.aiff",
-                        volume=1,
-                    ),
-                    custom_data={
-                        "interruption-level": "critical" if critical else "time-sensitive",
-                    },
-                ),
-            ),
-        ),
-    )
-
-    logger.debug(f"Sending push notification with message: {message}; thread-id: {thread_id};")
+    message = _get_fcm_message(alert_group, user, device_to_notify.registration_id, critical)
+    logger.debug(f"Sending push notification with message: {message};")
 
     if settings.IS_OPEN_SOURCE:
         # FCM relay uses cloud connection to send push notifications
@@ -168,3 +113,118 @@ def send_push_notification_to_fcm_relay(message):
     response.raise_for_status()
 
     return response
+
+
+def _get_fcm_message(alert_group, user, registration_id, critical):
+    # avoid circular import
+    from apps.mobile_app.models import MobileAppUserSettings
+
+    thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
+    number_of_alerts = alert_group.alerts.count()
+
+    alert_title = "New Critical Alert" if critical else "New Alert"
+    alert_subtitle = get_push_notification_message(alert_group)
+
+    status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
+    if alert_group.resolved:
+        status_verbose = alert_group.get_resolve_text()
+    elif alert_group.acknowledged:
+        status_verbose = alert_group.get_acknowledge_text()
+
+    if number_of_alerts <= 10:
+        alerts_count_str = str(number_of_alerts)
+    else:
+        alert_count_rounded = (number_of_alerts // 10) * 10
+        alerts_count_str = f"{alert_count_rounded}+"
+
+    alert_body = f"Status: {status_verbose}, alerts: {alerts_count_str}"
+
+    mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
+
+    # critical defines the type of notification.
+    # we use overrideDND to establish if the notification should sound even if DND is on
+    overrideDND = critical and mobile_app_user_settings.important_notification_override_dnd
+
+    # APNS only allows to specify volume for critical notifications
+    apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
+    apns_sound_name = (
+        mobile_app_user_settings.important_notification_sound_name
+        if critical
+        else mobile_app_user_settings.default_notification_sound_name
+    ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
+
+    return Message(
+        token=registration_id,
+        data={
+            # from the docs..
+            # A dictionary of data fields (optional). All keys and values in the dictionary must be strings
+            #
+            # alert_group.status is an int so it must be casted...
+            "orgId": alert_group.channel.organization.public_primary_key,
+            "orgName": alert_group.channel.organization.stack_slug,
+            "alertGroupId": alert_group.public_primary_key,
+            "status": str(alert_group.status),
+            "type": "oncall.critical_message" if critical else "oncall.message",
+            "title": alert_title,
+            "subtitle": alert_subtitle,
+            "body": alert_body,
+            "thread_id": thread_id,
+            # Pass user settings, so the Android app can use them to play the correct sound and volume
+            "default_notification_sound_name": (
+                mobile_app_user_settings.default_notification_sound_name
+                + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+            ),
+            "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
+            "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
+            "default_notification_volume_override": json.dumps(
+                mobile_app_user_settings.default_notification_volume_override
+            ),
+            "important_notification_sound_name": (
+                mobile_app_user_settings.important_notification_sound_name
+                + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+            ),
+            "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
+            "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
+            "important_notification_override_dnd": json.dumps(
+                mobile_app_user_settings.important_notification_override_dnd
+            ),
+        },
+        android=AndroidConfig(
+            # from the docs
+            # https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message
+            #
+            # Normal priority.
+            # Normal priority messages are delivered immediately when the app is in the foreground.
+            # For backgrounded apps, delivery may be delayed. For less time-sensitive messages, such as notifications
+            # of new email, keeping your UI in sync, or syncing app data in the background, choose normal delivery
+            # priority.
+            #
+            # High priority.
+            # FCM attempts to deliver high priority messages immediately even if the device is in Doze mode.
+            # High priority messages are for time-sensitive, user visible content.
+            priority="high",
+        ),
+        apns=APNSConfig(
+            payload=APNSPayload(
+                aps=Aps(
+                    thread_id=thread_id,
+                    badge=number_of_alerts,
+                    alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
+                    sound=CriticalSound(
+                        # The notification shouldn't be critical if the user has disabled "override DND" setting
+                        critical=overrideDND,
+                        name=apns_sound_name,
+                        volume=apns_volume,
+                    ),
+                    custom_data={
+                        "interruption-level": "critical" if overrideDND else "time-sensitive",
+                    },
+                ),
+            ),
+            headers={
+                # From the docs
+                # https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message
+                "apns-priority": "10",
+            },
+        ),
+    )

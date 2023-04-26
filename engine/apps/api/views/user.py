@@ -45,6 +45,7 @@ from apps.phone_notifications.exceptions import (
     ProviderNotSupports,
 )
 from apps.phone_notifications.phone_backend import PhoneBackend
+from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.user_management.models import Team, User
@@ -54,7 +55,7 @@ from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.insight_log import (
     ChatOpsEvent,
-    ChatOpsType,
+    ChatOpsTypePlug,
     EntityEvent,
     write_chatops_insight_log,
     write_resource_insight_log,
@@ -145,6 +146,7 @@ class UserView(
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
     rbac_object_permissions = {
@@ -165,6 +167,7 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
+            "upcoming_shifts",
         ],
         IsOwnerOrHasUserSettingsReadPermission: [
             "check_availability",
@@ -443,7 +446,7 @@ class UserView(
         write_chatops_insight_log(
             author=request.user,
             event_name=ChatOpsEvent.USER_UNLINKED,
-            chatops_type=ChatOpsType.SLACK,
+            chatops_type=ChatOpsTypePlug.SLACK.value,
             linked_user=user.username,
             linked_user_id=user.public_primary_key,
         )
@@ -459,7 +462,7 @@ class UserView(
             write_chatops_insight_log(
                 author=request.user,
                 event_name=ChatOpsEvent.USER_UNLINKED,
-                chatops_type=ChatOpsType.TELEGRAM,
+                chatops_type=ChatOpsTypePlug.TELEGRAM.value,
                 linked_user=user.username,
                 linked_user_id=user.public_primary_key,
             )
@@ -488,6 +491,41 @@ class UserView(
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def upcoming_shifts(self, request, pk):
+        user = self.get_object()
+        try:
+            days = int(request.query_params.get("days", 7))  # fallback to a week
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # filter user-related schedules
+        schedules = OnCallSchedule.objects.related_to_user(user)
+
+        # check upcoming shifts
+        upcoming = []
+        for schedule in schedules:
+            current_shift, upcoming_shift = schedule.upcoming_shift_for_user(user, days=days)
+            if current_shift or upcoming_shift:
+                upcoming.append(
+                    {
+                        "schedule_id": schedule.public_primary_key,
+                        "schedule_name": schedule.name,
+                        "is_oncall": current_shift is not None,
+                        "current_shift": current_shift,
+                        "next_shift": upcoming_shift,
+                    }
+                )
+
+        # sort entries by start timestamp
+        def sorting_key(entry):
+            shift = entry["current_shift"] if entry["current_shift"] else entry["next_shift"]
+            return shift["start"]
+
+        upcoming.sort(key=sorting_key)
+
+        return Response(upcoming, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):

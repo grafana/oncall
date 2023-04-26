@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 
 import requests
 from requests import HTTPError
+from requests.adapters import HTTPAdapter, Retry
 
 from migrator.config import ONCALL_API_TOKEN, ONCALL_API_URL
 
@@ -11,7 +12,13 @@ from migrator.config import ONCALL_API_TOKEN, ONCALL_API_URL
 def api_call(method: str, path: str, **kwargs) -> requests.Response:
     url = urljoin(ONCALL_API_URL, path)
 
-    response = requests.request(
+    # Retry on network errors
+    session = requests.Session()
+    retries = Retry(total=5, backoff_factor=0.1)
+    session.mount("http://", HTTPAdapter(max_retries=retries))
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+
+    response = session.request(
         method, url, headers={"Authorization": ONCALL_API_TOKEN}, **kwargs
     )
 
@@ -66,7 +73,12 @@ def create(path: str, payload: dict) -> dict:
 
 
 def delete(path: str) -> None:
-    api_call("delete", path)
+    try:
+        api_call("delete", path)
+    except requests.exceptions.HTTPError as e:
+        # ignore 404s on delete so deleting resources manually while running the script doesn't break it
+        if e.response.status_code != 404:
+            raise
 
 
 def update(path: str, payload: dict) -> dict:

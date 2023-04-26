@@ -19,7 +19,7 @@ from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
-from apps.alerts.signals import alert_group_action_triggered_signal
+from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
 from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
@@ -88,10 +88,11 @@ class AlertGroupQuerySet(models.QuerySet):
 
         # Create a new group if we couldn't group it to any existing ones
         try:
-            return (
-                self.create(**search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache),
-                True,
+            alert_group = self.create(
+                **search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache
             )
+            alert_group_created_signal.send(sender=self.__class__, alert_group=alert_group)
+            return (alert_group, True)
         except IntegrityError:
             try:
                 return self.get(**search_params, is_open_for_grouping__isnull=False), False
@@ -144,7 +145,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         "GroupData", ["is_resolve_signal", "group_distinction", "web_title_cache", "is_acknowledge_signal"]
     )
 
-    SOURCE, USER, NOT_YET, LAST_STEP, ARCHIVED, WIPED, DISABLE_MAINTENANCE = range(7)
+    SOURCE, USER, NOT_YET, LAST_STEP, ARCHIVED, WIPED, DISABLE_MAINTENANCE, NOT_YET_STOP_AUTORESOLVE = range(8)
     SOURCE_CHOICES = (
         (SOURCE, "source"),
         (USER, "user"),
@@ -153,6 +154,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         (ARCHIVED, "archived"),
         (WIPED, "wiped"),
         (DISABLE_MAINTENANCE, "stop maintenance"),
+        (NOT_YET_STOP_AUTORESOLVE, "not yet, autoresolve disabled"),
     )
 
     ACKNOWLEDGE = "acknowledge"
@@ -239,7 +241,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     SILENCE_DELAY_OPTIONS = (
         (1800, "30 minutes"),
         (3600, "1 hour"),
+        (7200, "2 hours"),
+        (10800, "3 hours"),
         (14400, "4 hours"),
+        (21600, "6 hours"),
         (43200, "12 hours"),
         (57600, "16 hours"),
         (72000, "20 hours"),
@@ -350,6 +355,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # We just don't care about that because we'll use only get_or_create(...is_open_for_grouping=True...)
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
+
+    @property
+    def is_restricted(self):
+        integration_restricted_at = self.channel.restricted_at
+        if integration_restricted_at is None:
+            return False
+        return self.started_at >= integration_restricted_at
 
     @staticmethod
     def get_silenced_state_filter():
@@ -474,7 +486,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def web_link(self) -> str:
-        return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
+        return urljoin(self.channel.organization.web_link, f"alert-groups/{self.public_primary_key}")
 
     @property
     def declare_incident_link(self) -> str:

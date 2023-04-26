@@ -45,7 +45,7 @@ const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
               }
             />
           </HorizontalGroup>
-          <TeamName team={grafanaTeamStore.items[escalationChain.team]} />
+          <TeamName team={grafanaTeamStore.items[escalationChain.team]} size="small" />
         </VerticalGroup>
       </HorizontalGroup>
     </div>

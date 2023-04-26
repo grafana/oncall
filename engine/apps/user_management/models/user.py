@@ -188,7 +188,7 @@ class User(models.Model):
     def available_teams(self):
         if self.role == LegacyAccessControlRole.ADMIN:
             return self.organization.teams.all()
-        return self.organization.teams.filter(Q(is_sharing_resources_to_all=True) | Q(users=self))
+        return self.organization.teams.filter(Q(is_sharing_resources_to_all=True) | Q(users=self)).distinct()
 
     @property
     def is_authenticated(self):

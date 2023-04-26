@@ -184,7 +184,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     if (option.data.default) {
       let defaultValue = option.data.default;
       if (option.data.type === 'options') {
-        defaultValue = [defaultValue];
+        defaultValue = [option.data.default.value];
       }
       if (option.data.type === 'boolean') {
         defaultValue = defaultValue === 'false' ? false : Boolean(defaultValue);

@@ -502,3 +502,67 @@ def test_channel_filter_update_invalid_notification_backends(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"notification_backends": ["Invalid messaging backend"]}
     assert channel_filter.notification_backends is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_channel_filter_convert_from_regex_to_jinja2(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    make_channel_filter(alert_receive_channel, is_default=True)
+
+    # r"..." used to keep this string as raw string
+    regex_filtering_term = r"\".*\": \"This alert was sent by user for the demonstration purposes\""
+    final_filtering_term = r'{{ payload | json_dumps | regex_search("\".*\": \"This alert was sent by user for the demonstration purposes\"") }}'
+    payload = {"description": "This alert was sent by user for the demonstration purposes"}
+
+    regex_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        filtering_term=regex_filtering_term,
+        is_default=False,
+    )
+    # Check if the filtering term is a regex
+    assert regex_channel_filter.filtering_term_type == regex_channel_filter.FILTERING_TERM_TYPE_REGEX
+    # Check if the alert is matched to the channel filter (route) regex
+    assert bool(regex_channel_filter.is_satisfying(payload)) is True
+
+    client = APIClient()
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": regex_channel_filter.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    # Check if preview of the filtering term migration is correct
+    assert response.json()["filtering_term_as_jinja2"] == final_filtering_term
+
+    url = reverse(
+        "api-internal:channel_filter-convert-from-regex-to-jinja2",
+        kwargs={"pk": regex_channel_filter.public_primary_key},
+    )
+    response = client.post(url, **make_user_auth_headers(user, token))
+    # Only admins can convert from regex to jinja2
+    assert response.status_code == expected_status
+    if expected_status == status.HTTP_200_OK:
+        regex_channel_filter.refresh_from_db()
+        # Regex is now converted to jinja2
+        jinja2_channel_filter = regex_channel_filter
+        # Check if the filtering term is a jinja2, and if it is correct
+        assert jinja2_channel_filter.filtering_term_type == jinja2_channel_filter.FILTERING_TERM_TYPE_JINJA2
+        assert jinja2_channel_filter.filtering_term == final_filtering_term
+        # Check if the same alert is matched to the channel filter (route) new jinja2
+        assert bool(jinja2_channel_filter.is_satisfying(payload)) is True

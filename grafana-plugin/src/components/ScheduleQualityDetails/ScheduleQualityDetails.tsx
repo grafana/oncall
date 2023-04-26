@@ -1,14 +1,10 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 
 import { HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { User } from 'models/user/user.types';
-import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
 
 import styles from './ScheduleQualityDetails.module.scss';
@@ -22,23 +18,12 @@ interface ScheduleQualityDetailsProps {
 }
 
 export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ quality, getScheduleQualityString }) => {
-  const { userStore } = useStore();
   const { total_score: score, comments, overloaded_users } = quality;
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [overloadedUsers, setOverloadedUsers] = useState<User[]>([]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
-
-  if (isLoading) {
-    return null;
-  }
 
   const infoComments = comments.filter((c) => c.type === 'info');
   const warningComments = comments.filter((c) => c.type === 'warning');
@@ -94,15 +79,15 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             </>
           )}
 
-          {overloadedUsers?.length > 0 && (
+          {overloaded_users?.length > 0 && (
             <div className={cx('container')}>
               <div className={cx('row')}>
                 <Icon name="users-alt" />
                 <div className={cx('container')}>
                   <Text type="secondary">Overloaded users</Text>
-                  {overloadedUsers.map((overloadedUser, index) => (
-                    <Text type="primary" className={cx('email')} key={index}>
-                      {overloadedUser.email} ({getTzOffsetString(dayjs().tz(overloadedUser.timezone))})
+                  {overloaded_users.map((overloadedUser, index) => (
+                    <Text type="primary" className={cx('username')} key={index}>
+                      {overloadedUser.username} (+{overloadedUser.score}% avg)
                     </Text>
                   ))}
                 </div>
@@ -125,32 +110,21 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           </HorizontalGroup>
           {expanded && (
             <Text type="primary" className={cx('text')}>
-              The next 90 days are taken into consideration when calculating the overall schedule quality.
+              The next 52 weeks (~1 year) are taken into account when generating the quality report. Refer to the{' '}
+              <a
+                href={'https://grafana.com/docs/oncall/latest/calendar-schedules/web-schedule/#schedule-quality-report'}
+                target="_blank"
+                rel="noreferrer"
+              >
+                documentation
+              </a>{' '}
+              for more details.
             </Text>
           )}
         </div>
       </div>
     </div>
   );
-
-  async function fetchUsers() {
-    if (!overloaded_users?.length) {
-      setIsLoading(false);
-      return;
-    }
-
-    const allUsersList: User[] = userStore.getSearchResult().results;
-    const overloadedUsers = [];
-
-    allUsersList.forEach((user) => {
-      if (overloaded_users.indexOf(user['pk']) !== -1) {
-        overloadedUsers.push(user);
-      }
-    });
-
-    setIsLoading(false);
-    setOverloadedUsers(overloadedUsers);
-  }
 
   function getScheduleQualityMatchingColor(score: number): string {
     if (score < 20) {

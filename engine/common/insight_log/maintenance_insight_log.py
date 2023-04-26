@@ -21,7 +21,7 @@ def write_maintenance_insight_log(instance, user, event: MaintenanceEvent):
         team = instance.get_team()
         entity_name = json.dumps(instance.insight_logs_verbal)
         entity_id = instance.public_primary_key
-        maintenance_mode = instance.get_maintenance_mode_display()
+        maintenance_mode = instance.get_maintenance_mode_display().lower()
 
         if is_insight_logs_enabled(organization):
             log_line = f"tenant_id={tenant_id} action_type=maintenance action_name={event.value} maintenance_mode={maintenance_mode} resource_id={entity_id} resource_name={entity_name}"  # noqa
@@ -32,7 +32,7 @@ def write_maintenance_insight_log(instance, user, event: MaintenanceEvent):
             if user:
                 username = json.dumps(user.username)
                 user_id = user.public_primary_key
-                log_line += f" user_id={user_id} username={username} "
+                log_line += f" author_id={user_id} author={username}"
             insight_logger.info(log_line)
     except Exception as e:
         logger.warning(f"insight_log.failed_to_write_maintenance_insight_log exception={e}")

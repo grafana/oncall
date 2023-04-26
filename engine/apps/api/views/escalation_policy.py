@@ -14,6 +14,7 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicyUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
+from apps.webhooks.utils import is_webhooks_enabled_for_organization
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
@@ -74,7 +75,7 @@ class EscalationPolicyView(
         ).distinct()
 
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
@@ -140,6 +141,10 @@ class EscalationPolicyView(
     def escalation_options(self, request):
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
+            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK and not is_webhooks_enabled_for_organization(
+                self.request.auth.organization.pk
+            ):
+                continue
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
             can_change_importance = (
                 step in EscalationPolicy.IMPORTANT_STEPS_SET or step in EscalationPolicy.DEFAULT_STEPS_SET

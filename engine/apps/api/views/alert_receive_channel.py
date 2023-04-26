@@ -8,7 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
@@ -21,12 +22,13 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
+    PreviewTemplateException,
     PreviewTemplateMixin,
     PublicPrimaryKeyMixin,
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
-from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -95,6 +97,8 @@ class AlertReceiveChannelView(
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "change_team": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def create(self, request, *args, **kwargs):
@@ -139,7 +143,7 @@ class AlertReceiveChannelView(
                 queryset = self.serializer_class.setup_eager_loading(queryset)
 
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         # Hide direct paging integrations from the list view, but not from the filters
         if not is_filters_request:
@@ -149,9 +153,19 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
-        instance = AlertReceiveChannel.objects.get(public_primary_key=pk)
+        alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=pk)
+        demo_alert_payload = request.data.get("demo_alert_payload", None)
+
+        if not demo_alert_payload:
+            # If no payload provided, use the demo payload for backword compatibility
+            payload = alert_receive_channel.config.example_payload
+        else:
+            if type(demo_alert_payload) != dict:
+                raise BadRequest(detail="Payload for demo alert must be a valid json object")
+            payload = demo_alert_payload
+
         try:
-            instance.send_demo_alert()
+            alert_receive_channel.send_demo_alert(payload=payload)
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
         return Response(status=status.HTTP_200_OK)
@@ -215,9 +229,16 @@ class AlertReceiveChannelView(
         return Response(response)
 
     # This method is required for PreviewTemplateMixin
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         try:
-            return self.get_object().alert_groups.last().alerts.first()
+            if payload is None:
+                return self.get_object().alert_groups.last().alerts.first()
+            else:
+                if type(payload) != dict:
+                    raise PreviewTemplateException("Payload must be a valid json object")
+                # Build Alert and AlertGroup objects to pass to templater without saving them to db
+                alert_group_to_template = AlertGroup(channel=self.get_object())
+                return Alert(raw_request_data=payload, group=alert_group_to_template)
         except AttributeError:
             return None
 
@@ -239,3 +260,40 @@ class AlertReceiveChannelView(
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
 
         return Response(filter_options)
+
+    @action(detail=True, methods=["post"])
+    def start_maintenance(self, request, pk):
+        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+
+        mode = request.data.get("mode", None)
+        duration = request.data.get("duration", None)
+        try:
+            mode = int(mode)
+        except (ValueError, TypeError):
+            raise BadRequest(detail={"mode": ["Invalid mode"]})
+        if mode not in [MaintainableObject.DEBUG_MAINTENANCE, MaintainableObject.MAINTENANCE]:
+            raise BadRequest(detail={"mode": ["Unknown mode"]})
+        try:
+            duration = int(duration)
+        except (ValueError, TypeError):
+            raise BadRequest(detail={"duration": ["Invalid duration"]})
+        if duration not in MaintainableObject.maintenance_duration_options_in_seconds():
+            raise BadRequest(detail={"mode": ["Unknown duration"]})
+
+        try:
+            instance.start_maintenance(mode, duration, request.user)
+        except MaintenanceCouldNotBeStartedError as e:
+            if type(instance) == AlertReceiveChannel:
+                detail = {"alert_receive_channel_id": ["Already on maintenance"]}
+            else:
+                detail = str(e)
+            raise BadRequest(detail=detail)
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def stop_maintenance(self, request, pk):
+        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+        user = request.user
+        instance.force_disable_maintenance(user)
+        return Response(status=status.HTTP_200_OK)

@@ -94,6 +94,8 @@ class ChannelFilter(OrderedModel):
     @classmethod
     def select_filter(cls, alert_receive_channel, raw_request_data, force_route_id=None):
         # Try to find force route first if force_route_id is given
+        # Force route was used to send demo alerts to specific route.
+        # It is deprecated and may be used by older versions of the plugins
         if force_route_id is not None:
             logger.info(
                 f"start select_filter with force_route_id={force_route_id} alert_receive_channel={alert_receive_channel.pk}."
@@ -164,6 +166,7 @@ class ChannelFilter(OrderedModel):
         raise Exception("Unknown filtering term")
 
     def send_demo_alert(self):
+        """Deprecated. May be used in the older versions of the plugin"""
         integration = self.alert_receive_channel
         integration.send_demo_alert(force_route_id=self.pk)
 

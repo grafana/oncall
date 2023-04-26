@@ -171,7 +171,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const updatePreview = () => {
     store.scheduleStore
       .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params)
-      .then(() => {
+      .finally(() => {
         setIsOpen(true);
       });
   };
@@ -179,6 +179,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
+  const disableAction = shiftEnd.isBefore(dayjs().tz(currentTimezone));
 
   useEffect(handleChange, [params]);
 
@@ -244,7 +245,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <Button variant="secondary" onClick={onHide}>
               {shiftId === 'new' ? 'Cancel' : 'Close'}
             </Button>
-            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
+            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid || disableAction}>
               {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
           </HorizontalGroup>

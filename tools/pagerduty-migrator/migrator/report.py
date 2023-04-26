@@ -1,6 +1,7 @@
 TAB = " " * 4
 SUCCESS_SIGN = "✅"
 ERROR_SIGN = "❌"
+WARNING_SIGN = "⚠️"  # TODO: warning sign does not renders properly
 
 
 def format_user(user: dict) -> str:
@@ -73,7 +74,13 @@ def format_integration(integration: dict) -> str:
             ERROR_SIGN, result, policy_name
         )
     else:
-        result = "{} {}".format(SUCCESS_SIGN, result)
+        # check if integration not supported, but UNSUPPORTED_INTEGRATION_TO_WEBHOOKS set
+        if integration.get("converted_to_webhook", False):
+            result = "{} {} – cannot find appropriate Grafana OnCall integration type, integration will be migrated with type 'webhook'".format(
+                WARNING_SIGN, result
+            )
+        else:
+            result = "{} {}".format(SUCCESS_SIGN, result)
 
     return result
 
@@ -180,7 +187,7 @@ def format_ruleset(ruleset: dict) -> str:
 
 
 def ruleset_report(rulesets: list[dict]) -> str:
-    result = "Event rules (rulesets) report:"
+    result = "Event rules (global rulesets) report:"
 
     for ruleset in sorted(
         rulesets,
@@ -189,10 +196,8 @@ def ruleset_report(rulesets: list[dict]) -> str:
     ):
         result += "\n" + TAB + format_ruleset(ruleset)
         if not ruleset["flawed_escalation_policies"] and ruleset["oncall_integration"]:
-            result += (
-                " (existing integration with name '{} Ruleset' will be deleted)".format(
-                    ruleset["name"]
-                )
+            result += " (existing integration with name '{}' will be deleted)".format(
+                ruleset["oncall_name"]
             )
 
     return result

@@ -49,7 +49,7 @@ class IntegrationHeartBeatView(
             **lookup_kwargs,
         )
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 
