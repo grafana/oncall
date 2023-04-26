@@ -21,19 +21,20 @@ Alerts from Grafana Alertmanager are automatically routed to this integration.
 {% endif %}"""
 
 # Web
-web_title = """{{- payload.labels.alertname }}
+web_title = """
+{{- payload.get("labels", []).get("alertname", "Unknown") -}}
 """
 web_message = """\
 {%- set annotations = payload.annotations -%}
 {%- set labels = payload.labels -%}
 
 {%- set severity = payload.labels.severity | default("Unknown") -%}
-{%- set severity_emoji = {"critical": "🚨", "warning": "⚠️" }[severity] | default("⁉️") -%}
-**Severity**: {{ severity }}{{ severity_emoji }}
+{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":interrobang:") -%}
+**Severity**: {{ severity }} {{ severity_emoji }}
 
 {% set status = payload.status | default("") -%}
-{%- set status_emoji = {"firing": "🔥", "resolved": "✅"}[status] | default("⚠️") -%}
-**Status**: {{ status }}{{ status_emoji }}
+{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") -%}
+**Status**: {{ status }} {{ status_emoji }}
 
 {%- if "message" in payload.annotations %}
 {{ annotations.message }}
@@ -41,11 +42,11 @@ web_message = """\
 {% endif %}
 
 {%- if "runbook_url" in payload.annotations %}
-[📖 Runbook]({{ payload.annotations.runbook_url }})
+[:book: Runbook:link:]({{ payload.annotations.runbook_url }})
 {% set _ = annotations.pop('runbook_url') %}
 {% endif %}
 
-**🏷️ Labels:**
+**:label: Labels:**
 ```
 {%- for k, v in payload["labels"].items() %}
 {{ k }}={{ v }}
@@ -56,25 +57,7 @@ web_message = """\
 **Other annotations:**
 {% for k, v in payload["annotations"].items() %}
 {#- render annotation as markdown url if it starts with http #}
-- *{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
-{% endfor %}
-{% endif %}
-```
-
-{%- if annotations |length > 0%}
-**Other annotations:**
-{% for k, v in payload["annotations"].items() %}
-{#- render annotation as markdown url if it starts with http #}
-- *{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
-{% endfor %}
-{% endif %}
-```
-
-{%- if annotations |length > 0%}
-**Other annotations:** 
-{%- for k, v in payload["annotations"].items() %}
-{#- render annotation as markdown url if it starts with http #}
-*{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
+- *{{ k }}*: {{ v }}
 {% endfor %}
 {% endif %}
 """  # noqa: W291
@@ -94,7 +77,7 @@ acknowledge_condition = None
 
 # Slack
 slack_title = """\
-*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title_template }}>* via {{ integration_name }}
+*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} { web_title_template }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
 {%- endif %}
@@ -105,16 +88,16 @@ slack_message = """\
 """  # noqa: W291
 
 
-slack_image_url = web_image_url
+slack_image_url = None
 
 # SMS
-sms_title = web_title
+sms_title = """{{ web_title_template }}"""
 
 # Phone
-phone_call_title = web_title
+phone_call_title = """{{ web_title_template }}"""
 
 # Telegram
-telegram_title = web_title
+telegram_title = """{{ web_title_template }}"""
 
 telegram_message = """\
 {{- payload.messsage }}
@@ -129,7 +112,7 @@ telegram_message = """\
 {{ k }}: {{ v }}
 {% endfor %}"""  # noqa: W291
 
-telegram_image_url = web_image_url
+telegram_image_url = None
 
 tests = {
     "payload": {
