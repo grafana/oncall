@@ -36,37 +36,29 @@ def update_twilio_call_status(call_sid, call_status):
             oncall_phone_call = OnCallPhoneCall.objects.filter(sid=call_sid).first()
 
         if oncall_phone_call and status:
-            log_record = None
-            if status == TwilioCallStatuses.COMPLETED:
-                log_record = UserNotificationPolicyLogRecord(
-                    author=oncall_phone_call.receiver,
-                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
-                    notification_policy=oncall_phone_call.notification_policy,
-                    alert_group=oncall_phone_call.represents_alert_group,
-                    notification_step=oncall_phone_call.notification_policy.step
-                    if oncall_phone_call.notification_policy
-                    else None,
-                    notification_channel=oncall_phone_call.notification_policy.notify_by
-                    if oncall_phone_call.notification_policy
-                    else None,
-                )
-            elif status in [TwilioCallStatuses.FAILED, TwilioCallStatuses.BUSY, TwilioCallStatuses.NO_ANSWER]:
-                log_record = UserNotificationPolicyLogRecord(
-                    author=oncall_phone_call.receiver,
-                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                    notification_policy=oncall_phone_call.notification_policy,
-                    alert_group=oncall_phone_call.represents_alert_group,
-                    notification_error_code=get_error_code_by_twilio_status(status),
-                    notification_step=oncall_phone_call.notification_policy.step
-                    if oncall_phone_call.notification_policy
-                    else None,
-                    notification_channel=oncall_phone_call.notification_policy.notify_by
-                    if oncall_phone_call.notification_policy
-                    else None,
-                )
+            log_record_type = None
+            log_record_error_code = None
 
-            if log_record is not None:
-                log_record.save()
+            if status == TwilioCallStatuses.COMPLETED:
+                log_record_type = UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+            elif status in [TwilioCallStatuses.FAILED, TwilioCallStatuses.BUSY, TwilioCallStatuses.NO_ANSWER]:
+                log_record_type = UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+                log_record_error_code = get_error_code_by_twilio_status(status)
+
+            if log_record_type is not None:
+                log_record = UserNotificationPolicyLogRecord(
+                    type=log_record_type,
+                    notification_error_code=log_record_error_code,
+                    author=oncall_phone_call.receiver,
+                    notification_policy=oncall_phone_call.notification_policy,
+                    alert_group=oncall_phone_call.represents_alert_group,
+                    notification_step=oncall_phone_call.notification_policy.step
+                    if oncall_phone_call.notification_policy
+                    else None,
+                    notification_channel=oncall_phone_call.notification_policy.notify_by
+                    if oncall_phone_call.notification_policy
+                    else None,
+                )
                 user_notification_action_triggered_signal.send(sender=update_twilio_call_status, log_record=log_record)
 
 
@@ -109,34 +101,28 @@ def update_twilio_sms_status(message_sid, message_status):
             OnCallPhoneCall = apps.get_model("phone_notifications", "OnCallPhoneCall")
             oncall_sms = OnCallPhoneCall.objects.filter(sid=message_sid).first()
 
-        log_record = None
+        if oncall_sms and status:
+            log_record_type = None
+            log_record_error_code = None
+            if status == TwilioSMSstatuses.DELIVERED:
+                log_record_type = UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
+            elif status in [TwilioSMSstatuses.UNDELIVERED, TwilioSMSstatuses.FAILED]:
+                log_record_type = UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+                log_record_error_code = get_sms_error_code_by_twilio_status(status)
 
-        if oncall_sms and status == TwilioSMSstatuses.DELIVERED:
-            log_record = UserNotificationPolicyLogRecord(
-                author=oncall_sms.receiver,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
-                notification_policy=oncall_sms.notification_policy,
-                alert_group=oncall_sms.represents_alert_group,
-                notification_step=oncall_sms.notification_policy.step if oncall_sms.notification_policy else None,
-                notification_channel=oncall_sms.notification_policy.notify_by
-                if oncall_sms.notification_policy
-                else None,
-            )
-        elif status in [TwilioSMSstatuses.UNDELIVERED, TwilioSMSstatuses.FAILED]:
-            log_record = UserNotificationPolicyLogRecord(
-                author=oncall_sms.receiver,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=oncall_sms.notification_policy,
-                alert_group=oncall_sms.represents_alert_group,
-                notification_error_code=get_sms_error_code_by_twilio_status(status),
-                notification_step=oncall_sms.notification_policy.step if oncall_sms.notification_policy else None,
-                notification_channel=oncall_sms.notification_policy.notify_by
-                if oncall_sms.notification_policy
-                else None,
-            )
-        if log_record is not None:
-            log_record.save()
-            user_notification_action_triggered_signal.send(sender=update_twilio_sms_status, log_record=log_record)
+            if log_record_type is not None:
+                log_record = UserNotificationPolicyLogRecord(
+                    type=log_record_type,
+                    notification_error_code=log_record_error_code,
+                    author=oncall_sms.receiver,
+                    notification_policy=oncall_sms.notification_policy,
+                    alert_group=oncall_sms.represents_alert_group,
+                    notification_step=oncall_sms.notification_policy.step if oncall_sms.notification_policy else None,
+                    notification_channel=oncall_sms.notification_policy.notify_by
+                    if oncall_sms.notification_policy
+                    else None,
+                )
+                user_notification_action_triggered_signal.send(sender=update_twilio_sms_status, log_record=log_record)
 
 
 def get_sms_error_code_by_twilio_status(status):
