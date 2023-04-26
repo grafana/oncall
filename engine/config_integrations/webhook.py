@@ -9,9 +9,17 @@ is_displayed_on_web = True
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
 
+web_title = "{{ payload.get('title', 'Title unknown (Change integration web title template)') }}"
+web_message = """\
+```
+{{ payload|tojson_pretty }}
+```
+"""
+web_image_url = None
+
 # Default templates
 slack_title = """\
-*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} Incident>* via {{ integration_name }}
+*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
 {%- endif %}
@@ -22,25 +30,15 @@ slack_message = "```{{ payload|tojson_pretty }}```"
 
 slack_image_url = None
 
-web_title = "Incident"
+sms_title = "{{ web_title }}"
 
-web_message = """\
-```
-{{ payload|tojson_pretty }}
-```
-"""
+phone_call_title = "{{ web_title }}"
 
-web_image_url = slack_image_url
-
-sms_title = web_title
-
-phone_call_title = sms_title
-
-telegram_title = sms_title
+telegram_title = "{{ web_title }}"
 
 telegram_message = "<code>{{ payload|tojson_pretty }}</code>"
 
-telegram_image_url = slack_image_url
+telegram_image_url = None
 
 source_link = "{{ payload.url }}"
 

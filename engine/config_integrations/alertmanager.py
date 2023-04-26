@@ -36,7 +36,7 @@ web_message = """\
 {%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") -%}
 **Status**: {{ status }} {{ status_emoji }}
 
-{%- if "message" in payload.annotations %}
+{% if "message" in payload.annotations %}
 {{ annotations.message }}
 {% set _ = annotations.pop('message') %}
 {% endif %}
