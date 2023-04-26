@@ -54,6 +54,31 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
+class AlertGroupFilterBackend(filters.DjangoFilterBackend):
+    """
+    See here for more context on how this works
+
+    https://github.com/carltongibson/django-filter/discussions/1572
+    https://youtu.be/e52S1SjuUeM?t=841
+    """
+
+    def get_filterset(self, request, queryset, view):
+        filterset = super().get_filterset(request, queryset, view)
+
+        filterset.form.fields["integration"].queryset = get_integration_queryset(request)
+        filterset.form.fields["escalation_chain"].queryset = get_escalation_chain_queryset(request)
+
+        user_queryset = get_user_queryset(request)
+
+        filterset.form.fields["silenced_by"].queryset = user_queryset
+        filterset.form.fields["acknowledged_by"].queryset = user_queryset
+        filterset.form.fields["resolved_by"].queryset = user_queryset
+        filterset.form.fields["invitees_are"].queryset = user_queryset
+        filterset.form.fields["involved_users_are"].queryset = user_queryset
+
+        return filterset
+
+
 class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
@@ -70,19 +95,19 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
     silenced_at = filters.CharFilter(field_name="silenced_at", method=DateRangeFilterMixin.filter_date_range.__name__)
     silenced_by = filters.ModelMultipleChoiceFilter(
         field_name="silenced_by_user",
-        queryset=get_user_queryset,
+        queryset=None,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     integration = filters.ModelMultipleChoiceFilter(
         field_name="channel_filter__alert_receive_channel",
-        queryset=get_integration_queryset,
+        queryset=None,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     escalation_chain = filters.ModelMultipleChoiceFilter(
         field_name="channel_filter__escalation_chain",
-        queryset=get_escalation_chain_queryset,
+        queryset=None,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
@@ -91,21 +116,21 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
     )
     resolved_by = filters.ModelMultipleChoiceFilter(
         field_name="resolved_by_user",
-        queryset=get_user_queryset,
+        queryset=None,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     acknowledged_by = filters.ModelMultipleChoiceFilter(
         field_name="acknowledged_by_user",
-        queryset=get_user_queryset,
+        queryset=None,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     invitees_are = filters.ModelMultipleChoiceFilter(
-        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_invitees_are"
+        queryset=None, to_field_name="public_primary_key", method="filter_invitees_are"
     )
     involved_users_are = filters.ModelMultipleChoiceFilter(
-        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_by_involved_users"
+        queryset=None, to_field_name="public_primary_key", method="filter_by_involved_users"
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
@@ -275,7 +300,7 @@ class AlertGroupView(
 
     pagination_class = TwentyFiveCursorPaginator
 
-    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    filter_backends = [SearchFilter, AlertGroupFilterBackend]
     search_fields = ["public_primary_key", "inside_organization_number", "web_title_cache"]
 
     filterset_class = AlertGroupFilter

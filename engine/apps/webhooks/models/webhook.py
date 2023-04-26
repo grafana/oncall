@@ -112,6 +112,7 @@ class Webhook(models.Model):
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)
+    is_legacy = models.BooleanField(null=True, default=False)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -156,11 +157,19 @@ class Webhook(models.Model):
         if self.http_method in ["POST", "PUT"]:
             if self.forward_all:
                 request_kwargs["json"] = event_data
+                if self.is_legacy:
+                    request_kwargs["json"] = event_data["alert_payload"]
             elif self.data:
+                context_data = event_data
+                if self.is_legacy:
+                    context_data = {
+                        "alert_payload": event_data.get("alert_payload", {}),
+                        "alert_group_id": event_data.get("alert_group_id"),
+                    }
                 try:
                     rendered_data = apply_jinja_template_for_json(
                         self.data,
-                        event_data,
+                        context_data,
                     )
                     try:
                         request_kwargs["json"] = json.loads(rendered_data)

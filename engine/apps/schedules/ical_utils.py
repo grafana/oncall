@@ -603,6 +603,8 @@ def create_base_icalendar(name: str) -> Calendar:
     cal.add("x-wr-timezone", "UTC")
     cal.add("version", "2.0")
     cal.add("prodid", "//Grafana Labs//Grafana On-Call//")
+    # suggested minimum interval for polling for changes
+    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "P1H")
 
     return cal
 
@@ -650,14 +652,8 @@ def _get_ical_data_final_schedule(schedule: OnCallSchedule) -> str:
 
 
 def ical_export_from_schedule(schedule: OnCallSchedule) -> bytes:
-    if _is_final_export_enabled(schedule):
-        ical_data = _get_ical_data_final_schedule(schedule)
-        return ical_data.encode()
-    else:
-        calendars = schedule.get_icalendars()
-        ical_obj = create_base_icalendar(schedule.name)
-        get_events_from_calendars(ical_obj, calendars)
-        return ical_obj.to_ical()
+    ical_data = _get_ical_data_final_schedule(schedule)
+    return ical_data.encode()
 
 
 def user_ical_export(user: User, schedules: list[OnCallSchedule]) -> bytes:
@@ -665,13 +661,9 @@ def user_ical_export(user: User, schedules: list[OnCallSchedule]) -> bytes:
     ical_obj = create_base_icalendar(schedule_name)
 
     for schedule in schedules:
-        if _is_final_export_enabled(schedule):
-            name = schedule.name
-            ical_data = _get_ical_data_final_schedule(schedule)
-            calendars = [Calendar.from_ical(ical_data)]
-        else:
-            name = None
-            calendars = schedule.get_icalendars()
+        name = schedule.name
+        ical_data = _get_ical_data_final_schedule(schedule)
+        calendars = [Calendar.from_ical(ical_data)]
         get_user_events_from_calendars(ical_obj, calendars, user, name=name)
 
     return ical_obj.to_ical()

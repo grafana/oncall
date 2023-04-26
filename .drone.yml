@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -174,7 +174,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -185,7 +185,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key

@@ -312,7 +312,6 @@ class OnCallSchedule(PolymorphicModel):
         return events
 
     def refresh_ical_final_schedule(self):
-        # TODO: check flag?
         tz = "UTC"
         now = timezone.now()
         # window to consider: from now, -15 days + 6 months
