@@ -146,7 +146,7 @@ def _extract_users_from_escalation_snapshot(escalation_snapshot):
                 if policy_snapshot.notify_schedule:
                     for user in list_users_to_notify_from_ical(policy_snapshot.notify_schedule):
                         users.append(_serialize_event_user(user))
-    return list({u["id"]: u for u in users}.values())
+    return list({u["id"]: u for u in users if u}.values())
 
 
 def serialize_event(event, alert_group, user, responses=None):

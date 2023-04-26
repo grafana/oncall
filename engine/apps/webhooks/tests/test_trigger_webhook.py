@@ -40,7 +40,9 @@ def test_send_webhook_event_filters(
     other_team_webhook = make_custom_webhook(
         organization=organization, team=other_team, trigger_type=Webhook.TRIGGER_ACKNOWLEDGE
     )
-    other_org_webhook = make_custom_webhook(organization=other_organization, trigger_type=Webhook.TRIGGER_FIRING)
+    other_org_webhook = make_custom_webhook(
+        organization=other_organization, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED
+    )
 
     for trigger_type, _ in Webhook.TRIGGER_TYPES:
         with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
@@ -60,7 +62,7 @@ def test_send_webhook_event_filters(
     alert_receive_channel = make_alert_receive_channel(other_organization)
     alert_group = make_alert_group(alert_receive_channel)
     with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
-        send_webhook_event(Webhook.TRIGGER_FIRING, alert_group.pk, organization_id=other_organization.pk)
+        send_webhook_event(Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk, organization_id=other_organization.pk)
     assert mock_execute.call_args == call((other_org_webhook.pk, alert_group.pk, None, None))
 
 
@@ -71,11 +73,13 @@ def test_execute_webhook_disabled(
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_FIRING)
-    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_FIRING, is_webhook_enabled=False)
+    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
+    make_custom_webhook(
+        organization=organization, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED, is_webhook_enabled=False
+    )
 
     with patch("apps.webhooks.tasks.trigger_webhook.execute_webhook.apply_async") as mock_execute:
-        send_webhook_event(Webhook.TRIGGER_FIRING, alert_group.pk, organization_id=organization.pk)
+        send_webhook_event(Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk, organization_id=organization.pk)
     mock_execute.assert_called_once()
 
 
@@ -87,7 +91,9 @@ def test_execute_webhook_integration_filter_not_matching(
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     webhook = make_custom_webhook(
-        organization=organization, trigger_type=Webhook.TRIGGER_FIRING, integration_filter=["does-not-match"]
+        organization=organization,
+        trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
+        integration_filter=["does-not-match"],
     )
 
     with patch("apps.webhooks.models.webhook.requests") as mock_requests:
@@ -111,7 +117,7 @@ def test_execute_webhook_integration_filter_matching(
     alert_group = make_alert_group(alert_receive_channel)
     webhook = make_custom_webhook(
         organization=organization,
-        trigger_type=Webhook.TRIGGER_FIRING,
+        trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
         integration_filter=["test-integration-1"],
         # Check we get past integration filter but exit early to keep test simple
         trigger_template="False",
@@ -364,7 +370,7 @@ def test_execute_webhook_using_responses_data(
             organization=organization,
             public_primary_key="response-1",
         ),
-        trigger_type=Webhook.TRIGGER_FIRING,
+        trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED,
         status_code=200,
         content=json.dumps({"id": "third-party-id"}),
     )

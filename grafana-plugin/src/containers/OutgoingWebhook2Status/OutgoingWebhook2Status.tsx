@@ -39,6 +39,15 @@ function Debug(props) {
   );
 }
 
+function format_response_field(str) {
+  try {
+    const jsonValue = JSON.parse(str);
+    return JSON.stringify(jsonValue, null, 4);
+  } catch (e) {
+    return str;
+  }
+}
+
 const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => {
   const { id, onHide } = props;
 
@@ -87,7 +96,11 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
                 <Debug title="Headers" source={data.headers} result={data.last_response_log.request_headers}></Debug>
               )}
               {data.last_response_log.request_data && (
-                <Debug title="Data" source={data.data} result={data.last_response_log.request_data}></Debug>
+                <Debug
+                  title="Data"
+                  source={data.data}
+                  result={format_response_field(data.last_response_log.request_data)}
+                ></Debug>
               )}
 
               {data.last_response_log.status_code && (
@@ -100,9 +113,7 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
               {data.last_response_log.content && (
                 <VerticalGroup>
                   <Label>Response Body</Label>
-                  <SourceCode showClipboardIconOnly>
-                    {JSON.stringify(data.last_response_log.content, null, 4)}
-                  </SourceCode>
+                  <SourceCode showClipboardIconOnly>{format_response_field(data.last_response_log.content)}</SourceCode>
                 </VerticalGroup>
               )}
             </VerticalGroup>
