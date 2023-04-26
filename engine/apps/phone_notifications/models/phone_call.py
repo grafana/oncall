@@ -1,6 +1,29 @@
 from django.db import models
 
 
+# Duplicate to avoid circular import
+class TwilioCallStatuses:
+    QUEUED = 10
+    RINGING = 20
+    IN_PROGRESS = 30
+    COMPLETED = 40
+    BUSY = 50
+    FAILED = 60
+    NO_ANSWER = 70
+    CANCELED = 80
+
+    CHOICES = (
+        (QUEUED, "queued"),
+        (RINGING, "ringing"),
+        (IN_PROGRESS, "in-progress"),
+        (COMPLETED, "completed"),
+        (BUSY, "busy"),
+        (FAILED, "failed"),
+        (NO_ANSWER, "no-answer"),
+        (CANCELED, "canceled"),
+    )
+
+
 class OnCallPhoneCall(models.Model):
 
     exceeded_limit = models.BooleanField(null=True, default=None)
@@ -17,3 +40,16 @@ class OnCallPhoneCall(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     grafana_cloud_notification = models.BooleanField(default=False)  # rename
+
+    # deprecated. It's here for backward compatibility for calls made during or shortly before migration.
+    # Should be removed in ~1 hour after migration
+    status = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        choices=TwilioCallStatuses.CHOICES,
+    )
+
+    sid = models.CharField(
+        blank=True,
+        max_length=50,
+    )

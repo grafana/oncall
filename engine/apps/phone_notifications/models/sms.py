@@ -1,6 +1,37 @@
 from django.db import models
 
 
+class TwilioSMSstatuses:
+    """
+    https://www.twilio.com/docs/sms/tutorials/how-to-confirm-delivery-python?code-sample=code-handle-a-sms-statuscallback&code-language=Python&code-sdk-version=5.x#receive-status-events-in-your-web-application
+    https://www.twilio.com/docs/sms/api/message-resource#message-status-values
+    """
+
+    ACCEPTED = 10
+    QUEUED = 20
+    SENDING = 30
+    SENT = 40
+    FAILED = 50
+    DELIVERED = 60
+    UNDELIVERED = 70
+    RECEIVING = 80
+    RECEIVED = 90
+    READ = 100
+
+    CHOICES = (
+        (ACCEPTED, "accepted"),
+        (QUEUED, "queued"),
+        (SENDING, "sending"),
+        (SENT, "sent"),
+        (FAILED, "failed"),
+        (DELIVERED, "delivered"),
+        (UNDELIVERED, "undelivered"),
+        (RECEIVING, "receiving"),
+        (RECEIVED, "received"),
+        (READ, "read"),
+    )
+
+
 class OnCallSMS(models.Model):
 
     exceeded_limit = models.BooleanField(null=True, default=None)
@@ -13,3 +44,16 @@ class OnCallSMS(models.Model):
     receiver = models.ForeignKey("user_management.User", on_delete=models.CASCADE, null=True, default=None)
     grafana_cloud_notification = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # deprecated. It's here for backward compatibility for sms sent during or shortly before migration.
+    # Should be removed in ~1 hour after migration
+    status = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        choices=TwilioSMSstatuses.CHOICES,
+    )
+
+    sid = models.CharField(
+        blank=True,
+        max_length=50,
+    )
