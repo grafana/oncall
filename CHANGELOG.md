@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add 2, 3 and 6 hours silence options
 
+## Fixed
+
+- Optimize duplicate queries occurring in AlertGroupFilter by @joeyorlando ([1809](https://github.com/grafana/oncall/pull/1809))
+
 ## v1.2.15 (2023-04-24)
 
 ### Fixed
