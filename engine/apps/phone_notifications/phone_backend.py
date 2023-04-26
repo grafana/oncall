@@ -158,14 +158,41 @@ class PhoneBackend:
         """
         # some additional cleaning, since message come from outside and wasn't cleaned by our renderer
         message = clean_markup(text)
-        self.phone_provider.make_call(message, user.verified_phone_number)
+        try:
+            self.phone_provider.make_call(message, user.verified_phone_number)
+            # create OnCallSMS to track limits for sms from oss instances
+            OnCallPhoneCall.objects.create(
+                receiver=user,
+                exceeded_limit=False,
+            )
+        except CallsLimitExceeded as e:
+            # catch CallsLimitExceeded just to set exceeded_limit flag to OnCallSMS.
+            # Actual exception handling should be done by caller
+            OnCallPhoneCall.objects.create(
+                receiver=user,
+                exceeded_limit=False,
+            )
+            raise e
 
     def relay_oss_sms(self, user, message):
         """
         relay_oss_call send received from oss instances.
         Caller should handle exceptions raised by phone_provider.send_sms.
         """
-        self.phone_provider.send_sms(message, user.verified_phone_number)
+        try:
+            self.phone_provider.send_sms(message, user.verified_phone_number)
+            OnCallSMS.objects.create(
+                receiver=user,
+                exceeded_limit=False,
+            )
+        except SMSLimitExceeded as e:
+            # catch SMSLimitExceeded just to set exceeded_limit flag to OnCallSMS.
+            # Actual exception handling should be done by caller to return right response code
+            OnCallSMS.objects.create(
+                receiver=user,
+                exceeded_limit=False,
+            )
+            raise e
 
     def make_cloud_call(self, user, message):
         """
