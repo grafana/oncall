@@ -9,12 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add 2, 3 and 6 hours silence options
+- Add 2, 3 and 6 hours Alert Group silence options by @tommysitehost ([#1822](https://github.com/grafana/oncall/pull/1822))
 
 ### Changed
 
 - On the individual alert group page, show the "Silence" button if the alert group is firing or acknowledged.
-  Previously the button would only show if the alert group was firing. By @joeyorlando ([#AAAA](https://github.com/grafana/oncall/pull/AAAA))
+  Previously the button would only show if the alert group was firing. By @joeyorlando ([#1831](https://github.com/grafana/oncall/pull/1831))
 
 ### Fixed
 
