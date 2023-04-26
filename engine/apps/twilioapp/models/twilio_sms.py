@@ -62,6 +62,6 @@ class TwilioSMS(models.Model):
     oncall_sms = models.OneToOneField(
         "phone_notifications.OnCallSMS",
         on_delete=models.CASCADE,
-        related_name="twilio_phone_call",
+        related_name="twilio_sms",
         null=False,
     )
