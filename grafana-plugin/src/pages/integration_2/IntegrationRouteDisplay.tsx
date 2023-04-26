@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from 'react';
+import React, { useReducer } from 'react';
 import GSelect from 'containers/GSelect/GSelect';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SelectableValue } from '@grafana/data';
@@ -20,11 +20,15 @@ import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { useStore } from 'state/useStore';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
+import { SlackChannel } from 'models/slack_channel/slack_channel.types';
+import { observer } from 'mobx-react';
+import { useHistory } from 'react-router-dom';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
 interface IntegrationRouteDisplayProps {
-  channelFilter: ChannelFilter;
+  channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   templates: AlertTemplatesDTO[];
 }
@@ -32,161 +36,182 @@ interface IntegrationRouteDisplayProps {
 interface IntegrationRouteDisplayState {
   isEscalationCollapsed: boolean;
   isRefreshingEscalationChains: boolean;
-  selectedEscalationChain: string;
 }
 
-const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ channelFilter, templates, routeIndex }) => {
-  const { teamStore, escalationChainStore, grafanaTeamStore } = useStore();
-  const [{ isEscalationCollapsed, isRefreshingEscalationChains, selectedEscalationChain }, setState] = useReducer(
-    (state: IntegrationRouteDisplayState, newState: Partial<IntegrationRouteDisplayState>) => ({
-      ...state,
-      ...newState,
-    }),
-    {
-      isEscalationCollapsed: true,
-      isRefreshingEscalationChains: false,
-      selectedEscalationChain: channelFilter.escalation_chain,
-    }
-  );
+const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer(
+  ({ channelFilterId, templates, routeIndex }) => {
+    const { teamStore, escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } =
+      useStore();
+    const history = useHistory();
 
-  return (
-    <IntegrationBlock
-      heading={
-        <HorizontalGroup justify={'space-between'}>
-          <HorizontalGroup spacing={'md'}>
-            <Tag color={getVar('--tag-primary')}>{routeIndex ? 'ELSE IF' : 'IF'}</Tag>
-            {channelFilter.filtering_term && <Text type="secondary">{channelFilter.filtering_term}</Text>}
-          </HorizontalGroup>
-          <HorizontalGroup spacing={'xs'}>
-            <Button variant={'secondary'} icon={'arrow-up'} size={'md'} onClick={undefined} />
-            <Button variant={'secondary'} icon={'arrow-down'} size={'md'} onClick={undefined} />
-            <Button variant={'secondary'} icon={'trash-alt'} size={'md'} onClick={undefined} />
-          </HorizontalGroup>
-        </HorizontalGroup>
+    const [{ isEscalationCollapsed, isRefreshingEscalationChains }, setState] = useReducer(
+      (state: IntegrationRouteDisplayState, newState: Partial<IntegrationRouteDisplayState>) => ({
+        ...state,
+        ...newState,
+      }),
+      {
+        isEscalationCollapsed: true,
+        isRefreshingEscalationChains: false,
       }
-      content={
-        <VerticalGroup spacing="xs">
-          <IntegrationBlockItem>
-            <HorizontalGroup spacing="xs">
-              <InlineLabel width={20} tooltip={'TODO: Add text'}>
-                Routing Template
-              </InlineLabel>
-              <div className={cx('input', 'input--short')}>
-                <MonacoJinja2Editor
-                  value={channelFilter.filtering_term}
-                  disabled={true}
-                  height={MONACO_INPUT_HEIGHT_SMALL}
-                  data={templates}
-                  showLineNumbers={false}
-                  monacoOptions={MONACO_OPTIONS}
-                />
-              </div>
-              <Button variant={'secondary'} icon="edit" size={'md'} onClick={undefined} />
-              <Button variant="secondary" size="md" onClick={undefined}>
-                <Text type="link">Help</Text>
-                <Icon name="angle-down" size="sm" />
-              </Button>
+    );
+
+    const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+    if (!channelFilter) return null;
+
+    return (
+      <IntegrationBlock
+        heading={
+          <HorizontalGroup justify={'space-between'}>
+            <HorizontalGroup spacing={'md'}>
+              <Tag color={getVar('--tag-primary')}>{routeIndex ? 'ELSE IF' : 'IF'}</Tag>
+              {channelFilter.filtering_term && <Text type="secondary">{channelFilter.filtering_term}</Text>}
             </HorizontalGroup>
-          </IntegrationBlockItem>
-
-          <IntegrationBlockItem>
-            <VerticalGroup>
-              <Text type="secondary">
-                If the Routing template evaluates to True, the alert will be grouped with the Grouping template and
-                proceed to the following steps
-              </Text>
-            </VerticalGroup>
-          </IntegrationBlockItem>
-
-          <IntegrationBlockItem>
-            <VerticalGroup spacing="md">
-              <Text type="primary">Publish to ChatOps</Text>
-              <HorizontalGroup spacing="md">
-                <Switch value={undefined} onChange={(_event) => {}} />
-                <InlineLabel width={20}>Slack channel</InlineLabel>
-                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                  <GSelect
-                    showSearch
-                    allowClear
-                    className={cx('select', 'control')}
-                    modelName="slackChannelStore"
-                    displayField="display_name"
-                    valueField="id"
-                    placeholder="Select Slack Channel"
-                    value={channelFilter.slack_channel?.id || teamStore.currentTeam?.slack_channel?.id}
-                    onChange={handleSlackChannelChange}
-                    nullItemName={PRIVATE_CHANNEL_NAME}
+            <HorizontalGroup spacing={'xs'}>
+              <Button variant={'secondary'} icon={'arrow-up'} size={'md'} onClick={undefined} />
+              <Button variant={'secondary'} icon={'arrow-down'} size={'md'} onClick={undefined} />
+              <Button variant={'secondary'} icon={'trash-alt'} size={'md'} onClick={undefined} />
+            </HorizontalGroup>
+          </HorizontalGroup>
+        }
+        content={
+          <VerticalGroup spacing="xs">
+            <IntegrationBlockItem>
+              <HorizontalGroup spacing="xs">
+                <InlineLabel width={20} tooltip={'TODO: Add text'}>
+                  Routing Template
+                </InlineLabel>
+                <div className={cx('input', 'input--short')}>
+                  <MonacoJinja2Editor
+                    value={channelFilter.filtering_term}
+                    disabled={true}
+                    height={MONACO_INPUT_HEIGHT_SMALL}
+                    data={templates}
+                    showLineNumbers={false}
+                    monacoOptions={MONACO_OPTIONS}
                   />
-                </WithPermissionControlTooltip>
-              </HorizontalGroup>
-            </VerticalGroup>
-          </IntegrationBlockItem>
-
-          <IntegrationBlockItem>
-            <VerticalGroup>
-              <HorizontalGroup>
-                <InlineLabel width={20}>Escalation chain</InlineLabel>
-                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                  <GSelect
-                    showSearch
-                    modelName="escalationChainStore"
-                    isLoading={isRefreshingEscalationChains}
-                    displayField="name"
-                    placeholder="Select Escalation Chain"
-                    className={cx('select', 'control')}
-                    value={selectedEscalationChain}
-                    onChange={(value) => setState({ selectedEscalationChain: value })}
-                    showWarningIfEmptyValue={true}
-                    width={'auto'}
-                    icon={'list-ul'}
-                    getOptionLabel={(item: SelectableValue) => {
-                      return (
-                        <>
-                          <Text>{item.label} </Text>
-                          <TeamName
-                            team={grafanaTeamStore.items[escalationChainStore.items[item.value].team]}
-                            size="small"
-                          />
-                        </>
-                      );
-                    }}
-                  />
-                </WithPermissionControlTooltip>
-                <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
-                <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={openEscalationChainInNewWindow} />
-                <Button
-                  variant={'secondary'}
-                  onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
-                >
-                  <HorizontalGroup>
-                    <Text type="link">Show escalation chain</Text>
-                    {isEscalationCollapsed && <Icon name={'angle-down'} />}
-                    {!isEscalationCollapsed && <Icon name={'angle-up'} />}
-                  </HorizontalGroup>
+                </div>
+                <Button variant={'secondary'} icon="edit" size={'md'} onClick={undefined} />
+                <Button variant="secondary" size="md" onClick={undefined}>
+                  <Text type="link">Help</Text>
+                  <Icon name="angle-down" size="sm" />
                 </Button>
               </HorizontalGroup>
+            </IntegrationBlockItem>
 
-              {isEscalationCollapsed && <ReadOnlyEscalationChain escalationChainId={selectedEscalationChain} />}
-            </VerticalGroup>
-          </IntegrationBlockItem>
-        </VerticalGroup>
-      }
-    />
-  );
+            <IntegrationBlockItem>
+              <VerticalGroup>
+                <Text type="secondary">
+                  If the Routing template evaluates to True, the alert will be grouped with the Grouping template and
+                  proceed to the following steps
+                </Text>
+              </VerticalGroup>
+            </IntegrationBlockItem>
 
-  async function onEscalationChainsRefresh() {
-    setState({ isRefreshingEscalationChains: true });
-    await escalationChainStore.updateItems();
-    setState({ isRefreshingEscalationChains: false });
+            <IntegrationBlockItem>
+              <VerticalGroup spacing="md">
+                <Text type="primary">Publish to ChatOps</Text>
+                <HorizontalGroup spacing="md">
+                  <Switch value={undefined} onChange={(_event) => {}} />
+                  <InlineLabel width={20}>Slack channel</InlineLabel>
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <GSelect
+                      showSearch
+                      allowClear
+                      className={cx('select', 'control')}
+                      modelName="slackChannelStore"
+                      displayField="display_name"
+                      valueField="id"
+                      placeholder="Select Slack Channel"
+                      value={channelFilter.slack_channel?.id || teamStore.currentTeam?.slack_channel?.id}
+                      onChange={handleSlackChannelChange}
+                      nullItemName={PRIVATE_CHANNEL_NAME}
+                    />
+                  </WithPermissionControlTooltip>
+                </HorizontalGroup>
+              </VerticalGroup>
+            </IntegrationBlockItem>
+
+            <IntegrationBlockItem>
+              <VerticalGroup>
+                <HorizontalGroup>
+                  <InlineLabel width={20}>Escalation chain</InlineLabel>
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <GSelect
+                      showSearch
+                      modelName="escalationChainStore"
+                      isLoading={isRefreshingEscalationChains}
+                      displayField="name"
+                      placeholder="Select Escalation Chain"
+                      className={cx('select', 'control')}
+                      value={channelFilter.escalation_chain}
+                      onChange={onEscalationChainChange}
+                      showWarningIfEmptyValue={true}
+                      width={'auto'}
+                      icon={'list-ul'}
+                      getOptionLabel={(item: SelectableValue) => {
+                        return (
+                          <>
+                            <Text>{item.label} </Text>
+                            <TeamName
+                              team={grafanaTeamStore.items[escalationChainStore.items[item.value].team]}
+                              size="small"
+                            />
+                          </>
+                        );
+                      }}
+                    />
+                  </WithPermissionControlTooltip>
+                  <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                  <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={openEscalationChain} />
+                  <Button
+                    variant={'secondary'}
+                    onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
+                  >
+                    <HorizontalGroup>
+                      <Text type="link">Show escalation chain</Text>
+                      {isEscalationCollapsed && <Icon name={'angle-down'} />}
+                      {!isEscalationCollapsed && <Icon name={'angle-up'} />}
+                    </HorizontalGroup>
+                  </Button>
+                </HorizontalGroup>
+
+                {isEscalationCollapsed && (
+                  <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
+                )}
+              </VerticalGroup>
+            </IntegrationBlockItem>
+          </VerticalGroup>
+        }
+      />
+    );
+
+    function onEscalationChainChange(value: string) {
+      alertReceiveChannelStore
+        .saveChannelFilter(channelFilterId, {
+          escalation_chain: value,
+        })
+        .then(() => {
+          escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
+          escalationPolicyStore.updateEscalationPolicies(value);
+        });
+    }
+
+    async function onEscalationChainsRefresh() {
+      setState({ isRefreshingEscalationChains: true });
+      await escalationChainStore.updateItems();
+      setState({ isRefreshingEscalationChains: false });
+    }
+
+    function handleSlackChannelChange(_value: SlackChannel['id'], slackChannel: SlackChannel) {
+      // @ts-ignore actually slack_channel is just slack_channel_id when saving
+      alertReceiveChannelStore.saveChannelFilter(channelFilter.id, { slack_channel: slackChannel?.slack_id || null });
+    }
+
+    function openEscalationChain() {
+      history.push(`${PLUGIN_ROOT}/escalations/${channelFilter.escalation_chain}`);
+    }
   }
-
-  function handleSlackChannelChange() {}
-
-  // TODO: Change it to point to actual location
-  function openEscalationChainInNewWindow() {
-    window.open('http://google.ro', '_blank');
-  }
-};
+);
 
 const ReadOnlyEscalationChain: React.FC<{ escalationChainId: ChannelFilter['id'] }> = ({ escalationChainId }) => {
   return <EscalationChainSteps isDisabled id={escalationChainId} />;

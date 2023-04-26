@@ -841,7 +841,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     return Object.keys(alertReceiveChannelStore.channelFilters).map((channelFilterId, channelFilterIndex) => (
       <IntegrationRouteDisplay
-        channelFilter={alertReceiveChannelStore.channelFilters[channelFilterId]}
+        channelFilterId={channelFilterId}
         routeIndex={channelFilterIndex}
         templates={templates}
       />

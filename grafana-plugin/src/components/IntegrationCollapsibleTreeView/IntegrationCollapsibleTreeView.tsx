@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -19,26 +19,31 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
     <div className={cx('integrationTree__container')}>
       {children.map((itemNode: React.ReactNode | (() => React.ReactNode[]), index: number) => {
         if (isFunction(itemNode)) {
-          return itemNode().map((innerItemNode: React.ReactNode, innerIndex: number) =>
-            renderNode(innerItemNode, innerIndex)
-          );
+          return itemNode().map((innerItemNode: React.ReactNode, innerIndex: number) => {
+            return <IntegrationCollapsibleTreeItem node={innerItemNode} key={`${index}-${innerIndex}`} />;
+          });
         }
 
-        return renderNode(itemNode, index);
+        return <IntegrationCollapsibleTreeItem node={itemNode} key={`${index}-0`} />;
       })}
     </div>
   );
+};
 
-  function renderNode(node: React.ReactNode, key) {
-    return (
-      <div className={cx('integrationTree__group')} key={key}>
-        <div className={cx('integrationTree__icon')}>
-          <Icon name="arrow-down" size="lg" />
-        </div>
-        {node}
+const IntegrationCollapsibleTreeItem: React.FC<{ node: React.ReactNode; key: string }> = ({ node, key }) => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  return (
+    <div className={cx('integrationTree__group')} key={key}>
+      <div className={cx('integrationTree__icon')}>
+        <Icon
+          name={isCollapsed ? 'arrow-down' : 'arrow-right'}
+          size="lg"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        />
       </div>
-    );
-  }
+      {isCollapsed && <>{node}</>}
+    </div>
+  );
 };
 
 export default IntegrationCollapsibleTreeView;

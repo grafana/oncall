@@ -107,6 +107,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
             isSearchable
             menuShouldPortal
             placeholder="Add escalation step..."
+            disabled={isDisabled}
             onChange={handleCreateEscalationStep}
             options={escalationPolicyStore.webEscalationChoices.map((choice: EscalationPolicyOption) => ({
               value: choice.value,
