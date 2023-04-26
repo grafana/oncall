@@ -21,13 +21,13 @@ const cx = cn.bind(styles);
 
 interface EscalationChainStepsProps {
   id: EscalationChain['id'];
-  disabled?: boolean;
+  isDisabled?: boolean;
   addonBefore?: ReactElement;
   offset?: number;
 }
 
 const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
-  const { id, offset = 0, disabled = false, addonBefore } = props;
+  const { id, offset = 0, isDisabled = false, addonBefore } = props;
 
   const store = useStore();
 
@@ -77,12 +77,9 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
           return (
             <EscalationPolicy
               key={`item-${escalationPolicy.id}`}
-              index={index}
-              // @ts-ignore
               data={escalationPolicy}
-              disabled={disabled}
               number={index + offset + 1}
-              color={STEP_COLORS[index] || COLOR_RED}
+              backgroundColor={isDisabled ? getVar('--tag-background-success') : STEP_COLORS[index] || COLOR_RED}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
               waitDelays={get(escalationPolicyStore.escalationChoices, 'wait_delay.choices', [])}
               numMinutesInWindowOptions={escalationPolicyStore.numMinutesInWindowOptions}
@@ -93,13 +90,18 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
               scheduleStore={store.scheduleStore}
               outgoingWebhookStore={store.outgoingWebhookStore}
               outgoingWebhook2Store={store.outgoingWebhook2Store}
+              isDisabled={isDisabled}
             />
           );
         })
       ) : (
         <LoadingPlaceholder text="Loading..." />
       )}
-      <Timeline.Item number={(escalationPolicyIds?.length || 0) + offset + 1} color={getVar('--tag-secondary')}>
+      <Timeline.Item
+        number={(escalationPolicyIds?.length || 0) + offset + 1}
+        backgroundColor={isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary')}
+        textColor={isDisabled ? getVar('--tag-text-success') : undefined}
+      >
         <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
           <Select
             isSearchable

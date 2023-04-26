@@ -803,7 +803,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 </VerticalGroup>
               </div>
 
-              {this.renderRoutes}
+              {this.renderRoutesFn}
             </IntegrationCollapsibleTreeView>
 
             <IntegrationSendDemoPayloadModal
@@ -829,7 +829,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     );
   }
 
-  renderRoutes = () => {
+  renderRoutesFn = () => {
     const {
       store: { alertReceiveChannelStore },
       match: {

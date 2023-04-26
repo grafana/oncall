@@ -84,3 +84,12 @@ $ITEMS-MARGIN: 24px;
 .routesSection {
   padding-top: 12px;
 }
+
+.input {
+  &--short {
+    width: 500px;
+  }
+  &--long {
+    width: 700px;
+  }
+}

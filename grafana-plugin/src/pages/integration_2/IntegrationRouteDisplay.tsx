@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useReducer, useState } from 'react';
 import GSelect from 'containers/GSelect/GSelect';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SelectableValue } from '@grafana/data';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { noop } from 'lodash-es';
 import IntegrationBlock from './IntegrationBlock';
 import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Switch, Icon } from '@grafana/ui';
 import Tag from 'components/Tag/Tag';
@@ -30,9 +29,25 @@ interface IntegrationRouteDisplayProps {
   templates: AlertTemplatesDTO[];
 }
 
+interface IntegrationRouteDisplayState {
+  isEscalationCollapsed: boolean;
+  isRefreshingEscalationChains: boolean;
+  selectedEscalationChain: string;
+}
+
 const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ channelFilter, templates, routeIndex }) => {
   const { teamStore, escalationChainStore, grafanaTeamStore } = useStore();
-  const [isEscalationCollapsed, setIsEscalationCollapsed] = useState(true);
+  const [{ isEscalationCollapsed, isRefreshingEscalationChains, selectedEscalationChain }, setState] = useReducer(
+    (state: IntegrationRouteDisplayState, newState: Partial<IntegrationRouteDisplayState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      isEscalationCollapsed: true,
+      isRefreshingEscalationChains: false,
+      selectedEscalationChain: channelFilter.escalation_chain,
+    }
+  );
 
   return (
     <IntegrationBlock
@@ -115,11 +130,12 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ chann
                   <GSelect
                     showSearch
                     modelName="escalationChainStore"
+                    isLoading={isRefreshingEscalationChains}
                     displayField="name"
                     placeholder="Select Escalation Chain"
-                    className={cx('select', 'control', 'no-trigger-collapse-please')}
-                    value={channelFilter.escalation_chain}
-                    onChange={noop}
+                    className={cx('select', 'control')}
+                    value={selectedEscalationChain}
+                    onChange={(value) => setState({ selectedEscalationChain: value })}
                     showWarningIfEmptyValue={true}
                     width={'auto'}
                     icon={'list-ul'}
@@ -136,9 +152,12 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ chann
                     }}
                   />
                 </WithPermissionControlTooltip>
-                <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={undefined} />
-                <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={undefined} />
-                <Button variant={'secondary'} onClick={() => setIsEscalationCollapsed(!isEscalationCollapsed)}>
+                <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={openEscalationChainInNewWindow} />
+                <Button
+                  variant={'secondary'}
+                  onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
+                >
                   <HorizontalGroup>
                     <Text type="link">Show escalation chain</Text>
                     {isEscalationCollapsed && <Icon name={'angle-down'} />}
@@ -147,7 +166,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ chann
                 </Button>
               </HorizontalGroup>
 
-              {isEscalationCollapsed && <ReadOnlyEscalationChain channelFilterId={channelFilter.id} />}
+              {isEscalationCollapsed && <ReadOnlyEscalationChain escalationChainId={selectedEscalationChain} />}
             </VerticalGroup>
           </IntegrationBlockItem>
         </VerticalGroup>
@@ -155,19 +174,22 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = ({ chann
     />
   );
 
+  async function onEscalationChainsRefresh() {
+    setState({ isRefreshingEscalationChains: true });
+    await escalationChainStore.updateItems();
+    setState({ isRefreshingEscalationChains: false });
+  }
+
   function handleSlackChannelChange() {}
+
+  // TODO: Change it to point to actual location
+  function openEscalationChainInNewWindow() {
+    window.open('http://google.ro', '_blank');
+  }
 };
 
-interface ReadOnlyEscalationChainProps {
-  channelFilterId: ChannelFilter['id'];
-}
-
-const ReadOnlyEscalationChain: React.FC<ReadOnlyEscalationChainProps> = ({ channelFilterId }) => {
-  const { alertReceiveChannelStore } = useStore();
-  const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
-  const escalationChainId = channelFilter.escalation_chain;
-
-  return <EscalationChainSteps disabled id={escalationChainId} />;
+const ReadOnlyEscalationChain: React.FC<{ escalationChainId: ChannelFilter['id'] }> = ({ escalationChainId }) => {
+  return <EscalationChainSteps isDisabled id={escalationChainId} />;
 };
 
 export default IntegrationRouteDisplay;
