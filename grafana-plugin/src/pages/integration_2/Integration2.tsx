@@ -19,7 +19,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import CounterBadge from 'components/CounterBadge/CounterBadge';
 import Block from 'components/GBlock/Block';
 import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -61,18 +61,19 @@ interface Integration2State extends PageBaseState {
 
 // TODO: All display right now, these should be based on the configured channels instead
 const TemplateOptions = {
-  SourceLink: new KeyValuePair('Source Link', 'Source Link'),
-  Autoacknowledge: new KeyValuePair('Autoacknowledge', 'Autoacknowledge'),
-  Phone: new KeyValuePair('Phone', 'Phone'),
-  SMS: new KeyValuePair('SMS', 'SMS'),
-  SlackTitle: new KeyValuePair('Slack Title', 'Title'),
-  SlackMessage: new KeyValuePair('Slack Message', 'Message'),
-  SlackImage: new KeyValuePair('Slack Image', 'Image'),
-  EmailTitle: new KeyValuePair('Email Title', 'Title'),
-  EmailMessage: new KeyValuePair('Email Message', 'Message'),
-  TelegramTitle: new KeyValuePair('Telegram Title', 'Title'),
-  TelegramMessage: new KeyValuePair('Telegram Message', 'Message'),
-  TelegramImage: new KeyValuePair('Telegram Image', 'Image'),
+  SourceLink: new KeyValuePair('source_link_template', 'Source Link'),
+  Autoacknowledge: new KeyValuePair('acknowledge_condition_template', 'Autoacknowledge'),
+  Phone: new KeyValuePair('phone_call_title_template', 'Phone'),
+  SMS: new KeyValuePair('sms_title_template', 'SMS'),
+  SlackTitle: new KeyValuePair('slack_title_template', 'Title'),
+  SlackMessage: new KeyValuePair('slack_message_template', 'Message'),
+  SlackImage: new KeyValuePair('slack_image_url_template', 'Image'),
+  EmailTitle: new KeyValuePair('email_title_template', 'Title'),
+  EmailMessage: new KeyValuePair('email_message_template', 'Message'),
+  TelegramTitle: new KeyValuePair('telegram_title_template', 'Title'),
+  TelegramMessage: new KeyValuePair('telegram_message_template', 'Message'),
+  TelegramImage: new KeyValuePair('telegram_image_url_template', 'Image'),
+  /*Should it be in Oncallprivate repo? (All MsTeams)*/
   MSTeamsTitle: new KeyValuePair('MSTeams Title', 'Title'),
   MSTeamsMessage: new KeyValuePair('MSTeams Message', 'Message'),
   MSTeamsImage: new KeyValuePair('MSTeams Image', 'Image'),
@@ -379,13 +380,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                             </div>
                           )}
                           showHelp
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Grouping',
-                              templates['grouping_id_template'],
-                              'grouping_id_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('grouping_id_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -402,13 +397,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Autoresolve',
-                              templates['resolve_condition_template'],
-                              'resolve_condition_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('resolve_condition_template')}
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -431,13 +420,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Web title',
-                              templates['web_title_template'],
-                              'web_title_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('web_title_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -454,13 +437,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Web message',
-                              templates['web_message_template'],
-                              'web_message_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('web_message_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -477,13 +454,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Web image',
-                              templates['web_image_url_template'],
-                              'web_image_url_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('web_image_url_template')}
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -504,13 +475,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Auto acknowledge',
-                              templates['acknowledge_condition_template'],
-                              'acknowledge_condition_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('acknowledge_condition_template')}
                           showHelp
                         />
 
@@ -528,13 +493,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Source link',
-                              templates['source_link_template'],
-                              'source_link_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('source_link_template')}
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -555,13 +514,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Phone call',
-                              templates['phone_call_title_template'],
-                              'phone_call_title_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('phone_call_title_template')}
                           showHelp
                         />
 
@@ -579,9 +532,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal('SMS', templates['sms_title_template'], 'sms_title_template')
-                          }
+                          onEdit={() => this.openEditTemplateModal('sms_title_template')}
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -604,13 +555,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Slack title',
-                              templates['slack_title_template'],
-                              'slack_title_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('slack_title_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -627,13 +572,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Slack message',
-                              templates['slack_message_template'],
-                              'slack_message_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('slack_message_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -650,13 +589,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Slack image',
-                              templates['slack_image_template'],
-                              'slack_image_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('slack_image_template')}
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -678,13 +611,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Telegram title',
-                              templates['telegram_title_template'],
-                              'telegram_title_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('telegram_title_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -701,13 +628,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Telegram message',
-                              templates['telegram_message_template'],
-                              'telegram_message_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('telegram_message_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -724,13 +645,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Telegram image',
-                              templates['telegram_image_url_template'],
-                              'telegram_image_url_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('telegram_image_url_template')}
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -752,13 +667,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Email title',
-                              templates['email_title_template'],
-                              'email_title_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('email_title_template')}
                         />
 
                         <IntegrationTemplateBlock
@@ -775,13 +684,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               />
                             </div>
                           )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Email message',
-                              templates['email_message_template'],
-                              'email_message_template'
-                            )
-                          }
+                          onEdit={() => this.openEditTemplateModal('email_message_template')}
                         />
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -796,8 +699,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                         <div className={cx('customise-button')}>
                           <ButtonCascader
                             variant="secondary"
-                            onChange={(_value) => {
-                              console.log('VALUE', _value);
+                            onChange={(_key) => {
+                              console.log('key', _key);
+                              this.openEditTemplateModal(_key);
                             }}
                             options={this.getTemplatesList()}
                             icon="plus"
@@ -829,6 +733,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 }}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
                 template={selectedTemplate}
+                templateBody={templates[selectedTemplate?.name]}
               />
             )}
           </div>
@@ -950,10 +855,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     ];
   };
 
-  openEditTemplateModal = (templateNameForWeb, templateBody, templateName) => {
+  openEditTemplateModal = (templateName) => {
     this.setState({ isEditTemplateModalOpen: true });
-    const template: TemplateForEdit = { displayName: templateNameForWeb, body: templateBody, name: templateName };
-    this.setState({ selectedTemplate: template });
+    // const template: TemplateForEdit = { displayName: templateNameForWeb, body: templateBody, name: templateName };
+    this.setState({ selectedTemplate: templateForEdit[templateName] });
   };
 
   onRemovalFn = (id: AlertReceiveChannel['id']) => {
