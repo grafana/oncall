@@ -42,7 +42,7 @@ TRIGGER_TYPE_TO_LABEL = {
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
+def send_webhook_event(trigger_type, alert_group_id, organization_id=None, team_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
     webhooks_qs = Webhooks.objects.filter(
         trigger_type=trigger_type,
