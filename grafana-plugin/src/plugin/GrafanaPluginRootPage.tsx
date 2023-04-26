@@ -38,7 +38,6 @@ import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import Users from 'pages/users/Users';
 import 'interceptors';
 import { rootStore } from 'state';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
 import loadJs from 'utils/loadJs';
@@ -162,11 +161,10 @@ export const Root = observer((props: AppRootProps) => {
               <Schedule />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-              {rootStore.hasFeature(AppFeature.Webhooks2) ? (
-                <OutgoingWebhooks2 query={query} />
-              ) : (
-                <OutgoingWebhooks query={query} />
-              )}
+              <OutgoingWebhooks query={query} />
+            </Route>
+            <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
+              <OutgoingWebhooks2 query={query} />
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
               <Maintenance query={query} />

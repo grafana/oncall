@@ -177,7 +177,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
                     <div className="u-pull-right">
                       <PluginLink
-                        query={{ page: 'outgoing_webhooks', id: 'new' }}
+                        query={{ page: 'outgoing_webhooks_2', id: 'new' }}
                         disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                       >
                         <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
@@ -333,7 +333,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
     this.setState({ outgoingWebhook2IdToEdit: id, outgoingWebhook2IdToShowStatus: undefined });
 
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`);
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
   };
 
   onStatusClick = (id: OutgoingWebhook2['id']) => {
@@ -341,7 +341,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
     this.setState({ outgoingWebhook2IdToEdit: undefined, outgoingWebhook2IdToShowStatus: id });
 
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks/status/${id}`);
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/status/${id}`);
   };
 
   handleOutgoingWebhookFormHide = () => {
@@ -349,7 +349,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
     this.setState({ outgoingWebhook2IdToEdit: undefined, outgoingWebhook2IdToShowStatus: undefined });
 
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2`);
   };
 }
 
