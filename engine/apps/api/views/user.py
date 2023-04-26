@@ -42,6 +42,7 @@ from apps.phone_notifications.exceptions import (
     FailedToStartVerification,
     NumberAlreadyVerified,
     NumberNotVerified,
+    ProviderNotSupports,
 )
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.telegram.client import TelegramClient
@@ -318,7 +319,7 @@ class UserView(
         methods=["get"],
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
-    def get_verification_code_via_call(self, request, pk):
+    def get_verification_call(self, request, pk):
         logger.info("get_verification_code_via_call: validating reCAPTCHA code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
@@ -332,6 +333,8 @@ class UserView(
             phone_backend.make_verification_call(user)
         except NumberAlreadyVerified:
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
+        except FailedToStartVerification:
+            return Response("Something went wrong while calling", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(status=status.HTTP_200_OK)
 
     @action(
@@ -392,6 +395,8 @@ class UserView(
             return Response(
                 "Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        except ProviderNotSupports:
+            return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(status=status.HTTP_200_OK)
 

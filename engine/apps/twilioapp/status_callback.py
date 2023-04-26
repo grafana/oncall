@@ -149,8 +149,8 @@ def get_sms_error_code_by_twilio_status(status):
 
 
 def get_call_status_callback_url():
-    return create_engine_url(reverse("twilioapp:call_status_events"))
+    return create_engine_url(reverse("twilioapp:call_status_events"), "https://pretty-mosh-97.loca.lt")
 
 
 def get_sms_status_callback_url():
-    return create_engine_url(reverse("twilioapp:sms_status_events"))
+    return create_engine_url(reverse("twilioapp:sms_status_events"), "https://pretty-mosh-97.loca.lt")

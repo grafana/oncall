@@ -4,16 +4,21 @@ from typing import Optional
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from .exceptions import ProviderNotSupports
-from .models import OnCallPhoneCall, OnCallSMS
-
-# TODO: DOCUMENT ME! Document exceptions, classes, methods
+from apps.base.utils import live_settings
+from apps.phone_notifications.exceptions import ProviderNotSupports
+from apps.phone_notifications.models import OnCallPhoneCall, OnCallSMS
 
 
 class PhoneProvider(ABC):
     """
     PhoneProvider is an interface to all phone providers.
     It is needed to hide details of external phone providers from core code.
+
+    New PhoneProviders should be added to settings.PHONE_PROVIDERS dict.
+
+    For reference, you can check:
+        SimplePhoneProvider as example of tiny, but working provider.
+        TwilioPhoneProvider as example of complicated phone provider which supports status callbacks and gather actions.
     """
 
     def make_notification_call(self, number: str, text: str, oncall_phone_call: OnCallPhoneCall):
@@ -46,8 +51,8 @@ class PhoneProvider(ABC):
         """
         send_notification_sms sends a sms to notify about alert group
 
-        send_notification_sms is needed to be able to execute some logic only for notification sms,
-        but not for test/verification/etc. For example receive status callback (See TwilioPhoneProvider).
+        send_notification_sms is needed to execute some logic only for notification sms.
+        For example receive status callback (See TwilioPhoneProvider).
         You can just wrap send_sms if no additional logic is performed for notification sms:
 
             def send_notification_sms(self, number, text, oncall_phone_call):
@@ -55,14 +60,14 @@ class PhoneProvider(ABC):
 
         Args:
             number: phone number to send sms
-            text: text of the sms
-            oncall_phone_call: instance of OnCallSMS.
+            message: text of the sms
+            oncall_sms: instance of OnCallSMS.
                 You can use it to link provider sms and oncall_sms (See TwilioPhoneProvider).
 
 
         Raises:
             FailedToSendSMS: if some exception in external provider happens
-            ProviderNotSupports: if provider not supports calls (it's a valid use-case)
+            ProviderNotSupports: if provider not supports sms (it's a valid use-case)
         """
         raise ProviderNotSupports
 
@@ -138,16 +143,12 @@ class PhoneProvider(ABC):
         raise ProviderNotSupports
 
 
-_provider = None
+_providers = {}
 
-# TODO: phone_provider: store provider in global variable, or create instance each time to allow to modify it without restart of oncall
+
 def get_phone_provider() -> PhoneProvider:
-    # TODO: phone_provider: remove this, TwilioProvider hardcoded
-    from ..twilioapp.phone_provider import TwilioPhoneProvider
-
-    return TwilioPhoneProvider()
-    global _provider
-    if _provider is None:
-        PhoneNotificatorClass = import_string(settings.PHONE_NOTIFICATOR)
-        _provider = PhoneNotificatorClass()
-    return _provider
+    global _providers
+    if len(_providers) == 0:
+        for provider_alias, importpath in settings.PHONE_PROVIDERS.items():
+            _providers[provider_alias] = import_string(importpath)()
+    return _providers[live_settings.PHONE_PROVIDER]

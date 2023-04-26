@@ -37,7 +37,9 @@ class PhoneBackend:
         Call itself is handled by phone provider.
         """
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-        log_record = None
+
+        log_record_error_code = None
+        cleanup_call = False
 
         renderer = AlertGroupPhoneCallRenderer(alert_group)
         message = renderer.render()
@@ -63,58 +65,27 @@ class PhoneBackend:
                 if calls_left < 3:
                     message += f"{calls_left} phone calls left. Contact your admin."
                 self.phone_provider.make_notification_call(user.verified_phone_number, message, call)
-        except FailedToMakeCall:
-            call.delete()
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
+        except (FailedToMakeCall, ProviderNotSupports):
+            cleanup_call = True
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL
         except CallsLimitExceeded:
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED
         except NumberNotVerified:
+            cleanup_call = True
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED
+
+        if cleanup_call:
             call.delete()
+        if log_record_error_code is not None:
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                 notification_policy=notification_policy,
                 alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED,
+                notification_error_code=log_record_error_code,
                 notification_step=notification_policy.step if notification_policy else None,
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
-        except ProviderNotSupports:
-            call.delete()
-            # TODO: phone_provider: choose error code for ProviderNotSupports
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MESSAGING_BACKEND_ERROR,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
-
-        # Why there is no log record for TYPE_PERSONAL_NOTIFICATION_SUCCESS?
-        # For twilio we are receiving callback in Status API View,
-        # CloudPhoneNotifications doesn't support sending statuses on call
-        # If any of the future phone providers will have the ability to provide delivered status in the response to making call
-        # Feel free to place it appropriate log record here.
-
-        if log_record is not None:
             log_record.save()
             user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_call, log_record=log_record)
 
@@ -126,7 +97,8 @@ class PhoneBackend:
         """
 
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-        log_record = None
+        log_record_error_code = None
+        cleanup_sms = False
 
         renderer = AlertGroupSmsRenderer(alert_group)
         message = renderer.render()
@@ -154,68 +126,45 @@ class PhoneBackend:
                     message += " {} sms left. Contact your admin.".format(sms_left)
 
                 self.phone_provider.send_notification_sms(user.verified_phone_number, message, sms)
-        except FailedToSendSMS:
+        except (FailedToSendSMS, ProviderNotSupports):
+            cleanup_sms = True
             sms.delete()
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_SMS,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_SMS
         except SMSLimitExceeded:
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_LIMIT_EXCEEDED,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_LIMIT_EXCEEDED
         except NumberNotVerified:
-            sms.delete()
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
-        except ProviderNotSupports:
-            sms.delete()
-            # TODO: phone_provider: choose error code for ProviderNotSupports
-            log_record = UserNotificationPolicyLogRecord(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MESSAGING_BACKEND_ERROR,
-                notification_step=notification_policy.step if notification_policy else None,
-                notification_channel=notification_policy.notify_by if notification_policy else None,
-            )
+            cleanup_sms = True
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED
 
-        if log_record is not None:
+        if cleanup_sms:
+            sms.delete()
+        if log_record_error_code is not None:
+            log_record = UserNotificationPolicyLogRecord(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                notification_policy=notification_policy,
+                alert_group=alert_group,
+                notification_error_code=log_record_error_code,
+                notification_step=notification_policy.step if notification_policy else None,
+                notification_channel=notification_policy.notify_by if notification_policy else None,
+            )
             log_record.save()
             user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_sms, log_record=log_record)
 
-    def relay_oss_call(self, user, message):
+    def relay_oss_call(self, user, text):
         """
-        relay_oss_call execute phone call received from oss instances.
+        relay_oss_call make phone call received from oss instances.
+        Caller should handle exceptions raised by phone_provider.make_call.
         """
         # some additional cleaning, since message come from outside and wasn't cleaned by our renderer
-        message = clean_markup(message)
+        message = clean_markup(text)
         self.phone_provider.make_call(message, user.verified_phone_number)
 
     def relay_oss_sms(self, user, message):
         """
-        relay_oss_call execute phone call received from oss instances.
+        relay_oss_call send received from oss instances.
+        Caller should handle exceptions raised by phone_provider.send_sms.
         """
-        # some additional cleaning, since message come from outside and wasn't cleaned by our renderer
         self.phone_provider.send_sms(message, user.verified_phone_number)
 
     def make_cloud_call(self, user, message):
@@ -276,6 +225,7 @@ class PhoneBackend:
     def send_verification_sms(self, user):
         """
         send_verification_sms sends a verification code to a user.
+        Caller should handle exceptions raised by phone_provider.send_verification_sms.
         """
         logger.info(f"PhoneBackend.send_verification_sms: start verification for user {user.id}")
         if user.verified_phone_number:
@@ -286,6 +236,7 @@ class PhoneBackend:
     def make_verification_call(self, user):
         """
         make_verification_call makes a verification call  to a user.
+        Caller should handle exceptions raised by phone_provider.make_verification_call
         """
         logger.info(f"PhoneBackend.make_verification_call: start verification for user {user.id}")
         if user.verified_phone_number:
@@ -294,16 +245,18 @@ class PhoneBackend:
         self.phone_provider.make_verification_call(user)
 
     def verify_phone_number(self, user, code) -> bool:
-        logger.info(f"PhoneBackend.verify_phone_number: finish verification process for {user.id}")
         prev_number = user.verified_phone_number
         new_number = self.phone_provider.finish_verification(user.unverified_phone_number, code)
         if new_number:
             user.save_verified_phone_number(new_number)
+            # TODO: move this to async task
             if prev_number:
                 self._notify_disconnected_number(user, prev_number)
             self._notify_connected_number(user)
+            logger.info(f"PhoneBackend.verify_phone_number: verified for {user.id}")
             return True
         else:
+            logger.info(f"PhoneBackend.verify_phone_number: verification failed for {user.id}")
             return False
 
     def forget_number(self, user) -> bool:
@@ -315,11 +268,14 @@ class PhoneBackend:
         return False
 
     def make_test_call(self, user):
+        """
+        make_test_call makes a test call to user's verified phone number
+        Caller should handle exceptions raised by phone_provider.make_call.
+        """
         text = "It is a test call from Grafana OnCall"
-        try:
-            self.phone_provider.make_call(user, text)
-        except (FailedToMakeCall, ProviderNotSupports):
-            logger.error("tbd")
+        if not user.verified_phone_number:
+            raise NumberNotVerified
+        self.phone_provider.make_call(user.verified_phone_number, text)
 
     def _notify_connected_number(self, user):
         text = (
@@ -327,9 +283,14 @@ class PhoneBackend:
             f'"{user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
+            if not user.verified_phone_number:
+                logger.error("PhoneBackend._notify_connected_number: number not verified")
+                return
             self.phone_provider.send_sms(user.verified_phone_number, text)
-        except (FailedToSendSMS, ProviderNotSupports):
-            logger.error("tbd")
+        except FailedToSendSMS:
+            logger.error("PhoneBackend._notify_connected_number: failed")
+        except ProviderNotSupports:
+            logger.error("PhoneBackend._notify_connected_number: provider not supports sms")
 
     def _notify_disconnected_number(self, user, number):
         text = (
@@ -338,5 +299,7 @@ class PhoneBackend:
         )
         try:
             self.phone_provider.send_sms(number, text)
-        except (FailedToSendSMS, ProviderNotSupports):
-            logger.error("tbd")
+        except FailedToSendSMS:
+            logger.error("PhoneBackend._notify_disconnected_number: failed")
+        except ProviderNotSupports:
+            logger.error("PhoneBackend._notify_disconnected_number: provider not supports sms")

@@ -692,7 +692,10 @@ if PYROSCOPE_PROFILER_ENABLED:
         },
     )
 
-
-PHONE_NOTIFICATOR = "twilio"
-
-phone_notificator_to_class = {"twilio": "apps.twilioapp.phone_provider.TwilioProvider"}
+# map of phone provider alias to importpath.
+# Used in get_phone_provider function to dynamically load current provider.
+PHONE_PROVIDERS = {
+    "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
+    "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+}
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")

@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import BasePermission
@@ -40,7 +39,7 @@ class HealthCheckView(APIView):
 
 
 class GatherView(APIView):
-    permission_classes = [AllowOnlyTwilio]
+    permission_classes = []
 
     def post(self, request):
         call_sid = request.POST.get("CallSid")
@@ -69,7 +68,7 @@ class CallStatusCallback(APIView):
         call_sid = request.POST.get("CallSid")
         call_status = request.POST.get("CallStatus")
 
-        logging.info(f"SID: {call_sid}, Status: {call_status}")
+        logging.info(f"CallStatusCallback: SID: {call_sid}, Status: {call_status}")
 
         update_twilio_call_status(call_sid=call_sid, call_status=call_status)
 

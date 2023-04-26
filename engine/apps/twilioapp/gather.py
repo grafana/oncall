@@ -72,7 +72,7 @@ def process_digit(call_sid, digit):
 
 
 def get_gather_url():
-    return create_engine_url(reverse("twilioapp:gather"))
+    return create_engine_url(reverse("twilioapp:gather"), "https://pretty-mosh-97.loca.lt")
 
 
 def get_gather_message():
