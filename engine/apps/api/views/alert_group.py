@@ -72,7 +72,6 @@ class AlertGroupFilterBackend(filters.DjangoFilterBackend):
         filterset.form.fields["silenced_by"].queryset = user_queryset
         filterset.form.fields["acknowledged_by"].queryset = user_queryset
         filterset.form.fields["resolved_by"].queryset = user_queryset
-        filterset.form.fields["acknowledged_by"].queryset = user_queryset
         filterset.form.fields["invitees_are"].queryset = user_queryset
         filterset.form.fields["involved_users_are"].queryset = user_queryset
 
