@@ -241,7 +241,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     SILENCE_DELAY_OPTIONS = (
         (1800, "30 minutes"),
         (3600, "1 hour"),
+        (7200, "2 hours"),
+        (10800, "3 hours"),
         (14400, "4 hours"),
+        (21600, "6 hours"),
         (43200, "12 hours"),
         (57600, "16 hours"),
         (72000, "20 hours"),
