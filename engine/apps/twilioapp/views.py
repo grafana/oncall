@@ -39,7 +39,7 @@ class HealthCheckView(APIView):
 
 
 class GatherView(APIView):
-    permission_classes = []
+    permission_classes = [AllowOnlyTwilio]
 
     def post(self, request):
         call_sid = request.POST.get("CallSid")
@@ -50,7 +50,7 @@ class GatherView(APIView):
 
 # Receive SMS Status Update from Twilio
 class SMSStatusCallback(APIView):
-    permission_classes = []
+    permission_classes = [AllowOnlyTwilio]
 
     def post(self, request):
         message_sid = request.POST.get("MessageSid")
@@ -62,7 +62,7 @@ class SMSStatusCallback(APIView):
 
 # Receive Call Status Update from Twilio
 class CallStatusCallback(APIView):
-    permission_classes = []
+    permission_classes = [AllowOnlyTwilio]
 
     def post(self, request):
         call_sid = request.POST.get("CallSid")
