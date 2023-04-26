@@ -41,7 +41,7 @@ class FCMRelayView(APIView):
         try:
             token = request.data["token"]
             data = request.data["data"]
-            apns = request.data["apns"]
+            apns = request.data.get("apns")  # optional
             android = request.data.get("android")  # optional
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -53,7 +53,7 @@ class FCMRelayView(APIView):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 5
 )
-def fcm_relay_async(token, data, apns, android=None):
+def fcm_relay_async(token, data, apns=None, android=None):
     message = _get_message_from_request_data(token, data, apns, android)
 
     # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
@@ -68,9 +68,11 @@ def _get_message_from_request_data(token, data, apns, android):
     """
     Create Message object from JSON payload from OSS instance.
     """
-
     return Message(
-        token=token, data=data, apns=_deserialize_apns(apns), android=AndroidConfig(**android) if android else None
+        token=token,
+        data=data,
+        apns=_deserialize_apns(apns) if apns else None,
+        android=AndroidConfig(**android) if android else None,
     )
 
 

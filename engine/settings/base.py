@@ -473,6 +473,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60 * 10,
         "args": (),
     },
+    "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
+        "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
+        "schedule": 10 * 60,
+        "args": (),
+    },
 }
 
 INTERNAL_IPS = ["127.0.0.1"]

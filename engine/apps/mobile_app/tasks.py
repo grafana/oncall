@@ -3,7 +3,9 @@ import logging
 
 import requests
 from celery.utils.log import get_task_logger
+from django.apps import apps
 from django.conf import settings
+from django.utils import timezone
 from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
@@ -20,6 +22,13 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 MAX_RETRIES = 1 if settings.DEBUG else 10
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+# @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def send_push_notification(user, device_registration_id, message) -> None:
+    # TODO: refactor notify_user_async and conditionally_send_going_oncall_push_notifications_for_schedule
+    # to deduplicate most of their logic to this method
+    pass
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -228,3 +237,86 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
             },
         ),
     )
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk) -> None:
+    logger.info(f"Start calculate_going_oncall_push_notifications_for_schedule for schedule {schedule_pk}")
+
+    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+
+    try:
+        schedule = OnCallSchedule.objects.get(pk=schedule_pk)
+    except OnCallSchedule.DoesNotExist:
+        logger.info(f"Tried to notify user about going on-call for non-existing schedule {schedule_pk}")
+        return
+
+    schedule_events = schedule.final_events("UTC", timezone.now(), days=5)
+
+    for schedule_event in schedule_events:
+        users = schedule_event["users"]
+
+        for user in users:
+            user_pk = user["pk"]
+
+            try:
+                user = User.objects.get(pk=user_pk)
+            except User.DoesNotExist:
+                logger.warning(f"User {user_pk} does not exist")
+                continue
+
+            device_to_notify = FCMDevice.objects.filter(user=user).first()
+
+            if not device_to_notify:
+                logger.info(f"User {user_pk} has no device set up")
+                continue
+
+            # TODO: determine if the timing for the notification is correct
+
+            message = Message(
+                token=device_to_notify.registration_id,
+                data={
+                    # from the docs..
+                    # A dictionary of data fields (optional). All keys and values in the dictionary must be strings
+                    "type": "oncall.message",
+                    "title": "You are going on call in X time for schedule foo",  # TODO:
+                    "subtitle": "foo bar baz",  # TODO:
+                    "body": "blah blah blah",  # TODO:
+                    "thread_id": f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall",
+                },
+            )
+
+            if settings.IS_OPEN_SOURCE:
+                # FCM relay uses cloud connection to send push notifications
+                from apps.oss_installation.models import CloudConnector
+
+                if not CloudConnector.objects.exists():
+                    logger.error(f"Error while sending a mobile push notification: not connected to cloud")
+                    return
+
+                try:
+                    response = send_push_notification_to_fcm_relay(message)
+                    logger.debug(f"FCM relay response: {response}")
+                except HTTPError as e:
+                    if status.HTTP_400_BAD_REQUEST <= e.response.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR:
+                        # do not retry on HTTP client errors (4xx errors)
+                        logger.error(
+                            f"Error while sending a mobile push notification: HTTP client error {e.response.status_code}"
+                        )
+                        return
+                    else:
+                        raise
+            else:
+                # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
+                response = device_to_notify.send_message(message)
+                logger.debug(f"FCM response: {response}")
+
+                if isinstance(response, FirebaseError):
+                    raise response
+
+
+@shared_dedicated_queue_retry_task()
+def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> None:
+    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    for schedule in OnCallSchedule.objects.all():
+        conditionally_send_going_oncall_push_notifications_for_schedule.apply_async((schedule.pk,))
