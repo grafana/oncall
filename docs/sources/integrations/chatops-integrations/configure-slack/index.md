@@ -34,11 +34,12 @@ For Open Source Grafana OnCall Slack installation guidance, refer to
 
 ## Install Slack integration for Grafana OnCall
 
-1. From the **ChatOps** tab in Grafana OnCall, select **Slack** in the side menu.
-2. Click **Install Slack integration**.
-3. Read the notice and agree to proceed to the Slack website.
-4. Provide your Slack workspace URL and sign with your Slack credentials.
-5. Click **Allow** to give Grafana OnCall permission to access your Slack workspace.
+1. Navigate to **Settings** tab in Grafana OnCall.
+1. From the **Chat Ops** tab, select **Slack** in the side menu.
+1. Click **Install Slack integration**.
+1. Read the notice and agree to proceed to the Slack website.
+1. Provide your Slack workspace URL and sign with your Slack credentials.
+1. Click **Allow** to give Grafana OnCall permission to access your Slack workspace.
 
 ## Post-install configuration for Slack integration
 
@@ -105,7 +106,7 @@ a schedule.
 
 Use message shortcuts to add resolution notes directly from Slack. Message shortcuts are available in the More actions menu from any message.
 
->**Note:** In order to associate the resolution note to an alert group, this message shortcut can only be applied to messages in the thread of an alert group.
+> **Note:** In order to associate the resolution note to an alert group, this message shortcut can only be applied to messages in the thread of an alert group.
 
 1. From an alert group thread, navigate to the Slack message that you wish to add as a resolution note.
 1. Hover over the message and select **More actions** from the menu options.
