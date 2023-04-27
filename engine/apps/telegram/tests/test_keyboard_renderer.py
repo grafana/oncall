@@ -33,22 +33,20 @@ def are_keyboards_equal(keyboard: List[List[InlineKeyboardButton]], other: List[
 
 
 def generate_silence_buttons(alert_group, organization) -> List:
-    return (
-        [
-            InlineKeyboardButton(
-                text="🔕 forever",
-                callback_data=f"{alert_group.pk}:4:oncall-uuid{organization.uuid}",
-            ),
-            InlineKeyboardButton(
-                text="... for 1h",
-                callback_data=f"{alert_group.pk}:4:3600:oncall-uuid{organization.uuid}",
-            ),
-            InlineKeyboardButton(
-                text="... for 4h",
-                callback_data=f"{alert_group.pk}:4:14400:oncall-uuid{organization.uuid}",
-            ),
-        ],
-    )
+    return [
+        InlineKeyboardButton(
+            text="🔕 forever",
+            callback_data=f"{alert_group.pk}:4:oncall-uuid{organization.uuid}",
+        ),
+        InlineKeyboardButton(
+            text="... for 1h",
+            callback_data=f"{alert_group.pk}:4:3600:oncall-uuid{organization.uuid}",
+        ),
+        InlineKeyboardButton(
+            text="... for 4h",
+            callback_data=f"{alert_group.pk}:4:14400:oncall-uuid{organization.uuid}",
+        ),
+    ]
 
 
 @pytest.mark.django_db
