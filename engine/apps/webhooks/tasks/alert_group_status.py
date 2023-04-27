@@ -34,7 +34,7 @@ def alert_group_created(self, alert_group_id):
     except AlertGroup.DoesNotExist:
         return
 
-    trigger_type = Webhook.TRIGGER_FIRING
+    trigger_type = Webhook.TRIGGER_ALERT_GROUP_CREATED
     organization_id = alert_group.channel.organization_id
     team_id = alert_group.channel.team_id
     webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)
