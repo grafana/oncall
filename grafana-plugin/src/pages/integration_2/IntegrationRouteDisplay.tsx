@@ -3,7 +3,7 @@ import GSelect from 'containers/GSelect/GSelect';
 import { SelectableValue } from '@grafana/data';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import IntegrationBlock from './IntegrationBlock';
-import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon } from '@grafana/ui';
+import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip } from '@grafana/ui';
 import Tag from 'components/Tag/Tag';
 import { getVar } from 'utils/DOM';
 import Text from 'components/Text/Text';
@@ -55,6 +55,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
     );
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+    const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
     if (!channelFilter) return null;
 
     return (
@@ -66,9 +67,29 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
               {channelFilter.filtering_term && <Text type="secondary">{channelFilter.filtering_term}</Text>}
             </HorizontalGroup>
             <HorizontalGroup spacing={'xs'}>
-              <Button variant={'secondary'} icon={'arrow-up'} size={'md'} onClick={undefined} />
-              <Button variant={'secondary'} icon={'arrow-down'} size={'md'} onClick={undefined} />
-              <Button variant={'secondary'} icon={'trash-alt'} size={'md'} onClick={undefined} />
+              {routeIndex > 0 && !channelFilter.is_default && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <Tooltip placement="top" content={'Move Up'}>
+                    <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'md'} />
+                  </Tooltip>
+                </WithPermissionControlTooltip>
+              )}
+
+              {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <Tooltip placement="top" content={'Move Down'}>
+                    <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'md'} />
+                  </Tooltip>
+                </WithPermissionControlTooltip>
+              )}
+
+              {!channelFilter.is_default && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <Tooltip placement="top" content={'Delete'}>
+                    <Button variant={'secondary'} icon={'trash-alt'} size={'md'} onClick={onRouteDelete} />
+                  </Tooltip>
+                </WithPermissionControlTooltip>
+              )}
             </HorizontalGroup>
           </HorizontalGroup>
         }
@@ -145,6 +166,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
                       }}
                     />
                   </WithPermissionControlTooltip>
+
                   <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
                   <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={openEscalationChain} />
                   <Button
@@ -168,6 +190,20 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
         }
       />
     );
+
+    function onRouteMoveDown(event: React.SyntheticEvent) {
+      event.stopPropagation();
+      // alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, index, index - 1);
+    }
+
+    function onRouteMoveUp(event: React.SyntheticEvent) {
+      event.stopPropagation();
+      // alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, index, index + 1);
+    }
+
+    function onRouteDelete(event: React.SyntheticEvent) {
+      event.stopPropagation();
+    }
 
     function getConditionWording(routeIndex) {
       const totalCount = Object.keys(alertReceiveChannelStore.channelFilters).length;
