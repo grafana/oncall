@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='mobileappusersettings',
             name='going_oncall_notification_timing',
-            field=models.IntegerField(choices=[(0, 'twelve hours before')], default=0),
+            field=models.IntegerField(choices=[(43200, 'twelve hours before'), (86400, 'one day before'), (604800, 'one week before')], default=43200),
         ),
         # migrations.AddField enforces the default value on the app level, which leads to the issues during release
         # adding same default value on the database level
