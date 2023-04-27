@@ -1,10 +1,9 @@
 import React, { useReducer } from 'react';
 import GSelect from 'containers/GSelect/GSelect';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SelectableValue } from '@grafana/data';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import IntegrationBlock from './IntegrationBlock';
-import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Switch, Icon } from '@grafana/ui';
+import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon } from '@grafana/ui';
 import Tag from 'components/Tag/Tag';
 import { getVar } from 'utils/DOM';
 import Text from 'components/Text/Text';
@@ -20,10 +19,10 @@ import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { useStore } from 'state/useStore';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
-import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 import { PLUGIN_ROOT } from 'utils/consts';
+import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 
 const cx = cn.bind(styles);
 
@@ -40,8 +39,8 @@ interface IntegrationRouteDisplayState {
 
 const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer(
   ({ channelFilterId, templates, routeIndex }) => {
-    const { teamStore, escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } =
-      useStore();
+    const { escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } = useStore();
+    const hasChatOpsConnectors = false;
     const history = useHistory();
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains }, setState] = useReducer(
@@ -63,7 +62,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
         heading={
           <HorizontalGroup justify={'space-between'}>
             <HorizontalGroup spacing={'md'}>
-              <Tag color={getVar('--tag-primary')}>{routeIndex ? 'ELSE IF' : 'IF'}</Tag>
+              <Tag color={getVar('--tag-primary')}>{getConditionWording(routeIndex)}</Tag>
               {channelFilter.filtering_term && <Text type="secondary">{channelFilter.filtering_term}</Text>}
             </HorizontalGroup>
             <HorizontalGroup spacing={'xs'}>
@@ -107,33 +106,18 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
               </VerticalGroup>
             </IntegrationBlockItem>
 
-            <IntegrationBlockItem>
-              <VerticalGroup spacing="md">
-                <Text type="primary">Publish to ChatOps</Text>
-                <HorizontalGroup spacing="md">
-                  <Switch value={undefined} onChange={(_event) => {}} />
-                  <InlineLabel width={20}>Slack channel</InlineLabel>
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <GSelect
-                      showSearch
-                      allowClear
-                      className={cx('select', 'control')}
-                      modelName="slackChannelStore"
-                      displayField="display_name"
-                      valueField="id"
-                      placeholder="Select Slack Channel"
-                      value={channelFilter.slack_channel?.id || teamStore.currentTeam?.slack_channel?.id}
-                      onChange={handleSlackChannelChange}
-                      nullItemName={PRIVATE_CHANNEL_NAME}
-                    />
-                  </WithPermissionControlTooltip>
-                </HorizontalGroup>
-              </VerticalGroup>
-            </IntegrationBlockItem>
+            {hasChatOpsConnectors && (
+              <IntegrationBlockItem>
+                <VerticalGroup spacing="md">
+                  <Text type="primary">Publish to ChatOps</Text>
+                  <ChatOpsConnectors channelFilterId={channelFilterId} />
+                </VerticalGroup>
+              </IntegrationBlockItem>
+            )}
 
             <IntegrationBlockItem>
               <VerticalGroup>
-                <HorizontalGroup>
+                <HorizontalGroup spacing={'xs'}>
                   <InlineLabel width={20}>Escalation chain</InlineLabel>
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <GSelect
@@ -169,7 +153,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
                   >
                     <HorizontalGroup>
                       <Text type="link">Show escalation chain</Text>
-                      {isEscalationCollapsed && <Icon name={'angle-down'} />}
+                      {isEscalationCollapsed && <Icon name={'angle-right'} />}
                       {!isEscalationCollapsed && <Icon name={'angle-up'} />}
                     </HorizontalGroup>
                   </Button>
@@ -184,6 +168,12 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
         }
       />
     );
+
+    function getConditionWording(routeIndex) {
+      const totalCount = Object.keys(alertReceiveChannelStore.channelFilters).length;
+      if (routeIndex === totalCount - 1) return 'Default';
+      return routeIndex ? 'Else' : 'If';
+    }
 
     function onEscalationChainChange(value: string) {
       alertReceiveChannelStore
@@ -202,18 +192,13 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
       setState({ isRefreshingEscalationChains: false });
     }
 
-    function handleSlackChannelChange(_value: SlackChannel['id'], slackChannel: SlackChannel) {
-      // @ts-ignore actually slack_channel is just slack_channel_id when saving
-      alertReceiveChannelStore.saveChannelFilter(channelFilter.id, { slack_channel: slackChannel?.slack_id || null });
-    }
-
     function openEscalationChain() {
       history.push(`${PLUGIN_ROOT}/escalations/${channelFilter.escalation_chain}`);
     }
   }
 );
 
-const ReadOnlyEscalationChain: React.FC<{ escalationChainId: ChannelFilter['id'] }> = ({ escalationChainId }) => {
+const ReadOnlyEscalationChain: React.FC<{ escalationChainId: string }> = ({ escalationChainId }) => {
   return <EscalationChainSteps isDisabled id={escalationChainId} />;
 };
 

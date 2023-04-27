@@ -69,11 +69,13 @@ interface Integration2State extends PageBaseState {
 
 const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
+const TEXTAREA_ROWS_COUNT = 4;
+const MAX_CHARACTERS_COUNT = 50;
 
 const MONACO_OPTIONS = {
   renderLineHighlight: false,
   readOnly: true,
-  scrollbars: {
+  scrollbar: {
     vertical: 'hidden',
     horizontal: 'hidden',
     verticalScrollbarSize: 0,
@@ -349,7 +351,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--short')}>
                               <MonacoJinja2Editor
-                                value={templates['grouping_id_template'] || ''}
+                                value={this.getFilteredTemplate(templates['grouping_id_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -373,7 +375,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--short')}>
                               <MonacoJinja2Editor
-                                value={templates['resolve_condition_template'] || ''}
+                                value={this.getFilteredTemplate(templates['resolve_condition_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -402,7 +404,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['web_title_template'] || ''}
+                                value={this.getFilteredTemplate(templates['web_title_template'] || '', true)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_TALL}
                                 data={templates}
@@ -425,7 +427,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['web_message_template'] || ''}
+                                value={this.getFilteredTemplate(templates['web_message_template'] || '', true)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_TALL}
                                 data={templates}
@@ -448,7 +450,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['web_image_url_template'] || ''}
+                                value={this.getFilteredTemplate(templates['web_image_url_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -475,7 +477,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--short')}>
                               <MonacoJinja2Editor
-                                value={templates['acknowledge_condition_template'] || ''}
+                                value={this.getFilteredTemplate(
+                                  templates['acknowledge_condition_template'] || '',
+                                  false
+                                )}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -499,7 +504,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--short')}>
                               <MonacoJinja2Editor
-                                value={templates['source_link_template'] || ''}
+                                value={this.getFilteredTemplate(templates['source_link_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -526,7 +531,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--short')}>
                               <MonacoJinja2Editor
-                                value={templates['phone_call_title_template'] || ''}
+                                value={this.getFilteredTemplate(templates['phone_call_title_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -550,7 +555,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--short')}>
                               <MonacoJinja2Editor
-                                value={templates['sms_title_template'] || ''}
+                                value={this.getFilteredTemplate(templates['sms_title_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -575,7 +580,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['slack_title_template'] || ''}
+                                value={this.getFilteredTemplate(templates['slack_title_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -598,7 +603,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['slack_message_template'] || ''}
+                                value={this.getFilteredTemplate(templates['slack_message_template'] || '', true)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_TALL}
                                 data={templates}
@@ -621,7 +626,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['slack_image_template'] || ''}
+                                value={this.getFilteredTemplate(templates['slack_image_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -649,7 +654,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['telegram_title_template'] || ''}
+                                value={this.getFilteredTemplate(templates['telegram_title_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -672,7 +677,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['telegram_message_template'] || ''}
+                                value={this.getFilteredTemplate(templates['telegram_message_template'] || '', true)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_TALL}
                                 data={templates}
@@ -695,7 +700,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['telegram_image_url_template'] || ''}
+                                value={this.getFilteredTemplate(templates['telegram_image_url_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -723,7 +728,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['email_title_template'] || ''}
+                                value={this.getFilteredTemplate(templates['email_title_template'] || '', false)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_SMALL}
                                 data={templates}
@@ -746,7 +751,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           renderInput={() => (
                             <div className={cx('input', 'input--long')}>
                               <MonacoJinja2Editor
-                                value={templates['email_message_template'] || ''}
+                                value={this.getFilteredTemplate(templates['email_message_template'] || '', true)}
                                 disabled={true}
                                 height={MONACO_INPUT_HEIGHT_TALL}
                                 data={templates}
@@ -890,6 +895,22 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
   };
+
+  getFilteredTemplate(template: string, isTextArea: boolean): string {
+    const lines = template.split('\n');
+    if (isTextArea)
+      return lines
+        .slice(0, TEXTAREA_ROWS_COUNT + 1)
+        .map((line) => this.truncateLine(line))
+        .join('\n');
+
+    return this.truncateLine(lines[0]);
+  }
+
+  truncateLine(line: string): string {
+    const slice = line.substring(0, MAX_CHARACTERS_COUNT);
+    return slice.length === line.length ? slice : `${slice} ...`;
+  }
 
   openHowToConnect = () => {};
 
