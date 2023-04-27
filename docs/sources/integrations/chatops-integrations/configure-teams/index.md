@@ -53,7 +53,7 @@ Configure the following settings to ensure Grafana OnCall alerts are routed to t
 ### Connect Microsoft Teams user to Grafana OnCall
 
 1. From the **Users** tab in Grafana OnCall, click **View my profile**.
-1. Navigate to **Microsoft Teams username**, click **Connect**.
+1. In the **User Info** tab, navigate to **Microsoft Teams username**, click **Connect**.
 1. Follow the steps provided to connect your Teams user.
 1. Navigate back to your Grafana OnCall profile and verify that your Microsoft Teams account is linked to your Grafana
    OnCall user.
