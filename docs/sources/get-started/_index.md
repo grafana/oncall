@@ -74,7 +74,7 @@ exclusive states:
 - **Firing:** Once Alert Group is registered, Escalation Policy associated with it is getting started. Escalation policy will work while Alert Group is in this status.
 - **Acknowledged:** Ongoing Escalation Chain will be interrupted. Unacknowledge will move Alert Group to the "Firing" state and will re-launch Escalation Chain.
 - **Silenced:** Similar to "Acknowledged" but designed to be temporary with a timeout. Once time is out, will re-launch Escalation Chain and move Alert Group
-to the "Firing" state.
+  to the "Firing" state.
 - **Resolved:** Similar to "Acknowledged".
 
 Possible transitions:
@@ -121,7 +121,7 @@ policies, chatops integrations, and on-call schedules allow you to automate how 
 ### Configure personal notification policies
 
 Personal notification policies determine how a user is notified for a certain type of alert. Get notified by SMS,
-phone call, or Slack mentions. Administrators can configure how users receive notification for certain types of alerts.
+phone call, Slack mentions, or mobile push notification. Administrators can configure how users receive notification for certain types of alerts.
 For more information on personal notification policies, refer to
 [Manage users and teams for Grafana OnCall]({{< relref "../configure-user-settings" >}})
 
@@ -149,6 +149,9 @@ To configure Slack for Grafana OnCall:
 For further instruction on connecting to your Slack workspace, refer to
 [Slack integration for Grafana OnCall]({{< relref "../integrations/chatops-integrations/configure-slack/" >}})
 
+Grafana OnCall also supports other ChatOps integration like Microsoft Teams and Telegram.
+For more information on available ChatOps integration, refer to [Available ChatOps integrations]({{< relref "../integrations/chatops-integrations" >}})
+
 ### Add your on-call schedule
 
 Grafana OnCall allows you to manage your on-call schedule in your preferred calendar app such as Google Calendar or
@@ -161,5 +164,6 @@ To integrate your on-call calendar with Grafana OnCall:
 3. Copy the iCal URL associated with your on-call calendar from your calendar integration settings.
 4. Configure the rest of the schedule settings and click Create Schedule
 
+Grafana OnCall also supports on-call schedule directly in the Grafana OnCall plugin using web-based schedule.
 For more information on on-call schedules, refer to
 [Configure and manage on-call schedules]({{< relref "../calendar-schedules" >}})
