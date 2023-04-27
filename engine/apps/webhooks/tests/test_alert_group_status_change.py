@@ -14,14 +14,15 @@ def test_alert_group_created(make_organization, make_alert_receive_channel, make
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     # make sure there is a webhook setup
-    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_FIRING)
+    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
 
     with patch("apps.webhooks.tasks.trigger_webhook.send_webhook_event.apply_async") as mock_send_event:
         alert_group_created(alert_group.pk)
 
     assert mock_send_event.called
     assert mock_send_event.call_args == call(
-        (Webhook.TRIGGER_FIRING, alert_group.pk), kwargs={"organization_id": organization.pk, "team_id": None}
+        (Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk),
+        kwargs={"organization_id": organization.pk, "team_id": None},
     )
 
 
@@ -34,14 +35,15 @@ def test_alert_group_created_for_team(
     alert_receive_channel = make_alert_receive_channel(organization, team=team)
     alert_group = make_alert_group(alert_receive_channel)
     # make sure there is a webhook setup
-    make_custom_webhook(organization=organization, team=team, trigger_type=Webhook.TRIGGER_FIRING)
+    make_custom_webhook(organization=organization, team=team, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
 
     with patch("apps.webhooks.tasks.trigger_webhook.send_webhook_event.apply_async") as mock_send_event:
         alert_group_created(alert_group.pk)
 
     assert mock_send_event.called
     assert mock_send_event.call_args == call(
-        (Webhook.TRIGGER_FIRING, alert_group.pk), kwargs={"organization_id": organization.pk, "team_id": team.pk}
+        (Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk),
+        kwargs={"organization_id": organization.pk, "team_id": team.pk},
     )
 
 
@@ -50,7 +52,7 @@ def test_alert_group_created_does_not_exist(make_organization, make_custom_webho
     assert AlertGroup.all_objects.filter(pk=53).first() is None
     organization = make_organization()
     # make sure there is a webhook setup
-    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_FIRING)
+    make_custom_webhook(organization=organization, trigger_type=Webhook.TRIGGER_ALERT_GROUP_CREATED)
 
     with patch("apps.webhooks.tasks.trigger_webhook.send_webhook_event.apply_async") as mock_send_event:
         alert_group_created(53)

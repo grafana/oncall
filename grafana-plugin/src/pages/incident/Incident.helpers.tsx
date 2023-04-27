@@ -189,17 +189,6 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   const buttons = [];
 
   if (incident.alert_receive_channel.integration !== MaintenanceIntegration) {
-    if (incident.status === IncidentStatus.Firing) {
-      buttons.push(
-        <SilenceButtonCascader
-          className={cx('silence-button-inline')}
-          key="silence"
-          disabled={incident.loading || incident.is_restricted}
-          onSelect={onSilence}
-        />
-      );
-    }
-
     if (incident.status === IncidentStatus.Silenced) {
       buttons.push(
         <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
@@ -207,6 +196,15 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
             Unsilence
           </Button>
         </WithPermissionControlTooltip>
+      );
+    } else if (incident.status !== IncidentStatus.Resolved) {
+      buttons.push(
+        <SilenceButtonCascader
+          className={cx('silence-button-inline')}
+          key="silence"
+          disabled={incident.loading || incident.is_restricted}
+          onSelect={onSilence}
+        />
       );
     }
 
