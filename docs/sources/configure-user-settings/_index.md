@@ -20,13 +20,13 @@ users, configure teams, and manage user permissions at [Grafana.com](https://gra
 
 ## User roles and permissions
 
->**Note:** User roles and teams cannot be managed directly from Grafana OnCall.
+> **Note:** User roles and teams cannot be managed directly from Grafana OnCall.
 
 User roles and permissions are assigned and managed at the Grafana organization or Cloud portal level. There are two ways to manage user roles and permissions
 for Grafana OnCall:
 
 1. Basic role authorization
-  
+
 By default, authorization within Grafana OnCall relies on the basic user roles configured at the organization level. All users are assigned a basic role by the
 organization administrator. There are three available roles: `Viewer`, `Editor`, and `Admin`.
 
@@ -83,7 +83,7 @@ Users can verify phone numbers and email addresses in the **Users** tab of Grafa
 - **Default Notifications** dictate how a user is notified for most escalation thresholds.
 
 - **Important Notifications** are labeled in escalation chains. If an escalation event is marked as an important notification,
-it will bypass **Default Notification** settings and notify the user by the method specified.
+  it will bypass **Default Notification** settings and notify the user by the method specified.
 
 > **NOTE**: You cannot add users or manage permissions in Grafana OnCall. User settings are found on the
 > organizational level of your Grafana instance in **Configuration > Users**.
@@ -97,7 +97,7 @@ To configure a users notification policy:
 1. Verify that there is a valid and verified phone number, along with ChatOps accounts in order to receive notifications via those methods.
 
 1. Click **Add notification step** and use the dropdowns to specify the notification method and frequency. Notification steps will be followed in the order they
-are listed.
+   are listed.
 
 ## Configure Telegram user settings in OnCall
 
@@ -110,5 +110,13 @@ click **Start**.
 
 ## Configure Slack user settings in OnCall
 
-1. In your profile, find the Slack setting and click **Connect**.
+1. From the **Users** tab in Grafana OnCall, click **View my profile**.
+1. In the **User Info** tab, navigate to **Slack username**, click **Connect**.
 1. Follow the instructions to verify your account.
+
+## Configure Microsoft Teams user settings in OnCall
+
+1. From the **Users** tab in Grafana OnCall, click **View my profile**.
+1. In the **User Info** tab, navigate to **Microsoft Teams username**, click **Connect**.
+1. Follow the steps provided to connect your Teams user.
+1. Navigate back to your Grafana OnCall profile and verify that your Microsoft Teams account is linked to your Grafana OnCall user.
