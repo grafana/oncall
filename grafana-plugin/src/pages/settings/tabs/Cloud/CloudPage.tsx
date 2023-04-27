@@ -331,7 +331,7 @@ const CloudPage = observer((props: CloudPageProps) => {
           </Text.Title>
           <Field
             label=""
-            description="Find it in you Cloud OnCall -> Settings page"
+            description="Find it on the Settings page within your Cloud Grafana OnCall instance"
             style={{ width: '100%' }}
             invalid={apiKeyError}
           >
