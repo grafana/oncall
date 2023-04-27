@@ -32,6 +32,25 @@ def are_keyboards_equal(keyboard: List[List[InlineKeyboardButton]], other: List[
     return True
 
 
+def generate_silence_buttons(alert_group, organization) -> List:
+    return (
+        [
+            InlineKeyboardButton(
+                text="🔕 forever",
+                callback_data=f"{alert_group.pk}:4:oncall-uuid{organization.uuid}",
+            ),
+            InlineKeyboardButton(
+                text="... for 1h",
+                callback_data=f"{alert_group.pk}:4:3600:oncall-uuid{organization.uuid}",
+            ),
+            InlineKeyboardButton(
+                text="... for 4h",
+                callback_data=f"{alert_group.pk}:4:14400:oncall-uuid{organization.uuid}",
+            ),
+        ],
+    )
+
+
 @pytest.mark.django_db
 def test_actions_keyboard_alerting(make_organization, make_alert_receive_channel, make_alert_group, make_alert):
     organization = make_organization()
@@ -58,20 +77,7 @@ def test_actions_keyboard_alerting(make_organization, make_alert_receive_channel
                 callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
             )
         ],
-        [
-            InlineKeyboardButton(
-                text="🔕 forever",
-                callback_data=f"{alert_group.pk}:4:oncall-uuid{organization.uuid}",
-            ),
-            InlineKeyboardButton(
-                text="... for 1h",
-                callback_data=f"{alert_group.pk}:4:3600:oncall-uuid{organization.uuid}",
-            ),
-            InlineKeyboardButton(
-                text="... for 4h",
-                callback_data=f"{alert_group.pk}:4:14400:oncall-uuid{organization.uuid}",
-            ),
-        ],
+        generate_silence_buttons(alert_group, organization),
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
@@ -106,6 +112,7 @@ def test_actions_keyboard_acknowledged(
                 callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
             )
         ],
+        generate_silence_buttons(alert_group, organization),
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
