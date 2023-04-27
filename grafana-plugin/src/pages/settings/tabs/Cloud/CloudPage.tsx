@@ -331,7 +331,7 @@ const CloudPage = observer((props: CloudPageProps) => {
           </Text.Title>
           <Field
             label=""
-            description="Find it on the Settings page within your Cloud Grafana OnCall instance"
+            description="Find it on the Settings page of OnCall, within your Cloud Grafana instance"
             style={{ width: '100%' }}
             invalid={apiKeyError}
           >
@@ -351,8 +351,8 @@ const CloudPage = observer((props: CloudPageProps) => {
             Monitor instance with heartbeat
           </Text.Title>
           <Text type="secondary">
-            Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
-            heartbeat will be received in 10 minutes, cloud instance will issue an alert.
+            Once connected, this OnCall instance will send heartbeats every 3 minutes to the Cloud Grafana instance. If
+            no heartbeats are received within 10 minutes, the Cloud Grafana instance will issue an alert.
           </Text>
         </VerticalGroup>
       </Block>
@@ -363,7 +363,7 @@ const CloudPage = observer((props: CloudPageProps) => {
           </Text.Title>
 
           <Text type="secondary">
-            Connecting to Cloud OnCall enables sending SMS and phone call notifications using the cloud Grafana OnCall.
+            Connecting to Cloud OnCall enables sending SMS and phone call notifications using Cloud Grafana OnCall.
           </Text>
         </VerticalGroup>
       </Block>
@@ -373,8 +373,8 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
           </Text.Title>
           <Text type="secondary">
-            Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
-            mobile app.
+            Connecting to Cloud Grafana OnCall enables sending push notifications on mobile devices using the Grafana
+            OnCall mobile app.
           </Text>
         </VerticalGroup>
       </Block>
