@@ -52,6 +52,12 @@ and users:
    amount of time.
 3. Ensure all users verify their slack account in their Grafana OnCall **users info**.
 
+### Connect Slack user to Grafana OnCall
+
+1. From the **Users** tab in Grafana OnCall, click **View my profile**.
+1. In the **User Info** tab, navigate to **Slack username**, click **Connect**.
+1. Follow the instructions to verify your account.
+
 ### Configure Escalation Chains with Slack notifications
 
 Once your Slack integration is configured you can configure Escalation Chains to notify via Slack messages for alerts
