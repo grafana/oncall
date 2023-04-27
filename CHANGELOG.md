@@ -14,8 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- On the individual alert group page, show the "Silence" button if the alert group is firing or acknowledged.
-  Previously the button would only show if the alert group was firing. By @joeyorlando ([#1831](https://github.com/grafana/oncall/pull/1831))
+- Update web UI, Slack, and Telegram to allow silencing an acknowledged alert group by @joeyorlando ([#1831](https://github.com/grafana/oncall/pull/1831))
 
 ### Fixed
 
