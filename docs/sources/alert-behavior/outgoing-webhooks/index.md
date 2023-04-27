@@ -340,7 +340,7 @@ The following is an example of an entry in the Data field that would return an a
 
 Here is an example using the user's email address as part of a URL:
 
-```json
+```bash
 https://someticketsystem.com/new-ticket?assign-user={{ user.email }}
 ```
 
