@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.2.16 (2023-04-27)
+
+### Added
+
+- Add 2, 3 and 6 hours Alert Group silence options by @tommysitehost ([#1822](https://github.com/grafana/oncall/pull/1822))
+- Add schedule related users endpoint to plugin API
+
+### Changed
+
+- Update web UI, Slack, and Telegram to allow silencing an acknowledged alert group by @joeyorlando ([#1831](https://github.com/grafana/oncall/pull/1831))
+
+### Fixed
+
+- Optimize duplicate queries occurring in AlertGroupFilter by @joeyorlando ([1809](https://github.com/grafana/oncall/pull/1809))
+
+## v1.2.15 (2023-04-24)
+
+### Fixed
+
+- Helm chart: Fix helm hook for db migration job
+- Performance improvements to `GET /api/internal/v1/alertgroups` endpoint by @joeyorlando and @iskhakov ([#1805](https://github.com/grafana/oncall/pull/1805))
+
+### Added
+
+- Add helm chart support for twilio existing secrets by @atownsend247 ([#1435](https://github.com/grafana/oncall/pull/1435))
+- Add web_title, web_message and web_image_url attributes to templates ([1786](https://github.com/grafana/oncall/pull/1786))
+
+### Changed
+
+- Update shift API to use a default interval value (`1`) when a `frequency` is set and no `interval` is given
+- Limit number of alertmanager alerts in alert group to autoresolve by 500 ([1779](https://github.com/grafana/oncall/pull/1779))
+- Update schedule and personal ical exports to use final shift events
+
+## v1.2.14 (2023-04-19)
+
+### Fixed
+
+- Fix broken documentation links by @shantanualsi ([#1766](https://github.com/grafana/oncall/pull/1766))
+- Fix bug when updating team access settings by @vadimkerr ([#1794](https://github.com/grafana/oncall/pull/1794))
+
 ## v1.2.13 (2023-04-18)
 
 ### Changed

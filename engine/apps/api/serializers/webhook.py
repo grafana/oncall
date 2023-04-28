@@ -40,6 +40,7 @@ class WebhookSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "is_webhook_enabled",
+            "is_legacy",
             "team",
             "data",
             "user",
