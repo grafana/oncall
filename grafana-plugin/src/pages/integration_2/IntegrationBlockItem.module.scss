@@ -1,0 +1,15 @@
+.blockItem {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 12px;
+
+  &__content {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  &__leftDelimitator {
+    border-left: var(--border-medium);
+    margin-right: 12px;
+  }
+}
