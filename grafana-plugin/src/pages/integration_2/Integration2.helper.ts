@@ -2,6 +2,8 @@ import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config
 
 const IntegrationHelper = {
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {
+    if (!template) return '';
+
     const lines = template.split('\n');
     if (isTextArea) {
       return lines

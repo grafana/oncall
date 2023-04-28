@@ -97,26 +97,27 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       ) : (
         <LoadingPlaceholder text="Loading..." />
       )}
-      <Timeline.Item
-        number={(escalationPolicyIds?.length || 0) + offset + 1}
-        backgroundColor={isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary')}
-        textColor={isDisabled ? getVar('--tag-text-success') : undefined}
-      >
-        <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
-          <Select
-            isSearchable
-            menuShouldPortal
-            placeholder="Add escalation step..."
-            disabled={isDisabled}
-            onChange={handleCreateEscalationStep}
-            options={escalationPolicyStore.webEscalationChoices.map((choice: EscalationPolicyOption) => ({
-              value: choice.value,
-              label: choice.create_display_name,
-            }))}
-            value={null}
-          />
-        </WithPermissionControlTooltip>
-      </Timeline.Item>
+      {!isDisabled && (
+        <Timeline.Item
+          number={(escalationPolicyIds?.length || 0) + offset + 1}
+          backgroundColor={isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary')}
+          textColor={isDisabled ? getVar('--tag-text-success') : undefined}
+        >
+          <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
+            <Select
+              isSearchable
+              menuShouldPortal
+              placeholder="Add escalation step..."
+              onChange={handleCreateEscalationStep}
+              options={escalationPolicyStore.webEscalationChoices.map((choice: EscalationPolicyOption) => ({
+                value: choice.value,
+                label: choice.create_display_name,
+              }))}
+              value={null}
+            />
+          </WithPermissionControlTooltip>
+        </Timeline.Item>
+      )}
     </SortableList>
   );
 });
