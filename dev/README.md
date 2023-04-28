@@ -119,8 +119,8 @@ See the `django-silk` documentation [here](https://github.com/jazzband/django-si
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
 (for integrating w/ PyCharm for example), follow these instructions:
 
-1. Create a Python 3.9 virtual environment using a method of your choosing (ex.
-   [venv](https://docs.python.org/3.9/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
+1. Create a Python 3.11 virtual environment using a method of your choosing (ex.
+   [venv](https://docs.python.org/3.11/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
    Make sure the virtualenv is "activated".
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2`
    ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit
@@ -157,6 +157,7 @@ yarn test:integration
 ## Useful `make` commands
 
 See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
+
 > 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
 ## Setting environment variables
