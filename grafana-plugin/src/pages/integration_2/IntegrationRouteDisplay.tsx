@@ -20,10 +20,9 @@ import { AlertTemplatesDTO } from 'models/alert_templates';
 import { useStore } from 'state/useStore';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import { observer } from 'mobx-react';
-import { useHistory } from 'react-router-dom';
-import { PLUGIN_ROOT } from 'utils/consts';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import IntegrationHelper from './Integration2.helper';
+import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -42,7 +41,6 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
   ({ channelFilterId, templates, routeIndex }) => {
     const { escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } = useStore();
     const hasChatOpsConnectors = false;
-    const history = useHistory();
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains }, setState] = useReducer(
       (state: IntegrationRouteDisplayState, newState: Partial<IntegrationRouteDisplayState>) => ({
@@ -173,7 +171,13 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
                   </WithPermissionControlTooltip>
 
                   <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
-                  <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={openEscalationChain} />
+                  <PluginLink
+                    className={cx('hover-button')}
+                    target="_blank"
+                    query={{ page: 'escalations', id: channelFilter.escalation_chain }}
+                  >
+                    <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
+                  </PluginLink>
                   <Button
                     variant={'secondary'}
                     onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
@@ -231,10 +235,6 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
       setState({ isRefreshingEscalationChains: true });
       await escalationChainStore.updateItems();
       setState({ isRefreshingEscalationChains: false });
-    }
-
-    function openEscalationChain() {
-      history.push(`${PLUGIN_ROOT}/escalations/${channelFilter.escalation_chain}`);
     }
   }
 );
