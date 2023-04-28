@@ -609,6 +609,7 @@ class AlertGroupView(
                 "type": "options",
                 "href": api_root + "users/?filters=true&roles=0&roles=1&roles=2",
                 "default": {"display_name": self.request.user.username, "value": self.request.user.public_primary_key},
+                "description": "This filter works only for last 1000 alert groups these users involved in.",
             },
             {
                 "name": "status",
@@ -640,6 +641,7 @@ class AlertGroupView(
                 "name": "mine",
                 "type": "boolean",
                 "default": "true",
+                "description": "This filter works only for last 1000 alert groups you're involved in.",
             },
         ]
 
