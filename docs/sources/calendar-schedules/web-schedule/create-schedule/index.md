@@ -60,7 +60,7 @@ multiple users results in all users in the group being included in corresponding
 
 Oncall supports multiple **layers** for rotations which allow for overlapping shifts.
 A layer defines the shift priority, for example a *Layer 2* shift overrides a *Layer 1* shift.
-In this case, users under *Layer 1* would not receive notification during the overlapping time with users under *Layer 2*.
+In this case, users in a *Layer 1* shift will not be notified during the time overlapping with a shift in *Layer 2*.
 
 ### Add an on-call schedule to escalation chains
 
