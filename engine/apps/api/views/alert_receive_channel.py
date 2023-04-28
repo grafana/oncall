@@ -34,7 +34,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class AlertReceiveChannelPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 25
     page_query_param = "page"
     page_size_query_param = "perpage"
     max_page_size = 50
