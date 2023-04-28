@@ -4,6 +4,7 @@ from apps.alerts.models.custom_button import CustomButton
 from apps.alerts.models.escalation_policy import EscalationPolicy
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import User
+from apps.webhooks.models import Webhook
 
 
 class PrimaryKeyRelatedFieldWithNoneValue(serializers.PrimaryKeyRelatedField):
@@ -58,6 +59,7 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
     escalation_counter = serializers.IntegerField(default=0)
     passed_last_time = serializers.DateTimeField(allow_null=True, default=None)
     custom_button_trigger = PrimaryKeyRelatedFieldWithNoneValue(allow_null=True, queryset=CustomButton.objects)
+    custom_webhook = PrimaryKeyRelatedFieldWithNoneValue(allow_null=True, queryset=Webhook.objects, default=None)
     notify_schedule = PrimaryKeyRelatedFieldWithNoneValue(allow_null=True, queryset=OnCallSchedule.objects)
     num_alerts_in_window = serializers.IntegerField(allow_null=True, default=None)
     num_minutes_in_window = serializers.IntegerField(allow_null=True, default=None)
@@ -77,6 +79,7 @@ class EscalationPolicySnapshotSerializer(serializers.ModelSerializer):
             "num_alerts_in_window",
             "num_minutes_in_window",
             "custom_button_trigger",
+            "custom_webhook",
             "notify_schedule",
             "notify_to_group",
             "escalation_counter",

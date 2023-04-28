@@ -308,7 +308,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
     const { scheduleStore } = store;
 
-    return scheduleStore.updateItem(scheduleId);
+    return scheduleStore.loadItem(scheduleId);
   };
 
   handleShowForm = async (shiftId: Shift['id'] | 'new') => {
@@ -345,7 +345,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     store.scheduleStore
       .update(scheduleId, { type: schedule.type, name: value })
-      .then(() => store.scheduleStore.updateItem(scheduleId));
+      .then(() => store.scheduleStore.loadItem(scheduleId));
   };
 
   updateEvents = () => {
@@ -364,7 +364,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     }));
 
     store.scheduleStore
-      .updateItem(scheduleId) // to refresh current oncall users
+      .loadItem(scheduleId) // to refresh current oncall users
       .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 

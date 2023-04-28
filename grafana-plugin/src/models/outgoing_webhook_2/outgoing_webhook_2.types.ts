@@ -1,29 +1,31 @@
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+
 export interface OutgoingWebhook2 {
   authorization_header: string;
   data: string;
   forward_all: boolean;
   http_method: string;
   id: string;
-  last_run: string;
   name: string;
   password: string;
-  team: null;
+  team: GrafanaTeam['id'];
   trigger_type: number;
   trigger_type_name: string;
   url: string;
   username: null;
   headers: string;
   trigger_template: string;
-  last_status_log?: OutgoingWebhook2Log;
+  last_response_log?: OutgoingWebhook2Response;
+  is_webhook_enabled: boolean;
+  is_legacy: boolean;
 }
 
-export interface OutgoingWebhook2Log {
-  last_run_at: string;
-  input_data: string;
+export interface OutgoingWebhook2Response {
+  timestamp: string;
   url: string;
-  trigger: string;
-  headers: string;
-  data: string;
-  response_status: string;
-  response: string;
+  request_trigger: string;
+  request_headers: string;
+  request_data: string;
+  status_code: string;
+  content: string;
 }

@@ -6,11 +6,11 @@ import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 import qs from 'query-string';
 
-export class KeyValuePair {
-  key: string;
+export class KeyValuePair<T = string | number> {
+  key: T;
   value: string;
 
-  constructor(key: string, value: string) {
+  constructor(key: T, value: string) {
     this.key = key;
     this.value = value;
   }

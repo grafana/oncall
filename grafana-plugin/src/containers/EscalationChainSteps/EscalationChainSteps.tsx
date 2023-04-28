@@ -87,6 +87,10 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
               onChange={escalationPolicyStore.saveEscalationPolicy.bind(escalationPolicyStore)}
               onDelete={escalationPolicyStore.deleteEscalationPolicy.bind(escalationPolicyStore)}
               isSlackInstalled={isSlackInstalled}
+              teamStore={store.grafanaTeamStore}
+              scheduleStore={store.scheduleStore}
+              outgoingWebhookStore={store.outgoingWebhookStore}
+              outgoingWebhook2Store={store.outgoingWebhook2Store}
             />
           );
         })

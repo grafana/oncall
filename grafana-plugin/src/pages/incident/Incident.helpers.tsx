@@ -156,7 +156,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const resolveButton = (
     <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
-      <Button disabled={incident.loading} onClick={onResolve} variant="primary">
+      <Button disabled={incident.loading || incident.is_restricted} onClick={onResolve} variant="primary">
         Resolve
       </Button>
     </WithPermissionControlTooltip>
@@ -164,7 +164,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const unacknowledgeButton = (
     <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
-      <Button disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
+      <Button disabled={incident.loading || incident.is_restricted} onClick={onUnacknowledge} variant="secondary">
         Unacknowledge
       </Button>
     </WithPermissionControlTooltip>
@@ -172,7 +172,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const unresolveButton = (
     <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
-      <Button disabled={incident.loading} onClick={onUnresolve} variant="primary">
+      <Button disabled={incident.loading || incident.is_restricted} onClick={onUnresolve} variant="primary">
         Unresolve
       </Button>
     </WithPermissionControlTooltip>
@@ -180,7 +180,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const acknowledgeButton = (
     <WithPermissionControlTooltip key="acknowledge" userAction={UserActions.AlertGroupsWrite}>
-      <Button disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
+      <Button disabled={incident.loading || incident.is_restricted} onClick={onAcknowledge} variant="secondary">
         Acknowledge
       </Button>
     </WithPermissionControlTooltip>
@@ -189,24 +189,22 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   const buttons = [];
 
   if (incident.alert_receive_channel.integration !== MaintenanceIntegration) {
-    if (incident.status === IncidentStatus.Firing) {
+    if (incident.status === IncidentStatus.Silenced) {
+      buttons.push(
+        <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
+          <Button disabled={incident.loading || incident.is_restricted} variant="secondary" onClick={onUnsilence}>
+            Unsilence
+          </Button>
+        </WithPermissionControlTooltip>
+      );
+    } else if (incident.status !== IncidentStatus.Resolved) {
       buttons.push(
         <SilenceButtonCascader
           className={cx('silence-button-inline')}
           key="silence"
-          disabled={incident.loading}
+          disabled={incident.loading || incident.is_restricted}
           onSelect={onSilence}
         />
-      );
-    }
-
-    if (incident.status === IncidentStatus.Silenced) {
-      buttons.push(
-        <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
-          <Button disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
-            Unsilence
-          </Button>
-        </WithPermissionControlTooltip>
       );
     }
 

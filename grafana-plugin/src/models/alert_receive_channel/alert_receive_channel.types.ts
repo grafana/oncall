@@ -1,3 +1,5 @@
+import { IRMPlanStatus } from 'models/alertgroup/alertgroup.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { UserDTO as User } from 'models/user';
 
@@ -13,8 +15,9 @@ export interface AlertReceiveChannel {
   verbal_name: string;
   description: string;
   author: User['pk'];
-  team: number;
+  team: GrafanaTeam['id'];
   created_at: string;
+  status: IRMPlanStatus;
   integration_url: string;
   allow_source_based_resolving: boolean;
   is_able_to_autoresolve: boolean;
@@ -26,11 +29,6 @@ export interface AlertReceiveChannel {
   is_available_for_integration_heartbeat: boolean;
   allow_delete: boolean;
   deleted?: boolean;
-}
-
-export interface AlertReceiveChannelChoice {
-  display_name: string;
-  value: number;
 }
 
 export interface AlertReceiveChannelOption {

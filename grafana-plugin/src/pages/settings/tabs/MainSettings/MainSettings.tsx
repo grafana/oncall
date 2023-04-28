@@ -8,6 +8,8 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import TeamsSettings from 'pages/settings/tabs/TeamsSettings/TeamsSettings';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
@@ -48,6 +50,9 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
         </LegacyNavHeading>
 
         <div className={cx('settings')}>
+          <Text.Title level={3} className={cx('title')}>
+            Resolution Note
+          </Text.Title>
           <Field
             loading={!teamStore.currentTeam}
             label="Require a resolution note when resolving Alert Groups"
@@ -65,6 +70,14 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             </WithPermissionControlTooltip>
           </Field>
         </div>
+        {!isTopNavbar() && (
+          <div style={{ marginBottom: '20px' }}>
+            <Text.Title level={3} className={cx('title')}>
+              Teams and Access Settings
+            </Text.Title>
+            <TeamsSettings />
+          </div>
+        )}
         <Text.Title level={3} className={cx('title')}>
           API URL
         </Text.Title>

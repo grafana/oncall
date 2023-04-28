@@ -17,9 +17,8 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
-from apps.api.serializers.team import TeamSerializer
+from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
-from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -196,29 +195,26 @@ class TeamFilteringMixin:
 
     TEAM_LOOKUP = "team"
 
+    @property
+    def available_teams_lookup_args(self):
+        available_teams_lookup_args = []
+        if not self.request.user.role == LegacyAccessControlRole.ADMIN:
+            available_teams_lookup_args = [
+                Q(**{f"{self.TEAM_LOOKUP}__users": self.request.user})
+                | Q(**{f"{self.TEAM_LOOKUP}__is_sharing_resources_to_all": True})
+                | Q(**{f"{self.TEAM_LOOKUP}__isnull": True})
+            ]
+        return available_teams_lookup_args
+
     def retrieve(self, request, *args, **kwargs):
         try:
             return super().retrieve(request, *args, **kwargs)
         except NotFound:
-            queryset = self.filter_queryset(self.get_queryset())
-            self._remove_filter(self.TEAM_LOOKUP, queryset)
-
+            queryset = self.filter_queryset(self.get_queryset(ignore_filtering_by_available_teams=True))
             try:
-                obj = queryset.get(public_primary_key=self.kwargs["pk"])
+                queryset.get(public_primary_key=self.kwargs["pk"])
             except ObjectDoesNotExist:
                 raise NotFound
-
-            obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
-
-            if obj_team is None or obj_team in self.request.user.teams.all():
-                if obj_team is None:
-                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
-
-                return Response(
-                    data={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
     @staticmethod
@@ -287,11 +283,16 @@ BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_I
 ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
 
+class PreviewTemplateException(Exception):
+    pass
+
+
 class PreviewTemplateMixin:
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
         template_body = request.data.get("template_body", None)
         template_name = request.data.get("template_name", None)
+        payload = request.data.get("payload", None)
 
         if template_body is None or template_name is None:
             response = {"preview": None}
@@ -299,18 +300,21 @@ class PreviewTemplateMixin:
 
         notification_channel, attr_name = self.parse_name_and_notification_channel(template_name)
         if attr_name is None:
-            raise BadRequest(detail={"template_name": "Attr name is required"})
+            raise BadRequest(detail={"template_name": "Template name is missing"})
         if attr_name not in ALL_TEMPLATE_NAMES:
-            raise BadRequest(detail={"template_name": "Unknown attr name"})
+            raise BadRequest(detail={"template_name": "Unknown template name"})
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
             if notification_channel is None:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
 
-        alert_to_template = self.get_alert_to_template()
-        if alert_to_template is None:
-            raise BadRequest(detail="Alert to preview does not exist")
+        try:
+            alert_to_template = self.get_alert_to_template(payload=payload)
+            if alert_to_template is None:
+                raise BadRequest(detail="Alert to preview does not exist")
+        except PreviewTemplateException as e:
+            raise BadRequest(detail=str(e))
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
@@ -341,7 +345,7 @@ class PreviewTemplateMixin:
         response = {"preview": templated_attr}
         return Response(response, status=status.HTTP_200_OK)
 
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         raise NotImplementedError
 
     @staticmethod

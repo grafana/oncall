@@ -9,6 +9,7 @@ import { observer } from 'mobx-react';
 import { useStore } from 'state/useStore';
 
 import styles from './GSelect.module.css';
+// import { debounce } from 'lodash';
 
 const cx = cn.bind(styles);
 
@@ -30,7 +31,6 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
-  fromOrganization?: boolean;
   filterOptions?: (id: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
@@ -61,7 +61,6 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
-    fromOrganization,
     width = null,
     icon = null,
   } = props;
@@ -89,11 +88,15 @@ const GSelect = observer((props: GSelectProps) => {
     [model, onChange]
   );
 
+  /**
+   * without debouncing this function when search is available
+   * we risk hammering the API endpoint for every single key stroke
+   * some context on 250ms as the choice here - https://stackoverflow.com/a/44755058/3902555
+   */
   const loadOptions = (query: string) => {
     return model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
       let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
-
       if (filterOptions) {
         items = items.filter((opt: any) => filterOptions(opt[valueField]));
       }
@@ -107,8 +110,11 @@ const GSelect = observer((props: GSelectProps) => {
     });
   };
 
+  // TODO: why doesn't this work properly?
+  // const loadOptions = debounce(_loadOptions, showSearch ? 250 : 0);
+
   const values = isMulti
-    ? (value as string[])
+    ? (value ? (value as string[]) : [])
         .filter((id) => id in model.items)
         .map((id: string) => ({
           value: id,
@@ -118,7 +124,9 @@ const GSelect = observer((props: GSelectProps) => {
     : model.items[value as string]
     ? {
         value,
-        label: get(model.items[value as string], displayField),
+        label: get(model.items[value as string], displayField)
+          ? get(model.items[value as string], displayField)
+          : 'hidden',
         description: getDescription && getDescription(model.items[value as string]),
       }
     : value;
@@ -126,9 +134,9 @@ const GSelect = observer((props: GSelectProps) => {
   useEffect(() => {
     const values = isMulti ? value : [value];
 
-    (values as string[]).forEach((value: string) => {
+    (values ? (values as string[]) : []).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value, fromOrganization);
+        model.updateItem(value, true);
       }
     });
   }, [value]);

@@ -40,9 +40,9 @@ environment variable.
    out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
 4. You should now see the OnCall plugin configuration page. You may safely ignore the warning about the invalid
-   plugin signature. When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
-   communication channels.
-5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack,
+   plugin signature. Set "OnCall backend URL" as "http://host.docker.internal:8080". When opening the main plugin page,
+   you may also ignore warnings about version mismatch and lack of communication channels.
+5. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up Slack,
    Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`
 
@@ -150,45 +150,14 @@ To run these tests locally simply do the following:
 npx playwright install  # install playwright dependencies
 cp ./grafana-plugin/.env.example ./grafana-plugin/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
+cd grafana-plugin
 yarn test:integration
 ```
 
 ## Useful `make` commands
 
 See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
-
-```bash
-make init # build the frontend plugin code then run make start
-make start # start all of the docker containers
-make stop # stop all of the docker containers
-make restart # restart all docker containers
-make build # rebuild images (e.g. when changing requirements.txt)
-# run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
-# e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make engine-manage CMD="..."
-
-make backend-debug-enable # enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
-make backend-debug-disable # disable Django's debug mode and Silk profiling
-
-# this will remove all of the images, containers, volumes, and networks
-# associated with your local OnCall developer setup
-make cleanup
-
-make start-celery-beat # start celery beat
-make purge-queues # purge celery queues
-make shell # starts an OnCall engine Django shell
-make dbshell # opens a DB shell
-make exec-engine # exec into engine container's bash
-make test # run backend tests
-
-# run Django's `manage.py` script, passing `$CMD` as arguments.
-# e.g. `make backend-manage-command CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make backend-manage-command CMD="..."
-
-# run both frontend and backend linters
-# may need to run `yarn install` from within `grafana-plugin` to install several `pre-commit` dependencies
-make lint
-```
+> 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
 ## Setting environment variables
 
@@ -198,7 +167,7 @@ and also overrides any defaults that are set in other `.env*` files
 
 ## Slack application setup
 
-For Slack app configuration check our docs: <https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup>
+For Slack app configuration check our docs: <https://grafana.com/docs/oncall/latest/open-source/#slack-setup>
 
 ## Update drone build
 

@@ -44,18 +44,21 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "url": "https://github.com/",
             "data": '{"name": "{{ alert_payload }}"}',
             "username": "Chris Vanstras",
+            "password": "qwerty",
+            "authorization_header": "auth_token",
             "forward_all": False,
             "headers": None,
             "http_method": "POST",
-            "last_run": "",
-            "last_status_log": {
-                "data": "",
-                "headers": "",
-                "input_data": None,
-                "last_run_at": None,
-                "response": "",
-                "response_status": "",
-                "trigger": "",
+            "integration_filter": None,
+            "is_webhook_enabled": True,
+            "is_legacy": False,
+            "last_response_log": {
+                "request_data": "",
+                "request_headers": "",
+                "timestamp": None,
+                "content": "",
+                "status_code": None,
+                "request_trigger": "",
                 "url": "",
             },
             "trigger_template": None,
@@ -82,18 +85,21 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "url": "https://github.com/",
         "data": '{"name": "{{ alert_payload }}"}',
         "username": "Chris Vanstras",
+        "password": "qwerty",
+        "authorization_header": "auth_token",
         "forward_all": False,
         "headers": None,
         "http_method": "POST",
-        "last_run": "",
-        "last_status_log": {
-            "data": "",
-            "headers": "",
-            "input_data": None,
-            "last_run_at": None,
-            "response": "",
-            "response_status": "",
-            "trigger": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
             "url": "",
         },
         "trigger_template": None,
@@ -116,7 +122,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "the_webhook",
         "url": TEST_URL,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
@@ -125,22 +131,25 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
         "id": webhook.public_primary_key,
         "data": None,
         "username": None,
+        "password": None,
+        "authorization_header": None,
         "forward_all": True,
         "headers": None,
         "http_method": "POST",
-        "last_run": "",
-        "last_status_log": {
-            "data": "",
-            "headers": "",
-            "input_data": None,
-            "last_run_at": None,
-            "response": "",
-            "response_status": "",
-            "trigger": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Triggered",
+        "trigger_type_name": "Alert Group Created",
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -170,7 +179,7 @@ def test_create_valid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
 
@@ -180,23 +189,26 @@ def test_create_valid_templated_field(
     expected_response = data | {
         "id": webhook.public_primary_key,
         "username": None,
+        "password": None,
+        "authorization_header": None,
         "forward_all": True,
         "headers": None,
         "data": None,
         "http_method": "POST",
-        "last_run": "",
-        "last_status_log": {
-            "data": "",
-            "headers": "",
-            "input_data": None,
-            "last_run_at": None,
-            "response": "",
-            "response_status": "",
-            "trigger": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Triggered",
+        "trigger_type_name": "Alert Group Created",
     }
     # update expected value for changed field
     expected_response[field_name] = value
@@ -226,7 +238,7 @@ def test_create_invalid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
 
@@ -244,7 +256,7 @@ def test_update_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "github_button_updated",
         "url": "https://github.com/",
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
     response = client.put(
@@ -471,4 +483,4 @@ def test_webhook_from_other_team_without_flag(
     url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK

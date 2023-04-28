@@ -1,3 +1,4 @@
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 
 import { UserDTO as User } from './user';
@@ -13,7 +14,7 @@ export interface AlertReceiveChannel {
   smile_code: string;
   verbal_name: string;
   author: User['pk'];
-  team: number;
+  team: GrafanaTeam['id'];
   created_at: string;
   integration_url: string;
   allow_source_based_resolving: boolean;

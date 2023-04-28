@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -74,13 +74,14 @@ steps:
   - name: Unit Test Backend
     image: python:3.9
     environment:
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
       - pip install -r requirements.txt
-      - ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test
+      - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
 
@@ -173,7 +174,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -184,7 +185,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -417,6 +418,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 5c81e5876fecd6c48a184aff583c98db5d1055a07cad1dc2aaac8a6722921c63
+hmac: 321dd85cbf586980c1e00e6cb962da1e7a270c2cef170c789e1f3a8f64647ef5
 
 ...

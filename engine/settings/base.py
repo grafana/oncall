@@ -45,8 +45,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
 
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
-# TODO: update link to up-to-date docs
-DOCS_URL = "https://grafana.com/docs/grafana-cloud/oncall/"
+DOCS_URL = "https://grafana.com/docs/oncall/latest/"
 
 # Settings of running OnCall instance.
 BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
@@ -81,6 +80,7 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
+WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
@@ -415,6 +415,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
         "args": (),
     },
+    "start_refresh_ical_final_schedules": {
+        "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
+        "schedule": crontab(minute=15, hour=0),
+        "args": (),
+    },
     "start_refresh_ical_files": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files",
         "schedule": 10 * 60,
@@ -517,6 +522,9 @@ SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
 
 SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
+
+# Controls if slack integration can be installed/uninstalled.
+SLACK_INTEGRATION_MAINTENANCE_ENABLED = os.environ.get("SLACK_INTEGRATION_MAINTENANCE_ENABLED", False)
 
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
@@ -676,15 +684,6 @@ MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_djang
 MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
 
 PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
-if PYROSCOPE_PROFILER_ENABLED:
-    import pyroscope
-
-    pyroscope.configure(
-        application_name=os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall"),
-        server_address=os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040"),
-        auth_token=os.getenv("PYROSCOPE_AUTH_TOKEN", ""),
-        detect_subprocesses=True,
-        tags={
-            "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
-        },
-    )
+PYROSCOPE_APPLICATION_NAME = os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall")
+PYROSCOPE_SERVER_ADDRESS = os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040")
+PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")

@@ -13,6 +13,9 @@ export class OutgoingWebhook2Store extends BaseStore {
   @observable.shallow
   searchResult: { [key: string]: Array<OutgoingWebhook2['id']> } = {};
 
+  @observable
+  incidentFilters: any;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -44,7 +47,6 @@ export class OutgoingWebhook2Store extends BaseStore {
   @action
   async updateItem(id: OutgoingWebhook2['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
-
     this.items = {
       ...this.items,
       [id]: response,
@@ -52,9 +54,11 @@ export class OutgoingWebhook2Store extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItems(query: any = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params,
     });
 
     this.items = {
@@ -68,10 +72,19 @@ export class OutgoingWebhook2Store extends BaseStore {
       ),
     };
 
+    const key = typeof query === 'string' ? query : '';
+
     this.searchResult = {
       ...this.searchResult,
-      [query]: results.map((item: OutgoingWebhook2) => item.id),
+      [key]: results.map((item: OutgoingWebhook2) => item.id),
     };
+  }
+
+  @action
+  async updateOutgoingWebhooks2Filters(params: any) {
+    this.incidentFilters = params;
+
+    this.updateItems();
   }
 
   getSearchResult(query = '') {

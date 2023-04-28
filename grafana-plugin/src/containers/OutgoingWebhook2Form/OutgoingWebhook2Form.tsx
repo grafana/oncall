@@ -30,7 +30,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
 
   const { outgoingWebhook2Store } = store;
 
-  const data = id === 'new' ? {} : outgoingWebhook2Store.items[id];
+  const data = id === 'new' ? { is_webhook_enabled: true, is_legacy: false } : outgoingWebhook2Store.items[id];
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook2>) => {
@@ -57,11 +57,18 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
       <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
         <GForm form={form} data={data} onSubmit={handleSubmit} />
         <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-          <Button form={form.name} type="submit">
+          <Button form={form.name} type="submit" disabled={data.is_legacy}>
             {id === 'new' ? 'Create' : 'Update'} Webhook
           </Button>
         </WithPermissionControlTooltip>
       </div>
+      {data.is_legacy ? (
+        <div className={cx('content')}>
+          <Text type="secondary">Legacy migrated webhooks are not editable.</Text>
+        </div>
+      ) : (
+        ''
+      )}
     </Drawer>
   );
 });

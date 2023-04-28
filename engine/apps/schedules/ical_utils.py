@@ -601,7 +601,10 @@ def create_base_icalendar(name: str) -> Calendar:
     cal.add("calscale", "GREGORIAN")
     cal.add("x-wr-calname", name)
     cal.add("x-wr-timezone", "UTC")
+    cal.add("version", "2.0")
     cal.add("prodid", "//Grafana Labs//Grafana On-Call//")
+    # suggested minimum interval for polling for changes
+    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "P1H")
 
     return cal
 
@@ -614,7 +617,7 @@ def get_events_from_calendars(ical_obj: Calendar, calendars: tuple) -> None:
                     ical_obj.add_component(component)
 
 
-def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: User) -> None:
+def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: User, name: str = None) -> None:
     for calendar in calendars:
         if calendar:
             for component in calendar.walk():
@@ -622,14 +625,35 @@ def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: U
                     event_user = get_usernames_from_ical_event(component)
                     event_user_value = event_user[0][0]
                     if event_user_value == user.username or event_user_value.lower() == user.email.lower():
+                        if name:
+                            component["SUMMARY"] = "{}: {}".format(name, component["SUMMARY"])
                         ical_obj.add_component(component)
 
 
+def _is_final_export_enabled(schedule: OnCallSchedule) -> bool:
+    DynamicSetting = apps.get_model("base", "DynamicSetting")
+    enabled_final_export = DynamicSetting.objects.get_or_create(
+        name="enabled_final_schedule_export",
+        defaults={
+            "json_value": {
+                "schedule_ids": [],
+            }
+        },
+    )[0]
+    return schedule.public_primary_key in enabled_final_export.json_value["schedule_ids"]
+
+
+def _get_ical_data_final_schedule(schedule: OnCallSchedule) -> str:
+    ical_data = schedule.cached_ical_final_schedule
+    if ical_data is None:
+        schedule.refresh_ical_final_schedule()
+        ical_data = schedule.cached_ical_final_schedule
+    return ical_data
+
+
 def ical_export_from_schedule(schedule: OnCallSchedule) -> bytes:
-    calendars = schedule.get_icalendars()
-    ical_obj = create_base_icalendar(schedule.name)
-    get_events_from_calendars(ical_obj, calendars)
-    return ical_obj.to_ical()
+    ical_data = _get_ical_data_final_schedule(schedule)
+    return ical_data.encode()
 
 
 def user_ical_export(user: User, schedules: list[OnCallSchedule]) -> bytes:
@@ -637,8 +661,10 @@ def user_ical_export(user: User, schedules: list[OnCallSchedule]) -> bytes:
     ical_obj = create_base_icalendar(schedule_name)
 
     for schedule in schedules:
-        calendars = schedule.get_icalendars()
-        get_user_events_from_calendars(ical_obj, calendars, user)
+        name = schedule.name
+        ical_data = _get_ical_data_final_schedule(schedule)
+        calendars = [Calendar.from_ical(ical_data)]
+        get_user_events_from_calendars(ical_obj, calendars, user, name=name)
 
     return ical_obj.to_ical()
 

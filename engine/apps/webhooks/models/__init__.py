@@ -1,1 +1,1 @@
-from .webhook import Webhook, WebhookLog  # noqa: F401
+from .webhook import Webhook, WebhookResponse  # noqa: F401

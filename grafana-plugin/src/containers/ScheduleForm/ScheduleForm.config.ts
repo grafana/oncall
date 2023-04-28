@@ -5,6 +5,8 @@ const commonFields: FormItem[] = [
   {
     name: 'team',
     label: 'Assign to team',
+    description:
+      'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
     type: FormItemType.GSelect,
     extra: {
       modelName: 'grafanaTeamStore',

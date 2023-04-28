@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 
 import { clickButton, fillInInput, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
@@ -22,15 +22,23 @@ export const createEscalationChain = async (
   // go to the escalation chains page
   await goToOnCallPage(page, 'escalations');
 
+  /**
+   * wait for Esclation Chains page to fully load. this is because this can change which "New Escalation Chain"
+   * button is present
+   * ie. the one on the left hand side in the list vs the one in the center when no escalation chains exist
+   */
+  await page.getByTestId('page-title').locator('text=Escalation Chains').waitFor({ state: 'visible' });
+  await page.locator('text=Loading...').waitFor({ state: 'detached' });
+
   // open the create escalation chain modal
   (await page.waitForSelector('text=New Escalation Chain')).click();
 
   // fill in the name input
-  await fillInInput(page, 'div[class*="EscalationChainForm"] input', escalationChainName);
+  await fillInInput(page, 'div[data-testid="create-escalation-chain-name-input-modal"] >> input', escalationChainName);
 
   // submit the form and wait for it to be created
   await clickButton({ page, buttonText: 'Create' });
-  await page.waitForSelector(`text=${escalationChainName}`);
+  await expect(page.getByTestId('escalation-chain-name')).toHaveText(escalationChainName);
 
   if (!escalationStep || !escalationStepValue) {
     return;

@@ -53,8 +53,8 @@ from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROU
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
-from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
-from common.oncall_gateway import delete_slack_connector_async
+from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
+from common.oncall_gateway import delete_slack_connector
 
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
@@ -540,20 +540,25 @@ class ResetSlackView(APIView):
     }
 
     def post(self, request):
-        organization = request.auth.organization
-        slack_team_identity = organization.slack_team_identity
-        if slack_team_identity is not None:
-            clean_slack_integration_leftovers.apply_async((organization.pk,))
-            if settings.FEATURE_MULTIREGION_ENABLED:
-                delete_slack_connector_async.apply_async((slack_team_identity.slack_id,))
-            write_chatops_insight_log(
-                author=request.user,
-                event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
-                chatops_type=ChatOpsType.SLACK,
+        if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
+            response = Response(
+                "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+                status=400,
             )
-            unpopulate_slack_user_identities(organization.pk, True)
-            response = Response(status=200)
         else:
-            response = Response(status=400)
-
+            organization = request.auth.organization
+            slack_team_identity = organization.slack_team_identity
+            if slack_team_identity is not None:
+                clean_slack_integration_leftovers.apply_async((organization.pk,))
+                if settings.FEATURE_MULTIREGION_ENABLED:
+                    delete_slack_connector(str(organization.uuid))
+                write_chatops_insight_log(
+                    author=request.user,
+                    event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
+                    chatops_type=ChatOpsTypePlug.SLACK.value,
+                )
+                unpopulate_slack_user_identities(organization.pk, True)
+                response = Response(status=200)
+            else:
+                response = Response(status=400)
         return response

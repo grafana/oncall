@@ -139,7 +139,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     variant="primary"
                     icon="plus"
                   >
-                    Create
+                    New maintenance
                   </Button>
                 </WithPermissionControlTooltip>
               </div>

@@ -21,6 +21,7 @@ ACTION_TO_TRIGGER_TYPE = {
     AlertGroupLogRecord.TYPE_SILENCE: Webhook.TRIGGER_SILENCE,
     AlertGroupLogRecord.TYPE_UN_SILENCE: Webhook.TRIGGER_UNSILENCE,
     AlertGroupLogRecord.TYPE_UN_RESOLVED: Webhook.TRIGGER_UNRESOLVE,
+    AlertGroupLogRecord.TYPE_UN_ACK: Webhook.TRIGGER_UNACKNOWLEDGE,
 }
 
 
@@ -33,7 +34,7 @@ def alert_group_created(self, alert_group_id):
     except AlertGroup.DoesNotExist:
         return
 
-    trigger_type = Webhook.TRIGGER_NEW
+    trigger_type = Webhook.TRIGGER_ALERT_GROUP_CREATED
     organization_id = alert_group.channel.organization_id
     team_id = alert_group.channel.team_id
     webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)

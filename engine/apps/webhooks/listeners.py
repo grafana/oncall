@@ -8,12 +8,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def on_alert_created(**kwargs):
-    Alert = apps.get_model("alerts", "Alert")
-    alert_pk = kwargs["alert"]
-    alert = Alert.objects.get(pk=alert_pk)
-
-    alert_group_created.apply_async((alert.group_id,))
+def on_alert_group_created(**kwargs):
+    alert_group_created.apply_async((kwargs["alert_group"].id,))
 
 
 def on_action_triggered(**kwargs):
