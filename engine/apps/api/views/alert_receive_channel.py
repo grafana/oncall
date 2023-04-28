@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -30,6 +31,13 @@ from common.api_helpers.mixins import (
 )
 from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
+
+
+class AlertReceiveChannelPagination(PageNumberPagination):
+    page_size = 10
+    page_query_param = "page"
+    page_size_query_param = "perpage"
+    max_page_size = 50
 
 
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
@@ -81,6 +89,7 @@ class AlertReceiveChannelView(
     search_fields = ("verbal_name",)
 
     filterset_class = AlertReceiveChannelFilter
+    pagination_class = AlertReceiveChannelPagination
 
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
