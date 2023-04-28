@@ -1,6 +1,8 @@
-import { Button, HorizontalGroup, Icon, InlineLabel } from '@grafana/ui';
-import Text from 'components/Text/Text';
 import React from 'react';
+
+import { Button, HorizontalGroup, Icon, InlineLabel } from '@grafana/ui';
+
+import Text from 'components/Text/Text';
 
 interface IntegrationTemplateBlockProps {
   label: string;

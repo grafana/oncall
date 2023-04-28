@@ -1,7 +1,10 @@
-import Block from 'components/GBlock/Block';
 import React from 'react';
-import styles from './IntegrationBlock.module.scss';
+
 import cn from 'classnames/bind';
+
+import Block from 'components/GBlock/Block';
+
+import styles from './IntegrationBlock.module.scss';
 
 const cx = cn.bind(styles);
 

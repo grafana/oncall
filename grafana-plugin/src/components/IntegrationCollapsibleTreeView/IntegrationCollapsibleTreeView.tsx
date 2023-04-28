@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 
 import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { isArray } from 'lodash-es';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
-import { isArray } from 'lodash-es';
 
 const cx = cn.bind(styles);
 
@@ -15,7 +15,7 @@ export interface IntegrationCollapsibleItem {
 }
 
 interface IntegrationCollapsibleTreeViewProps {
-  configElements: (IntegrationCollapsibleItem | IntegrationCollapsibleItem[])[];
+  configElements: Array<IntegrationCollapsibleItem | IntegrationCollapsibleItem[]>;
 }
 
 const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = (props) => {
@@ -26,9 +26,10 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
     <div className={cx('integrationTree__container')}>
       {configElements.map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
         if (isArray(item)) {
-          return item.map((it) => (
+          return item.map((it, innerIdx) => (
             <IntegrationCollapsibleTreeItem
               item={it}
+              key={`${idx}-${innerIdx}`}
               onClick={() => expandOrCollapseAtPos(idx)}
               isExpanded={!!expandedList[idx]}
             />
@@ -38,6 +39,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
         return (
           <IntegrationCollapsibleTreeItem
             item={item}
+            key={idx}
             onClick={() => expandOrCollapseAtPos(idx)}
             isExpanded={!!expandedList[idx]}
           />

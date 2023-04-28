@@ -26,13 +26,13 @@ import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhoo
 import { ScheduleStore } from 'models/schedule/schedule';
 import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import DragHandle from './DragHandle';
 import PolicyNote from './PolicyNote';
 
 import styles from './EscalationPolicy.module.css';
-import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 

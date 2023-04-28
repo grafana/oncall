@@ -39,6 +39,7 @@ import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { ChannelFilter } from 'models/channel_filter';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -47,8 +48,6 @@ import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import styles from './Integration2.module.scss';
-import IntegrationBlockItem from './IntegrationBlockItem';
 import {
   INTEGRATION_DEMO_PAYLOAD,
   INTEGRATION_TEMPLATES_LIST,
@@ -56,10 +55,12 @@ import {
   MONACO_INPUT_HEIGHT_TALL,
   MONACO_OPTIONS,
 } from './Integration2.config';
-import IntegrationRouteDisplay from './IntegrationRouteDisplay';
-import IntegrationBlock from './IntegrationBlock';
-import IntegrationTemplateBlock from './IntegrationTemplateBlock';
 import IntegrationHelper from './Integration2.helper';
+import styles from './Integration2.module.scss';
+import IntegrationBlock from './IntegrationBlock';
+import IntegrationBlockItem from './IntegrationBlockItem';
+import IntegrationRouteDisplay from './IntegrationRouteDisplay';
+import IntegrationTemplateBlock from './IntegrationTemplateBlock';
 
 const cx = cn.bind(styles);
 
@@ -900,14 +901,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.props;
 
     const templates = alertReceiveChannelStore.templates[id];
+    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
-    return Object.keys(alertReceiveChannelStore.channelFilters).map((channelFilterId, channelFilterIndex) => ({
+    return channelFilterIds.map((channelFilterId: ChannelFilter['id'], routeIndex: number) => ({
       isCollapsible: true,
       collapsedView: null,
       expandedView: (
         <IntegrationRouteDisplay
+          alertReceiveChannelId={id}
           channelFilterId={channelFilterId}
-          routeIndex={channelFilterIndex}
+          routeIndex={routeIndex}
           templates={templates}
         />
       ),

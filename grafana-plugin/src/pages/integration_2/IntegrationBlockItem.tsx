@@ -1,6 +1,8 @@
 import React from 'react';
-import styles from './IntegrationBlockItem.module.scss';
+
 import cn from 'classnames/bind';
+
+import styles from './IntegrationBlockItem.module.scss';
 
 const cx = cn.bind(styles);
 

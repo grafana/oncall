@@ -3,11 +3,12 @@ import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config
 const IntegrationHelper = {
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {
     const lines = template.split('\n');
-    if (isTextArea)
+    if (isTextArea) {
       return lines
         .slice(0, TEXTAREA_ROWS_COUNT + 1)
         .map((line) => IntegrationHelper.truncateLine(line))
         .join('\n');
+    }
 
     return IntegrationHelper.truncateLine(lines[0]);
   },
