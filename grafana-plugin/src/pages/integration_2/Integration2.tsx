@@ -20,7 +20,9 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import CounterBadge from 'components/CounterBadge/CounterBadge';
-import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
+import IntegrationCollapsibleTreeView, {
+  IntegrationCollapsibleItem,
+} from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import MaskedInputField from 'components/MaskedInputField/MaskedInputField';
 import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
@@ -52,10 +54,12 @@ import {
   INTEGRATION_TEMPLATES_LIST,
   MONACO_INPUT_HEIGHT_SMALL,
   MONACO_INPUT_HEIGHT_TALL,
+  MONACO_OPTIONS,
 } from './Integration2.config';
 import IntegrationRouteDisplay from './IntegrationRouteDisplay';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateBlock from './IntegrationTemplateBlock';
+import IntegrationHelper from './Integration2.helper';
 
 const cx = cn.bind(styles);
 
@@ -69,24 +73,6 @@ interface Integration2State extends PageBaseState {
 
 const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
-const TEXTAREA_ROWS_COUNT = 4;
-const MAX_CHARACTERS_COUNT = 50;
-
-const MONACO_OPTIONS = {
-  renderLineHighlight: false,
-  readOnly: true,
-  scrollbar: {
-    vertical: 'hidden',
-    horizontal: 'hidden',
-    verticalScrollbarSize: 0,
-    handleMouseWheel: false,
-  },
-  hideCursorInOverviewRuler: true,
-  minimap: { enabled: false },
-  cursorStyle: {
-    display: 'none',
-  },
-};
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -292,524 +278,595 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               </HorizontalGroup>
             </div>
 
-            <IntegrationCollapsibleTreeView>
-              <IntegrationBlock
-                heading={
-                  <HorizontalGroup justify={'space-between'}>
-                    <HorizontalGroup>
-                      <Tag color={getVar('--tag-secondary')}>
-                        <Text type="primary" size="small">
-                          HTTP Endpoint
-                        </Text>
-                      </Tag>
-                      <MaskedInputField value={'test'} />
-                    </HorizontalGroup>
-                    <Button variant="secondary" size="sm" onClick={() => this.openHowToConnect()}>
-                      How to connect
-                    </Button>
-                  </HorizontalGroup>
-                }
-                content={
-                  <div className={cx('integration__alertsPanel')}>
-                    <HorizontalGroup justify={'flex-start'} spacing={'xs'}>
-                      <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
-                      <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
+            <IntegrationCollapsibleTreeView
+              configElements={[
+                {
+                  isCollapsible: true,
+                  collapsedView: null,
+                  expandedView: (
+                    <IntegrationBlock
+                      heading={
+                        <HorizontalGroup justify={'space-between'}>
+                          <HorizontalGroup>
+                            <Tag color={getVar('--tag-secondary')}>
+                              <Text type="primary" size="small">
+                                HTTP Endpoint
+                              </Text>
+                            </Tag>
+                            <MaskedInputField value={'test'} />
+                          </HorizontalGroup>
+                          <Button variant="secondary" size="sm" onClick={() => this.openHowToConnect()}>
+                            How to connect
+                          </Button>
+                        </HorizontalGroup>
+                      }
+                      content={
+                        <div className={cx('integration__alertsPanel')}>
+                          <HorizontalGroup justify={'flex-start'} spacing={'xs'}>
+                            <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
+                            <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
 
-                      <Icon name="list-ui-alt" size="md" />
-                      <a href="/alerting/notifications" target="_blank">
-                        <Text type={'link'}>Contact Point</Text>
-                      </a>
-                      <Text type={'secondary'}>and</Text>
-                      <a href="/alerting/routes" target="_blank">
-                        <Text type={'link'}>Notification Policy</Text>
-                      </a>
-                      <Text type={'secondary'}>created in Grafana Alerting</Text>
-                    </HorizontalGroup>
-                  </div>
-                }
-              />
-              <IntegrationBlock
-                heading={
-                  <Tag color={getVar('--tag-secondary')}>
-                    <Text type="primary" size="small">
-                      Templates
-                    </Text>
-                  </Tag>
-                }
-                content={
-                  <div className={cx('integration__templates')}>
-                    <IntegrationBlockItem>
-                      <Text type="secondary">
-                        Templates are used to interpret alert from monitoring. Reduce noise, customize visualization
-                      </Text>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <IntegrationTemplateBlock
-                          label={'Grouping'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--short')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['grouping_id_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          showHelp
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Grouping',
-                              templates['grouping_id_template'],
-                              'grouping_id_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Auto resolve'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--short')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['resolve_condition_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Autoresolve',
-                              templates['resolve_condition_template'],
-                              'resolve_condition_template'
-                            )
-                          }
-                        />
-                      </VerticalGroup>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <Text type={'primary'}>Web</Text>
-
-                        <IntegrationTemplateBlock
-                          label={'Title'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['web_title_template'] || '', true)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Web title',
-                              templates['web_title_template'],
-                              'web_title_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Message'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['web_message_template'] || '', true)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Web message',
-                              templates['web_message_template'],
-                              'web_message_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Image'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['web_image_url_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Web image',
-                              templates['web_image_url_template'],
-                              'web_image_url_template'
-                            )
-                          }
-                        />
-                      </VerticalGroup>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <IntegrationTemplateBlock
-                          label={'Auto acknowledge'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--short')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(
-                                  templates['acknowledge_condition_template'] || '',
-                                  false
-                                )}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Auto acknowledge',
-                              templates['acknowledge_condition_template'],
-                              'acknowledge_condition_template'
-                            )
-                          }
-                          showHelp
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Source Link'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--short')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['source_link_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Source link',
-                              templates['source_link_template'],
-                              'source_link_template'
-                            )
-                          }
-                        />
-                      </VerticalGroup>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <IntegrationTemplateBlock
-                          label={'Phone Call'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--short')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['phone_call_title_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Phone call',
-                              templates['phone_call_title_template'],
-                              'phone_call_title_template'
-                            )
-                          }
-                          showHelp
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'SMS'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--short')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['sms_title_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal('SMS', templates['sms_title_template'], 'sms_title_template')
-                          }
-                        />
-                      </VerticalGroup>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <Text type={'primary'}>Slack</Text>
-
-                        <IntegrationTemplateBlock
-                          label={'Title'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['slack_title_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Slack title',
-                              templates['slack_title_template'],
-                              'slack_title_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Message'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['slack_message_template'] || '', true)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Slack message',
-                              templates['slack_message_template'],
-                              'slack_message_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Image'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['slack_image_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Slack image',
-                              templates['slack_image_template'],
-                              'slack_image_template'
-                            )
-                          }
-                        />
-                      </VerticalGroup>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <Text type={'primary'}>Telegram</Text>
-                        <IntegrationTemplateBlock
-                          label={'Title'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['telegram_title_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Telegram title',
-                              templates['telegram_title_template'],
-                              'telegram_title_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Message'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['telegram_message_template'] || '', true)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Telegram message',
-                              templates['telegram_message_template'],
-                              'telegram_message_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Image'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['telegram_image_url_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Telegram image',
-                              templates['telegram_image_url_template'],
-                              'telegram_image_url_template'
-                            )
-                          }
-                        />
-                      </VerticalGroup>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <Text type={'primary'}>Email</Text>
-                        <IntegrationTemplateBlock
-                          label={'Title'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['email_title_template'] || '', false)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_SMALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Email title',
-                              templates['email_title_template'],
-                              'email_title_template'
-                            )
-                          }
-                        />
-
-                        <IntegrationTemplateBlock
-                          label={'Message'}
-                          renderInput={() => (
-                            <div className={cx('input', 'input--long')}>
-                              <MonacoJinja2Editor
-                                value={this.getFilteredTemplate(templates['email_message_template'] || '', true)}
-                                disabled={true}
-                                height={MONACO_INPUT_HEIGHT_TALL}
-                                data={templates}
-                                showLineNumbers={false}
-                                monacoOptions={MONACO_OPTIONS}
-                              />
-                            </div>
-                          )}
-                          onEdit={() =>
-                            this.openEditTemplateModal(
-                              'Email message',
-                              templates['email_message_template'],
-                              'email_message_template'
-                            )
-                          }
-                        />
-                      </VerticalGroup>
-                    </IntegrationBlockItem>
-
-                    <IntegrationBlockItem>
-                      <VerticalGroup>
-                        <Text type={'secondary'}>By default alert groups rendered based on Web templates.</Text>
-                        <Text type={'secondary'}>
-                          Customise how they rendered in SMS, Phone Calls, Mobile App, Slack, Telegram, MS Teams{' '}
-                        </Text>
-
-                        <div className={cx('customise-button')}>
-                          <ButtonCascader
-                            variant="secondary"
-                            onChange={(_value) => {
-                              console.log('VALUE', _value);
-                            }}
-                            options={this.getTemplatesList()}
-                            icon="plus"
-                            value={undefined}
-                            buttonProps={{ size: 'sm' }}
-                          >
-                            Customise templates
-                          </ButtonCascader>
+                            <Icon name="list-ui-alt" size="md" />
+                            <a href="/alerting/notifications" target="_blank">
+                              <Text type={'link'}>Contact Point</Text>
+                            </a>
+                            <Text type={'secondary'}>and</Text>
+                            <a href="/alerting/routes" target="_blank">
+                              <Text type={'link'}>Notification Policy</Text>
+                            </a>
+                            <Text type={'secondary'}>created in Grafana Alerting</Text>
+                          </HorizontalGroup>
                         </div>
+                      }
+                    />
+                  ),
+                },
+                {
+                  isCollapsible: true,
+                  collapsedView: null,
+                  expandedView: (
+                    <IntegrationBlock
+                      heading={
+                        <Tag color={getVar('--tag-secondary')}>
+                          <Text type="primary" size="small">
+                            Templates
+                          </Text>
+                        </Tag>
+                      }
+                      content={
+                        <div className={cx('integration__templates')}>
+                          <IntegrationBlockItem>
+                            <Text type="secondary">
+                              Templates are used to interpret alert from monitoring. Reduce noise, customize
+                              visualization
+                            </Text>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <IntegrationTemplateBlock
+                                label={'Grouping'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--short')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['grouping_id_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                showHelp
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Grouping',
+                                    templates['grouping_id_template'],
+                                    'grouping_id_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Auto resolve'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--short')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['resolve_condition_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Autoresolve',
+                                    templates['resolve_condition_template'],
+                                    'resolve_condition_template'
+                                  )
+                                }
+                              />
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <Text type={'primary'}>Web</Text>
+
+                              <IntegrationTemplateBlock
+                                label={'Title'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['web_title_template'] || '',
+                                        true
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_TALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Web title',
+                                    templates['web_title_template'],
+                                    'web_title_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Message'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['web_message_template'] || '',
+                                        true
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_TALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Web message',
+                                    templates['web_message_template'],
+                                    'web_message_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Image'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['web_image_url_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Web image',
+                                    templates['web_image_url_template'],
+                                    'web_image_url_template'
+                                  )
+                                }
+                              />
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <IntegrationTemplateBlock
+                                label={'Auto acknowledge'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--short')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['acknowledge_condition_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Auto acknowledge',
+                                    templates['acknowledge_condition_template'],
+                                    'acknowledge_condition_template'
+                                  )
+                                }
+                                showHelp
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Source Link'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--short')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['source_link_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Source link',
+                                    templates['source_link_template'],
+                                    'source_link_template'
+                                  )
+                                }
+                              />
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <IntegrationTemplateBlock
+                                label={'Phone Call'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--short')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['phone_call_title_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Phone call',
+                                    templates['phone_call_title_template'],
+                                    'phone_call_title_template'
+                                  )
+                                }
+                                showHelp
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'SMS'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--short')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['sms_title_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'SMS',
+                                    templates['sms_title_template'],
+                                    'sms_title_template'
+                                  )
+                                }
+                              />
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <Text type={'primary'}>Slack</Text>
+
+                              <IntegrationTemplateBlock
+                                label={'Title'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['slack_title_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Slack title',
+                                    templates['slack_title_template'],
+                                    'slack_title_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Message'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['slack_message_template'] || '',
+                                        true
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_TALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Slack message',
+                                    templates['slack_message_template'],
+                                    'slack_message_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Image'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['slack_image_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Slack image',
+                                    templates['slack_image_template'],
+                                    'slack_image_template'
+                                  )
+                                }
+                              />
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <Text type={'primary'}>Telegram</Text>
+                              <IntegrationTemplateBlock
+                                label={'Title'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['telegram_title_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Telegram title',
+                                    templates['telegram_title_template'],
+                                    'telegram_title_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Message'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['telegram_message_template'] || '',
+                                        true
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_TALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Telegram message',
+                                    templates['telegram_message_template'],
+                                    'telegram_message_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Image'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['telegram_image_url_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Telegram image',
+                                    templates['telegram_image_url_template'],
+                                    'telegram_image_url_template'
+                                  )
+                                }
+                              />
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <Text type={'primary'}>Email</Text>
+                              <IntegrationTemplateBlock
+                                label={'Title'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['email_title_template'] || '',
+                                        false
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_SMALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Email title',
+                                    templates['email_title_template'],
+                                    'email_title_template'
+                                  )
+                                }
+                              />
+
+                              <IntegrationTemplateBlock
+                                label={'Message'}
+                                renderInput={() => (
+                                  <div className={cx('input', 'input--long')}>
+                                    <MonacoJinja2Editor
+                                      value={IntegrationHelper.getFilteredTemplate(
+                                        templates['email_message_template'] || '',
+                                        true
+                                      )}
+                                      disabled={true}
+                                      height={MONACO_INPUT_HEIGHT_TALL}
+                                      data={templates}
+                                      showLineNumbers={false}
+                                      monacoOptions={MONACO_OPTIONS}
+                                    />
+                                  </div>
+                                )}
+                                onEdit={() =>
+                                  this.openEditTemplateModal(
+                                    'Email message',
+                                    templates['email_message_template'],
+                                    'email_message_template'
+                                  )
+                                }
+                              />
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+
+                          <IntegrationBlockItem>
+                            <VerticalGroup>
+                              <Text type={'secondary'}>By default alert groups rendered based on Web templates.</Text>
+                              <Text type={'secondary'}>
+                                Customise how they rendered in SMS, Phone Calls, Mobile App, Slack, Telegram, MS Teams{' '}
+                              </Text>
+
+                              <div className={cx('customise-button')}>
+                                <ButtonCascader
+                                  variant="secondary"
+                                  onChange={(_value) => {
+                                    console.log('VALUE', _value);
+                                  }}
+                                  options={this.getTemplatesList()}
+                                  icon="plus"
+                                  value={undefined}
+                                  buttonProps={{ size: 'sm' }}
+                                >
+                                  Customise templates
+                                </ButtonCascader>
+                              </div>
+                            </VerticalGroup>
+                          </IntegrationBlockItem>
+                        </div>
+                      }
+                    />
+                  ),
+                },
+                {
+                  isCollapsible: true,
+                  collapsedView: null,
+                  expandedView: (
+                    <div className={cx('routesSection')}>
+                      <VerticalGroup spacing="md">
+                        <div className="thin-line-break" />
+                        <Text type={'primary'}>Routes</Text>
+                        <Button variant={'primary'} onClick={() => {}}>
+                          Add route
+                        </Button>
                       </VerticalGroup>
-                    </IntegrationBlockItem>
-                  </div>
-                }
-              />
-
-              <div className={cx('routesSection')}>
-                <VerticalGroup spacing="md">
-                  <div className="thin-line-break" />
-                  <Text type={'primary'}>Routes</Text>
-                  <Button variant={'primary'} onClick={() => {}}>
-                    Add route
-                  </Button>
-                </VerticalGroup>
-              </div>
-
-              {this.renderRoutesFn}
-            </IntegrationCollapsibleTreeView>
+                    </div>
+                  ),
+                },
+                this.renderRoutesFn(),
+              ]}
+            />
 
             <IntegrationSendDemoPayloadModal
               alertReceiveChannel={alertReceiveChannel}
@@ -834,7 +891,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     );
   }
 
-  renderRoutesFn = () => {
+  renderRoutesFn = (): IntegrationCollapsibleItem[] => {
     const {
       store: { alertReceiveChannelStore },
       match: {
@@ -844,13 +901,17 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     const templates = alertReceiveChannelStore.templates[id];
 
-    return Object.keys(alertReceiveChannelStore.channelFilters).map((channelFilterId, channelFilterIndex) => (
-      <IntegrationRouteDisplay
-        channelFilterId={channelFilterId}
-        routeIndex={channelFilterIndex}
-        templates={templates}
-      />
-    ));
+    return Object.keys(alertReceiveChannelStore.channelFilters).map((channelFilterId, channelFilterIndex) => ({
+      isCollapsible: true,
+      collapsedView: null,
+      expandedView: (
+        <IntegrationRouteDisplay
+          channelFilterId={channelFilterId}
+          routeIndex={channelFilterIndex}
+          templates={templates}
+        />
+      ),
+    }));
   };
 
   handleSlackChannelChange = () => {};
@@ -895,22 +956,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
   };
-
-  getFilteredTemplate(template: string, isTextArea: boolean): string {
-    const lines = template.split('\n');
-    if (isTextArea)
-      return lines
-        .slice(0, TEXTAREA_ROWS_COUNT + 1)
-        .map((line) => this.truncateLine(line))
-        .join('\n');
-
-    return this.truncateLine(lines[0]);
-  }
-
-  truncateLine(line: string): string {
-    const slice = line.substring(0, MAX_CHARACTERS_COUNT);
-    return slice.length === line.length ? slice : `${slice} ...`;
-  }
 
   openHowToConnect = () => {};
 

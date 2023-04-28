@@ -1,9 +1,12 @@
 import { KeyValuePair } from 'utils';
 
+export const TEXTAREA_ROWS_COUNT = 4;
+export const MAX_CHARACTERS_COUNT = 50;
+
 export const MONACO_OPTIONS = {
   renderLineHighlight: false,
   readOnly: true,
-  scrollbars: {
+  scrollbar: {
     vertical: 'hidden',
     horizontal: 'hidden',
     verticalScrollbarSize: 0,

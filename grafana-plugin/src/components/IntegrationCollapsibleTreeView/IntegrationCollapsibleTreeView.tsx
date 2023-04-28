@@ -4,44 +4,70 @@ import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import styles from './IntegrationCollapsibleTreeView.module.scss';
-import { isFunction } from 'lodash-es';
+import { isArray } from 'lodash-es';
 
 const cx = cn.bind(styles);
 
+export interface IntegrationCollapsibleItem {
+  expandedView: React.ReactNode;
+  collapsedView: React.ReactNode;
+  isCollapsible: boolean;
+}
+
 interface IntegrationCollapsibleTreeViewProps {
-  children: (React.ReactNode | (() => React.ReactNode))[];
+  configElements: (IntegrationCollapsibleItem | IntegrationCollapsibleItem[])[];
 }
 
 const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewProps> = (props) => {
-  const { children } = props;
+  const { configElements } = props;
+  const [expandedList, setExpandedList] = useState(new Array<boolean>(configElements.length).fill(true));
 
   return (
     <div className={cx('integrationTree__container')}>
-      {children.map((itemNode: React.ReactNode | (() => React.ReactNode[]), index: number) => {
-        if (isFunction(itemNode)) {
-          return itemNode().map((innerItemNode: React.ReactNode, innerIndex: number) => {
-            return <IntegrationCollapsibleTreeItem node={innerItemNode} key={`${index}-${innerIndex}`} />;
-          });
+      {configElements.map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
+        if (isArray(item)) {
+          return item.map((it) => (
+            <IntegrationCollapsibleTreeItem
+              item={it}
+              onClick={() => expandOrCollapseAtPos(idx)}
+              isExpanded={!!expandedList[idx]}
+            />
+          ));
         }
 
-        return <IntegrationCollapsibleTreeItem node={itemNode} key={`${index}-0`} />;
+        return (
+          <IntegrationCollapsibleTreeItem
+            item={item}
+            onClick={() => expandOrCollapseAtPos(idx)}
+            isExpanded={!!expandedList[idx]}
+          />
+        );
       })}
     </div>
   );
+
+  function expandOrCollapseAtPos(i) {
+    setExpandedList(expandedList.map((elem, index) => (index === i ? !elem : elem)));
+    setTimeout(() => console.log(expandedList));
+  }
 };
 
-const IntegrationCollapsibleTreeItem: React.FC<{ node: React.ReactNode; key: string }> = ({ node, key }) => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+const IntegrationCollapsibleTreeItem: React.FC<{ item: IntegrationCollapsibleItem; isExpanded: boolean; onClick }> = ({
+  item,
+  isExpanded,
+  onClick,
+}) => {
   return (
-    <div className={cx('integrationTree__group')} key={key}>
+    <div className={cx('integrationTree__group')}>
       <div className={cx('integrationTree__icon')}>
-        <Icon
-          name={isCollapsed ? 'arrow-down' : 'arrow-right'}
-          size="lg"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        />
+        <Icon name={isExpanded ? 'arrow-down' : 'arrow-right'} size="lg" onClick={onClick} />
       </div>
-      {isCollapsed && <>{node}</>}
+      <div className={cx('integrationTree__element', { 'integrationTree__element--visible': isExpanded })}>
+        {item.expandedView}
+      </div>
+      <div className={cx('integrationTree__element', { 'integrationTree__element--visible': !isExpanded })}>
+        {item.collapsedView}
+      </div>
     </div>
   );
 };

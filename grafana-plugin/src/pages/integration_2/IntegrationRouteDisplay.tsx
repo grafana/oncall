@@ -23,6 +23,7 @@ import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 import { PLUGIN_ROOT } from 'utils/consts';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
+import IntegrationHelper from './Integration2.helper';
 
 const cx = cn.bind(styles);
 
@@ -95,37 +96,41 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
         }
         content={
           <VerticalGroup spacing="xs">
-            <IntegrationBlockItem>
-              <HorizontalGroup spacing="xs">
-                <InlineLabel width={20} tooltip={'TODO: Add text'}>
-                  Routing Template
-                </InlineLabel>
-                <div className={cx('input', 'input--short')}>
-                  <MonacoJinja2Editor
-                    value={channelFilter.filtering_term}
-                    disabled={true}
-                    height={MONACO_INPUT_HEIGHT_SMALL}
-                    data={templates}
-                    showLineNumbers={false}
-                    monacoOptions={MONACO_OPTIONS}
-                  />
-                </div>
-                <Button variant={'secondary'} icon="edit" size={'md'} onClick={undefined} />
-                <Button variant="secondary" size="md" onClick={undefined}>
-                  <Text type="link">Help</Text>
-                  <Icon name="angle-down" size="sm" />
-                </Button>
-              </HorizontalGroup>
-            </IntegrationBlockItem>
+            {routeIndex !== channelFiltersTotal.length - 1 && (
+              <IntegrationBlockItem>
+                <HorizontalGroup spacing="xs">
+                  <InlineLabel width={20} tooltip={'TODO: Add text'}>
+                    Routing Template
+                  </InlineLabel>
+                  <div className={cx('input', 'input--short')}>
+                    <MonacoJinja2Editor
+                      value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
+                      disabled={true}
+                      height={MONACO_INPUT_HEIGHT_SMALL}
+                      data={templates}
+                      showLineNumbers={false}
+                      monacoOptions={MONACO_OPTIONS}
+                    />
+                  </div>
+                  <Button variant={'secondary'} icon="edit" size={'md'} onClick={undefined} />
+                  <Button variant="secondary" size="md" onClick={undefined}>
+                    <Text type="link">Help</Text>
+                    <Icon name="angle-down" size="sm" />
+                  </Button>
+                </HorizontalGroup>
+              </IntegrationBlockItem>
+            )}
 
-            <IntegrationBlockItem>
-              <VerticalGroup>
-                <Text type="secondary">
-                  If the Routing template evaluates to True, the alert will be grouped with the Grouping template and
-                  proceed to the following steps
-                </Text>
-              </VerticalGroup>
-            </IntegrationBlockItem>
+            {routeIndex !== channelFiltersTotal.length - 1 && (
+              <IntegrationBlockItem>
+                <VerticalGroup>
+                  <Text type="secondary">
+                    If the Routing template evaluates to True, the alert will be grouped with the Grouping template and
+                    proceed to the following steps
+                  </Text>
+                </VerticalGroup>
+              </IntegrationBlockItem>
+            )}
 
             {hasChatOpsConnectors && (
               <IntegrationBlockItem>

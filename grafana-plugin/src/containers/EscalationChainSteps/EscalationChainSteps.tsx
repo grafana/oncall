@@ -16,7 +16,6 @@ import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChainSteps.module.css';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -73,10 +72,6 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
 
           if (!escalationPolicy) {
             return null;
-          }
-
-          if (index === 0) {
-            console.log({ escalationPolicy: toJS(escalationPolicy) });
           }
 
           return (

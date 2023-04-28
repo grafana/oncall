@@ -12,6 +12,17 @@
   }
 }
 
+.integrationTree__element {
+  visibility: hidden;
+  overflow-y: hidden;
+  height: 0;
+
+  &--visible {
+    visibility: visible;
+    height: auto;
+  }
+}
+
 .integrationTree__group {
   position: relative;
   margin-bottom: 12px;
