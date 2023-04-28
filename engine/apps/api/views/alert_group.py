@@ -19,6 +19,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
+from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
@@ -185,14 +186,24 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
         return queryset
 
     def filter_by_involved_users(self, queryset, name, value):
+        NOTIFICATION_HISTORY_CUTOFF = 1000
         users = value
 
         if not users:
             return queryset
 
+        # This is expensive to filter all alert groups with involved users,
+        # so we limit the number of alert groups to filter by the last 1000 for the given user(s)
+        alert_group_notified_users_ids = list(
+            UserNotificationPolicyLogRecord.objects.filter(author__in=users)
+            .order_by("-alert_group_id")
+            .values_list("alert_group_id", flat=True)
+            .distinct()[:NOTIFICATION_HISTORY_CUTOFF]
+        )
+
         queryset = queryset.filter(
             # user was notified
-            Q(personal_log_records__author__in=users)
+            Q(id__in=alert_group_notified_users_ids)
             |
             # or interacted with the alert group
             Q(acknowledged_by_user__in=users)
