@@ -57,7 +57,10 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
       <Label>iCal link:</Label>
       <Text type="secondary">
         Secret iCal export link to export schedule's on call shifts to Google Calendar, iCal, etc. If you forget it,
-        you'll need to revoke this link and create another one
+        you'll need to revoke this link and create another one.
+        <br />
+        NOTE: We do not have control over when a client refreshes an imported calendar (e.g. Google Calendar can take up
+        to 24hs to reflect schedule changes)
       </Text>
       {isICalLinkLoading ? (
         <LoadingPlaceholder text="Loading..." />

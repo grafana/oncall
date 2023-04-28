@@ -5,7 +5,7 @@ metadata:
   {{- if .Values.migrate.useHook }}
   name: {{ printf "%s-migrate" (include "oncall.engine.fullname" .) }}
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook": pre-install,pre-upgrade
   {{- else }}
   name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
   {{- end }}
