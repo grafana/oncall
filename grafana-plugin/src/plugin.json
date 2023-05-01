@@ -313,6 +313,18 @@
     },
     {
       "role": {
+        "name": "Notifications Receiver",
+        "description": "Grants the ability to receive OnCall alert notifications. By virtue, grants the user ability to edit their own OnCall settings.",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.notifications:read" },
+          { "action": "grafana-oncall-app.user-settings:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
         "name": "OnCaller",
         "description": "Grants read access to everything in OnCall. In addition, grants edit access to Alert Groups and Schedules",
         "permissions": [
