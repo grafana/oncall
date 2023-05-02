@@ -20,84 +20,60 @@ Alerts from Grafana Alertmanager are automatically routed to this integration.
 <br>Creating contact points and routes for other alertmanagers...
 {% endif %}"""
 
-# Web
-web_title = """
-{{- payload.get("labels", []).get("alertname", "Unknown") -}}
-"""
-web_message = """\
-{%- set annotations = payload.annotations -%}
-{%- set labels = payload.labels -%}
-
-{%- set severity = payload.labels.severity | default("Unknown") -%}
-{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":interrobang:") -%}
-**Severity**: {{ severity }} {{ severity_emoji }}
-
-{% set status = payload.status | default("") -%}
-{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") -%}
-**Status**: {{ status }} {{ status_emoji }}
-
-{% if "message" in payload.annotations %}
-{{ annotations.message }}
-{% set _ = annotations.pop('message') %}
-{% endif %}
-
-{%- if "runbook_url" in payload.annotations %}
-[:book: Runbook:link:]({{ payload.annotations.runbook_url }})
-{% set _ = annotations.pop('runbook_url') %}
-{% endif %}
-
-**:label: Labels:**
-```
-{%- for k, v in payload["labels"].items() %}
-{{ k }}={{ v }}
-{%- endfor %}
-```
-
-{%- if annotations |length > 0%}
-**Other annotations:**
-{% for k, v in payload["annotations"].items() %}
-{#- render annotation as markdown url if it starts with http #}
-- *{{ k }}*: {{ v }}
-{% endfor %}
-{% endif %}
-"""  # noqa: W291
-
-web_image_url = None
-
-# Behaviour
-source_link = "{{ payload.generatorURL }}"
-
-grouping_id = "{{ payload.labels }}"
-
-resolve_condition = """\
-{{ payload.status == "resolved" }}
-"""
-
-acknowledge_condition = None
-
-# Slack
+# Default templates
 slack_title = """\
-*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title }}>* via {{ integration_name }}
+{# Usually title is located in payload.labels.alertname #}
+{% set title = payload.get("labels", {}).get("alertname", "No title (check Web Title Template)") %}
+{# Combine the title from different built-in variables into slack-formatted url #}
+*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ title }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
 {%- endif %}
 """
 
 slack_message = """\
-{{ web_message_template }}
+{{- payload.message }}
+{%- if "status" in payload -%}
+*Status*: {{ payload.status }}
+{% endif -%}
+*Labels:* {% for k, v in payload["labels"].items() %}
+{{ k }}: {{ v }}{% endfor %}
+*Annotations:* 
+{%- for k, v in payload.get("annotations", {}).items() %}
+{#- render annotation as slack markdown url if it starts with http #}
+{{ k }}: {% if v.startswith("http") %} <{{v}}|here> {% else %} {{v}} {% endif -%}
+{% endfor %}
 """  # noqa: W291
 
 
 slack_image_url = None
 
-# SMS
-sms_title = """{{ web_title }}"""
+web_title = """\
+{# Usually title is located in payload.labels.alertname #}
+{{- payload.get("labels", {}).get("alertname", "No title (check Web Title Template)") }}
+"""
 
-# Phone
-phone_call_title = """{{ web_title }}"""
+web_message = """\
+{{- payload.message }}
+{%- if "status" in payload %}
+**Status**: {{ payload.status }}
+{% endif -%}
+**Labels:** {% for k, v in payload["labels"].items() %}
+*{{ k }}*: {{ v }}{% endfor %}
+**Annotations:** 
+{%- for k, v in payload.get("annotations", {}).items() %}
+{#- render annotation as markdown url if it starts with http #}
+*{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
+{% endfor %}
+"""  # noqa: W291
 
-# Telegram
-telegram_title = """{{ web_title }}"""
+
+web_image_url = slack_image_url
+
+sms_title = '{{ payload.get("labels", {}).get("alertname", "Title undefined") }}'
+phone_call_title = sms_title
+
+telegram_title = sms_title
 
 telegram_message = """\
 {{- payload.messsage }}
@@ -112,7 +88,17 @@ telegram_message = """\
 {{ k }}: {{ v }}
 {% endfor %}"""  # noqa: W291
 
-telegram_image_url = None
+telegram_image_url = slack_image_url
+
+source_link = "{{ payload.generatorURL }}"
+
+grouping_id = "{{ payload.labels }}"
+
+resolve_condition = """\
+{{ payload.get("status", "") == "resolved" }}
+"""
+
+acknowledge_condition = None
 
 tests = {
     "payload": {
