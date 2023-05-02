@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove template editor from Slack by @iskhakov ([1847](https://github.com/grafana/oncall/pull/1847))
+- Remove schedule name uniqueness restriction ([1859](https://github.com/grafana/oncall/pull/1859))
 
 ### Fixed
 
