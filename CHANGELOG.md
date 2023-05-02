@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add filter descriptions to web ui by @iskhakov ([1845](https://github.com/grafana/oncall/pull/1845))
 
-
 ## v1.2.16 (2023-04-27)
 
 ### Added
