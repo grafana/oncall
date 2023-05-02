@@ -1,6 +1,6 @@
 import datetime
-import functools
 import itertools
+import re
 from collections import defaultdict
 from enum import Enum
 from typing import Iterable, List, Optional, Tuple, TypedDict, Union
@@ -44,6 +44,9 @@ from apps.schedules.models import CustomOnCallShift
 from apps.user_management.models import User
 from common.database import NON_POLYMORPHIC_CASCADE, NON_POLYMORPHIC_SET_NULL
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
+RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?(\w+)")
 
 
 # Utility classes for schedule quality report
@@ -116,7 +119,7 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
         return get_oncall_users_for_multiple_schedules(self, events_datetime)
 
     def related_to_user(self, user):
-        username_regex = r"SUMMARY:(\[L[0-9]+\] )?{}".format(user.username)
+        username_regex = RE_ICAL_SEARCH_USERNAME.format(user.username)
         return self.filter(
             Q(cached_ical_file_primary__regex=username_regex)
             | Q(cached_ical_file_primary__contains=user.email)
@@ -272,8 +275,13 @@ class OnCallSchedule(PolymorphicModel):
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
     def related_users(self):
-        """Return public primary keys for all users referenced in the schedule."""
-        return set()
+        """Return users referenced in the schedule."""
+        usernames = []
+        if self.cached_ical_file_primary:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_primary)
+        if self.cached_ical_file_overrides:
+            usernames += RE_ICAL_FETCH_USERNAME.findall(self.cached_ical_file_overrides)
+        return self.organization.users.filter(username__in=usernames)
 
     def filter_events(
         self,
@@ -1008,22 +1016,6 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
-
-    def related_users(self):
-        """Return public primary keys for all users referenced in the schedule."""
-        rolling_users = self.custom_shifts.values_list("rolling_users", flat=True)
-        users = functools.reduce(
-            set.union,
-            (
-                set(g.values())
-                for rolling_groups in rolling_users
-                if rolling_groups is not None
-                for g in rolling_groups
-                if g is not None
-            ),
-            set(),
-        )
-        return users
 
     # Insight logs
     @property

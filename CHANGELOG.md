@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add filter descriptions to web ui by @iskhakov ([1845](https://github.com/grafana/oncall/pull/1845))
+- Add "Notifications Receiver" RBAC role by @joeyorlando ([#1853](https://github.com/grafana/oncall/pull/1853))
+
+### Changed
+
+- Remove template editor from Slack by @iskhakov ([1847](https://github.com/grafana/oncall/pull/1847))
+
+### Fixed
+
+- Fix bugs in web title and message templates rendering and visual representation ([1747](https://github.com/grafana/oncall/pull/1747))
+
+## v1.2.16 (2023-04-27)
+
+### Added
+
+- Add 2, 3 and 6 hours Alert Group silence options by @tommysitehost ([#1822](https://github.com/grafana/oncall/pull/1822))
+- Add schedule related users endpoint to plugin API
+
+### Changed
+
+- Update web UI, Slack, and Telegram to allow silencing an acknowledged alert group by @joeyorlando ([#1831](https://github.com/grafana/oncall/pull/1831))
+
+### Fixed
+
+- Optimize duplicate queries occurring in AlertGroupFilter by @joeyorlando ([1809](https://github.com/grafana/oncall/pull/1809))
+
 ## v1.2.15 (2023-04-24)
 
 ### Fixed
@@ -21,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update shift API to use a default interval value (`1`) when a `frequency` is set and no `interval` is given
 - Limit number of alertmanager alerts in alert group to autoresolve by 500 ([1779](https://github.com/grafana/oncall/pull/1779))
+- Update schedule and personal ical exports to use final shift events
 
 ## v1.2.14 (2023-04-19)
 
