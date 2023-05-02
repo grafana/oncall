@@ -57,7 +57,7 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
             <VerticalGroup>
               {item.listItemName && <Text>- {item.listItemName}</Text>}
               {item.codeExample && (
-                <Block bordered withBackground>
+                <Block bordered fullWidth>
                   <HorizontalGroup justify="space-between">
                     <Text type="link">{item.codeExample}</Text>
                     <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>

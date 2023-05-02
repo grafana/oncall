@@ -1,12 +1,13 @@
 import React from 'react';
 
-import { VerticalGroup, HorizontalGroup, Badge, Tooltip, Button, IconButton } from '@grafana/ui';
+import { HorizontalGroup, Badge, Tooltip, Button, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -15,7 +16,6 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
@@ -27,16 +27,19 @@ import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_chann
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 import { UserActions, isUserActionAllowed } from 'utils/authorization';
 
 import styles from './Integrations2.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
+const ITEMS_PER_PAGE = 25;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
+  page: number;
 }
 
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
@@ -46,10 +49,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   state: IntegrationsState = {
     integrationsFilters: { searchTerm: '' },
     errorData: initErrorDataState(),
+    page: 1,
   };
 
   async componentDidMount() {
-    await this.update();
+    const {
+      query: { p },
+    } = this.props;
+    this.setState({ page: p ? Number(p) : 1 }, this.update);
+
+    this.parseQueryParams();
   }
 
   componentDidUpdate(prevProps: IntegrationsProps) {
@@ -91,16 +100,18 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   update = () => {
     const { store } = this.props;
+    const { page, integrationsFilters } = this.state;
+    LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updateItems();
+    return store.alertReceiveChannelStore.updateItems(integrationsFilters, page);
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId } = this.state;
+    const { alertReceiveChannelId, page } = this.state;
     const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore, maintenanceStore } = store;
 
-    const searchResult = alertReceiveChannelStore.getSearchResult();
+    const { count, results } = alertReceiveChannelStore.getSearchResult();
 
     const columns = [
       {
@@ -166,21 +177,25 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
-          <VerticalGroup spacing="lg">
+          <div>
             <RemoteFilters
               query={query}
               page="integrations"
               grafanaTeamStore={store.grafanaTeamStore}
               onChange={this.handleIntegrationsFiltersChange}
             />
-            <Table
-              columns={columns}
-              data={searchResult}
-              loading={!searchResult}
-              rowKey="id"
+            <GTable
               emptyText={this.renderNotFound()}
+              rowKey="id"
+              data={results}
+              columns={columns}
+              pagination={{
+                page,
+                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                onChange: this.handleChangePage,
+              }}
             />
-          </VerticalGroup>
+          </div>
         </div>
         {alertReceiveChannelId && (
           <IntegrationForm
@@ -194,6 +209,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       </>
     );
   }
+
+  handleChangePage = (page: number) => {
+    this.setState({ page }, this.update);
+  };
 
   renderNotFound() {
     return (
@@ -228,24 +247,29 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
+    let routesCounter = undefined;
+
     return (
-      alertReceiveChannelCounter && (
-        <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
-          <Badge
-            text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
-            color={'blue'}
-            tooltip={
-              alertReceiveChannelCounter?.alerts_count +
-              ' alert' +
-              (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
-              ' in ' +
-              alertReceiveChannelCounter?.alert_groups_count +
-              ' alert group' +
-              (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
-            }
-          />
-        </PluginLink>
-      )
+      <HorizontalGroup>
+        {alertReceiveChannelCounter && (
+          <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
+            <Badge
+              text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
+              color={'blue'}
+              tooltip={
+                alertReceiveChannelCounter?.alerts_count +
+                ' alert' +
+                (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+                ' in ' +
+                alertReceiveChannelCounter?.alert_groups_count +
+                ' alert group' +
+                (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+              }
+            />
+          </PluginLink>
+        )}
+        {routesCounter && <Badge text={routesCounter} color={'green'} tooltip={`${routesCounter} routes`} />}
+      </HorizontalGroup>
     );
   }
 
@@ -276,17 +300,48 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
+  convertTimestampToTimeDifference(timestamp: string) {
+    const date = new Date(Number(timestamp) * 1000);
+    const timezoneOffset = new Date().getTimezoneOffset() * 60;
+    const localTimestamp = date.getTime() + timezoneOffset;
+    const currentTime = Date.now();
+    const difference = localTimestamp - currentTime;
+
+    let timeLeft;
+    if (difference < 3600000) {
+      timeLeft = Math.floor(difference / 60000) + 'm left';
+    } else {
+      timeLeft = Math.floor(difference / 3600000) + 'h left';
+    }
+
+    return timeLeft;
+  }
+
   renderMaintenance(item: AlertReceiveChannel, maintenanceStore, alertReceiveChannelStore) {
     const maintenanceMode = item.maintenance_mode;
+    const maintenanceTill = item.maintenance_till;
+
     if (maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance) {
       return (
         <Tooltip placement="top" content="Stop maintenance mode">
-          <Button
-            className="grey-button"
-            disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
-            fill="text"
-            icon="square-shape"
-            onClick={() => this.handleStopMaintenance(item, maintenanceStore, alertReceiveChannelStore)}
+          <Badge
+            text={
+              <Button
+                className={cx('maintenance-button')}
+                disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
+                fill="text"
+                icon="pause"
+                onClick={() => this.handleStopMaintenance(item, maintenanceStore, alertReceiveChannelStore)}
+              >
+                {this.convertTimestampToTimeDifference(maintenanceTill)}
+              </Button>
+            }
+            color={maintenanceMode === MaintenanceMode.Debug ? 'orange' : 'blue'}
+            tooltip={
+              maintenanceMode === MaintenanceMode.Debug
+                ? `Debug Maintenance: ${maintenanceTill} left`
+                : `Maintenance: ${maintenanceTill} left`
+            }
           />
         </Tooltip>
       );

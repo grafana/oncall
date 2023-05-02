@@ -31,19 +31,20 @@ export const INTEGRATION_DEMO_PAYLOAD = {
 export const MONACO_INPUT_HEIGHT_SMALL = '32px';
 export const MONACO_INPUT_HEIGHT_TALL = '120px';
 
-export const TemplateOptions = {
-  SourceLink: new KeyValuePair('Source Link', 'Source Link'),
-  Autoacknowledge: new KeyValuePair('Autoacknowledge', 'Autoacknowledge'),
-  Phone: new KeyValuePair('Phone', 'Phone'),
-  SMS: new KeyValuePair('SMS', 'SMS'),
-  SlackTitle: new KeyValuePair('Slack Title', 'Title'),
-  SlackMessage: new KeyValuePair('Slack Message', 'Message'),
-  SlackImage: new KeyValuePair('Slack Image', 'Image'),
-  EmailTitle: new KeyValuePair('Email Title', 'Title'),
-  EmailMessage: new KeyValuePair('Email Message', 'Message'),
-  TelegramTitle: new KeyValuePair('Telegram Title', 'Title'),
-  TelegramMessage: new KeyValuePair('Telegram Message', 'Message'),
-  TelegramImage: new KeyValuePair('Telegram Image', 'Image'),
+const TemplateOptions = {
+  SourceLink: new KeyValuePair('source_link_template', 'Source Link'),
+  Autoacknowledge: new KeyValuePair('acknowledge_condition_template', 'Autoacknowledge'),
+  Phone: new KeyValuePair('phone_call_title_template', 'Phone'),
+  SMS: new KeyValuePair('sms_title_template', 'SMS'),
+  SlackTitle: new KeyValuePair('slack_title_template', 'Title'),
+  SlackMessage: new KeyValuePair('slack_message_template', 'Message'),
+  SlackImage: new KeyValuePair('slack_image_url_template', 'Image'),
+  EmailTitle: new KeyValuePair('email_title_template', 'Title'),
+  EmailMessage: new KeyValuePair('email_message_template', 'Message'),
+  TelegramTitle: new KeyValuePair('telegram_title_template', 'Title'),
+  TelegramMessage: new KeyValuePair('telegram_message_template', 'Message'),
+  TelegramImage: new KeyValuePair('telegram_image_url_template', 'Image'),
+  /*Should it be in Oncallprivate repo? (All MsTeams)*/
   MSTeamsTitle: new KeyValuePair('MSTeams Title', 'Title'),
   MSTeamsMessage: new KeyValuePair('MSTeams Message', 'Message'),
   MSTeamsImage: new KeyValuePair('MSTeams Image', 'Image'),

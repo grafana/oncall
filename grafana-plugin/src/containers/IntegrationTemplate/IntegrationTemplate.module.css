@@ -39,3 +39,8 @@
 .result {
   padding: 16px;
 }
+
+.block-style {
+  border: var(--border-weak);
+  background-color: var(--background-secondary);
+}
