@@ -9,18 +9,20 @@ import styles from './IntegrationBlock.module.scss';
 const cx = cn.bind(styles);
 
 interface IntegrationBlockProps {
+  hasCollapsedBorder: boolean;
   heading: React.ReactNode;
   content: React.ReactNode;
 }
 
-const IntegrationBlock: React.FC<IntegrationBlockProps> = (props) => {
-  const { heading, content } = props;
+const IntegrationBlock: React.FC<IntegrationBlockProps> = ({ heading, content, hasCollapsedBorder }) => {
   return (
     <div className={cx('integrationBlock')}>
       <Block bordered shadowed className={cx('integrationBlock__heading')}>
         {heading}
       </Block>
-      <div className={cx('integrationBlock__content')}>{content}</div>
+      <div className={cx('integrationBlock__content', { 'integrationBlock__content--collapsedBorder': hasCollapsedBorder })}>
+        {content}
+      </div>
     </div>
   );
 };

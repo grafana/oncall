@@ -11,4 +11,9 @@
 .integrationBlock__content {
   background: var(--background-primary);
   border: var(--border-weak);
+
+  &--collapsedBorder {
+    border-left: none;
+    padding-left: 0;
+  }
 }

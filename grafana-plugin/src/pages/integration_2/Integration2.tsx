@@ -59,8 +59,9 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationBlockItem from './IntegrationBlockItem';
-import IntegrationRouteDisplay from './IntegrationRouteDisplay';
+import ExpandedIntegrationRouteDisplay from './ExpandedIntegrationRouteDisplay';
 import IntegrationTemplateBlock from './IntegrationTemplateBlock';
+import CollapsedIntegrationRouteDisplay from './CollapsedIntegrationRouteDisplay';
 
 const cx = cn.bind(styles);
 
@@ -286,6 +287,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   collapsedView: null,
                   expandedView: (
                     <IntegrationBlock
+                      hasCollapsedBorder={false}
                       heading={
                         <HorizontalGroup justify={'space-between'}>
                           <HorizontalGroup>
@@ -327,6 +329,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   collapsedView: null,
                   expandedView: (
                     <IntegrationBlock
+                      hasCollapsedBorder
                       heading={
                         <Tag color={getVar('--tag-secondary')}>
                           <Text type="primary" size="small">
@@ -851,16 +854,17 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   ),
                 },
                 {
-                  isCollapsible: true,
+                  isCollapsible: false,
                   collapsedView: null,
                   expandedView: (
                     <div className={cx('routesSection')}>
                       <VerticalGroup spacing="md">
-                        <div className="thin-line-break" />
                         <Text type={'primary'}>Routes</Text>
-                        <Button variant={'primary'} onClick={() => {}}>
-                          Add route
-                        </Button>
+                        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                          <Button variant={'primary'} onClick={() => {}}>
+                            Add route
+                          </Button>
+                        </WithPermissionControlTooltip>
                       </VerticalGroup>
                     </div>
                   ),
@@ -905,9 +909,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     return channelFilterIds.map((channelFilterId: ChannelFilter['id'], routeIndex: number) => ({
       isCollapsible: true,
-      collapsedView: null,
+      collapsedView: <CollapsedIntegrationRouteDisplay channelFilterId={channelFilterId} routeIndex={routeIndex} />,
       expandedView: (
-        <IntegrationRouteDisplay
+        <ExpandedIntegrationRouteDisplay
           alertReceiveChannelId={id}
           channelFilterId={channelFilterId}
           routeIndex={routeIndex}

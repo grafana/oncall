@@ -25,30 +25,30 @@ import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config
 import IntegrationHelper from './Integration2.helper';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationBlockItem from './IntegrationBlockItem';
-import styles from './IntegrationRouteDisplay.module.scss';
+import styles from './ExpandedIntegrationRouteDisplay.module.scss';
 
 const cx = cn.bind(styles);
 
-interface IntegrationRouteDisplayProps {
+interface ExpandedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   templates: AlertTemplatesDTO[];
 }
 
-interface IntegrationRouteDisplayState {
+interface ExpandedIntegrationRouteDisplayState {
   isEscalationCollapsed: boolean;
   isRefreshingEscalationChains: boolean;
   routeIdForDeletion: string;
 }
 
-const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer(
+const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
   ({ alertReceiveChannelId, channelFilterId, templates, routeIndex }) => {
     const { escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } = useStore();
     const hasChatOpsConnectors = false;
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
-      (state: IntegrationRouteDisplayState, newState: Partial<IntegrationRouteDisplayState>) => ({
+      (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
         ...state,
         ...newState,
       }),
@@ -68,17 +68,18 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
     return (
       <>
         <IntegrationBlock
+          hasCollapsedBorder
           heading={
             <HorizontalGroup justify={'space-between'}>
               <HorizontalGroup spacing={'md'}>
-                <Tag color={getVar('--tag-primary')}>{getConditionWording(routeIndex)}</Tag>
+                <Tag color={getVar('--tag-primary')}>{IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}</Tag>
                 {channelFilter.filtering_term && <Text type="secondary">{channelFilter.filtering_term}</Text>}
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
                 {routeIndex > 0 && !channelFilter.is_default && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <Tooltip placement="top" content={'Move Up'}>
-                      <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'md'} />
+                      <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'xs'} />
                     </Tooltip>
                   </WithPermissionControlTooltip>
                 )}
@@ -86,7 +87,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
                 {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <Tooltip placement="top" content={'Move Down'}>
-                      <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'md'} />
+                      <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'xs'} />
                     </Tooltip>
                   </WithPermissionControlTooltip>
                 )}
@@ -94,7 +95,7 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
                 {!channelFilter.is_default && (
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                     <Tooltip placement="top" content={'Delete'}>
-                      <Button variant={'secondary'} icon={'trash-alt'} size={'md'} onClick={onRouteDelete} />
+                      <Button variant={'secondary'} icon={'trash-alt'} size={'xs'} onClick={onRouteDelete} />
                     </Tooltip>
                   </WithPermissionControlTooltip>
                 )}
@@ -238,14 +239,6 @@ const IntegrationRouteDisplay: React.FC<IntegrationRouteDisplayProps> = observer
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
     }
 
-    function getConditionWording(routeIndex) {
-      const totalCount = Object.keys(alertReceiveChannelStore.channelFilters).length;
-      if (routeIndex === totalCount - 1) {
-        return 'Default';
-      }
-      return routeIndex ? 'Else' : 'If';
-    }
-
     function onEscalationChainChange(value: string) {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
@@ -269,4 +262,4 @@ const ReadOnlyEscalationChain: React.FC<{ escalationChainId: string }> = ({ esca
   return <EscalationChainSteps isDisabled id={escalationChainId} />;
 };
 
-export default IntegrationRouteDisplay;
+export default ExpandedIntegrationRouteDisplay;
