@@ -38,7 +38,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         fields = [
             "id",
             "organization",
-            "title",
+            "name",
             "type",
             "schedule",
             "priority_level",
@@ -177,9 +177,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
-        validated_data["name"] = CustomOnCallShift.generate_name(
-            validated_data["schedule"], validated_data["priority_level"], validated_data["type"]
-        )
         instance = super().create(validated_data)
 
         instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
@@ -195,15 +192,15 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(instance.type, validated_data)
-        change_only_title = True
+        change_only_name = True
         create_or_update_last_shift = False
 
         for field in validated_data:
-            if field != "title" and validated_data[field] != getattr(instance, field):
-                change_only_title = False
+            if field != "name" and validated_data[field] != getattr(instance, field):
+                change_only_name = False
                 break
 
-        if not change_only_title:
+        if not change_only_name:
             if instance.type != CustomOnCallShift.TYPE_OVERRIDE:
                 if instance.event_is_started:
                     create_or_update_last_shift = True
