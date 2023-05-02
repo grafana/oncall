@@ -73,11 +73,11 @@ interface Integration2State extends PageBaseState {
   selectedTemplate: TemplateForEdit;
 }
 
-// TODO: All display right now, these should be based on the configured channels instead
-
 // This can be further improved by using a ref instead
 const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
+
+const exampleTemplateBody = '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -726,7 +726,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                       <VerticalGroup spacing="md">
                         <Text type={'primary'}>Routes</Text>
                         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                          <Button variant={'primary'} onClick={() => {}}>
+                          <Button variant={'primary'} onClick={() => this.openEditTemplateModal('routing')}>
                             Add route
                           </Button>
                         </WithPermissionControlTooltip>
@@ -753,7 +753,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 }}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
                 template={selectedTemplate}
-                templateBody={templates[selectedTemplate?.name]}
+                templateBody={
+                  templates[selectedTemplate?.name] ? templates[selectedTemplate?.name] : exampleTemplateBody
+                }
               />
             )}
           </div>
@@ -817,7 +819,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   openEditTemplateModal = (templateName) => {
     this.setState({ isEditTemplateModalOpen: true });
-    // const template: TemplateForEdit = { displayName: templateNameForWeb, body: templateBody, name: templateName };
     this.setState({ selectedTemplate: templateForEdit[templateName] });
   };
 

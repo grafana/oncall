@@ -10,6 +10,7 @@ export interface TemplateForEdit {
   additionalData?: {
     chatOpsName?: string;
     data?: string;
+    additionalDescription?: string;
   };
 }
 
@@ -124,6 +125,16 @@ export const templateForEdit: { [id: string]: TemplateForEdit } = {
     name: 'source_link_template',
     displayName: 'Source link',
     description: '',
+  },
+  routing: {
+    name: 'routing',
+    displayName: 'Routing',
+    description:
+      'Routes direct alerts to different escalation chains based on the content, such as severity or region.',
+    additionalData: {
+      additionalDescription: 'For an alert to be directed to this route, the template must evaluate to True.',
+      data: 'Selected Alert will be directed to this route',
+    },
   },
 };
 
