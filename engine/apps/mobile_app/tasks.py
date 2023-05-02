@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import typing
 from enum import Enum
 
@@ -38,8 +39,8 @@ class MessageImportanceType(str, Enum):
 
 class FCMMessageData(typing.TypedDict):
     title: str
-    subtitle: str
-    body: str
+    subtitle: typing.Optional[str]
+    body: typing.Optional[str]
 
 
 def send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
@@ -237,8 +238,6 @@ def _get_youre_going_oncall_fcm_message(
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
     data: FCMMessageData = {
         "title": f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}",
-        "subtitle": "foo bar baz",  # TODO: what should this be?
-        "body": "blah blah blah",  # TODO: what should this be?
     }
 
     return _construct_fcm_message(device_to_notify, thread_id, data)
@@ -299,21 +298,28 @@ def should_we_send_going_oncall_push_notification(
     NOTIFICATION_TIMING_BUFFER = 15 * 60  # 15 minutes in seconds
 
     # this _should_ always be positive since final_events is returning only events in the future
-    seconds_until_shift_starts = schedule_event["start"] - now
+    seconds_until_shift_starts = math.floor((schedule_event["start"] - now).total_seconds())
 
-    # user_wants_to_receive_info_notifications = user_settings.info_notifications_enabled
-    # user_notification_timing_preference = user_settings.going_oncall_notification_timing
+    user_wants_to_receive_info_notifications = user_settings.info_notifications_enabled
+    # int representing num of seconds before the shift starts that the user wants to be notified
+    user_notification_timing_preference = user_settings.going_oncall_notification_timing
 
-    # notification_timing_is_right = ()
+    if not user_wants_to_receive_info_notifications:
+        logger.info("not sending going oncall push notification because info_notifications_enabled is false")
+        return False
 
-    # TODO: finish figuring out this logic
-    # example.
-    # shift starts in 11h58m
-    # user wants to receieve notification at the 12h mark
-    # send if shift_start_time <= (user_preference + 10mins) or
+    lower_limit = seconds_until_shift_starts - NOTIFICATION_TIMING_BUFFER
 
-    if seconds_until_shift_starts - NOTIFICATION_TIMING_BUFFER:
+    timing_logging_msg = (
+        f"lower_limit: {lower_limit}\n"
+        f"user timing preference: {user_notification_timing_preference}\n"
+        f"seconds_until_shift_starts: {seconds_until_shift_starts}"
+    )
+
+    if lower_limit <= user_notification_timing_preference <= seconds_until_shift_starts:
+        logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
         return True
+    logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
     return False
 
 
@@ -332,15 +338,15 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
     now = timezone.now()
 
-    # TODO: add better logging
     for schedule_event in schedule.final_events("UTC", now, days=5):
         users = schedule_event["users"]
 
         for user in users:
             user_pk = user["pk"]
+            logger.info(f"Evaluating if we should send push notification for schedule {schedule_pk} for user {user_pk}")
 
             try:
-                user = User.objects.get(pk=user_pk)
+                user = User.objects.get(public_primary_key=user_pk)
             except User.DoesNotExist:
                 logger.warning(f"User {user_pk} does not exist")
                 continue

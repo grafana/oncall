@@ -68,6 +68,7 @@ def _get_message_from_request_data(token, data, apns, android):
     """
     Create Message object from JSON payload from OSS instance.
     """
+
     return Message(
         token=token, data=data, apns=_deserialize_apns(apns), android=AndroidConfig(**android) if android else None
     )
