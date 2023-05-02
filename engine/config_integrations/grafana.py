@@ -120,6 +120,101 @@ resolve_condition = """\
 
 acknowledge_condition = None
 
+tests = {
+    "payload": {
+        "endsAt": "0001-01-01T00:00:00Z",
+        "labels": {
+            "job": "kube-state-metrics",
+            "instance": "10.143.139.7:8443",
+            "job_name": "email-tracking-perform-initialization-1.0.50",
+            "severity": "warning",
+            "alertname": "KubeJobCompletion",
+            "namespace": "default",
+            "prometheus": "monitoring/k8s",
+        },
+        "status": "firing",
+        "startsAt": "2019-12-13T08:57:35.095800493Z",
+        "annotations": {
+            "message": "Job default/email-tracking-perform-initialization-1.0.50 is taking more than one hour to complete.",
+            "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobcompletion",
+        },
+        "generatorURL": (
+            "https://localhost/prometheus/graph?g0.expr=kube_job_spec_completions%7Bjob%3D%22kube-state-metrics%22%7D"
+            "+-+kube_job_status_succeeded%7Bjob%3D%22kube-state-metrics%22%7D+%3E+0&g0.tab=1"
+        ),
+    },
+    "slack": {
+        "title": (
+            "*<{web_link}|#1 KubeJobCompletion>* via {integration_name} "
+            "(*<"
+            "https://localhost/prometheus/graph?g0.expr=kube_job_spec_completions%7Bjob%3D%22kube-state-metrics%22%7D"
+            "+-+kube_job_status_succeeded%7Bjob%3D%22kube-state-metrics%22%7D+%3E+0&g0.tab=1"
+            "|source>*)"
+        ),
+        "message": (
+            "*Status*: firing\n"
+            "*Labels:* \n"
+            "job: kube-state-metrics\n"
+            "instance: 10.143.139.7:8443\n"
+            "job_name: email-tracking-perform-initialization-1.0.50\n"
+            "severity: warning\n"
+            "alertname: KubeJobCompletion\n"
+            "namespace: default\n"
+            "prometheus: monitoring/k8s\n"
+            "*Annotations:*\n"
+            "message:  Job default/email-tracking-perform-initialization-1.0.50 is taking more than one hour to complete. \n"
+            "runbook_url:  <https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobcompletion|here> "
+        ),
+        "image_url": None,
+    },
+    "web": {
+        "title": "KubeJobCompletion",
+        "message": (
+            "<p>"
+            "<strong>Status</strong>: firing<br/>"
+            "<strong>Labels:</strong> <br/>"
+            "<em>job</em>: kube-state-metrics<br/>"
+            "<em>instance</em>: 10.143.139.7:8443<br/>"
+            "<em>job_name</em>: email-tracking-perform-initialization-1.0.50<br/>"
+            "<em>severity</em>: warning<br/><em>alertname</em>: KubeJobCompletion<br/>"
+            "<em>namespace</em>: default<br/><em>prometheus</em>: monitoring/k8s<br/>"
+            "<strong>Annotations:</strong><br/>"
+            "<em>message</em>:  Job default/email-tracking-perform-initialization-1.0.50 is taking more than one hour to complete. <br/>"
+            "<em>runbook_url</em>:  "
+            '<a href="https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobcompletion">here</a>'
+            "</p>"
+        ),
+        "image_url": None,
+    },
+    "sms": {
+        "title": "KubeJobCompletion",
+    },
+    "phone_call": {
+        "title": "KubeJobCompletion",
+    },
+    "telegram": {
+        "title": "KubeJobCompletion",
+        "message": (
+            "<b>Status</b>: firing\n"
+            "<b>Labels:</b> \n"
+            "job: kube-state-metrics\n"
+            "instance: 10.143.139.7:8443\n"
+            "job_name: email-tracking-perform-initialization-1.0.50\n"
+            "severity: warning\n"
+            "alertname: KubeJobCompletion\n"
+            "namespace: default\n"
+            "prometheus: monitoring/k8s\n"
+            "<b>Annotations:</b>\n"
+            "message: Job default/email-tracking-perform-initialization-1.0.50 is taking more than one hour to complete.\n\n"
+            "runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobcompletion\n"
+        ),
+        "image_url": None,
+    },
+    "group_distinction": "c6bf5494a2d3052459b4dac837e41455",
+    "is_resolve_signal": False,
+    "is_acknowledge_signal": False,
+}
+
 # Miscellaneous
 example_payload = {
     "receiver": "amixr",
