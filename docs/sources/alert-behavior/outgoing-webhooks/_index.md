@@ -463,3 +463,7 @@ otherwise it will only display the value.  Fields which are not used are not sho
 ### Advanced example
 
 Provide a ServiceNOW or JIRA example?
+
+Integrate with third-party services:
+
+{{< section >}}
