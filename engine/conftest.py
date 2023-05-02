@@ -292,10 +292,11 @@ ROLE_PERMISSION_MAPPING = get_user_permission_role_mapping_from_frontend_plugin_
 def make_user():
     def _make_user(role: typing.Optional[LegacyAccessControlRole] = None, **kwargs):
         role = LegacyAccessControlRole.ADMIN if role is None else role
-        permissions = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
-        return UserFactory(
-            role=role, permissions=[GrafanaAPIPermission(action=perm.value) for perm in permissions], **kwargs
-        )
+        permissions = kwargs.pop("permissions", None)
+        if permissions is None:
+            permissions_to_grant = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
+            permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions_to_grant]
+        return UserFactory(role=role, permissions=permissions, **kwargs)
 
     return _make_user
 

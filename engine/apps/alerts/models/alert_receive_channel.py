@@ -370,7 +370,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def web_link(self):
-        return urljoin(self.organization.web_link, "?page=settings")
+        return urljoin(self.organization.web_link, f"integrations/{self.public_primary_key}")
 
     @property
     def integration_url(self):
