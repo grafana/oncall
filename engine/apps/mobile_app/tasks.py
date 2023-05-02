@@ -341,7 +341,7 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
     now = timezone.now()
 
-    for schedule_event in schedule.final_events("UTC", now, days=5):
+    for schedule_event in schedule.final_events("UTC", now, days=7):
         users = schedule_event["users"]
 
         for user in users:
