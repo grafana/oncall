@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 
 import { Button, HorizontalGroup, Drawer, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
@@ -49,9 +50,9 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   }, []);
 
   const getChangeHandler = () => {
-    return (value: string) => {
+    return debounce((value: string) => {
       setChangedTemplateBody(value);
-    };
+    }, 1000);
   };
 
   const onEditPayload = (alertPayload: string) => {

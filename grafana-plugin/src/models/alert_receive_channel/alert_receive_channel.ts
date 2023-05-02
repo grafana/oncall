@@ -24,7 +24,7 @@ import {
 
 export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
-  searchResult: Array<AlertReceiveChannel['id']>;
+  searchResult: { count?: number; results?: Array<AlertReceiveChannel['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: AlertReceiveChannel } = {};
@@ -63,9 +63,14 @@ export class AlertReceiveChannelStore extends BaseStore {
       return undefined;
     }
 
-    return this.searchResult.map(
-      (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
-    );
+    return {
+      count: this.searchResult.count,
+      results:
+        this.searchResult.results &&
+        this.searchResult.results.map(
+          (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
+        ),
+    };
   }
 
   @action
@@ -81,14 +86,14 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   @action
-  async updateItems(query: any = '') {
-    const params = typeof query === 'string' ? { search: query } : query;
-
-    const result = await makeRequest(this.path, { params });
+  async updateItems(query: any = '', page = 1) {
+    const filters = typeof query === 'string' ? { search: query } : query;
+    const { search } = filters;
+    const { count, results } = await makeRequest(this.path, { params: { search, page } });
 
     this.items = {
       ...this.items,
-      ...result.reduce(
+      ...results.reduce(
         (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
           ...acc,
           [item.id]: omit(item, 'heartbeat'),
@@ -97,9 +102,13 @@ export class AlertReceiveChannelStore extends BaseStore {
       ),
     };
 
-    this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
+    // this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
+    this.searchResult = {
+      count,
+      results: results.map((item: AlertReceiveChannel) => item.id),
+    };
 
-    const heartbeats = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const heartbeats = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.heartbeat.id] = alertReceiveChannel.heartbeat;
       }
@@ -112,7 +121,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...heartbeats,
     };
 
-    const alertReceiveChannelToHeartbeat = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const alertReceiveChannelToHeartbeat = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.id] = alertReceiveChannel.heartbeat.id;
       }
@@ -127,7 +136,7 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.updateCounters();
 
-    return result;
+    return results;
   }
 
   @action

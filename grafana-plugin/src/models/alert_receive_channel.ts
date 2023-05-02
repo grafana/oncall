@@ -23,6 +23,7 @@ export interface AlertReceiveChannel {
   instructions: string;
   demo_alert_enabled: boolean;
   maintenance_mode?: MaintenanceMode;
+  maintenance_till?: string;
   heartbeat: Heartbeat | null;
   is_available_for_integration_heartbeat: boolean;
 }

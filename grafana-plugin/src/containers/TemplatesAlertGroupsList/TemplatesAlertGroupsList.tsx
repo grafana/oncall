@@ -32,7 +32,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   useEffect(() => {
     store.alertGroupStore
       .getAlertGroupsForIntegration(alertReceiveChannelId)
-      .then((result) => setAlertGroupsList(result));
+      .then((result) => setAlertGroupsList(result.slice(0, 30)));
   }, []);
 
   const getChangeHandler = () => {

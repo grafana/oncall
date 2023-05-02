@@ -135,9 +135,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
-    let data = searchResult;
+    let data = searchResult.results;
     if (extraAlertReceiveChannels && extraAlertReceiveChannels.length) {
-      data = [...extraAlertReceiveChannels, ...searchResult];
+      data = [...extraAlertReceiveChannels, ...searchResult.results];
     }
 
     return (
@@ -326,7 +326,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
           const searchResult = alertReceiveChannelStore.getSearchResult();
 
-          const index = searchResult.findIndex(
+          const index = searchResult.results.findIndex(
             (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
           );
           const newSelected = searchResult[index - 1] || searchResult[0];
@@ -350,7 +350,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     if (
-      !searchResult.some(
+      !searchResult.results?.some(
         (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
       )
     ) {
@@ -390,7 +390,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     const searchResult = alertReceiveChannelStore.getSearchResult();
     if (
-      !searchResult.some((alertReceiveChannel) => alertReceiveChannel.id === id) &&
+      !searchResult.results.some((alertReceiveChannel) => alertReceiveChannel.id === id) &&
       (!extraAlertReceiveChannels ||
         (extraAlertReceiveChannels &&
           !extraAlertReceiveChannels.some((alertReceiveChannel) => alertReceiveChannel.id === id)))
