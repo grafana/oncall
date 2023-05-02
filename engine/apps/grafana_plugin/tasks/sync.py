@@ -21,7 +21,7 @@ SYNC_PERIOD = timezone.timedelta(minutes=25)
 INACTIVE_PERIOD = timezone.timedelta(minutes=55)
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def start_sync_organizations():
     sync_threshold = timezone.now() - SYNC_PERIOD
 

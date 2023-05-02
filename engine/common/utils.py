@@ -168,13 +168,14 @@ def convert_md_to_html(text):
             # This gives us <pre> and <code> tags for ```-fenced blocks
             "fenced-code-blocks",
             "pyshell",
+            "nl2br",
+            "target-blank-links",
+            "nofollow",
+            "pymdownx.emoji",
+            "pymdownx.magiclink",
+            "tables",
         ],
     ).strip()
-    # Special handling cases for lists
-    text = text.replace("\n\n<ul>", "<ul>")
-    text = text.replace("\n<li>", "<li>")
-    # Special handling cases for newlines
-    text = text.replace("\n", "<br/>")
     return text
 
 
