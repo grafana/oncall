@@ -57,7 +57,7 @@ class Webhook(models.Model):
 
     (
         TRIGGER_ESCALATION_STEP,
-        TRIGGER_FIRING,
+        TRIGGER_ALERT_GROUP_CREATED,
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
@@ -69,7 +69,7 @@ class Webhook(models.Model):
     # Must be the same order as previous
     TRIGGER_TYPES = (
         (TRIGGER_ESCALATION_STEP, "Escalation step"),
-        (TRIGGER_FIRING, "Firing"),
+        (TRIGGER_ALERT_GROUP_CREATED, "Alert Group Created"),
         (TRIGGER_ACKNOWLEDGE, "Acknowledged"),
         (TRIGGER_RESOLVE, "Resolved"),
         (TRIGGER_SILENCE, "Silenced"),
@@ -101,7 +101,7 @@ class Webhook(models.Model):
     deleted_at = models.DateTimeField(blank=True, null=True)
     name = models.CharField(max_length=100, null=True, default=None)
     username = models.CharField(max_length=100, null=True, default=None)
-    password = mirage_fields.EncryptedCharField(max_length=200, null=True, default=None)
+    password = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
     authorization_header = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
     trigger_template = models.TextField(null=True, default=None)
     headers = models.TextField(null=True, default=None)
@@ -112,6 +112,7 @@ class Webhook(models.Model):
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)
+    is_legacy = models.BooleanField(null=True, default=False)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -156,11 +157,19 @@ class Webhook(models.Model):
         if self.http_method in ["POST", "PUT"]:
             if self.forward_all:
                 request_kwargs["json"] = event_data
+                if self.is_legacy:
+                    request_kwargs["json"] = event_data["alert_payload"]
             elif self.data:
+                context_data = event_data
+                if self.is_legacy:
+                    context_data = {
+                        "alert_payload": event_data.get("alert_payload", {}),
+                        "alert_group_id": event_data.get("alert_group_id"),
+                    }
                 try:
                     rendered_data = apply_jinja_template_for_json(
                         self.data,
-                        event_data,
+                        context_data,
                     )
                     try:
                         request_kwargs["json"] = json.loads(rendered_data)

@@ -894,9 +894,10 @@ def test_schedule_related_users_empty_schedule(make_organization, make_schedule)
         schedule_class=OnCallScheduleWeb,
         name="test_web_schedule",
     )
+    schedule.refresh_ical_file()
 
     users = schedule.related_users()
-    assert users == set()
+    assert set(users) == set()
 
 
 @pytest.mark.django_db
@@ -930,7 +931,7 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
             "schedule": schedule,
         }
         on_call_shift = make_on_call_shift(
-            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
         )
         on_call_shift.add_rolling_users([[user]])
 
@@ -946,9 +947,11 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
     )
     override.add_rolling_users([[user_e]])
 
+    schedule.refresh_ical_file()
     schedule.refresh_from_db()
+
     users = schedule.related_users()
-    assert users == set(u.public_primary_key for u in [user_a, user_d, user_e])
+    assert set(users) == set([user_a, user_d, user_e])
 
 
 @pytest.mark.django_db(transaction=True)
