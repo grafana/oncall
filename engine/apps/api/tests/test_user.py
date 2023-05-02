@@ -185,6 +185,14 @@ def test_list_users(
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
 
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_granted_permission(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
     perm_to_filter_on = RBACPermission.Permissions.NOTIFICATIONS_READ.value
     perms_to_grant = [GrafanaAPIPermission(action=perm_to_filter_on)]
 
@@ -194,6 +202,9 @@ def test_list_users(
     user2 = make_user_for_organization(organization, permissions=perms_to_grant)
     user3 = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
     _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
 
     response = client.get(
         f"{url}?permission={perm_to_filter_on}", format="json", **make_user_auth_headers(admin_user, token)
