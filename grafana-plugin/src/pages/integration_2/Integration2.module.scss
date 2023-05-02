@@ -82,7 +82,7 @@ $ITEMS-MARGIN: 24px;
 }
 
 .routesSection {
-  padding-top: 12px;
+  padding-top: 20px;
 }
 
 .input {
@@ -92,4 +92,15 @@ $ITEMS-MARGIN: 24px;
   &--long {
     width: 700px;
   }
+}
+
+.how-to-connect__container {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.how-to-connect__masked {
+  flex-grow: 1;
+  display: flex;
+  gap: 8px;
 }

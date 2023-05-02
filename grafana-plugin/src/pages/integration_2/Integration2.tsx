@@ -24,7 +24,7 @@ import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import MaskedInputField from 'components/MaskedInputField/MaskedInputField';
+import IntegrationMaskedInputField from 'components/IntegrationMaskedInputField/IntegrationMaskedInputField';
 import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
@@ -46,7 +46,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
+import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
 
 import {
   INTEGRATION_DEMO_PAYLOAD,
@@ -285,44 +285,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 {
                   isCollapsible: true,
                   collapsedView: null,
-                  expandedView: (
-                    <IntegrationBlock
-                      hasCollapsedBorder={false}
-                      heading={
-                        <HorizontalGroup justify={'space-between'}>
-                          <HorizontalGroup>
-                            <Tag color={getVar('--tag-secondary')}>
-                              <Text type="primary" size="small">
-                                HTTP Endpoint
-                              </Text>
-                            </Tag>
-                            <MaskedInputField value={'test'} />
-                          </HorizontalGroup>
-                          <Button variant="secondary" size="sm" onClick={() => this.openHowToConnect()}>
-                            How to connect
-                          </Button>
-                        </HorizontalGroup>
-                      }
-                      content={
-                        <div className={cx('integration__alertsPanel')}>
-                          <HorizontalGroup justify={'flex-start'} spacing={'xs'}>
-                            <LoadingPlaceholder text="Loading..." className={cx('loadingPlaceholder')} />
-                            <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
-
-                            <Icon name="list-ui-alt" size="md" />
-                            <a href="/alerting/notifications" target="_blank">
-                              <Text type={'link'}>Contact Point</Text>
-                            </a>
-                            <Text type={'secondary'}>and</Text>
-                            <a href="/alerting/routes" target="_blank">
-                              <Text type={'link'}>Notification Policy</Text>
-                            </a>
-                            <Text type={'secondary'}>created in Grafana Alerting</Text>
-                          </HorizontalGroup>
-                        </div>
-                      }
-                    />
-                  ),
+                  expandedView: <HowToConnectComponent id={id} />,
                 },
                 {
                   isCollapsible: true,
@@ -964,8 +927,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
   };
 
-  openHowToConnect = () => {};
-
   deleteIntegration = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
 
   openIntegrationSettings = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
@@ -1091,6 +1052,69 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
   function getDemoAlertJSON() {
     return JSON.stringify(INTEGRATION_DEMO_PAYLOAD, null, 4);
+  }
+};
+
+const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
+  const { alertReceiveChannelStore } = useStore();
+  const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
+  const alertReceiveChannel = alertReceiveChannelStore.items[id];
+  const isAlertManager = alertReceiveChannel.integration === DATASOURCE_ALERTING;
+  const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
+
+  console.log(alertReceiveChannel);
+
+  return (
+    <IntegrationBlock
+      hasCollapsedBorder={false}
+      heading={
+        <div className={cx('how-to-connect__container')}>
+          <div className={cx('how-to-connect__masked')}>
+            <Tag color={getVar('--tag-secondary')} className={cx('how-to-connect__tag')}>
+              <Text type="primary" size="small">
+                HTTP Endpoint
+              </Text>
+            </Tag>
+            <IntegrationMaskedInputField value={alertReceiveChannelStore.items[id].integration_url} />
+          </div>
+          <Button variant="secondary" size="sm" onClick={openHowToConnect}>
+            How to connect
+          </Button>
+        </div>
+      }
+      content={isAlertManager || hasAlerts ? renderContent() : null}
+    />
+  );
+
+  function openHowToConnect() {}
+
+  function renderContent() {
+    return (
+      <div className={cx('integration__alertsPanel')}>
+        <VerticalGroup justify={'flex-start'} spacing={'xs'}>
+          {hasAlerts && (
+            <HorizontalGroup spacing={'xs'}>
+              <LoadingPlaceholder text="" className={cx('loadingPlaceholder')} />
+              <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
+            </HorizontalGroup>
+          )}
+
+          {isAlertManager && (
+            <HorizontalGroup spacing={'xs'}>
+              <Icon name="list-ui-alt" size="md" />
+              <a href="/alerting/notifications" target="_blank">
+                <Text type={'link'}>Contact Point</Text>
+              </a>
+              <Text type={'secondary'}>and</Text>
+              <a href="/alerting/routes" target="_blank">
+                <Text type={'link'}>Notification Policy</Text>
+              </a>
+              <Text type={'secondary'}>created in Grafana Alerting</Text>
+            </HorizontalGroup>
+          )}
+        </VerticalGroup>
+      </div>
+    );
   }
 };
 

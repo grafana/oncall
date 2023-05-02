@@ -10,7 +10,7 @@ export enum MaintenanceMode {
 
 export interface AlertReceiveChannel {
   id: string;
-  integration: number;
+  integration: string;
   smile_code: string;
   verbal_name: string;
   author: User['pk'];
@@ -31,5 +31,3 @@ export interface AlertReceiveChannelChoice {
   display_name: string;
   value: number;
 }
-
-export const MaintenanceIntegration = 24;

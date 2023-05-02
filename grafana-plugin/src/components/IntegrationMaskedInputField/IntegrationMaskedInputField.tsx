@@ -6,21 +6,20 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import { openNotification } from 'utils';
 
-import styles from './MaskedInputField.module.scss';
+import styles from './IntegrationMaskedInputField.module.scss';
 
-interface MaskedInputFieldProps {
+interface IntegrationMaskedInputFieldProps {
   value: string;
 }
 
 const cx = cn.bind(styles);
 
-// TODO: rename this to IntegrationMaskedInputField or make it general
-const MaskedInputField: React.FC<MaskedInputFieldProps> = ({ value }) => {
+const IntegrationMaskedInputField: React.FC<IntegrationMaskedInputFieldProps> = ({ value }) => {
   const [isMasked, setIsMasked] = useState(true);
 
   return (
     <div className={cx('root')}>
-      {renderInputField()}
+      <div className={cx('input-container')}>{renderInputField()}</div>
 
       <div className={cx('icons')}>
         <HorizontalGroup spacing={'xs'}>
@@ -35,7 +34,7 @@ const MaskedInputField: React.FC<MaskedInputFieldProps> = ({ value }) => {
   );
 
   function renderInputField() {
-    return <Input value={isMasked ? value.replace(/./g, '*') : value} disabled />;
+    return <Input className={cx('input')} value={isMasked ? value.replace(/./g, '*') : value} disabled />;
   }
 
   function onInputReveal() {
@@ -51,4 +50,4 @@ const MaskedInputField: React.FC<MaskedInputFieldProps> = ({ value }) => {
   }
 };
 
-export default MaskedInputField;
+export default IntegrationMaskedInputField;
