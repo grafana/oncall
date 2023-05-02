@@ -15,8 +15,6 @@ interface IntegrationBlockProps {
 }
 
 const IntegrationBlock: React.FC<IntegrationBlockProps> = ({ heading, content, hasCollapsedBorder }) => {
-  console.log({ content });
-
   return (
     <div className={cx('integrationBlock')}>
       <Block bordered shadowed className={cx('integrationBlock__heading')}>

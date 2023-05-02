@@ -1062,8 +1062,6 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const isAlertManager = alertReceiveChannel.integration === DATASOURCE_ALERTING;
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
-  console.log(alertReceiveChannel);
-
   return (
     <IntegrationBlock
       hasCollapsedBorder={false}
