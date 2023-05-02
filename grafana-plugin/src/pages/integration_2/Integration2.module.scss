@@ -73,43 +73,16 @@ $ITEMS-MARGIN: 24px;
   padding: 3px 4px;
 }
 
-.integrationBlock__heading,
-.integrationBlock__content {
-  padding: 16px;
-}
-
-.integrationBlock__heading {
-  background-color: var(--background-secondary);
-  border: none;
-}
-
-.integrationBlock__content {
-  background: var(--background-primary);
-  border: var(--border-weak);
-}
-
-.blockItem {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 12px;
-
-  &__content {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-
-  &__leftDelimitator {
-    border-left: var(--border-medium);
-    margin-right: 12px;
-  }
-}
-
 .loadingPlaceholder {
   margin-bottom: 0;
 }
 
 .customise-button button {
   padding: 15px;
+}
+
+.routesSection {
+  padding-top: 20px;
 }
 
 .input {
@@ -119,4 +92,15 @@ $ITEMS-MARGIN: 24px;
   &--long {
     width: 700px;
   }
+}
+
+.how-to-connect__container {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.how-to-connect__masked {
+  flex-grow: 1;
+  display: flex;
+  gap: 8px;
 }

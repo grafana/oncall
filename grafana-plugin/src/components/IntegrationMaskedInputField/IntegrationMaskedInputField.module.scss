@@ -1,0 +1,22 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-grow: 1;
+  max-width: 80%;
+}
+
+.icons {
+  position: absolute;
+  right: 8px;
+  top: 10px;
+  z-index: 10;
+}
+
+.input-container {
+  width: 100%;
+
+  input {
+    padding-right: 78px;
+    text-overflow: ellipsis;
+  }
+}
