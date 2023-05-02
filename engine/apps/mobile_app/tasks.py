@@ -328,6 +328,9 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
     # avoid circular import
     from apps.mobile_app.models import MobileAppUserSettings
 
+    user_cache: typing.Dict[str, User] = {}
+    device_cache: typing.Dict[str, FCMDevice] = {}
+
     logger.info(f"Start calculate_going_oncall_push_notifications_for_schedule for schedule {schedule_pk}")
 
     try:
@@ -345,17 +348,24 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
             user_pk = user["pk"]
             logger.info(f"Evaluating if we should send push notification for schedule {schedule_pk} for user {user_pk}")
 
-            try:
-                user = User.objects.get(public_primary_key=user_pk)
-            except User.DoesNotExist:
-                logger.warning(f"User {user_pk} does not exist")
-                continue
+            user = user_cache.get(user_pk, None)
+            if user is None:
+                try:
+                    user = User.objects.get(public_primary_key=user_pk)
+                    user_cache[user_pk] = user
+                except User.DoesNotExist:
+                    logger.warning(f"User {user_pk} does not exist")
+                    continue
 
-            device_to_notify = FCMDevice.objects.filter(user=user).first()
+            device_to_notify = device_cache.get(user_pk, None)
+            if device_to_notify is None:
+                device_to_notify = FCMDevice.objects.filter(user=user).first()
 
-            if not device_to_notify:
-                logger.info(f"User {user_pk} has no device set up")
-                continue
+                if not device_to_notify:
+                    logger.info(f"User {user_pk} has no device set up")
+                    continue
+                else:
+                    device_cache[user_pk] = device_to_notify
 
             mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
