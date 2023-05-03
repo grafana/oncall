@@ -16,7 +16,6 @@ def set_field_if_web_template_is_not_default(apps, schema_editor):
     """
     # TODO: remove import as it is used for local testing only
     from django.apps import apps
-
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
     alert_receive_channels_with_non_default_web_templates = (
         AlertReceiveChannel.objects.filter(
@@ -56,9 +55,11 @@ def set_field_if_web_template_is_not_default(apps, schema_editor):
         for backend_id, backend in get_messaging_backends():
             if not backend.customizable_templates:
                 continue
-            backend_templates = alert_receive_channel.messaging_backends_templates.get(
-                backend_id, {}
-            )
+            backend_templates = {}
+            if alert_receive_channel.messaging_backends_templates is not None:
+                backend_templates = alert_receive_channel.messaging_backends_templates.get(
+                    backend_id, {}
+                )
             for field in backend.template_fields:
                 value = backend_templates.get(field, None)
                 if not value:
