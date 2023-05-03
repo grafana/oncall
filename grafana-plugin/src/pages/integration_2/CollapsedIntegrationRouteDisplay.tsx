@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import cn from 'classnames/bind';
-import IntegrationBlock from './IntegrationBlock';
-import { observer } from 'mobx-react';
+
 import { ConfirmModal, HorizontalGroup, Icon } from '@grafana/ui';
+import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
+
+import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
-import { getVar } from 'utils/DOM';
-import { useStore } from 'state/useStore';
-import IntegrationHelper from './Integration2.helper';
-import { ChannelFilter } from 'models/channel_filter';
 import Text from 'components/Text/Text';
+import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { ChannelFilter } from 'models/channel_filter';
+import { useStore } from 'state/useStore';
+import { getVar } from 'utils/DOM';
+
 import styles from './CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from './ExpandedIntegrationRouteDisplay';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
-import PluginLink from 'components/PluginLink/PluginLink';
+import IntegrationHelper from './Integration2.helper';
+import IntegrationBlock from './IntegrationBlock';
 
 const cx = cn.bind(styles);
 
@@ -28,7 +31,9 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
-    if (!channelFilter) return null;
+    if (!channelFilter) {
+      return null;
+    }
 
     const escalationChain = escalationChainStore.items[channelFilter.escalation_chain];
 

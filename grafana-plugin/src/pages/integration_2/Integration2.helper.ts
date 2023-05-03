@@ -1,9 +1,12 @@
 import { ChannelFilter } from 'models/channel_filter';
+
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
 
 const IntegrationHelper = {
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {
-    if (!template) return '';
+    if (!template) {
+      return '';
+    }
 
     const lines = template.split('\n');
     if (isTextArea) {
@@ -17,7 +20,9 @@ const IntegrationHelper = {
   },
 
   truncateLine: (line: string, maxCharacterCount: number = MAX_CHARACTERS_COUNT): string => {
-    if (!line || !line.trim()) return '';
+    if (!line || !line.trim()) {
+      return '';
+    }
 
     const slice = line.substring(0, maxCharacterCount);
     return slice.length === line.length ? slice : `${slice} ...`;

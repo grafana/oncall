@@ -162,7 +162,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   @action
-  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id'], isOverwrite: boolean = false) {
+  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id'], isOverwrite = false) {
     const response = await makeRequest(`/channel_filters/`, {
       params: { alert_receive_channel: alertReceiveChannelId },
     });

@@ -11,8 +11,8 @@ import {
   Modal,
   CascaderOption,
 } from '@grafana/ui';
-import { get } from 'lodash-es';
 import cn from 'classnames/bind';
+import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -50,10 +50,10 @@ import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
 import CollapsedIntegrationRouteDisplay from './CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from './ExpandedIntegrationRouteDisplay';
 import { INTEGRATION_DEMO_PAYLOAD, INTEGRATION_TEMPLATES_LIST } from './Integration2.config';
+import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
-import IntegrationHelper from './Integration2.helper';
 // import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);

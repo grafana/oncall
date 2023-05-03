@@ -50,7 +50,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
     </div>
   );
 
-  function getStartingExpandedState(): (boolean | boolean[])[] {
+  function getStartingExpandedState(): Array<boolean | boolean[]> {
     const expandedArrayValues = new Array<boolean | boolean[]>(configElements.length);
     configElements.forEach((elem, index) => {
       expandedArrayValues[index] = Array.isArray(elem) ? new Array(elem.length).fill(true) : true;
@@ -94,7 +94,9 @@ const IntegrationCollapsibleTreeItem: React.FC<{ item: IntegrationCollapsibleIte
   );
 
   function getIconName(): IconName {
-    if (item.customIcon) return item.customIcon;
+    if (item.customIcon) {
+      return item.customIcon;
+    }
     return isExpanded ? 'angle-down' : 'angle-right';
   }
 };
