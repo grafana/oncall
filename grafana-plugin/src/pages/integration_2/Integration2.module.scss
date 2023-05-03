@@ -1,0 +1,105 @@
+$FLEX-GAP: 4px;
+$MARGIN: 12px;
+$ITEMS-MARGIN: 24px;
+
+.integration__heading-container {
+  margin-bottom: $ITEMS-MARGIN;
+}
+
+.integration__heading {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 100%;
+}
+
+.integration__actions {
+  display: flex;
+  gap: $FLEX-GAP;
+}
+
+.integration__actionsList {
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  border-radius: 2px;
+}
+
+.integration__actionItem {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  min-width: 84px;
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+
+  &:hover {
+    background: var(--gray-9);
+  }
+}
+
+.integration__description {
+  display: block;
+  margin-bottom: $MARGIN;
+}
+
+.hamburger-menu {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  justify-content: center;
+  background-color: rgba(204, 204, 220, 0.16);
+  color: var(--secondary-background);
+  border: 1px solid transparent;
+  height: 32px;
+  width: 30px;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--primary-text-color);
+}
+
+.integration__counter {
+  font-size: 12px;
+}
+.integration__countersBadge {
+  line-height: 16px;
+  padding: 3px 4px;
+}
+
+.loadingPlaceholder {
+  margin-bottom: 0;
+}
+
+.customise-button button {
+  padding: 15px;
+}
+
+.routesSection {
+  padding-top: 20px;
+}
+
+.input {
+  &--short {
+    width: 500px;
+  }
+  &--long {
+    width: 700px;
+  }
+}
+
+.how-to-connect__container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tag,
+.how-to-connect__tag {
+  height: 25px;
+}
