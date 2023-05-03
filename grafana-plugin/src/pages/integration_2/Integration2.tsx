@@ -371,6 +371,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           channelFilterId={channelFilterId}
           routeIndex={routeIndex}
           templates={templates}
+          openEditTemplateModal={this.openEditTemplateModal}
         />
       ),
     }));

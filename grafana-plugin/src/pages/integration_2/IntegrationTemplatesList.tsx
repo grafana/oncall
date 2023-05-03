@@ -1,15 +1,17 @@
 import React from 'react';
+
+import { ButtonCascader, CascaderOption, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import Text from 'components/Text/Text';
+import { AlertTemplatesDTO } from 'models/alert_templates';
+
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from './Integration2.config';
+import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlockItem from './IntegrationBlockItem';
-import Text from 'components/Text/Text';
-import { ButtonCascader, CascaderOption, VerticalGroup } from '@grafana/ui';
 import IntegrationTemplateBlock from './IntegrationTemplateBlock';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
-import IntegrationHelper from './Integration2.helper';
-import { AlertTemplatesDTO } from 'models/alert_templates';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from './Integration2.config';
 
 const cx = cn.bind(styles);
 
@@ -423,8 +425,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             <ButtonCascader
               variant="secondary"
               onChange={(_key) => {
-                console.log('key', _key);
-                openEditTemplateModal(_key);
+                if (Object.values(_key).length > 1) {
+                  openEditTemplateModal(Object.values(_key)[1]);
+                } else {
+                  openEditTemplateModal(_key);
+                }
               }}
               options={getTemplatesList()}
               icon="plus"

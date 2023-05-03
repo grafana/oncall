@@ -21,11 +21,11 @@ import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
+import styles from './ExpandedIntegrationRouteDisplay.module.scss';
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config';
 import IntegrationHelper from './Integration2.helper';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationBlockItem from './IntegrationBlockItem';
-import styles from './ExpandedIntegrationRouteDisplay.module.scss';
 
 const cx = cn.bind(styles);
 
@@ -34,6 +34,7 @@ interface ExpandedIntegrationRouteDisplayProps {
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   templates: AlertTemplatesDTO[];
+  openEditTemplateModal: (templateName: string | string[]) => void;
 }
 
 interface ExpandedIntegrationRouteDisplayState {
@@ -43,7 +44,7 @@ interface ExpandedIntegrationRouteDisplayState {
 }
 
 const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
-  ({ alertReceiveChannelId, channelFilterId, templates, routeIndex }) => {
+  ({ alertReceiveChannelId, channelFilterId, templates, routeIndex, openEditTemplateModal }) => {
     const { escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } = useStore();
     const hasChatOpsConnectors = false;
 
@@ -122,7 +123,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       />
                     </div>
                     <Button variant={'secondary'} icon="edit" size={'md'} onClick={undefined} />
-                    <Button variant="secondary" size="md" onClick={undefined}>
+                    <Button variant="secondary" size="md" onClick={() => openEditTemplateModal('routing')}>
                       <Text type="link">Help</Text>
                       <Icon name="angle-down" size="sm" />
                     </Button>
