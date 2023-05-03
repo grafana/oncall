@@ -22,7 +22,7 @@ Alerts from Grafana Alertmanager are automatically routed to this integration.
 
 # Web
 web_title = """
-{{- payload.get("labels", []).get("alertname", "Unknown") -}}
+{{- payload.get("labels", {}).get("alertname", "Unknown") -}}
 """
 web_message = """\
 {%- set annotations = payload.annotations -%}
