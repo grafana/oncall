@@ -6,7 +6,7 @@ module.exports = {
   moduleDirectories: ['node_modules', 'src'],
   moduleFileExtensions: ['ts', 'tsx', 'js'],
 
-  transformIgnorePatterns: [`/node_modules/(?!${esModules})`, `/node_modules/`],
+  transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
 
   moduleNameMapper: {
     'grafana/app/(.*)': '<rootDir>/src/jest/grafanaMock.ts',
