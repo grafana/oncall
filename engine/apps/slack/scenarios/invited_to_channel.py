@@ -29,26 +29,10 @@ class InvitedToChannelStep(scenario_step.ScenarioStep):
             logger.info("Other user was invited to a channel with a bot.")
 
 
-class NotifiedUserNotInChannelStep(scenario_step.ScenarioStep):
-    """
-    InvitedUserNotInChannelStep handles a button press when user notified in slack, not in the channel.
-    Message, which sends this button is created in SlackUserIdentity.send_link_to_slack_message method.
-    """
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        pass
-
-
 STEPS_ROUTING = [
     {
         "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_MEMBER_JOINED_CHANNEL,
         "step": InvitedToChannelStep,
-    },
-    {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
-        "block_action_id": NotifiedUserNotInChannelStep.routing_uid(),
-        "step": NotifiedUserNotInChannelStep,
     },
 ]
