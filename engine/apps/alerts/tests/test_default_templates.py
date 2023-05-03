@@ -63,6 +63,10 @@ def test_default_templates(
                 )
 
             rendered_attr = getattr(rendered_alert, attr)
+            print(f"{alert_receive_channel}'s {notification_channel} {attr} ")
+            print(rendered_attr)
+            print()
+            print("====================================")
             assert rendered_attr == expected, (
                 f"{alert_receive_channel}'s {notification_channel} {attr} " f"is not equal to expected"
             )

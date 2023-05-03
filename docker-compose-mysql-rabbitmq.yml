@@ -131,7 +131,7 @@ services:
       - with_grafana
 
   grafana:
-    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
+    image: "grafana/${GRAFANA_IMAGE:-grafana:latest}"
     restart: always
     ports:
       - "3000:3000"

@@ -4,6 +4,7 @@ import requests
 from django.db import models
 
 from apps.slack.constants import SLACK_BOT_ID
+from apps.slack.scenarios.notified_user_not_in_channel import NotifiedUserNotInChannelStep
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.user_management.models import User
@@ -107,6 +108,7 @@ class SlackUserIdentity(models.Model):
                 "elements": [
                     {
                         "type": "button",
+                        "action_id": f"{NotifiedUserNotInChannelStep.routing_uid()}",
                         "text": {"type": "plain_text", "text": "➡️ Go to the alert group"},
                         "url": slack_message.permalink,
                         "style": "primary",
