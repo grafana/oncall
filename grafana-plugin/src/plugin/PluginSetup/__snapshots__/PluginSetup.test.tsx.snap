@@ -87,7 +87,7 @@ exports[`PluginSetup there is an error message - retry setup 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <button
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             type="button"
           >
             <span
@@ -101,7 +101,7 @@ exports[`PluginSetup there is an error message - retry setup 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <a
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             href="/plugins/grafana-oncall-app?page=configuration"
             tabindex="0"
           >
@@ -143,7 +143,7 @@ exports[`PluginSetup there is an error message 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <button
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             type="button"
           >
             <span
@@ -157,7 +157,7 @@ exports[`PluginSetup there is an error message 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <a
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             href="/plugins/grafana-oncall-app?page=configuration"
             tabindex="0"
           >

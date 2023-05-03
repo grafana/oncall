@@ -41,7 +41,7 @@ exports[`DownloadIcons it renders properly 1`] = `
             target="_blank"
           >
             <div
-              class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
             >
               <img
                 alt="Apple"
@@ -66,7 +66,7 @@ exports[`DownloadIcons it renders properly 1`] = `
             target="_blank"
           >
             <div
-              class="root icon-block root_bordered root--fullWidth root--hover"
+              class="root root_bordered root--fullWidth root--hover icon-block"
             >
               <img
                 alt="Play Store"
