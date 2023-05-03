@@ -106,11 +106,9 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       {heartbeat && (
         <p>
           <Text>
-            Use the following unique Grafana link to send GET and POST requests:{' '}
-            <a href={heartbeat?.link} target="_blank" rel="noreferrer">
-              {heartbeat?.link}
-            </a>
+            Use the following unique Grafana link to send GET and POST requests:
           </Text>
+          <pre><code>{heartbeat?.link}</code></pre>
         </p>
       )}
       {heartbeat && (

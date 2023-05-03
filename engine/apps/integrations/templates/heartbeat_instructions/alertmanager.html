@@ -1,25 +1,25 @@
-<p>This configuration will send an alert once in a minute and if alertmanager stops working amixr will detect that it
-    doesn't work and notify you about that.</p>
+<p>This configuration will send an alert once in a minute and if alertmanager stops working OnCall will detect
+    it and notify you about that.</p>
 <ol>
-    <li>Add the alert generating script to prometheus.yaml file
-        Within prometheus it is trivial to create an expression that we can build a heartbeat with Amixr
-        expr: vector(1)
-        <p>That expression will always return true. Here is an alert that leverages the previous expression to create a
-            heartbeat alert</p>
+    <li>
+        <p>Add the alert generating script to <code>prometheus.yaml</code> file.
+        Within Prometheus it is trivial to create an expression that we can use as a heartbeat for OnCall,
+        like <code>vector(1)</code>. That expression will always return true.</p>
+        <p>Here is an alert that leverages the previous expression to create a heartbeat alert:</p>
         <pre><code>
             groups:
             - name: meta
-                rules:
-                - alert: heartbeat
-                  expr: vector(1)
-                  labels:
-                    severity: none
-                  annotations:
-                    description: This is heartbeat alert
-                    summary: Alerting Amixr
+              rules:
+              - alert: heartbeat
+                expr: vector(1)
+                labels:
+                  severity: none
+                annotations:
+                  description: This is a heartbeat alert for Grafana OnCall
+                  summary: Heartbeat for Grafana OnCall
         </code></pre>
     </li>
-    <li>Add receiver configuration to prometheus.yaml with the unique url from Amixr global
+    <li><p>Add receiver configuration to <code>prometheus.yaml</code> with the unique url from OnCall global:</p>
         <pre><code>
             ...
             route:
@@ -27,12 +27,12 @@
                 routes:
                 - match:
                     alertname: heartbeat
-                  receiver: 'amixr-heartbeat'
+                  receiver: 'grafana-oncall-heartbeat'
                   group_wait: 0s
                   group_interval: 1m
                   repeat_interval: 50s
             receivers:
-            - name: 'amixr-heartbeat'
+            - name: 'grafana-oncall-heartbeat'
             webhook_configs:
             - url: {{ heartbeat_url }}
                 send_resolved: false
