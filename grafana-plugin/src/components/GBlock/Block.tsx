@@ -31,6 +31,7 @@ const Block: FC<BlockProps> = (props) => {
     <div
       className={cx(
         'root',
+        className,
         {
           root_bordered: bordered,
           root_shadowed: shadowed,
@@ -38,7 +39,6 @@ const Block: FC<BlockProps> = (props) => {
           'root--withBackGround': withBackground,
           'root--hover': hover,
         },
-        className
       )}
       style={style}
       {...rest}
