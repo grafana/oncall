@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0010_channelfilter_filtering_term_type'),
+        ('alerts', '0014_alertreceivechannel_restricted_at'),
     ]
 
     operations = [
