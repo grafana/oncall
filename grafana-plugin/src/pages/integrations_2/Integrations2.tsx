@@ -162,8 +162,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       <>
         <div className={cx('root')}>
           <div className={cx('title')}>
-            <HorizontalGroup justify="space-between">
-              <Text.Title level={3}>Integrations</Text.Title>
+            <HorizontalGroup justify="flex-end">
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   onClick={() => {

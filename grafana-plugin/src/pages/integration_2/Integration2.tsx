@@ -247,13 +247,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   tooltipTitle={`${channelFilterIds.length} Routes`}
                   tooltipContent={undefined}
                 />
-                <CounterBadge
-                  borderType="warning"
-                  icon="exclamation-triangle"
-                  count={'1'}
-                  tooltipTitle="1 Warning"
-                  tooltipContent={undefined}
-                />
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Type:</Text>
                   <HorizontalGroup spacing="none">
@@ -356,7 +349,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             <IntegrationSendDemoPayloadModal
               alertReceiveChannel={alertReceiveChannel}
               isOpen={isDemoModalOpen}
-              onCancel={() => this.setState({ isDemoModalOpen: false })}
+              onHideOrCancel={() => this.setState({ isDemoModalOpen: false })}
             />
             {isEditTemplateModalOpen && (
               <IntegrationTemplate
@@ -548,13 +541,13 @@ const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;
   alertReceiveChannel: AlertReceiveChannel;
-  onCancel: () => void;
+  onHideOrCancel: () => void;
 }
 
 const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
   alertReceiveChannel,
   isOpen,
-  onCancel,
+  onHideOrCancel,
 }) => {
   const { alertReceiveChannelStore } = useStore();
 
@@ -562,7 +555,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
     <Modal
       closeOnEscape
       isOpen={isOpen}
-      onDismiss={onCancel}
+      onDismiss={onHideOrCancel}
       title={`Send demo alert to ${alertReceiveChannel.verbal_name}`}
     >
       <VerticalGroup>
@@ -576,7 +569,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
         <SourceCode showCopyToClipboard={false}>{getDemoAlertJSON()}</SourceCode>
 
         <HorizontalGroup justify={'flex-end'} spacing={'md'}>
-          <Button variant={'secondary'} onClick={onCancel}>
+          <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
           </Button>
           <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL copied!')}>
@@ -594,12 +587,15 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
     alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id).then(() => {
       alertReceiveChannelStore.updateCounters();
       openNotification(<DemoNotification />);
+      onHideOrCancel();
     });
   }
 
   function getCurlText() {
     // TODO add this
-    return '';
+    return `curl -X POST [URL]
+    -H "Content-Type: application/json" 
+    -d "[JSON data]"`;
   }
 
   function getDemoAlertJSON() {
@@ -625,7 +621,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             </Text>
           </Tag>
           <IntegrationMaskedInputField value={alertReceiveChannelStore.items[id].integration_url} />
-          <a href="#" target="_blank" rel="noreferrer">
+          <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer">
             <Text type="link" size="small" onClick={openHowToConnect}>
               <HorizontalGroup>
                 How to connect
