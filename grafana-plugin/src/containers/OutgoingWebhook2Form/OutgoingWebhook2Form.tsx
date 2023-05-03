@@ -18,7 +18,7 @@ import styles from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form.module.
 const cx = cn.bind(styles);
 
 interface OutgoingWebhook2FormProps {
-  id: OutgoingWebhook2['id'];
+  id: OutgoingWebhook2['id'] | 'new';
   action: 'new' | 'update';
   onHide: () => void;
   onUpdate: () => void;
