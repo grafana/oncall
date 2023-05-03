@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { IconButton } from '@grafana/ui';
+import { IconButton, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 
@@ -9,6 +9,7 @@ import styles from './IntegrationCollapsibleTreeView.module.scss';
 const cx = cn.bind(styles);
 
 export interface IntegrationCollapsibleItem {
+  customIcon?: IconName;
   expandedView: React.ReactNode;
   collapsedView: React.ReactNode;
   isCollapsible: boolean;
@@ -81,11 +82,7 @@ const IntegrationCollapsibleTreeItem: React.FC<{ item: IntegrationCollapsibleIte
   return (
     <div className={cx('integrationTree__group')}>
       <div className={cx('integrationTree__icon')}>
-        <IconButton
-          name={!item.isCollapsible ? 'plus' : isExpanded ? 'arrow-down' : 'arrow-right'}
-          onClick={!item.isCollapsible ? undefined : onClick}
-          size="lg"
-        />
+        <IconButton name={getIconName()} onClick={!item.isCollapsible ? undefined : onClick} size="lg" />
       </div>
       <div className={cx('integrationTree__element', { 'integrationTree__element--visible': isExpanded })}>
         {item.expandedView}
@@ -95,6 +92,11 @@ const IntegrationCollapsibleTreeItem: React.FC<{ item: IntegrationCollapsibleIte
       </div>
     </div>
   );
+
+  function getIconName(): IconName {
+    if (item.customIcon) return item.customIcon;
+    return isExpanded ? 'angle-down' : 'angle-right';
+  }
 };
 
 export default IntegrationCollapsibleTreeView;

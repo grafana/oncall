@@ -1,4 +1,5 @@
 import React from 'react';
+import cn from 'classnames/bind';
 import IntegrationBlock from './IntegrationBlock';
 import { observer } from 'mobx-react';
 import { HorizontalGroup, Icon } from '@grafana/ui';
@@ -8,6 +9,9 @@ import { useStore } from 'state/useStore';
 import IntegrationHelper from './Integration2.helper';
 import { ChannelFilter } from 'models/channel_filter';
 import Text from 'components/Text/Text';
+import styles from './CollapsedIntegrationRouteDisplay.module.scss';
+
+const cx = cn.bind(styles);
 
 interface CollapsedIntegrationRouteDisplayProps {
   channelFilterId: ChannelFilter['id'];
@@ -18,10 +22,11 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
   ({ channelFilterId, routeIndex }) => {
     const { alertReceiveChannelStore } = useStore();
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+    if (!channelFilter) return null;
 
     return (
       <IntegrationBlock
-      hasCollapsedBorder
+        hasCollapsedBorder
         heading={
           <HorizontalGroup justify={'space-between'}>
             <HorizontalGroup spacing={'md'}>
@@ -33,16 +38,18 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           </HorizontalGroup>
         }
         content={
-          <HorizontalGroup>
+          <div className={cx('spacing')}>
             <HorizontalGroup>
-              <Text type="secondary">Publish to ChatOps</Text>
-              <Icon name="slack" />
+              <HorizontalGroup>
+                <Text type="secondary">Publish to ChatOps</Text>
+                <Icon name="slack" />
+              </HorizontalGroup>
+              <HorizontalGroup>
+                <Icon name="list-ui-alt" />
+                <Text type="secondary">Escalate to</Text>
+              </HorizontalGroup>
             </HorizontalGroup>
-            <HorizontalGroup>
-              <Icon name="list-ui-alt" />
-              <Text type="secondary">Escalate to</Text>
-            </HorizontalGroup>
-          </HorizontalGroup>
+          </div>
         }
       />
     );

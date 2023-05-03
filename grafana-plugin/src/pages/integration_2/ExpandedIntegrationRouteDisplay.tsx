@@ -72,8 +72,9 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           heading={
             <HorizontalGroup justify={'space-between'}>
               <HorizontalGroup spacing={'md'}>
-                <Tag color={getVar('--tag-primary')}>{IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}</Tag>
-                {channelFilter.filtering_term && <Text type="secondary">{channelFilter.filtering_term}</Text>}
+                <Tag color={getVar('--tag-primary')}>
+                  {IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}
+                </Tag>
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
                 {routeIndex > 0 && !channelFilter.is_default && (
@@ -235,7 +236,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     }
 
     async function onRouteDeleteConfirm() {
-      setState({ routeIdForDeletion: undefined })
+      setState({ routeIdForDeletion: undefined });
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
     }
 

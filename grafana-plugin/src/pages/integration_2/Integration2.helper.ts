@@ -21,13 +21,14 @@ const IntegrationHelper = {
     return slice.length === line.length ? slice : `${slice} ...`;
   },
 
-  getRouteConditionWording(channelFilters: { [id: string]: ChannelFilter }, routeIndex) {
+  getRouteConditionWording(channelFilters: { [id: string]: ChannelFilter }, routeIndex: number) {
     const totalCount = Object.keys(channelFilters).length;
+
     if (routeIndex === totalCount - 1) {
       return 'Default';
     }
     return routeIndex ? 'Else' : 'If';
-  }
+  },
 };
 
 export default IntegrationHelper;

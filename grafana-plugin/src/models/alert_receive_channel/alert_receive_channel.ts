@@ -140,7 +140,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   @action
-  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id']) {
+  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id'], isOverwrite: boolean = false) {
     const response = await makeRequest(`/channel_filters/`, {
       params: { alert_receive_channel: alertReceiveChannelId },
     });
@@ -157,6 +157,13 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...this.channelFilters,
       ...channelFilters,
     };
+
+    if (isOverwrite) {
+      // This is needed because on Move Up/Down/Removal the store no longer reflects correct state
+      this.channelFilters = {
+        ...channelFilters,
+      };
+    }
 
     this.channelFilterIds = {
       ...this.channelFilterIds,
@@ -215,7 +222,7 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     await makeRequest(`/channel_filters/${channelFilterId}/move_to_position/?position=${newIndex}`, { method: 'PUT' });
 
-    this.updateChannelFilters(alertReceiveChannelId);
+    this.updateChannelFilters(alertReceiveChannelId, true);
   }
 
   @action
@@ -233,7 +240,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       method: 'DELETE',
     });
 
-    this.updateChannelFilters(channelFilter.alert_receive_channel);
+    this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
   @action

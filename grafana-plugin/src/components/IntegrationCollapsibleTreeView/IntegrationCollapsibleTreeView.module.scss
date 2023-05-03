@@ -6,7 +6,7 @@
     content: '';
     position: absolute;
     height: calc(100% - 10px);
-    border-left: 1px solid var(--primary-text-color);
+    border: var(--border-weak);
     margin-top: 0px;
     margin-left: -20px;
   }

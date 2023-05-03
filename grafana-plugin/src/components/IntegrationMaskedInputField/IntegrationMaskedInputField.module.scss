@@ -2,13 +2,13 @@
   position: relative;
   display: flex;
   flex-grow: 1;
-  max-width: 80%;
+  margin-right: 24px;
 }
 
 .icons {
   position: absolute;
   right: 8px;
-  top: 10px;
+  top: 6px;
   z-index: 10;
 }
 
@@ -16,6 +16,7 @@
   width: 100%;
 
   input {
+    height: 25px;
     padding-right: 78px;
     text-overflow: ellipsis;
   }
