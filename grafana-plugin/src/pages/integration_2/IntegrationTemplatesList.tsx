@@ -280,13 +280,13 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
               />
             )}
 
-            {!templates['slack_image_template_is_default'] && (
+            {!templates['slack_image_url_template_is_default'] && (
               <IntegrationTemplateBlock
                 label={'Image'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
                     <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['slack_image_template'] || '', false)}
+                      value={IntegrationHelper.getFilteredTemplate(templates['slack_image_url_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
                       data={templates}
@@ -295,7 +295,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                     />
                   </div>
                 )}
-                onEdit={() => openEditTemplateModal('slack_image_template')}
+                onEdit={() => openEditTemplateModal('slack_image_url_template')}
               />
             )}
           </VerticalGroup>
