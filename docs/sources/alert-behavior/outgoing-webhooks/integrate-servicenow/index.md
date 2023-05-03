@@ -47,9 +47,9 @@ https://<INSTANCE>.service-now.com/api/now/table/incident
 
 Replace `<INSTANCE>` with your ServiceNow instance.
 
-- Username: Username of the [user in ServiceNow](#prerequisites)
+- Username: Username of the [ServiceNow user](#prerequisites)
 
-- Password: Password of the [user in ServiceNow](#prerequisites)
+- Password: Password of the [ServiceNow user](#prerequisites)
 
 Use the following JSON template as webhook data:
 
@@ -81,9 +81,9 @@ https://<INSTANCE>.service-now.com/api/now/table/incident/{{responses.<WEBHOOK_I
 
 Replace `<INSTANCE>` with your ServiceNow instance, and `<WEBHOOK_ID>` with the ID of the [webhook used for creating incidents](#create-incidents-in-servicenow).
 
-- Username: Username of the [user in ServiceNow](#prerequisites)
+- Username: Username of the [ServiceNow user](#prerequisites)
 
-- Password: Password of the [user in ServiceNow](#prerequisites)
+- Password: Password of the [ServiceNow user](#prerequisites)
 
 Use the following JSON template as webhook data:
 
@@ -115,9 +115,9 @@ https://<INSTANCE>.service-now.com/api/now/table/incident/{{responses.<WEBHOOK_I
 
 Replace `<INSTANCE>` with your ServiceNow instance, and `<WEBHOOK_ID>` with the ID of the [webhook used for creating incidents](#create-incidents-in-servicenow).
 
-- Username: Username of the [user in ServiceNow](#prerequisites)
+- Username: Username of the [ServiceNow user](#prerequisites)
 
-- Password: Password of the [user in ServiceNow](#prerequisites)
+- Password: Password of the [ServiceNow user](#prerequisites)
 
 Use the following JSON template as webhook data:
 
@@ -137,3 +137,5 @@ The examples above describe how to create outgoing webhooks in Grafana OnCall th
 
 Consider modifying example templates to fit your use case (e.g. to include more information on alert groups).
 Refer to [outgoing webhooks documentation]({{< relref "_index.md" >}}) for more information on available template variables and webhook configuration.
+
+For more information on ServiceNow REST API, refer to [ServiceNow REST API documentation](https://developer.servicenow.com/dev.do#!/reference/api/sandiego/rest).

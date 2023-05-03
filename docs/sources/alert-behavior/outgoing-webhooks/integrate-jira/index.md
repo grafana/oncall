@@ -132,3 +132,5 @@ The examples above describe how to create outgoing webhooks in Grafana OnCall th
 
 Consider modifying example templates to fit your use case (e.g. to include more information on alert groups).
 Refer to [outgoing webhooks documentation]({{< relref "_index.md" >}}) for more information on available template variables and webhook configuration.
+
+For more information on Jira REST API, refer to [Jira REST API documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues).
