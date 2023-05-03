@@ -36,6 +36,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
       <>
         <IntegrationBlock
           hasCollapsedBorder
+          key={channelFilterId}
           heading={
             <HorizontalGroup justify={'space-between'}>
               <HorizontalGroup spacing={'md'}>

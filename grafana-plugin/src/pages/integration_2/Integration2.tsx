@@ -11,6 +11,7 @@ import {
   Modal,
   CascaderOption,
 } from '@grafana/ui';
+import { get } from 'lodash-es';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -53,6 +54,7 @@ import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
 import IntegrationHelper from './Integration2.helper';
+// import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -67,8 +69,6 @@ interface Integration2State extends PageBaseState {
 // This can be further improved by using a ref instead
 const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
-
-const exampleTemplateBody = '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -367,10 +367,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   });
                 }}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
+                onUpdateRoute={this.onUpdateRoutesCallback}
                 template={selectedTemplate}
-                templateBody={
-                  templates[selectedTemplate?.name] ? templates[selectedTemplate?.name] : exampleTemplateBody
-                }
+                templateBody={templates[selectedTemplate?.name]}
               />
             )}
           </div>
@@ -413,6 +412,35 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   handleSlackChannelChange = () => {};
 
+  onUpdateRoutesCallback = ({ routing }: { routing: string }) => {
+    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
+    const {
+      params: { id },
+    } = this.props.match;
+
+    alertReceiveChannelStore
+      .createChannelFilter({
+        order: 0,
+        alert_receive_channel: id,
+        filtering_term: routing,
+
+        // TODO: need to figure out this value
+        filtering_term_type: 1,
+      })
+      .then((channelFilter: ChannelFilter) => {
+        alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
+          // @ts-ignore
+          escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+        });
+      })
+      .catch((err) => {
+        const errors = get(err, 'response.data');
+        if (errors?.non_field_errors) {
+          openErrorNotification(errors.non_field_errors);
+        }
+      });
+  };
+
   onUpdateTemplatesCallback = (data) => {
     const {
       store,
@@ -420,13 +448,11 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         params: { id },
       },
     } = this.props;
+
     store.alertReceiveChannelStore
       .saveTemplates(id, data)
       .then(() => {
-        openNotification('Alert templates are successfully updated');
-        // if (onUpdateTemplates) {
-        //   onUpdateTemplates();
-        // }
+        openNotification('The Alert templates have been updated');
       })
       .catch((err) => {
         if (err.response?.data?.length > 0) {

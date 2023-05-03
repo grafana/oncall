@@ -30,10 +30,11 @@ interface IntegrationTemplateProps {
   templateBody: string;
   onHide: () => void;
   onUpdateTemplates: (values: any) => void;
+  onUpdateRoute: (values: any) => void;
 }
 
 const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
-  const { id, onHide, template, onUpdateTemplates, templateBody } = props;
+  const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [chatOps, setChatOps] = useState(undefined);
@@ -86,15 +87,17 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const onSaveAndFollowLink = useCallback(
     (link: string) => {
-      onUpdateTemplates({ [template.name]: changedTemplateBody });
       onHide();
       window.open(link, '_blank');
     },
-    [onUpdateTemplates, changedTemplateBody]
+    [onUpdateTemplates, onUpdateRoute, changedTemplateBody]
   );
 
   const handleSubmit = useCallback(() => {
-    onUpdateTemplates({ [template.name]: changedTemplateBody });
+    template.isRoute
+      ? onUpdateRoute({ [template.name]: changedTemplateBody })
+      : onUpdateTemplates({ [template.name]: changedTemplateBody });
+
     onHide();
   }, [onUpdateTemplates, changedTemplateBody]);
 

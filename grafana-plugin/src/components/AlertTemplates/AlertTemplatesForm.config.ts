@@ -12,6 +12,7 @@ export interface TemplateForEdit {
     data?: string;
     additionalDescription?: string;
   };
+  isRoute?: boolean;
 }
 
 export const templateForEdit: { [id: string]: TemplateForEdit } = {
@@ -135,6 +136,7 @@ export const templateForEdit: { [id: string]: TemplateForEdit } = {
       additionalDescription: 'For an alert to be directed to this route, the template must evaluate to True.',
       data: 'Selected Alert will be directed to this route',
     },
+    isRoute: true,
   },
 };
 
