@@ -295,7 +295,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                     />
                   </div>
                 )}
-                onEdit={() => openEditTemplateModal('slack_image_template')}
+                onEdit={() => openEditTemplateModal('slack_image_url_template')}
               />
             )}
           </VerticalGroup>
