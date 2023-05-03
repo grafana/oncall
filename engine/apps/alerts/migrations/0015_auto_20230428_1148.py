@@ -9,7 +9,7 @@ def set_field_if_web_template_is_not_default(apps, schema_editor):
     """
     Save current default template to DB if
     * web templates are not default
-    * template is not set and uses default value
+    * template is not set and uses default value (not from DB)
     We will change default templates soon, so they could be dependant on web templates
     This migration saves current default templates to DB for organizations that already set web templates,
     so we won't break their templates after changing default templates
