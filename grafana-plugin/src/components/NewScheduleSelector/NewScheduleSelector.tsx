@@ -35,7 +35,7 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
 
   return (
     <>
-      <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick width={'95%'}>
+      <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick>
         <div className={cx('content')}>
           <VerticalGroup spacing="lg">
             <Block bordered withBackground className={cx('block')}>

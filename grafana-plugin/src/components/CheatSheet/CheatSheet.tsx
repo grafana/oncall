@@ -25,7 +25,7 @@ const CheatSheet = (props: CheatSheetProps) => {
     <div className={cx('cheatsheet-container')}>
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text.Title level={5}>{cheatSheetData.name}</Text.Title>
+          <Text.Title level={3}>{cheatSheetData.name}</Text.Title>
           <IconButton name="times" onClick={onClose} />
         </HorizontalGroup>
         <Text type="secondary">{cheatSheetData.description}</Text>
@@ -50,21 +50,27 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
   const { field } = props;
   return (
     <>
-      <Text.Title level={6}>{field.name}</Text.Title>
+      <Text.Title level={4}>{field.name}</Text.Title>
       {field.listItems?.map((item, key) => {
         return (
           <div key={key}>
-            <VerticalGroup>
-              {item.listItemName && <Text>- {item.listItemName}</Text>}
+            <VerticalGroup spacing="md">
+              {item.listItemName && (
+                <li style={{ margin: '0 0 0 4px' }}>
+                  <Text>{item.listItemName}</Text>
+                </li>
+              )}
               {item.codeExample && (
-                <Block bordered fullWidth>
-                  <HorizontalGroup justify="space-between">
-                    <Text type="link">{item.codeExample}</Text>
-                    <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
-                      <IconButton name="copy" />
-                    </CopyToClipboard>
-                  </HorizontalGroup>
-                </Block>
+                <div className={cx('cheatsheet-item-small')}>
+                  <Block bordered fullWidth withBackground>
+                    <HorizontalGroup justify="space-between">
+                      <Text type="link">{item.codeExample}</Text>
+                      <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
+                        <IconButton name="copy" />
+                      </CopyToClipboard>
+                    </HorizontalGroup>
+                  </Block>
+                </div>
               )}
             </VerticalGroup>
           </div>

@@ -81,7 +81,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 <MonacoJinja2Editor
                   value={JSON.stringify(selectedAlertPayload, null, 4)}
                   data={undefined}
-                  height={'600px'}
+                  height={'100vh'}
                   onChange={getChangeHandler()}
                   showLineNumbers
                 />
@@ -127,7 +127,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 <MonacoJinja2Editor
                   value={null}
                   data={undefined}
-                  height={'600px'}
+                  height={'100vh'}
                   onChange={getChangeHandler()}
                   showLineNumbers
                 />

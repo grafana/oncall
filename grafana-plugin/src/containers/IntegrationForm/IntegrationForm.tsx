@@ -39,6 +39,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const [filterValue, setFilterValue] = useState('');
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
+  // const [showIntegrationListForm, setShowIntegrationListForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
 
   const data =
@@ -176,9 +177,16 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                 </Text>
               </Collapse>
               <HorizontalGroup justify="flex-end">
-                <Button variant="secondary" onClick={onHide}>
-                  {id === 'new' ? 'Back' : 'Cancel'}
-                </Button>
+                {id === 'new' ? (
+                  <Button variant="secondary" onClick={() => setShowNewIntegrationForm(false)}>
+                    Back
+                  </Button>
+                ) : (
+                  <Button variant="secondary" onClick={onHide}>
+                    Cancel
+                  </Button>
+                )}
+
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button form={form.name} type="submit">
                     {id === 'new' ? 'Create' : 'Update'} Integration

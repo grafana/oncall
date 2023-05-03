@@ -34,7 +34,7 @@ import styles from './Integrations2.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 25;
+// const ITEMS_PER_PAGE = 25;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -103,15 +103,15 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { page, integrationsFilters } = this.state;
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updateItems(integrationsFilters, page);
+    return store.alertReceiveChannelStore.updateItems(integrationsFilters);
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, page } = this.state;
+    const { alertReceiveChannelId } = this.state;
     const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore, maintenanceStore } = store;
 
-    const { count, results } = alertReceiveChannelStore.getSearchResult();
+    const results = alertReceiveChannelStore.getSearchResult();
 
     const columns = [
       {
@@ -189,11 +189,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               rowKey="id"
               data={results}
               columns={columns}
-              pagination={{
-                page,
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                onChange: this.handleChangePage,
-              }}
+              // pagination={{
+              //   page,
+              //   total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+              //   onChange: this.handleChangePage,
+              // }}
             />
           </div>
         </div>
@@ -339,8 +339,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             color={maintenanceMode === MaintenanceMode.Debug ? 'orange' : 'blue'}
             tooltip={
               maintenanceMode === MaintenanceMode.Debug
-                ? `Debug Maintenance: ${maintenanceTill} left`
-                : `Maintenance: ${maintenanceTill} left`
+                ? `Debug Maintenance: ${this.convertTimestampToTimeDifference(maintenanceTill)} left`
+                : `Maintenance: ${this.convertTimestampToTimeDifference(maintenanceTill)} left`
             }
           />
         </Tooltip>

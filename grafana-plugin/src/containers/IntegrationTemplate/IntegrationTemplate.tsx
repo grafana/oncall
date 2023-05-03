@@ -40,6 +40,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
+  const [isResultLoading, setIsResultLoading] = useState<boolean>(false);
 
   const onShowCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(true);
@@ -51,6 +52,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const getChangeHandler = () => {
     return debounce((value: string) => {
+      setIsResultLoading(true);
       setChangedTemplateBody(value);
     }, 1000);
   };
@@ -76,7 +78,6 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const onSelectAlertGroup = useCallback((alertGroup: Alert) => {
     if (template.additionalData?.chatOpsName) {
-      console.log('CHATOPS', template.additionalData?.chatOpsName);
       setChatOps({
         permalink: alertGroup?.permalinks[template.additionalData?.chatOpsName],
         name: template.additionalData?.chatOpsName,
@@ -178,6 +179,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                   showLineNumbers={true}
                   height={'100vh'}
                   onChange={getChangeHandler()}
+                  loading={isResultLoading}
                 />
               </div>
             </>

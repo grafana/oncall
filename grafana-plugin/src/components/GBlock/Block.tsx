@@ -35,7 +35,7 @@ const Block: FC<BlockProps> = (props) => {
           root_bordered: bordered,
           root_shadowed: shadowed,
           'root--fullWidth': fullWidth,
-          'root--withBackground': withBackground,
+          'root--withBackGround': withBackground,
           'root--hover': hover,
         },
         className

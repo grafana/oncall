@@ -5,5 +5,10 @@
 }
 
 .cheatsheet-item {
+  margin-bottom: 24px;
+}
+
+.cheatsheet-item-small {
   margin-bottom: 16px;
+  width: 100%;
 }
