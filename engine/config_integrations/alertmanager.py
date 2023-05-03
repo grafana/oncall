@@ -84,7 +84,7 @@ slack_title = """\
 """
 
 slack_message = """\
-{{ web_message_template | regex_replace('*', '**'))}}
+{{ web_message | regex_replace('*', '**'))}}
 """  # noqa: W291
 
 
