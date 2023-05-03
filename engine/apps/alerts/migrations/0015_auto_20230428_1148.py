@@ -8,6 +8,8 @@ from apps.base.messaging import get_messaging_backends
 def set_field_if_web_template_is_not_default(apps, schema_editor):
     """Save current default templates to DB if web templates are not default
     to avoid using default templates in the future, as default templates will be dependant on web templates
+    We need to gurantee that new default templates only dependant on newer web templates
+    and this change won't break existing alert receive channels
     """
     # TODO: remove import as it is used for local testing only
     from django.apps import apps
