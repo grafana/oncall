@@ -17,19 +17,18 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django_deprecate_fields import deprecate_field
 
-from apps.alerts.constants import STATE_ACKNOWLEDGED, STATE_NEW, STATE_RESOLVED, STATE_SILENCED
+from apps.alerts.constants import STATE_ACKNOWLEDGED, STATE_FIRING, STATE_RESOLVED, STATE_SILENCED
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
 from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
-from apps.metrics_exporter.helpers import (
-    get_response_time_period,
+from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
+from apps.metrics_exporter.tasks import (
     metrics_update_alert_groups_response_time_cache,
     metrics_update_alert_groups_state_cache,
 )
-from apps.metrics_exporter.metrics_exporter_manager import MetricsExporterManager
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -515,8 +514,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def acknowledge_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(
-            self.channel_id, self.state, STATE_ACKNOWLEDGED
+        MetricsCacheManager.metrics_update_cache_for_alert_group(
+            self.channel_id,
+            organization_id=user.organization_id,
+            old_state=self.state,
+            new_state=STATE_ACKNOWLEDGED,
+            response_time=self.get_new_response_time(),
+            started_at=self.started_at,
         )
 
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
@@ -563,8 +567,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def acknowledge_by_source(self):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(
-            self.channel_id, self.state, STATE_ACKNOWLEDGED
+        MetricsCacheManager.metrics_update_cache_for_alert_group(
+            self.channel_id,
+            old_state=self.state,
+            new_state=STATE_ACKNOWLEDGED,
+            response_time=self.get_new_response_time(),
+            started_at=self.started_at,
         )
 
         # if incident was silenced, unsilence it without starting escalation
@@ -597,7 +605,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def un_acknowledge_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_NEW)
+        MetricsCacheManager.metrics_update_state_cache_for_alert_group(
+            self.channel_id, user.organization_id, self.state, STATE_FIRING
+        )
 
         logger.debug(f"Started un_acknowledge_by_user for alert_group {self.pk}")
         self.unacknowledge()
@@ -624,7 +634,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def resolve_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_RESOLVED)
+        MetricsCacheManager.metrics_update_cache_for_alert_group(
+            self.channel_id,
+            organization_id=user.organization_id,
+            old_state=self.state,
+            new_state=STATE_RESOLVED,
+            response_time=self.get_new_response_time(),
+            started_at=self.started_at,
+        )
 
         # if incident was silenced, unsilence it without starting escalation
         if self.silenced:
@@ -656,7 +673,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def resolve_by_source(self):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_RESOLVED)
+        MetricsCacheManager.metrics_update_cache_for_alert_group(
+            self.channel_id,
+            old_state=self.state,
+            new_state=STATE_RESOLVED,
+            response_time=self.get_new_response_time(),
+            started_at=self.started_at,
+        )
 
         # if incident was silenced, unsilence it without starting escalation
         if self.silenced:
@@ -719,7 +742,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def resolve_by_last_step(self):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_RESOLVED)
+        MetricsCacheManager.metrics_update_cache_for_alert_group(
+            self.channel_id,
+            old_state=self.state,
+            new_state=STATE_RESOLVED,
+            response_time=self.get_new_response_time(),
+            started_at=self.started_at,
+        )
 
         self.resolve(resolved_by=AlertGroup.LAST_STEP)
         self.stop_escalation()
@@ -764,7 +793,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def un_resolve_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_NEW)
+        MetricsCacheManager.metrics_update_state_cache_for_alert_group(
+            self.channel_id, user.organization_id, self.state, STATE_FIRING
+        )
 
         if self.wiped_at is None:
             self.unresolve()
@@ -939,7 +970,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def silence_by_user(self, user: User, silence_delay: Optional[int], action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_SILENCED)
+        MetricsCacheManager.metrics_update_cache_for_alert_group(
+            self.channel_id,
+            organization_id=user.organization_id,
+            old_state=self.state,
+            new_state=STATE_SILENCED,
+            response_time=self.get_new_response_time(),
+            started_at=self.started_at,
+        )
 
         if self.resolved:
             self.unresolve()
@@ -994,7 +1032,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def un_silence_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_NEW)
+        MetricsCacheManager.metrics_update_state_cache_for_alert_group(
+            self.channel_id, user.organization_id, self.state, STATE_FIRING
+        )
 
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
 
@@ -1027,7 +1067,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def wipe_by_user(self, user: User) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, STATE_RESOLVED)
+        MetricsCacheManager.metrics_update_cache_for_alert_group(
+            self.channel_id,
+            organization_id=user.organization_id,
+            old_state=self.state,
+            new_state=STATE_RESOLVED,
+            response_time=self.get_new_response_time(),
+            started_at=self.started_at,
+        )
 
         if not self.wiped_at:
             self.resolve(resolved_by=AlertGroup.WIPED)
@@ -1064,7 +1111,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def delete_by_user(self, user: User):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         # todo:metrics: add comment
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(self.channel_id, self.state, None)
+        MetricsCacheManager.metrics_update_state_cache_for_alert_group(
+            self.channel_id, user.organization_id, self.state, None
+        )
 
         self.stop_escalation()
         # prevent creating multiple logs
@@ -1135,18 +1184,23 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         metrics_states_diff = {}
 
         for alert_group in alert_groups_to_acknowledge_list:
-            # update metrics
-            if not alert_group.response_time:
-                response_time = alert_group.get_response_time() or now - alert_group.started_at
-                alert_group.response_time = response_time
-                if alert_group.started_at > get_response_time_period(now):
-                    metrics_response_time = MetricsExporterManager.update_integration_response_time(
-                        metrics_response_time, alert_group.channel_id, int(response_time.total_seconds())
-                    )
-            metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
-                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_ACKNOWLEDGED
+            new_response_time = alert_group.get_new_response_time()
+
+            # collect metrics
+            metrics_response_time, metrics_states_diff = MetricsCacheManager.metrics_update_diff_for_alert_group(
+                integration_id=alert_group.channel_id,
+                response_time_diff=metrics_response_time,
+                states_diff=metrics_states_diff,
+                old_state=alert_group.state,
+                new_state=STATE_ACKNOWLEDGED,
+                response_time=new_response_time,
+                started_at=alert_group.started_at,
             )
+
             # update alert_group fields
+            if new_response_time:
+                alert_group.response_time = new_response_time
+
             alert_group.acknowledged_at = now
             alert_group.acknowledged = True
             alert_group.resolved = False
@@ -1180,8 +1234,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         AlertGroup.all_objects.bulk_update(alert_groups_to_acknowledge_list, fields_to_update, batch_size=1000)
 
         # update metrics cache
-        metrics_update_alert_groups_response_time_cache(metrics_response_time)
-        metrics_update_alert_groups_state_cache(metrics_states_diff)
+        metrics_update_alert_groups_response_time_cache(metrics_response_time, user.organization_id)
+        metrics_update_alert_groups_state_cache(metrics_states_diff, user.organization_id)
 
         # create logs and start acknowledge tasks
         for alert_group in alert_groups_to_unresolve_before_acknowledge_list:
@@ -1241,18 +1295,22 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         metrics_states_diff = {}
 
         for alert_group in alert_groups_to_resolve_list:
-            # update metrics
-            if not alert_group.response_time:
-                response_time = alert_group.get_response_time() or now - alert_group.started_at
-                alert_group.response_time = response_time
-                if alert_group.started_at > get_response_time_period(now):
-                    metrics_response_time = MetricsExporterManager.update_integration_response_time(
-                        metrics_response_time, alert_group.channel_id, int(response_time.total_seconds())
-                    )
-            metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
-                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_RESOLVED
+            new_response_time = alert_group.get_new_response_time()
+
+            # collect metrics
+            metrics_response_time, metrics_states_diff = MetricsCacheManager.metrics_update_diff_for_alert_group(
+                integration_id=alert_group.channel_id,
+                response_time_diff=metrics_response_time,
+                states_diff=metrics_states_diff,
+                old_state=alert_group.state,
+                new_state=STATE_RESOLVED,
+                response_time=new_response_time,
+                started_at=alert_group.started_at,
             )
+
             # update alert_group fields
+            if new_response_time:
+                alert_group.response_time = new_response_time
             alert_group.resolved = True
             alert_group.resolved_at = now
             alert_group.is_open_for_grouping = None
@@ -1275,13 +1333,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "silenced_by_user",
             "silenced_at",
             "silenced",
+            "response_time",
         ]
 
         AlertGroup.all_objects.bulk_update(alert_groups_to_resolve_list, fields_to_update, batch_size=1000)
 
         # update metrics cache
-        metrics_update_alert_groups_response_time_cache(metrics_response_time)
-        metrics_update_alert_groups_state_cache(metrics_states_diff)
+        metrics_update_alert_groups_response_time_cache(metrics_response_time, user.organization_id)
+        metrics_update_alert_groups_state_cache(metrics_states_diff, user.organization_id)
 
         # create logs and start acknowledge tasks
         for alert_group in alert_groups_to_unsilence_before_resolve_list:
@@ -1331,13 +1390,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         for alert_group in alert_groups_to_restart_unack_list:
             # update metrics
-            if not alert_group.response_time:
-                response_time = alert_group.get_response_time()
-                alert_group.response_time = response_time
-            metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
-                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_NEW
+            metrics_states_diff = MetricsCacheManager.update_integration_states_diff(
+                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_FIRING
             )
             # update alert_group fields
+            if not alert_group.response_time:
+                alert_group.response_time = alert_group.get_response_time()
             alert_group.acknowledged = False
             alert_group.acknowledged_at = None
             alert_group.acknowledged_by_user = None
@@ -1366,12 +1424,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "silenced_by_user",
             "silenced_at",
             "silenced",
+            "response_time",
         ]
 
         AlertGroup.all_objects.bulk_update(alert_groups_to_restart_unack_list, fields_to_update, batch_size=1000)
 
         # update metrics cache
-        metrics_update_alert_groups_state_cache(metrics_states_diff)
+        metrics_update_alert_groups_state_cache(metrics_states_diff, user.organization_id)
 
         # unacknowledge alert groups
         for alert_group in alert_groups_to_restart_unack_list:
@@ -1397,13 +1456,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         for alert_group in alert_groups_to_restart_unresolve_list:
             # update metrics
-            if not alert_group.response_time:
-                response_time = alert_group.get_response_time()
-                alert_group.response_time = response_time
-            metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
-                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_NEW
+            metrics_states_diff = MetricsCacheManager.update_integration_states_diff(
+                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_FIRING
             )
             # update alert_group fields
+            if not alert_group.response_time:
+                alert_group.response_time = alert_group.get_response_time()
             alert_group.acknowledged = False
             alert_group.acknowledged_at = None
             alert_group.acknowledged_by_user = None
@@ -1432,12 +1490,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "silenced_by_user",
             "silenced_at",
             "silenced",
+            "response_time",
         ]
 
         AlertGroup.all_objects.bulk_update(alert_groups_to_restart_unresolve_list, fields_to_update, batch_size=1000)
 
         # update metrics cache
-        metrics_update_alert_groups_state_cache(metrics_states_diff)
+        metrics_update_alert_groups_state_cache(metrics_states_diff, user.organization_id)
 
         # unresolve alert groups
         for alert_group in alert_groups_to_restart_unresolve_list:
@@ -1463,13 +1522,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         for alert_group in alert_groups_to_restart_unsilence_list:
             # update metrics
-            if not alert_group.response_time:
-                response_time = alert_group.get_response_time()
-                alert_group.response_time = response_time
-            metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
-                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_NEW
+            metrics_states_diff = MetricsCacheManager.update_integration_states_diff(
+                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_FIRING
             )
             # update alert_group fields
+            if not alert_group.response_time:
+                alert_group.response_time = alert_group.get_response_time()
             alert_group.acknowledged = False
             alert_group.acknowledged_at = None
             alert_group.acknowledged_by_user = None
@@ -1498,12 +1556,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "silenced_by_user",
             "silenced_at",
             "silenced",
+            "response_time",
         ]
 
         AlertGroup.all_objects.bulk_update(alert_groups_to_restart_unsilence_list, fields_to_update, batch_size=1000)
 
         # update metrics cache
-        metrics_update_alert_groups_state_cache(metrics_states_diff)
+        metrics_update_alert_groups_state_cache(metrics_states_diff, user.organization_id)
 
         # unsilence alert groups
         for alert_group in alert_groups_to_restart_unsilence_list:
@@ -1575,18 +1634,22 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         metrics_states_diff = {}
 
         for alert_group in alert_groups_to_silence_list:
-            # update metrics
-            if not alert_group.response_time:
-                response_time = alert_group.get_response_time() or now - alert_group.started_at
-                alert_group.response_time = response_time
-                if alert_group.started_at > get_response_time_period(now):
-                    metrics_response_time = MetricsExporterManager.update_integration_response_time(
-                        metrics_response_time, alert_group.channel_id, int(response_time.total_seconds())
-                    )
-            metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
-                metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_SILENCED
+            new_response_time = alert_group.get_new_response_time()
+
+            # collect metrics
+            metrics_response_time, metrics_states_diff = MetricsCacheManager.metrics_update_diff_for_alert_group(
+                integration_id=alert_group.channel_id,
+                response_time_diff=metrics_response_time,
+                states_diff=metrics_states_diff,
+                old_state=alert_group.state,
+                new_state=STATE_SILENCED,
+                response_time=new_response_time,
+                started_at=alert_group.started_at,
             )
+
             # update alert_group fields
+            if new_response_time:
+                alert_group.response_time = new_response_time
             alert_group.acknowledged = False
             alert_group.acknowledged_at = None
             alert_group.acknowledged_by_user = None
@@ -1616,13 +1679,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "silenced_until",
             "silenced_by_user",
             "is_escalation_finished",
+            "response_time",
         ]
 
         AlertGroup.all_objects.bulk_update(alert_groups_to_silence_list, fields_to_update, batch_size=1000)
 
         # update metrics cache
-        metrics_update_alert_groups_response_time_cache(metrics_response_time)
-        metrics_update_alert_groups_state_cache(metrics_states_diff)
+        metrics_update_alert_groups_response_time_cache(metrics_response_time, user.organization_id)
+        metrics_update_alert_groups_state_cache(metrics_states_diff, user.organization_id)
 
         for alert_group in alert_groups_to_unresolve_before_silence_list:
             alert_group.log_records.create(
@@ -1728,6 +1792,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         elif self.resolved:
             response_action_at = self.resolved_at
         return response_action_at - self.started_at if response_action_at else None
+
+    def get_new_response_time(self):
+        return timezone.now() - self.started_at if not self.response_time else None
 
     def acknowledge(self, **kwargs):
         if not self.acknowledged:
@@ -1895,7 +1962,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         elif self.silenced:
             return STATE_SILENCED
         else:
-            return STATE_NEW
+            return STATE_FIRING
 
     @property
     def notify_in_slack_enabled(self):
@@ -1948,13 +2015,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 @receiver(post_save, sender=AlertGroup)
 def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs):
     if created and not instance.is_maintenance_incident:
-        MetricsExporterManager.metrics_update_state_cache_for_alert_group(instance.channel_id, new_state=STATE_NEW)
-    elif kwargs is not None and "response_time" in kwargs.get("update_fields", {}):
-        # todo:metrics: response_time period
-        metrics_response_time = MetricsExporterManager.update_integration_response_time(
-            {}, instance.channel_id, int(instance.response_time.total_seconds())
-        )
-        metrics_update_alert_groups_response_time_cache(metrics_response_time)
+        MetricsCacheManager.metrics_update_state_cache_for_alert_group(instance.channel_id, new_state=STATE_FIRING)
 
 
 post_save.connect(listen_for_alertgroup_model_save, AlertGroup)

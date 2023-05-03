@@ -2,8 +2,8 @@ from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 
-from apps.alerts.constants import STATE_NEW, STATE_SILENCED
-from apps.metrics_exporter.metrics_exporter_manager import MetricsExporterManager
+from apps.alerts.constants import STATE_FIRING, STATE_SILENCED
+from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .compare_escalations import compare_escalations
@@ -32,8 +32,8 @@ def unsilence_task(alert_group_pk):
             )
             return
         if alert_group.status == AlertGroup.SILENCED and alert_group.is_root_alert_group:
-            MetricsExporterManager.metrics_update_state_cache_for_alert_group(
-                alert_group.channel_id, STATE_SILENCED, STATE_NEW
+            MetricsCacheManager.metrics_update_state_cache_for_alert_group(
+                alert_group.channel_id, old_state=STATE_SILENCED, new_state=STATE_FIRING
             )
             task_logger.info(f"unsilence alert_group {alert_group_pk} and start escalation if needed")
             alert_group.un_silence()

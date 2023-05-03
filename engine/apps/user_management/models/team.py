@@ -3,7 +3,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 
 from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
-from apps.metrics_exporter.metrics_exporter_manager import MetricsExporterManager
+from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -48,7 +48,7 @@ class TeamManager(models.Manager):
         # todo:metrics: comment
         metrics_teams_to_update = {}
         for team_id in team_ids_to_delete:
-            metrics_teams_to_update = MetricsExporterManager.update_team_diff(
+            metrics_teams_to_update = MetricsCacheManager.update_team_diff(
                 metrics_teams_to_update, team_id, deleted=True
             )
 
@@ -62,7 +62,7 @@ class TeamManager(models.Manager):
                 or team.avatar_url != grafana_team["avatarUrl"]
             ):
                 if team.name != grafana_team["name"]:
-                    metrics_teams_to_update = MetricsExporterManager.update_team_diff(
+                    metrics_teams_to_update = MetricsCacheManager.update_team_diff(
                         metrics_teams_to_update, team.id, new_name=grafana_team["name"]
                     )
                 team.name = grafana_team["name"]
@@ -71,7 +71,7 @@ class TeamManager(models.Manager):
                 teams_to_update.append(team)
         organization.teams.bulk_update(teams_to_update, ["name", "email", "avatar_url"], batch_size=5000)
 
-        metrics_bulk_update_team_label_cache(metrics_teams_to_update)
+        metrics_bulk_update_team_label_cache(metrics_teams_to_update, organization.id)
 
 
 class Team(models.Model):

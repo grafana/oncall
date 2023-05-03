@@ -475,6 +475,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60 * 10,
         "args": (),
     },
+    "save_organizations_ids_in_cache": {
+        "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
+        "schedule": 60 * 30,
+        "args": (),
+    },
 }
 
 INTERNAL_IPS = ["127.0.0.1"]
