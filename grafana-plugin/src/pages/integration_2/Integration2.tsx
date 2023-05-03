@@ -52,6 +52,7 @@ import { INTEGRATION_DEMO_PAYLOAD, INTEGRATION_TEMPLATES_LIST } from './Integrat
 import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
+import IntegrationHelper from './Integration2.helper';
 
 const cx = cn.bind(styles);
 
@@ -283,16 +284,43 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 },
                 {
                   isCollapsible: true,
-                  collapsedView: null,
+                  collapsedView: (
+                    <IntegrationBlock
+                      hasCollapsedBorder
+                      heading={
+                        <HorizontalGroup spacing={'md'}>
+                          <Tag color={getVar('--tag-secondary')} className={cx('tag')}>
+                            <Text type="primary" size="small">
+                              Templates
+                            </Text>
+                          </Tag>
+                          <HorizontalGroup spacing={'xs'}>
+                            <Text type="secondary">Grouping:</Text>
+                            <Text type="link">
+                              {IntegrationHelper.getFilteredTemplate(templates['grouping_id_template'] || '', false)}
+                            </Text>
+                          </HorizontalGroup>
+
+                          <HorizontalGroup spacing={'xs'}>
+                            <Text type="secondary">Visualisation:</Text>
+                            <Text type="primary">Multiple</Text>
+                          </HorizontalGroup>
+                        </HorizontalGroup>
+                      }
+                      content={null}
+                    />
+                  ),
                   expandedView: (
                     <IntegrationBlock
                       hasCollapsedBorder
                       heading={
-                        <Tag color={getVar('--tag-secondary')}>
-                          <Text type="primary" size="small">
-                            Templates
-                          </Text>
-                        </Tag>
+                        <HorizontalGroup>
+                          <Tag color={getVar('--tag-secondary')} className={cx('tag')}>
+                            <Text type="primary" size="small">
+                              Templates
+                            </Text>
+                          </Tag>
+                        </HorizontalGroup>
                       }
                       content={
                         <IntegrationTemplateList
@@ -364,7 +392,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     return channelFilterIds.map((channelFilterId: ChannelFilter['id'], routeIndex: number) => ({
       isCollapsible: true,
-      collapsedView: <CollapsedIntegrationRouteDisplay channelFilterId={channelFilterId} routeIndex={routeIndex} />,
+      collapsedView: (
+        <CollapsedIntegrationRouteDisplay
+          alertReceiveChannelId={id}
+          channelFilterId={channelFilterId}
+          routeIndex={routeIndex}
+        />
+      ),
       expandedView: (
         <ExpandedIntegrationRouteDisplay
           alertReceiveChannelId={id}
@@ -565,12 +599,14 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             </Text>
           </Tag>
           <IntegrationMaskedInputField value={alertReceiveChannelStore.items[id].integration_url} />
-          <Text type="link" size="small" onClick={openHowToConnect}>
-            <HorizontalGroup>
-              How to connect
-              <Icon name="external-link-alt" />
-            </HorizontalGroup>
-          </Text>
+          <a href="#" target="_blank" rel="noreferrer">
+            <Text type="link" size="small" onClick={openHowToConnect}>
+              <HorizontalGroup>
+                How to connect
+                <Icon name="external-link-alt" />
+              </HorizontalGroup>
+            </Text>
+          </a>
         </div>
       }
       content={isAlertManager || !hasAlerts ? renderContent() : null}

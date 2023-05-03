@@ -96,9 +96,10 @@ $ITEMS-MARGIN: 24px;
 
 .how-to-connect__container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
 }
+.tag,
 .how-to-connect__tag {
   height: 25px;
 }

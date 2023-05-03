@@ -78,29 +78,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 </Tag>
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
-                {routeIndex > 0 && !channelFilter.is_default && (
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <Tooltip placement="top" content={'Move Up'}>
-                      <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'xs'} />
-                    </Tooltip>
-                  </WithPermissionControlTooltip>
-                )}
-
-                {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <Tooltip placement="top" content={'Move Down'}>
-                      <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'xs'} />
-                    </Tooltip>
-                  </WithPermissionControlTooltip>
-                )}
-
-                {!channelFilter.is_default && (
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <Tooltip placement="top" content={'Delete'}>
-                      <Button variant={'secondary'} icon={'trash-alt'} size={'xs'} onClick={onRouteDelete} />
-                    </Tooltip>
-                  </WithPermissionControlTooltip>
-                )}
+                <RouteButtonsDisplay
+                  alertReceiveChannelId={alertReceiveChannelId}
+                  channelFilterId={channelFilterId}
+                  routeIndex={routeIndex}
+                  setRouteIdForDeletion={() => setState({ routeIdForDeletion: channelFilterId })}
+                />
               </HorizontalGroup>
             </HorizontalGroup>
           }
@@ -224,18 +207,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       </>
     );
 
-    function onRouteMoveDown() {
-      alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex + 1);
-    }
-
-    function onRouteMoveUp() {
-      alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex - 1);
-    }
-
-    function onRouteDelete() {
-      setState({ routeIdForDeletion: channelFilterId });
-    }
-
     async function onRouteDeleteConfirm() {
       setState({ routeIdForDeletion: undefined });
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
@@ -262,6 +233,60 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
 const ReadOnlyEscalationChain: React.FC<{ escalationChainId: string }> = ({ escalationChainId }) => {
   return <EscalationChainSteps isDisabled id={escalationChainId} />;
+};
+
+interface RouteButtonsDisplayProps {
+  alertReceiveChannelId: AlertReceiveChannel['id'];
+  channelFilterId: ChannelFilter['id'];
+  routeIndex: number;
+  setRouteIdForDeletion(): void;
+}
+
+export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
+  alertReceiveChannelId,
+  channelFilterId,
+  routeIndex,
+  setRouteIdForDeletion,
+}) => {
+  const { alertReceiveChannelStore } = useStore();
+  const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+  const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
+
+  return (
+    <HorizontalGroup>
+      {routeIndex > 0 && !channelFilter.is_default && (
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+          <Tooltip placement="top" content={'Move Up'}>
+            <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'xs'} />
+          </Tooltip>
+        </WithPermissionControlTooltip>
+      )}
+
+      {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+          <Tooltip placement="top" content={'Move Down'}>
+            <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'xs'} />
+          </Tooltip>
+        </WithPermissionControlTooltip>
+      )}
+
+      {!channelFilter.is_default && (
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+          <Tooltip placement="top" content={'Delete'}>
+            <Button variant={'secondary'} icon={'trash-alt'} size={'xs'} onClick={setRouteIdForDeletion} />
+          </Tooltip>
+        </WithPermissionControlTooltip>
+      )}
+    </HorizontalGroup>
+  );
+
+  function onRouteMoveDown() {
+    alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex + 1);
+  }
+
+  function onRouteMoveUp() {
+    alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex - 1);
+  }
 };
 
 export default ExpandedIntegrationRouteDisplay;
