@@ -32,6 +32,6 @@ Grafana OnCall provides grouping, auto-acknowledge and auto-resolve logic for th
 
 - Alerts created from issue events are grouped by issue key
 - Alert groups are auto-acknowledged when the issue status is set to "work in progress"
-- Alerts are auto-resolved when the issue is closed or deleted
+- Alert groups are auto-resolved when the issue is closed or deleted
 
 To customize this behaviour, consider modifying alert templates in integration settings.
