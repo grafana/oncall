@@ -51,6 +51,15 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.IntegrationsRead,
   },
   {
+    icon: 'plug',
+    id: 'integrations_2',
+    text: 'Integrations 2',
+    path: getPath('integrations_2'),
+    hideFromBreadcrumbs: true,
+    hideFromTabs: true,
+    action: UserActions.IntegrationsRead,
+  },
+  {
     icon: 'list-ul',
     id: 'escalations',
     text: 'Escalation Chains',
@@ -96,7 +105,6 @@ export const pages: { [id: string]: PageDefinition } = [
     hideFromTabs: isTopNavbar(),
     action: UserActions.ChatOpsRead,
   },
-
   {
     icon: 'link',
     id: 'outgoing_webhooks_2',
@@ -180,6 +188,8 @@ export const ROUTES = {
   'alert-group': ['alert-groups/:id'],
   users: ['users', 'users/:id'],
   integrations: ['integrations', 'integrations/:id'],
+  integrations_2: ['integrations_2'],
+  integration_2: ['integrations_2/:id'],
   escalations: ['escalations', 'escalations/:id'],
   schedules: ['schedules'],
   schedule: ['schedules/:id'],

@@ -206,9 +206,6 @@ class OnCallSchedule(PolymorphicModel):
     has_empty_shifts = models.BooleanField(default=False)
     empty_shifts_report_sent_at = models.DateField(null=True, default=None)
 
-    class Meta:
-        unique_together = ("name", "organization")
-
     def get_icalendars(self):
         """Returns list of calendars. Primary calendar should always be the first"""
         calendar_primary = None

@@ -1,4 +1,5 @@
 import datetime
+import textwrap
 from uuid import uuid4
 
 import pytest
@@ -7,6 +8,7 @@ from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import (
+    is_icals_equal,
     list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
     parse_event_uid,
@@ -153,3 +155,139 @@ def test_parse_event_uid_fallback():
     pk, source = parse_event_uid(event_uid)
     assert pk == event_uid
     assert source is None
+
+
+def test_is_icals_equal_compare_events():
+    with_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VTIMEZONE
+        TZID:Europe/Amsterdam
+        X-LIC-LOCATION:Europe/Amsterdam
+        BEGIN:DAYLIGHT
+        TZOFFSETFROM:+0100
+        TZOFFSETTO:+0200
+        TZNAME:CEST
+        DTSTART:19700329T020000
+        RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+        END:DAYLIGHT
+        BEGIN:STANDARD
+        TZOFFSETFROM:+0200
+        TZOFFSETTO:+0100
+        TZNAME:CET
+        DTSTART:19701025T030000
+        RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T152557Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:2
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    without_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T162103Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:2
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    assert is_icals_equal(with_vtimezone, without_vtimezone)
+
+
+def test_is_icals_equal_compare_events_not_equal():
+    with_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VTIMEZONE
+        TZID:Europe/Amsterdam
+        X-LIC-LOCATION:Europe/Amsterdam
+        BEGIN:DAYLIGHT
+        TZOFFSETFROM:+0100
+        TZOFFSETTO:+0200
+        TZNAME:CEST
+        DTSTART:19700329T020000
+        RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+        END:DAYLIGHT
+        BEGIN:STANDARD
+        TZOFFSETFROM:+0200
+        TZOFFSETTO:+0100
+        TZNAME:CET
+        DTSTART:19701025T030000
+        RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T152557Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:2
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    without_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T162103Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:3
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    assert not is_icals_equal(with_vtimezone, without_vtimezone)

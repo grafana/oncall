@@ -2,7 +2,7 @@
 enabled = True
 title = "Grafana"
 slug = "grafana"
-short_description = "Other grafana"
+short_description = "Other Grafana"
 description = None
 is_displayed_on_web = True
 is_featured = False
