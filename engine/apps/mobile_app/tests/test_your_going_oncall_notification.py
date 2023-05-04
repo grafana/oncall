@@ -50,50 +50,50 @@ def test_shift_starts_within_range(timing_window_lower, timing_window_upper, sec
 @pytest.mark.parametrize(
     "info_notifications_enabled,now,going_oncall_notification_timing,schedule_start,expected",
     [
-        # shift starts in 1h5m, user timing preference is 1h - don't send
+        # shift starts in 1h8m, user timing preference is 1h - don't send
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
-            timezone.datetime(2022, 5, 2, 13, 10, 0),
+            timezone.datetime(2022, 5, 2, 13, 13, 0),
             None,
         ),
-        # shift starts in 1h4m, user timing preference is 1h - send only if info_notifications_enabled is true
+        # shift starts in 1h7m, user timing preference is 1h - send only if info_notifications_enabled is true
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
-            timezone.datetime(2022, 5, 2, 13, 9, 0),
-            64 * 60,
+            timezone.datetime(2022, 5, 2, 13, 12, 0),
+            67 * 60,
         ),
         (
             False,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
-            timezone.datetime(2022, 5, 2, 13, 9, 0),
+            timezone.datetime(2022, 5, 2, 13, 12, 0),
             None,
         ),
-        # shift starts in 56m, user timing preference is 1h - send only if info_notifications_enabled is true
+        # shift starts in 53m, user timing preference is 1h - send only if info_notifications_enabled is true
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
-            timezone.datetime(2022, 5, 2, 13, 1, 0),
-            56 * 60,
+            timezone.datetime(2022, 5, 2, 12, 58, 0),
+            53 * 60,
         ),
         (
             False,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
-            timezone.datetime(2022, 5, 2, 13, 1, 0),
+            timezone.datetime(2022, 5, 2, 12, 58, 0),
             None,
         ),
-        # shift starts in 55m, user timing preference is 1h - don't send
+        # shift starts in 52m, user timing preference is 1h - don't send
         (
             True,
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
-            timezone.datetime(2022, 5, 2, 13, 0, 0),
+            timezone.datetime(2022, 5, 2, 12, 57, 0),
             None,
         ),
         # shift starts in 16m, don't send
@@ -171,11 +171,10 @@ def test_should_we_send_going_oncall_push_notification(
 def test_generate_going_oncall_push_notification_cache_key() -> None:
     user_pk = "adfad"
     schedule_event = {"shift": {"pk": "dfdfdf"}}
-    time = "2023-05-04-11h"
 
     assert (
-        tasks._generate_going_oncall_push_notification_cache_key(user_pk, schedule_event, time)
-        == f"going_oncall_push_notification:{user_pk}:{schedule_event['shift']['pk']}:{time}"
+        tasks._generate_going_oncall_push_notification_cache_key(user_pk, schedule_event)
+        == f"going_oncall_push_notification:{user_pk}:{schedule_event['shift']['pk']}"
     )
 
 
@@ -192,10 +191,8 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule_schedul
 @mock.patch("apps.mobile_app.tasks._send_push_notification")
 @mock.patch("apps.mobile_app.tasks.should_we_send_going_oncall_push_notification")
 @mock.patch("apps.mobile_app.tasks._get_youre_going_oncall_fcm_message")
-@mock.patch("apps.mobile_app.tasks.timezone.now")
 @pytest.mark.django_db
 def test_conditionally_send_going_oncall_push_notifications_for_schedule(
-    mock_timezone_now,
     mock_get_youre_going_oncall_fcm_message,
     mock_should_we_send_going_oncall_push_notification,
     mock_send_push_notification,
@@ -203,9 +200,6 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
     make_organization_and_user,
     make_schedule,
 ):
-    timezone_now = timezone.datetime(2023, 5, 4, 10)
-    mock_timezone_now.return_value = timezone_now
-
     organization, user = make_organization_and_user()
 
     shift_pk = "mncvmnvc"
@@ -228,8 +222,7 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
     mock_oncall_schedule_final_events.return_value = final_events
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    current_date_with_hour = timezone_now.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d-%Hh")
-    cache_key = f"going_oncall_push_notification:{user_pk}:{shift_pk}:{current_date_with_hour}"
+    cache_key = f"going_oncall_push_notification:{user_pk}:{shift_pk}"
 
     assert cache.get(cache_key) is None
 
@@ -247,14 +240,17 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
     mock_send_push_notification.assert_called_once_with(device, mock_fcm_message)
     assert cache.get(cache_key) is True
 
-    # we shouldn't double send the same push notification for the same user/shift within the same hour
+    # we shouldn't double send the same push notification for the same user/shift
     tasks.conditionally_send_going_oncall_push_notifications_for_schedule(schedule.pk)
     assert mock_send_push_notification.call_count == 1
 
-    # we will resend the push notification for the same user/shift for a different hour
-    mock_timezone_now.return_value = timezone_now + timezone.timedelta(hours=1)
+    # if the cache key expires we will resend the push notification for the same user/shift
+    # (in reality we're setting a timeout on the cache key, here we will just delete it to simulate this)
+    cache.delete(cache_key)
+
     tasks.conditionally_send_going_oncall_push_notifications_for_schedule(schedule.pk)
     assert mock_send_push_notification.call_count == 2
+    assert cache.get(cache_key) is True
 
 
 @mock.patch("apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_schedule")

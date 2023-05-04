@@ -312,7 +312,7 @@ def should_we_send_going_oncall_push_notification(
     - schedule is starting in user's "configured notification timing preference" +/- a 4 minute buffer
     - schedule is starting within the next fifteen minutes
     """
-    NOTIFICATION_TIMING_BUFFER = 4 * 60  # 4 minutes in seconds
+    NOTIFICATION_TIMING_BUFFER = 7 * 60  # 7 minutes in seconds
     FIFTEEN_MINUTES_IN_SECONDS = 15 * 60
 
     # this _should_ always be positive since final_events is returning only events in the future
@@ -326,7 +326,7 @@ def should_we_send_going_oncall_push_notification(
         logger.info("not sending going oncall push notification because info_notifications_enabled is false")
         return
 
-    # 8 minute window where the notification could be sent (4 mins before or 4 mins after)
+    # 14 minute window where the notification could be sent (7 mins before or 7 mins after)
     timing_window_lower = user_notification_timing_preference - NOTIFICATION_TIMING_BUFFER
     timing_window_upper = user_notification_timing_preference + NOTIFICATION_TIMING_BUFFER
 
@@ -352,8 +352,8 @@ def should_we_send_going_oncall_push_notification(
     logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
 
 
-def _generate_going_oncall_push_notification_cache_key(user_pk: str, schedule_event: ScheduleEvent, time: str) -> str:
-    return f"going_oncall_push_notification:{user_pk}:{schedule_event['shift']['pk']}:{time}"
+def _generate_going_oncall_push_notification_cache_key(user_pk: str, schedule_event: ScheduleEvent) -> str:
+    return f"going_oncall_push_notification:{user_pk}:{schedule_event['shift']['pk']}"
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -361,7 +361,7 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
     # avoid circular import
     from apps.mobile_app.models import MobileAppUserSettings
 
-    PUSH_NOTIFICATION_TRACKING_CACHE_KEY_TTL = 80 * 60  # 80 minutes
+    PUSH_NOTIFICATION_TRACKING_CACHE_KEY_TTL = 60 * 60  # 60 minutes
     user_cache: typing.Dict[str, User] = {}
     device_cache: typing.Dict[str, FCMDevice] = {}
 
@@ -374,11 +374,10 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
         return
 
     now = timezone.now()
-    current_date_with_hour = now.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d-%Hh")
     schedule_final_events = schedule.final_events("UTC", now, days=7)
 
     relevant_cache_keys = [
-        _generate_going_oncall_push_notification_cache_key(user["pk"], schedule_event, current_date_with_hour)
+        _generate_going_oncall_push_notification_cache_key(user["pk"], schedule_event)
         for schedule_event in schedule_final_events
         for user in schedule_event["users"]
     ]
@@ -413,9 +412,7 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
             mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-            cache_key = _generate_going_oncall_push_notification_cache_key(
-                user_pk, schedule_event, current_date_with_hour
-            )
+            cache_key = _generate_going_oncall_push_notification_cache_key(user_pk, schedule_event)
             already_sent_this_push_notification = cache_key in relevant_notifications_already_sent
 
             if (
