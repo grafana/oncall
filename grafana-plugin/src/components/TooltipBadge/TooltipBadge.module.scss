@@ -2,12 +2,7 @@
   font-size: 12px;
   line-height: 16px;
   padding: 3px 4px;
-
-  &--link,
-  &--warning,
-  &--success {
-    border-radius: 2px;
-  }
+  border-radius: 2px;
 
   &--primary {
     background: var(--tag-background-primary);

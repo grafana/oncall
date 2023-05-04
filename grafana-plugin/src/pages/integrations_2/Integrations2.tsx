@@ -28,7 +28,7 @@ import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
-import { UserActions, isUserActionAllowed } from 'utils/authorization';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Integrations2.module.scss';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -111,7 +111,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   render() {
     const { store, query } = this.props;
     const { alertReceiveChannelId } = this.state;
-    const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore, maintenanceStore } = store;
+    const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore } = store;
 
     const results = alertReceiveChannelStore.getSearchResult();
 
@@ -139,7 +139,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         width: '10%',
         title: 'Maintenance',
         key: 'maintenance',
-        render: (item: AlertReceiveChannel) => this.renderMaintenance(item, maintenanceStore, alertReceiveChannelStore),
+        render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
       },
       {
         width: '5%',
