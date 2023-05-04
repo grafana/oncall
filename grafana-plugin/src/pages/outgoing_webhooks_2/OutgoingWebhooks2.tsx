@@ -268,25 +268,27 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
           />
         </CopyToClipboard>
         <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-          <Button onClick={() => this.onStatusClick(record.id)} fill="text">
-            Status
-          </Button>
+          <IconButton
+            tooltip="Status"
+            tooltipPlacement="top"
+            name="history"
+            onClick={() => this.onStatusClick(record.id)}
+          />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <Button onClick={() => this.onEditClick(record.id)} fill="text">
-            Edit
-          </Button>
+          <IconButton tooltip="Edit" tooltipPlacement="top" name="cog" onClick={() => this.onEditClick(record.id)} />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <Button onClick={() => this.onCopyClick(record.id)} fill="text">
-            Make a copy
-          </Button>
+          <IconButton tooltip="Copy" tooltipPlacement="top" name="copy" onClick={() => this.onCopyClick(record.id)} />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <WithConfirm>
-            <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
-              Delete
-            </Button>
+          <WithConfirm title={`Are you sure to remove "${record.name}"?`} confirmText="Remove">
+            <IconButton
+              tooltip="Remove"
+              tooltipPlacement="top"
+              onClick={this.getDeleteClickHandler(record.id)}
+              name="trash-alt"
+            />
           </WithConfirm>
         </WithPermissionControlTooltip>
       </HorizontalGroup>
