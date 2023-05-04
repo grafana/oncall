@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Improve ical comparison when checking for imported ical updates ([1870](https://github.com/grafana/oncall/pull/1870))
+
+## v1.2.18 (2023-05-03)
+
+### Added
+
+- Documentation updates
+
+## v1.2.17 (2023-05-02)
+
 ### Added
 
 - Add filter descriptions to web ui by @iskhakov ([1845](https://github.com/grafana/oncall/pull/1845))
@@ -16,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Remove template editor from Slack by @iskhakov ([1847](https://github.com/grafana/oncall/pull/1847))
+- Remove schedule name uniqueness restriction ([1859](https://github.com/grafana/oncall/pull/1859))
 
 ### Fixed
 

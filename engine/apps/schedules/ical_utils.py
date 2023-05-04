@@ -509,21 +509,15 @@ def is_icals_equal(first, second):
         second_cal = Calendar.from_ical(second)
         first_subcomponents = first_cal.subcomponents
         second_subcomponents = second_cal.subcomponents
-        if len(first_subcomponents) != len(second_subcomponents):
-            return False
-        first_cal_events = {}
-        second_cal_events = {}
-        for cmp in first_cal.subcomponents:
-            first_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for cmp in second_cal.subcomponents:
-            second_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for first_uid, first_seq in first_cal_events.items():
-            if first_uid not in second_cal_events:
-                return False
-            second_seq = second_cal_events.get(first_uid, None)
-            if first_seq != second_seq:
-                return False
-        return True
+        # only consider VEVENT components
+        first_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in first_subcomponents if cmp.name == "VEVENT"
+        }
+        second_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in second_subcomponents if cmp.name == "VEVENT"
+        }
+        # check events and their respective sequences are equal
+        return first_cal_events == second_cal_events
 
 
 def ical_date_to_datetime(date, tz, start):

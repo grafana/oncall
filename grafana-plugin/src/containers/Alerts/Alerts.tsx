@@ -125,17 +125,21 @@ export default function Alerts() {
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
           className={cx('alert')}
           severity="warning"
-          title="Connectivity Warning"
+          title="Notification Warning"
         >
           {
             <>
               {!isChatOpsConnected && (
-                <>Communication channels are not connected. Configure at least one channel to receive notifications.</>
+                <>
+                  No messenger connected. Possible notification miss. Connect messenger(s) in{' '}
+                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink> to receive all
+                  notifications.
+                </>
               )}
               {!isPhoneVerified && (
                 <>
                   Your phone number is not verified. You can change your configuration in{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>User settings</PluginLink>
+                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink>
                 </>
               )}
             </>
