@@ -299,7 +299,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  convertTimestampToTimeDifference(timestamp: string) {
+  convertTimestampToTimeDifference(timestamp: number) {
     const date = new Date(Number(timestamp) * 1000);
     const timezoneOffset = new Date().getTimezoneOffset() * 60;
     const localTimestamp = date.getTime() + timezoneOffset;
