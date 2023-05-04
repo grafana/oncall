@@ -95,7 +95,7 @@ Intended for critical alerts. Device-specific settings may impact the functional
 
 >**Note**: Unfortunately, Android does not support critical alerts. As a result, we need to use a workaround in order to override the notification volume. 
 > This means that the app will change your notification volume, and we are unable to revert it automatically. 
-> If you prefer to avoid this behavior, go to the app Settings -> Configure Sounds, and disable the `Override System Volume` switch.
+> If you prefer to avoid this behavior, go to the app `Settings` -> `Configure Sounds`, and disable the `Override System Volume` switch under `Important notifications`.
 
 
 ### Add mobile app to notification preferences
