@@ -268,7 +268,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
 
     return (
-      <Block withBackground className={cx('block')}>
+      <Block className={cx('block')}>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
