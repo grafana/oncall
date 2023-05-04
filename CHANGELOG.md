@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix issue with how OnCall determines if a cloud Grafana Instance supports RBAC by @joeyorlando ([#1880](https://github.com/grafana/oncall/pull/1880))
 
+## v1.2.19 (2023-05-04)
+
+### Fixed
+
+- Fix issue with parsing response when sending Slack message
+
 ## v1.2.18 (2023-05-03)
 
 ### Added
