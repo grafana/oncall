@@ -274,7 +274,12 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
           <IconButton tooltip="Edit" tooltipPlacement="top" name="cog" onClick={() => this.onEditClick(record.id)} />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <IconButton tooltip="Copy" tooltipPlacement="top" name="copy" onClick={() => this.onCopyClick(record.id)} />
+          <IconButton
+            tooltip="Make a copy"
+            tooltipPlacement="top"
+            name="copy"
+            onClick={() => this.onCopyClick(record.id)}
+          />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <WithConfirm title={`Are you sure to remove "${record.name}"?`} confirmText="Remove">
