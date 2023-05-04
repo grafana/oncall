@@ -36,6 +36,7 @@ import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTempl
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { ChannelFilter } from 'models/channel_filter';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -237,6 +238,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   />
                 )}
 
+                {this.renderHearbeat(alertReceiveChannel)}
+
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Type:</Text>
                   <HorizontalGroup spacing="none">
@@ -401,6 +404,26 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         />
       ),
     }));
+  };
+
+  renderHearbeat = (alertReceiveChannel: AlertReceiveChannel) => {
+    const { heartbeatStore, alertReceiveChannelStore } = this.props.store;
+
+    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
+    const heartbeat = heartbeatStore.items[heartbeatId];
+
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
+    return (
+      <TooltipBadge
+        text={undefined}
+        className={cx('heartbeat-badge')}
+        borderType={alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal ? 'success' : 'danger'}
+        customIcon={heartbeatStatus ? <HeartGreenIcon /> : <HeartRedIcon />}
+        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal || 'never'}`}
+        tooltipContent={undefined}
+      />
+    );
   };
 
   getAlertReceiveChannelCounterTooltip = () => {

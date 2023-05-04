@@ -23,6 +23,7 @@
   --tag-secondary: #464c54;
   --tag-background-primary: rgba(56, 113, 220, 0.2);
   --tag-border-primary: rgba(56, 113, 220, 0.2);
+  --tag-background-danger: rgba(242, 73, 92, 0.15);
   --tag-text-primary: rgba(110, 159, 255, 1);
   --tag-border-danger: rgb(151, 11, 27);
   --tag-text-danger: rgb(247, 144, 156);

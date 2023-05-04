@@ -8,12 +8,14 @@ import Text, { TextType } from 'components/Text/Text';
 import styles from './TooltipBadge.module.scss';
 
 interface TooltipBadgeProps {
+  className: string;
   borderType: Partial<TextType>;
-  text: number | string;
+  text?: number | string;
   tooltipTitle: string;
   tooltipContent: React.ReactNode;
 
-  icon?: string;
+  icon?: IconName;
+  customIcon?: React.ReactNode;
   addPadding?: boolean;
 
   onHover?: () => void;
@@ -22,7 +24,7 @@ interface TooltipBadgeProps {
 const cx = cn.bind(styles);
 
 const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
-  const { borderType, text, tooltipTitle, tooltipContent, onHover, addPadding, icon } = props;
+  const { borderType, text, tooltipTitle, tooltipContent, onHover, addPadding, icon, customIcon, className } = props;
 
   return (
     <Tooltip
@@ -38,18 +40,33 @@ const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
       }
     >
       <div
-        className={cx('root', 'element', { [`element--${borderType}`]: true }, { 'element--padding': addPadding })}
+        className={cx(
+          'root',
+          'element',
+          { [`element--${borderType}`]: true },
+          { 'element--padding': addPadding },
+          className
+        )}
         onMouseEnter={onHover}
       >
         <HorizontalGroup spacing="xs">
-          {icon && (
-            <Icon className={cx('element__icon', { [`element__icon--${borderType}`]: true })} name={icon as IconName} />
-          )}
-          <Text className={cx('element__text', { [`element__text--${borderType}`]: true })}>{text}</Text>
+          {renderIcon()}
+          {text && <Text className={cx('element__text', { [`element__text--${borderType}`]: true })}>{text}</Text>}
         </HorizontalGroup>
       </div>
     </Tooltip>
   );
+
+  function renderIcon() {
+    if (customIcon) {
+      return customIcon;
+    }
+    if (!icon) {
+      return null;
+    }
+
+    return <Icon className={cx('element__icon', { [`element__icon--${borderType}`]: true })} name={icon as IconName} />;
+  }
 };
 
 export default TooltipBadge;

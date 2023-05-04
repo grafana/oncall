@@ -19,6 +19,11 @@
     border: 1px solid var(--tag-border-success);
     color: var(--tag-text-success);
   }
+  &--danger {
+    background: var(--tag-background-danger);
+    border: 1px solid var(--tag-border-danger);
+    color: var(--tag-text-danger);
+  }
 
   &--padding {
     padding: 3px 10px;
