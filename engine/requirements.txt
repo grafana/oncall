@@ -53,3 +53,5 @@ django-ipware==4.0.2
 django-anymail==8.6
 django-deprecate-fields==0.1.1
 pymdown-extensions==9.11
+requests==2.29.0
+urllib3==1.26.15
