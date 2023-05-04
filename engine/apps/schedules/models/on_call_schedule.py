@@ -3,7 +3,7 @@ import itertools
 import re
 from collections import defaultdict
 from enum import Enum
-from typing import Iterable, Optional, TypedDict
+from typing import Iterable, List, Optional, Tuple, TypedDict, Union
 
 import icalendar
 import pytz
@@ -70,6 +70,34 @@ class QualityReport(TypedDict):
     total_score: int
     comments: list[QualityReportComment]
     overloaded_users: list[QualityReportOverloadedUser]
+
+
+class ScheduleEventUser(TypedDict):
+    display_name: str
+    pk: str
+
+
+class ScheduleEventShift(TypedDict):
+    pk: str
+
+
+class ScheduleEvent(TypedDict):
+    all_day: bool
+    start: datetime.datetime
+    end: datetime.datetime
+    users: List[ScheduleEventUser]
+    missing_users: List[str]
+    priority_level: Union[int, None]
+    source: Union[str, None]
+    calendar_type: Union[int, None]
+    is_empty: bool
+    is_gap: bool
+    is_override: bool
+    shift: ScheduleEventShift
+
+
+ScheduleEvents = List[ScheduleEvent]
+ScheduleEventIntervals = List[List[datetime.datetime]]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():
@@ -261,7 +289,7 @@ class OnCallSchedule(PolymorphicModel):
         with_gap=False,
         filter_by=None,
         all_day_datetime=False,
-    ):
+    ) -> ScheduleEvents:
         """Return filtered events from schedule."""
         shifts = (
             list_of_oncall_shifts_from_ical(
@@ -518,15 +546,15 @@ class OnCallSchedule(PolymorphicModel):
             "overloaded_users": overloaded_users,
         }
 
-    def _resolve_schedule(self, events):
+    def _resolve_schedule(self, events: ScheduleEvents) -> ScheduleEvents:
         """Calculate final schedule shifts considering rotations and overrides."""
         if not events:
             return []
 
-        def event_start_cmp_key(e):
+        def event_start_cmp_key(e: ScheduleEvent) -> datetime.datetime:
             return e["start"]
 
-        def event_cmp_key(e):
+        def event_cmp_key(e: ScheduleEvent) -> Tuple[int, int, datetime.datetime]:
             """Sorting key criteria for events."""
             start = event_start_cmp_key(e)
             return (
@@ -535,7 +563,7 @@ class OnCallSchedule(PolymorphicModel):
                 start,
             )
 
-        def insort_event(eventlist, e):
+        def insort_event(eventlist: ScheduleEvents, e: ScheduleEvent) -> None:
             """Insert event keeping ordering criteria into already sorted event list."""
             idx = 0
             for i in eventlist:
@@ -545,7 +573,7 @@ class OnCallSchedule(PolymorphicModel):
                     break
             eventlist.insert(idx, e)
 
-        def _merge_intervals(evs):
+        def _merge_intervals(evs: ScheduleEvents) -> ScheduleEventIntervals:
             """Keep track of scheduled intervals."""
             if not evs:
                 return []
@@ -567,8 +595,8 @@ class OnCallSchedule(PolymorphicModel):
         # split the event, or fix start/end timestamps accordingly
 
         intervals = []
-        resolved = []
-        pending = events
+        resolved: ScheduleEvents = []
+        pending: ScheduleEvents = events
         current_interval_idx = 0  # current scheduled interval being checked
         current_type = OnCallSchedule.TYPE_ICAL_OVERRIDES  # current calendar type
         current_priority = None  # current priority level being resolved
@@ -643,7 +671,7 @@ class OnCallSchedule(PolymorphicModel):
         resolved.sort(key=lambda e: (event_start_cmp_key(e), e["shift"]["pk"] or ""))
         return resolved
 
-    def _merge_events(self, events):
+    def _merge_events(self, events: ScheduleEvents) -> ScheduleEvents:
         """Merge user groups same-shift events."""
         if events:
             merged = [events[0]]
