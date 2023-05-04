@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add a new mobile app push notification which notifies users when they are going on call by @joeyorlando ([#1814](https://github.com/grafana/oncall/pull/1814))
+
 ### Changed
 
 - Improve ical comparison when checking for imported ical updates ([1870](https://github.com/grafana/oncall/pull/1870))
