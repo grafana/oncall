@@ -8,6 +8,7 @@ import humanize
 import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
@@ -292,10 +293,27 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
     _send_push_notification(device_to_notify, message, _create_error_log_record)
 
 
+def _shift_starts_within_range(
+    timing_window_lower: int, timing_window_upper: int, seconds_until_shift_starts: int
+) -> bool:
+    return timing_window_lower <= seconds_until_shift_starts <= timing_window_upper
+
+
 def should_we_send_going_oncall_push_notification(
     now: timezone.datetime, user_settings: "MobileAppUserSettings", schedule_event: ScheduleEvent
-) -> bool:
-    NOTIFICATION_TIMING_BUFFER = 15 * 60  # 15 minutes in seconds
+) -> typing.Optional[int]:
+    """
+    If the user should be set a "you're going oncall" push notification, return the number of seconds
+    until they will be going oncall.
+
+    If no notification should be sent, return None.
+
+    Currently we will send notifications for the following scenarios:
+    - schedule is starting in user's "configured notification timing preference" +/- a 4 minute buffer
+    - schedule is starting within the next fifteen minutes
+    """
+    NOTIFICATION_TIMING_BUFFER = 4 * 60  # 4 minutes in seconds
+    FIFTEEN_MINUTES_IN_SECONDS = 15 * 60
 
     # this _should_ always be positive since final_events is returning only events in the future
     seconds_until_shift_starts = math.floor((schedule_event["start"] - now).total_seconds())
@@ -306,21 +324,36 @@ def should_we_send_going_oncall_push_notification(
 
     if not user_wants_to_receive_info_notifications:
         logger.info("not sending going oncall push notification because info_notifications_enabled is false")
-        return False
+        return
 
-    lower_limit = seconds_until_shift_starts - NOTIFICATION_TIMING_BUFFER
+    # 8 minute window where the notification could be sent (4 mins before or 4 mins after)
+    timing_window_lower = user_notification_timing_preference - NOTIFICATION_TIMING_BUFFER
+    timing_window_upper = user_notification_timing_preference + NOTIFICATION_TIMING_BUFFER
 
-    timing_logging_msg = (
-        f"lower_limit: {lower_limit}\n"
-        f"user timing preference: {user_notification_timing_preference}\n"
-        f"seconds_until_shift_starts: {seconds_until_shift_starts}"
+    shift_starts_within_users_notification_timing_preference = _shift_starts_within_range(
+        timing_window_lower, timing_window_upper, seconds_until_shift_starts
+    )
+    shift_starts_within_fifteen_minutes = _shift_starts_within_range(
+        0, FIFTEEN_MINUTES_IN_SECONDS, seconds_until_shift_starts
     )
 
-    if lower_limit <= user_notification_timing_preference <= seconds_until_shift_starts:
+    timing_logging_msg = (
+        f"seconds_until_shift_starts: {seconds_until_shift_starts}\n"
+        f"user_notification_timing_preference: {user_notification_timing_preference}\n"
+        f"timing_window_lower: {timing_window_lower}\n"
+        f"timing_window_upper: {timing_window_upper}\n"
+        f"shift_starts_within_users_notification_timing_preference: {shift_starts_within_users_notification_timing_preference}\n"
+        f"shift_starts_within_fifteen_minutes: {shift_starts_within_fifteen_minutes}"
+    )
+
+    if shift_starts_within_users_notification_timing_preference or shift_starts_within_fifteen_minutes:
         logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
-        return True
+        return seconds_until_shift_starts
     logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
-    return False
+
+
+def _generate_going_oncall_push_notification_cache_key(user_pk: str, schedule_event: ScheduleEvent, time: str) -> str:
+    return f"going_oncall_push_notification:{user_pk}:{schedule_event['shift']['pk']}:{time}"
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -328,6 +361,7 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
     # avoid circular import
     from apps.mobile_app.models import MobileAppUserSettings
 
+    PUSH_NOTIFICATION_TRACKING_CACHE_KEY_TTL = 80 * 60  # 80 minutes
     user_cache: typing.Dict[str, User] = {}
     device_cache: typing.Dict[str, FCMDevice] = {}
 
@@ -340,8 +374,18 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
         return
 
     now = timezone.now()
+    current_date_with_hour = now.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d-%Hh")
+    schedule_final_events = schedule.final_events("UTC", now, days=7)
 
-    for schedule_event in schedule.final_events("UTC", now, days=7):
+    relevant_cache_keys = [
+        _generate_going_oncall_push_notification_cache_key(user["pk"], schedule_event, current_date_with_hour)
+        for schedule_event in schedule_final_events
+        for user in schedule_event["users"]
+    ]
+
+    relevant_notifications_already_sent = cache.get_many(relevant_cache_keys)
+
+    for schedule_event in schedule_final_events:
         users = schedule_event["users"]
 
         for user in users:
@@ -369,11 +413,25 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
             mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-            if should_we_send_going_oncall_push_notification(now, mobile_app_user_settings, schedule_event):
+            cache_key = _generate_going_oncall_push_notification_cache_key(
+                user_pk, schedule_event, current_date_with_hour
+            )
+            already_sent_this_push_notification = cache_key in relevant_notifications_already_sent
+
+            if (
+                should_we_send_going_oncall_push_notification(now, mobile_app_user_settings, schedule_event)
+                and not already_sent_this_push_notification
+            ):
                 message = _get_youre_going_oncall_fcm_message(
                     user, schedule, device_to_notify, mobile_app_user_settings.going_oncall_notification_timing
                 )
                 _send_push_notification(device_to_notify, message)
+                cache.set(cache_key, True, PUSH_NOTIFICATION_TRACKING_CACHE_KEY_TTL)
+            else:
+                logger.info(
+                    f"Skipping sending going oncall push notification for user {user_pk} and shift {schedule_event['shift']['pk']}. "
+                    f"Already sent: {already_sent_this_push_notification}"
+                )
 
 
 @shared_dedicated_queue_retry_task()
