@@ -3,11 +3,11 @@ import React, { FC, useEffect, useState } from 'react';
 import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 

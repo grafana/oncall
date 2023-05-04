@@ -1,8 +1,9 @@
+import dayjs from 'dayjs';
+
+import { MaintenanceMode } from 'models/alert_receive_channel';
 import { ChannelFilter } from 'models/channel_filter';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
-import dayjs from 'dayjs';
-import { MaintenanceMode } from 'models/alert_receive_channel';
 
 const IntegrationHelper = {
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {

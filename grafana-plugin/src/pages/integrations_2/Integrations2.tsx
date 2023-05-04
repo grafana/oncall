@@ -17,6 +17,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
@@ -25,14 +26,13 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
 import styles from './Integrations2.module.scss';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;

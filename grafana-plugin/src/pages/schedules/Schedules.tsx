@@ -8,7 +8,6 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -16,6 +15,7 @@ import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilte
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';

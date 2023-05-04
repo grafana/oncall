@@ -18,7 +18,6 @@ import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -30,6 +29,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
