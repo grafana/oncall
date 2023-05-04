@@ -119,14 +119,9 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         render: this.renderName,
       },
       {
-        width: '5%',
+        width: '10%',
         title: 'Trigger type',
         dataIndex: 'trigger_type_name',
-      },
-      {
-        width: '5%',
-        title: 'HTTP method',
-        dataIndex: 'http_method',
       },
       {
         width: '35%',
