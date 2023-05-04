@@ -4,8 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-
-# from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -33,11 +32,21 @@ from common.api_helpers.mixins import (
 from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
-# class AlertReceiveChannelPagination(PageNumberPagination):
-#     page_size = 25
-#     page_query_param = "page"
-#     page_size_query_param = "perpage"
-#     max_page_size = 50
+
+class AlertReceiveChannelPagination(PageNumberPagination):
+    page_size = 15
+    page_query_param = "page"
+    page_size_query_param = "perpage"
+    max_page_size = 50
+
+    def paginate_queryset(self, queryset, request, view=None):
+        """Override to apply pagination only if ?page= is present in query params
+        Required for backwards compatibility with older versions
+        """
+        page_number = request.query_params.get(self.page_query_param, None)
+        if not page_number:
+            return None
+        return super().paginate_queryset(queryset, request, view)
 
 
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
@@ -89,7 +98,7 @@ class AlertReceiveChannelView(
     search_fields = ("verbal_name",)
 
     filterset_class = AlertReceiveChannelFilter
-    # pagination_class = AlertReceiveChannelPagination
+    pagination_class = AlertReceiveChannelPagination
 
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],

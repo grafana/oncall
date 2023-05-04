@@ -12,6 +12,7 @@ from rest_framework.fields import SerializerMethodField, set_value
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
@@ -49,6 +50,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     allow_delete = serializers.SerializerMethodField()
     description_short = serializers.CharField(max_length=250, required=False)
     demo_alert_payload = serializers.SerializerMethodField()
+    routes_count = serializers.SerializerMethodField()
+    connected_escalations_chains_count = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -83,6 +86,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "is_available_for_integration_heartbeat",
             "allow_delete",
             "demo_alert_payload",
+            "routes_count",
+            "connected_escalations_chains_count",
         ]
         read_only_fields = [
             "created_at",
@@ -94,6 +99,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "demo_alert_enabled",
             "maintenance_mode",
             "demo_alert_payload",
+            "routes_count",
+            "connected_escalations_chains_count",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
@@ -162,6 +169,14 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             except AttributeError:
                 return "{}"
         return None
+
+    def get_routes_count(self, obj) -> int:
+        return obj.channel_filters.count()
+
+    def get_connected_escalations_chains_count(self, obj) -> int:
+        return len(
+            set(ChannelFilter.objects.filter(alert_receive_channel=obj).values_list("escalation_chain", flat=True))
+        )
 
 
 class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):
