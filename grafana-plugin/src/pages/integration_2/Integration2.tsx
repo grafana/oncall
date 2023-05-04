@@ -240,13 +240,21 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   </Tooltip>
                 )}
 
-                <CounterBadge
+                <Badge
                   borderType="success"
                   icon="link"
                   count={channelFilterIds.length}
                   tooltipTitle={`${channelFilterIds.length} Routes`}
                   tooltipContent={undefined}
                 />
+
+                <Badge
+                  borderType="link"
+                  icon="pause"
+                  count={0}
+                  tooltipTitle={}
+                  tooltipContent={undefined} />
+
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Type:</Text>
                   <HorizontalGroup spacing="none">
@@ -276,6 +284,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   expandedView: <HowToConnectComponent id={id} />,
                 },
                 {
+                  isExpanded: false,
                   isCollapsible: true,
                   collapsedView: (
                     <IntegrationBlock
@@ -287,10 +296,18 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               Templates
                             </Text>
                           </Tag>
+
                           <HorizontalGroup spacing={'xs'}>
                             <Text type="secondary">Grouping:</Text>
                             <Text type="link">
-                              {IntegrationHelper.getFilteredTemplate(templates['grouping_id_template'] || '', false)}
+                              {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
+                            </Text>
+                          </HorizontalGroup>
+
+                          <HorizontalGroup spacing={'xs'}>
+                            <Text type="secondary">Autoresolve:</Text>
+                            <Text type="link">
+                              {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
                             </Text>
                           </HorizontalGroup>
 
@@ -384,6 +401,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     return channelFilterIds.map((channelFilterId: ChannelFilter['id'], routeIndex: number) => ({
       isCollapsible: true,
+      isExpanded: false,
       collapsedView: (
         <CollapsedIntegrationRouteDisplay
           alertReceiveChannelId={id}
