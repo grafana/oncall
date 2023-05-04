@@ -36,7 +36,7 @@ import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTempl
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { ChannelFilter } from 'models/channel_filter';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -53,7 +53,6 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
-import dayjs from 'dayjs';
 
 const cx = cn.bind(styles);
 
@@ -229,8 +228,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   <TooltipBadge
                     borderType="primary"
                     icon="pause"
-                    text={this.getMaintenanceText(alertReceiveChannel.maintenance_till)}
-                    tooltipTitle={this.getMaintenanceText(
+                    text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
+                    tooltipTitle={IntegrationHelper.getMaintenanceText(
                       alertReceiveChannel.maintenance_till,
                       alertReceiveChannel.maintenance_mode
                     )}
@@ -402,20 +401,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         />
       ),
     }));
-  };
-
-  getMaintenanceText = (maintenanceUntill: number, mode: number = undefined) => {
-    const date = dayjs(new Date(maintenanceUntill * 1000));
-    const now = dayjs();
-    const minDiff = date.diff(now, 'minutes');
-    const hourDiff = date.diff(now, 'hours');
-    const totalDiffString = `${hourDiff}h ${minDiff}m left`;
-
-    if (mode) {
-      return `${mode === MaintenanceMode.Debug ? 'Debug Maintenance' : 'Maintenance'}: ${totalDiffString}`;
-    }
-
-    return totalDiffString;
   };
 
   getAlertReceiveChannelCounterTooltip = () => {

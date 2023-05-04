@@ -31,6 +31,8 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions, isUserActionAllowed } from 'utils/authorization';
 
 import styles from './Integrations2.module.scss';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
@@ -299,52 +301,23 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  convertTimestampToTimeDifference(timestamp: number) {
-    const date = new Date(Number(timestamp) * 1000);
-    const timezoneOffset = new Date().getTimezoneOffset() * 60;
-    const localTimestamp = date.getTime() + timezoneOffset;
-    const currentTime = Date.now();
-    const difference = localTimestamp - currentTime;
-
-    let timeLeft;
-    if (difference < 3600000) {
-      timeLeft = Math.floor(difference / 60000) + 'm left';
-    } else {
-      timeLeft = Math.floor(difference / 3600000) + 'h left';
-    }
-
-    return timeLeft;
-  }
-
-  renderMaintenance(item: AlertReceiveChannel, maintenanceStore, alertReceiveChannelStore) {
+  renderMaintenance(item: AlertReceiveChannel) {
     const maintenanceMode = item.maintenance_mode;
-    const maintenanceTill = item.maintenance_till;
 
     if (maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance) {
       return (
-        <Tooltip placement="top" content="Stop maintenance mode">
-          <Badge
-            text={
-              <Button
-                className={cx('maintenance-button')}
-                disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
-                fill="text"
-                icon="pause"
-                onClick={() => this.handleStopMaintenance(item, maintenanceStore, alertReceiveChannelStore)}
-              >
-                {this.convertTimestampToTimeDifference(maintenanceTill)}
-              </Button>
-            }
-            color={maintenanceMode === MaintenanceMode.Debug ? 'orange' : 'blue'}
-            tooltip={
-              maintenanceMode === MaintenanceMode.Debug
-                ? `Debug Maintenance: ${this.convertTimestampToTimeDifference(maintenanceTill)} left`
-                : `Maintenance: ${this.convertTimestampToTimeDifference(maintenanceTill)} left`
-            }
+        <div className={cx('u-flex')}>
+          <TooltipBadge
+            borderType="primary"
+            icon="pause"
+            text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
+            tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, item.maintenance_mode)}
+            tooltipContent={undefined}
           />
-        </Tooltip>
+        </div>
       );
     }
+
     return null;
   }
 
