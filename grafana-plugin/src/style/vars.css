@@ -30,6 +30,7 @@
   --tag-background-warning: rgba(245, 183, 61, 0.18);
   --tag-text-warning: rgb(255, 190, 124);
   --tag-border-success: rgb(49, 100, 43);
+  --tag-border-link: rgba(56, 113, 220, 0.2);
   --tag-background-success: rgba(27, 133, 94, 0.15);
   --tag-text-success: rgb(165, 214, 159);
 }

@@ -4,8 +4,8 @@ import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { UserDTO as User } from 'models/user';
 
 export enum MaintenanceMode {
-  Debug,
-  Maintenance,
+  Debug = 0,
+  Maintenance = 1,
 }
 
 export interface AlertReceiveChannel {
@@ -25,6 +25,7 @@ export interface AlertReceiveChannel {
   instructions: string;
   demo_alert_enabled: boolean;
   maintenance_mode?: MaintenanceMode;
+  maintenance_till?: number;
   heartbeat: Heartbeat | null;
   is_available_for_integration_heartbeat: boolean;
   allow_delete: boolean;

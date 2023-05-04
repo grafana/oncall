@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 
 import {
-  Badge,
   Button,
   HorizontalGroup,
   VerticalGroup,
@@ -19,7 +18,7 @@ import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
-import CounterBadge from 'components/CounterBadge/CounterBadge';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -37,7 +36,7 @@ import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTempl
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel';
 import { ChannelFilter } from 'models/channel_filter';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -54,7 +53,7 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
-// import { toJS } from 'mobx';
+import dayjs from 'dayjs';
 
 const cx = cn.bind(styles);
 
@@ -208,52 +207,36 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               )}
               <HorizontalGroup>
                 {alertReceiveChannelCounter && (
-                  <Tooltip
-                    placement="bottom-start"
-                    content={
-                      alertReceiveChannelCounter?.alerts_count +
-                      ' alert' +
-                      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
-                      ' in ' +
-                      alertReceiveChannelCounter?.alert_groups_count +
-                      ' alert group' +
-                      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+                  <TooltipBadge
+                    borderType="primary"
+                    tooltipTitle={undefined}
+                    tooltipContent={this.getAlertReceiveChannelCounterTooltip()}
+                    text={
+                      alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count
                     }
-                  >
-                    {/* <span> is needed to be child, otherwise Tooltip won't render */}
-                    <span>
-                      <PluginLink
-                        query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
-                        className={cx('integration__counter')}
-                      >
-                        <Badge
-                          text={
-                            alertReceiveChannelCounter?.alerts_count +
-                            '/' +
-                            alertReceiveChannelCounter?.alert_groups_count
-                          }
-                          className={cx('integration__countersBadge')}
-                          color={'blue'}
-                        />
-                      </PluginLink>
-                    </span>
-                  </Tooltip>
+                  />
                 )}
 
-                <Badge
+                <TooltipBadge
                   borderType="success"
                   icon="link"
-                  count={channelFilterIds.length}
+                  text={channelFilterIds.length}
                   tooltipTitle={`${channelFilterIds.length} Routes`}
                   tooltipContent={undefined}
                 />
 
-                <Badge
-                  borderType="link"
-                  icon="pause"
-                  count={0}
-                  tooltipTitle={}
-                  tooltipContent={undefined} />
+                {alertReceiveChannel.maintenance_till && (
+                  <TooltipBadge
+                    borderType="primary"
+                    icon="pause"
+                    text={this.getMaintenanceText(alertReceiveChannel.maintenance_till)}
+                    tooltipTitle={this.getMaintenanceText(
+                      alertReceiveChannel.maintenance_till,
+                      alertReceiveChannel.maintenance_mode
+                    )}
+                    tooltipContent={undefined}
+                  />
+                )}
 
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Type:</Text>
@@ -419,6 +402,36 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         />
       ),
     }));
+  };
+
+  getMaintenanceText = (maintenanceUntill: number, mode: number = undefined) => {
+    const date = dayjs(new Date(maintenanceUntill * 1000));
+    const now = dayjs();
+    const minDiff = date.diff(now, 'minutes');
+    const hourDiff = date.diff(now, 'hours');
+    const totalDiffString = `${hourDiff}h ${minDiff}m left`;
+
+    if (mode) {
+      return `${mode === MaintenanceMode.Debug ? 'Debug Maintenance' : 'Maintenance'}: ${totalDiffString}`;
+    }
+
+    return totalDiffString;
+  };
+
+  getAlertReceiveChannelCounterTooltip = () => {
+    const { id } = this.props.match.params;
+    const { alertReceiveChannelStore } = this.props.store;
+    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
+
+    return (
+      alertReceiveChannelCounter?.alerts_count +
+      ' alert' +
+      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+      ' in ' +
+      alertReceiveChannelCounter?.alert_groups_count +
+      ' alert group' +
+      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+    );
   };
 
   handleSlackChannelChange = () => {};
