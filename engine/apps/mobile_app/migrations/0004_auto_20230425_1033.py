@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
         AddDefaultValue(
             model_name='mobileappusersettings',
             name='going_oncall_notification_timing',
-            value=0,
+            value=43200,
         ),
     ]

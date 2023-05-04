@@ -170,7 +170,7 @@ def test_should_we_send_going_oncall_push_notification(
 
 def test_generate_going_oncall_push_notification_cache_key() -> None:
     user_pk = "adfad"
-    schedule_event = {"shift": {"dfdfdf"}}
+    schedule_event = {"shift": {"pk": "dfdfdf"}}
     time = "2023-05-04-11h"
 
     assert (
@@ -184,7 +184,7 @@ def test_generate_going_oncall_push_notification_cache_key() -> None:
 def test_conditionally_send_going_oncall_push_notifications_for_schedule_schedule_not_found(
     mocked_send_push_notification,
 ):
-    tasks.conditionally_send_going_oncall_push_notifications_for_schedule("cvnmcvnmcnvmcnvmncv")
+    tasks.conditionally_send_going_oncall_push_notifications_for_schedule(12345)
     mocked_send_push_notification.assert_not_called()
 
 
