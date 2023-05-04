@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve ical comparison when checking for imported ical updates ([1870](https://github.com/grafana/oncall/pull/1870))
 
+### Fixed
+
+- Fix issue with how OnCall determines if a cloud Grafana Instance supports RBAC by @joeyorlando ([#1880](https://github.com/grafana/oncall/pull/1880))
+
 ## v1.2.18 (2023-05-03)
 
 ### Added
