@@ -1346,8 +1346,8 @@ def test_invalid_bulk_action(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @patch("apps.alerts.models.AlertGroup.start_escalation_if_needed", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_restart(
@@ -1411,8 +1411,8 @@ def test_bulk_action_restart(
     assert mocked_start_escalate_alert.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_acknowledge(
     mocked_alert_group_signal_task,
@@ -1468,8 +1468,8 @@ def test_bulk_action_acknowledge(
     assert mocked_log_report_signal_task.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_resolve(
     mocked_alert_group_signal_task,
@@ -1520,8 +1520,8 @@ def test_bulk_action_resolve(
     assert mocked_log_report_signal_task.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_silence(
