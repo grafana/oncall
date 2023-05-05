@@ -57,14 +57,14 @@ jobs:
           node-version: 14.17.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
-      # - name: Use cached frontend dependencies
-      #   id: cache-frontend-dependencies
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: grafana-plugin/node_modules
-      #     key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+      - name: Use cached frontend dependencies
+        id: cache-frontend-dependencies
+        uses: actions/cache@v3
+        with:
+          path: grafana-plugin/node_modules
+          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
       - name: Install frontend dependencies
-        # if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
         working-directory: grafana-plugin
         run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
       - name: Build frontend (will run linter and tests)
