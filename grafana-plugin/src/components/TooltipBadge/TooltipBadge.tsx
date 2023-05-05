@@ -8,7 +8,7 @@ import Text, { TextType } from 'components/Text/Text';
 import styles from './TooltipBadge.module.scss';
 
 interface TooltipBadgeProps {
-  className: string;
+  className?: string;
   borderType: Partial<TextType>;
   text?: number | string;
   tooltipTitle: string;
