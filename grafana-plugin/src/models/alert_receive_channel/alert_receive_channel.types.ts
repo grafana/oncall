@@ -14,6 +14,7 @@ export interface AlertReceiveChannel {
   smile_code: string;
   verbal_name: string;
   description: string;
+  description_short: string;
   author: User['pk'];
   team: GrafanaTeam['id'];
   created_at: string;
