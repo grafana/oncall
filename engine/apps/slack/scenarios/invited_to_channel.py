@@ -27,12 +27,3 @@ class InvitedToChannelStep(scenario_step.ScenarioStep):
             )
         else:
             logger.info("Other user was invited to a channel with a bot.")
-
-
-STEPS_ROUTING = [
-    {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_MEMBER_JOINED_CHANNEL,
-        "step": InvitedToChannelStep,
-    },
-]

@@ -54,14 +54,14 @@ def process_digit(call_sid, digit):
         # Check twilio phone call and then oncall phone call for backward compatibility after PhoneCall migration.
         # Will be removed soon.
         if twilio_phone_call:
-            oncall_phone_call = twilio_phone_call.oncall_phone_call
+            phone_call_record = twilio_phone_call.phone_call_record
         else:
-            OnCallPhoneCall = apps.get_model("phone_notifications", "OnCallPhoneCall")
-            oncall_phone_call = OnCallPhoneCall.objects.filter(sid=call_sid).first()
+            PhoneCallRecord = apps.get_model("phone_notifications", "PhoneCallRecord")
+            phone_call_record = PhoneCallRecord.objects.filter(sid=call_sid).first()
 
-        if oncall_phone_call is not None:
-            alert_group = oncall_phone_call.represents_alert_group
-            user = oncall_phone_call.receiver
+        if phone_call_record is not None:
+            alert_group = phone_call_record.represents_alert_group
+            user = phone_call_record.receiver
 
             if digit == "1":
                 alert_group.acknowledge_by_user(user, action_source=ActionSource.PHONE)

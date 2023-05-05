@@ -30,12 +30,12 @@ def update_twilio_call_status(call_sid, call_status):
             status = TwilioCallStatuses.DETERMINANT.get(call_status)
             twilio_phone_call.status = status
             twilio_phone_call.save(update_fields=["status"])
-            oncall_phone_call = twilio_phone_call.oncall_phone_call
+            phone_call_record = twilio_phone_call.phone_call_record
         else:
-            OnCallPhoneCall = apps.get_model("phone_notifications", "OnCallPhoneCall")
-            oncall_phone_call = OnCallPhoneCall.objects.filter(sid=call_sid).first()
+            PhoneCallRecord = apps.get_model("phone_notifications", "PhoneCallRecord")
+            phone_call_record = PhoneCallRecord.objects.filter(sid=call_sid).first()
 
-        if oncall_phone_call and status:
+        if phone_call_record and status:
             log_record_type = None
             log_record_error_code = None
 
@@ -49,14 +49,14 @@ def update_twilio_call_status(call_sid, call_status):
                 log_record = UserNotificationPolicyLogRecord(
                     type=log_record_type,
                     notification_error_code=log_record_error_code,
-                    author=oncall_phone_call.receiver,
-                    notification_policy=oncall_phone_call.notification_policy,
-                    alert_group=oncall_phone_call.represents_alert_group,
-                    notification_step=oncall_phone_call.notification_policy.step
-                    if oncall_phone_call.notification_policy
+                    author=phone_call_record.receiver,
+                    notification_policy=phone_call_record.notification_policy,
+                    alert_group=phone_call_record.represents_alert_group,
+                    notification_step=phone_call_record.notification_policy.step
+                    if phone_call_record.notification_policy
                     else None,
-                    notification_channel=oncall_phone_call.notification_policy.notify_by
-                    if oncall_phone_call.notification_policy
+                    notification_channel=phone_call_record.notification_policy.notify_by
+                    if phone_call_record.notification_policy
                     else None,
                 )
                 user_notification_action_triggered_signal.send(sender=update_twilio_call_status, log_record=log_record)
@@ -96,12 +96,12 @@ def update_twilio_sms_status(message_sid, message_status):
         if twilio_sms:
             twilio_sms.status = status
             twilio_sms.save(update_fields=["status"])
-            oncall_sms = twilio_sms.oncall_sms
+            sms_record = twilio_sms.sms_record
         else:
-            OnCallPhoneCall = apps.get_model("phone_notifications", "OnCallPhoneCall")
-            oncall_sms = OnCallPhoneCall.objects.filter(sid=message_sid).first()
+            PhoneCallRecord = apps.get_model("phone_notifications", "PhoneCallRecord")
+            sms_record = PhoneCallRecord.objects.filter(sid=message_sid).first()
 
-        if oncall_sms and status:
+        if sms_record and status:
             log_record_type = None
             log_record_error_code = None
             if status == TwilioSMSstatuses.DELIVERED:
@@ -114,12 +114,12 @@ def update_twilio_sms_status(message_sid, message_status):
                 log_record = UserNotificationPolicyLogRecord(
                     type=log_record_type,
                     notification_error_code=log_record_error_code,
-                    author=oncall_sms.receiver,
-                    notification_policy=oncall_sms.notification_policy,
-                    alert_group=oncall_sms.represents_alert_group,
-                    notification_step=oncall_sms.notification_policy.step if oncall_sms.notification_policy else None,
-                    notification_channel=oncall_sms.notification_policy.notify_by
-                    if oncall_sms.notification_policy
+                    author=sms_record.receiver,
+                    notification_policy=sms_record.notification_policy,
+                    alert_group=sms_record.represents_alert_group,
+                    notification_step=sms_record.notification_policy.step if sms_record.notification_policy else None,
+                    notification_channel=sms_record.notification_policy.notify_by
+                    if sms_record.notification_policy
                     else None,
                 )
                 user_notification_action_triggered_signal.send(sender=update_twilio_sms_status, log_record=log_record)

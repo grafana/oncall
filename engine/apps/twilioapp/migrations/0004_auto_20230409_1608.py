@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('status', models.PositiveSmallIntegerField(blank=True, choices=[(10, 'queued'), (20, 'ringing'), (30, 'in-progress'), (40, 'completed'), (50, 'busy'), (60, 'failed'), (70, 'no-answer'), (80, 'canceled')], null=True)),
                 ('sid', models.CharField(blank=True, max_length=50)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('oncall_phone_call', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='twilio_phone_call', to='phone_notifications.oncallphonecall')),
+                ('phone_call_record', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='twilio_phone_call', to='phone_notifications.phonecallrecord')),
             ],
         ),
         migrations.CreateModel(
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('status', models.PositiveSmallIntegerField(blank=True, choices=[(10, 'accepted'), (20, 'queued'), (30, 'sending'), (40, 'sent'), (50, 'failed'), (60, 'delivered'), (70, 'undelivered'), (80, 'receiving'), (90, 'received'), (100, 'read')], null=True)),
                 ('sid', models.CharField(blank=True, max_length=50)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('oncall_sms', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='twilio_sms', to='phone_notifications.oncallsms')),
+                ('sms_record', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='twilio_sms', to='phone_notifications.smsrecord')),
             ],
         ),
     ]

@@ -1,2 +1,2 @@
-from .phone_call import OnCallPhoneCall
-from .sms import OnCallSMS
+from .phone_call import PhoneCallRecord
+from .sms import SMSRecord

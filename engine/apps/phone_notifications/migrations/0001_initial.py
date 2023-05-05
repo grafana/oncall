@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
 
     state_operations = [
         migrations.CreateModel(
-            name='OnCallPhoneCall',
+            name='PhoneCallRecord',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('exceeded_limit', models.BooleanField(default=None, null=True)),
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='OnCallSMS',
+            name='SMSRecord',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('exceeded_limit', models.BooleanField(default=None, null=True)),

@@ -50,8 +50,8 @@ class TwilioPhoneCall(models.Model):
         choices=TwilioCallStatuses.CHOICES,
     )
 
-    oncall_phone_call = models.OneToOneField(
-        "phone_notifications.OnCallPhoneCall",
+    phone_call_record = models.OneToOneField(
+        "phone_notifications.PhoneCallRecord",
         on_delete=models.CASCADE,
         related_name="twilio_phone_call",
         null=False,

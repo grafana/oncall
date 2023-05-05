@@ -59,8 +59,8 @@ class TwilioSMS(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
-    oncall_sms = models.OneToOneField(
-        "phone_notifications.OnCallSMS",
+    sms_record = models.OneToOneField(
+        "phone_notifications.SMSRecord",
         on_delete=models.CASCADE,
         related_name="twilio_sms",
         null=False,

@@ -10,8 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     database_operations = [
-        migrations.AlterModelTable('PhoneCall', 'phone_notifications_oncallphonecall'),
-        migrations.AlterModelTable('SMSMessage', 'phone_notifications_oncallsms')
+        migrations.AlterModelTable('PhoneCall', 'phone_notifications_phonecallrecord'),
+        migrations.AlterModelTable('SMSMessage', 'phone_notifications_smsrecord')
     ]
 
     state_operations = [

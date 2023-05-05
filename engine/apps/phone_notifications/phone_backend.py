@@ -20,7 +20,7 @@ from .exceptions import (
     ProviderNotSupports,
     SMSLimitExceeded,
 )
-from .models import OnCallPhoneCall, OnCallSMS
+from .models import PhoneCallRecord, SMSRecord
 from .phone_provider import PhoneProvider, get_phone_provider
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class PhoneBackend:
         renderer = AlertGroupPhoneCallRenderer(alert_group)
         message = renderer.render()
 
-        call = OnCallPhoneCall.objects.create(
+        call = PhoneCallRecord.objects.create(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,
@@ -103,7 +103,7 @@ class PhoneBackend:
         renderer = AlertGroupSmsRenderer(alert_group)
         message = renderer.render()
 
-        sms = OnCallSMS.objects.create(
+        sms = SMSRecord.objects.create(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,
@@ -160,16 +160,16 @@ class PhoneBackend:
         message = clean_markup(text)
         try:
             self.phone_provider.make_call(message, user.verified_phone_number)
-            # create OnCallSMS to track limits for sms from oss instances
-            OnCallPhoneCall.objects.create(
+            # create SMSRecord to track limits for sms from oss instances
+            PhoneCallRecord.objects.create(
                 receiver=user,
                 exceeded_limit=False,
                 grafana_cloud_notification=True,
             )
         except CallsLimitExceeded as e:
-            # catch CallsLimitExceeded just to set exceeded_limit flag to OnCallSMS.
+            # catch CallsLimitExceeded just to set exceeded_limit flag to SMSRecord.
             # Actual exception handling should be done by caller
-            OnCallPhoneCall.objects.create(
+            PhoneCallRecord.objects.create(
                 receiver=user,
                 exceeded_limit=False,
             )
@@ -182,15 +182,15 @@ class PhoneBackend:
         """
         try:
             self.phone_provider.send_sms(message, user.verified_phone_number)
-            OnCallSMS.objects.create(
+            SMSRecord.objects.create(
                 receiver=user,
                 exceeded_limit=False,
                 grafana_cloud_notification=True,
             )
         except SMSLimitExceeded as e:
-            # catch SMSLimitExceeded just to set exceeded_limit flag to OnCallSMS.
+            # catch SMSLimitExceeded just to set exceeded_limit flag to SMSRecord.
             # Actual exception handling should be done by caller to return right response code
-            OnCallSMS.objects.create(
+            SMSRecord.objects.create(
                 receiver=user,
                 exceeded_limit=False,
             )
