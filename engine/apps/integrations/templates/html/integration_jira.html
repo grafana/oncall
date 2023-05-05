@@ -1,0 +1,20 @@
+<h4>How to start sending alerts to Grafana OnCall from Jira</h4>
+
+<p>Create a new webhook connection in Jira to send events to Grafana OnCall using the integration URL above.</p>
+<p>Refer to Jira documentation for more information on how to create and manage webhooks:
+    <a href="https://developer.atlassian.com/server/jira/platform/webhooks/" target="_blank">
+        https://developer.atlassian.com/server/jira/platform/webhooks/
+    </a>
+</p>
+
+<p>When creating a webhook in Jira, select the following events to be sent to Grafana OnCall:</p>
+<p>
+    <ol>
+        <li>1. Issue - created</li>
+        <li>2. Issue - updated</li>
+        <li>3. Issue - deleted</li>
+    </ol>
+</p>
+
+<p>After setting up the connection, you can test it by creating a new issue in Jira. You should see a new alert
+    group in Grafana OnCall.</p>

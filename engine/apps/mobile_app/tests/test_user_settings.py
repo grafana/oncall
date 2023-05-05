@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 
 @pytest.mark.django_db
 def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token):
-    organization, user, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
     client = APIClient()
     url = reverse("mobile_app:user_settings")
@@ -24,12 +24,25 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
         "important_notification_volume_type": "constant",
         "important_notification_volume": 0.8,
         "important_notification_override_dnd": True,
+        "info_notifications_enabled": True,
+        "going_oncall_notification_timing": 43200,
     }
 
 
 @pytest.mark.django_db
-def test_user_settings_put(make_organization_and_user_with_mobile_app_auth_token):
-    organization, user, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+@pytest.mark.parametrize(
+    "going_oncall_notification_timing,expected_status_code",
+    [
+        (43200, status.HTTP_200_OK),
+        (86400, status.HTTP_200_OK),
+        (604800, status.HTTP_200_OK),
+        (500, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+def test_user_settings_put(
+    make_organization_and_user_with_mobile_app_auth_token, going_oncall_notification_timing, expected_status_code
+):
+    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
 
     client = APIClient()
     url = reverse("mobile_app:user_settings")
@@ -42,10 +55,13 @@ def test_user_settings_put(make_organization_and_user_with_mobile_app_auth_token
         "important_notification_volume_type": "intensifying",
         "important_notification_volume": 1,
         "important_notification_override_dnd": False,
+        "info_notifications_enabled": False,
+        "going_oncall_notification_timing": going_oncall_notification_timing,
     }
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=auth_token)
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == expected_status_code
 
-    # Check the values are updated correctly
-    assert response.json() == data
+    if expected_status_code == status.HTTP_200_OK:
+        # Check the values are updated correctly
+        assert response.json() == data

@@ -10,10 +10,11 @@ export enum MaintenanceMode {
 
 export interface AlertReceiveChannel {
   id: string;
-  integration: number;
+  integration: any;
   smile_code: string;
   verbal_name: string;
   description: string;
+  description_short: string;
   author: User['pk'];
   team: GrafanaTeam['id'];
   created_at: string;
