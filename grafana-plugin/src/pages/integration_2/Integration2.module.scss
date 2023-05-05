@@ -2,13 +2,19 @@ $FLEX-GAP: 4px;
 $MARGIN: 12px;
 $ITEMS-MARGIN: 24px;
 
-.integration__heading-container {
+.integration__heading-container,
+.integration__subheading-container {
   margin-bottom: $ITEMS-MARGIN;
+}
+
+.integration__heading-container {
+  display: flex;
+  gap: $FLEX-GAP;
 }
 
 .integration__heading {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-direction: row;
   width: 100%;
 }
@@ -16,6 +22,7 @@ $ITEMS-MARGIN: 24px;
 .integration__actions {
   display: flex;
   gap: $FLEX-GAP;
+  margin-left: auto;
 }
 
 .integration__actionsList {

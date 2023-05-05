@@ -9,6 +9,7 @@ import {
   Tooltip,
   Modal,
   CascaderOption,
+  IconButton,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -126,80 +127,85 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         {() => (
           <div className={cx('root')}>
             <div className={cx('integration__heading-container')}>
-              <div className={cx('integration__heading')}>
-                <h1 className={cx('integration__name')}>
-                  <Emoji text={alertReceiveChannel.verbal_name} />
-                </h1>
-                <div className={cx('integration__actions')}>
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
-                    <Button
-                      variant="secondary"
-                      size="md"
-                      onClick={() => this.setState({ isDemoModalOpen: true })}
-                      data-testid="send-demo-alert"
-                    >
-                      Send demo alert
-                    </Button>
-                  </WithPermissionControlTooltip>
+              <PluginLink query={{ page: 'integrations_2' }}>
+                <IconButton name="arrow-left" size="xxl" />
+              </PluginLink>
+              <h1 className={cx('integration__name')}>
+                <Emoji text={alertReceiveChannel.verbal_name} />
+              </h1>
 
-                  <WithContextMenu
-                    renderMenuItems={({ closeMenu }) => (
-                      <div className={cx('integration__actionsList')} id="integration-menu-options">
-                        <div
-                          className={cx('integration__actionItem')}
-                          onClick={() => this.openIntegrationSettings(id, closeMenu)}
-                        >
-                          <Text type="primary">Integration Settings</Text>
-                        </div>
-
-                        <div className={cx('integration__actionItem')} onClick={() => this.openHearbeat(id, closeMenu)}>
-                          Hearbeat
-                        </div>
-
-                        <div
-                          className={cx('integration__actionItem')}
-                          onClick={() => this.openStartMaintenance(id, closeMenu)}
-                        >
-                          <Text type="primary">Start Maintenance</Text>
-                        </div>
-
-                        <div className="thin-line-break" />
-
-                        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                          <div className={cx('integration__actionItem')}>
-                            <WithConfirm
-                              title="Delete integration?"
-                              body={
-                                <>
-                                  Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
-                                  integration?
-                                </>
-                              }
-                            >
-                              <div onClick={() => this.deleteIntegration(id, closeMenu)}>
-                                <div
-                                  onClick={() => {
-                                    // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
-                                    const contextMenuEl =
-                                      document.querySelector<HTMLElement>('#integration-menu-options');
-                                    if (contextMenuEl) {
-                                      contextMenuEl.style.display = 'none';
-                                    }
-                                  }}
-                                >
-                                  <Text type="danger">Stop Maintenance</Text>
-                                </div>
-                              </div>
-                            </WithConfirm>
-                          </div>
-                        </WithPermissionControlTooltip>
-                      </div>
-                    )}
+              <div className={cx('integration__actions')}>
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => this.setState({ isDemoModalOpen: true })}
+                    data-testid="send-demo-alert"
                   >
-                    {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
-                  </WithContextMenu>
-                </div>
+                    Send demo alert
+                  </Button>
+                </WithPermissionControlTooltip>
+
+                <WithContextMenu
+                  renderMenuItems={({ closeMenu }) => (
+                    <div className={cx('integration__actionsList')} id="integration-menu-options">
+                      <div
+                        className={cx('integration__actionItem')}
+                        onClick={() => this.openIntegrationSettings(id, closeMenu)}
+                      >
+                        <Text type="primary">Integration Settings</Text>
+                      </div>
+
+                      <div className={cx('integration__actionItem')} onClick={() => this.openHearbeat(id, closeMenu)}>
+                        Hearbeat
+                      </div>
+
+                      <div
+                        className={cx('integration__actionItem')}
+                        onClick={() => this.openStartMaintenance(id, closeMenu)}
+                      >
+                        <Text type="primary">Start Maintenance</Text>
+                      </div>
+
+                      <div className="thin-line-break" />
+
+                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                        <div className={cx('integration__actionItem')}>
+                          <WithConfirm
+                            title="Delete integration?"
+                            body={
+                              <>
+                                Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
+                                integration?
+                              </>
+                            }
+                          >
+                            <div onClick={() => this.deleteIntegration(id, closeMenu)}>
+                              <div
+                                onClick={() => {
+                                  // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
+                                  const contextMenuEl =
+                                    document.querySelector<HTMLElement>('#integration-menu-options');
+                                  if (contextMenuEl) {
+                                    contextMenuEl.style.display = 'none';
+                                  }
+                                }}
+                              >
+                                <Text type="danger">Stop Maintenance</Text>
+                              </div>
+                            </div>
+                          </WithConfirm>
+                        </div>
+                      </WithPermissionControlTooltip>
+                    </div>
+                  )}
+                >
+                  {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
+                </WithContextMenu>
               </div>
+            </div>
+
+            <div className={cx('integration__subheading-container')}>
               {alertReceiveChannel.description_short && (
                 <Text type="secondary" className={cx('integration__description')}>
                   {alertReceiveChannel.description_short}
