@@ -28,9 +28,12 @@ class PhoneProvider(ABC):
         make_notification_call is needed to be able to execute some logic only for notification calls,
         but not for test/verification/etc.
         For example receive status callback or gather digits pressed by user.
+        Put as little code as possible after api call to external service provider.
+        Unhandled exceptions in such code will cause retries of perform_notification task and cause phone calls storm.
         If your provider doesn't perform any additional logic in notifications just wrap make_call:
             def make_notification_call(self, number, text, phone_call_record):
                 self.make_call(number, text)
+
 
         Args:
             number: phone number to call
@@ -39,8 +42,7 @@ class PhoneProvider(ABC):
                 Use it to link provider phone call and phone_call_record.
                 It might be useful for receiving status callbacks and match callback data with alert group from
                 phone_call_record (See TwilioPhoneProvider).
-                If you can't find the use case for phone_call_record you probably don't need it,
-                it's ok to omit it.
+                If you can't find the use case for phone_call_record you probably don't need it, it's ok to omit it.
 
         Raises:
             FailedToMakeCall: if some exception in external provider happens

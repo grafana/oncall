@@ -38,6 +38,7 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.phone_notifications.exceptions import (
+    FailedToFinishVerification,
     FailedToMakeCall,
     FailedToStartVerification,
     NumberAlreadyVerified,
@@ -353,7 +354,10 @@ class UserView(
         prev_state = target_user.insight_logs_serialized
 
         phone_backend = PhoneBackend()
-        verified = phone_backend.verify_phone_number(target_user, code)
+        try:
+            verified = phone_backend.verify_phone_number(target_user, code)
+        except FailedToFinishVerification:
+            return Response("Something went wrong while verifying code", status=status.HTTP_503_SERVICE_UNAVAILABLE)
         if verified:
             new_state = target_user.insight_logs_serialized
             write_resource_insight_log(

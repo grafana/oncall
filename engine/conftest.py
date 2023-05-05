@@ -757,18 +757,18 @@ def make_telegram_message():
 
 @pytest.fixture()
 def make_phone_call_record():
-    def _make_phone_call_record(receiver, status, **kwargs):
-        return PhoneCallRecordFactory(receiver=receiver, status=status, **kwargs)
+    def _make_phone_call_record(receiver, **kwargs):
+        return PhoneCallRecordFactory(receiver=receiver, **kwargs)
 
     return _make_phone_call_record
 
 
 @pytest.fixture()
 def make_sms_record():
-    def _make_sms_record(receiver, status, **kwargs):
-        return SMSRecordFactory(receiver=receiver, status=status, **kwargs)
+    def _make_sms_record(receiver, **kwargs):
+        return SMSRecordFactory(receiver=receiver, **kwargs)
 
-    return _make_sms_record()
+    return _make_sms_record
 
 
 @pytest.fixture()

@@ -3,13 +3,12 @@ from unittest import mock
 import pytest
 from bs4 import BeautifulSoup
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from django.utils.http import urlencode
 from rest_framework.test import APIClient
 
 from apps.base.models import UserNotificationPolicy
-from apps.twilioapp.models import TwilioCallStatuses
+from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall
 
 
 @pytest.fixture
@@ -19,10 +18,12 @@ def make_twilio_phone_call(
     make_user_notification_policy,
     make_alert_group,
     make_phone_call_record,
+    make_alert,
 ):
     organization, user = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group, raw_request_data="{}")
     notification_policy = make_user_notification_policy(
         user=user,
         step=UserNotificationPolicy.Step.NOTIFY,
@@ -33,13 +34,13 @@ def make_twilio_phone_call(
         represents_alert_group=alert_group,
         notification_policy=notification_policy,
     )
-    return make_twilio_phone_call(sid="SMa12312312a123a123123c6dd2f1aee77", phone_call_record=phone_call_record)
+    return TwilioPhoneCall.objects.create(sid="SMa12312312a123a123123c6dd2f1aee77", phone_call_record=phone_call_record)
 
 
 @pytest.mark.django_db
 def test_forbidden_requests(make_twilio_phone_call):
     """Tests check inaccessibility of twilio urls for unauthorized requests"""
-    twilio_phone_call = make_twilio_phone_call()
+    twilio_phone_call = make_twilio_phone_call
 
     # empty data case
     data = {}
@@ -83,15 +84,13 @@ def test_forbidden_requests(make_twilio_phone_call):
 
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
 @pytest.mark.django_db
-def test_update_status(mock_has_permission, mock_slack_api_call, make_twilio_phone_call):
+def test_update_status(mock_has_permission, make_twilio_phone_call):
     """The test for PhoneCall status update via api"""
-    twilio_phone_call = make_twilio_phone_call()
+    twilio_phone_call = make_twilio_phone_call
 
     mock_has_permission.return_value = True
 
     for status in ["in-progress", "completed", "busy", "failed", "no-answer", "canceled"]:
-        mock_slack_api_call.return_value = {"ok": True, "ts": timezone.now().timestamp()}
-
         data = {
             "CallSid": twilio_phone_call.sid,
             "CallStatus": status,
@@ -113,11 +112,11 @@ def test_update_status(mock_has_permission, mock_slack_api_call, make_twilio_pho
 
 
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
-@mock.patch("apps.twilioapp.utils.get_gather_url")
+@mock.patch("apps.twilioapp.gather.get_gather_url")
 @pytest.mark.django_db
 def test_acknowledge_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_phone_call):
     twilio_phone_call = make_twilio_phone_call
-    alert_group = twilio_phone_call.phone_call_record.alert_group
+    alert_group = twilio_phone_call.phone_call_record.represents_alert_group
     mock_has_permission.return_value = True
     mock_get_gather_url.return_value = reverse("twilioapp:gather")
 
@@ -149,7 +148,7 @@ def test_acknowledge_by_phone(mock_has_permission, mock_get_gather_url, make_twi
 @mock.patch("apps.twilioapp.gather.get_gather_url")
 @pytest.mark.django_db
 def test_resolve_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_phone_call):
-    twilio_phone_call = make_twilio_phone_call()
+    twilio_phone_call = make_twilio_phone_call
 
     mock_has_permission.return_value = True
     mock_get_gather_url.return_value = reverse("twilioapp:gather")
@@ -160,7 +159,7 @@ def test_resolve_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_
         "AccountSid": "Because of mock_has_permission there are may be any value",
     }
 
-    alert_group = twilio_phone_call.call_record.alert_group
+    alert_group = twilio_phone_call.phone_call_record.represents_alert_group
     assert alert_group.resolved is False
 
     client = APIClient()
@@ -183,8 +182,8 @@ def test_resolve_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
 @mock.patch("apps.twilioapp.gather.get_gather_url")
 @pytest.mark.django_db
-def test_silence_by_phone(mock_has_permission, mock_get_gather_url):
-    twilio_phone_call = make_twilio_phone_call()
+def test_silence_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_phone_call):
+    twilio_phone_call = make_twilio_phone_call
 
     mock_has_permission.return_value = True
     mock_get_gather_url.return_value = reverse("twilioapp:gather")
@@ -195,7 +194,7 @@ def test_silence_by_phone(mock_has_permission, mock_get_gather_url):
         "AccountSid": "Because of mock_has_permission there are may be any value",
     }
 
-    alert_group = twilio_phone_call.call_record.alert_group
+    alert_group = twilio_phone_call.phone_call_record.represents_alert_group
     assert alert_group.resolved is False
 
     client = APIClient()
@@ -217,8 +216,8 @@ def test_silence_by_phone(mock_has_permission, mock_get_gather_url):
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
 @mock.patch("apps.twilioapp.gather.get_gather_url")
 @pytest.mark.django_db
-def test_wrong_pressed_digit(mock_has_permission, mock_get_gather_url):
-    twilio_phone_call = make_twilio_phone_call()
+def test_wrong_pressed_digit(mock_has_permission, mock_get_gather_url, make_twilio_phone_call):
+    twilio_phone_call = make_twilio_phone_call
 
     mock_has_permission.return_value = True
     mock_get_gather_url.return_value = reverse("twilioapp:gather")
