@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improve ical comparison when checking for imported ical updates ([1870](https://github.com/grafana/oncall/pull/1870))
+- Upgrade to Python 3.11.3 by @joeyorlando ([#1849](https://github.com/grafana/oncall/pull/1849))
 
 ### Fixed
 
