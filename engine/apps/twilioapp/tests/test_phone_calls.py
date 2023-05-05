@@ -13,50 +13,6 @@ from apps.twilioapp.models import TwilioCallStatuses
 
 
 @pytest.fixture
-def phone_call_setup(
-    make_organization_and_user,
-    make_alert_receive_channel,
-    make_user_notification_policy,
-    make_alert_group,
-    make_alert,
-    make_phone_call,
-):
-    organization, user = make_organization_and_user()
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(
-        alert_group,
-        raw_request_data={
-            "status": "firing",
-            "labels": {
-                "alertname": "TestAlert",
-                "region": "eu-1",
-            },
-            "annotations": {},
-            "startsAt": "2018-12-25T15:47:47.377363608Z",
-            "endsAt": "0001-01-01T00:00:00Z",
-            "generatorURL": "",
-        },
-    )
-
-    notification_policy = make_user_notification_policy(
-        user=user,
-        step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=UserNotificationPolicy.NotificationChannel.PHONE_CALL,
-    )
-
-    phone_call = make_phone_call(
-        receiver=user,
-        status=TwilioCallStatuses.QUEUED,
-        represents_alert_group=alert_group,
-        sid="SMa12312312a123a123123c6dd2f1aee77",
-        notification_policy=notification_policy,
-    )
-
-    return phone_call, alert_group
-
-
-@pytest.fixture
 def make_twilio_phone_call(
     make_organization_and_user,
     make_alert_receive_channel,
@@ -127,7 +83,7 @@ def test_forbidden_requests(make_twilio_phone_call):
 
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
 @pytest.mark.django_db
-def test_update_status(mock_has_permission, mock_slack_api_call, phone_call_setup):
+def test_update_status(mock_has_permission, mock_slack_api_call, make_twilio_phone_call):
     """The test for PhoneCall status update via api"""
     twilio_phone_call = make_twilio_phone_call()
 
@@ -159,14 +115,14 @@ def test_update_status(mock_has_permission, mock_slack_api_call, phone_call_setu
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
 @mock.patch("apps.twilioapp.utils.get_gather_url")
 @pytest.mark.django_db
-def test_acknowledge_by_phone(mock_has_permission, mock_get_gather_url, phone_call_setup):
-    phone_call, alert_group = phone_call_setup
-
+def test_acknowledge_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_phone_call):
+    twilio_phone_call = make_twilio_phone_call
+    alert_group = twilio_phone_call.phone_call_record.alert_group
     mock_has_permission.return_value = True
     mock_get_gather_url.return_value = reverse("twilioapp:gather")
 
     data = {
-        "CallSid": phone_call.sid,
+        "CallSid": twilio_phone_call.sid,
         "Digits": "1",
         "AccountSid": "Because of mock_has_permission there are may be any value",
     }
@@ -190,7 +146,7 @@ def test_acknowledge_by_phone(mock_has_permission, mock_get_gather_url, phone_ca
 
 
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
-@mock.patch("apps.twilioapp.utils.get_gather_url")
+@mock.patch("apps.twilioapp.gather.get_gather_url")
 @pytest.mark.django_db
 def test_resolve_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_phone_call):
     twilio_phone_call = make_twilio_phone_call()
@@ -225,9 +181,9 @@ def test_resolve_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_
 
 
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
-@mock.patch("apps.twilioapp.utils.get_gather_url")
+@mock.patch("apps.twilioapp.gather.get_gather_url")
 @pytest.mark.django_db
-def test_silence_by_phone(mock_has_permission, mock_get_gather_url, phone_call_setup):
+def test_silence_by_phone(mock_has_permission, mock_get_gather_url):
     twilio_phone_call = make_twilio_phone_call()
 
     mock_has_permission.return_value = True
@@ -259,9 +215,9 @@ def test_silence_by_phone(mock_has_permission, mock_get_gather_url, phone_call_s
 
 
 @mock.patch("apps.twilioapp.views.AllowOnlyTwilio.has_permission")
-@mock.patch("apps.twilioapp.utils.get_gather_url")
+@mock.patch("apps.twilioapp.gather.get_gather_url")
 @pytest.mark.django_db
-def test_wrong_pressed_digit(mock_has_permission, mock_get_gather_url, phone_call_setup):
+def test_wrong_pressed_digit(mock_has_permission, mock_get_gather_url):
     twilio_phone_call = make_twilio_phone_call()
 
     mock_has_permission.return_value = True

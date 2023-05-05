@@ -56,6 +56,7 @@ from apps.base.tests.factories import (
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
+from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
@@ -78,7 +79,6 @@ from apps.telegram.tests.factories import (
     TelegramToUserConnectorFactory,
     TelegramVerificationCodeFactory,
 )
-from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
@@ -114,8 +114,8 @@ register(TelegramMessageFactory)
 
 register(ResolutionNoteSlackMessageFactory)
 
-register(PhoneCallFactory)
-register(SMSFactory)
+register(PhoneCallRecordFactory)
+register(SMSRecordFactory)
 register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
@@ -756,19 +756,19 @@ def make_telegram_message():
 
 
 @pytest.fixture()
-def make_phone_call():
-    def _make_phone_call(receiver, status, **kwargs):
-        return PhoneCallFactory(receiver=receiver, status=status, **kwargs)
+def make_phone_call_record():
+    def _make_phone_call_record(receiver, status, **kwargs):
+        return PhoneCallRecordFactory(receiver=receiver, status=status, **kwargs)
 
-    return _make_phone_call
+    return _make_phone_call_record
 
 
 @pytest.fixture()
-def make_sms():
-    def _make_sms(receiver, status, **kwargs):
-        return SMSFactory(receiver=receiver, status=status, **kwargs)
+def make_sms_record():
+    def _make_sms_record(receiver, status, **kwargs):
+        return SMSRecordFactory(receiver=receiver, status=status, **kwargs)
 
-    return _make_sms
+    return _make_sms_record()
 
 
 @pytest.fixture()
