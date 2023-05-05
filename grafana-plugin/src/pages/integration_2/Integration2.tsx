@@ -200,9 +200,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   </WithContextMenu>
                 </div>
               </div>
-              {alertReceiveChannel.description && (
+              {alertReceiveChannel.description_short && (
                 <Text type="secondary" className={cx('integration__description')}>
-                  {alertReceiveChannel.description}
+                  {alertReceiveChannel.description_short}
                 </Text>
               )}
               <HorizontalGroup>
