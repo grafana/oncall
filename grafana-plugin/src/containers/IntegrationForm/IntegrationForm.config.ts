@@ -4,12 +4,14 @@ export const form: { name: string; fields: FormItem[] } = {
   name: 'Integration',
   fields: [
     {
+      label: 'Name',
       name: 'verbal_name',
       type: FormItemType.Input,
       validation: { required: true },
     },
     {
-      name: 'description',
+      label: 'Description',
+      name: 'description_short',
       type: FormItemType.TextArea,
     },
     {
