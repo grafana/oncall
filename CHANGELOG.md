@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix issue with how OnCall determines if a cloud Grafana Instance supports RBAC by @joeyorlando ([#1880](https://github.com/grafana/oncall/pull/1880))
+- Fix issue trying to set maintenance mode for integrations belonging to non-current team
 
 ## v1.2.19 (2023-05-04)
 
