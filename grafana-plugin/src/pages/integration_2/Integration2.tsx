@@ -10,6 +10,7 @@ import {
   Modal,
   CascaderOption,
   IconButton,
+  ConfirmModal,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -31,7 +32,6 @@ import SourceCode from 'components/SourceCode/SourceCode';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import TeamName from 'containers/TeamName/TeamName';
@@ -574,8 +574,18 @@ interface IntegrationActionsProps {
 }
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveChannel }) => {
-  const { maintenanceStore } = useStore();
+  const { maintenanceStore, alertReceiveChannelStore } = useStore();
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: any;
+    dismissText: string;
+    confirmText: string;
+    body?: React.ReactNode;
+    description?: string;
+    confirmationText?: string;
+    onConfirm: () => void;
+  }>(undefined);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
     disabled: boolean;
@@ -585,6 +595,20 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
   const { id } = alertReceiveChannel;
   return (
     <>
+      {confirmModal && (
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          confirmText={confirmModal.confirmText}
+          dismissText="Cancel"
+          body={confirmModal.body}
+          description={confirmModal.description}
+          confirmationText={confirmModal.confirmationText}
+          onConfirm={confirmModal.onConfirm}
+          onDismiss={() => setConfirmModal(undefined)}
+        />
+      )}
+
       <IntegrationSendDemoPayloadModal
         alertReceiveChannel={alertReceiveChannel}
         isOpen={isDemoModalOpen}
@@ -594,7 +618,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
       {maintenanceData && (
         <MaintenanceForm
           initialData={maintenanceData}
-          onUpdate={() => {}}
+          onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id)}
           onHide={() => setMaintenanceData(undefined)}
         />
       )}
@@ -627,22 +651,25 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
 
               {alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <WithConfirm
-                    title={
-                      (
-                        <>
-                          Are you sure to stop maintenance for <Emoji text={alertReceiveChannel.verbal_name} />?
-                        </>
-                      ) as any
-                    }
-                    confirmText="Stop"
-                  >
-                    <div className={cx('integration__actionItem')} onClick={openStartMaintenance}>
-                      <Text type="primary" onClick={onStopMaintenance}>
-                        Stop Maintenance
-                      </Text>
+                  <div className={cx('integration__actionItem')}>
+                    <div
+                      onClick={() => {
+                        setConfirmModal({
+                          isOpen: true,
+                          confirmText: 'Stop',
+                          dismissText: 'Cancel',
+                          onConfirm: onStopMaintenance,
+                          title: (
+                            <>
+                              Are you sure to stop maintenance for <Emoji text={alertReceiveChannel.verbal_name} />?
+                            </>
+                          ),
+                        });
+                      }}
+                    >
+                      <Text type="primary">Stop Maintenance</Text>
                     </div>
-                  </WithConfirm>
+                  </div>
                 </WithPermissionControlTooltip>
               )}
 
@@ -650,31 +677,30 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integration__actionItem')}>
-                  <WithConfirm
-                    title="Delete integration?"
-                    body={
-                      <>
-                        Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> integration?
-                      </>
-                    }
+                  <div
+                    onClick={() => {
+                      setConfirmModal({
+                        isOpen: true,
+                        title: 'Delete integration?',
+                        body: (
+                          <>
+                            Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
+                            integration?
+                          </>
+                        ),
+                        onConfirm: deleteIntegration,
+                        dismissText: 'Cancel',
+                        confirmText: 'Delete',
+                      });
+                    }}
                   >
-                    <div onClick={() => deleteIntegration(id, closeMenu)}>
-                      <div
-                        onClick={() => {
-                          // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
-                          const contextMenuEl = document.querySelector<HTMLElement>('#integration-menu-options');
-                          if (contextMenuEl) {
-                            contextMenuEl.style.display = 'none';
-                          }
-                        }}
-                      >
-                        <HorizontalGroup spacing={'xs'}>
-                          <Icon name="trash-alt" />
-                          <Text type="danger">Delete Integration</Text>
-                        </HorizontalGroup>
-                      </div>
-                    </div>
-                  </WithConfirm>
+                    <Text type="danger">
+                      <HorizontalGroup spacing={'xs'}>
+                        <Icon name="trash-alt" />
+                        <span>Delete Integration</span>
+                      </HorizontalGroup>
+                    </Text>
+                  </div>
                 </div>
               </WithPermissionControlTooltip>
             </div>
@@ -686,7 +712,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
     </>
   );
 
-  function deleteIntegration(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
+  function deleteIntegration() {}
 
   function openIntegrationSettings(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
 
@@ -695,9 +721,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
   }
 
   function onStopMaintenance() {
+    setConfirmModal(undefined);
+
     maintenanceStore
       .stopMaintenanceMode(MaintenanceType.alert_receive_channel, id)
-      .then(() => maintenanceStore.updateMaintenances());
+      .then(() => maintenanceStore.updateMaintenances())
+      .then(() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id));
   }
 
   function openHearbeat(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
