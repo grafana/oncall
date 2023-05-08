@@ -159,7 +159,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def metrics_update_alert_groups_state_cache(states_diff, organization_id=None):
-    # todo:metrics: description
+    """Update alert groups state metric cache for each integration in states_diff dict."""
     if not states_diff:
         return
     if not organization_id:
@@ -188,7 +188,7 @@ def metrics_update_alert_groups_state_cache(states_diff, organization_id=None):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def metrics_update_alert_groups_response_time_cache(integrations_response_time, organization_id=None):
-    # todo:metrics: description
+    """Update alert groups response time metric cache for each integration in `integrations_response_time` dict."""
     if not integrations_response_time:
         return
     if not organization_id:
