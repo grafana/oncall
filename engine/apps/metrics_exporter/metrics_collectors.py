@@ -51,7 +51,6 @@ class ApplicationMetricsCollector:
             # get alert_groups_total metric
             alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
             ag_states: typing.Dict[int, AlertGroupsTotalMetricsDict] = cache.get(alert_groups_total_key)
-            print(f"STATES: {ag_states}")  # todo:metrics remove print
 
             if ag_states is None:
                 start_calculation_task = True
@@ -76,7 +75,6 @@ class ApplicationMetricsCollector:
             ag_response_time: typing.Dict[int, AlertGroupsResponseTimeMetricsDict] = cache.get(
                 alert_groups_response_time_key
             )
-            print(f"RESP TIME: {ag_response_time}")  # todo:metrics remove print
             if ag_response_time is None:
                 start_calculation_task = True
             else:
@@ -97,7 +95,6 @@ class ApplicationMetricsCollector:
                         continue
                     buckets, sum_value = self.get_buckets_with_sum(response_time_values)
                     buckets = sorted(list(buckets.items()), key=lambda x: float(x[0]))
-                    print(f"BUCKETS: {buckets}")  # todo:metrics remove print
                     alert_groups_response_time_seconds.add_metric(labels_values, buckets=buckets, sum_value=sum_value)
 
             if start_calculation_task or not get_metrics_cache_timer_for_organization(organization_id):
@@ -108,7 +105,6 @@ class ApplicationMetricsCollector:
                 metrics_to_recalculate.append(org_to_recalculate)
 
         if metrics_to_recalculate:
-            print(f"RECALCULATE: {metrics_to_recalculate}")  # todo:metrics: remove print
             start_calculate_and_cache_metrics.apply_async((metrics_to_recalculate,))
 
         yield alert_groups_total
