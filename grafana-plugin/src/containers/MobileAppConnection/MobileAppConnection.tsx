@@ -184,19 +184,14 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   return (
-    <WithPermissionControlDisplay
-      userAction={UserActions.UserSettingsWrite}
-      message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
-    >
-      <div className={cx('container')}>
-        <Block shadowed bordered withBackground className={cx('container__box')}>
-          <DownloadIcons />
-        </Block>
-        <Block shadowed bordered withBackground className={cx('container__box')}>
-          {content}
-        </Block>
-      </div>
-    </WithPermissionControlDisplay>
+    <div className={cx('container')}>
+      <Block shadowed bordered withBackground className={cx('container__box')}>
+        <DownloadIcons />
+      </Block>
+      <Block shadowed bordered withBackground className={cx('container__box')}>
+        {content}
+      </Block>
+    </div>
   );
 
   function getParsedQRCodeValue() {

@@ -146,14 +146,14 @@ class UserView(
         "verify_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "forget_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "get_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "get_backend_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_backend_verification_code": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "get_telegram_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_slack": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_READ],
     }
 
     rbac_object_permissions = {
