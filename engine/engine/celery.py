@@ -16,12 +16,12 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 
-from django.db import connection  # noqa: E402
+# from django.db import connection  # noqa: E402
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
-connection.cursor()
+# connection.cursor()
 from celery import Celery  # noqa: E402
 
 app = Celery("proj")
