@@ -529,7 +529,8 @@ def test_response_content_limit(
         forward_all=False,
     )
 
-    mock_response = MockResponse(content="A" * 100000)
+    content_length = 100000
+    mock_response = MockResponse(content="A" * content_length)
     with patch("apps.webhooks.utils.socket.gethostbyname") as mock_gethostbyname:
         mock_gethostbyname.return_value = "8.8.8.8"
         with patch("apps.webhooks.models.webhook.requests") as mock_requests:
@@ -546,5 +547,5 @@ def test_response_content_limit(
     # check logs
     log = webhook.responses.all()[0]
     assert log.status_code == 200
-    assert log.content == f"Response content exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
+    assert log.content == f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
     assert log.url == "https://test/"

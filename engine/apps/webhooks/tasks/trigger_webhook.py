@@ -122,13 +122,16 @@ def make_request(webhook, alert_group, data):
                 status["request_data"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
             status["status_code"] = response.status_code
-            if len(response.content) <= WEBHOOK_RESPONSE_LIMIT:
+            content_length = len(response.content)
+            if content_length <= WEBHOOK_RESPONSE_LIMIT:
                 try:
                     status["content"] = json.dumps(response.json())
                 except JSONDecodeError:
                     status["content"] = response.content.decode("utf-8")
             else:
-                status["content"] = f"Response content exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
+                status[
+                    "content"
+                ] = f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
 
         return triggered, status, None, None
     except InvalidWebhookUrl as e:
