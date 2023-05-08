@@ -83,7 +83,7 @@ init:  ## build the frontend plugin code then run make start
 # this makes sure that it will be available when the grafana container starts up without the need to
 # restart the grafana container initially
 ifeq ($(findstring $(UI_PROFILE),$(COMPOSE_PROFILES)),$(UI_PROFILE))
-	cd grafana-plugin && yarn install && yarn build:dev
+	$(call run_docker_compose_command,run --rm oncall_ui sh -c 'yarn install && yarn build:dev' )
 endif
 
 stop:  # stop all of the docker containers
