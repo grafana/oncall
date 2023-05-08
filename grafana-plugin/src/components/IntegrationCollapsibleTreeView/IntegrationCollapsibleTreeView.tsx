@@ -13,6 +13,7 @@ export interface IntegrationCollapsibleItem {
   expandedView: React.ReactNode;
   collapsedView: React.ReactNode;
   isCollapsible: boolean;
+  isExpanded?: boolean;
 }
 
 interface IntegrationCollapsibleTreeViewProps {
@@ -53,7 +54,11 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   function getStartingExpandedState(): Array<boolean | boolean[]> {
     const expandedArrayValues = new Array<boolean | boolean[]>(configElements.length);
     configElements.forEach((elem, index) => {
-      expandedArrayValues[index] = Array.isArray(elem) ? new Array(elem.length).fill(true) : true;
+      if (Array.isArray(elem)) {
+        expandedArrayValues[index] = elem.map((el) => !el.isCollapsible || el.isExpanded);
+      } else {
+        expandedArrayValues[index] = !elem.isCollapsible || elem.isExpanded;
+      }
     });
 
     return expandedArrayValues;

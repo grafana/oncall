@@ -1,3 +1,6 @@
+import dayjs from 'dayjs';
+
+import { MaintenanceMode } from 'models/alert_receive_channel';
 import { ChannelFilter } from 'models/channel_filter';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
@@ -35,6 +38,21 @@ const IntegrationHelper = {
       return 'Default';
     }
     return routeIndex ? 'Else' : 'If';
+  },
+
+  getMaintenanceText(maintenanceUntill: number, mode: number = undefined) {
+    const date = dayjs(new Date(maintenanceUntill * 1000));
+    const now = dayjs();
+    const hourDiff = date.diff(now, 'hours');
+    const minDiff = date.diff(now, 'minutes');
+    const totalMinDiff = minDiff - hourDiff * 60;
+    const totalDiffString = `${hourDiff}h ${totalMinDiff}m left`;
+
+    if (mode) {
+      return `${mode === MaintenanceMode.Debug ? 'Debug Maintenance' : 'Maintenance'}: ${totalDiffString}`;
+    }
+
+    return totalDiffString;
   },
 };
 
