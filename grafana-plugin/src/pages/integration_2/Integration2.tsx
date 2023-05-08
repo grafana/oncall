@@ -17,7 +17,7 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 
 import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import IntegrationCollapsibleTreeView, {
@@ -576,6 +576,8 @@ interface IntegrationActionsProps {
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveChannel }) => {
   const { maintenanceStore, alertReceiveChannelStore } = useStore();
 
+  const history = useHistory();
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: any;
@@ -681,13 +683,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                     onClick={() => {
                       setConfirmModal({
                         isOpen: true,
-                        title: 'Delete integration?',
-                        body: (
-                          <>
-                            Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
-                            integration?
-                          </>
-                        ),
+                        title: 'Are you sure you want to delete integration?',
+                        body: <>This action cannot be undone.</>,
                         onConfirm: deleteIntegration,
                         dismissText: 'Cancel',
                         confirmText: 'Delete',
@@ -712,7 +709,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
     </>
   );
 
-  function deleteIntegration() {}
+  function deleteIntegration() {
+    alertReceiveChannelStore
+      .deleteAlertReceiveChannel(alertReceiveChannel.id)
+      .then(() => history.push(`${PLUGIN_ROOT}/integrations_2`));
+  }
 
   function openIntegrationSettings(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
 
