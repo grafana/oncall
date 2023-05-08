@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve ical comparison when checking for imported ical updates ([1870](https://github.com/grafana/oncall/pull/1870))
 - Upgrade to Python 3.11.3 by @joeyorlando ([#1849](https://github.com/grafana/oncall/pull/1849))
+- Users with the Viewer basic role can now connect and use the mobile app ([#1892](https://github.com/grafana/oncall/pull/1892))
 
 ### Fixed
 
