@@ -513,7 +513,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return self.root_alert_group is not None and self.root_alert_group.maintenance_uuid is not None
 
     def acknowledge_by_user(self, user: User, action_source: Optional[str] = None) -> None:
-        # todo:metrics: add comment
+        # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
             organization_id=user.organization_id,
@@ -566,7 +566,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def acknowledge_by_source(self):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
             old_state=self.state,
@@ -604,7 +604,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def un_acknowledge_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state metric cache
         MetricsCacheManager.metrics_update_state_cache_for_alert_group(
             self.channel_id, user.organization_id, self.state, STATE_FIRING
         )
@@ -633,7 +633,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def resolve_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
             organization_id=user.organization_id,
@@ -672,7 +672,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def resolve_by_source(self):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
             old_state=self.state,
@@ -741,7 +741,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def resolve_by_last_step(self):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
             old_state=self.state,
@@ -792,7 +792,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def un_resolve_by_user(self, user: User, action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state metric cache
         MetricsCacheManager.metrics_update_state_cache_for_alert_group(
             self.channel_id, user.organization_id, self.state, STATE_FIRING
         )
@@ -969,7 +969,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def silence_by_user(self, user: User, silence_delay: Optional[int], action_source: Optional[str] = None) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
             organization_id=user.organization_id,
@@ -1031,7 +1031,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.silence_by_user(user, silence_delay, action_source)
 
     def un_silence_by_user(self, user: User, action_source: Optional[str] = None) -> None:
-        # todo:metrics: add comment
+        # Update alert group state metric cache
         MetricsCacheManager.metrics_update_state_cache_for_alert_group(
             self.channel_id, user.organization_id, self.state, STATE_FIRING
         )
@@ -1066,7 +1066,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def wipe_by_user(self, user: User) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics
+        # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
             organization_id=user.organization_id,
@@ -1110,7 +1110,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     def delete_by_user(self, user: User):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # todo:metrics: add comment
+        # Update alert group state metric cache
         MetricsCacheManager.metrics_update_state_cache_for_alert_group(
             self.channel_id, user.organization_id, self.state, None
         )
