@@ -122,8 +122,7 @@ def make_request(webhook, alert_group, data):
                 status["request_data"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
             status["status_code"] = response.status_code
-            content_length = response.headers.get("Content-Length")
-            if content_length and int(content_length) < WEBHOOK_RESPONSE_LIMIT:
+            if len(response.content) <= WEBHOOK_RESPONSE_LIMIT:
                 try:
                     status["content"] = json.dumps(response.json())
                 except JSONDecodeError:
