@@ -16,10 +16,12 @@ from icalendar import Calendar
 
 from apps.api.permissions import RBACPermission
 from apps.schedules.constants import (
+    CALENDAR_TYPE_FINAL,
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
     ICAL_DATETIME_START,
     ICAL_DESCRIPTION,
+    ICAL_LOCATION,
     ICAL_SUMMARY,
     ICAL_UID,
     RE_EVENT_UID_V1,
@@ -107,6 +109,7 @@ def list_of_oncall_shifts_from_ical(
     with_gaps=False,
     days=1,
     filter_by=None,
+    from_cached_final=False,
 ):
     """
     Parse the ical file and return list of events with users
@@ -127,10 +130,14 @@ def list_of_oncall_shifts_from_ical(
 
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
-    calendars = schedule.get_icalendars()
+    if from_cached_final:
+        calendars = [Calendar.from_ical(schedule.cached_ical_final_schedule)]
+    else:
+        calendars = schedule.get_icalendars()
 
     # TODO: Review offset usage
-    user_timezone_offset = timezone.datetime.now().astimezone(pytz.timezone(user_timezone)).utcoffset()
+    pytz_tz = pytz.timezone(user_timezone)
+    user_timezone_offset = timezone.datetime.now().astimezone(pytz_tz).utcoffset()
     datetime_min = timezone.datetime.combine(date, datetime.time.min) + timezone.timedelta(milliseconds=1)
     datetime_start = (datetime_min - user_timezone_offset).astimezone(pytz.UTC)
     datetime_end = datetime_start + timezone.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
@@ -140,7 +147,9 @@ def list_of_oncall_shifts_from_ical(
 
     for idx, calendar in enumerate(calendars):
         if calendar is not None:
-            if idx == 0:
+            if from_cached_final:
+                calendar_type = CALENDAR_TYPE_FINAL
+            elif idx == 0:
                 calendar_type = OnCallSchedule.PRIMARY
             else:
                 calendar_type = OnCallSchedule.OVERRIDES
@@ -171,7 +180,15 @@ def list_of_oncall_shifts_from_ical(
                     "shift_pk": None,
                 }
             )
-    result = sorted(result_datetime, key=lambda dt: dt["start"]) + result_date
+
+    def event_start_cmp_key(e):
+        return (
+            datetime.datetime.combine(e["start"], datetime.datetime.min.time(), tzinfo=pytz_tz)
+            if type(e["start"]) == datetime.date
+            else e["start"]
+        )
+
+    result = sorted(result_datetime + result_date, key=event_start_cmp_key)
     # if there is no events, return None
     return result or None
 
@@ -185,6 +202,13 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
         pk, source = parse_event_uid(event.get(ICAL_UID))
         users = get_users_from_ical_event(event, schedule.organization)
         missing_users = get_missing_users_from_ical_event(event, schedule.organization)
+        event_calendar_type = calendar_type
+        if calendar_type == CALENDAR_TYPE_FINAL:
+            event_calendar_type = (
+                schedule.OVERRIDES
+                if event.get(ICAL_LOCATION, "") == schedule.CALENDAR_TYPE_VERBAL[schedule.OVERRIDES]
+                else schedule.PRIMARY
+            )
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
@@ -198,7 +222,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         "missing_users": missing_users,
                         "priority": priority,
                         "source": source,
-                        "calendar_type": calendar_type,
+                        "calendar_type": event_calendar_type,
                         "shift_pk": pk,
                     }
                 )
@@ -213,7 +237,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                             "missing_users": missing_users,
                             "priority": priority,
                             "source": source,
-                            "calendar_type": calendar_type,
+                            "calendar_type": event_calendar_type,
                             "shift_pk": pk,
                         }
                     )

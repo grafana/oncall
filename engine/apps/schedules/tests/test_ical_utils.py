@@ -14,7 +14,7 @@ from apps.schedules.ical_utils import (
     parse_event_uid,
     users_in_ical,
 )
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
 
 
 @pytest.mark.django_db
@@ -130,6 +130,55 @@ def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_
             or requested_date <= end <= requested_date + timezone.timedelta(days=3)
             or start <= requested_date <= end
         )
+
+
+@pytest.mark.django_db
+def test_shifts_dict_from_cached_final(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+
+    yesterday = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timezone.timedelta(days=1)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    data = {
+        "start": yesterday + timezone.timedelta(hours=10),
+        "rotation_start": yesterday + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=2),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[u1]])
+
+    override_data = {
+        "start": yesterday + timezone.timedelta(hours=12),
+        "rotation_start": yesterday + timezone.timedelta(hours=12),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[u1]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    shifts = [
+        (s["calendar_type"], s["start"], list(s["users"]))
+        for s in list_of_oncall_shifts_from_ical(schedule, yesterday, days=1, from_cached_final=True)
+    ]
+    expected_events = [
+        (OnCallSchedule.PRIMARY, on_call_shift.start, [u1]),
+        (OnCallSchedule.OVERRIDES, override.start, [u1]),
+    ]
+    assert shifts == expected_events
 
 
 def test_parse_event_uid_v1():
