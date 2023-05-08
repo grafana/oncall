@@ -80,7 +80,8 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements.txt
+      - pip install pip-tools
+      - pip-sync
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test

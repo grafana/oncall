@@ -24,6 +24,7 @@ DEV_ENV_EXAMPLE_FILE = $(DEV_ENV_FILE).example
 
 ENGINE_DIR = ./engine
 REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
+REQUIREMENTS_IN = $(ENGINE_DIR)/requirements.in
 REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
 
@@ -159,11 +160,17 @@ define backend_command
 endef
 
 backend-bootstrap:
-	pip install -U pip wheel
-	pip install -r $(REQUIREMENTS_TXT)
+	pip install -U pip wheel pip-tools
+	pip-sync $(REQUIREMENTS_TXT)
 	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \
-		pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
+		pip-sync $(REQUIREMENTS_ENTERPRISE_TXT); \
 	fi
+
+backend-compile-deps:
+	pip-compile --resolver=backtracking --pre $(REQUIREMENTS_IN)
+
+backend-upgrade-deps:
+	pip-compile --resolver=backtracking --pre --upgrade $(REQUIREMENTS_IN)
 
 backend-migrate:
 	$(call backend_command,python manage.py migrate)

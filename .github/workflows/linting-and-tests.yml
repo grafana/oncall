@@ -117,7 +117,8 @@ jobs:
       - name: Lint migrations
         working-directory: engine
         run: |
-          pip install -r requirements.txt
+          pip install pip-tools
+          pip-sync
           python manage.py lintmigrations
 
   unit-test-backend-mysql-rabbitmq:
@@ -158,7 +159,8 @@ jobs:
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat
-          pip install -r requirements.txt
+          pip install pip-tools
+          pip-sync
           ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
@@ -205,7 +207,8 @@ jobs:
       - name: Unit Test Backend
         working-directory: engine
         run: |
-          pip install -r requirements.txt
+          pip install pip-tools
+          pip-sync
           pytest -x
 
   unit-test-backend-sqlite-redis:
@@ -242,7 +245,8 @@ jobs:
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat
-          pip install -r requirements.txt
+          pip install pip-tools
+          pip-sync
           pytest -x
 
   unit-test-pd-migrator:
@@ -258,7 +262,8 @@ jobs:
       - name: Unit Test PD Migrator
         working-directory: tools/pagerduty-migrator
         run: |
-          pip install -r requirements.txt
+          pip install pip-tools
+          pip-sync
           pytest -x
 
   end-to-end-tests:
