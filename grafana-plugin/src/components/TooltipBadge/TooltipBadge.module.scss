@@ -2,12 +2,7 @@
   font-size: 12px;
   line-height: 16px;
   padding: 3px 4px;
-
-  &--link,
-  &--warning,
-  &--success {
-    border-radius: 2px;
-  }
+  border-radius: 2px;
 
   &--primary {
     background: var(--tag-background-primary);
@@ -23,6 +18,11 @@
     background: var(--tag-background-success);
     border: 1px solid var(--tag-border-success);
     color: var(--tag-text-success);
+  }
+  &--danger {
+    background: var(--tag-background-danger);
+    border: 1px solid var(--tag-border-danger);
+    color: var(--tag-text-danger);
   }
 
   &--padding {

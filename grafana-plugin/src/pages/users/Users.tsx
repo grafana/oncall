@@ -8,7 +8,6 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
-import CounterBadge from 'components/CounterBadge/CounterBadge';
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
@@ -17,6 +16,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -361,10 +361,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
       return (
         <HorizontalGroup>
-          <CounterBadge
+          <TooltipBadge
             borderType="warning"
             icon="exclamation-triangle"
-            count={texts.length}
+            text={texts.length}
             tooltipTitle="Warnings"
             tooltipContent={
               <VerticalGroup spacing="none">
