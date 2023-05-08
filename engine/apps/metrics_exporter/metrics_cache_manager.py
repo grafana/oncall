@@ -49,7 +49,10 @@ class MetricsCacheManager:
     def metrics_update_state_cache_for_alert_group(
         integration_id, organization_id=None, old_state=None, new_state=None
     ):
-        # todo:metrics: add comment
+        """
+        Update state metric cache for one alert group.
+        Run the task to update async if organization_id is None due to an additional request to db
+        """
         metrics_state_diff = MetricsCacheManager.update_integration_states_diff(
             {}, integration_id, previous_state=old_state, new_state=new_state
         )
@@ -60,7 +63,10 @@ class MetricsCacheManager:
 
     @staticmethod
     def metrics_update_response_time_cache_for_alert_group(integration_id, organization_id, response_time_seconds):
-        # todo:metrics: add comment
+        """
+        Update response time metric cache for one alert group.
+        Run the task to update async if organization_id is None due to an additional request to db
+        """
         metrics_response_time = MetricsCacheManager.update_integration_response_time_diff(
             {}, integration_id, response_time_seconds
         )
@@ -73,7 +79,8 @@ class MetricsCacheManager:
     def metrics_update_cache_for_alert_group(
         integration_id, organization_id=None, old_state=None, new_state=None, response_time=None, started_at=None
     ):
-        # todo:metrics: add comment
+        """Call methods to update state and response time metrics cache for one alert group."""
+
         if response_time and old_state == STATE_FIRING and started_at > get_response_time_period():
             response_time_seconds = int(response_time.total_seconds())
             MetricsCacheManager.metrics_update_response_time_cache_for_alert_group(
@@ -94,7 +101,7 @@ class MetricsCacheManager:
         response_time=None,
         started_at=None,
     ):
-        # todo:metrics: add comment
+        """Update state and response time metrics diff dicts for alert group"""
         if response_time and old_state == STATE_FIRING and started_at > get_response_time_period():
             response_time_seconds = int(response_time.total_seconds())
             response_time_diff = MetricsCacheManager.update_integration_response_time_diff(

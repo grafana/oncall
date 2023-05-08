@@ -80,7 +80,7 @@ def get_metric_alert_groups_response_time_key(organization_id):
 
 
 def metrics_update_integration_cache(integration):
-    # todo:metrics: description
+    """Update integration data in metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization_id)
@@ -102,7 +102,7 @@ def metrics_update_integration_cache(integration):
 
 
 def metrics_remove_deleted_integration_from_cache(integration):
-    # todo:metrics: description
+    """Remove data related to deleted integration from metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(integration.organization_id)
@@ -114,7 +114,7 @@ def metrics_remove_deleted_integration_from_cache(integration):
 
 
 def metrics_add_integration_to_cache(integration):
-    # todo:metrics: description
+    """Add new integration data to metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
 
@@ -163,7 +163,7 @@ def metrics_add_integration_to_cache(integration):
 
 
 def metrics_bulk_update_team_label_cache(teams_updated_data, organization_id):
-    # todo:metrics: description
+    """Update team related data in metrics cache for each team in `teams_updated_data`"""
     if not teams_updated_data:
         return
     metrics_cache_timeout = get_metrics_cache_timeout(organization_id)
