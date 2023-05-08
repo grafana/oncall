@@ -45,7 +45,7 @@ class TeamManager(models.Manager):
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()
         organization.teams.filter(team_id__in=team_ids_to_delete).delete()
 
-        # todo:metrics: comment
+        # collect teams diffs to update metrics cache
         metrics_teams_to_update = {}
         for team_id in team_ids_to_delete:
             metrics_teams_to_update = MetricsCacheManager.update_team_diff(
@@ -62,6 +62,7 @@ class TeamManager(models.Manager):
                 or team.avatar_url != grafana_team["avatarUrl"]
             ):
                 if team.name != grafana_team["name"]:
+                    # collect teams diffs to update metrics cache
                     metrics_teams_to_update = MetricsCacheManager.update_team_diff(
                         metrics_teams_to_update, team.id, new_name=grafana_team["name"]
                     )
