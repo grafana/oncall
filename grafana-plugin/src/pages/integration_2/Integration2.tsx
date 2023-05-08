@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
 import {
   Button,
@@ -55,6 +55,8 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
+import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
+import { MaintenanceType } from 'models/maintenance/maintenance.types';
 
 const cx = cn.bind(styles);
 
@@ -97,7 +99,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   }
 
   render() {
-    const { errorData, isDemoModalOpen, isEditTemplateModalOpen, selectedTemplate } = this.state;
+    const { errorData, isEditTemplateModalOpen, selectedTemplate } = this.state;
     const {
       store: { alertReceiveChannelStore, grafanaTeamStore },
       match: {
@@ -134,75 +136,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 <Emoji text={alertReceiveChannel.verbal_name} />
               </h1>
 
-              <div className={cx('integration__actions')}>
-                <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => this.setState({ isDemoModalOpen: true })}
-                    data-testid="send-demo-alert"
-                  >
-                    Send demo alert
-                  </Button>
-                </WithPermissionControlTooltip>
-
-                <WithContextMenu
-                  renderMenuItems={({ closeMenu }) => (
-                    <div className={cx('integration__actionsList')} id="integration-menu-options">
-                      <div
-                        className={cx('integration__actionItem')}
-                        onClick={() => this.openIntegrationSettings(id, closeMenu)}
-                      >
-                        <Text type="primary">Integration Settings</Text>
-                      </div>
-
-                      <div className={cx('integration__actionItem')} onClick={() => this.openHearbeat(id, closeMenu)}>
-                        Hearbeat
-                      </div>
-
-                      <div
-                        className={cx('integration__actionItem')}
-                        onClick={() => this.openStartMaintenance(id, closeMenu)}
-                      >
-                        <Text type="primary">Start Maintenance</Text>
-                      </div>
-
-                      <div className="thin-line-break" />
-
-                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                        <div className={cx('integration__actionItem')}>
-                          <WithConfirm
-                            title="Delete integration?"
-                            body={
-                              <>
-                                Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
-                                integration?
-                              </>
-                            }
-                          >
-                            <div onClick={() => this.deleteIntegration(id, closeMenu)}>
-                              <div
-                                onClick={() => {
-                                  // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
-                                  const contextMenuEl =
-                                    document.querySelector<HTMLElement>('#integration-menu-options');
-                                  if (contextMenuEl) {
-                                    contextMenuEl.style.display = 'none';
-                                  }
-                                }}
-                              >
-                                <Text type="danger">Stop Maintenance</Text>
-                              </div>
-                            </div>
-                          </WithConfirm>
-                        </div>
-                      </WithPermissionControlTooltip>
-                    </div>
-                  )}
-                >
-                  {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
-                </WithContextMenu>
-              </div>
+              <IntegrationActions alertReceiveChannel={alertReceiveChannel} />
             </div>
 
             <div className={cx('integration__subheading-container')}>
@@ -354,11 +288,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               ]}
             />
 
-            <IntegrationSendDemoPayloadModal
-              alertReceiveChannel={alertReceiveChannel}
-              isOpen={isDemoModalOpen}
-              onHideOrCancel={() => this.setState({ isDemoModalOpen: false })}
-            />
             {isEditTemplateModalOpen && (
               <IntegrationTemplate
                 id={id}
@@ -517,14 +446,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
   };
 
-  deleteIntegration = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
-
-  openIntegrationSettings = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
-
-  openStartMaintenance = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
-
-  openHearbeat = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
-
   async loadIntegration() {
     const {
       store: { alertReceiveChannelStore },
@@ -648,6 +569,140 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   }
 };
 
+interface IntegrationActionsProps {
+  alertReceiveChannel: AlertReceiveChannel;
+}
+
+const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveChannel }) => {
+  const { maintenanceStore } = useStore();
+
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [maintenanceData, setMaintenanceData] = useState<{
+    disabled: boolean;
+    alert_receive_channel_id: AlertReceiveChannel['id'];
+  }>(undefined);
+
+  const { id } = alertReceiveChannel;
+  return (
+    <>
+      <IntegrationSendDemoPayloadModal
+        alertReceiveChannel={alertReceiveChannel}
+        isOpen={isDemoModalOpen}
+        onHideOrCancel={() => setIsDemoModalOpen(false)}
+      />
+
+      {maintenanceData && (
+        <MaintenanceForm
+          initialData={maintenanceData}
+          onUpdate={() => {}}
+          onHide={() => setMaintenanceData(undefined)}
+        />
+      )}
+
+      <div className={cx('integration__actions')}>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
+          <Button variant="secondary" size="md" onClick={() => setIsDemoModalOpen(true)} data-testid="send-demo-alert">
+            Send demo alert
+          </Button>
+        </WithPermissionControlTooltip>
+
+        <WithContextMenu
+          renderMenuItems={({ closeMenu }) => (
+            <div className={cx('integration__actionsList')} id="integration-menu-options">
+              <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings(id, closeMenu)}>
+                <Text type="primary">Integration Settings</Text>
+              </div>
+
+              <div className={cx('integration__actionItem')} onClick={() => openHearbeat(id, closeMenu)}>
+                Hearbeat
+              </div>
+
+              {!alertReceiveChannel.maintenance_till && (
+                <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
+                  <div className={cx('integration__actionItem')} onClick={openStartMaintenance}>
+                    <Text type="primary">Start Maintenance</Text>
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
+
+              {alertReceiveChannel.maintenance_till && (
+                <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
+                  <WithConfirm
+                    title={
+                      (
+                        <>
+                          Are you sure to stop maintenance for <Emoji text={alertReceiveChannel.verbal_name} />?
+                        </>
+                      ) as any
+                    }
+                    confirmText="Stop"
+                  >
+                    <div className={cx('integration__actionItem')} onClick={openStartMaintenance}>
+                      <Text type="primary" onClick={onStopMaintenance}>
+                        Stop Maintenance
+                      </Text>
+                    </div>
+                  </WithConfirm>
+                </WithPermissionControlTooltip>
+              )}
+
+              <div className="thin-line-break" />
+
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integration__actionItem')}>
+                  <WithConfirm
+                    title="Delete integration?"
+                    body={
+                      <>
+                        Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> integration?
+                      </>
+                    }
+                  >
+                    <div onClick={() => deleteIntegration(id, closeMenu)}>
+                      <div
+                        onClick={() => {
+                          // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
+                          const contextMenuEl = document.querySelector<HTMLElement>('#integration-menu-options');
+                          if (contextMenuEl) {
+                            contextMenuEl.style.display = 'none';
+                          }
+                        }}
+                      >
+                        <HorizontalGroup spacing={'xs'}>
+                          <Icon name="trash-alt" />
+                          <Text type="danger">Delete Integration</Text>
+                        </HorizontalGroup>
+                      </div>
+                    </div>
+                  </WithConfirm>
+                </div>
+              </WithPermissionControlTooltip>
+            </div>
+          )}
+        >
+          {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
+        </WithContextMenu>
+      </div>
+    </>
+  );
+
+  function deleteIntegration(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
+
+  function openIntegrationSettings(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
+
+  function openStartMaintenance() {
+    setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
+  }
+
+  function onStopMaintenance() {
+    maintenanceStore
+      .stopMaintenanceMode(MaintenanceType.alert_receive_channel, id)
+      .then(() => maintenanceStore.updateMaintenances());
+  }
+
+  function openHearbeat(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
+};
+
 const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
@@ -667,7 +722,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           </Tag>
           <IntegrationMaskedInputField value={alertReceiveChannelStore.items[id].integration_url} />
           <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer">
-            <Text type="link" size="small" onClick={openHowToConnect}>
+            <Text type="link" size="small">
               <HorizontalGroup>
                 How to connect
                 <Icon name="external-link-alt" />
@@ -679,8 +734,6 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       content={isAlertManager || !hasAlerts ? renderContent() : null}
     />
   );
-
-  function openHowToConnect() {}
 
   function renderContent() {
     return (
