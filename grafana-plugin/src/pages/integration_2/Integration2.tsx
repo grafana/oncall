@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 
 import {
-  Badge,
   Button,
   HorizontalGroup,
   VerticalGroup,
@@ -10,6 +9,7 @@ import {
   Tooltip,
   Modal,
   CascaderOption,
+  IconButton,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -19,7 +19,6 @@ import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
-import CounterBadge from 'components/CounterBadge/CounterBadge';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -31,6 +30,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
@@ -38,6 +38,7 @@ import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTempl
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { ChannelFilter } from 'models/channel_filter';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -55,7 +56,6 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
-// import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -142,126 +142,125 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         {() => (
           <div className={cx('root')}>
             <div className={cx('integration__heading-container')}>
-              <div className={cx('integration__heading')}>
-                <h1 className={cx('integration__name')}>
-                  <Emoji text={alertReceiveChannel.verbal_name} />
-                </h1>
-                <div className={cx('integration__actions')}>
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
-                    <Button
-                      variant="secondary"
-                      size="md"
-                      onClick={() => this.setState({ isDemoModalOpen: true })}
-                      data-testid="send-demo-alert"
-                    >
-                      Send demo alert
-                    </Button>
-                  </WithPermissionControlTooltip>
+              <PluginLink query={{ page: 'integrations_2' }}>
+                <IconButton name="arrow-left" size="xxl" />
+              </PluginLink>
+              <h1 className={cx('integration__name')}>
+                <Emoji text={alertReceiveChannel.verbal_name} />
+              </h1>
 
-                  <WithContextMenu
-                    renderMenuItems={({ closeMenu }) => (
-                      <div className={cx('integration__actionsList')} id="integration-menu-options">
-                        <div
-                          className={cx('integration__actionItem')}
-                          onClick={() => this.openIntegrationSettings(id, closeMenu)}
-                        >
-                          <Text type="primary">Integration Settings</Text>
-                        </div>
-
-                        <div className={cx('integration__actionItem')} onClick={() => this.openHearbeat(id, closeMenu)}>
-                          Hearbeat
-                        </div>
-
-                        <div
-                          className={cx('integration__actionItem')}
-                          onClick={() => this.openStartMaintenance(id, closeMenu)}
-                        >
-                          <Text type="primary">Start Maintenance</Text>
-                        </div>
-
-                        <div className="thin-line-break" />
-
-                        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                          <div className={cx('integration__actionItem')}>
-                            <WithConfirm
-                              title="Delete integration?"
-                              body={
-                                <>
-                                  Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
-                                  integration?
-                                </>
-                              }
-                            >
-                              <div onClick={() => this.deleteIntegration(id, closeMenu)}>
-                                <div
-                                  onClick={() => {
-                                    // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
-                                    const contextMenuEl =
-                                      document.querySelector<HTMLElement>('#integration-menu-options');
-                                    if (contextMenuEl) {
-                                      contextMenuEl.style.display = 'none';
-                                    }
-                                  }}
-                                >
-                                  <Text type="danger">Stop Maintenance</Text>
-                                </div>
-                              </div>
-                            </WithConfirm>
-                          </div>
-                        </WithPermissionControlTooltip>
-                      </div>
-                    )}
+              <div className={cx('integration__actions')}>
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => this.setState({ isDemoModalOpen: true })}
+                    data-testid="send-demo-alert"
                   >
-                    {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
-                  </WithContextMenu>
-                </div>
+                    Send demo alert
+                  </Button>
+                </WithPermissionControlTooltip>
+
+                <WithContextMenu
+                  renderMenuItems={({ closeMenu }) => (
+                    <div className={cx('integration__actionsList')} id="integration-menu-options">
+                      <div
+                        className={cx('integration__actionItem')}
+                        onClick={() => this.openIntegrationSettings(id, closeMenu)}
+                      >
+                        <Text type="primary">Integration Settings</Text>
+                      </div>
+
+                      <div className={cx('integration__actionItem')} onClick={() => this.openHearbeat(id, closeMenu)}>
+                        Hearbeat
+                      </div>
+
+                      <div
+                        className={cx('integration__actionItem')}
+                        onClick={() => this.openStartMaintenance(id, closeMenu)}
+                      >
+                        <Text type="primary">Start Maintenance</Text>
+                      </div>
+
+                      <div className="thin-line-break" />
+
+                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                        <div className={cx('integration__actionItem')}>
+                          <WithConfirm
+                            title="Delete integration?"
+                            body={
+                              <>
+                                Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
+                                integration?
+                              </>
+                            }
+                          >
+                            <div onClick={() => this.deleteIntegration(id, closeMenu)}>
+                              <div
+                                onClick={() => {
+                                  // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
+                                  const contextMenuEl =
+                                    document.querySelector<HTMLElement>('#integration-menu-options');
+                                  if (contextMenuEl) {
+                                    contextMenuEl.style.display = 'none';
+                                  }
+                                }}
+                              >
+                                <Text type="danger">Stop Maintenance</Text>
+                              </div>
+                            </div>
+                          </WithConfirm>
+                        </div>
+                      </WithPermissionControlTooltip>
+                    </div>
+                  )}
+                >
+                  {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
+                </WithContextMenu>
               </div>
-              {alertReceiveChannel.description && (
+            </div>
+
+            <div className={cx('integration__subheading-container')}>
+              {alertReceiveChannel.description_short && (
                 <Text type="secondary" className={cx('integration__description')}>
-                  {alertReceiveChannel.description}
+                  {alertReceiveChannel.description_short}
                 </Text>
               )}
               <HorizontalGroup>
                 {alertReceiveChannelCounter && (
-                  <Tooltip
-                    placement="bottom-start"
-                    content={
-                      alertReceiveChannelCounter?.alerts_count +
-                      ' alert' +
-                      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
-                      ' in ' +
-                      alertReceiveChannelCounter?.alert_groups_count +
-                      ' alert group' +
-                      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+                  <TooltipBadge
+                    borderType="primary"
+                    tooltipTitle={undefined}
+                    tooltipContent={this.getAlertReceiveChannelCounterTooltip()}
+                    text={
+                      alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count
                     }
-                  >
-                    {/* <span> is needed to be child, otherwise Tooltip won't render */}
-                    <span>
-                      <PluginLink
-                        query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
-                        className={cx('integration__counter')}
-                      >
-                        <Badge
-                          text={
-                            alertReceiveChannelCounter?.alerts_count +
-                            '/' +
-                            alertReceiveChannelCounter?.alert_groups_count
-                          }
-                          className={cx('integration__countersBadge')}
-                          color={'blue'}
-                        />
-                      </PluginLink>
-                    </span>
-                  </Tooltip>
+                  />
                 )}
 
-                <CounterBadge
+                <TooltipBadge
                   borderType="success"
                   icon="link"
-                  count={channelFilterIds.length}
+                  text={channelFilterIds.length}
                   tooltipTitle={`${channelFilterIds.length} Routes`}
                   tooltipContent={undefined}
                 />
+
+                {alertReceiveChannel.maintenance_till && (
+                  <TooltipBadge
+                    borderType="primary"
+                    icon="pause"
+                    text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
+                    tooltipTitle={IntegrationHelper.getMaintenanceText(
+                      alertReceiveChannel.maintenance_till,
+                      alertReceiveChannel.maintenance_mode
+                    )}
+                    tooltipContent={undefined}
+                  />
+                )}
+
+                {this.renderHearbeat(alertReceiveChannel)}
+
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Type:</Text>
                   <HorizontalGroup spacing="none">
@@ -291,6 +290,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   expandedView: <HowToConnectComponent id={id} />,
                 },
                 {
+                  isExpanded: false,
                   isCollapsible: true,
                   collapsedView: (
                     <IntegrationBlock
@@ -302,10 +302,18 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               Templates
                             </Text>
                           </Tag>
+
                           <HorizontalGroup spacing={'xs'}>
                             <Text type="secondary">Grouping:</Text>
                             <Text type="link">
-                              {IntegrationHelper.getFilteredTemplate(templates['grouping_id_template'] || '', false)}
+                              {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
+                            </Text>
+                          </HorizontalGroup>
+
+                          <HorizontalGroup spacing={'xs'}>
+                            <Text type="secondary">Autoresolve:</Text>
+                            <Text type="link">
+                              {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
                             </Text>
                           </HorizontalGroup>
 
@@ -430,6 +438,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     return channelFilterIds.map((channelFilterId: ChannelFilter['id'], routeIndex: number) => ({
       isCollapsible: true,
+      isExpanded: false,
       collapsedView: (
         <CollapsedIntegrationRouteDisplay
           alertReceiveChannelId={id}
@@ -448,6 +457,42 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         />
       ),
     }));
+  };
+
+  renderHearbeat = (alertReceiveChannel: AlertReceiveChannel) => {
+    const { heartbeatStore, alertReceiveChannelStore } = this.props.store;
+
+    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
+    const heartbeat = heartbeatStore.items[heartbeatId];
+
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
+    return (
+      <TooltipBadge
+        text={undefined}
+        className={cx('heartbeat-badge')}
+        borderType={alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal ? 'success' : 'danger'}
+        customIcon={heartbeatStatus ? <HeartGreenIcon /> : <HeartRedIcon />}
+        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal || 'never'}`}
+        tooltipContent={undefined}
+      />
+    );
+  };
+
+  getAlertReceiveChannelCounterTooltip = () => {
+    const { id } = this.props.match.params;
+    const { alertReceiveChannelStore } = this.props.store;
+    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
+
+    return (
+      alertReceiveChannelCounter?.alerts_count +
+      ' alert' +
+      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+      ' in ' +
+      alertReceiveChannelCounter?.alert_groups_count +
+      ' alert group' +
+      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+    );
   };
 
   handleSlackChannelChange = () => {};

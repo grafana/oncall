@@ -19,22 +19,28 @@ const cx = cn.bind(styles);
 
 interface OutgoingWebhook2FormProps {
   id: OutgoingWebhook2['id'] | 'new';
+  action: 'new' | 'update';
   onHide: () => void;
   onUpdate: () => void;
 }
 
 const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
-  const { id, onUpdate, onHide } = props;
+  const { id, action, onUpdate, onHide } = props;
 
   const store = useStore();
 
   const { outgoingWebhook2Store } = store;
 
-  const data = id === 'new' ? { is_webhook_enabled: true, is_legacy: false } : outgoingWebhook2Store.items[id];
+  const data =
+    id === 'new'
+      ? { is_webhook_enabled: true, is_legacy: false }
+      : action === 'new'
+      ? { ...outgoingWebhook2Store.items[id], is_legacy: false, name: '' }
+      : outgoingWebhook2Store.items[id];
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook2>) => {
-      (id === 'new' ? outgoingWebhook2Store.create(data) : outgoingWebhook2Store.update(id, data)).then(() => {
+      (action === 'new' ? outgoingWebhook2Store.create(data) : outgoingWebhook2Store.update(id, data)).then(() => {
         onHide();
 
         onUpdate();
@@ -48,7 +54,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
       scrollableContent
       title={
         <Text.Title className={cx('title')} level={4}>
-          {id === 'new' ? 'Create' : 'Edit'} Outgoing Webhook
+          {action === 'new' ? 'Create' : 'Edit'} Outgoing Webhook
         </Text.Title>
       }
       onClose={onHide}
@@ -58,7 +64,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
         <GForm form={form} data={data} onSubmit={handleSubmit} />
         <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
           <Button form={form.name} type="submit" disabled={data.is_legacy}>
-            {id === 'new' ? 'Create' : 'Update'} Webhook
+            {action === 'new' ? 'Create' : 'Update'} Webhook
           </Button>
         </WithPermissionControlTooltip>
       </div>

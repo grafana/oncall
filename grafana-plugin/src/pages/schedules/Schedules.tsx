@@ -8,7 +8,6 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
-import CounterBadge from 'components/CounterBadge/CounterBadge';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -16,6 +15,7 @@ import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilte
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
@@ -306,10 +306,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return (
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
-          <CounterBadge
+          <TooltipBadge
             borderType="link"
             icon="link"
-            count={item.number_of_escalation_chains}
+            text={item.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
             tooltipContent={
               <VerticalGroup spacing="sm">
@@ -335,10 +335,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         )}
 
         {item.warnings?.length > 0 && (
-          <CounterBadge
+          <TooltipBadge
             borderType="warning"
             icon="exclamation-triangle"
-            count={item.warnings.length}
+            text={item.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
               <VerticalGroup spacing="none">

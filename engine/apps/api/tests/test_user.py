@@ -1692,18 +1692,21 @@ def test_phone_number_verification_recaptcha(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "days",
+    ["invalid", 75, -2, 0],
+)
 def test_upcoming_shifts_invalid_days(
-    make_organization,
-    make_user_for_organization,
-    make_token_for_organization,
-    make_user_auth_headers,
+    make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers, days
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
-    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key}) + "?days=invalid"
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key}) + "?days={}".format(
+        days
+    )
 
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
 
@@ -1747,6 +1750,7 @@ def test_upcoming_shifts_oncall(
         )
         on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     client = APIClient()
 
@@ -1800,6 +1804,7 @@ def test_upcoming_shifts_override(
     )
     override.add_rolling_users([[admin]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     client = APIClient()
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
@@ -1854,6 +1859,7 @@ def test_upcoming_shifts_multiple_schedules(
             )
             on_call_shift.add_rolling_users([[user]])
         schedule.refresh_ical_file()
+        schedule.refresh_ical_final_schedule()
         schedules.append(schedule)
 
     client = APIClient()
