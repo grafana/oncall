@@ -241,11 +241,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     }
 
     function handleEditRoutingTemplate(channelFilter, channelFilterId) {
-      console.log('CHANNEL FILTER', channelFilter);
       if (channelFilter.filtering_term_type === 0) {
         onEditRegexpTemplate(channelFilter.filtering_term, channelFilter.filtering_term_as_jinja2, channelFilterId);
       } else {
-        openEditTemplateModal('routing', channelFilterId);
+        openEditTemplateModal('route_template', channelFilterId);
       }
     }
   }

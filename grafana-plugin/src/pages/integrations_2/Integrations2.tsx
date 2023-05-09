@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Badge, Tooltip, Button, IconButton } from '@grafana/ui';
+import { HorizontalGroup, Button, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -19,7 +19,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
+import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -201,7 +201,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           </div>
         </div>
         {alertReceiveChannelId && (
-          <IntegrationForm
+          <IntegrationForm2
             onHide={() => {
               this.setState({ alertReceiveChannelId: undefined });
             }}
@@ -241,9 +241,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return (
       <HorizontalGroup spacing="xs">
         <IntegrationLogo scale={0.08} integration={integration} />
-        <Text type="secondary" size="small">
-          {integration?.display_name}
-        </Text>
+        <Text type="secondary">{integration?.display_name}</Text>
       </HorizontalGroup>
     );
   }
@@ -256,10 +254,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       <HorizontalGroup spacing="xs">
         {alertReceiveChannelCounter && (
           <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
-            <Badge
+            <TooltipBadge
+              borderType="primary"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
-              color={'blue'}
-              tooltip={
+              tooltipTitle=""
+              tooltipContent={
                 alertReceiveChannelCounter?.alerts_count +
                 ' alert' +
                 (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
@@ -272,7 +271,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           </PluginLink>
         )}
         {routesCounter && (
-          <Badge icon="link" text={routesCounter} color={'green'} tooltip={`${routesCounter} routes`} />
+          <TooltipBadge
+            borderType="success"
+            icon="link"
+            text={routesCounter}
+            tooltipTitle=""
+            tooltipContent={`${routesCounter} routes`}
+          />
         )}
       </HorizontalGroup>
     );
@@ -286,20 +291,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     const heartbeatStatus = Boolean(heartbeat?.status);
     return (
-      <div className={cx('heartbeat')}>
+      <div>
         {alertReceiveChannel.is_available_for_integration_heartbeat && (
-          <Tooltip
-            placement="top"
-            content={
-              heartbeat
-                ? `Last heartbeat: ${heartbeat.last_heartbeat_time_verbal || 'never'}`
-                : 'Click to setup heartbeat'
-            }
-          >
-            <div className={cx('heartbeat-icon')} onClick={() => {}}>
-              {heartbeatStatus ? <HeartGreenIcon /> : <HeartRedIcon />}
-            </div>
-          </Tooltip>
+          <TooltipBadge
+            text={undefined}
+            className={cx('heartbeat-badge')}
+            borderType={heartbeat?.last_heartbeat_time_verbal ? 'success' : 'danger'}
+            customIcon={heartbeatStatus ? <HeartGreenIcon /> : <HeartRedIcon />}
+            tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal || 'never'}`}
+            tooltipContent={undefined}
+          />
         )}
       </div>
     );
@@ -315,7 +316,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             borderType="primary"
             icon="pause"
             text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
-            tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, item.maintenance_mode)}
+            tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, maintenanceMode)}
             tooltipContent={undefined}
           />
         </div>
@@ -324,12 +325,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     return null;
   }
-
-  // handleStopMaintenance = (item: AlertReceiveChannel, maintenanceStore, alertReceiveChannelStore) => {
-  //   maintenanceStore.stopMaintenanceMode(MaintenanceType.alert_receive_channel, item.id).then(() => {
-  //     alertReceiveChannelStore.updateItem(item.id);
-  //   });
-  // };
 
   renderTeam(item: AlertReceiveChannel, teams: any) {
     return <TeamName team={teams[item.team]} />;

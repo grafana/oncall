@@ -388,7 +388,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 onUpdateRoute={isNewRoute ? this.onCreateRoutesCallback : this.onUpdateRoutesCallback}
                 template={selectedTemplate}
                 templateBody={
-                  selectedTemplate?.name === 'routing'
+                  selectedTemplate?.name === 'route_template'
                     ? this.getRoutingTemplate(isNewRoute, channelFilterIdForEdit)
                     : templates[selectedTemplate?.name]
                 }
@@ -422,7 +422,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   };
   handleAddNewRoute = () => {
     this.setState({ isNewRoute: true });
-    this.openEditTemplateModal('routing');
+    this.openEditTemplateModal('route_template');
   };
 
   renderRoutesFn = (): IntegrationCollapsibleItem[] => {
@@ -502,7 +502,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
   };
 
-  onCreateRoutesCallback = ({ routing }: { routing: string }) => {
+  onCreateRoutesCallback = ({ route_template }: { route_template: string }) => {
     const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
     const {
       params: { id },
@@ -512,7 +512,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       .createChannelFilter({
         order: 0,
         alert_receive_channel: id,
-        filtering_term: routing,
+        filtering_term: route_template,
 
         // TODO: need to figure out this value
         filtering_term_type: 1,
@@ -531,7 +531,11 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       });
   };
 
-  onUpdateRoutesCallback = ({ routing }: { routing: string }, channelFilterId, filteringTermType?: number) => {
+  onUpdateRoutesCallback = (
+    { route_template }: { route_template: string },
+    channelFilterId,
+    filteringTermType?: number
+  ) => {
     const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
     const {
       params: { id },
@@ -539,7 +543,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     alertReceiveChannelStore
       .saveChannelFilter(channelFilterId, {
-        filtering_term: routing,
+        filtering_term: route_template,
 
         // TODO: need to figure out this value
         filtering_term_type: filteringTermType,
@@ -583,6 +587,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
 
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
+    console.log('templateName', templateName);
     this.setState({ selectedTemplate: templateForEdit[templateName] });
     this.setState({ isEditTemplateModalOpen: true });
 

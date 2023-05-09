@@ -8,7 +8,6 @@
   gap: 24px;
   overflow: auto;
   scroll-snap-type: y mandatory;
-  padding: 0 10px 10px 0;
   width: 100%;
 }
 
@@ -35,12 +34,6 @@
   width: 100%;
 }
 
-.tag {
-  top: 28px;
-  right: 28px;
-  position: absolute;
-}
-
 .title {
   margin: 10px 0 10px 0;
   max-width: 500px;
@@ -52,13 +45,17 @@
 }
 
 .search-integration {
-  width: 400px;
+  width: 100%;
   margin-bottom: 24px;
 }
 
 .collapse {
   width: 100%;
   margin-bottom: 24px;
+}
+
+.collapse svg {
+  color: var(--primary-text-link) !important;
 }
 
 .collapsable-content {
