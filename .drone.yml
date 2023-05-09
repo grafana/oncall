@@ -112,7 +112,7 @@ steps:
       config:
         from_secret: gcr_admin
     depends_on:
-      - Lint Backend
+      - Lint Everything
       - Unit Test Backend
       - Image Tag
 
@@ -132,7 +132,7 @@ steps:
       username:
         from_secret: docker_username
     depends_on:
-      - Lint Backend
+      - Lint Everything
       - Unit Test Backend
       - Image Tag
     when:
@@ -416,4 +416,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: a428b546ec4557971dfe3c7eeeac70ddf08faea7336607647ad3f146dd4cb46a
+hmac: 9eb4e539c2313ae319d12d1f5149ddf93ea017720b1690abe5e1730e2a1489f2
+
+...
