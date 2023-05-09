@@ -266,7 +266,7 @@ class PhoneBackend:
             message = self._add_call_limit_warning(calls_left, message)
 
         # additional cleaning, since message come from api call and wasn't cleaned by our renderer
-        message = clean_markup(message)
+        message = clean_markup(message).replace('"', "")
 
         self.phone_provider.make_call(message, user.verified_phone_number)
         # create PhoneCallRecord to track limits for calls from oss instances

@@ -233,7 +233,6 @@ class TwilioPhoneProvider(PhoneProvider):
         return live_settings.TWILIO_NUMBER
 
     def _escape_call_message(self, message):
-        message = message.replace('"', "")
         # https://www.twilio.com/docs/api/errors/12100
         message = message.replace("&", "&amp;")
         message = message.replace(">", "&gt;")

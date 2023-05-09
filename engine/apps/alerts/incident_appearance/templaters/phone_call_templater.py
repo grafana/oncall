@@ -14,7 +14,7 @@ class AlertPhoneCallTemplater(AlertTemplater):
         return templated_alert
 
     def _postformat_pipeline(self, text):
-        return clean_markup(self._slack_format_for_phone_call(text)) if text is not None else text
+        return clean_markup(self._slack_format_for_phone_call(text)).replace('"', "") if text is not None else text
 
     def _slack_format_for_phone_call(self, data):
         sf = self.slack_formatter
