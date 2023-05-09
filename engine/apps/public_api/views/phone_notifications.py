@@ -6,7 +6,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.phone_notifications.exceptions import CallsLimitExceeded, FailedToMakeCall, FailedToSendSMS, SMSLimitExceeded
+from apps.phone_notifications.exceptions import (
+    CallsLimitExceeded,
+    FailedToMakeCall,
+    FailedToSendSMS,
+    NumberNotVerified,
+    SMSLimitExceeded,
+)
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.public_api.throttlers.phone_notification_throttler import PhoneNotificationThrottler
 
@@ -33,9 +39,7 @@ class MakeCallView(APIView):
         response_data = {}
         organization = self.request.auth.organization
         logger.info(f"Making cloud call. Email {serializer.validated_data['email']}")
-        user = organization.users.filter(
-            email=serializer.validated_data["email"], _verified_phone_number__isnull=False
-        ).first()
+        user = organization.users.filter(email=serializer.validated_data["email"]).first()
         if user is None:
             response_data = {"error": "user-not-found"}
             return Response(status=status.HTTP_404_NOT_FOUND, data=response_data)
@@ -47,6 +51,8 @@ class MakeCallView(APIView):
             return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE, data={"error": "failed"})
         except CallsLimitExceeded:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "limit-exceeded"})
+        except NumberNotVerified:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "number-not-verified"})
 
         return Response(status=status.HTTP_200_OK, data=response_data)
 
@@ -80,5 +86,7 @@ class SendSMSView(APIView):
             return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE, data={"error": "failed"})
         except SMSLimitExceeded:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "limit-exceeded"})
+        except NumberNotVerified:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "number-not-verified"})
 
         return Response(status=status.HTTP_200_OK, data=response_data)

@@ -21,8 +21,8 @@ from .exceptions import (
     ProviderNotSupports,
     SMSLimitExceeded,
 )
-from .models import PhoneCallRecord, ProviderSMS, SMSRecord
-from .phone_provider import PhoneProvider, ProviderPhoneCall, get_phone_provider
+from .models import PhoneCallRecord, ProviderPhoneCall, ProviderSMS, SMSRecord
+from .phone_provider import PhoneProvider, get_phone_provider
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +122,9 @@ class PhoneBackend:
         elif response.status_code == 400 and response.json().get("error") == "limit-exceeded":
             logger.info(f"PhoneBackend._notify_by_cloud_call: phone calls limit exceeded")
             raise CallsLimitExceeded
+        elif response.status_code == 400 and response.json().get("error") == "number-not-verified":
+            logger.info(f"PhoneBackend._notify_by_cloud_call: cloud number not verified")
+            raise NumberNotVerified
         elif response.status_code == 404:
             logger.info(f"PhoneBackend._notify_by_cloud_call: user not found id={user.id} email={user.email}")
             raise FailedToMakeCall
@@ -222,6 +225,8 @@ class PhoneBackend:
             logger.info("Sent cloud sms successfully")
         elif response.status_code == 400 and response.json().get("error") == "limit-exceeded":
             raise SMSLimitExceeded
+        elif response.status_code == 400 and response.json().get("error") == "number-not-verified":
+            raise NumberNotVerified
         elif response.status_code == 404:
             # user not found
             raise FailedToSendSMS
@@ -238,52 +243,67 @@ class PhoneBackend:
         return user.verified_phone_number is not None
 
     # relay calls/sms from oss related code
-    def relay_oss_call(self, user, text):
+    def relay_oss_call(self, user, message):
         """
-        relay_oss_call make phone call received from oss instances.
+        relay_oss_call make phone call received from oss instance.
         Caller should handle exceptions raised by phone_provider.make_call.
+
+        The difference between relay_oss_call and notify_by_call is that relay_oss_call uses phone_provider.make_call
+        to only make call, not track status, gather digits or create logs.
         """
-        # additional cleaning, since message come from api call and wasn't cleaned by our renderer
-        message = clean_markup(text)
-        try:
-            self.phone_provider.make_call(message, user.verified_phone_number)
-            # create PhoneCallRecord to track limits for calls from oss instances
-            PhoneCallRecord.objects.create(
-                receiver=user,
-                exceeded_limit=False,
-                grafana_cloud_notification=True,
-            )
-        except CallsLimitExceeded as e:
-            # catch CallsLimitExceeded just to set exceeded_limit flag to SMSRecord.
-            # Actual exception handling should be done by caller
+        if not self._validate_user_number(user):
+            raise NumberNotVerified
+
+        calls_left = self._validate_phone_calls_left(user)
+        if calls_left <= 0:
             PhoneCallRecord.objects.create(
                 receiver=user,
                 exceeded_limit=True,
                 grafana_cloud_notification=True,
             )
-            raise e
+            raise CallsLimitExceeded
+        elif calls_left < 3:
+            message = self._add_call_limit_warning(calls_left, message)
+
+        # additional cleaning, since message come from api call and wasn't cleaned by our renderer
+        message = clean_markup(message)
+
+        self.phone_provider.make_call(message, user.verified_phone_number)
+        # create PhoneCallRecord to track limits for calls from oss instances
+        PhoneCallRecord.objects.create(
+            receiver=user,
+            exceeded_limit=False,
+            grafana_cloud_notification=True,
+        )
 
     def relay_oss_sms(self, user, message):
         """
-        relay_oss_call send received from oss instances.
+        relay_oss_sms send sms  received from oss instance.
         Caller should handle exceptions raised by phone_provider.send_sms.
+
+        The difference between relay_oss_sms and notify_by_sms is that relay_oss_call uses phone_provider.make_call
+        to only send, not track status or create logs.
         """
-        try:
-            self.phone_provider.send_sms(message, user.verified_phone_number)
-            SMSRecord.objects.create(
-                receiver=user,
-                exceeded_limit=False,
-                grafana_cloud_notification=True,
-            )
-        except SMSLimitExceeded as e:
-            # catch SMSLimitExceeded just to set exceeded_limit flag to SMSRecord.
-            # Actual exception handling should be done by caller to return right response code
+        if not self._validate_user_number(user):
+            raise NumberNotVerified
+
+        sms_left = self._validate_sms_left(user)
+        if sms_left <= 0:
             SMSRecord.objects.create(
                 receiver=user,
                 exceeded_limit=True,
                 grafana_cloud_notification=True,
             )
-            raise e
+            raise SMSLimitExceeded
+        elif sms_left < 3:
+            message = self._add_sms_limit_warning(sms_left, message)
+
+        self.phone_provider.send_sms(message, user.verified_phone_number)
+        SMSRecord.objects.create(
+            receiver=user,
+            exceeded_limit=False,
+            grafana_cloud_notification=True,
+        )
 
     # Number verification related code
     def send_verification_sms(self, user):
