@@ -55,6 +55,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'integrations_2',
     text: 'Integrations 2',
     path: getPath('integrations_2'),
+    hideTitle: true,
     hideFromBreadcrumbs: true,
     hideFromTabs: true,
     action: UserActions.IntegrationsRead,
