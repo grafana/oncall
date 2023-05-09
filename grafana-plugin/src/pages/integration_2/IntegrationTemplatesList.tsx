@@ -64,7 +64,6 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 />
               </div>
             )}
-            showHelp
             onEdit={() => openEditTemplateModal('grouping_id_template')}
           />
 
@@ -166,7 +165,6 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                   </div>
                 )}
                 onEdit={() => openEditTemplateModal('acknowledge_condition_template')}
-                showHelp
               />
             )}
 
@@ -211,7 +209,6 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                   </div>
                 )}
                 onEdit={() => openEditTemplateModal('phone_call_title_template')}
-                showHelp
               />
             )}
 

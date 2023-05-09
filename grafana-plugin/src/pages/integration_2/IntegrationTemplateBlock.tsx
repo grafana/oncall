@@ -32,7 +32,7 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   }
 
   return (
-    <HorizontalGroup align={'flex-start'}>
+    <HorizontalGroup align={'flex-start'} spacing={'xs'}>
       <InlineLabel width={20} {...inlineLabelProps}>
         {label}
       </InlineLabel>

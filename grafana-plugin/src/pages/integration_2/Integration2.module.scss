@@ -2,9 +2,15 @@ $FLEX-GAP: 4px;
 $MARGIN: 12px;
 $ITEMS-MARGIN: 24px;
 
-.integration__heading-container,
+.integration__heading-container {
+  margin-bottom: calc($ITEMS-MARGIN - 12px);
+}
 .integration__subheading-container {
   margin-bottom: $ITEMS-MARGIN;
+}
+
+.integration__name {
+  margin-bottom: 0;
 }
 
 .integration__heading-container {
@@ -53,7 +59,7 @@ $ITEMS-MARGIN: 24px;
 
 .integration__description {
   display: block;
-  margin-bottom: $MARGIN;
+  margin-bottom: $ITEMS-MARGIN;
 }
 
 .hamburger-menu {
@@ -112,7 +118,7 @@ $ITEMS-MARGIN: 24px;
 }
 
 .heartbeat-badge {
-  padding: 4px 12px;
+  padding: 4px 8px;
 }
 
 .integration__input-field {

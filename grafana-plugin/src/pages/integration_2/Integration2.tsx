@@ -59,7 +59,7 @@ import styles from './Integration2.module.scss';
 import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
+import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 
 const cx = cn.bind(styles);
 
@@ -110,7 +110,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   render() {
     const {
       errorData,
-      isDemoModalOpen,
       isEditTemplateModalOpen,
       selectedTemplate,
       isEditRegexpRouteTemplateModalOpen,
@@ -162,6 +161,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   {alertReceiveChannel.description_short}
                 </Text>
               )}
+
               <HorizontalGroup>
                 {alertReceiveChannelCounter && (
                   <TooltipBadge
@@ -199,11 +199,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Type:</Text>
-                  <HorizontalGroup spacing="none">
+                  <HorizontalGroup spacing="xs">
                     <IntegrationLogo scale={0.08} integration={integration} />
-                    <Text type="secondary" size="small">
-                      {integration?.display_name}
-                    </Text>
+                    <Text type="primary">{integration?.display_name}</Text>
                   </HorizontalGroup>
                 </HorizontalGroup>
                 <HorizontalGroup spacing="xs">
@@ -233,7 +231,11 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                       hasCollapsedBorder
                       heading={
                         <HorizontalGroup spacing={'md'}>
-                          <Tag color={getVar('--tag-secondary')} className={cx('tag')}>
+                          <Tag
+                            color={getVar('--tag-secondary-transparent')}
+                            border={getVar('--border-weak')}
+                            className={cx('tag')}
+                          >
                             <Text type="primary" size="small">
                               Templates
                             </Text>
@@ -267,7 +269,11 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                       hasCollapsedBorder
                       heading={
                         <HorizontalGroup>
-                          <Tag color={getVar('--tag-secondary')} className={cx('tag')}>
+                          <Tag
+                            color={getVar('--tag-secondary-transparent')}
+                            border={getVar('--border-weak')}
+                            className={cx('tag')}
+                          >
                             <Text type="primary" size="small">
                               Templates
                             </Text>
@@ -428,8 +434,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   handleSlackChannelChange = () => {};
 
-  handleEditRegexpRouteTemplate = (templateRegexpBody, templateJijja2Body, channelFilterId) => {
-    console.log(templateRegexpBody, templateJijja2Body);
+  handleEditRegexpRouteTemplate = (_templateRegexpBody, _templateJijja2Body, channelFilterId) => {
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
   };
 
@@ -518,7 +523,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
 
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
-    console.log('templateName', templateName);
     this.setState({ selectedTemplate: templateForEdit[templateName] });
     this.setState({ isEditTemplateModalOpen: true });
 
@@ -688,6 +692,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
   }>(undefined);
 
   const { id } = alertReceiveChannel;
+
   return (
     <>
       {confirmModal && (
@@ -711,9 +716,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
       />
 
       {isIntegrationSettingsOpen && (
-        <IntegrationForm
+        <IntegrationForm2
+          isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
-          onUpdate={() => {}}
+          onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
           id={alertReceiveChannel['id']}
         />
       )}
@@ -854,7 +860,11 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       hasCollapsedBorder={false}
       heading={
         <div className={cx('how-to-connect__container')}>
-          <Tag color={getVar('--tag-secondary')} className={cx('how-to-connect__tag')}>
+          <Tag
+            color={getVar('--tag-secondary-transparent')}
+            border={getVar('--border-weak')}
+            className={cx('how-to-connect__tag')}
+          >
             <Text type="primary" size="small">
               HTTP Endpoint
             </Text>

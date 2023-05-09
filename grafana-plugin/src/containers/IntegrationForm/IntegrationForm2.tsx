@@ -24,12 +24,13 @@ const cx = cn.bind(styles);
 
 interface IntegrationFormProps {
   id: AlertReceiveChannel['id'] | 'new';
+  isTableView?: boolean;
   onHide: () => void;
   onUpdate: () => void;
 }
 
 const IntegrationForm2 = observer((props: IntegrationFormProps) => {
-  const { id, onHide, onUpdate } = props;
+  const { id, onHide, onUpdate, isTableView = true } = props;
 
   const store = useStore();
 
@@ -129,48 +130,44 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
         </Drawer>
       )}
       {(showNewIntegrationForm || id !== 'new') && (
-        <Drawer
-          scrollableContent
-          title={id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`}
-          onClose={onHide}
-          closeOnMaskClick={false}
-          width="640px"
-        >
+        <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
               <GForm form={form} data={data} onSubmit={handleSubmit} />
-              <Collapse
-                headerWithBackground
-                className={cx('collapse')}
-                isOpen={false}
-                label={<Text type="link">How the integration works</Text>}
-                contentClassName={cx('collapsable-content')}
-              >
-                <Text type="secondary">
-                  The integration will generate the following:
-                  <ul className={cx('integration-info-list')}>
-                    <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
-                    <li className={cx('integration-info-item')}>
-                      Templates to interpret alerts, tailored for Grafana Alerting{' '}
-                    </li>
-                    <li className={cx('integration-info-item')}>Grafana Alerting contact point </li>
-                    <li className={cx('integration-info-item')}>Grafana Alerting notification</li>
-                  </ul>
-                  What you’ll need to do next:
-                  <ul className={cx('integration-info-list')}>
-                    <li className={cx('integration-info-item')}>
-                      Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
-                    </li>
-                    <li className={cx('integration-info-item')}>
-                      Set up routes that are based on alert content, such as severity, region, and service{' '}
-                    </li>
-                    <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
-                    <li className={cx('integration-info-item')}>
-                      Review templates and personalize according to your requirements
-                    </li>
-                  </ul>
-                </Text>
-              </Collapse>
+              {isTableView && (
+                <Collapse
+                  headerWithBackground
+                  className={cx('collapse')}
+                  isOpen={false}
+                  label={<Text type="link">How the integration works</Text>}
+                  contentClassName={cx('collapsable-content')}
+                >
+                  <Text type="secondary">
+                    The integration will generate the following:
+                    <ul className={cx('integration-info-list')}>
+                      <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
+                      <li className={cx('integration-info-item')}>
+                        Templates to interpret alerts, tailored for Grafana Alerting{' '}
+                      </li>
+                      <li className={cx('integration-info-item')}>Grafana Alerting contact point </li>
+                      <li className={cx('integration-info-item')}>Grafana Alerting notification</li>
+                    </ul>
+                    What you’ll need to do next:
+                    <ul className={cx('integration-info-list')}>
+                      <li className={cx('integration-info-item')}>
+                        Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
+                      </li>
+                      <li className={cx('integration-info-item')}>
+                        Set up routes that are based on alert content, such as severity, region, and service{' '}
+                      </li>
+                      <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
+                      <li className={cx('integration-info-item')}>
+                        Review templates and personalize according to your requirements
+                      </li>
+                    </ul>
+                  </Text>
+                </Collapse>
+              )}
               <HorizontalGroup justify="flex-end">
                 {id === 'new' ? (
                   <Button variant="secondary" onClick={() => setShowNewIntegrationForm(false)}>
@@ -194,6 +191,11 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
       )}
     </>
   );
+
+  function getTitle(): string {
+    if (!isTableView) return 'Integration Settings';
+    return id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`;
+  }
 });
 
 export default IntegrationForm2;

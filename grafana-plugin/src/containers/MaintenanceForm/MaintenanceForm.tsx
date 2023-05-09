@@ -63,7 +63,7 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   }
 
   return (
-    <Drawer scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
+    <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
       <div className={cx('content')}>
         <VerticalGroup>
           <GForm form={maintenanceForm} data={initialData} onSubmit={handleSubmit} />

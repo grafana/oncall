@@ -41,7 +41,7 @@ const Integration2HearbeatForm = observer(({ alertReceveChannelId, onClose }: In
   const timeoutOptions = heartbeatStore.timeoutOptions;
 
   return (
-    <Drawer width={'600px'} scrollableContent title={'Heartbeat'} onClose={onClose} closeOnMaskClick={false}>
+    <Drawer width={'640px'} scrollableContent title={'Heartbeat'} onClose={onClose} closeOnMaskClick={false}>
       <VerticalGroup spacing={'lg'}>
         <Text type="secondary">
           Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
