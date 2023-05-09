@@ -6,7 +6,7 @@ from django.utils.module_loading import import_string
 
 from apps.base.utils import live_settings
 from apps.phone_notifications.exceptions import ProviderNotSupports
-from apps.phone_notifications.models import PhoneCallRecord, SMSRecord
+from apps.phone_notifications.models import ProviderPhoneCall, ProviderSMS
 
 
 class PhoneProvider(ABC):
@@ -21,36 +21,29 @@ class PhoneProvider(ABC):
         TwilioPhoneProvider as example of complicated phone provider which supports status callbacks and gather actions.
     """
 
-    def make_notification_call(self, number: str, text: str, phone_call_record: PhoneCallRecord):
+    def make_notification_call(self, number: str, text: str) -> Optional[ProviderPhoneCall]:
         """
-        make_notification_call makes a call to notify about alert group.
+        make_notification_call makes a call to notify about alert group and optionally returns unsaved ProviderPhoneCall
+        instance. If returned, instance will be linked to PhoneCallRecord and saved by PhoneBackend.
+        Check ProviderPhoneCall doc for more info.
 
-        make_notification_call is needed to be able to execute some logic only for notification calls,
-        but not for test/verification/etc.
-        For example receive status callback or gather digits pressed by user.
-        Put as little code as possible after api call to external service provider.
-        Unhandled exceptions in such code will cause retries of perform_notification task and cause phone calls storm.
-        If your provider doesn't perform any additional logic in notifications just wrap make_call:
-            def make_notification_call(self, number, text, phone_call_record):
+        If provider doesn't perform additional logic for notifications or doesn't save phone call data - wrap make_call:
+            def make_notification_call(self, number, text):
                 self.make_call(number, text)
-
 
         Args:
             number: phone number to call
             text: text of the call
-            phone_call_record: instance of PhoneCallRecord.
-                Use it to link provider phone call and phone_call_record.
-                It might be useful for receiving status callbacks and match callback data with alert group from
-                phone_call_record (See TwilioPhoneProvider).
-                If you can't find the use case for phone_call_record you probably don't need it, it's ok to omit it.
+        Returns:
+            Unsaved ProviderPhoneCall instance to link to PhoneCallRecord
 
         Raises:
-            FailedToMakeCall: if some exception in external provider happens
-            ProviderNotSupports: if provider not supports calls (it's a valid use-case)
+            FailedToMakeCall: if some exception in external provider happens.
+            ProviderNotSupports: if provider not supports calls (it's a valid use-case).
         """
         raise ProviderNotSupports
 
-    def send_notification_sms(self, number: str, message: str, sms_record: SMSRecord):
+    def send_notification_sms(self, number: str, message: str) -> Optional[ProviderSMS]:
         """
         send_notification_sms sends a sms to notify about alert group
 

@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import requests
 from django.apps import apps
@@ -20,31 +21,32 @@ from .exceptions import (
     ProviderNotSupports,
     SMSLimitExceeded,
 )
-from .models import PhoneCallRecord, SMSRecord
-from .phone_provider import PhoneProvider, get_phone_provider
+from .models import PhoneCallRecord, ProviderSMS, SMSRecord
+from .phone_provider import PhoneProvider, ProviderPhoneCall, get_phone_provider
 
 logger = logging.getLogger(__name__)
 
 
 class PhoneBackend:
     def __init__(self):
-        self.phone_provider: PhoneProvider = get_phone_provider()
+        self.phone_provider: PhoneProvider = self._get_phone_provider()
+
+    def _get_phone_provider(self) -> PhoneProvider:
+        # wrapper to simplify mocking
+        return get_phone_provider()
 
     def notify_by_call(self, user, alert_group, notification_policy):
         """
-        notify_by_call makes a notification call to a user using configured phone provider.
-        It handles business logic - limits, cloud notifications and UserNotificationPolicyLogRecord creation.
-        Call itself is handled by phone provider.
+        notify_by_call makes a notification call to a user using configured phone provider or cloud notifications.
+        It handles all business logic related to the call.
         """
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-
         log_record_error_code = None
-        cleanup_call = False
 
         renderer = AlertGroupPhoneCallRenderer(alert_group)
         message = renderer.render()
 
-        call = PhoneCallRecord.objects.create(
+        record = PhoneCallRecord.objects.create(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,
@@ -53,29 +55,25 @@ class PhoneBackend:
 
         try:
             if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
-                self.make_cloud_call(user, message)
+                self._notify_by_cloud_call(user, message)
+                record.save()
             else:
-                if not user.verified_phone_number:
-                    raise NumberNotVerified
-                calls_left = user.organization.phone_calls_left(user)
-                if calls_left <= 0:
-                    call.exceeded_limit = True
-                    call.save()
-                    raise CallsLimitExceeded("Organization calls limit exceeded")
-                if calls_left < 3:
-                    message += f"{calls_left} phone calls left. Contact your admin."
-                self.phone_provider.make_notification_call(user.verified_phone_number, message, call)
-        except (FailedToMakeCall, ProviderNotSupports):
-            cleanup_call = True
+                provider_call = self._notify_by_provider_call(user, message)
+                # it is important that record is saved here, so it is possible to execute link_and_save
+                record.save()
+                if provider_call:
+                    provider_call.link_and_save(record)
+        except FailedToMakeCall:
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL
+        except ProviderNotSupports:
             log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL
         except CallsLimitExceeded:
+            record.exceeded_limit = True
+            record.save()
             log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED
         except NumberNotVerified:
-            cleanup_call = True
             log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED
 
-        if cleanup_call:
-            call.delete()
         if log_record_error_code is not None:
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
@@ -89,6 +87,54 @@ class PhoneBackend:
             log_record.save()
             user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_call, log_record=log_record)
 
+    def _notify_by_provider_call(self, user, message) -> Optional[ProviderPhoneCall]:
+        """
+        _make_provider_call makes a notification call using configured phone provider.
+        """
+        if not self._validate_user_number(user):
+            raise NumberNotVerified
+
+        calls_left = self._validate_phone_calls_left(user)
+        if calls_left <= 0:
+            raise CallsLimitExceeded
+        elif calls_left < 3:
+            message = self._add_call_limit_warning(calls_left, message)
+        return self.phone_provider.make_notification_call(user.verified_phone_number, message)
+
+    def _notify_by_cloud_call(self, user, message):
+        """
+        make_cloud_call makes a call using connected Grafana Cloud Instance.
+        This method should be  used only in OSS instances.
+        """
+        url = create_engine_url("api/v1/make_call", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
+        auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
+        data = {
+            "email": user.email,
+            "message": message,
+        }
+        try:
+            response = requests.post(url, headers=auth, data=data, timeout=5)
+        except requests.exceptions.RequestException as e:
+            logger.error(f"PhoneBackend._notify_by_cloud_call: request exception {str(e)}")
+            raise FailedToMakeCall
+        if response.status_code == 200:
+            logger.info("PhoneBackend._notify_by_cloud_call: OK")
+        elif response.status_code == 400 and response.json().get("error") == "limit-exceeded":
+            logger.info(f"PhoneBackend._notify_by_cloud_call: phone calls limit exceeded")
+            raise CallsLimitExceeded
+        elif response.status_code == 404:
+            logger.info(f"PhoneBackend._notify_by_cloud_call: user not found id={user.id} email={user.email}")
+            raise FailedToMakeCall
+        else:
+            logger.error(f"PhoneBackend._notify_by_cloud_call: unexpected response code {response.status_code}")
+            raise FailedToMakeCall
+
+    def _add_call_limit_warning(self, calls_left, message):
+        return f"{message} {calls_left} phone calls left. Contact your admin."
+
+    def _validate_phone_calls_left(self, user) -> int:
+        return user.organization.phone_calls_left(user)
+
     def notify_by_sms(self, user, alert_group, notification_policy):
         """
         notify_by_sms sends a notification sms to a user using configured phone provider.
@@ -98,12 +144,11 @@ class PhoneBackend:
 
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
         log_record_error_code = None
-        cleanup_sms = False
 
         renderer = AlertGroupSmsRenderer(alert_group)
         message = renderer.render()
 
-        sms = SMSRecord.objects.create(
+        record = SMSRecord(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,
@@ -112,32 +157,24 @@ class PhoneBackend:
 
         try:
             if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
-                self.send_cloud_sms(user, message)
+                self._notify_by_cloud_sms(user, message)
+                record.save()
             else:
-                if not user.verified_phone_number:
-                    raise NumberNotVerified
-
-                sms_left = user.organization.sms_left(user)
-                if sms_left <= 0:
-                    sms.exceeded_limit = True
-                    sms.save()
-                    raise SMSLimitExceeded
-                if sms_left < 3:
-                    message += " {} sms left. Contact your admin.".format(sms_left)
-
-                self.phone_provider.send_notification_sms(user.verified_phone_number, message, sms)
-        except (FailedToSendSMS, ProviderNotSupports):
-            cleanup_sms = True
-            sms.delete()
+                provider_sms = self._notify_by_provider_sms(user, message)
+                record.save()
+                if provider_sms:
+                    provider_sms.link_and_save(record)
+        except FailedToSendSMS:
+            log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_SMS
+        except ProviderNotSupports:
             log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_SMS
         except SMSLimitExceeded:
+            record.exceeded_limit = True
+            record.save()
             log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_LIMIT_EXCEEDED
         except NumberNotVerified:
-            cleanup_sms = True
             log_record_error_code = UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED
 
-        if cleanup_sms:
-            sms.delete()
         if log_record_error_code is not None:
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
@@ -151,82 +188,23 @@ class PhoneBackend:
             log_record.save()
             user_notification_action_triggered_signal.send(sender=PhoneBackend.notify_by_sms, log_record=log_record)
 
-    def relay_oss_call(self, user, text):
+    def _notify_by_provider_sms(self, user, message) -> Optional[ProviderSMS]:
         """
-        relay_oss_call make phone call received from oss instances.
-        Caller should handle exceptions raised by phone_provider.make_call.
+        _notify_by_provider_sms sends a notification sms using configured phone provider.
         """
-        # some additional cleaning, since message come from outside and wasn't cleaned by our renderer
-        message = clean_markup(text)
-        try:
-            self.phone_provider.make_call(message, user.verified_phone_number)
-            # create SMSRecord to track limits for sms from oss instances
-            PhoneCallRecord.objects.create(
-                receiver=user,
-                exceeded_limit=False,
-                grafana_cloud_notification=True,
-            )
-        except CallsLimitExceeded as e:
-            # catch CallsLimitExceeded just to set exceeded_limit flag to SMSRecord.
-            # Actual exception handling should be done by caller
-            PhoneCallRecord.objects.create(
-                receiver=user,
-                exceeded_limit=False,
-            )
-            raise e
+        if not self._validate_user_number(user):
+            raise NumberNotVerified
 
-    def relay_oss_sms(self, user, message):
-        """
-        relay_oss_call send received from oss instances.
-        Caller should handle exceptions raised by phone_provider.send_sms.
-        """
-        try:
-            self.phone_provider.send_sms(message, user.verified_phone_number)
-            SMSRecord.objects.create(
-                receiver=user,
-                exceeded_limit=False,
-                grafana_cloud_notification=True,
-            )
-        except SMSLimitExceeded as e:
-            # catch SMSLimitExceeded just to set exceeded_limit flag to SMSRecord.
-            # Actual exception handling should be done by caller to return right response code
-            SMSRecord.objects.create(
-                receiver=user,
-                exceeded_limit=False,
-            )
-            raise e
+        sms_left = self._validate_sms_left(user)
+        if sms_left <= 0:
+            raise SMSLimitExceeded
+        elif sms_left < 3:
+            message = self._add_sms_limit_warning(sms_left, message)
+        return self.phone_provider.send_notification_sms(user.verified_phone_number, message)
 
-    def make_cloud_call(self, user, message):
+    def _notify_by_cloud_sms(self, user, message):
         """
-        make_cloud_call makes a call using connected Grafana Cloud Instances.
-        This method is used only in OSS instances.
-        """
-        url = create_engine_url("api/v1/make_call", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
-        auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
-        data = {
-            "email": user.email,
-            "message": message,
-        }
-        try:
-            response = requests.post(url, headers=auth, data=data, timeout=5)
-        except requests.exceptions.RequestException as e:
-            logger.error(f"CloudPhoneProvider.make_notification_call: request exception {str(e)}")
-            raise FailedToMakeCall
-        if response.status_code == 200:
-            logger.info("CloudPhoneProvider.make_notification_call: OK")
-        elif response.status_code == 400 and response.json().get("error") == "limit-exceeded":
-            logger.error(f"CloudPhoneProvider.make_notification_call: cloud phone calls limit exceeded")
-            raise CallsLimitExceeded
-        elif response.status_code == 404:
-            logger.error(f"CloudPhoneProvider.make_notification_call: user {user.email} not found")
-            raise FailedToMakeCall
-        else:
-            logger.error(f"CloudPhoneProvider.make_notification_call: unexpected response code {response.status_code}")
-            raise FailedToMakeCall
-
-    def send_cloud_sms(self, user, message):
-        """
-        send_cloud_sms sends a sms using connected Grafana Cloud Instances.
+        _notify_by_cloud_sms sends a sms using connected Grafana Cloud Instance.
         This method is used only in OSS instances.
         """
         url = create_engine_url("api/v1/send_sms", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
@@ -249,6 +227,63 @@ class PhoneBackend:
             raise FailedToSendSMS
         else:
             raise FailedToSendSMS
+
+    def _validate_sms_left(self, user) -> int:
+        return user.organization.sms_left(user)
+
+    def _add_sms_limit_warning(self, calls_left, message):
+        return f"{message} {calls_left} sms left. Contact your admin."
+
+    def _validate_user_number(self, user):
+        return user.verified_phone_number is not None
+
+    # relay calls/sms from oss related code
+    def relay_oss_call(self, user, text):
+        """
+        relay_oss_call make phone call received from oss instances.
+        Caller should handle exceptions raised by phone_provider.make_call.
+        """
+        # additional cleaning, since message come from api call and wasn't cleaned by our renderer
+        message = clean_markup(text)
+        try:
+            self.phone_provider.make_call(message, user.verified_phone_number)
+            # create PhoneCallRecord to track limits for calls from oss instances
+            PhoneCallRecord.objects.create(
+                receiver=user,
+                exceeded_limit=False,
+                grafana_cloud_notification=True,
+            )
+        except CallsLimitExceeded as e:
+            # catch CallsLimitExceeded just to set exceeded_limit flag to SMSRecord.
+            # Actual exception handling should be done by caller
+            PhoneCallRecord.objects.create(
+                receiver=user,
+                exceeded_limit=True,
+                grafana_cloud_notification=True,
+            )
+            raise e
+
+    def relay_oss_sms(self, user, message):
+        """
+        relay_oss_call send received from oss instances.
+        Caller should handle exceptions raised by phone_provider.send_sms.
+        """
+        try:
+            self.phone_provider.send_sms(message, user.verified_phone_number)
+            SMSRecord.objects.create(
+                receiver=user,
+                exceeded_limit=False,
+                grafana_cloud_notification=True,
+            )
+        except SMSLimitExceeded as e:
+            # catch SMSLimitExceeded just to set exceeded_limit flag to SMSRecord.
+            # Actual exception handling should be done by caller to return right response code
+            SMSRecord.objects.create(
+                receiver=user,
+                exceeded_limit=True,
+                grafana_cloud_notification=True,
+            )
+            raise e
 
     # Number verification related code
     def send_verification_sms(self, user):
@@ -282,10 +317,10 @@ class PhoneBackend:
             if prev_number:
                 self._notify_disconnected_number(user, prev_number)
             self._notify_connected_number(user)
-            logger.info(f"PhoneBackend.verify_phone_number: verified for {user.id}")
+            logger.info(f"PhoneBackend.verify_phone_number: verified user_id={user.id}")
             return True
         else:
-            logger.info(f"PhoneBackend.verify_phone_number: verification failed for {user.id}")
+            logger.info(f"PhoneBackend.verify_phone_number: verification failed user_id={user.id}")
             return False
 
     def forget_number(self, user) -> bool:

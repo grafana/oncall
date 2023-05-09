@@ -2,6 +2,9 @@ import logging
 
 from django.db import models
 
+from apps.phone_notifications.models import PhoneCallRecord
+from apps.phone_notifications.phone_provider import ProviderPhoneCall
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +45,7 @@ class TwilioCallStatuses:
     }
 
 
-class TwilioPhoneCall(models.Model):
+class TwilioPhoneCall(ProviderPhoneCall, models.Model):
 
     status = models.PositiveSmallIntegerField(
         blank=True,
@@ -63,3 +66,7 @@ class TwilioPhoneCall(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def link_and_save(self, phone_call_record: PhoneCallRecord):
+        self.phone_call_record = phone_call_record
+        self.save()

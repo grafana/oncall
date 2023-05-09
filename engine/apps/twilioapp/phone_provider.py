@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class TwilioPhoneProvider(PhoneProvider):
-    def make_notification_call(self, number, message, phone_call_record):
+    def make_notification_call(self, number, message):
         message = self._escape_call_message(message)
 
         gather_subquery = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{get_gather_message()}</Say></Gather>'
@@ -54,14 +54,12 @@ class TwilioPhoneProvider(PhoneProvider):
                 raise FailedToMakeCall
 
         if response and response.status and response.sid:
-            twilio_call = TwilioPhoneCall(
+            return TwilioPhoneCall(
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
-                phone_call_record=phone_call_record,
             )
-            twilio_call.save()
 
-    def send_notification_sms(self, number, message, sms_record):
+    def send_notification_sms(self, number, message):
         try_without_callback = False
         response = None
 
@@ -85,12 +83,10 @@ class TwilioPhoneProvider(PhoneProvider):
                 raise FailedToSendSMS
 
         if response and response.status and response.sid:
-            twilio_sms = TwilioSMS(
+            return TwilioSMS(
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
-                sms_record=sms_record,
             )
-            twilio_sms.save()
 
     def send_verification_sms(self, number):
         self._send_verification_code(number, via="sms")
