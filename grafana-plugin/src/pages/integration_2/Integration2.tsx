@@ -24,7 +24,7 @@ import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import IntegrationMaskedInputField from 'components/IntegrationMaskedInputField/IntegrationMaskedInputField';
+import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -620,7 +620,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
         onHideOrCancel={() => setIsDemoModalOpen(false)}
       />
 
-      {isHearbeatFormOpen && <Integration2HeartbeatForm />}
+      {isHearbeatFormOpen && (
+        <Integration2HeartbeatForm
+          alertReceveChannelId={alertReceiveChannel['id']}
+          onClose={() => setIsHearbeatFormOpen(false)}
+        />
+      )}
 
       {maintenanceData && (
         <MaintenanceForm
@@ -754,7 +759,10 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
               HTTP Endpoint
             </Text>
           </Tag>
-          <IntegrationMaskedInputField value={alertReceiveChannelStore.items[id].integration_url} />
+          <IntegrationInputField
+            value={alertReceiveChannelStore.items[id].integration_url}
+            className={cx('integration__input-field')}
+          />
           <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer">
             <Text type="link" size="small">
               <HorizontalGroup>

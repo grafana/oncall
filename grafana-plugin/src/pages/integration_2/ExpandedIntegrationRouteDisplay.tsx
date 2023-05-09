@@ -254,7 +254,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
 
   return (
-    <HorizontalGroup>
+    <HorizontalGroup spacing={'xs'}>
       {routeIndex > 0 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Up'}>
