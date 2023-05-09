@@ -312,7 +312,7 @@ class PhoneBackend:
         Caller should handle exceptions raised by phone_provider.send_verification_sms.
         """
         logger.info(f"PhoneBackend.send_verification_sms: start verification for user {user.id}")
-        if user.verified_phone_number:
+        if self._validate_user_number(user):
             logger.info(f"PhoneBackend.send_verification_sms: number already verified for user {user.id}")
             raise NumberAlreadyVerified
         self.phone_provider.send_verification_sms(user.unverified_phone_number)
@@ -323,10 +323,10 @@ class PhoneBackend:
         Caller should handle exceptions raised by phone_provider.make_verification_call
         """
         logger.info(f"PhoneBackend.make_verification_call: start verification for user {user.id}")
-        if user.verified_phone_number:
+        if self._validate_user_number(user):
             logger.info(f"PhoneBackend.make_verification_call: number already verified for user {user.id}")
             raise NumberAlreadyVerified
-        self.phone_provider.make_verification_call(user)
+        self.phone_provider.make_verification_call(user.unverified_phone_number)
 
     def verify_phone_number(self, user, code) -> bool:
         prev_number = user.verified_phone_number
