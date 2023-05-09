@@ -30,15 +30,15 @@ const Integration2HearbeatForm = observer(({ alertReceveChannelId, onClose }: In
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceveChannelId];
 
-  const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceveChannelId];
-
-  const heartbeat = heartbeatStore.items[heartbeatId];
+  useEffect(() => {
+    heartbeatStore.updateTimeoutOptions();
+  }, [heartbeatStore]);
 
   useEffect(() => {
-    if (heartbeat) {
-      setInterval(heartbeat.timeout_seconds);
+    if (alertReceiveChannel.heartbeat) {
+      setInterval(alertReceiveChannel.heartbeat.timeout_seconds);
     }
-  }, [heartbeat]);
+  }, [alertReceiveChannel]);
 
   const timeoutOptions = heartbeatStore.timeoutOptions;
 
@@ -82,7 +82,7 @@ const Integration2HearbeatForm = observer(({ alertReceveChannelId, onClose }: In
             </Button>
             <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
               <Button variant="primary" onClick={onSave}>
-                {heartbeat ? 'Save' : 'Create'}
+                {alertReceiveChannel.heartbeat ? 'Save' : 'Create'}
               </Button>
             </WithPermissionControlTooltip>
           </HorizontalGroup>
@@ -92,6 +92,8 @@ const Integration2HearbeatForm = observer(({ alertReceveChannelId, onClose }: In
   );
 
   async function onSave() {
+    const heartbeat = alertReceiveChannel.heartbeat;
+
     if (heartbeat) {
       await heartbeatStore.saveHeartbeat(heartbeat.id, {
         alert_receive_channel: heartbeat.alert_receive_channel,
@@ -106,6 +108,8 @@ const Integration2HearbeatForm = observer(({ alertReceveChannelId, onClose }: In
 
       onClose();
     }
+
+    await alertReceiveChannelStore.updateItem(alertReceveChannelId);
   }
 });
 
