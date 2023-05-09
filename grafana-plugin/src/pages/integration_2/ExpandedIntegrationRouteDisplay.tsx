@@ -34,7 +34,12 @@ interface ExpandedIntegrationRouteDisplayProps {
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   templates: AlertTemplatesDTO[];
-  openEditTemplateModal: (templateName: string | string[]) => void;
+  openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
+  onEditRegexpTemplate: (
+    templateRegexpBody: string,
+    templateJijja2Body: string,
+    channelFilterId: ChannelFilter['id']
+  ) => void;
 }
 
 interface ExpandedIntegrationRouteDisplayState {
@@ -44,7 +49,7 @@ interface ExpandedIntegrationRouteDisplayState {
 }
 
 const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
-  ({ alertReceiveChannelId, channelFilterId, templates, routeIndex, openEditTemplateModal }) => {
+  ({ alertReceiveChannelId, channelFilterId, templates, routeIndex, openEditTemplateModal, onEditRegexpTemplate }) => {
     const { escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } = useStore();
     const hasChatOpsConnectors = false;
 
@@ -106,8 +111,13 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                         monacoOptions={MONACO_OPTIONS}
                       />
                     </div>
-                    <Button variant={'secondary'} icon="edit" size={'md'} onClick={undefined} />
-                    <Button variant="secondary" size="md" onClick={() => openEditTemplateModal('routing')}>
+                    <Button
+                      variant={'secondary'}
+                      icon="edit"
+                      size={'md'}
+                      onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+                    />
+                    <Button variant="secondary" size="md" onClick={undefined}>
                       <Text type="link">Help</Text>
                       <Icon name="angle-down" size="sm" />
                     </Button>
@@ -228,6 +238,15 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       setState({ isRefreshingEscalationChains: true });
       await escalationChainStore.updateItems();
       setState({ isRefreshingEscalationChains: false });
+    }
+
+    function handleEditRoutingTemplate(channelFilter, channelFilterId) {
+      console.log('CHANNEL FILTER', channelFilter);
+      if (channelFilter.filtering_term_type === 0) {
+        onEditRegexpTemplate(channelFilter.filtering_term, channelFilter.filtering_term_as_jinja2, channelFilterId);
+      } else {
+        openEditTemplateModal('routing', channelFilterId);
+      }
     }
   }
 );

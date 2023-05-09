@@ -34,7 +34,7 @@ import styles from './Integrations2.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-// const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 15;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -103,15 +103,15 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { page, integrationsFilters } = this.state;
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updateItems(integrationsFilters);
+    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId } = this.state;
+    const { alertReceiveChannelId, page } = this.state;
     const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore, maintenanceStore } = store;
 
-    const results = alertReceiveChannelStore.getSearchResult();
+    const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
 
     const columns = [
       {
@@ -162,7 +162,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       <>
         <div className={cx('root')}>
           <div className={cx('title')}>
-            <HorizontalGroup justify="flex-end">
+            <HorizontalGroup justify="space-between">
+              <Text.Title level={3}>Integrations 2</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   onClick={() => {
@@ -188,11 +189,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               rowKey="id"
               data={results}
               columns={columns}
-              // pagination={{
-              //   page,
-              //   total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-              //   onChange: this.handleChangePage,
-              // }}
+              className={cx('integrations-table')}
+              rowClassName={cx('integrations-table-row')}
+              pagination={{
+                page,
+                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                onChange: this.handleChangePage,
+              }}
             />
           </div>
         </div>
@@ -246,10 +249,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
-    let routesCounter = undefined;
+    let routesCounter = item.routes_count;
 
     return (
-      <HorizontalGroup>
+      <HorizontalGroup spacing="xs">
         {alertReceiveChannelCounter && (
           <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
             <Badge
@@ -267,7 +270,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             />
           </PluginLink>
         )}
-        {routesCounter && <Badge text={routesCounter} color={'green'} tooltip={`${routesCounter} routes`} />}
+        {routesCounter && (
+          <Badge icon="link" text={routesCounter} color={'green'} tooltip={`${routesCounter} routes`} />
+        )}
       </HorizontalGroup>
     );
   }

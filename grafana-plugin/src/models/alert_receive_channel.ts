@@ -26,6 +26,7 @@ export interface AlertReceiveChannel {
   maintenance_till?: string;
   heartbeat: Heartbeat | null;
   is_available_for_integration_heartbeat: boolean;
+  routes_count: number;
 }
 
 export interface AlertReceiveChannelChoice {

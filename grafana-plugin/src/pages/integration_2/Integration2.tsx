@@ -33,6 +33,7 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
@@ -64,6 +65,9 @@ interface Integration2State extends PageBaseState {
   isDemoModalOpen: boolean;
   isEditTemplateModalOpen: boolean;
   selectedTemplate: TemplateForEdit;
+  isEditRegexpRouteTemplateModalOpen: boolean;
+  channelFilterIdForEdit: ChannelFilter['id'];
+  isNewRoute: boolean;
 }
 
 // This can be further improved by using a ref instead
@@ -80,6 +84,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isDemoModalOpen: false,
       isEditTemplateModalOpen: false,
       selectedTemplate: undefined,
+      isEditRegexpRouteTemplateModalOpen: false,
+      channelFilterIdForEdit: undefined,
+      isNewRoute: false,
     };
   }
 
@@ -97,7 +104,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   }
 
   render() {
-    const { errorData, isDemoModalOpen, isEditTemplateModalOpen, selectedTemplate } = this.state;
+    const {
+      errorData,
+      isDemoModalOpen,
+      isEditTemplateModalOpen,
+      selectedTemplate,
+      isEditRegexpRouteTemplateModalOpen,
+      channelFilterIdForEdit,
+      isNewRoute,
+    } = this.state;
     const {
       store: { alertReceiveChannelStore, grafanaTeamStore },
       match: {
@@ -334,7 +349,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                       <VerticalGroup spacing="md">
                         <Text type={'primary'}>Routes</Text>
                         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                          <Button variant={'primary'} onClick={() => this.openEditTemplateModal('routing')}>
+                          <Button variant={'primary'} onClick={this.handleAddNewRoute}>
                             Add route
                           </Button>
                         </WithPermissionControlTooltip>
@@ -357,12 +372,28 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 onHide={() => {
                   this.setState({
                     isEditTemplateModalOpen: undefined,
+                    isNewRoute: false,
                   });
                 }}
+                channelFilterId={channelFilterIdForEdit}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
-                onUpdateRoute={this.onUpdateRoutesCallback}
+                onUpdateRoute={isNewRoute ? this.onCreateRoutesCallback : this.onUpdateRoutesCallback}
                 template={selectedTemplate}
-                templateBody={templates[selectedTemplate?.name]}
+                templateBody={
+                  selectedTemplate?.name === 'routing'
+                    ? this.getRoutingTemplate(isNewRoute, channelFilterIdForEdit)
+                    : templates[selectedTemplate?.name]
+                }
+              />
+            )}
+            {isEditRegexpRouteTemplateModalOpen && (
+              <EditRegexpRouteTemplateModal
+                alertReceiveChannelId={id}
+                channelFilterId={channelFilterIdForEdit}
+                template={selectedTemplate}
+                onHide={() => this.setState({ isEditRegexpRouteTemplateModalOpen: false })}
+                onUpdateRoute={this.onUpdateRoutesCallback}
+                onOpenEditIntegrationTemplate={this.openEditTemplateModal}
               />
             )}
           </div>
@@ -370,6 +401,21 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       </PageErrorHandlingWrapper>
     );
   }
+
+  getRoutingTemplate = (isRouteNew: boolean, channelFilterId: ChannelFilter['id']) => {
+    const {
+      store: { alertReceiveChannelStore },
+    } = this.props;
+    if (isRouteNew) {
+      return '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
+    } else {
+      return alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term;
+    }
+  };
+  handleAddNewRoute = () => {
+    this.setState({ isNewRoute: true });
+    this.openEditTemplateModal('routing');
+  };
 
   renderRoutesFn = (): IntegrationCollapsibleItem[] => {
     const {
@@ -398,6 +444,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           routeIndex={routeIndex}
           templates={templates}
           openEditTemplateModal={this.openEditTemplateModal}
+          onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
         />
       ),
     }));
@@ -405,7 +452,12 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   handleSlackChannelChange = () => {};
 
-  onUpdateRoutesCallback = ({ routing }: { routing: string }) => {
+  handleEditRegexpRouteTemplate = (templateRegexpBody, templateJijja2Body, channelFilterId) => {
+    console.log(templateRegexpBody, templateJijja2Body);
+    this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
+  };
+
+  onCreateRoutesCallback = ({ routing }: { routing: string }) => {
     const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
     const {
       params: { id },
@@ -419,6 +471,33 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
         // TODO: need to figure out this value
         filtering_term_type: 1,
+      })
+      .then((channelFilter: ChannelFilter) => {
+        alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
+          // @ts-ignore
+          escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+        });
+      })
+      .catch((err) => {
+        const errors = get(err, 'response.data');
+        if (errors?.non_field_errors) {
+          openErrorNotification(errors.non_field_errors);
+        }
+      });
+  };
+
+  onUpdateRoutesCallback = ({ routing }: { routing: string }, channelFilterId, filteringTermType?: number) => {
+    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
+    const {
+      params: { id },
+    } = this.props.match;
+
+    alertReceiveChannelStore
+      .saveChannelFilter(channelFilterId, {
+        filtering_term: routing,
+
+        // TODO: need to figure out this value
+        filtering_term_type: filteringTermType,
       })
       .then((channelFilter: ChannelFilter) => {
         alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
@@ -458,9 +537,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
 
-  openEditTemplateModal = (templateName) => {
-    this.setState({ isEditTemplateModalOpen: true });
+  openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
     this.setState({ selectedTemplate: templateForEdit[templateName] });
+    this.setState({ isEditTemplateModalOpen: true });
+
+    if (channelFilterId) {
+      this.setState({ channelFilterIdForEdit: channelFilterId });
+    }
   };
 
   onRemovalFn = (id: AlertReceiveChannel['id']) => {

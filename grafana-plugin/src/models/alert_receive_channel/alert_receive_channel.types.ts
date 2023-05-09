@@ -29,6 +29,7 @@ export interface AlertReceiveChannel {
   is_available_for_integration_heartbeat: boolean;
   allow_delete: boolean;
   deleted?: boolean;
+  routes_count: number;
 }
 
 export interface AlertReceiveChannelOption {
