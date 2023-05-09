@@ -57,6 +57,7 @@ import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
+import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 
 const cx = cn.bind(styles);
 
@@ -588,6 +589,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
     confirmationText?: string;
     onConfirm: () => void;
   }>(undefined);
+
+  const [isHearbeatFormOpen, setIsHearbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
     disabled: boolean;
@@ -617,6 +620,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
         onHideOrCancel={() => setIsDemoModalOpen(false)}
       />
 
+      {isHearbeatFormOpen && <Integration2HeartbeatForm />}
+
       {maintenanceData && (
         <MaintenanceForm
           initialData={maintenanceData}
@@ -639,7 +644,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                 <Text type="primary">Integration Settings</Text>
               </div>
 
-              <div className={cx('integration__actionItem')} onClick={() => openHearbeat(id, closeMenu)}>
+              <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
                 Hearbeat
               </div>
 
@@ -663,7 +668,8 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                           onConfirm: onStopMaintenance,
                           title: (
                             <>
-                              Are you sure to stop maintenance for <Emoji text={alertReceiveChannel.verbal_name} />?
+                              Are you sure you want to stop the maintenance for{' '}
+                              <Emoji text={alertReceiveChannel.verbal_name} />?
                             </>
                           ),
                         });
@@ -729,8 +735,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
       .then(() => maintenanceStore.updateMaintenances())
       .then(() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id));
   }
-
-  function openHearbeat(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
 };
 
 const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
