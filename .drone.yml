@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -61,18 +61,16 @@ steps:
       ref:
         - refs/tags/v*.*.*
 
-  - name: Lint Backend
-    image: python:3.9
+  - name: Lint Everything
+    image: python:3.11.3
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
       - pip install $(grep "pre-commit" engine/requirements.txt)
-      - pre-commit run isort --all-files
-      - pre-commit run black --all-files
-      - pre-commit run flake8 --all-files
+      - pre-commit run --all-files
 
   - name: Unit Test Backend
-    image: python:3.9
+    image: python:3.11.3
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -114,7 +112,7 @@ steps:
       config:
         from_secret: gcr_admin
     depends_on:
-      - Lint Backend
+      - Lint Everything
       - Unit Test Backend
       - Image Tag
 
@@ -134,7 +132,7 @@ steps:
       username:
         from_secret: docker_username
     depends_on:
-      - Lint Backend
+      - Lint Everything
       - Unit Test Backend
       - Image Tag
     when:
@@ -174,7 +172,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -185,7 +183,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -418,6 +416,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: cacc05e8af3506b2e63ef878eb145eaf567045d04bb0bc24c1ef777959e496ee
+hmac: 9eb4e539c2313ae319d12d1f5149ddf93ea017720b1690abe5e1730e2a1489f2
 
 ...

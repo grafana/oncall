@@ -6,7 +6,7 @@ from firebase_admin.exceptions import FirebaseError
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.mobile_app.models import MobileAppUserSettings
-from apps.mobile_app.tasks import _get_fcm_message, notify_user_async
+from apps.mobile_app.tasks import _get_alert_group_escalation_fcm_message, notify_user_async
 from apps.oss_installation.models import CloudConnector
 
 MOBILE_APP_BACKEND_ID = 5
@@ -223,7 +223,7 @@ def test_fcm_message_user_settings(
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    message = _get_fcm_message(alert_group, user, device.registration_id, critical=False)
+    message = _get_alert_group_escalation_fcm_message(alert_group, user, device, critical=False)
 
     # Check user settings are passed to FCM message
     assert message.data["default_notification_sound_name"] == "default_sound.mp3"
@@ -253,7 +253,7 @@ def test_fcm_message_user_settings_critical(
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    message = _get_fcm_message(alert_group, user, device.registration_id, critical=True)
+    message = _get_alert_group_escalation_fcm_message(alert_group, user, device, critical=True)
 
     # Check user settings are passed to FCM message
     assert message.data["default_notification_sound_name"] == "default_sound.mp3"
@@ -286,7 +286,7 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
 
     # Disable important notification override DND
     MobileAppUserSettings.objects.create(user=user, important_notification_override_dnd=False)
-    message = _get_fcm_message(alert_group, user, device.registration_id, critical=True)
+    message = _get_alert_group_escalation_fcm_message(alert_group, user, device, critical=True)
 
     # Check user settings are passed to FCM message
     assert message.data["important_notification_override_dnd"] == "false"

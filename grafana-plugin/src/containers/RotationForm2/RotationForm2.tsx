@@ -475,7 +475,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                   <HorizontalGroup>
                     <Text size="small">Users</Text>
                     <Tooltip content="By default each new user creates new rotation group. You can customise groups by dragging.">
-                      <Icon name="info-circle" size="md"></Icon>
+                      <Icon name="info-circle" size="md" />
                     </Tooltip>
                   </HorizontalGroup>
                 </div>

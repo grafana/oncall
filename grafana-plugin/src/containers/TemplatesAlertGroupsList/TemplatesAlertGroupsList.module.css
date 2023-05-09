@@ -1,0 +1,14 @@
+.template-block-title {
+  padding: 16px;
+  align-items: baseline;
+}
+
+.template-block-list {
+  width: 30%;
+  height: 100%;
+}
+
+.alert-group-payload-view {
+  background-color: var(--primary-background);
+  border: none;
+}
