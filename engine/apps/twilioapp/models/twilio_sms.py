@@ -1,5 +1,7 @@
 from django.db import models
 
+from apps.phone_notifications.models import ProviderSMS
+
 
 class TwilioSMSstatuses:
     """
@@ -45,7 +47,7 @@ class TwilioSMSstatuses:
     }
 
 
-class TwilioSMS(models.Model):
+class TwilioSMS(ProviderSMS, models.Model):
     status = models.PositiveSmallIntegerField(
         blank=True,
         null=True,
@@ -59,9 +61,3 @@ class TwilioSMS(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
-    sms_record = models.OneToOneField(
-        "phone_notifications.SMSRecord",
-        on_delete=models.CASCADE,
-        related_name="twilio_sms",
-        null=False,
-    )
