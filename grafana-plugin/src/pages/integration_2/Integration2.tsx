@@ -58,6 +58,7 @@ import styles from './Integration2.module.scss';
 import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
+import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 
 const cx = cn.bind(styles);
 
@@ -590,6 +591,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
     onConfirm: () => void;
   }>(undefined);
 
+  const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
   const [isHearbeatFormOpen, setIsHearbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
@@ -620,6 +622,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
         onHideOrCancel={() => setIsDemoModalOpen(false)}
       />
 
+      {isIntegrationSettingsOpen && (
+        <IntegrationForm
+          onHide={() => setIsIntegrationSettingsOpen(false)}
+          onUpdate={() => {}}
+          id={alertReceiveChannel['id']}
+        />
+      )}
+
       {isHearbeatFormOpen && (
         <Integration2HeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
@@ -643,9 +653,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
         </WithPermissionControlTooltip>
 
         <WithContextMenu
-          renderMenuItems={({ closeMenu }) => (
+          renderMenuItems={() => (
             <div className={cx('integration__actionsList')} id="integration-menu-options">
-              <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings(id, closeMenu)}>
+              <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
                 <Text type="primary">Integration Settings</Text>
               </div>
 
@@ -726,7 +736,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
       .then(() => history.push(`${PLUGIN_ROOT}/integrations_2`));
   }
 
-  function openIntegrationSettings(_id: AlertReceiveChannel['id'], _closeMenu: () => void) {}
+  function openIntegrationSettings() {
+    setIsIntegrationSettingsOpen(true);
+  }
 
   function openStartMaintenance() {
     setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
