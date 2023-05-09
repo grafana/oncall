@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster AS base
+FROM python:3.11.3-slim-buster AS base
 RUN apt-get update && apt-get install -y \
     python3-dev \
     gcc \
@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     netcat \
     curl \
-    bash
+    bash \
+    git
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./

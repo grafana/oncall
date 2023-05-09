@@ -4,16 +4,17 @@ import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { UserDTO as User } from 'models/user';
 
 export enum MaintenanceMode {
-  Debug,
-  Maintenance,
+  Debug = 0,
+  Maintenance = 1,
 }
 
 export interface AlertReceiveChannel {
   id: string;
-  integration: number;
+  integration: any;
   smile_code: string;
   verbal_name: string;
   description: string;
+  description_short: string;
   author: User['pk'];
   team: GrafanaTeam['id'];
   created_at: string;
@@ -25,6 +26,7 @@ export interface AlertReceiveChannel {
   instructions: string;
   demo_alert_enabled: boolean;
   maintenance_mode?: MaintenanceMode;
+  maintenance_till?: number;
   heartbeat: Heartbeat | null;
   is_available_for_integration_heartbeat: boolean;
   allow_delete: boolean;
