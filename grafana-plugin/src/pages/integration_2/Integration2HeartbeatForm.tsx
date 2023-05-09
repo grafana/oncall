@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react';
+
+import { SelectableValue } from '@grafana/data';
+import { Button, Drawer, Field, HorizontalGroup, Select, VerticalGroup } from '@grafana/ui';
+import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { withMobXProviderContext } from 'state/withStore';
-
-import cn from 'classnames/bind';
-
-import { Button, Drawer, Field, HorizontalGroup, Select, VerticalGroup } from '@grafana/ui';
+import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
-import { useStore } from 'state/useStore';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { SelectOption } from 'state/types';
-import { SelectableValue } from '@grafana/data';
-
-import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
+import { useStore } from 'state/useStore';
+import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind({});
 

@@ -23,8 +23,8 @@ import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/Aler
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
+import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -34,12 +34,14 @@ import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
+import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { ChannelFilter } from 'models/channel_filter';
+import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -53,11 +55,9 @@ import ExpandedIntegrationRouteDisplay from './ExpandedIntegrationRouteDisplay';
 import { INTEGRATION_DEMO_PAYLOAD, INTEGRATION_TEMPLATES_LIST } from './Integration2.config';
 import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
+import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
-import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import { MaintenanceType } from 'models/maintenance/maintenance.types';
-import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 
 const cx = cn.bind(styles);
 

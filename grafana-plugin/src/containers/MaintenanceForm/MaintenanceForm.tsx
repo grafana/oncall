@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { cloneDeep } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
@@ -15,7 +16,6 @@ import { UserActions } from 'utils/authorization';
 import { form } from './MaintenanceForm.config';
 
 import styles from './MaintenanceForm.module.css';
-import { cloneDeep } from 'lodash-es';
 
 const cx = cn.bind(styles);
 
