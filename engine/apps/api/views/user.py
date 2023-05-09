@@ -63,6 +63,10 @@ IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermi
 IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_READ])
 
 
+UPCOMING_SHIFTS_DEFAULT_DAYS = 7
+UPCOMING_SHIFTS_MAX_DAYS = 65
+
+
 class CurrentUserView(APIView):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
@@ -480,8 +484,11 @@ class UserView(
     def upcoming_shifts(self, request, pk):
         user = self.get_object()
         try:
-            days = int(request.query_params.get("days", 7))  # fallback to a week
+            days = int(request.query_params.get("days", UPCOMING_SHIFTS_DEFAULT_DAYS))
         except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if days <= 0 or days > UPCOMING_SHIFTS_MAX_DAYS:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # filter user-related schedules

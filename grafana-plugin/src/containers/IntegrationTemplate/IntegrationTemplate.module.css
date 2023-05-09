@@ -1,0 +1,46 @@
+.title-container {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  border: var(--border-weak);
+}
+
+.template-block-title {
+  padding: 16px;
+  align-items: baseline;
+}
+
+.template-editor-block-title {
+  padding: 16px;
+  align-items: baseline;
+  border: var(--border-weak);
+  background-color: var(--background-secondary);
+}
+
+.template-block-list {
+  width: 30%;
+  height: 100%;
+}
+
+.template-block-codeeditor {
+  width: 40%;
+  height: 100%;
+}
+
+.template-block-result {
+  width: 30%;
+  height: 100%;
+}
+
+.result {
+  padding: 16px;
+}
+
+.block-style {
+  border: var(--border-weak);
+  background-color: var(--background-secondary);
+}

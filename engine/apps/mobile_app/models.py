@@ -103,7 +103,28 @@ class MobileAppUserSettings(models.Model):
     important_notification_volume = models.FloatField(
         validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.8
     )
+    important_notification_volume_override = models.BooleanField(default=True, null=True)
 
     # For the "Mobile push important" step it's possible to make notifications non-critical
     # if "override DND" setting is disabled in the app
     important_notification_override_dnd = models.BooleanField(default=True)
+
+    # this is used for non escalation related push notifications such as the
+    # "You're going OnCall soon" push notification
+    info_notifications_enabled = models.BooleanField(default=True)
+
+    # these choices + the below column are used to calculate when to send the "You're Going OnCall soon"
+    # push notification
+    # ONE_HOUR, TWELVE_HOURS, ONE_DAY, ONE_WEEK = range(4)
+    TWELVE_HOURS_IN_SECONDS = 12 * 60 * 60
+    ONE_DAY_IN_SECONDS = TWELVE_HOURS_IN_SECONDS * 2
+    ONE_WEEK_IN_SECONDS = ONE_DAY_IN_SECONDS * 7
+
+    NOTIFICATION_TIMING_CHOICES = (
+        (TWELVE_HOURS_IN_SECONDS, "twelve hours before"),
+        (ONE_DAY_IN_SECONDS, "one day before"),
+        (ONE_WEEK_IN_SECONDS, "one week before"),
+    )
+    going_oncall_notification_timing = models.IntegerField(
+        choices=NOTIFICATION_TIMING_CHOICES, default=TWELVE_HOURS_IN_SECONDS
+    )
