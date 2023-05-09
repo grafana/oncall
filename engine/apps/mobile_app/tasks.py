@@ -210,6 +210,9 @@ def _get_alert_group_escalation_fcm_message(
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
+        "important_notification_volume_override": json.dumps(
+            mobile_app_user_settings.important_notification_volume_override
+        ),
         "important_notification_override_dnd": json.dumps(mobile_app_user_settings.important_notification_override_dnd),
     }
 

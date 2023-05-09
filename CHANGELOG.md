@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add a new mobile app push notification which notifies users when they are going on call by @joeyorlando ([#1814](https://github.com/grafana/oncall/pull/1814))
+- Add a new mobile app user setting field, `important_notification_volume_override` by @joeyorlando ([#1893](https://github.com/grafana/oncall/pull/1893))
 
 ### Changed
 
