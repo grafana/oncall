@@ -21,4 +21,5 @@ export const logoCoors: { [key: string]: { x: number; y: number } } = {
   prtg: { x: 12, y: 5 },
   jira: { x: 8, y: 9 },
   zendesk: { x: 9, y: 14 },
+  appdynamics: { x: 3, y: 3 },
 };
