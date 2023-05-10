@@ -22,14 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 class TwilioPhoneProvider(PhoneProvider):
-    def make_notification_call(self, number, message):
+    def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall:
         message = self._escape_call_message(message)
 
-        gather_subquery = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{get_gather_message()}</Say></Gather>'
-        twiml_query = urllib.parse.quote(
-            f"<Response><Say>{message}</Say>{gather_subquery}</Response>",
-            safe="",
-        )
+        twiml_query = self._message_to_twiml(message, with_gather=True)
 
         response = None
         try_without_callback = False
@@ -59,7 +55,7 @@ class TwilioPhoneProvider(PhoneProvider):
                 sid=response.sid,
             )
 
-    def send_notification_sms(self, number, message):
+    def send_notification_sms(self, number: str, message: str) -> TwilioSMS:
         try_without_callback = False
         response = None
 
@@ -77,7 +73,7 @@ class TwilioPhoneProvider(PhoneProvider):
 
         if try_without_callback:
             try:
-                response = self._messages_create(number, message, with_callback=True)
+                response = self._messages_create(number, message, with_callback=False)
             except TwilioRestException as e:
                 logger.error(f"TwilioPhoneProvider.send_notification_sms: failed {e}")
                 raise FailedToSendSMS
@@ -88,10 +84,10 @@ class TwilioPhoneProvider(PhoneProvider):
                 sid=response.sid,
             )
 
-    def send_verification_sms(self, number):
+    def send_verification_sms(self, number: str):
         self._send_verification_code(number, via="sms")
 
-    def finish_verification(self, number, code):
+    def finish_verification(self, number: str, code: str):
         # I'm not sure if we need verification_and_parse via twilio pipeline here
         # Verification code anyway is sent to not verified phone number.
         # Just leaving it as it was before phone_provider refactoring.
@@ -110,26 +106,32 @@ class TwilioPhoneProvider(PhoneProvider):
         else:
             return None
 
-    def make_call(self, number, message):
-        message = self._escape_call_message(message)
-        twiml_query = urllib.parse.quote(
-            f"<Response><Say>{message}</Say></Response>",
-            safe="",
-        )
+    def make_call(self, number: str, message: str):
+        twiml_query = self._message_to_twiml(message, with_gather=False)
         try:
             self._call_create(twiml_query, number, with_callback=False)
         except TwilioRestException as e:
             logger.error(f"TwilioPhoneProvider.make_call: failed {e}")
             raise FailedToMakeCall
 
-    def send_sms(self, number, message):
+    def send_sms(self, number: str, message: str):
         try:
-            self._messages_create(number, message, with_callback=True)
+            self._messages_create(number, message, with_callback=False)
         except TwilioRestException as e:
             logger.error(f"TwilioPhoneProvider.send_sms: failed {e}")
             raise FailedToSendSMS
 
-    def _call_create(self, twiml_query, to, with_callback):
+    def _message_to_twiml(self, message: str, with_gather=False):
+        q = f"<Response><Say>{message}</Say></Response>"
+        if with_gather:
+            gather_subquery = f'<Gather numDigits="1" action="{get_gather_url()}" method="POST"><Say>{get_gather_message()}</Say></Gather>'
+            q = f"<Response><Say>{message}</Say>{gather_subquery}</Response>"
+        return urllib.parse.quote(
+            q,
+            safe="",
+        )
+
+    def _call_create(self, twiml_query: str, to: str, with_callback: bool):
         url = "http://twimlets.com/echo?Twiml=" + twiml_query
         if with_callback:
             status_callback = get_call_status_callback_url()
@@ -151,7 +153,7 @@ class TwilioPhoneProvider(PhoneProvider):
                 method="GET",
             )
 
-    def _messages_create(self, number, text, with_callback):
+    def _messages_create(self, number: str, text: str, with_callback: bool):
         if with_callback:
             status_callback = get_sms_status_callback_url()
             return self._twilio_api_client.messages.create(
@@ -164,7 +166,7 @@ class TwilioPhoneProvider(PhoneProvider):
                 from_=self._twilio_number,
             )
 
-    def _send_verification_code(self, number, via):
+    def _send_verification_code(self, number: str, via: str):
         # https://www.twilio.com/docs/verify/api/verification?code-sample=code-start-a-verification-with-sms&code-language=Python&code-sdk-version=6.x
         try:
             verification = self._twilio_api_client.verify.services(
@@ -175,7 +177,7 @@ class TwilioPhoneProvider(PhoneProvider):
             logger.error(f"Twilio verification start error: {e} to number {number}")
             raise FailedToStartVerification
 
-    def _normalize_phone_number(self, number):
+    def _normalize_phone_number(self, number: str):
         # TODO: phone_provider: is it best place to parse phone number?
         number = self._parse_phone_number(number)
 
@@ -197,7 +199,7 @@ class TwilioPhoneProvider(PhoneProvider):
         return normalized_phone_number, country_code
 
     # Use responsibly
-    def _parse_number(self, number):
+    def _parse_number(self, number: str):
         try:
             response = self._twilio_api_client.lookups.phone_numbers(number).fetch()
             return True, response.phone_number, self._get_calling_code(response.country_code)

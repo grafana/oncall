@@ -11,7 +11,7 @@ class SimplePhoneProvider(PhoneProvider):
     It is not intended for real-life usage and needed only as example of PhoneProviders suitable to use ONLY in OSS.
     """
 
-    def send_notification_sms(self, number, message, sms_record):
+    def send_notification_sms(self, number, message):
         self.send_sms(number, message)
 
     def send_sms(self, number, text):
