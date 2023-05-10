@@ -6,6 +6,7 @@ import uuid
 from importlib import import_module, reload
 
 import pytest
+from celery import Task
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
 from pytest_factoryboy import register
@@ -56,7 +57,9 @@ from apps.base.tests.factories import (
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
+from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
+from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
@@ -148,6 +151,22 @@ def mock_telegram_bot_username(monkeypatch):
         return "amixr_bot"
 
     monkeypatch.setattr(Bot, "username", mock_username)
+
+
+@pytest.fixture(autouse=True)
+def mock_phone_provider(monkeypatch):
+    def mock_get_provider(*args, **kwargs):
+        return MockPhoneProvider()
+
+    monkeypatch.setattr(PhoneBackend, "_get_phone_provider", mock_get_provider)
+
+
+@pytest.fixture(autouse=True)
+def mock_apply_async(monkeypatch):
+    def mock_apply_async(*args, **kwargs):
+        return uuid.uuid4()
+
+    monkeypatch.setattr(Task, "apply_async", mock_apply_async)
 
 
 @pytest.fixture

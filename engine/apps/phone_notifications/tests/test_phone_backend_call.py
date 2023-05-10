@@ -12,7 +12,6 @@ from apps.phone_notifications.exceptions import (
 )
 from apps.phone_notifications.models import PhoneCallRecord
 from apps.phone_notifications.phone_backend import PhoneBackend
-from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
 
 notify = UserNotificationPolicy.Step.NOTIFY
 notify_by_phone = 2
@@ -31,14 +30,6 @@ def setup(
     )
 
     return user, alert_group, notification_policy
-
-
-@pytest.fixture(autouse=True)
-def mock_phone_provider(monkeypatch):
-    def mock_get_provider(*args, **kwargs):
-        return MockPhoneProvider()
-
-    monkeypatch.setattr(PhoneBackend, "_get_phone_provider", mock_get_provider)
 
 
 @pytest.mark.django_db
