@@ -19,6 +19,7 @@ from apps.webhooks.utils import (
     serialize_event,
 )
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+from settings.base import WEBHOOK_RESPONSE_LIMIT
 
 NOT_FROM_SELECTED_INTEGRATION = "Alert group was not from a selected integration"
 
@@ -27,7 +28,7 @@ logger.setLevel(logging.DEBUG)
 
 
 TRIGGER_TYPE_TO_LABEL = {
-    Webhook.TRIGGER_FIRING: "firing",
+    Webhook.TRIGGER_ALERT_GROUP_CREATED: "alert group created",
     Webhook.TRIGGER_ACKNOWLEDGE: "acknowledge",
     Webhook.TRIGGER_RESOLVE: "resolve",
     Webhook.TRIGGER_SILENCE: "silence",
@@ -41,13 +42,15 @@ TRIGGER_TYPE_TO_LABEL = {
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, alert_group_id, team_id=None, organization_id=None, user_id=None):
+def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
     webhooks_qs = Webhooks.objects.filter(
-        trigger_type=trigger_type, organization_id=organization_id, team_id=team_id
+        trigger_type=trigger_type,
+        organization_id=organization_id,
     ).exclude(is_webhook_enabled=False)
 
     for webhook in webhooks_qs:
+        print(webhook.name)
         execute_webhook.apply_async((webhook.pk, alert_group_id, user_id, None))
 
 
@@ -60,7 +63,7 @@ def _build_payload(webhook, alert_group, user):
     event = {
         "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
     }
-    if trigger_type == Webhook.TRIGGER_FIRING:
+    if trigger_type == Webhook.TRIGGER_ALERT_GROUP_CREATED:
         event["time"] = _isoformat_date(alert_group.started_at)
     elif trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
         event["time"] = _isoformat_date(alert_group.acknowledged_at)
@@ -106,7 +109,7 @@ def make_request(webhook, alert_group, data):
     try:
         if not webhook.check_integration_filter(alert_group):
             status["request_trigger"] = NOT_FROM_SELECTED_INTEGRATION
-            return status, None, None
+            return False, status, None, None
 
         triggered, status["request_trigger"] = webhook.check_trigger(data)
         if triggered:
@@ -119,12 +122,18 @@ def make_request(webhook, alert_group, data):
                 status["request_data"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
             status["status_code"] = response.status_code
-            try:
-                status["content"] = json.dumps(response.json())
-            except JSONDecodeError:
-                status["content"] = response.content.decode("utf-8")
-        else:
-            return status, None, None
+            content_length = len(response.content)
+            if content_length <= WEBHOOK_RESPONSE_LIMIT:
+                try:
+                    status["content"] = json.dumps(response.json())
+                except JSONDecodeError:
+                    status["content"] = response.content.decode("utf-8")
+            else:
+                status[
+                    "content"
+                ] = f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
+
+        return triggered, status, None, None
     except InvalidWebhookUrl as e:
         status["url"] = error = e.message
     except InvalidWebhookTrigger as e:
@@ -137,7 +146,7 @@ def make_request(webhook, alert_group, data):
         status["content"] = error = str(e)
         exception = e
 
-    return status, error, exception
+    return True, status, error, exception
 
 
 @shared_dedicated_queue_retry_task(
@@ -172,7 +181,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
         user = User.objects.filter(pk=user_id).first()
 
     data = _build_payload(webhook, alert_group, user)
-    status, error, exception = make_request(webhook, alert_group, data)
+    triggered, status, error, exception = make_request(webhook, alert_group, data)
 
     # create response entry
     WebhookResponse.objects.create(
@@ -196,20 +205,21 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
         error_code = AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR
         reason = error
 
-    AlertGroupLogRecord.objects.create(
-        type=log_type,
-        alert_group=alert_group,
-        author=user,
-        reason=reason,
-        step_specific_info={
-            "webhook_name": webhook.name,
-            "webhook_id": webhook.public_primary_key,
-            "trigger": TRIGGER_TYPE_TO_LABEL[webhook.trigger_type],
-        },
-        escalation_policy=escalation_policy,
-        escalation_policy_step=step,
-        escalation_error_code=error_code,
-    )
+    if triggered:
+        AlertGroupLogRecord.objects.create(
+            type=log_type,
+            alert_group=alert_group,
+            author=user,
+            reason=reason,
+            step_specific_info={
+                "webhook_name": webhook.name,
+                "webhook_id": webhook.public_primary_key,
+                "trigger": TRIGGER_TYPE_TO_LABEL[webhook.trigger_type],
+            },
+            escalation_policy=escalation_policy,
+            escalation_policy_step=step,
+            escalation_error_code=error_code,
+        )
 
     if exception:
         raise exception

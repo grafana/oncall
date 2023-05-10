@@ -8,7 +8,7 @@ import { KeyValuePair } from 'utils';
 
 export const WebhookTriggerType = {
   EscalationStep: new KeyValuePair('0', 'Escalation Step'),
-  Firing: new KeyValuePair('1', 'Firing'),
+  AlertGroupCreated: new KeyValuePair('1', 'Alert Group Created'),
   Acknowledged: new KeyValuePair('2', 'Acknowledged'),
   Resolved: new KeyValuePair('3', 'Resolved'),
   Silenced: new KeyValuePair('4', 'Silenced'),
@@ -56,8 +56,8 @@ export const form: { name: string; fields: FormItem[] } = {
             label: WebhookTriggerType.EscalationStep.value,
           },
           {
-            value: WebhookTriggerType.Firing.key,
-            label: WebhookTriggerType.Firing.value,
+            value: WebhookTriggerType.AlertGroupCreated.key,
+            label: WebhookTriggerType.AlertGroupCreated.value,
           },
           {
             value: WebhookTriggerType.Acknowledged.key,

@@ -35,67 +35,7 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
 
   return (
     <>
-      <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick>
-        <div className={cx('content')}>
-          <VerticalGroup spacing="lg">
-            <Block bordered withBackground className={cx('block')}>
-              <HorizontalGroup justify="space-between">
-                <HorizontalGroup spacing="md">
-                  <Icon name="calendar-alt" size="xl" />
-                  <VerticalGroup spacing="none">
-                    <Text type="primary" size="large">
-                      Set up on-call rotation schedule
-                    </Text>
-                    <Text type="secondary">Configure rotations and shifts directly in Grafana On-Call</Text>
-                  </VerticalGroup>
-                </HorizontalGroup>
-                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                  <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
-                    Create
-                  </Button>
-                </WithPermissionControlTooltip>
-              </HorizontalGroup>
-            </Block>
-            <Block bordered withBackground className={cx('block')}>
-              <HorizontalGroup justify="space-between">
-                <HorizontalGroup spacing="md">
-                  <Icon name="download-alt" size="xl" />
-                  <VerticalGroup spacing="none">
-                    <Text type="primary" size="large">
-                      Import schedule from iCal Url
-                    </Text>
-                    <Text type="secondary">Import rotations and shifts from your calendar app</Text>
-                  </VerticalGroup>
-                </HorizontalGroup>
-                <Button variant="secondary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.Ical)}>
-                  Create
-                </Button>
-              </HorizontalGroup>
-            </Block>
-            <Block bordered withBackground className={cx('block')}>
-              <HorizontalGroup justify="space-between">
-                <HorizontalGroup spacing="md">
-                  <Icon name="cog" size="xl" />
-                  <VerticalGroup spacing="none">
-                    <Text type="primary" size="large">
-                      Create schedule by API
-                    </Text>
-                    <Text type="secondary">Use API or Terraform to manage rotations</Text>
-                  </VerticalGroup>
-                </HorizontalGroup>
-                <a
-                  target="_blank"
-                  href="https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/"
-                  rel="noreferrer"
-                >
-                  <Button variant="secondary">Read more</Button>
-                </a>
-              </HorizontalGroup>
-            </Block>
-          </VerticalGroup>
-        </div>
-      </Drawer>
-      {showScheduleForm && (
+      {showScheduleForm ? (
         <ScheduleForm
           id="new"
           type={type}
@@ -104,11 +44,69 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
             onUpdate();
           }}
           onCreate={onCreate}
-          onHide={() => {
-            setType(undefined);
-            setShowScheduleForm(false);
-          }}
+          onHide={onHide}
         />
+      ) : (
+        <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick={false}>
+          <div className={cx('content')}>
+            <VerticalGroup spacing="lg">
+              <Block bordered withBackground className={cx('block')}>
+                <HorizontalGroup justify="space-between">
+                  <HorizontalGroup spacing="md">
+                    <Icon name="calendar-alt" size="xl" />
+                    <VerticalGroup spacing="none">
+                      <Text type="primary" size="large">
+                        Set up on-call rotation schedule
+                      </Text>
+                      <Text type="secondary">Configure rotations and shifts directly in Grafana On-Call</Text>
+                    </VerticalGroup>
+                  </HorizontalGroup>
+                  <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                    <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
+                      Create
+                    </Button>
+                  </WithPermissionControlTooltip>
+                </HorizontalGroup>
+              </Block>
+              <Block bordered withBackground className={cx('block')}>
+                <HorizontalGroup justify="space-between">
+                  <HorizontalGroup spacing="md">
+                    <Icon name="download-alt" size="xl" />
+                    <VerticalGroup spacing="none">
+                      <Text type="primary" size="large">
+                        Import schedule from iCal Url
+                      </Text>
+                      <Text type="secondary">Import rotations and shifts from your calendar app</Text>
+                    </VerticalGroup>
+                  </HorizontalGroup>
+                  <Button variant="secondary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.Ical)}>
+                    Create
+                  </Button>
+                </HorizontalGroup>
+              </Block>
+              <Block bordered withBackground className={cx('block')}>
+                <HorizontalGroup justify="space-between">
+                  <HorizontalGroup spacing="md">
+                    <Icon name="cog" size="xl" />
+                    <VerticalGroup spacing="none">
+                      <Text type="primary" size="large">
+                        Create schedule by API
+                      </Text>
+                      <Text type="secondary">Use API or Terraform to manage rotations</Text>
+                    </VerticalGroup>
+                  </HorizontalGroup>
+                  <a
+                    target="_blank"
+                    href="https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/"
+                    rel="noreferrer"
+                  >
+                    <Button variant="secondary">Read more</Button>
+                  </a>
+                </HorizontalGroup>
+              </Block>
+            </VerticalGroup>
+          </div>
+        </Drawer>
       )}
     </>
   );

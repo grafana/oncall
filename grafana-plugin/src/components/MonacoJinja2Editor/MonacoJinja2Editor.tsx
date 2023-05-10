@@ -11,9 +11,12 @@ declare const monaco: any;
 interface MonacoJinja2EditorProps {
   value: string;
   disabled?: boolean;
+  height?: string;
   data: any;
-  onChange: (value: string) => void;
-  loading: boolean;
+  showLineNumbers?: boolean;
+  onChange?: (value: string) => void;
+  loading?: boolean;
+  monacoOptions?: any;
 }
 
 const PREDEFINED_TERMS = [
@@ -25,7 +28,7 @@ const PREDEFINED_TERMS = [
 ];
 
 const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
-  const { value, onChange, disabled, data, loading } = props;
+  const { value, onChange, disabled, data, height, monacoOptions, showLineNumbers = true, loading = false } = props;
 
   const autoCompleteList = useCallback(
     () =>
@@ -39,7 +42,7 @@ const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
 
   const handleMount = useCallback((editor) => {
     editor.onDidChangeModelContent(() => {
-      onChange(editor.getValue());
+      onChange?.(editor.getValue());
     });
 
     editor.focus();
@@ -58,13 +61,14 @@ const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
 
   return (
     <CodeEditor
+      monacoOptions={monacoOptions}
       showMiniMap={false}
       readOnly={disabled}
-      showLineNumbers
+      showLineNumbers={showLineNumbers}
       value={value}
       language="jinja2"
       width="100%"
-      height="130px"
+      height={height ? `${height}` : `130px`}
       onEditorDidMount={handleMount}
       getSuggestions={autoCompleteList}
     />

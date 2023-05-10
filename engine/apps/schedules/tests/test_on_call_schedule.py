@@ -13,6 +13,7 @@ from apps.schedules.constants import (
     ICAL_DATETIME_END,
     ICAL_DATETIME_START,
     ICAL_LAST_MODIFIED,
+    ICAL_LOCATION,
     ICAL_STATUS,
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
@@ -894,9 +895,10 @@ def test_schedule_related_users_empty_schedule(make_organization, make_schedule)
         schedule_class=OnCallScheduleWeb,
         name="test_web_schedule",
     )
+    schedule.refresh_ical_file()
 
     users = schedule.related_users()
-    assert users == set()
+    assert set(users) == set()
 
 
 @pytest.mark.django_db
@@ -930,7 +932,7 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
             "schedule": schedule,
         }
         on_call_shift = make_on_call_shift(
-            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
         )
         on_call_shift.add_rolling_users([[user]])
 
@@ -946,9 +948,11 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
     )
     override.add_rolling_users([[user_e]])
 
+    schedule.refresh_ical_file()
     schedule.refresh_from_db()
+
     users = schedule.related_users()
-    assert users == set(u.public_primary_key for u in [user_a, user_d, user_e])
+    assert set(users) == set([user_a, user_d, user_e])
 
 
 @pytest.mark.django_db(transaction=True)
@@ -1349,6 +1353,7 @@ def test_upcoming_shift_for_user(
         )
         on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     current_shift, upcoming_shift = schedule.upcoming_shift_for_user(admin)
     assert current_shift is not None and current_shift["start"] == on_call_shift.start
@@ -1405,11 +1410,31 @@ def test_refresh_ical_final_schedule_ok(
     schedule.refresh_ical_file()
 
     expected_events = {
-        # user, start, end
-        (u1.username, today, today + timezone.timedelta(seconds=(12 * 60 * 60) - 1)),
-        (u2.username, today + timezone.timedelta(hours=12), today + timezone.timedelta(hours=22)),
-        (u1.username, today + timezone.timedelta(hours=22), today + timezone.timedelta(hours=23)),
-        (u2.username, today + timezone.timedelta(hours=23), today + timezone.timedelta(seconds=(24 * 60 * 60) - 1)),
+        # user, start, end, type
+        (
+            u1.username,
+            today,
+            today + timezone.timedelta(seconds=(12 * 60 * 60) - 1),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+        ),
+        (
+            u2.username,
+            today + timezone.timedelta(hours=12),
+            today + timezone.timedelta(hours=22),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+        ),
+        (
+            u1.username,
+            today + timezone.timedelta(hours=22),
+            today + timezone.timedelta(hours=23),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.OVERRIDES],
+        ),
+        (
+            u2.username,
+            today + timezone.timedelta(hours=23),
+            today + timezone.timedelta(seconds=(24 * 60 * 60) - 1),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+        ),
     }
 
     for i in range(2):
@@ -1422,7 +1447,12 @@ def test_refresh_ical_final_schedule_ok(
         calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
         for component in calendar.walk():
             if component.name == ICAL_COMPONENT_VEVENT:
-                event = (component[ICAL_SUMMARY], component[ICAL_DATETIME_START].dt, component[ICAL_DATETIME_END].dt)
+                event = (
+                    component[ICAL_SUMMARY],
+                    component[ICAL_DATETIME_START].dt,
+                    component[ICAL_DATETIME_END].dt,
+                    component[ICAL_LOCATION],
+                )
                 assert event in expected_events
 
 

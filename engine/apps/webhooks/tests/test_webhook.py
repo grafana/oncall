@@ -105,6 +105,35 @@ def test_build_request_kwargs_custom_data(make_organization, make_custom_webhook
 
 
 @pytest.mark.django_db
+def test_build_request_kwargs_is_legacy_custom_data(make_organization, make_custom_webhook):
+    organization = make_organization()
+    webhook = make_custom_webhook(
+        organization=organization,
+        data="{{alert_payload.message}}",
+        forward_all=False,
+        is_legacy=True,
+    )
+    event_data = {"alert_group_id": "bar", "alert_payload": {"message": "the-message"}}
+    request_kwargs = webhook.build_request_kwargs(event_data)
+
+    assert request_kwargs == {"headers": {}, "data": "the-message"}
+
+
+@pytest.mark.django_db
+def test_build_request_kwargs_is_legacy_forward_all(make_organization, make_custom_webhook):
+    organization = make_organization()
+    webhook = make_custom_webhook(
+        organization=organization,
+        forward_all=True,
+        is_legacy=True,
+    )
+    event_data = {"alert_group_id": "bar", "alert_payload": {"message": "the-message"}}
+    request_kwargs = webhook.build_request_kwargs(event_data)
+
+    assert request_kwargs == {"headers": {}, "json": event_data["alert_payload"]}
+
+
+@pytest.mark.django_db
 def test_build_request_kwargs_custom_data_error(make_organization, make_custom_webhook):
     organization = make_organization()
     webhook = make_custom_webhook(organization=organization, data="{{foo|invalid}}", forward_all=False)

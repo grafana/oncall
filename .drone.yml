@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -62,7 +62,7 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.9
+    image: python:3.11.3
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
@@ -72,7 +72,7 @@ steps:
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.9
+    image: python:3.11.3
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -174,7 +174,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -185,7 +185,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-stretch
+    image: node:14.17.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -418,6 +418,4 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: a3beea81516696062d9ce01237e30bd4874bc65250185580609a0065d76b7950
-
-...
+hmac: 8f34bbbb5a2efe479b40d616b087a0c380390de2e440857bdffe8fd48d860e55

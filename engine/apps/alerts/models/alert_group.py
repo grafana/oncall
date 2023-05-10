@@ -145,7 +145,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         "GroupData", ["is_resolve_signal", "group_distinction", "web_title_cache", "is_acknowledge_signal"]
     )
 
-    SOURCE, USER, NOT_YET, LAST_STEP, ARCHIVED, WIPED, DISABLE_MAINTENANCE = range(7)
+    SOURCE, USER, NOT_YET, LAST_STEP, ARCHIVED, WIPED, DISABLE_MAINTENANCE, NOT_YET_STOP_AUTORESOLVE = range(8)
     SOURCE_CHOICES = (
         (SOURCE, "source"),
         (USER, "user"),
@@ -154,6 +154,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         (ARCHIVED, "archived"),
         (WIPED, "wiped"),
         (DISABLE_MAINTENANCE, "stop maintenance"),
+        (NOT_YET_STOP_AUTORESOLVE, "not yet, autoresolve disabled"),
     )
 
     ACKNOWLEDGE = "acknowledge"
@@ -240,7 +241,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     SILENCE_DELAY_OPTIONS = (
         (1800, "30 minutes"),
         (3600, "1 hour"),
+        (7200, "2 hours"),
+        (10800, "3 hours"),
         (14400, "4 hours"),
+        (21600, "6 hours"),
         (43200, "12 hours"),
         (57600, "16 hours"),
         (72000, "20 hours"),
