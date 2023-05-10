@@ -57,7 +57,7 @@ class Webhook(models.Model):
 
     (
         TRIGGER_ESCALATION_STEP,
-        TRIGGER_FIRING,
+        TRIGGER_ALERT_GROUP_CREATED,
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
@@ -69,7 +69,7 @@ class Webhook(models.Model):
     # Must be the same order as previous
     TRIGGER_TYPES = (
         (TRIGGER_ESCALATION_STEP, "Escalation step"),
-        (TRIGGER_FIRING, "Firing"),
+        (TRIGGER_ALERT_GROUP_CREATED, "Alert Group Created"),
         (TRIGGER_ACKNOWLEDGE, "Acknowledged"),
         (TRIGGER_RESOLVE, "Resolved"),
         (TRIGGER_SILENCE, "Silenced"),
@@ -101,7 +101,7 @@ class Webhook(models.Model):
     deleted_at = models.DateTimeField(blank=True, null=True)
     name = models.CharField(max_length=100, null=True, default=None)
     username = models.CharField(max_length=100, null=True, default=None)
-    password = mirage_fields.EncryptedCharField(max_length=200, null=True, default=None)
+    password = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
     authorization_header = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
     trigger_template = models.TextField(null=True, default=None)
     headers = models.TextField(null=True, default=None)

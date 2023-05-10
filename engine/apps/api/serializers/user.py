@@ -186,6 +186,27 @@ class UserHiddenFieldsSerializer(UserSerializer):
         return ret
 
 
+class ScheduleUserSerializer(UserSerializer):
+    fields_to_keep = [
+        "pk",
+        "organization",
+        "email",
+        "username",
+        "name",
+        "avatar",
+        "avatar_full",
+        "timezone",
+        "working_hours",
+        "slack_user_identity",
+        "telegram_configuration",
+    ]
+
+    def to_representation(self, instance):
+        serialized = super(UserSerializer, self).to_representation(instance)
+        ret = {field: value for field, value in serialized.items() if field in self.fields_to_keep}
+        return ret
+
+
 class FastUserSerializer(serializers.ModelSerializer):
     pk = serializers.CharField(source="public_primary_key")
 

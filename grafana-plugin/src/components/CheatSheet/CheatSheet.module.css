@@ -1,0 +1,14 @@
+.cheatsheet-container {
+  width: 40%;
+  height: 100%;
+  padding: 16px;
+}
+
+.cheatsheet-item {
+  margin-bottom: 24px;
+}
+
+.cheatsheet-item-small {
+  margin-bottom: 16px;
+  width: 100%;
+}

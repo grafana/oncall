@@ -19,4 +19,6 @@ export const logoCoors: { [key: string]: { x: number; y: number } } = {
   uptimerobot: { x: 14, y: 8 },
   zabbix: { x: 7, y: 14 },
   prtg: { x: 12, y: 5 },
+  jira: { x: 8, y: 9 },
+  zendesk: { x: 9, y: 14 },
 };

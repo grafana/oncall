@@ -80,6 +80,7 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
+WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
@@ -472,6 +473,11 @@ CELERY_BEAT_SCHEDULE = {
     "process_failed_to_invoke_celery_tasks": {
         "task": "apps.base.tasks.process_failed_to_invoke_celery_tasks",
         "schedule": 60 * 10,
+        "args": (),
+    },
+    "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
+        "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
+        "schedule": 10 * 60,
         "args": (),
     },
 }

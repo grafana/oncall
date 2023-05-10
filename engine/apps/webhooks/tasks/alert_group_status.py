@@ -34,18 +34,15 @@ def alert_group_created(self, alert_group_id):
     except AlertGroup.DoesNotExist:
         return
 
-    trigger_type = Webhook.TRIGGER_FIRING
+    trigger_type = Webhook.TRIGGER_ALERT_GROUP_CREATED
     organization_id = alert_group.channel.organization_id
-    team_id = alert_group.channel.team_id
-    webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)
+    webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id)
 
     # check if there are any webhooks before going on
     if not webhooks:
         return
 
-    send_webhook_event.apply_async(
-        (trigger_type, alert_group_id), kwargs={"organization_id": organization_id, "team_id": team_id}
-    )
+    send_webhook_event.apply_async((trigger_type, alert_group_id), kwargs={"organization_id": organization_id})
 
 
 @shared_dedicated_queue_retry_task(
@@ -62,8 +59,7 @@ def alert_group_status_change(self, action_type, alert_group_id, user_id):
         return
 
     organization_id = alert_group.channel.organization_id
-    team_id = alert_group.channel.team_id
-    webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)
+    webhooks = Webhook.objects.filter(trigger_type=trigger_type, organization_id=organization_id)
 
     # check if there are any webhooks before going on
     if not webhooks:
@@ -71,5 +67,5 @@ def alert_group_status_change(self, action_type, alert_group_id, user_id):
 
     send_webhook_event.apply_async(
         (trigger_type, alert_group_id),
-        kwargs={"organization_id": organization_id, "team_id": team_id, "user_id": user_id},
+        kwargs={"organization_id": organization_id, "user_id": user_id},
     )

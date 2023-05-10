@@ -5,11 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.21 (2023-05-09)
 
 ### Added
 
-- Add 2, 3 and 6 hours silence options
+- Add a new mobile app push notification which notifies users when they are going on call by @joeyorlando ([#1814](https://github.com/grafana/oncall/pull/1814))
+- Add a new mobile app user setting field, `important_notification_volume_override` by @joeyorlando ([#1893](https://github.com/grafana/oncall/pull/1893))
+
+### Changed
+
+- Improve ical comparison when checking for imported ical updates ([1870](https://github.com/grafana/oncall/pull/1870))
+- Upgrade to Python 3.11.3 by @joeyorlando ([#1849](https://github.com/grafana/oncall/pull/1849))
+
+### Fixed
+
+- Fix issue with how OnCall determines if a cloud Grafana Instance supports RBAC by @joeyorlando ([#1880](https://github.com/grafana/oncall/pull/1880))
+- Fix issue trying to set maintenance mode for integrations belonging to non-current team
+
+## v1.2.20 (2023-05-09)
+
+### Fixed
+
+- Hotfix perform notification task
+
+## v1.2.19 (2023-05-04)
+
+### Fixed
+
+- Fix issue with parsing response when sending Slack message
+
+## v1.2.18 (2023-05-03)
+
+### Added
+
+- Documentation updates
+
+## v1.2.17 (2023-05-02)
+
+### Added
+
+- Add filter descriptions to web ui by @iskhakov ([1845](https://github.com/grafana/oncall/pull/1845))
+- Add "Notifications Receiver" RBAC role by @joeyorlando ([#1853](https://github.com/grafana/oncall/pull/1853))
+
+### Changed
+
+- Remove template editor from Slack by @iskhakov ([1847](https://github.com/grafana/oncall/pull/1847))
+- Remove schedule name uniqueness restriction ([1859](https://github.com/grafana/oncall/pull/1859))
+
+### Fixed
+
+- Fix bugs in web title and message templates rendering and visual representation ([1747](https://github.com/grafana/oncall/pull/1747))
+
+## v1.2.16 (2023-04-27)
+
+### Added
+
+- Add 2, 3 and 6 hours Alert Group silence options by @tommysitehost ([#1822](https://github.com/grafana/oncall/pull/1822))
+- Add schedule related users endpoint to plugin API
+
+### Changed
+
+- Update web UI, Slack, and Telegram to allow silencing an acknowledged alert group by @joeyorlando ([#1831](https://github.com/grafana/oncall/pull/1831))
+
+### Fixed
+
+- Optimize duplicate queries occurring in AlertGroupFilter by @joeyorlando ([1809](https://github.com/grafana/oncall/pull/1809))
 
 ## v1.2.15 (2023-04-24)
 
