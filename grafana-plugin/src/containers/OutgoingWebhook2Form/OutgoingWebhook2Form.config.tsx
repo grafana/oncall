@@ -180,7 +180,7 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'data',
-      getDisabled: (form_data) => Boolean(form_data?.forward_all),
+      getDisabled: (data) => Boolean(data?.forward_all),
       type: FormItemType.TextArea,
       description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}',
       extra: {
