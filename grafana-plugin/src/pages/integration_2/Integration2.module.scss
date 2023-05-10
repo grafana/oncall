@@ -1,41 +1,69 @@
 $FLEX-GAP: 4px;
-$MARGIN: 12px;
-$ITEMS-MARGIN: 24px;
+$LARGE-MARGIN: 24px;
 
-.integration__heading-container {
-  margin-bottom: calc($ITEMS-MARGIN - 12px);
-}
-.integration__subheading-container {
-  margin-bottom: $ITEMS-MARGIN;
-}
+.integration {
+  &__heading-container {
+    margin-bottom: calc($LARGE-MARGIN - 12px);
+  }
 
-.integration__name {
-  margin-bottom: 0;
-}
+  &__subheading-container {
+    margin-bottom: $LARGE-MARGIN;
+  }
 
-.integration__heading-container {
-  display: flex;
-  gap: $FLEX-GAP;
-}
+  &__payloadInput {
+    width: 100%;
+  }
 
-.integration__heading {
-  display: flex;
-  justify-content: flex-end;
-  flex-direction: row;
-  width: 100%;
-}
+  &__alertsPanel {
+    padding-bottom: 12px;
+  }
 
-.integration__actions {
-  display: flex;
-  gap: $FLEX-GAP;
-  margin-left: auto;
-}
+  &__name {
+    margin-bottom: 0;
+  }
 
-.integration__actionsList {
-  display: flex;
-  flex-direction: column;
-  width: 160px;
-  border-radius: 2px;
+  &__heading-container {
+    display: flex;
+    gap: $FLEX-GAP;
+  }
+
+  &__heading {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    width: 100%;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $FLEX-GAP;
+    margin-left: auto;
+  }
+
+  &__actionsList {
+    display: flex;
+    flex-direction: column;
+    width: 160px;
+    border-radius: 2px;
+  }
+
+  &__description {
+    display: block;
+    margin-bottom: $LARGE-MARGIN;
+  }
+
+  &__counter {
+    font-size: 12px;
+  }
+
+  &__countersBadge {
+    line-height: 16px;
+    padding: 3px 4px;
+  }
+
+  &__input-field {
+    margin-right: 24px;
+  }
 }
 
 .integration__actionItem {
@@ -57,11 +85,6 @@ $ITEMS-MARGIN: 24px;
   }
 }
 
-.integration__description {
-  display: block;
-  margin-bottom: $ITEMS-MARGIN;
-}
-
 .hamburger-menu {
   display: inline-flex;
   flex-direction: column;
@@ -78,14 +101,6 @@ $ITEMS-MARGIN: 24px;
   color: var(--primary-text-color);
 }
 
-.integration__counter {
-  font-size: 12px;
-}
-.integration__countersBadge {
-  line-height: 16px;
-  padding: 3px 4px;
-}
-
 .loadingPlaceholder {
   margin-bottom: 0;
 }
@@ -96,6 +111,14 @@ $ITEMS-MARGIN: 24px;
 
 .routesSection {
   padding-top: 20px;
+
+  &__heading {
+    font-size: 16px;
+  }
+
+  &__add {
+    margin-bottom: $LARGE-MARGIN;
+  }
 }
 
 .input {
@@ -119,8 +142,4 @@ $ITEMS-MARGIN: 24px;
 
 .heartbeat-badge {
   padding: 4px 8px;
-}
-
-.integration__input-field {
-  margin-right: 24px;
 }

@@ -28,7 +28,6 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import SourceCode from 'components/SourceCode/SourceCode';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -60,6 +59,7 @@ import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
 import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
+import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 
 const cx = cn.bind(styles);
 
@@ -71,12 +71,13 @@ interface Integration2State extends PageBaseState {
   selectedTemplate: TemplateForEdit;
   isEditRegexpRouteTemplateModalOpen: boolean;
   channelFilterIdForEdit: ChannelFilter['id'];
-  isNewRoute: boolean;
+  newRoutes: string[];
+  isAddingRoute: boolean;
 }
 
-// This can be further improved by using a ref instead
 const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
+const NEW_ROUTE_DEFAULT = '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -90,7 +91,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       selectedTemplate: undefined,
       isEditRegexpRouteTemplateModalOpen: false,
       channelFilterIdForEdit: undefined,
-      isNewRoute: false,
+      newRoutes: [],
+      isAddingRoute: false,
     };
   }
 
@@ -114,7 +116,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       selectedTemplate,
       isEditRegexpRouteTemplateModalOpen,
       channelFilterIdForEdit,
-      isNewRoute,
     } = this.state;
     const {
       store: { alertReceiveChannelStore, grafanaTeamStore },
@@ -243,14 +244,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
                           <HorizontalGroup spacing={'xs'}>
                             <Text type="secondary">Grouping:</Text>
-                            <Text type="link">
+                            <Text type="primary">
                               {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
                             </Text>
                           </HorizontalGroup>
 
                           <HorizontalGroup spacing={'xs'}>
                             <Text type="secondary">Autoresolve:</Text>
-                            <Text type="link">
+                            <Text type="primary">
                               {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
                             </Text>
                           </HorizontalGroup>
@@ -297,12 +298,21 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   expandedView: (
                     <div className={cx('routesSection')}>
                       <VerticalGroup spacing="md">
-                        <Text type={'primary'}>Routes</Text>
-                        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                          <Button variant={'primary'} onClick={this.handleAddNewRoute}>
-                            Add route
-                          </Button>
-                        </WithPermissionControlTooltip>
+                        <Text type={'primary'} className={cx('routesSection__heading')}>
+                          Routes
+                        </Text>
+                        <HorizontalGroup>
+                          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                            <Button
+                              variant={'primary'}
+                              className={cx('routesSection__add')}
+                              onClick={this.handleAddNewRoute}
+                            >
+                              Add route
+                            </Button>
+                          </WithPermissionControlTooltip>
+                          {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
+                        </HorizontalGroup>
                       </VerticalGroup>
                     </div>
                   ),
@@ -317,16 +327,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 onHide={() => {
                   this.setState({
                     isEditTemplateModalOpen: undefined,
-                    isNewRoute: false,
                   });
                 }}
                 channelFilterId={channelFilterIdForEdit}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
-                onUpdateRoute={isNewRoute ? this.onCreateRoutesCallback : this.onUpdateRoutesCallback}
+                onUpdateRoute={this.onUpdateRoutesCallback}
                 template={selectedTemplate}
                 templateBody={
                   selectedTemplate?.name === 'route_template'
-                    ? this.getRoutingTemplate(isNewRoute, channelFilterIdForEdit)
+                    ? this.getRoutingTemplate(channelFilterIdForEdit)
                     : templates[selectedTemplate?.name]
                 }
               />
@@ -347,19 +356,46 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     );
   }
 
-  getRoutingTemplate = (isRouteNew: boolean, channelFilterId: ChannelFilter['id']) => {
+  getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
-    if (isRouteNew) {
-      return '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
-    } else {
-      return alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term;
-    }
+
+    return alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term;
   };
+
   handleAddNewRoute = () => {
-    this.setState({ isNewRoute: true });
-    this.openEditTemplateModal('route_template');
+    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
+    const {
+      params: { id },
+    } = this.props.match;
+
+    this.setState(
+      {
+        isAddingRoute: true,
+      },
+      () => {
+        alertReceiveChannelStore
+          .createChannelFilter({
+            order: 0,
+            alert_receive_channel: id,
+            filtering_term: NEW_ROUTE_DEFAULT,
+            filtering_term_type: 1, // non-regex
+          })
+          .then(async (channelFilter: ChannelFilter) => {
+            this.setState({ isAddingRoute: false, newRoutes: this.state.newRoutes.concat(channelFilter.id) });
+            await alertReceiveChannelStore.updateChannelFilters(id, true);
+            await escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+            openNotification('A new route has been added');
+          })
+          .catch((err) => {
+            const errors = get(err, 'response.data');
+            if (errors?.non_field_errors) {
+              openErrorNotification(errors.non_field_errors);
+            }
+          });
+      }
+    );
   };
 
   renderRoutesFn = (): IntegrationCollapsibleItem[] => {
@@ -373,27 +409,37 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     const templates = alertReceiveChannelStore.templates[id];
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
-    return channelFilterIds.map((channelFilterId: ChannelFilter['id'], routeIndex: number) => ({
-      isCollapsible: true,
-      isExpanded: false,
-      collapsedView: (
-        <CollapsedIntegrationRouteDisplay
-          alertReceiveChannelId={id}
-          channelFilterId={channelFilterId}
-          routeIndex={routeIndex}
-        />
-      ),
-      expandedView: (
-        <ExpandedIntegrationRouteDisplay
-          alertReceiveChannelId={id}
-          channelFilterId={channelFilterId}
-          routeIndex={routeIndex}
-          templates={templates}
-          openEditTemplateModal={this.openEditTemplateModal}
-          onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
-        />
-      ),
-    }));
+    return channelFilterIds.map(
+      (channelFilterId: ChannelFilter['id'], routeIndex: number) =>
+        ({
+          isCollapsible: true,
+          // this will keep new routes expanded at the very first time
+          isExpanded: this.state.newRoutes.indexOf(channelFilterId) > -1 ? true : false,
+          onStateChange: () => {
+            if (this.state.newRoutes.indexOf(channelFilterId) > -1) {
+              // this will close them on user action
+              this.setState((prevState) => ({ newRoutes: prevState.newRoutes.filter((r) => r !== channelFilterId) }));
+            }
+          },
+          collapsedView: (
+            <CollapsedIntegrationRouteDisplay
+              alertReceiveChannelId={id}
+              channelFilterId={channelFilterId}
+              routeIndex={routeIndex}
+            />
+          ),
+          expandedView: (
+            <ExpandedIntegrationRouteDisplay
+              alertReceiveChannelId={id}
+              channelFilterId={channelFilterId}
+              routeIndex={routeIndex}
+              templates={templates}
+              openEditTemplateModal={this.openEditTemplateModal}
+              onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
+            />
+          ),
+        } as IntegrationCollapsibleItem)
+    );
   };
 
   renderHearbeat = (alertReceiveChannel: AlertReceiveChannel) => {
@@ -438,38 +484,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
   };
 
-  onCreateRoutesCallback = ({ route_template }: { route_template: string }) => {
-    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
-    const {
-      params: { id },
-    } = this.props.match;
-
-    alertReceiveChannelStore
-      .createChannelFilter({
-        order: 0,
-        alert_receive_channel: id,
-        filtering_term: route_template,
-
-        // TODO: need to figure out this value
-        filtering_term_type: 1,
-      })
-      .then((channelFilter: ChannelFilter) => {
-        alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
-          // @ts-ignore
-          escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
-        });
-      })
-      .catch((err) => {
-        const errors = get(err, 'response.data');
-        if (errors?.non_field_errors) {
-          openErrorNotification(errors.non_field_errors);
-        }
-      });
-  };
-
   onUpdateRoutesCallback = (
     { route_template }: { route_template: string },
-    channelFilterId,
+    channelFilterId: ChannelFilter['id'],
     filteringTermType?: number
   ) => {
     const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
@@ -480,13 +497,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     alertReceiveChannelStore
       .saveChannelFilter(channelFilterId, {
         filtering_term: route_template,
-
-        // TODO: need to figure out this value
         filtering_term_type: filteringTermType,
       })
       .then((channelFilter: ChannelFilter) => {
         alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
-          // @ts-ignore
           escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
         });
       })
@@ -604,6 +618,16 @@ interface IntegrationSendDemoPayloadModalProps {
   onHideOrCancel: () => void;
 }
 
+const PayloadMonacoOptions = {
+  renderLineHighlight: false,
+  readOnly: false,
+  hideCursorInOverviewRuler: true,
+  minimap: { enabled: false },
+  cursorStyle: {
+    display: 'none',
+  },
+};
+
 const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
   alertReceiveChannel,
   isOpen,
@@ -613,6 +637,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
   return (
     <Modal
+      closeOnBackdropClick={false}
       closeOnEscape
       isOpen={isOpen}
       onDismiss={onHideOrCancel}
@@ -621,12 +646,30 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
       <VerticalGroup>
         <HorizontalGroup spacing={'xs'}>
           <Text type={'secondary'}>Alert Payload</Text>
-          <Tooltip content={'TODO'} placement={'top-start'}>
+          <Tooltip
+            content={
+              <>
+                A demo alert will be generated. You can find it on the <strong>Alert Groups</strong> page
+              </>
+            }
+            placement={'top-start'}
+          >
             <Icon name={'info-circle'} />
           </Tooltip>
         </HorizontalGroup>
 
-        <SourceCode showCopyToClipboard={false}>{getDemoAlertJSON()}</SourceCode>
+        <div className={cx('integration__payloadInput')}>
+          <MonacoEditor
+            value={getDemoAlertJSON()}
+            disabled={true}
+            height={`200px`}
+            useAutoCompleteList={false}
+            language={MONACO_LANGUAGE.json}
+            data={undefined}
+            monacoOptions={PayloadMonacoOptions}
+            showLineNumbers={false}
+          />
+        </div>
 
         <HorizontalGroup justify={'flex-end'} spacing={'md'}>
           <Button variant={'secondary'} onClick={onHideOrCancel}>

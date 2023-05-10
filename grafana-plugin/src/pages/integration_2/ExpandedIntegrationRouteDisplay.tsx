@@ -5,9 +5,8 @@ import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, Con
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
@@ -18,7 +17,6 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import styles from './ExpandedIntegrationRouteDisplay.module.scss';
@@ -26,6 +24,7 @@ import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config
 import IntegrationHelper from './Integration2.helper';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationBlockItem from './IntegrationBlockItem';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 
 const cx = cn.bind(styles);
 
@@ -79,9 +78,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           heading={
             <HorizontalGroup justify={'space-between'}>
               <HorizontalGroup spacing={'md'}>
-                <Tag color={getVar('--tag-primary')}>
-                  {IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}
-                </Tag>
+                <TooltipBadge
+                  borderType="success"
+                  text={IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}
+                  tooltipTitle={undefined}
+                  tooltipContent={undefined}
+                />
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
                 <RouteButtonsDisplay
@@ -102,7 +104,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       Routing Template
                     </InlineLabel>
                     <div className={cx('input', 'input--short')}>
-                      <MonacoJinja2Editor
+                      <MonacoEditor
                         value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
                         disabled={true}
                         height={MONACO_INPUT_HEIGHT_SMALL}
@@ -177,23 +179,29 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                     </WithPermissionControlTooltip>
 
                     <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
-                    <PluginLink
-                      className={cx('hover-button')}
-                      target="_blank"
-                      query={{ page: 'escalations', id: channelFilter.escalation_chain }}
-                    >
-                      <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
-                    </PluginLink>
-                    <Button
-                      variant={'secondary'}
-                      onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
-                    >
-                      <HorizontalGroup>
-                        <Text type="link">Show escalation chain</Text>
-                        {isEscalationCollapsed && <Icon name={'angle-right'} />}
-                        {!isEscalationCollapsed && <Icon name={'angle-up'} />}
-                      </HorizontalGroup>
-                    </Button>
+
+                    {channelFilter.escalation_chain && (
+                      <PluginLink
+                        className={cx('hover-button')}
+                        target="_blank"
+                        query={{ page: 'escalations', id: channelFilter.escalation_chain }}
+                      >
+                        <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
+                      </PluginLink>
+                    )}
+
+                    {channelFilter.escalation_chain && (
+                      <Button
+                        variant={'secondary'}
+                        onClick={() => setState({ isEscalationCollapsed: !isEscalationCollapsed })}
+                      >
+                        <HorizontalGroup>
+                          <Text type="link">{isEscalationCollapsed ? 'Show' : 'Hide'} escalation chain</Text>
+                          {isEscalationCollapsed && <Icon name={'angle-right'} />}
+                          {!isEscalationCollapsed && <Icon name={'angle-up'} />}
+                        </HorizontalGroup>
+                      </Button>
+                    )}
                   </HorizontalGroup>
 
                   {isEscalationCollapsed && (
@@ -276,7 +284,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
       {routeIndex > 0 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Up'}>
-            <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'xs'} />
+            <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'sm'} />
           </Tooltip>
         </WithPermissionControlTooltip>
       )}
@@ -284,7 +292,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
       {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Down'}>
-            <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'xs'} />
+            <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'sm'} />
           </Tooltip>
         </WithPermissionControlTooltip>
       )}
@@ -292,7 +300,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
       {!channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Delete'}>
-            <Button variant={'secondary'} icon={'trash-alt'} size={'xs'} onClick={setRouteIdForDeletion} />
+            <Button variant={'secondary'} icon={'trash-alt'} size={'sm'} onClick={setRouteIdForDeletion} />
           </Tooltip>
         </WithPermissionControlTooltip>
       )}

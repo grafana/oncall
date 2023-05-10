@@ -3,7 +3,7 @@ import React from 'react';
 import { ButtonCascader, CascaderOption, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 
@@ -54,7 +54,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             label={'Grouping'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['grouping_id_template'] || '', false)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_SMALL}
@@ -71,7 +71,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             label={'Auto resolve'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['resolve_condition_template'] || '', false)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_SMALL}
@@ -94,7 +94,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['web_title_template'] || '', true)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_TALL}
@@ -111,7 +111,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['web_message_template'] || '', true)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_TALL}
@@ -128,7 +128,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['web_image_url_template'] || '', false)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_SMALL}
@@ -151,7 +151,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Auto acknowledge'}
                 renderInput={() => (
                   <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(
                         templates['acknowledge_condition_template'] || '',
                         false
@@ -173,7 +173,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Source Link'}
                 renderInput={() => (
                   <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['source_link_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
@@ -198,7 +198,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Phone Call'}
                 renderInput={() => (
                   <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['phone_call_title_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
@@ -217,7 +217,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'SMS'}
                 renderInput={() => (
                   <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['sms_title_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
@@ -244,7 +244,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Title'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['slack_title_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
@@ -263,7 +263,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Message'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['slack_message_template'] || '', true)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_TALL}
@@ -282,7 +282,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Image'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['slack_image_url_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
@@ -308,7 +308,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Title'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['telegram_title_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
@@ -327,7 +327,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Message'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['telegram_message_template'] || '', true)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_TALL}
@@ -346,7 +346,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Image'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(
                         templates['telegram_image_url_template'] || '',
                         false
@@ -375,7 +375,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Title'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['email_title_template'] || '', false)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_SMALL}
@@ -394,7 +394,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 label={'Message'}
                 renderInput={() => (
                   <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
+                    <MonacoEditor
                       value={IntegrationHelper.getFilteredTemplate(templates['email_message_template'] || '', true)}
                       disabled={true}
                       height={MONACO_INPUT_HEIGHT_TALL}

@@ -13,7 +13,7 @@ import {
   webTitleTemplateCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
 import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
@@ -179,7 +179,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                   </HorizontalGroup>
                 </div>
 
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={templateBody}
                   data={undefined}
                   showLineNumbers={true}
