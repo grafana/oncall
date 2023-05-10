@@ -80,6 +80,7 @@ describe('rootBaseStore', () => {
 
     expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(`🚧 ${maintenanceMessage} 🚧`);
+    expect(rootBaseStore.currentlyUndergoingMaintenance).toBe(true);
   });
 
   test('anonymous user', async () => {

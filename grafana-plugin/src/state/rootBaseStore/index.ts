@@ -57,7 +57,7 @@ export class RootBaseStore {
   initializationError = null;
 
   @observable
-  currentlyUndergoingMaintenanceMessage: string = null;
+  currentlyUndergoingMaintenance = false;
 
   @observable
   isMobile = false;
@@ -172,6 +172,8 @@ export class RootBaseStore {
       pluginConnectionStatus;
 
     if (currently_undergoing_maintenance_message !== null) {
+      this.currentlyUndergoingMaintenance = true;
+
       return this.setupPluginError(`🚧 ${currently_undergoing_maintenance_message} 🚧`);
     } else if (is_user_anonymous) {
       return this.setupPluginError(
