@@ -57,6 +57,9 @@ export class RootBaseStore {
   initializationError = null;
 
   @observable
+  currentlyUndergoingMaintenanceMessage: string = null;
+
+  @observable
   isMobile = false;
 
   initialQuery = qs.parse(window.location.search);
@@ -165,8 +168,12 @@ export class RootBaseStore {
       return this.setupPluginError(pluginConnectionStatus);
     }
 
-    const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
-    if (is_user_anonymous) {
+    const { allow_signup, is_installed, is_user_anonymous, token_ok, currently_undergoing_maintenance_message } =
+      pluginConnectionStatus;
+
+    if (currently_undergoing_maintenance_message !== null) {
+      return this.setupPluginError(`🚧 ${currently_undergoing_maintenance_message} 🚧`);
+    } else if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );

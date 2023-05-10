@@ -55,6 +55,33 @@ describe('rootBaseStore', () => {
     expect(rootBaseStore.initializationError).toEqual(errorMsg);
   });
 
+  test('currently undergoing maintenance', async () => {
+    // mocks/setup
+    const onCallApiUrl = 'http://asdfasdf.com';
+    const rootBaseStore = new RootBaseStore();
+    const maintenanceMessage = 'mncvnmvcmnvkjdjkd';
+
+    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+      is_user_anonymous: true,
+      is_installed: true,
+      token_ok: true,
+      allow_signup: true,
+      version: 'asdfasdf',
+      license: 'asdfasdf',
+      currently_undergoing_maintenance_message: maintenanceMessage,
+    });
+
+    // test
+    await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
+
+    // assertions
+    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
+    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+
+    expect(rootBaseStore.appLoading).toBe(false);
+    expect(rootBaseStore.initializationError).toEqual(`🚧 ${maintenanceMessage} 🚧`);
+  });
+
   test('anonymous user', async () => {
     // mocks/setup
     const onCallApiUrl = 'http://asdfasdf.com';
@@ -67,6 +94,7 @@ describe('rootBaseStore', () => {
       allow_signup: true,
       version: 'asdfasdf',
       license: 'asdfasdf',
+      currently_undergoing_maintenance_message: null,
     });
 
     // test
@@ -94,6 +122,7 @@ describe('rootBaseStore', () => {
       allow_signup: false,
       version: 'asdfasdf',
       license: 'asdfasdf',
+      currently_undergoing_maintenance_message: null,
     });
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
 
@@ -124,6 +153,7 @@ describe('rootBaseStore', () => {
       allow_signup: true,
       version: 'asdfasdf',
       license: 'asdfasdf',
+      currently_undergoing_maintenance_message: null,
     });
     isUserActionAllowed.mockReturnValueOnce(false);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
@@ -161,6 +191,7 @@ describe('rootBaseStore', () => {
       allow_signup: true,
       version: 'asdfasdf',
       license: 'asdfasdf',
+      currently_undergoing_maintenance_message: null,
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
@@ -200,6 +231,7 @@ describe('rootBaseStore', () => {
       allow_signup: true,
       version: 'asdfasdf',
       license: 'asdfasdf',
+      currently_undergoing_maintenance_message: null,
     });
     isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockRejectedValueOnce(installPluginError);
@@ -244,6 +276,7 @@ describe('rootBaseStore', () => {
       allow_signup: true,
       version: 'asdfasdf',
       license: 'asdfasdf',
+      currently_undergoing_maintenance_message: null,
     });
     PluginState.syncDataWithOnCall = jest.fn().mockResolvedValueOnce({ version, license, token_ok: true });
     rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
@@ -279,6 +312,7 @@ describe('rootBaseStore', () => {
       allow_signup: true,
       version: 'asdfasdf',
       license: 'asdfasdf',
+      currently_undergoing_maintenance_message: null,
     });
     PluginState.syncDataWithOnCall = jest.fn().mockResolvedValueOnce(syncDataWithOnCallError);
     rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;

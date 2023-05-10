@@ -23,6 +23,7 @@ type PluginConnectedStatusResponse = PluginStatusResponseBase & {
   token_ok: boolean;
   allow_signup: boolean;
   is_user_anonymous: boolean;
+  currently_undergoing_maintenance_message: string;
 };
 
 type CloudProvisioningConfigResponse = null;
