@@ -24,6 +24,7 @@ from apps.metrics_exporter.helpers import (
     get_response_time_period,
 )
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
 
 @shared_dedicated_queue_retry_task(
@@ -80,9 +81,8 @@ def calculate_and_cache_metrics(organization_id, force=False):
     cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout)
 
     integrations = (
-        AlertReceiveChannel.objects.filter(
-            ~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE) & Q(organization__deleted_at__isnull=True)
-        )
+        AlertReceiveChannel.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
+        .filter(~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE) & Q(organization__deleted_at__isnull=True))
         .select_related("organization", "team")
         .prefetch_related("alert_groups")
     )
@@ -99,7 +99,6 @@ def calculate_and_cache_metrics(organization_id, force=False):
         STATE_RESOLVED: AlertGroup.get_resolved_state_filter(),
     }
 
-    alert_groups_to_update = []
     for integration in integrations:
         instance_slug = integration.organization.stack_slug
         instance_id = integration.organization.stack_id
@@ -129,7 +128,6 @@ def calculate_and_cache_metrics(organization_id, force=False):
                 if response_time:
                     alert_group.response_time = response_time
                     all_response_time.append(int(response_time.total_seconds()))
-                    alert_groups_to_update.append(alert_group)
 
         metric_alert_group_response_time[integration.id] = {
             "integration_name": integration.emojized_verbal_name,
@@ -151,8 +149,6 @@ def calculate_and_cache_metrics(organization_id, force=False):
     if metrics_cache_timer["forced_started"]:
         metrics_cache_timer["forced_started"] = False
         cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout - ONE_HOUR)
-
-    AlertGroup.all_objects.bulk_update(alert_groups_to_update, ["response_time"], batch_size=1000)
 
 
 @shared_dedicated_queue_retry_task(
