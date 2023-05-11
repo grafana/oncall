@@ -1,4 +1,4 @@
-const esModules = ['@grafana', '@grafana/ui', 'ol', 'd3-interpolate', 'd3-color', 'react-colorful', 'uuid'].join('|');
+const esModules = ['@grafana', 'ol', 'd3-interpolate', 'd3-color', 'react-colorful', 'uuid'].join('|');
 
 module.exports = {
   testEnvironment: 'jsdom',
