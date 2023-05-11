@@ -60,6 +60,8 @@ import IntegrationBlock from './IntegrationBlock';
 import IntegrationTemplateList from './IntegrationTemplatesList';
 import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { debounce } from 'throttle-debounce';
+import { API_HOST, API_PATH_PREFIX } from 'network';
 
 const cx = cn.bind(styles);
 
@@ -634,6 +636,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   onHideOrCancel,
 }) => {
   const { alertReceiveChannelStore } = useStore();
+  const [demoPayload, setDemoPayload] = useState<string>(getDemoAlertJSON());
+  let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
   return (
     <Modal
@@ -668,6 +672,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
             data={undefined}
             monacoOptions={PayloadMonacoOptions}
             showLineNumbers={false}
+            onChange={onPayloadChangeDebounced}
           />
         </div>
 
@@ -686,8 +691,17 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
     </Modal>
   );
 
+  function onPayloadChange(value: string) {
+    setDemoPayload(value);
+  }
+
   function sendDemoAlert() {
-    alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id).then(() => {
+    let parsedPayload = undefined;
+    try {
+      parsedPayload = JSON.parse(demoPayload);
+    } catch (ex) {}
+
+    alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
       alertReceiveChannelStore.updateCounters();
       openNotification(<DemoNotification />);
       onHideOrCancel();
@@ -695,10 +709,10 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   }
 
   function getCurlText() {
-    // TODO add this
-    return `curl -X POST [URL]
-    -H "Content-Type: application/json" 
-    -d "[JSON data]"`;
+    return `curl '${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/' \
+    -XPOST -H 'Content-Type: application/json' \
+    --data-raw '{"demo_alert_payload":{"alerts":[{"a":"b"}]}}' \
+    --compressed`;
   }
 
   function getDemoAlertJSON() {
