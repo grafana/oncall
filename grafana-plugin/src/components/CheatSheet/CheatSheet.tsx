@@ -25,7 +25,7 @@ const CheatSheet = (props: CheatSheetProps) => {
     <div className={cx('cheatsheet-container')}>
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text.Title level={3}>{cheatSheetData.name}</Text.Title>
+          <Text strong>{cheatSheetData.name}</Text>
           <IconButton name="times" onClick={onClose} />
         </HorizontalGroup>
         <Text type="secondary">{cheatSheetData.description}</Text>
@@ -50,7 +50,7 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
   const { field } = props;
   return (
     <>
-      <Text.Title level={4}>{field.name}</Text.Title>
+      <Text>{field.name}</Text>
       {field.listItems?.map((item, key) => {
         return (
           <div key={key}>

@@ -1,6 +1,7 @@
 .template-block-title {
-  padding: 16px;
+  padding: 16px 16px 16px 0;
   align-items: baseline;
+  height: 72px;
 }
 
 .template-block-list {
@@ -11,4 +12,13 @@
 .alert-group-payload-view {
   background-color: var(--primary-background);
   border: none;
+  padding-left: 0;
+}
+
+.alert-groups-list > div {
+  border-right: none;
+}
+
+.alert-groups-list button {
+  padding-left: 0;
 }

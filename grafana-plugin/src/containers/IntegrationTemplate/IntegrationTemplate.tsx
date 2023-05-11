@@ -183,7 +183,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                   value={templateBody}
                   data={undefined}
                   showLineNumbers={true}
-                  height={'100vh'}
+                  height={'85vh'}
                   onChange={getChangeHandler()}
                 />
               </div>

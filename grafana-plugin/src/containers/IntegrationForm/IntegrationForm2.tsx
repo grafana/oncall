@@ -96,7 +96,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
                       <Block
                         bordered
                         hover
-                        shadowed
+                        withBackground
                         onClick={handleNewIntegrationOptionSelectCallback(alertReceiveChannelChoice)}
                         key={alertReceiveChannelChoice.value}
                         className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
