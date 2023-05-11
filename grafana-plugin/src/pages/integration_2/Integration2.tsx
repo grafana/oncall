@@ -11,6 +11,7 @@ import {
   CascaderOption,
   IconButton,
   ConfirmModal,
+  Drawer,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -57,11 +58,11 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 import IntegrationBlock from './IntegrationBlock';
-import IntegrationTemplateList from './IntegrationTemplatesList';
 import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { debounce } from 'throttle-debounce';
 import { API_HOST, API_PATH_PREFIX } from 'network';
+import IntegrationTemplateList from './IntegrationTemplatesList';
 
 const cx = cn.bind(styles);
 
@@ -73,6 +74,7 @@ interface Integration2State extends PageBaseState {
   selectedTemplate: TemplateForEdit;
   isEditRegexpRouteTemplateModalOpen: boolean;
   channelFilterIdForEdit: ChannelFilter['id'];
+  isTemplateSettingsOpen: boolean;
   newRoutes: string[];
   isAddingRoute: boolean;
 }
@@ -92,6 +94,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isEditTemplateModalOpen: false,
       selectedTemplate: undefined,
       isEditRegexpRouteTemplateModalOpen: false,
+      isTemplateSettingsOpen: false,
       channelFilterIdForEdit: undefined,
       newRoutes: [],
       isAddingRoute: false,
@@ -118,6 +121,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       selectedTemplate,
       isEditRegexpRouteTemplateModalOpen,
       channelFilterIdForEdit,
+      isTemplateSettingsOpen,
     } = this.state;
     const {
       store: { alertReceiveChannelStore, grafanaTeamStore },
@@ -147,6 +151,40 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
         {() => (
           <div className={cx('root')}>
+            {isTemplateSettingsOpen && (
+              <Drawer
+                width="640px"
+                scrollableContent
+                title="Template Settings"
+                onClose={() => this.setState({ isTemplateSettingsOpen: false })}
+                closeOnMaskClick={false}
+              >
+                <IntegrationBlock
+                  hasCollapsedBorder
+                  heading={
+                    <HorizontalGroup>
+                      <Tag
+                        color={getVar('--tag-secondary-transparent')}
+                        border={getVar('--border-weak')}
+                        className={cx('tag')}
+                      >
+                        <Text type="primary" size="small">
+                          Templates
+                        </Text>
+                      </Tag>
+                    </HorizontalGroup>
+                  }
+                  content={
+                    <IntegrationTemplateList
+                      getTemplatesList={this.getTemplatesList}
+                      openEditTemplateModal={this.openEditTemplateModal}
+                      templates={templates}
+                    />
+                  }
+                />
+              </Drawer>
+            )}
+
             <div className={cx('integration__heading-container')}>
               <PluginLink query={{ page: 'integrations_2' }}>
                 <IconButton name="arrow-left" size="xxl" />
@@ -228,7 +266,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 },
                 {
                   isExpanded: false,
-                  isCollapsible: true,
+                  isCollapsible: false,
                   collapsedView: (
                     <IntegrationBlock
                       hasCollapsedBorder
@@ -262,36 +300,22 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                             <Text type="secondary">Visualisation:</Text>
                             <Text type="primary">Multiple</Text>
                           </HorizontalGroup>
+
+                          <HorizontalGroup justify={'flex-end'}>
+                            <Button
+                              variant={'secondary'}
+                              icon="edit"
+                              size={'md'}
+                              tooltip="Edit"
+                              onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                            />
+                          </HorizontalGroup>
                         </HorizontalGroup>
                       }
                       content={null}
                     />
                   ),
-                  expandedView: (
-                    <IntegrationBlock
-                      hasCollapsedBorder
-                      heading={
-                        <HorizontalGroup>
-                          <Tag
-                            color={getVar('--tag-secondary-transparent')}
-                            border={getVar('--border-weak')}
-                            className={cx('tag')}
-                          >
-                            <Text type="primary" size="small">
-                              Templates
-                            </Text>
-                          </Tag>
-                        </HorizontalGroup>
-                      }
-                      content={
-                        <IntegrationTemplateList
-                          getTemplatesList={this.getTemplatesList}
-                          openEditTemplateModal={this.openEditTemplateModal}
-                          templates={templates}
-                        />
-                      }
-                    />
-                  ),
+                  expandedView: undefined,
                 },
                 {
                   customIcon: 'plus',

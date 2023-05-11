@@ -24,6 +24,7 @@ interface MonacoEditorProps {
 
 export enum MONACO_LANGUAGE {
   json = 'json',
+  jinja2 = 'jinja2',
 }
 
 const PREDEFINED_TERMS = [
@@ -40,7 +41,7 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
     onChange,
     disabled,
     data,
-    language,
+    language = MONACO_LANGUAGE.jinja2,
     useAutoCompleteList = true,
     focus = true,
     height = '130px',
@@ -68,11 +69,13 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       editor.focus();
     }
 
-    const jinja2Lang = monaco.languages.getLanguages().find((l: { id: string }) => l.id === 'jinja2');
-    if (!jinja2Lang) {
-      monaco.languages.register({ id: 'jinja2' });
-      monaco.languages.setLanguageConfiguration('jinja2', conf);
-      monaco.languages.setMonarchTokensProvider('jinja2', jinja2Language);
+    if (language === MONACO_LANGUAGE.jinja2) {
+      const jinja2Lang = monaco.languages.getLanguages().find((l: { id: string }) => l.id === 'jinja2');
+      if (!jinja2Lang) {
+        monaco.languages.register({ id: 'jinja2' });
+        monaco.languages.setLanguageConfiguration('jinja2', conf);
+        monaco.languages.setMonarchTokensProvider('jinja2', jinja2Language);
+      }
     }
   }, []);
 
@@ -83,7 +86,6 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
   const otherProps: any = {};
   if (useAutoCompleteList) {
     otherProps.getSuggestions = { autoCompleteList };
-    otherProps.language = language || jinja2Language; // defaults to jinja2
   }
 
   return (

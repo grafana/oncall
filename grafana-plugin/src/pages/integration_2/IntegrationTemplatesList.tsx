@@ -26,6 +26,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
   openEditTemplateModal,
   getTemplatesList,
 }) => {
+  const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
   const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
 
   return (
@@ -40,7 +41,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           description={undefined}
           confirmationText={undefined}
           onConfirm={() => onResetTemplate(templateRestoreName)}
-          onDismiss={undefined}
+          onDismiss={() => setTemplateRestoreName(undefined)}
         />
       )}
 
@@ -53,8 +54,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       <IntegrationBlockItem>
         <VerticalGroup>
           <IntegrationTemplateBlock
-            onRemove={() => onRemove('grouping_id_template')}
-            isLoading={templateRestoreName === 'grouping_id_template'}
+            onRemove={() => setTemplateRestoreName('grouping_id_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'grouping_id_template'}
             label={'Grouping'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -72,8 +73,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'resolve_condition_template'}
-            onRemove={() => onRemove('resolve_condition_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'resolve_condition_template'}
+            onRemove={() => setTemplateRestoreName('resolve_condition_template')}
             label={'Auto resolve'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -97,8 +98,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           <Text type={'primary'}>Web</Text>
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'web_title_template'}
-            onRemove={() => onRemove('web_title_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'web_title_template'}
+            onRemove={() => setTemplateRestoreName('web_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -116,8 +117,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'web_message_template'}
-            onRemove={() => onRemove('web_message_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'web_message_template'}
+            onRemove={() => setTemplateRestoreName('web_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -135,8 +136,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'web_image_url_template'}
-            onRemove={() => onRemove('web_image_url_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'web_image_url_template'}
+            onRemove={() => setTemplateRestoreName('web_image_url_template')}
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -158,8 +159,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       <IntegrationBlockItem>
         <VerticalGroup>
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'acknowledge_condition_template'}
-            onRemove={() => onRemove('acknowledge_condition_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'acknowledge_condition_template'}
+            onRemove={() => setTemplateRestoreName('acknowledge_condition_template')}
             label={'Auto acknowledge'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -180,8 +181,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'source_link_template'}
-            onRemove={() => onRemove('source_link_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'source_link_template'}
+            onRemove={() => setTemplateRestoreName('source_link_template')}
             label={'Source Link'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -203,8 +204,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       <IntegrationBlockItem>
         <VerticalGroup>
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'phone_call_title_template'}
-            onRemove={() => onRemove('phone_call_title_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'phone_call_title_template'}
+            onRemove={() => setTemplateRestoreName('phone_call_title_template')}
             label={'Phone Call'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -222,8 +223,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'sms_title_template'}
-            onRemove={() => onRemove('sms_title_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'sms_title_template'}
+            onRemove={() => setTemplateRestoreName('sms_title_template')}
             label={'SMS'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -247,8 +248,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           <Text type={'primary'}>Slack</Text>
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'slack_title_template'}
-            onRemove={() => onRemove('slack_title_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'slack_title_template'}
+            onRemove={() => setTemplateRestoreName('slack_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -266,8 +267,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'slack_message_template'}
-            onRemove={() => onRemove('slack_message_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'slack_message_template'}
+            onRemove={() => setTemplateRestoreName('slack_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -285,8 +286,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'slack_image_url_template'}
-            onRemove={() => onRemove('slack_image_url_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'slack_image_url_template'}
+            onRemove={() => setTemplateRestoreName('slack_image_url_template')}
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -309,8 +310,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
         <VerticalGroup>
           <Text type={'primary'}>Telegram</Text>
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'telegram_title_template'}
-            onRemove={() => onRemove('telegram_title_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'telegram_title_template'}
+            onRemove={() => setTemplateRestoreName('telegram_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -328,8 +329,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'telegram_message_template'}
-            onRemove={() => onRemove('telegram_message_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'telegram_message_template'}
+            onRemove={() => setTemplateRestoreName('telegram_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -347,8 +348,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'telegram_image_url_template'}
-            onRemove={() => onRemove('telegram_image_url_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'telegram_image_url_template'}
+            onRemove={() => setTemplateRestoreName('telegram_image_url_template')}
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -371,8 +372,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
         <VerticalGroup>
           <Text type={'primary'}>Email</Text>
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'email_title_template'}
-            onRemove={() => onRemove('email_title_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'email_title_template'}
+            onRemove={() => setTemplateRestoreName('email_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -390,8 +391,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
-            isLoading={templateRestoreName === 'email_message_template'}
-            onRemove={() => onRemove('email_message_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'email_message_template'}
+            onRemove={() => setTemplateRestoreName('email_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -443,11 +444,9 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
   function onResetTemplate(_templateName: string) {
     // here goes the logic
 
+    setIsRestoringTemplate(true);
     setTemplateRestoreName(undefined);
-  }
-
-  function onRemove(templateName: string) {
-    setTemplateRestoreName(templateName);
+    setIsRestoringTemplate(false);
   }
 };
 
