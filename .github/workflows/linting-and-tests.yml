@@ -21,7 +21,7 @@ concurrency:
 jobs:
   lint-entire-project:
     name: "Lint entire project"
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
