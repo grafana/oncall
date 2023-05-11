@@ -73,7 +73,3 @@ if settings.SILK_PROFILER_ENABLED:
     urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
 
 admin.site.site_header = settings.ADMIN_SITE_HEADER
-
-# NOTE: keep this at the end of the file to properly override urlpatterns
-if settings.IS_IN_MAINTENANCE_MODE:
-    urlpatterns = paths_to_work_even_when_maintenance_mode_is_active
