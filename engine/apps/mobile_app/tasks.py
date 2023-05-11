@@ -314,6 +314,9 @@ def should_we_send_going_oncall_push_notification(
     Currently we will send notifications for the following scenarios:
     - schedule is starting in user's "configured notification timing preference" +/- a 4 minute buffer
     - schedule is starting within the next fifteen minutes
+
+    Returns `None` if conditions are not met for the user to receive a push notification. Otherwise returns
+    an `int` which represents the # of seconds until the oncall shift starts.
     """
     NOTIFICATION_TIMING_BUFFER = 7 * 60  # 7 minutes in seconds
     FIFTEEN_MINUTES_IN_SECONDS = 15 * 60
@@ -417,13 +420,13 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
             cache_key = _generate_going_oncall_push_notification_cache_key(user_pk, schedule_event)
             already_sent_this_push_notification = cache_key in relevant_notifications_already_sent
+            seconds_until_going_oncall = should_we_send_going_oncall_push_notification(
+                now, mobile_app_user_settings, schedule_event
+            )
 
-            if (
-                should_we_send_going_oncall_push_notification(now, mobile_app_user_settings, schedule_event)
-                and not already_sent_this_push_notification
-            ):
+            if seconds_until_going_oncall is not None and not already_sent_this_push_notification:
                 message = _get_youre_going_oncall_fcm_message(
-                    user, schedule, device_to_notify, mobile_app_user_settings.going_oncall_notification_timing
+                    user, schedule, device_to_notify, seconds_until_going_oncall
                 )
                 _send_push_notification(device_to_notify, message)
                 cache.set(cache_key, True, PUSH_NOTIFICATION_TRACKING_CACHE_KEY_TTL)
