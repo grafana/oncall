@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, InlineLabel } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, InlineLabel, LoadingPlaceholder } from '@grafana/ui';
 
 import Text from 'components/Text/Text';
 
@@ -8,8 +8,8 @@ interface IntegrationTemplateBlockProps {
   label: string;
   labelTooltip?: string;
   renderInput: () => React.ReactNode;
-  showClose?: boolean;
   showHelp?: boolean;
+  isLoading?: boolean;
 
   onEdit: (templateName) => void;
   onRemove?: () => void;
@@ -20,11 +20,11 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   label,
   labelTooltip,
   renderInput,
-  showClose,
   showHelp,
   onEdit,
   onHelp,
   onRemove,
+  isLoading,
 }) => {
   let inlineLabelProps = { labelTooltip };
   if (!labelTooltip) {
@@ -37,14 +37,17 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
         {label}
       </InlineLabel>
       {renderInput()}
-      <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={onEdit} />
-      {showClose && <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />}
+      <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
+      <Button variant={'secondary'} icon={'times'} size={'md'} tooltip="Reset Template to default" onClick={onRemove} />
+
       {showHelp && (
         <Button variant="secondary" size="md" onClick={onHelp}>
           <Text type="link">Help</Text>
           <Icon name="angle-down" size="sm" />
         </Button>
       )}
+
+      {isLoading && <LoadingPlaceholder text="Loading..." />}
     </HorizontalGroup>
   );
 };

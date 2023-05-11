@@ -709,10 +709,11 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   }
 
   function getCurlText() {
-    return `curl '${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/' \
-    -XPOST -H 'Content-Type: application/json' \
-    --data-raw '{"demo_alert_payload":{"alerts":[{"a":"b"}]}}' \
-    --compressed`;
+    return (
+      `curl '${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/'` +
+      ` -XPOST -H 'Content-Type: application/json'` +
+      `--data-raw '{"demo_alert_payload":{"alerts":[{"a":"b"}]}}' --compressed`
+    );
   }
 
   function getDemoAlertJSON() {
