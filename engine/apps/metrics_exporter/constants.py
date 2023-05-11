@@ -11,7 +11,7 @@ class AlertGroupsTotalMetricsDict(typing.TypedDict):
     instance_slug: str
     instance_id: int
     id: int
-    new: int
+    firing: int
     acknowledged: int
     silenced: int
     resolved: int
@@ -38,8 +38,8 @@ class RecalculateOrgMetricsDict(typing.TypedDict):
     force: bool
 
 
-ALERT_GROUPS_TOTAL = "oncall_instance_alert_groups_total"
-ALERT_GROUPS_RESPONSE_TIME = "oncall_instance_alert_groups_response_time_seconds"
+ALERT_GROUPS_TOTAL = "oncall_alert_groups_total"
+ALERT_GROUPS_RESPONSE_TIME = "oncall_alert_groups_response_time_seconds"
 
 METRICS_RESPONSE_TIME_CALCULATION_PERIOD = timezone.timedelta(days=7)
 
