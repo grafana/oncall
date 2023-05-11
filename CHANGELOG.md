@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add `currently_undergoing_maintenance_message` field to `GET /plugin_status` response and conditionally show this
-  message in the UI if it is set by @joeyorlando ([#1917](https://github.com/grafana/oncall/pull/#1917))
+- Add a way to set a maintenance mode message and display this in the web plugin UI by @joeyorlando ([#1917](https://github.com/grafana/oncall/pull/#1917))
 
 ## v1.2.21 (2023-05-09)
 
