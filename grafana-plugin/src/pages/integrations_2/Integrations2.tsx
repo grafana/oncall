@@ -33,6 +33,7 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
 import styles from './Integrations2.module.scss';
+import { getScene } from './helloWorldScene';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
@@ -160,9 +161,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       },
     ];
 
+    const scene = getScene();
+
     return (
       <>
         <div className={cx('root')}>
+          <scene.Component model={scene} />
           <div className={cx('title')}>
             <HorizontalGroup justify="flex-end">
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
