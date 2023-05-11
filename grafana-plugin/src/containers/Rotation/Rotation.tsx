@@ -9,7 +9,6 @@ import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
 import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
-import { getLabel } from './Rotation.helpers';
 import RotationTutorial from './RotationTutorial';
 
 import styles from './Rotation.module.css';
@@ -37,8 +36,6 @@ const Rotation: FC<RotationProps> = (props) => {
   const {
     events,
     scheduleId,
-    layerIndex,
-    rotationIndex,
     startMoment,
     currentTimezone,
     color,
@@ -86,11 +83,6 @@ const Rotation: FC<RotationProps> = (props) => {
     return firstShiftOffset / base;
   }, [events]);
 
-  let eventIndexToShowLabel = -1;
-  if (!isNaN(layerIndex) && !isNaN(rotationIndex)) {
-    eventIndexToShowLabel = events.findIndex((event) => dayjs(event.start).isSameOrAfter(startMoment));
-  }
-
   return (
     <div className={cx('root')} onClick={handleRotationClick}>
       <div className={cx('timeline')}>
@@ -101,7 +93,7 @@ const Rotation: FC<RotationProps> = (props) => {
               className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
               style={{ transform: `translate(${x * 100}%, 0)` }}
             >
-              {events.map((event, index) => {
+              {events.map((event) => {
                 return (
                   <ScheduleSlot
                     scheduleId={scheduleId}
@@ -110,7 +102,6 @@ const Rotation: FC<RotationProps> = (props) => {
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     color={color}
-                    label={index === eventIndexToShowLabel && getLabel(layerIndex, rotationIndex)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     simplified={simplified}
                     filters={filters}

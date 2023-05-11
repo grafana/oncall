@@ -64,13 +64,6 @@
   max-width: 250px;
 }
 
-.details-title {
-  width: 200px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
 .details-user-status {
   width: 10px;
   height: 10px;

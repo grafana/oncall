@@ -59,7 +59,7 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
           <line x1="0" y="0" x2="0" y2="10" stroke="rgba(17, 18, 23, 0.15)" strokeWidth="10" />
         </pattern>
         <pattern id="stripes_strong" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
-          <line x1="0" y="0" x2="0" y2="10" stroke="rgba(17, 18, 23, 0.65)" strokeWidth="10" />
+          <line x1="0" y="0" x2="0" y2="10" stroke="rgba(17, 18, 23, 0.2)" strokeWidth="10" />
         </pattern>
       </defs>
       {nonWorkingMoments.map((moment, index) => {

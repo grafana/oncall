@@ -27,7 +27,6 @@ interface ScheduleSlotProps {
   currentTimezone: Timezone;
   handleAddOverride: (event: React.SyntheticEvent) => void;
   color?: string;
-  label?: string;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
 }
@@ -35,7 +34,7 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { event, scheduleId, currentTimezone, color, label, handleAddOverride, simplified, filters } = props;
+  const { event, scheduleId, currentTimezone, color, handleAddOverride, simplified, filters } = props;
   const { users } = event;
 
   const start = dayjs(event.start);
@@ -55,9 +54,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
       {event.is_gap ? (
         <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
-          <div className={cx('root', 'root__type_gap')} style={{}}>
-            {label && <div className={cx('label')}>{label}</div>}
-          </div>
+          <div className={cx('root', 'root__type_gap')} />
         </Tooltip>
       ) : event.is_empty ? (
         <div
@@ -65,13 +62,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           style={{
             backgroundColor: color,
           }}
-        >
-          {label && (
-            <div className={cx('label')} style={{ color }}>
-              {label}
-            </div>
-          )}
-        </div>
+        />
       ) : (
         users.map(({ display_name, pk: userPk }) => {
           const storeUser = store.userStore.items[userPk];
@@ -107,6 +98,18 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           if (!storeUser) {
             return scheduleSlotContent;
           } // show without a tooltip as we're lacking user info
+
+          /*  return (
+            <ScheduleSlotDetails
+              user={storeUser}
+              isOncall={isOncall}
+              currentTimezone={currentTimezone}
+              event={event}
+              handleAddOverride={handleAddOverride}
+              simplified={simplified}
+              color={color}
+            />
+          ); */
 
           return (
             <Tooltip
@@ -153,8 +156,6 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
 
   const shift = scheduleStore.shifts[event.shift?.pk];
 
-  console.log('shift', shift);
-
   return (
     <div className={cx('details')}>
       <VerticalGroup>
@@ -162,7 +163,6 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           <div className={cx('badge')} style={{ backgroundColor: color }} />
           <Text className={cx('details-title')} type="primary">
             {getShiftTitle(shift)}
-            {/* property only affects content that is overflowing a block container element in its */}
           </Text>
         </HorizontalGroup>
         <HorizontalGroup>

@@ -75,3 +75,10 @@
 .root:hover .icon-button {
   display: inline-block;
 }
+
+.with-maxWidth {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: block;
+}

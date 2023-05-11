@@ -219,6 +219,10 @@ export const getOverrideColor = (rotationIndex: number) => {
 };
 
 export const getShiftTitle = (shift: Shift) => {
+  if (!shift) {
+    return '';
+  }
+
   if (shift.title) {
     return shift.title;
   }

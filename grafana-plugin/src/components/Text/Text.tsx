@@ -24,6 +24,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   clearBeforeEdit?: boolean;
   hidden?: boolean;
   editModalTitle?: string;
+  maxWidth?: string;
 }
 
 interface TextInterface extends React.FC<TextProps> {
@@ -52,6 +53,7 @@ const Text: TextInterface = (props) => {
     hidden = false,
     editModalTitle = 'New value',
     style,
+    maxWidth,
     ...rest
   } = props;
 
@@ -81,6 +83,7 @@ const Text: TextInterface = (props) => {
     <span
       onClick={onClick}
       className={cx('root', 'text', className, {
+        'with-maxWidth': Boolean(maxWidth),
         [`text--${type}`]: true,
         [`text--${size}`]: true,
         'text--strong': strong,
@@ -88,7 +91,7 @@ const Text: TextInterface = (props) => {
         'no-wrap': !wrap,
         keyboard,
       })}
-      style={style}
+      style={{ ...style, maxWidth }}
       {...rest}
     >
       {hidden ? PLACEHOLDER : children}
