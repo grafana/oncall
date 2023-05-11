@@ -71,7 +71,7 @@ class ExceptionView(View):
         raise Exception("Trying exception!")
 
 
-class MaintenanceModeView(View):
+class MaintenanceModeStatusView(View):
     def get(self, _request):
         return JsonResponse(
             {

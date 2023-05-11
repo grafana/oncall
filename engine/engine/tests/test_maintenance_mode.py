@@ -12,7 +12,7 @@ def test_get_maintenance_mode_status(setting_value):
     client = APIClient()
 
     with override_settings(CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE=setting_value):
-        response = client.get("/maintenance-mode/", format="json")
+        response = client.get("/api/internal/v1/maintenance-mode-status", format="json")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["currently_undergoing_maintenance_message"] == setting_value

@@ -301,9 +301,8 @@ class PluginState {
   };
 
   static checkIfBackendIsInMaintenanceMode = async (): Promise<string> => {
-    const response = await makeRequest<PluginIsInMaintenanceModeResponse>('/maintenance-mode/', {
+    const response = await makeRequest<PluginIsInMaintenanceModeResponse>('/maintenance-mode-status', {
       method: 'GET',
-      includeApiPathPrefix: false,
     });
     return response.currently_undergoing_maintenance_message;
   };

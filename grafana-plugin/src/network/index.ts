@@ -35,15 +35,14 @@ interface RequestConfig {
   headers?: {
     [key: string]: string | number;
   };
-  includeApiPathPrefix?: boolean;
 }
 
 export const isNetworkError = axios.isAxiosError;
 
 export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
-  const { method = 'GET', params, data, validateStatus, headers, includeApiPathPrefix = true } = config;
+  const { method = 'GET', params, data, validateStatus, headers } = config;
 
-  const url = `${API_PROXY_PREFIX}${includeApiPathPrefix ? API_PATH_PREFIX : ''}${path}`;
+  const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
   const otel = FaroHelper.faro?.api?.getOTEL();
 
   if (FaroHelper.faro && otel) {

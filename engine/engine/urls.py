@@ -18,15 +18,15 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from .views import HealthCheckView, MaintenanceModeView, ReadinessCheckView, StartupProbeView
+from .views import HealthCheckView, MaintenanceModeStatusView, ReadinessCheckView, StartupProbeView
 
 paths_to_work_even_when_maintenance_mode_is_active = [
     path("", HealthCheckView.as_view()),
     path("health/", HealthCheckView.as_view()),
     path("ready/", ReadinessCheckView.as_view()),
     path("startupprobe/", StartupProbeView.as_view()),
-    path("maintenance-mode/", MaintenanceModeView.as_view()),
     path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
+    path("api/internal/v1/maintenance-mode-status", MaintenanceModeStatusView.as_view()),
 ]
 
 urlpatterns = [

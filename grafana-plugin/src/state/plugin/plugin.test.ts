@@ -671,7 +671,7 @@ describe('PluginState.checkIfBackendIsInMaintenanceMode', () => {
     // assertions
     expect(response).toEqual(maintenanceModeMsg);
     expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith('/maintenance-mode/', { method: 'GET', includeApiPathPrefix: false });
+    expect(makeRequest).toHaveBeenCalledWith('/maintenance-mode-status', { method: 'GET' });
   });
 });
 
