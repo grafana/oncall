@@ -18,13 +18,19 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from .views import HealthCheckView, ReadinessCheckView, StartupProbeView
+from .views import HealthCheckView, MaintenanceModeView, ReadinessCheckView, StartupProbeView
 
-urlpatterns = [
+paths_to_work_even_when_maintenance_mode_is_active = [
     path("", HealthCheckView.as_view()),
     path("health/", HealthCheckView.as_view()),
     path("ready/", ReadinessCheckView.as_view()),
     path("startupprobe/", StartupProbeView.as_view()),
+    path("maintenance-mode/", MaintenanceModeView.as_view()),
+    path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
+]
+
+urlpatterns = [
+    *paths_to_work_even_when_maintenance_mode_is_active,
     # path('slow/', SlowView.as_view()),
     # path('exception/', ExceptionView.as_view()),
     path(settings.ONCALL_DJANGO_ADMIN_PATH, admin.site.urls),
@@ -32,7 +38,6 @@ urlpatterns = [
     path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),
     path("api/internal/v1/", include("social_django.urls", namespace="social")),
     path("api/internal/v1/plugin/", include("apps.grafana_plugin.urls", namespace="grafana-plugin")),
-    path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
     path("twilioapp/", include("apps.twilioapp.urls")),
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
     path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
@@ -68,3 +73,7 @@ if settings.SILK_PROFILER_ENABLED:
     urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
 
 admin.site.site_header = settings.ADMIN_SITE_HEADER
+
+# NOTE: keep this at the end of the file to properly override urlpatterns
+if settings.IS_IN_MAINTENANCE_MODE:
+    urlpatterns = paths_to_work_even_when_maintenance_mode_is_active

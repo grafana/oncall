@@ -38,6 +38,5 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 "is_user_anonymous": self.grafana_context["IsAnonymous"],
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
-                "currently_undergoing_maintenance_message": settings.CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE,
             }
         )

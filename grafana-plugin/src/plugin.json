@@ -197,6 +197,12 @@
           "content": "{{ .SecureJsonData.onCallApiToken }}"
         }
       ]
+    },
+    {
+      "path": "maintenance-mode/",
+      "method": "GET",
+      "url": "{{ .JsonData.onCallApiUrl }}/maintenance-mode/",
+      "headers": []
     }
   ],
   "roles": [

@@ -1,7 +1,8 @@
 import time
 
+from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.generic import View
 
 from apps.integrations.mixins import AlertChannelDefiningMixin
@@ -68,3 +69,12 @@ class SlowView(View):
 class ExceptionView(View):
     def get(self, request):
         raise Exception("Trying exception!")
+
+
+class MaintenanceModeView(View):
+    def get(self, _request):
+        return JsonResponse(
+            {
+                "currently_undergoing_maintenance_message": settings.CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE,
+            }
+        )

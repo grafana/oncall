@@ -658,6 +658,23 @@ describe('PluginState.selfHostedInstallPlugin', () => {
   });
 });
 
+describe('PluginState.checkIfBackendIsInMaintenanceMode', () => {
+  test('it returns the API response', async () => {
+    // mocks
+    const maintenanceModeMsg = 'asdfljkadsjlfkajsdf';
+    const mockedResp = { currently_undergoing_maintenance_message: maintenanceModeMsg };
+    makeRequest.mockResolvedValueOnce(mockedResp);
+
+    // test
+    const response = await PluginState.checkIfBackendIsInMaintenanceMode();
+
+    // assertions
+    expect(response).toEqual(maintenanceModeMsg);
+    expect(makeRequest).toHaveBeenCalledTimes(1);
+    expect(makeRequest).toHaveBeenCalledWith('/maintenance-mode/', { method: 'GET', includeApiPathPrefix: false });
+  });
+});
+
 describe('PluginState.checkIfPluginIsConnected', () => {
   test('it returns the API response', async () => {
     // mocks
