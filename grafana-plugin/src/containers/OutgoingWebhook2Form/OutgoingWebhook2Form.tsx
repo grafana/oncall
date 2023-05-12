@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { Button, Drawer } from '@grafana/ui';
+import { Button, Drawer, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -52,21 +52,22 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   return (
     <Drawer
       scrollableContent
-      title={
-        <Text.Title className={cx('title')} level={4}>
-          {action === 'new' ? 'Create' : 'Edit'} Outgoing Webhook
-        </Text.Title>
-      }
+      title={action === 'new' ? 'Create Outgoing Webhook' : 'Edit Outgoing Webhook'}
       onClose={onHide}
-      closeOnMaskClick
+      closeOnMaskClick={false}
     >
       <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
         <GForm form={form} data={data} onSubmit={handleSubmit} />
-        <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-          <Button form={form.name} type="submit" disabled={data.is_legacy}>
-            {action === 'new' ? 'Create' : 'Update'} Webhook
+        <HorizontalGroup justify={'flex-end'}>
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
           </Button>
-        </WithPermissionControlTooltip>
+          <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+            <Button form={form.name} type="submit" disabled={data.is_legacy}>
+              {action === 'new' ? 'Create' : 'Update'} Webhook
+            </Button>
+          </WithPermissionControlTooltip>
+        </HorizontalGroup>
       </div>
       {data.is_legacy ? (
         <div className={cx('content')}>
