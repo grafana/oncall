@@ -240,11 +240,13 @@ def _get_youre_going_oncall_fcm_message(
     user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
 ) -> Message:
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
- 
+
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-    notification_title = f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}"
- 
+    notification_title = (
+        f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}"
+    )
+
     data: FCMMessageData = {
         "title": notification_title,
         "info_notification_sound_name": (
@@ -261,7 +263,8 @@ def _get_youre_going_oncall_fcm_message(
             alert=ApsAlert(title=notification_title),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+                name=mobile_app_user_settings.info_notification_sound_name
+                + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
             ),
             custom_data={
                 "interruption-level": "time-sensitive",
