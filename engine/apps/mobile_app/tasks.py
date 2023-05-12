@@ -204,6 +204,15 @@ def _get_alert_group_escalation_fcm_message(
         "default_notification_volume_override": json.dumps(
             mobile_app_user_settings.default_notification_volume_override
         ),
+        "info_notification_sound_name": (
+            mobile_app_user_settings.info_notification_sound_name
+            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        ),
+        "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
+        "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
+        "info_notification_volume_override": json.dumps(
+            mobile_app_user_settings.info_notification_volume_override
+        ),
         "important_notification_sound_name": (
             mobile_app_user_settings.important_notification_sound_name
             + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION

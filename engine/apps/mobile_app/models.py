@@ -109,9 +109,22 @@ class MobileAppUserSettings(models.Model):
     # if "override DND" setting is disabled in the app
     important_notification_override_dnd = models.BooleanField(default=True)
 
+    # Push notification settings for info notifications
     # this is used for non escalation related push notifications such as the
     # "You're going OnCall soon" push notification
     info_notifications_enabled = models.BooleanField(default=True)
+
+    info_notification_sound_name = models.CharField(max_length=100, default="default_sound_info")
+    info_notification_volume_type = models.CharField(
+        max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
+    )
+
+    # APNS only allows to specify volume for critical notifications,
+    # so "info_notification_volume" and "info_notification_volume_override" are only used on Android
+    info_notification_volume = models.FloatField(
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.8
+    )
+    info_notification_volume_override = models.BooleanField(default=False)
 
     # these choices + the below column are used to calculate when to send the "You're Going OnCall soon"
     # push notification
