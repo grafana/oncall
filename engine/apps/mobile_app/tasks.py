@@ -33,9 +33,10 @@ logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class MessageImportanceType(str, Enum):
+class MessageType(str, Enum):
     NORMAL = "oncall.message"
     CRITICAL = "oncall.critical_message"
+    INFO = "oncall.info"
 
 
 class FCMMessageData(typing.TypedDict):
@@ -99,11 +100,11 @@ def _send_push_notification(
 
 
 def _construct_fcm_message(
+    message_type: MessageType,
     device_to_notify: FCMDevice,
     thread_id: str,
     data: FCMMessageData,
     apns_payload: typing.Optional[APNSPayload] = None,
-    critical_message_type: bool = False,
 ) -> Message:
     apns_config_kwargs = {}
 
@@ -116,7 +117,7 @@ def _construct_fcm_message(
             # from the docs..
             # A dictionary of data fields (optional). All keys and values in the dictionary must be strings
             **data,
-            "type": MessageImportanceType.CRITICAL if critical_message_type else MessageImportanceType.NORMAL,
+            "type": message_type,
             "thread_id": thread_id,
         },
         android=AndroidConfig(
@@ -233,18 +234,48 @@ def _get_alert_group_escalation_fcm_message(
         ),
     )
 
-    return _construct_fcm_message(device_to_notify, thread_id, fcm_message_data, apns_payload, critical)
+    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
+
+    return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
 
 def _get_youre_going_oncall_fcm_message(
     user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
 ) -> Message:
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
+
+    mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
+
+    notification_title = (
+        f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}"
+    )
+
     data: FCMMessageData = {
-        "title": f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}",
+        "title": notification_title,
+        "info_notification_sound_name": (
+            mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        ),
+        "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
+        "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
+        "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
     }
 
-    return _construct_fcm_message(device_to_notify, thread_id, data)
+    apns_payload = APNSPayload(
+        aps=Aps(
+            thread_id=thread_id,
+            alert=ApsAlert(title=notification_title),
+            sound=CriticalSound(
+                critical=False,
+                name=mobile_app_user_settings.info_notification_sound_name
+                + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+            ),
+            custom_data={
+                "interruption-level": "time-sensitive",
+            },
+        ),
+    )
+
+    return _construct_fcm_message(MessageType.INFO, device_to_notify, thread_id, data, apns_payload)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)

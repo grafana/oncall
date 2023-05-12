@@ -160,6 +160,10 @@ def convert_slack_md_to_html(text):
 
 
 def convert_md_to_html(text):
+    # Markdown expects two or more spaces at the end of a line to indicate a line break.
+    # Adding two spaces to any line break to support templates that were built without this in mind.
+    # https://daringfireball.net/projects/markdown/syntax#p
+    text = text.replace("\n", "  \n")
     text = markdown2.markdown(
         text,
         extras=[
