@@ -29,7 +29,7 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
         "important_notification_volume": 0.8,
         "important_notification_volume_override": True,
         "important_notification_override_dnd": True,
-        "info_notifications_enabled": True,
+        "info_notifications_enabled": False,
         "going_oncall_notification_timing": 43200,
     }
 
@@ -65,7 +65,7 @@ def test_user_settings_put(
         "important_notification_volume": 1,
         "important_notification_volume_override": False,
         "important_notification_override_dnd": False,
-        "info_notifications_enabled": False,
+        "info_notifications_enabled": True,
         "going_oncall_notification_timing": going_oncall_notification_timing,
     }
 
