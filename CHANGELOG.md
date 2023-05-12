@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add mobile settings for info notifications by @imtoori ([#1926](https://github.com/grafana/oncall/pull/1926))
+
 ### Fixed
 
 - Fix bug in the "You're Going Oncall" push notification copy by @joeyorlando ([#1922](https://github.com/grafana/oncall/pull/1922))
