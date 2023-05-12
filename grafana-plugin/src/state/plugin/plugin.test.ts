@@ -1,6 +1,6 @@
 import { makeRequest as makeRequestOriginal, isNetworkError as isNetworkErrorOriginal } from 'network';
 
-import PluginState, { InstallationVerb, PluginSyncStatusResponse, UpdateGrafanaPluginSettingsProps } from './';
+import PluginState, { InstallationVerb, PluginSyncStatusResponse, UpdateGrafanaPluginSettingsProps } from '.';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 const isNetworkError = isNetworkErrorOriginal as unknown as jest.Mock<ReturnType<typeof isNetworkErrorOriginal>>;
@@ -655,6 +655,23 @@ describe('PluginState.selfHostedInstallPlugin', () => {
       'install',
       false
     );
+  });
+});
+
+describe('PluginState.checkIfBackendIsInMaintenanceMode', () => {
+  test('it returns the API response', async () => {
+    // mocks
+    const maintenanceModeMsg = 'asdfljkadsjlfkajsdf';
+    const mockedResp = { currently_undergoing_maintenance_message: maintenanceModeMsg };
+    makeRequest.mockResolvedValueOnce(mockedResp);
+
+    // test
+    const response = await PluginState.checkIfBackendIsInMaintenanceMode();
+
+    // assertions
+    expect(response).toEqual(maintenanceModeMsg);
+    expect(makeRequest).toHaveBeenCalledTimes(1);
+    expect(makeRequest).toHaveBeenCalledWith('/maintenance-mode-status', { method: 'GET' });
   });
 });
 
