@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { useStore } from 'state/useStore';
 

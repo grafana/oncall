@@ -19,15 +19,6 @@ export const MONACO_OPTIONS = {
   },
 };
 
-export const INTEGRATION_DEMO_PAYLOAD = {
-  alert_uid: '08d6891a-835c-e661-39fa-96b6a9e26552',
-  title: 'The whole system is down',
-  image_url: 'https://http.cat/500',
-  state: 'alerting',
-  link_to_upstream_details: 'https://en.wikipedia.org/wiki/Downtime',
-  message: 'Smth happened. Oh no!',
-};
-
 export const MONACO_INPUT_HEIGHT_SMALL = '32px';
 export const MONACO_INPUT_HEIGHT_TALL = '120px';
 

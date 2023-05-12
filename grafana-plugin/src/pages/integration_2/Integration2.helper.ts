@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { MaintenanceMode } from 'models/alert_receive_channel';
+import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';

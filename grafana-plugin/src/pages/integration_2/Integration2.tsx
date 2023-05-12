@@ -40,7 +40,7 @@ import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -53,7 +53,7 @@ import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
 
 import CollapsedIntegrationRouteDisplay from './CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from './ExpandedIntegrationRouteDisplay';
-import { INTEGRATION_DEMO_PAYLOAD, INTEGRATION_TEMPLATES_LIST } from './Integration2.config';
+import { INTEGRATION_TEMPLATES_LIST } from './Integration2.config';
 import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import Integration2HeartbeatForm from './Integration2HeartbeatForm';
@@ -660,7 +660,9 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   onHideOrCancel,
 }) => {
   const { alertReceiveChannelStore } = useStore();
-  const [demoPayload, setDemoPayload] = useState<string>(getDemoAlertJSON());
+  const [demoPayload, setDemoPayload] = useState<string>(
+    JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')
+  );
   let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
   return (
@@ -688,7 +690,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
         <div className={cx('integration__payloadInput')}>
           <MonacoEditor
-            value={getDemoAlertJSON()}
+            value={JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')}
             disabled={true}
             height={`200px`}
             useAutoCompleteList={false}
@@ -739,10 +741,6 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
       `--data-raw '{"demo_alert_payload":{"alerts":[{"a":"b"}]}}' --compressed`
     );
   }
-
-  function getDemoAlertJSON() {
-    return JSON.stringify(INTEGRATION_DEMO_PAYLOAD, null, 4);
-  }
 };
 
 interface IntegrationActionsProps {
@@ -791,11 +789,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
         />
       )}
 
-      <IntegrationSendDemoPayloadModal
-        alertReceiveChannel={alertReceiveChannel}
-        isOpen={isDemoModalOpen}
-        onHideOrCancel={() => setIsDemoModalOpen(false)}
-      />
+      {alertReceiveChannel.demo_alert_enabled && (
+        <IntegrationSendDemoPayloadModal
+          alertReceiveChannel={alertReceiveChannel}
+          isOpen={isDemoModalOpen}
+          onHideOrCancel={() => setIsDemoModalOpen(false)}
+        />
+      )}
 
       {isIntegrationSettingsOpen && (
         <IntegrationForm2
@@ -823,7 +823,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
 
       <div className={cx('integration__actions')}>
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
-          <Button variant="secondary" size="md" onClick={() => setIsDemoModalOpen(true)} data-testid="send-demo-alert">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => setIsDemoModalOpen(true)}
+            data-testid="send-demo-alert"
+            disabled={!alertReceiveChannel.demo_alert_enabled}
+            tooltip={alertReceiveChannel.demo_alert_enabled ? '' : 'Demo Alerts are not enabled for this integration'}
+          >
             Send demo alert
           </Button>
         </WithPermissionControlTooltip>

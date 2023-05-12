@@ -13,7 +13,7 @@ import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChai
 import GSelect from 'containers/GSelect/GSelect';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';

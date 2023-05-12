@@ -23,10 +23,8 @@ import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSetti
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import {
-  AlertReceiveChannel,
-  AlertReceiveChannelOption,
-} from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
