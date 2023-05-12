@@ -1,17 +1,17 @@
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 
-import { Button, HorizontalGroup, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
-import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
 import { getShiftTitle } from 'models/schedule/schedule.helpers';
 import { Event, Schedule } from 'models/schedule/schedule.types';
+import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
@@ -99,18 +99,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
             return scheduleSlotContent;
           } // show without a tooltip as we're lacking user info
 
-          /*  return (
-            <ScheduleSlotDetails
-              user={storeUser}
-              isOncall={isOncall}
-              currentTimezone={currentTimezone}
-              event={event}
-              handleAddOverride={handleAddOverride}
-              simplified={simplified}
-              color={color}
-            />
-          ); */
-
           return (
             <Tooltip
               interactive
@@ -154,42 +142,63 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
   const store = useStore();
   const { scheduleStore } = store;
 
+  const currentMoment = useMemo(() => dayjs(), []);
+
   const shift = scheduleStore.shifts[event.shift?.pk];
 
   return (
     <div className={cx('details')}>
       <VerticalGroup>
         <HorizontalGroup>
-          <div className={cx('badge')} style={{ backgroundColor: color }} />
-          <Text className={cx('details-title')} type="primary">
+          <div className={cx('details-icon')}>
+            <div className={cx('badge')} style={{ backgroundColor: color }} />
+          </div>
+          <Text type="primary" maxWidth="222px">
             {getShiftTitle(shift)}
           </Text>
         </HorizontalGroup>
-        <HorizontalGroup>
-          <VerticalGroup spacing="sm">
-            <HorizontalGroup spacing="sm">
-              {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}
-              <Text type="secondary">{user?.username}</Text>
-            </HorizontalGroup>
-            <HorizontalGroup>
-              <VerticalGroup spacing="none">
-                <HorizontalGroup spacing="sm">
-                  <img src={Line} />
-                  <VerticalGroup spacing="none">
-                    <Text type="secondary">{dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
-                    <Text type="secondary">{dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
-                  </VerticalGroup>
-                </HorizontalGroup>
-              </VerticalGroup>
-            </HorizontalGroup>
-          </VerticalGroup>
-          <VerticalGroup spacing="sm">
-            <Text type="primary">{currentTimezone}</Text>
-            <VerticalGroup spacing="none">
-              <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
-              <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
-            </VerticalGroup>
-          </VerticalGroup>
+        <HorizontalGroup align="flex-start">
+          <div className={cx('details-icon')}>
+            {isOncall ? <IsOncallIcon width={16} height={16} className={cx('is-oncall-icon')} /> : <Icon name="user" />}
+          </div>
+          <Text type="primary" className={cx('username')}>
+            {user?.username}
+          </Text>
+        </HorizontalGroup>
+        <HorizontalGroup align="flex-start">
+          <div className={cx('details-icon')}>
+            <Icon name="clock-nine" />
+          </div>
+          <Text type="primary" className={cx('second-column')}>
+            User local time
+            <br />
+            {currentMoment.tz(user.timezone).format('DD MMM, HH:mm')}
+            <br />({getTzOffsetString(currentMoment.tz(user.timezone))})
+          </Text>
+          <Text type="secondary">
+            Current TZ
+            <br />
+            {currentMoment.tz(currentTimezone).format('DD MMM, HH:mm')}
+            <br />({getTzOffsetString(currentMoment.tz(currentTimezone))})
+          </Text>
+        </HorizontalGroup>
+        <HorizontalGroup align="flex-start">
+          <div className={cx('details-icon')}>
+            <Icon name="arrows-h" />
+          </div>
+          <Text type="primary" className={cx('second-column')}>
+            This shift
+            <br />
+            {dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}
+            <br />
+            {dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}
+          </Text>
+          <Text type="secondary">
+            &nbsp; <br />
+            {dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}
+            <br />
+            {dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}
+          </Text>
         </HorizontalGroup>
         {!simplified && !event.is_override && (
           <HorizontalGroup justify="flex-end">

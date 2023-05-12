@@ -85,11 +85,25 @@
 
 .is-oncall-icon {
   color: var(--oncall-icon-stroke-color);
-  margin-left: -2px;
+  vertical-align: middle;
+}
+
+.details-icon {
+  width: 16px;
+  margin-right: 4px;
 }
 
 .badge {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  margin: 0 auto;
+}
+
+.username {
+  word-break: break-word;
+}
+
+.second-column {
+  width: 85px;
 }
