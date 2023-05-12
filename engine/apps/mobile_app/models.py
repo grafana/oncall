@@ -114,7 +114,7 @@ class MobileAppUserSettings(models.Model):
     # "You're going OnCall soon" push notification
     info_notifications_enabled = models.BooleanField(default=True)
 
-    info_notification_sound_name = models.CharField(max_length=100, default="default_sound_info")
+    info_notification_sound_name = models.CharField(max_length=100, default="default_sound")
     info_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )
