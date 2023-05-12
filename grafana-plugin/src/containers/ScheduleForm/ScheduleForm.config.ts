@@ -91,7 +91,7 @@ const commonFields: FormItem[] = [
     },
     description: 'Specify how to notify a team member when their shift is the next one scheduled',
   },
-];
+].map((field) => ({ ...field, collapsed: true }));
 
 export const iCalForm: { name: string; fields: FormItem[] } = {
   name: 'Schedule',
