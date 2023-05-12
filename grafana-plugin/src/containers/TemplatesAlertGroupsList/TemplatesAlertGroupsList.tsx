@@ -102,7 +102,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <div className={cx('alert-groups-list')}>
                 <VerticalGroup>
                   <Badge color="blue" text="Last alert payload" />
-                  <SourceCode className={cx('alert-group-payload-view')} noMaxHeight>
+                  <SourceCode className={cx('alert-group-payload-view')} noMaxHeight showClipboardIconOnly>
                     {JSON.stringify(selectedAlertPayload, null, 4)}
                   </SourceCode>
                 </VerticalGroup>

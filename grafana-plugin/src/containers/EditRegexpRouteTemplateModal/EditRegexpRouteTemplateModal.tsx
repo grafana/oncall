@@ -58,7 +58,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
         })
         .then(() => {
           alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelId, true).then(() => {
-            onOpenEditIntegrationTemplate('routing', channelFilterId);
+            onOpenEditIntegrationTemplate('route_template', channelFilterId);
           });
         });
     });
@@ -104,7 +104,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
           <Text type="link">{templateJinja2Body}</Text>
         </Block>
 
-        <HorizontalGroup justify={'flex-end'} spacing={'md'}>
+        <HorizontalGroup justify={'flex-end'}>
           <Button variant={'secondary'} onClick={onHide}>
             Cancel
           </Button>

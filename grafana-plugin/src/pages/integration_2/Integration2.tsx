@@ -46,6 +46,7 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
+import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
 
@@ -95,11 +96,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       match: {
         params: { id },
       },
+      query,
     } = this.props;
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
 
+    if (query?.template) {
+      this.openEditTemplateModal(query.template, query.routeId && query.routeId);
+    }
     await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
   }
 
@@ -382,6 +387,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                     isEditTemplateModalOpen: undefined,
                     isNewRoute: false,
                   });
+                  LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
                 }}
                 channelFilterId={channelFilterIdForEdit}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
