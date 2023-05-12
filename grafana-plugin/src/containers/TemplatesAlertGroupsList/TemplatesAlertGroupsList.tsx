@@ -4,7 +4,7 @@ import { Button, HorizontalGroup, Tooltip, Icon, VerticalGroup, IconButton, Badg
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -12,6 +12,7 @@ import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
+import { MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 
 const cx = cn.bind(styles);
 
@@ -126,10 +127,14 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <div className={cx('alert-groups-list')}>
                 <MonacoEditor
                   value={null}
-                  data={undefined}
+                  disabled={true}
                   height={'100vh'}
+                  useAutoCompleteList={false}
+                  language={MONACO_LANGUAGE.json}
+                  data={undefined}
+                  monacoOptions={MONACO_PAYLOAD_OPTIONS}
+                  showLineNumbers={false}
                   onChange={getChangeHandler()}
-                  showLineNumbers
                 />
               </div>
             </>

@@ -19,6 +19,16 @@ export const MONACO_OPTIONS = {
   },
 };
 
+export const MONACO_PAYLOAD_OPTIONS = {
+  renderLineHighlight: false,
+  readOnly: false,
+  hideCursorInOverviewRuler: true,
+  minimap: { enabled: false },
+  cursorStyle: {
+    display: 'none',
+  },
+};
+
 export const MONACO_INPUT_HEIGHT_SMALL = '32px';
 export const MONACO_INPUT_HEIGHT_TALL = '120px';
 

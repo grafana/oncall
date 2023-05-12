@@ -53,7 +53,7 @@ import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
 
 import CollapsedIntegrationRouteDisplay from './CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from './ExpandedIntegrationRouteDisplay';
-import { INTEGRATION_TEMPLATES_LIST } from './Integration2.config';
+import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from './Integration2.config';
 import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import Integration2HeartbeatForm from './Integration2HeartbeatForm';
@@ -638,16 +638,6 @@ interface IntegrationSendDemoPayloadModalProps {
   onHideOrCancel: () => void;
 }
 
-const PayloadMonacoOptions = {
-  renderLineHighlight: false,
-  readOnly: false,
-  hideCursorInOverviewRuler: true,
-  minimap: { enabled: false },
-  cursorStyle: {
-    display: 'none',
-  },
-};
-
 const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
   alertReceiveChannel,
   isOpen,
@@ -690,7 +680,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
             useAutoCompleteList={false}
             language={MONACO_LANGUAGE.json}
             data={undefined}
-            monacoOptions={PayloadMonacoOptions}
+            monacoOptions={MONACO_PAYLOAD_OPTIONS}
             showLineNumbers={false}
             onChange={onPayloadChangeDebounced}
           />
