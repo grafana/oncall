@@ -60,7 +60,6 @@ def test_user_settings_put(
         "info_notification_volume_type": "constant",
         "info_notification_volume": 0.8,
         "info_notification_volume_override": False,
-
         "important_notification_sound_name": "test_important",
         "important_notification_volume_type": "intensifying",
         "important_notification_volume": 1,
