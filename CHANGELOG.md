@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix bug in the "You're Going Oncall" push notification copy by @joeyorlando ([#1922](https://github.com/grafana/oncall/pull/1922))
+- Fix bug with newlines in markdown converter ([#1925](https://github.com/grafana/oncall/pull/1925))
 
 ## v1.2.21 (2023-05-09)
 
