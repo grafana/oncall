@@ -217,8 +217,9 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
         ),
     ]
 
+    seconds_until_shift_starts = 58989
     mock_get_youre_going_oncall_fcm_message.return_value = mock_fcm_message
-    mock_should_we_send_going_oncall_push_notification.return_value = True
+    mock_should_we_send_going_oncall_push_notification.return_value = seconds_until_shift_starts
     mock_oncall_schedule_final_events.return_value = final_events
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -236,7 +237,7 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
 
     tasks.conditionally_send_going_oncall_push_notifications_for_schedule(schedule.pk)
 
-    mock_get_youre_going_oncall_fcm_message.assert_called_once_with(user, schedule, device, ONCALL_TIMING_PREFERENCE)
+    mock_get_youre_going_oncall_fcm_message.assert_called_once_with(user, schedule, device, seconds_until_shift_starts)
     mock_send_push_notification.assert_called_once_with(device, mock_fcm_message)
     assert cache.get(cache_key) is True
 

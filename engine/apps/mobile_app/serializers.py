@@ -7,6 +7,10 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = MobileAppUserSettings
         fields = (
+            "info_notification_sound_name",
+            "info_notification_volume_type",
+            "info_notification_volume",
+            "info_notification_volume_override",
             "default_notification_sound_name",
             "default_notification_volume_type",
             "default_notification_volume",
