@@ -165,7 +165,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   heading={undefined}
                   content={
                     <IntegrationTemplateList
-                      getTemplatesList={this.getTemplatesList}
                       openEditTemplateModal={this.openEditTemplateModal}
                       templates={templates}
                     />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ButtonCascader, CascaderOption, ConfirmModal, VerticalGroup } from '@grafana/ui';
+import { ConfirmModal, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
@@ -17,14 +17,12 @@ const cx = cn.bind(styles);
 
 interface IntegrationTemplateListProps {
   templates: AlertTemplatesDTO[];
-  getTemplatesList(): CascaderOption[];
   openEditTemplateModal: (templateName: string | string[]) => void;
 }
 
 const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
   templates,
   openEditTemplateModal,
-  getTemplatesList,
 }) => {
   const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
   const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
