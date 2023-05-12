@@ -204,12 +204,6 @@ def _get_alert_group_escalation_fcm_message(
         "default_notification_volume_override": json.dumps(
             mobile_app_user_settings.default_notification_volume_override
         ),
-        "info_notification_sound_name": (
-            mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
-        "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
-        "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
-        "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
         "important_notification_sound_name": (
             mobile_app_user_settings.important_notification_sound_name
             + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
@@ -246,11 +240,36 @@ def _get_youre_going_oncall_fcm_message(
     user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
 ) -> Message:
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
+ 
+    mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
+
+    notification_title = f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}"
+ 
     data: FCMMessageData = {
-        "title": f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}",
+        "title": notification_title,
+        "info_notification_sound_name": (
+            mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        ),
+        "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
+        "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
+        "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
     }
 
-    return _construct_fcm_message(device_to_notify, thread_id, data)
+    apns_payload = APNSPayload(
+        aps=Aps(
+            thread_id=thread_id,
+            alert=ApsAlert(title=notification_title),
+            sound=CriticalSound(
+                critical=False,
+                name=mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+            ),
+            custom_data={
+                "interruption-level": "time-sensitive",
+            },
+        ),
+    )
+
+    return _construct_fcm_message(device_to_notify, thread_id, data, apns_payload)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
