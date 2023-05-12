@@ -9,7 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add mobile settings for info notifications by @imtoori ([#1926](https://github.com/grafana/oncall/pull/1926))
+
+### Fixed
+
+- Fix bug in the "You're Going Oncall" push notification copy by @joeyorlando ([#1922](https://github.com/grafana/oncall/pull/1922))
+- Fix bug with newlines in markdown converter ([#1925](https://github.com/grafana/oncall/pull/1925))
+
+## v1.2.21 (2023-05-09)
+
+### Added
+
 - Add a new mobile app push notification which notifies users when they are going on call by @joeyorlando ([#1814](https://github.com/grafana/oncall/pull/1814))
+- Add a new mobile app user setting field, `important_notification_volume_override` by @joeyorlando ([#1893](https://github.com/grafana/oncall/pull/1893))
 
 ### Changed
 
@@ -20,6 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix issue with how OnCall determines if a cloud Grafana Instance supports RBAC by @joeyorlando ([#1880](https://github.com/grafana/oncall/pull/1880))
 - Fix issue trying to set maintenance mode for integrations belonging to non-current team
+
+## v1.2.20 (2023-05-09)
+
+### Fixed
+
+- Hotfix perform notification task
 
 ## v1.2.19 (2023-05-04)
 
