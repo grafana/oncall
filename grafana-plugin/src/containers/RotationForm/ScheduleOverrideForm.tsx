@@ -68,6 +68,8 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
+  const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+
   const updateShiftStart = useCallback(
     (value) => {
       const diff = shiftEnd.diff(shiftStart);
@@ -151,13 +153,19 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const handleCreate = useCallback(() => {
     if (shiftId === 'new') {
-      store.scheduleStore.createRotation(scheduleId, true, params).then(() => {
-        onCreate();
-      });
+      store.scheduleStore
+        .createRotation(scheduleId, true, params)
+        .then(() => {
+          onCreate();
+        })
+        .catch(onError);
     } else {
-      store.scheduleStore.updateRotation(shiftId, params).then(() => {
-        onUpdate();
-      });
+      store.scheduleStore
+        .updateRotation(shiftId, params)
+        .then(() => {
+          onUpdate();
+        })
+        .catch(onError);
     }
   }, [scheduleId, shiftId, params]);
 
@@ -168,19 +176,25 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   }, []);
 
   const updatePreview = () => {
+    setErrors({});
+
     store.scheduleStore
       .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params)
+      .catch(onError)
       .finally(() => {
         setIsOpen(true);
       });
   };
 
+  const onError = useCallback((error) => {
+    setErrors(error.response.data);
+  }, []);
+
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
-  const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
-  const disableAction = shiftEnd.isBefore(dayjs().tz(currentTimezone));
-
   useEffect(handleChange, [params]);
+
+  const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   return (
     <Modal
@@ -221,7 +235,12 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftStart} onChange={updateShiftStart} timezone={currentTimezone} />
+                <DateTimePicker
+                  value={shiftStart}
+                  onChange={updateShiftStart}
+                  timezone={currentTimezone}
+                  error={errors.shift_start}
+                />
               </Field>
               <Field
                 className={cx('date-time-picker')}
@@ -231,7 +250,12 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
+                <DateTimePicker
+                  value={shiftEnd}
+                  onChange={setShiftEnd}
+                  timezone={currentTimezone}
+                  error={errors.shift_end}
+                />
               </Field>
             </HorizontalGroup>
             <UserGroups
@@ -241,7 +265,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
               renderUser={(pk: User['pk']) => (
                 <UserItem pk={pk} shiftColor={shiftColor} shiftStart={params.shift_start} shiftEnd={params.shift_end} />
               )}
-              showError={!isFormValid}
+              showError={Boolean(errors.rolling_users)}
             />
           </VerticalGroup>
         </div>
@@ -251,7 +275,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <Button variant="secondary" onClick={onHide}>
               {shiftId === 'new' ? 'Cancel' : 'Close'}
             </Button>
-            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid || disableAction}>
+            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
               {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
           </HorizontalGroup>

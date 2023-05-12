@@ -87,6 +87,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
   const store = useStore();
   const shift = store.scheduleStore.shifts[shiftId];
 
+  const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+
   const [rotationTitle, setRotationTitle] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [offsetTop, setOffsetTop] = useState<number>(0);
@@ -108,7 +110,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const [mode, setMode] = useState<Mode>(withinOneDay ? Mode.SELECTED_DAYS_AND_HOURS : Mode.CUSTOM_TIME_INTERVAL);
   const [showActiveOnSelectedDays, setShowActiveOnSelectedDays] = useState<boolean>(false);
-  const [showActiveOnSelectedPartOfDay, setShowActiveOnSelectedPartOfDay] = useState<boolean>(false);
+  const [showActiveOnSelectedPartOfDay, setShowActiveOnSelectedPartOfDay] = useState<boolean>(shiftId !== 'new');
 
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
@@ -143,9 +145,6 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       if (!withinOneDay) {
         setShiftStart(propsShiftStart);
         setShiftEnd(propsShiftStart.add(1, 'day'));
-      } else {
-        setShowActiveOnSelectedDays(false);
-        setShowActiveOnSelectedPartOfDay(false);
       }
     }
   }, [mode]);
@@ -192,12 +191,19 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
   }, []);
 
   const updatePreview = () => {
+    setErrors({});
+
     store.scheduleStore
       .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
+      .catch(onError)
       .finally(() => {
         setIsOpen(true);
       });
   };
+
+  const onError = useCallback((error) => {
+    setErrors(error.response.data);
+  }, []);
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
@@ -239,13 +245,19 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const handleCreate = useCallback(() => {
     if (shiftId === 'new') {
-      store.scheduleStore.createRotation(scheduleId, false, { ...params, title: rotationTitle }).then(() => {
-        onCreate();
-      });
+      store.scheduleStore
+        .createRotation(scheduleId, false, { ...params, title: rotationTitle })
+        .then(() => {
+          onCreate();
+        })
+        .catch(onError);
     } else {
-      store.scheduleStore.updateRotation(shiftId, params).then(() => {
-        onUpdate();
-      });
+      store.scheduleStore
+        .updateRotation(shiftId, params)
+        .then(() => {
+          onUpdate();
+        })
+        .catch(onError);
     }
   }, [scheduleId, shiftId, params]);
 
@@ -288,12 +300,13 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setRepeatEveryPeriod(shift.frequency);
       setSelectedDays(shift.by_day || []);
 
+      setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
+
       setUserGroups(shift.rolling_users);
     }
   }, [shift]);
 
-  const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
-  const disableAction = !endLess && rotationEnd.isBefore(dayjs().tz(currentTimezone));
+  const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   return (
     <>
@@ -342,10 +355,11 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     }
                   >
                     <DateTimePicker
-                      minMoment={shiftStart}
+                      //minMoment={shiftStart}
                       value={rotationStart}
                       onChange={setRotationStart}
                       timezone={currentTimezone}
+                      error={errors.rotation_start}
                     />
                   </Field>
                   <Field
@@ -368,7 +382,12 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                         <Text type="secondary">Endless</Text>
                       </div>
                     ) : (
-                      <DateTimePicker value={rotationEnd} onChange={setRotationEnd} timezone={currentTimezone} />
+                      <DateTimePicker
+                        value={rotationEnd}
+                        onChange={setRotationEnd}
+                        timezone={currentTimezone}
+                        error={errors.until}
+                      />
                     )}
                   </Field>
                 </div>
@@ -404,8 +423,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                 <Collapse
                   className={cx('active-periods')}
                   contentClassName={cx('active-periods-content')}
-                  isOpen={false}
-                  label={<Text>Weekly active periods</Text>}
+                  isOpen={shiftId !== 'new'}
+                  label={<Text>Active periods</Text>}
                 >
                   <VerticalGroup spacing="md">
                     <RadioButtonGroup
@@ -452,6 +471,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                                 setShiftStart={setShiftStart}
                                 setShiftEnd={setShiftEnd}
                                 currentTimezone={currentTimezone}
+                                errors={errors}
                               />
                             )}
                           </VerticalGroup>
@@ -467,6 +487,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                         setShiftStart={setShiftStart}
                         setShiftEnd={setShiftEnd}
                         currentTimezone={currentTimezone}
+                        errors={errors}
                       />
                     )}
                   </VerticalGroup>
@@ -491,7 +512,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                       shiftEnd={params.shift_end}
                     />
                   )}
-                  showError={!isFormValid}
+                  showError={Boolean(errors.rolling_users)}
                 />
               </VerticalGroup>
             </div>
@@ -503,7 +524,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                 <Button variant="secondary" onClick={onHide}>
                   {shiftId === 'new' ? 'Cancel' : 'Close'}
                 </Button>
-                <Button variant="primary" onClick={handleCreate} disabled={!isFormValid || disableAction}>
+                <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
                   {shiftId === 'new' ? 'Create' : 'Update'}
                 </Button>
               </HorizontalGroup>
@@ -525,6 +546,7 @@ interface ShiftPeriodProps {
   setShiftStart: (moment: dayjs.Dayjs) => void;
   setShiftEnd: (moment: dayjs.Dayjs) => void;
   currentTimezone: Timezone;
+  errors: any;
 }
 
 const ShiftPeriod = ({
@@ -534,6 +556,7 @@ const ShiftPeriod = ({
   setShiftStart,
   setShiftEnd,
   currentTimezone,
+  errors,
 }: ShiftPeriodProps) => {
   const handleShiftStartWeekdayChange = useCallback(
     (value) => {
@@ -571,6 +594,8 @@ const ShiftPeriod = ({
     [shiftEnd]
   );
 
+  console.log(errors);
+
   return (
     <div className={cx(hideWeekday ? 'three-fields' : 'two-fields')}>
       <Field
@@ -588,6 +613,7 @@ const ShiftPeriod = ({
           onTimeChange={handleShiftStartTimeChange}
           timezone={currentTimezone}
           weekStart={config.bootData.user.weekStart}
+          error={errors.shift_start}
         />
       </Field>
       <Field
@@ -606,6 +632,7 @@ const ShiftPeriod = ({
             onTimeChange={handleShiftEndTimeChange}
             timezone={currentTimezone}
             weekStart={config.bootData.user.weekStart}
+            error={errors.shift_end}
           />
         }
       </Field>

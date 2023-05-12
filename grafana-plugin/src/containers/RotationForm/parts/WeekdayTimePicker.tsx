@@ -2,11 +2,16 @@ import React, { useCallback, useMemo } from 'react';
 
 import { DateTime, dateTime, SelectableValue } from '@grafana/data';
 import { Select, TimeOfDayPicker } from '@grafana/ui';
+import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import { toDate } from 'containers/RotationForm/RotationForm.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { useStore } from 'state/useStore';
+
+import styles from 'containers/RotationForm/RotationForm.module.css';
+
+const cx = cn.bind(styles);
 
 interface WeekdayTimePickerProps {
   value: dayjs.Dayjs;
@@ -16,12 +21,13 @@ interface WeekdayTimePickerProps {
   disabled?: boolean;
   hideWeekday?: boolean;
   weekStart: string;
+  error?: string[];
 }
 
 const weekdays = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 
 const WeekdayTimePicker = (props: WeekdayTimePickerProps) => {
-  const { value: propValue, timezone, hideWeekday, disabled, weekStart, onWeekDayChange, onTimeChange } = props;
+  const { value: propValue, timezone, hideWeekday, disabled, weekStart, onWeekDayChange, onTimeChange, error } = props;
 
   const { scheduleStore } = useStore();
 
@@ -60,11 +66,11 @@ const WeekdayTimePicker = (props: WeekdayTimePickerProps) => {
   return (
     <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
       {!hideWeekday && (
-        <div style={{ width: '58%' }}>
+        <div style={{ width: '58%' }} className={cx({ 'control--error': Boolean(error) })}>
           <Select options={options} onChange={handleWeekDayChange} value={value.getDay()} />
         </div>
       )}
-      <div style={{ width: hideWeekday ? '100%' : '42%' }}>
+      <div style={{ width: hideWeekday ? '100%' : '42%' }} className={cx({ 'control--error': Boolean(error) })}>
         <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
       </div>
     </div>

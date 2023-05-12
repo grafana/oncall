@@ -2,12 +2,17 @@ import React, { useCallback, useMemo } from 'react';
 
 import { DateTime, dateTime } from '@grafana/data';
 import { DatePickerWithInput, TimeOfDayPicker } from '@grafana/ui';
+import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import { toDate } from 'containers/RotationForm/RotationForm.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 
-interface UserTooltipProps {
+import styles from 'containers/RotationForm/RotationForm.module.css';
+
+const cx = cn.bind(styles);
+
+interface DateTimePickerProps {
   value: dayjs.Dayjs;
   timezone: Timezone;
   onChange: (value: dayjs.Dayjs) => void;
@@ -15,10 +20,11 @@ interface UserTooltipProps {
   minMoment?: dayjs.Dayjs;
   onFocus?: () => void;
   onBlur?: () => void;
+  error?: string[];
 }
 
-const DateTimePicker = (props: UserTooltipProps) => {
-  const { value: propValue, minMoment, timezone, onChange, disabled, onFocus, onBlur } = props;
+const DateTimePicker = (props: DateTimePickerProps) => {
+  const { value: propValue, minMoment, timezone, onChange, disabled, onFocus, onBlur, error } = props;
 
   const value = useMemo(() => toDate(propValue, timezone), [propValue, timezone]);
 
@@ -56,10 +62,20 @@ const DateTimePicker = (props: UserTooltipProps) => {
 
   return (
     <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
-      <div onFocus={onFocus} onBlur={onBlur} style={{ width: '58%' }}>
+      <div
+        onFocus={onFocus}
+        onBlur={onBlur}
+        style={{ width: '58%' }}
+        className={cx({ 'control--error': Boolean(error) })}
+      >
         <DatePickerWithInput open minDate={minDate} disabled={disabled} value={value} onChange={handleDateChange} />
       </div>
-      <div onFocus={onFocus} onBlur={onBlur} style={{ width: '42%' }}>
+      <div
+        onFocus={onFocus}
+        onBlur={onBlur}
+        style={{ width: '42%' }}
+        className={cx({ 'control--error': Boolean(error) })}
+      >
         <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
       </div>
     </div>

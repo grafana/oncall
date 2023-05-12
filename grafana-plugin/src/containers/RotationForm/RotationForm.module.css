@@ -86,3 +86,7 @@
 .confirmation-modal {
   width: 500px;
 }
+
+.control--error {
+  border: 1px solid var(--error-text-color);
+}
