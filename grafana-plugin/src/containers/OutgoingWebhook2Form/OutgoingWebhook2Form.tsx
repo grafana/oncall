@@ -58,15 +58,15 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     >
       <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
         <GForm form={form} data={data} onSubmit={handleSubmit} />
-        <HorizontalGroup>
+        <HorizontalGroup justify={'flex-end'}>
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
           <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
             <Button form={form.name} type="submit" disabled={data.is_legacy}>
               {action === 'new' ? 'Create' : 'Update'} Webhook
             </Button>
           </WithPermissionControlTooltip>
-          <Button variant="secondary" onClick={onHide}>
-            Cancel
-          </Button>
         </HorizontalGroup>
       </div>
       {data.is_legacy ? (
