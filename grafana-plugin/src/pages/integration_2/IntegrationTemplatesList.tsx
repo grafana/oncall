@@ -410,34 +410,6 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
         </VerticalGroup>
       </IntegrationBlockItem>
-
-      <IntegrationBlockItem>
-        <VerticalGroup>
-          <Text type={'secondary'}>By default alert groups rendered based on Web templates.</Text>
-          <Text type={'secondary'}>
-            Customise how they rendered in SMS, Phone Calls, Mobile App, Slack, Telegram, MS Teams{' '}
-          </Text>
-
-          <div className={cx('customise-button')}>
-            <ButtonCascader
-              variant="secondary"
-              onChange={(_key) => {
-                if (Object.values(_key).length > 1) {
-                  openEditTemplateModal(Object.values(_key)[1]);
-                } else {
-                  openEditTemplateModal(_key);
-                }
-              }}
-              options={getTemplatesList()}
-              icon="plus"
-              value={undefined}
-              buttonProps={{ size: 'sm' }}
-            >
-              Customise templates
-            </ButtonCascader>
-          </div>
-        </VerticalGroup>
-      </IntegrationBlockItem>
     </div>
   );
 
