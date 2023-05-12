@@ -234,7 +234,7 @@ def _get_alert_group_escalation_fcm_message(
         ),
     )
 
-    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL,
+    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
 
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
