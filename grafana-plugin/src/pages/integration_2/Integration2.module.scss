@@ -143,3 +143,22 @@ $LARGE-MARGIN: 24px;
 .heartbeat-badge {
   padding: 4px 8px;
 }
+
+.templates__content {
+  padding-left: 12px;
+}
+
+.templates__content,
+.templates__container {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.templates__edit {
+  margin-left: 0;
+}
+
+.template-drawer {
+  padding-bottom: 24px;
+}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, InlineLabel, LoadingPlaceholder } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, InlineLabel, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 
 import Text from 'components/Text/Text';
 
@@ -37,8 +37,12 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
         {label}
       </InlineLabel>
       {renderInput()}
-      <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
-      <Button variant={'secondary'} icon={'times'} size={'md'} tooltip="Reset Template to default" onClick={onRemove} />
+      <Tooltip content={'Edit'}>
+        <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
+      </Tooltip>
+      <Tooltip content={'Reset Template to default'}>
+        <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
+      </Tooltip>
 
       {showHelp && (
         <Button variant="secondary" size="md" onClick={onHelp}>

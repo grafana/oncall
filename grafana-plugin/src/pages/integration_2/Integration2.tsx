@@ -153,27 +153,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           <div className={cx('root')}>
             {isTemplateSettingsOpen && (
               <Drawer
-                width="640px"
+                width="95%"
                 scrollableContent
                 title="Template Settings"
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
                 closeOnMaskClick={false}
               >
                 <IntegrationBlock
+                  className={cx('template-drawer')}
                   hasCollapsedBorder
-                  heading={
-                    <HorizontalGroup>
-                      <Tag
-                        color={getVar('--tag-secondary-transparent')}
-                        border={getVar('--border-weak')}
-                        className={cx('tag')}
-                      >
-                        <Text type="primary" size="small">
-                          Templates
-                        </Text>
-                      </Tag>
-                    </HorizontalGroup>
-                  }
+                  heading={undefined}
                   content={
                     <IntegrationTemplateList
                       getTemplatesList={this.getTemplatesList}
@@ -265,13 +254,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   expandedView: <HowToConnectComponent id={id} />,
                 },
                 {
+                  customIcon: 'plus',
                   isExpanded: false,
                   isCollapsible: false,
-                  collapsedView: (
+                  expandedView: (
                     <IntegrationBlock
                       hasCollapsedBorder
                       heading={
-                        <HorizontalGroup spacing={'md'}>
+                        <div className={cx('templates__container')}>
                           <Tag
                             color={getVar('--tag-secondary-transparent')}
                             border={getVar('--border-weak')}
@@ -282,40 +272,44 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                             </Text>
                           </Tag>
 
-                          <HorizontalGroup spacing={'xs'}>
-                            <Text type="secondary">Grouping:</Text>
-                            <Text type="primary">
-                              {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
-                            </Text>
-                          </HorizontalGroup>
+                          <div className={cx('templates__content')}>
+                            <HorizontalGroup>
+                              <HorizontalGroup spacing={'xs'}>
+                                <Text type="secondary">Grouping:</Text>
+                                <Text type="primary">
+                                  {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
+                                </Text>
+                              </HorizontalGroup>
 
-                          <HorizontalGroup spacing={'xs'}>
-                            <Text type="secondary">Autoresolve:</Text>
-                            <Text type="primary">
-                              {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
-                            </Text>
-                          </HorizontalGroup>
+                              <HorizontalGroup spacing={'xs'}>
+                                <Text type="secondary">Autoresolve:</Text>
+                                <Text type="primary">
+                                  {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
+                                </Text>
+                              </HorizontalGroup>
 
-                          <HorizontalGroup spacing={'xs'}>
-                            <Text type="secondary">Visualisation:</Text>
-                            <Text type="primary">Multiple</Text>
-                          </HorizontalGroup>
+                              <HorizontalGroup spacing={'xs'}>
+                                <Text type="secondary">Visualisation:</Text>
+                                <Text type="primary">Multiple</Text>
+                              </HorizontalGroup>
+                            </HorizontalGroup>
 
-                          <HorizontalGroup justify={'flex-end'}>
-                            <Button
-                              variant={'secondary'}
-                              icon="edit"
-                              size={'md'}
-                              tooltip="Edit"
-                              onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                            />
-                          </HorizontalGroup>
-                        </HorizontalGroup>
+                            <div className={cx('templates__edit')}>
+                              <Button
+                                variant={'secondary'}
+                                icon="edit"
+                                size={'sm'}
+                                tooltip="Edit"
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              />
+                            </div>
+                          </div>
+                        </div>
                       }
                       content={null}
                     />
                   ),
-                  expandedView: undefined,
+                  collapsedView: undefined,
                 },
                 {
                   customIcon: 'plus',
