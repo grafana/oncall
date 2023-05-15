@@ -43,7 +43,6 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
   };
 
   const handleSave = useCallback(() => {
-    console.log('edited body', regexpTemplateBody);
     onUpdateRoute({ ['route_template']: regexpTemplateBody }, channelFilterId, 0);
 
     onHide();

@@ -45,14 +45,15 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
 
+  const locationParams: any = { template: template.name };
   if (template.isRoute) {
+    locationParams.routeId = channelFilterId;
   }
 
+  LocationHelper.update(locationParams, 'partial');
+
   useEffect(() => {
-    LocationHelper.update({ template: template.name }, 'partial');
-    if (template.isRoute) {
-      LocationHelper.update({ routeId: channelFilterId }, 'partial');
-    }
+    LocationHelper.update(locationParams, 'partial');
   }, []);
 
   const onShowCheatSheet = useCallback(() => {

@@ -503,8 +503,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   handleSlackChannelChange = () => {};
 
-  handleEditRegexpRouteTemplate = (templateRegexpBody, templateJijja2Body, channelFilterId) => {
-    console.log(templateRegexpBody, templateJijja2Body);
+  handleEditRegexpRouteTemplate = (channelFilterId) => {
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
   };
 
@@ -593,7 +592,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
 
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
-    console.log('templateName', templateName);
     this.setState({ selectedTemplate: templateForEdit[templateName] });
     this.setState({ isEditTemplateModalOpen: true });
 
