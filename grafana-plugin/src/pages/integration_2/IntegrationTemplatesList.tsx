@@ -12,15 +12,24 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlockItem from './IntegrationBlockItem';
 import IntegrationTemplateBlock from './IntegrationTemplateBlock';
+import { useStore } from 'state/useStore';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { openErrorNotification, openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
 interface IntegrationTemplateListProps {
   templates: AlertTemplatesDTO[];
+  alertReceiveChannelId: AlertReceiveChannel['id'];
   openEditTemplateModal: (templateName: string | string[]) => void;
 }
 
-const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({ templates, openEditTemplateModal }) => {
+const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
+  templates,
+  openEditTemplateModal,
+  alertReceiveChannelId,
+}) => {
+  const { alertReceiveChannelStore } = useStore();
   const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
   const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
 
@@ -29,10 +38,10 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({ templ
       {templateRestoreName && (
         <ConfirmModal
           isOpen={true}
-          title={'Are you sure you want to reset Slack Title template to default state'}
+          title={'Reset Slack Template'}
           confirmText={'Delete'}
           dismissText="Cancel"
-          body={undefined}
+          body={'Are you sure you want to reset Slack Title template to default state?'}
           description={undefined}
           confirmationText={undefined}
           onConfirm={() => onResetTemplate(templateRestoreName)}
@@ -408,12 +417,25 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({ templ
     </div>
   );
 
-  function onResetTemplate(_templateName: string) {
-    // here goes the logic
-
-    setIsRestoringTemplate(true);
+  function onResetTemplate(templateName: string) {
     setTemplateRestoreName(undefined);
-    setIsRestoringTemplate(false);
+    setIsRestoringTemplate(true);
+
+    alertReceiveChannelStore
+      .saveTemplates(alertReceiveChannelId, { [templateName]: '' })
+      .then(() => {
+        openNotification('The Alert templates have been updated');
+      })
+      .catch((err) => {
+        if (err.response?.data?.length > 0) {
+          openErrorNotification(err.response.data);
+        } else {
+          openErrorNotification(err.message);
+        }
+      })
+      .finally(() => {
+        setIsRestoringTemplate(false);
+      });
   }
 };
 

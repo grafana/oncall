@@ -158,7 +158,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           <div className={cx('root')}>
             {isTemplateSettingsOpen && (
               <Drawer
-                width="95%"
+                width="75%"
                 scrollableContent
                 title="Template Settings"
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
@@ -169,7 +169,11 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   hasCollapsedBorder
                   heading={undefined}
                   content={
-                    <IntegrationTemplateList openEditTemplateModal={this.openEditTemplateModal} templates={templates} />
+                    <IntegrationTemplateList
+                      alertReceiveChannelId={alertReceiveChannel.id}
+                      openEditTemplateModal={this.openEditTemplateModal}
+                      templates={templates}
+                    />
                   }
                 />
               </Drawer>
