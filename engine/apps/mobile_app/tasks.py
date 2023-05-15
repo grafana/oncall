@@ -145,16 +145,6 @@ def _construct_fcm_message(
     )
 
 
-class Data(typing.TypedDict):
-    thread_id: str
-    number_of_alerts: str
-    title: str
-    subtitle: str
-    body: str
-    status_verbose: str
-    alerts_count_str: str
-
-
 def _get_alert_group_escalation_fcm_message(
     alert_group: AlertGroup, user: User, device_to_notify: FCMDevice, critical: bool
 ) -> Message:
@@ -183,18 +173,7 @@ def _get_alert_group_escalation_fcm_message(
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-    # critical defines the type of notification.
-    # we use overrideDND to establish if the notification should sound even if DND is on
-    overrideDND = critical and mobile_app_user_settings.important_notification_override_dnd
-
-    # APNS only allows to specify volume for critical notifications
-    apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
-    apns_sound_name = (
-        mobile_app_user_settings.important_notification_sound_name
-        if critical
-        else mobile_app_user_settings.default_notification_sound_name
-    ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
-
+    fcm_notification_settinds = _get_fcm_notification_settings(mobile_app_user_settings)
     fcm_message_data: FCMMessageData = {
         "title": alert_title,
         "subtitle": alert_subtitle,
@@ -202,9 +181,26 @@ def _get_alert_group_escalation_fcm_message(
         "orgId": alert_group.channel.organization.public_primary_key,
         "orgName": alert_group.channel.organization.stack_slug,
         "alertGroupId": alert_group.public_primary_key,
-        # alert_group.status is an int so it must be casted...
-        "status": str(alert_group.status),
-        # Pass user settings, so the Android app can use them to play the correct sound and volume
+        "status": str(alert_group.status),  # alert_group.status is an int so it must be casted.
+        **fcm_notification_settinds,
+    }
+
+    apns_payload = _get_apns_payload(
+        thread_id,
+        critical,
+        mobile_app_user_settings,
+        badge=number_of_alerts,
+        title=alert_title,
+        subtitle=alert_subtitle,
+        body=alert_body,
+    )
+
+    return _construct_fcm_message(device_to_notify, thread_id, fcm_message_data, apns_payload, critical)
+
+
+def _get_fcm_notification_settings(mobile_app_user_settings):
+    # Pass user settings, so the Android app can use them to play the correct sound and volume
+    return {
         "default_notification_sound_name": (
             mobile_app_user_settings.default_notification_sound_name
             + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
@@ -226,43 +222,8 @@ def _get_alert_group_escalation_fcm_message(
         "important_notification_override_dnd": json.dumps(mobile_app_user_settings.important_notification_override_dnd),
     }
 
-    apns_payload = APNSPayload(
-        aps=Aps(
-            thread_id=thread_id,
-            badge=number_of_alerts,
-            alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
-            sound=CriticalSound(
-                # The notification shouldn't be critical if the user has disabled "override DND" setting
-                critical=overrideDND,
-                name=apns_sound_name,
-                volume=apns_volume,
-            ),
-            custom_data={
-                "interruption-level": "critical" if overrideDND else "time-sensitive",
-            },
-        ),
-    )
 
-    return _construct_fcm_message(device_to_notify, thread_id, fcm_message_data, apns_payload, critical)
-
-
-def send_test_push(user, critical=False):
-    device_to_notify = FCMDevice.objects.filter(user=user).first()
-    message = _get_test_escalation_fcm_message(user, device_to_notify, critical)
-    _send_push_notification(device_to_notify, message)
-
-
-def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, critical: bool) -> Message:
-    # avoid circular import
-    from apps.mobile_app.models import MobileAppUserSettings
-
-    thread_id = f"test_push"
-    number_of_alerts = 2
-
-    alert_title = "New Critical Test Push" if critical else "New Test Push"
-
-    mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
-
+def _get_apns_payload(thread_id, critical, mobile_app_user_settings, badge=None, title=None, subtitle=None, body=None):
     # critical defines the type of notification.
     # we use overrideDND to establish if the notification should sound even if DND is on
     overrideDND = critical and mobile_app_user_settings.important_notification_override_dnd
@@ -275,35 +236,11 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
         else mobile_app_user_settings.default_notification_sound_name
     ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
 
-    fcm_message_data: FCMMessageData = {
-        "title": alert_title,
-        # Pass user settings, so the Android app can use them to play the correct sound and volume
-        "default_notification_sound_name": (
-            mobile_app_user_settings.default_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
-        "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
-        "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
-        "default_notification_volume_override": json.dumps(
-            mobile_app_user_settings.default_notification_volume_override
-        ),
-        "important_notification_sound_name": (
-            mobile_app_user_settings.important_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
-        "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
-        "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
-        "important_notification_volume_override": json.dumps(
-            mobile_app_user_settings.important_notification_volume_override
-        ),
-        "important_notification_override_dnd": json.dumps(mobile_app_user_settings.important_notification_override_dnd),
-    }
-
-    apns_payload = APNSPayload(
+    return APNSPayload(
         aps=Aps(
             thread_id=thread_id,
-            badge=number_of_alerts,
-            alert=ApsAlert(title=alert_title),
+            badge=badge,
+            alert=ApsAlert(title=title, subtitle=subtitle, body=body),
             sound=CriticalSound(
                 # The notification shouldn't be critical if the user has disabled "override DND" setting
                 critical=overrideDND,
@@ -315,8 +252,6 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
             },
         ),
     )
-
-    return _construct_fcm_message(device_to_notify, thread_id, fcm_message_data, apns_payload, critical)
 
 
 def _get_youre_going_oncall_fcm_message(
