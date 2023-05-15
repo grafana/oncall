@@ -39,6 +39,7 @@ from apps.auth_token.models import UserScheduleExportAuthToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from apps.mobile_app.demo_push import send_test_push
 from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
@@ -389,6 +390,20 @@ class UserView(
                 data="Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
+    def send_test_push(self, request, pk):
+        user = self.get_object()
+        critical = request.query_params.get("critical", "false") == "true"
+
+        try:
+            send_test_push(user, critical)
+        except Exception as e:
+            logger.info(f"send_test_push: Unable to send test push due to {e}")
+            return Response(
+                data="Something went wrong while sending a test push", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
