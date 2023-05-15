@@ -178,6 +178,7 @@ class UserView(
             "unlink_telegram",
             "unlink_backend",
             "make_test_call",
+            "send_test_push",
             "export_token",
             "upcoming_shifts",
         ],
