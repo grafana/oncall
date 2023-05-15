@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import Block from 'components/GBlock/Block';
-import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -43,7 +43,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
   };
 
   const handleSave = useCallback(() => {
-    onUpdateRoute({ ['routing']: regexpTemplateBody }, channelFilterId, 0);
+    onUpdateRoute({ ['route_template']: regexpTemplateBody }, channelFilterId, 0);
 
     onHide();
   }, [regexpTemplateBody]);
@@ -57,7 +57,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
         })
         .then(() => {
           alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelId, true).then(() => {
-            onOpenEditIntegrationTemplate('routing', channelFilterId);
+            onOpenEditIntegrationTemplate('route_template', channelFilterId);
           });
         });
     });
@@ -86,7 +86,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
           </HorizontalGroup>
 
           <div className={cx('regexp-template-code')}>
-            <MonacoEditor
+            <MonacoJinja2Editor
               value={regexpTemplateBody}
               height={'200px'}
               data={undefined}
@@ -103,7 +103,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
           <Text type="link">{templateJinja2Body}</Text>
         </Block>
 
-        <HorizontalGroup justify={'flex-end'} spacing={'md'}>
+        <HorizontalGroup justify={'flex-end'}>
           <Button variant={'secondary'} onClick={onHide}>
             Cancel
           </Button>

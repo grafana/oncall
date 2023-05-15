@@ -82,7 +82,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 <MonacoEditor
                   value={JSON.stringify(selectedAlertPayload, null, 4)}
                   data={undefined}
-                  height={'100vh'}
+                  height={'85vh'}
                   onChange={getChangeHandler()}
                   showLineNumbers
                 />
@@ -102,8 +102,8 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               </div>
               <div className={cx('alert-groups-list')}>
                 <VerticalGroup>
-                  <Badge style={{ margin: '16px' }} color="blue" text="Last alert payload" />
-                  <SourceCode className={cx('alert-group-payload-view')} noMaxHeight>
+                  <Badge color="blue" text="Last alert payload" />
+                  <SourceCode className={cx('alert-group-payload-view')} noMaxHeight showClipboardIconOnly>
                     {JSON.stringify(selectedAlertPayload, null, 4)}
                   </SourceCode>
                 </VerticalGroup>
@@ -134,6 +134,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   data={undefined}
                   monacoOptions={MONACO_PAYLOAD_OPTIONS}
                   showLineNumbers={false}
+                  height={'85vh'}
                   onChange={getChangeHandler()}
                 />
               </div>
@@ -141,7 +142,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
           ) : (
             <>
               <div className={cx('template-block-title')}>
-                <HorizontalGroup justify="space-between">
+                <HorizontalGroup justify="space-between" wrap>
                   <HorizontalGroup>
                     <Text>Recent Alert groups</Text>
                     <Tooltip content="Here will be information about alert groups">

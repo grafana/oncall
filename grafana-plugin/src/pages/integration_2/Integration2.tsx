@@ -48,6 +48,7 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
+import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
 
@@ -77,6 +78,7 @@ interface Integration2State extends PageBaseState {
   isTemplateSettingsOpen: boolean;
   newRoutes: string[];
   isAddingRoute: boolean;
+  isEditRegexpRouteTemplateModalOpen: boolean;
 }
 
 const ACTIONS_LIST_WIDTH = 160;
@@ -94,10 +96,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isEditTemplateModalOpen: false,
       selectedTemplate: undefined,
       isEditRegexpRouteTemplateModalOpen: false,
-      isTemplateSettingsOpen: false,
-      channelFilterIdForEdit: undefined,
-      newRoutes: [],
-      isAddingRoute: false,
     };
   }
 
@@ -106,11 +104,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       match: {
         params: { id },
       },
+      query,
     } = this.props;
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
 
+    if (query?.template) {
+      this.openEditTemplateModal(query.template, query.routeId && query.routeId);
+    }
     await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
   }
 
@@ -346,11 +348,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 onHide={() => {
                   this.setState({
                     isEditTemplateModalOpen: undefined,
+                    isNewRoute: false,
                   });
+                  LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
                 }}
                 channelFilterId={channelFilterIdForEdit}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
-                onUpdateRoute={this.onUpdateRoutesCallback}
+                onUpdateRoute={isNewRoute ? this.onCreateRoutesCallback : this.onUpdateRoutesCallback}
                 template={selectedTemplate}
                 templateBody={
                   selectedTemplate?.name === 'route_template'
@@ -499,7 +503,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   handleSlackChannelChange = () => {};
 
-  handleEditRegexpRouteTemplate = (_templateRegexpBody, _templateJijja2Body, channelFilterId) => {
+  handleEditRegexpRouteTemplate = (channelFilterId) => {
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
   };
 
@@ -520,6 +524,37 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       })
       .then((channelFilter: ChannelFilter) => {
         alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
+          escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+        });
+      })
+      .catch((err) => {
+        const errors = get(err, 'response.data');
+        if (errors?.non_field_errors) {
+          openErrorNotification(errors.non_field_errors);
+        }
+      });
+  };
+
+  onUpdateRoutesCallback = (
+    { route_template }: { route_template: string },
+    channelFilterId,
+    filteringTermType?: number
+  ) => {
+    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
+    const {
+      params: { id },
+    } = this.props.match;
+
+    alertReceiveChannelStore
+      .saveChannelFilter(channelFilterId, {
+        filtering_term: route_template,
+
+        // TODO: need to figure out this value
+        filtering_term_type: filteringTermType,
+      })
+      .then((channelFilter: ChannelFilter) => {
+        alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
+          // @ts-ignore
           escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
         });
       })
