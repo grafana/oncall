@@ -14,6 +14,8 @@ def send_test_push(user, critical=False):
 
 
 def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, critical: bool) -> Message:
+    # TODO: this method is copied from _get_alert_group_escalation_fcm_message
+    # to have same notification/sound/overrideDND logic. Ideally this logic should be abstracted, not repeated.
     from apps.mobile_app.models import MobileAppUserSettings
 
     thread_id = f"test_push"
