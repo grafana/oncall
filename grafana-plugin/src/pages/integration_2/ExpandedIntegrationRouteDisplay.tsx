@@ -8,6 +8,7 @@ import { observer } from 'mobx-react';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import GSelect from 'containers/GSelect/GSelect';
@@ -24,7 +25,6 @@ import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config
 import IntegrationHelper from './Integration2.helper';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationBlockItem from './IntegrationBlockItem';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 
 const cx = cn.bind(styles);
 

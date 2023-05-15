@@ -19,6 +19,7 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
+import { debounce } from 'throttle-debounce';
 
 import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import IntegrationCollapsibleTreeView, {
@@ -26,6 +27,7 @@ import IntegrationCollapsibleTreeView, {
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -34,6 +36,7 @@ import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
+import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
@@ -43,6 +46,7 @@ import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
+import { API_HOST, API_PATH_PREFIX } from 'network';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -59,10 +63,6 @@ import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import Integration2HeartbeatForm from './Integration2HeartbeatForm';
 import IntegrationBlock from './IntegrationBlock';
-import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
-import { debounce } from 'throttle-debounce';
-import { API_HOST, API_PATH_PREFIX } from 'network';
 import IntegrationTemplateList from './IntegrationTemplatesList';
 
 const cx = cn.bind(styles);
@@ -78,7 +78,6 @@ interface Integration2State extends PageBaseState {
   isTemplateSettingsOpen: boolean;
   newRoutes: string[];
   isAddingRoute: boolean;
-  isEditRegexpRouteTemplateModalOpen: boolean;
 }
 
 const ACTIONS_LIST_WIDTH = 160;
@@ -96,6 +95,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isEditTemplateModalOpen: false,
       selectedTemplate: undefined,
       isEditRegexpRouteTemplateModalOpen: false,
+      channelFilterIdForEdit: undefined,
+      isTemplateSettingsOpen: false,
+      newRoutes: [],
+      isAddingRoute: false,
     };
   }
 
@@ -166,10 +169,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   hasCollapsedBorder
                   heading={undefined}
                   content={
-                    <IntegrationTemplateList
-                      openEditTemplateModal={this.openEditTemplateModal}
-                      templates={templates}
-                    />
+                    <IntegrationTemplateList openEditTemplateModal={this.openEditTemplateModal} templates={templates} />
                   }
                 />
               </Drawer>
@@ -348,13 +348,12 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 onHide={() => {
                   this.setState({
                     isEditTemplateModalOpen: undefined,
-                    isNewRoute: false,
                   });
                   LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
                 }}
                 channelFilterId={channelFilterIdForEdit}
                 onUpdateTemplates={this.onUpdateTemplatesCallback}
-                onUpdateRoute={isNewRoute ? this.onCreateRoutesCallback : this.onUpdateRoutesCallback}
+                onUpdateRoute={this.onUpdateRoutesCallback}
                 template={selectedTemplate}
                 templateBody={
                   selectedTemplate?.name === 'route_template'
@@ -524,37 +523,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       })
       .then((channelFilter: ChannelFilter) => {
         alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
-          escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
-        });
-      })
-      .catch((err) => {
-        const errors = get(err, 'response.data');
-        if (errors?.non_field_errors) {
-          openErrorNotification(errors.non_field_errors);
-        }
-      });
-  };
-
-  onUpdateRoutesCallback = (
-    { route_template }: { route_template: string },
-    channelFilterId,
-    filteringTermType?: number
-  ) => {
-    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
-    const {
-      params: { id },
-    } = this.props.match;
-
-    alertReceiveChannelStore
-      .saveChannelFilter(channelFilterId, {
-        filtering_term: route_template,
-
-        // TODO: need to figure out this value
-        filtering_term_type: filteringTermType,
-      })
-      .then((channelFilter: ChannelFilter) => {
-        alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
-          // @ts-ignore
           escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
         });
       })

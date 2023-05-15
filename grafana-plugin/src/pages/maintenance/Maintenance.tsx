@@ -13,14 +13,13 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
-
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
 
 import styles from './Maintenance.module.css';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 
 const cx = cn.bind(styles);
 

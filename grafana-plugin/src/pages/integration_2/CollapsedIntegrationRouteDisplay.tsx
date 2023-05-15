@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { useStore } from 'state/useStore';
@@ -14,7 +15,6 @@ import styles from './CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from './ExpandedIntegrationRouteDisplay';
 import IntegrationHelper from './Integration2.helper';
 import IntegrationBlock from './IntegrationBlock';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 
 const cx = cn.bind(styles);
 

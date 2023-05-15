@@ -193,7 +193,9 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
   );
 
   function getTitle(): string {
-    if (!isTableView) return 'Integration Settings';
+    if (!isTableView) {
+      return 'Integration Settings';
+    }
     return id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`;
   }
 });

@@ -9,10 +9,10 @@ import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
-import { MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 
 const cx = cn.bind(styles);
 
@@ -128,7 +128,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 <MonacoEditor
                   value={null}
                   disabled={true}
-                  height={'100vh'}
                   useAutoCompleteList={false}
                   language={MONACO_LANGUAGE.json}
                   data={undefined}

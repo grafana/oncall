@@ -45,7 +45,6 @@ export interface AlertReceiveChannel {
   routes_count: number;
   allow_delete: boolean;
   deleted?: boolean;
-  routes_count: number;
 }
 
 export interface AlertReceiveChannelChoice {

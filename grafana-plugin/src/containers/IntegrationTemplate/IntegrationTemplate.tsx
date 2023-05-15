@@ -20,7 +20,6 @@ import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/Templa
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import LocationHelper from 'utils/LocationHelper';
 
 import styles from './IntegrationTemplate.module.css';
@@ -46,14 +45,11 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
 
-  const locationParams: any = { template: template.name };
-  if (template.isRoute) {
-    locationParams.routeId = channelFilterId;
-  }
-
-  LocationHelper.update(locationParams, 'partial');
-
   useEffect(() => {
+    const locationParams: any = { template: template.name };
+    if (template.isRoute) {
+      locationParams.routeId = channelFilterId;
+    }
     LocationHelper.update(locationParams, 'partial');
   }, []);
 

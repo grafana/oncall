@@ -20,10 +20,7 @@ interface IntegrationTemplateListProps {
   openEditTemplateModal: (templateName: string | string[]) => void;
 }
 
-const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
-  templates,
-  openEditTemplateModal,
-}) => {
+const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({ templates, openEditTemplateModal }) => {
   const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
   const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
 
