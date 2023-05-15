@@ -5,7 +5,6 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
-import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -85,6 +84,9 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   height={'85vh'}
                   onChange={getChangeHandler()}
                   showLineNumbers
+                  useAutoCompleteList={false}
+                  language={MONACO_LANGUAGE.json}
+                  monacoOptions={MONACO_PAYLOAD_OPTIONS}
                 />
               </div>
             </>
@@ -103,9 +105,19 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <div className={cx('alert-groups-list')}>
                 <VerticalGroup>
                   <Badge color="blue" text="Last alert payload" />
-                  <SourceCode className={cx('alert-group-payload-view')} noMaxHeight showClipboardIconOnly>
-                    {JSON.stringify(selectedAlertPayload, null, 4)}
-                  </SourceCode>
+                  <div className={cx('alert-groups-editor')}>
+                    <MonacoEditor
+                      value={JSON.stringify(selectedAlertPayload, null, 4)}
+                      data={undefined}
+                      disabled
+                      height={'85vh'}
+                      onChange={getChangeHandler()}
+                      showLineNumbers
+                      useAutoCompleteList={false}
+                      language={MONACO_LANGUAGE.json}
+                      monacoOptions={MONACO_PAYLOAD_OPTIONS}
+                    />
+                  </div>
                 </VerticalGroup>
               </div>
             </>

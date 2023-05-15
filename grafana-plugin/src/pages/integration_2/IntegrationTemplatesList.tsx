@@ -32,20 +32,21 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
   const { alertReceiveChannelStore } = useStore();
   const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
   const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   return (
     <div className={cx('integration__templates')}>
-      {templateRestoreName && (
+      {showConfirmModal && (
         <ConfirmModal
           isOpen={true}
-          title={'Reset Slack Template'}
-          confirmText={'Delete'}
+          title={undefined}
+          confirmText={'Reset'}
           dismissText="Cancel"
           body={'Are you sure you want to reset Slack Title template to default state?'}
           description={undefined}
           confirmationText={undefined}
           onConfirm={() => onResetTemplate(templateRestoreName)}
-          onDismiss={() => setTemplateRestoreName(undefined)}
+          onDismiss={() => onDismiss()}
         />
       )}
 
@@ -58,7 +59,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       <IntegrationBlockItem>
         <VerticalGroup>
           <IntegrationTemplateBlock
-            onRemove={() => setTemplateRestoreName('grouping_id_template')}
+            onRemove={() => onShowConfirmModal('grouping_id_template')}
             isLoading={isRestoringTemplate && templateRestoreName === 'grouping_id_template'}
             label={'Grouping'}
             renderInput={() => (
@@ -78,7 +79,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'resolve_condition_template'}
-            onRemove={() => setTemplateRestoreName('resolve_condition_template')}
+            onRemove={() => onShowConfirmModal('resolve_condition_template')}
             label={'Auto resolve'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -103,7 +104,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'web_title_template'}
-            onRemove={() => setTemplateRestoreName('web_title_template')}
+            onRemove={() => onShowConfirmModal('web_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -122,7 +123,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'web_message_template'}
-            onRemove={() => setTemplateRestoreName('web_message_template')}
+            onRemove={() => onShowConfirmModal('web_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -141,7 +142,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'web_image_url_template'}
-            onRemove={() => setTemplateRestoreName('web_image_url_template')}
+            onRemove={() => onShowConfirmModal('web_image_url_template')}
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -164,7 +165,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
         <VerticalGroup>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'acknowledge_condition_template'}
-            onRemove={() => setTemplateRestoreName('acknowledge_condition_template')}
+            onRemove={() => onShowConfirmModal('acknowledge_condition_template')}
             label={'Auto acknowledge'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -186,7 +187,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'source_link_template'}
-            onRemove={() => setTemplateRestoreName('source_link_template')}
+            onRemove={() => onShowConfirmModal('source_link_template')}
             label={'Source Link'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -209,7 +210,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
         <VerticalGroup>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'phone_call_title_template'}
-            onRemove={() => setTemplateRestoreName('phone_call_title_template')}
+            onRemove={() => onShowConfirmModal('phone_call_title_template')}
             label={'Phone Call'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -228,7 +229,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'sms_title_template'}
-            onRemove={() => setTemplateRestoreName('sms_title_template')}
+            onRemove={() => onShowConfirmModal('sms_title_template')}
             label={'SMS'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
@@ -253,7 +254,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'slack_title_template'}
-            onRemove={() => setTemplateRestoreName('slack_title_template')}
+            onRemove={() => onShowConfirmModal('slack_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -272,7 +273,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'slack_message_template'}
-            onRemove={() => setTemplateRestoreName('slack_message_template')}
+            onRemove={() => onShowConfirmModal('slack_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -291,7 +292,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'slack_image_url_template'}
-            onRemove={() => setTemplateRestoreName('slack_image_url_template')}
+            onRemove={() => onShowConfirmModal('slack_image_url_template')}
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -315,7 +316,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           <Text type={'primary'}>Telegram</Text>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'telegram_title_template'}
-            onRemove={() => setTemplateRestoreName('telegram_title_template')}
+            onRemove={() => onShowConfirmModal('telegram_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -334,7 +335,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'telegram_message_template'}
-            onRemove={() => setTemplateRestoreName('telegram_message_template')}
+            onRemove={() => onShowConfirmModal('telegram_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -353,7 +354,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'telegram_image_url_template'}
-            onRemove={() => setTemplateRestoreName('telegram_image_url_template')}
+            onRemove={() => onShowConfirmModal('telegram_image_url_template')}
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -377,7 +378,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           <Text type={'primary'}>Email</Text>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'email_title_template'}
-            onRemove={() => setTemplateRestoreName('email_title_template')}
+            onRemove={() => onShowConfirmModal('email_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -396,7 +397,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'email_message_template'}
-            onRemove={() => setTemplateRestoreName('email_message_template')}
+            onRemove={() => onShowConfirmModal('email_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
@@ -417,6 +418,16 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
     </div>
   );
 
+  function onShowConfirmModal(templateName: string) {
+    setTemplateRestoreName(templateName);
+    setShowConfirmModal(true);
+  }
+
+  function onDismiss() {
+    setTemplateRestoreName(undefined);
+    setShowConfirmModal(false);
+  }
+
   function onResetTemplate(templateName: string) {
     setTemplateRestoreName(undefined);
     setIsRestoringTemplate(true);
@@ -424,7 +435,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
     alertReceiveChannelStore
       .saveTemplates(alertReceiveChannelId, { [templateName]: '' })
       .then(() => {
-        openNotification('The Alert templates have been updated');
+        openNotification('The Alert template has been updated');
       })
       .catch((err) => {
         if (err.response?.data?.length > 0) {
@@ -435,6 +446,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       })
       .finally(() => {
         setIsRestoringTemplate(false);
+        setShowConfirmModal(false);
       });
   }
 };

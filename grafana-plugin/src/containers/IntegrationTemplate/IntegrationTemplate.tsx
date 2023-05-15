@@ -64,7 +64,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const getChangeHandler = () => {
     return debounce((value: string) => {
       setChangedTemplateBody(value);
-    }, 1000);
+    }, 500);
   };
 
   const onEditPayload = (alertPayload: string) => {

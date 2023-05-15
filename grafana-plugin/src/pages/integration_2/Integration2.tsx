@@ -563,8 +563,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   getTemplatesList = (): CascaderOption[] => INTEGRATION_TEMPLATES_LIST;
 
   openEditTemplateModal = (templateName, channelFilterId?: ChannelFilter['id']) => {
-    this.setState({ selectedTemplate: templateForEdit[templateName] });
-    this.setState({ isEditTemplateModalOpen: true });
+    this.setState({
+      isEditTemplateModalOpen: true,
+      selectedTemplate: templateForEdit[templateName],
+    });
 
     if (channelFilterId) {
       this.setState({ channelFilterIdForEdit: channelFilterId });
