@@ -15,10 +15,10 @@ import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_re
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
-import { form } from './IntegrationForm.config';
-import { prepareForEdit } from './IntegrationForm.helpers';
+import { form } from './IntegrationForm2.config';
+import { prepareForEdit } from './IntegrationForm2.helpers';
 
-import styles from './IntegrationForm.module.css';
+import styles from './IntegrationForm2.module.css';
 
 const cx = cn.bind(styles);
 
@@ -28,7 +28,7 @@ interface IntegrationFormProps {
   onUpdate: () => void;
 }
 
-const IntegrationForm = observer((props: IntegrationFormProps) => {
+const IntegrationForm2 = observer((props: IntegrationFormProps) => {
   const { id, onHide, onUpdate } = props;
 
   const store = useStore();
@@ -39,15 +39,12 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const [filterValue, setFilterValue] = useState('');
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
-  // const [showIntegrationListForm, setShowIntegrationListForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
 
   const data =
     id === 'new'
       ? { integration: selectedOption?.value, team: user.current_team }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
-
-  const integration = alertReceiveChannelStore.getIntegration(data);
 
   const handleSubmit = useCallback(
     (data: Partial<AlertReceiveChannel>) => {
@@ -81,7 +78,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   return (
     <>
       {id === 'new' && (
-        <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false}>
+        <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
               <div className={cx('search-integration')}>
@@ -98,7 +95,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                     return (
                       <Block
                         bordered
-                        shadowed
+                        hover
+                        withBackground
                         onClick={handleNewIntegrationOptionSelectCallback(alertReceiveChannelChoice)}
                         key={alertReceiveChannelChoice.value}
                         className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
@@ -107,18 +105,18 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                           <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
                         </div>
                         <div className={cx('title')}>
-                          <VerticalGroup spacing="none">
-                            <Text strong data-testid="integration-display-name">
-                              {alertReceiveChannelChoice.display_name}
-                            </Text>
+                          <VerticalGroup spacing={alertReceiveChannelChoice.featured ? 'xs' : 'none'}>
+                            <HorizontalGroup>
+                              <Text strong data-testid="integration-display-name">
+                                {alertReceiveChannelChoice.display_name}
+                              </Text>
+                              {alertReceiveChannelChoice.featured && <Tag name="Quick connect" colorIndex={5} />}
+                            </HorizontalGroup>
                             <Text type="secondary" size="small">
                               {alertReceiveChannelChoice.short_description}
                             </Text>
                           </VerticalGroup>
                         </div>
-                        {alertReceiveChannelChoice.featured && (
-                          <Tag name="Quick connect" className={cx('tag')} colorIndex={7} />
-                        )}
                       </Block>
                     );
                   })
@@ -133,13 +131,10 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       {(showNewIntegrationForm || id !== 'new') && (
         <Drawer
           scrollableContent
-          title={
-            id === 'new'
-              ? `New ${selectedOption?.display_name} integration`
-              : `Edit ${integration?.display_name} integration`
-          }
+          title={id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`}
           onClose={onHide}
           closeOnMaskClick={false}
+          width="640px"
         >
           <div className={cx('content')}>
             <VerticalGroup>
@@ -201,4 +196,4 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   );
 });
 
-export default IntegrationForm;
+export default IntegrationForm2;
