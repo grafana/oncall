@@ -165,6 +165,8 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_TOKEN",
     )
 
+    DEPENDENT_SETTINGS_PREFIXES = ("TWILIO",)
+
     def __str__(self):
         return self.name
 
@@ -206,13 +208,26 @@ class LiveSetting(models.Model):
         for setting_name in setting_names_to_populate:
             cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
 
-        cls.validate_settings()
+        cls.validate_dependent_settings(setting_names_to_populate)
 
     @classmethod
-    def validate_settings(cls):
-        settings_to_validate = cls.objects.all()
-        for setting in settings_to_validate:
-            setting.save(update_fields=["error"])
+    def validate_dependent_settings(cls, updated_settings):
+        validate_prefixes = cls._get_dependent_prefixes(updated_settings)
+
+        for prefix in validate_prefixes:
+            settings_to_validate = cls.objects.filter(name__startswith=prefix)
+            for setting in settings_to_validate:
+                setting.save(update_fields=["error"])
+
+    @classmethod
+    def _get_dependent_prefixes(cls, updated_settings):
+        prefixes = []
+        for dependent_prefix in cls.DEPENDENT_SETTINGS_PREFIXES:
+            for setting_name in updated_settings:
+                if setting_name.startswith(dependent_prefix):
+                    prefixes.append(dependent_prefix)
+                    break
+        return prefixes
 
     @staticmethod
     def _get_setting_from_setting_file(setting_name):
