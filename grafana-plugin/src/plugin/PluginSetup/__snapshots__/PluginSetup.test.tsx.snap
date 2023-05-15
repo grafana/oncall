@@ -62,6 +62,24 @@ exports[`PluginSetup app successfully initialized 1`] = `
 </div>
 `;
 
+exports[`PluginSetup currently undergoing maintenance 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      there is some sort of maintenance
+    </div>
+  </div>
+</div>
+`;
+
 exports[`PluginSetup there is an error message - retry setup 1`] = `
 <div>
   <div
