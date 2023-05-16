@@ -61,13 +61,15 @@ steps:
       ref:
         - refs/tags/v*.*.*
 
-  - name: Lint Everything
+  - name: Lint Backend
     image: python:3.11.3
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
       - pip install $(grep "pre-commit" engine/requirements.txt)
-      - pre-commit run --all-files
+      - pre-commit run isort --all-files
+      - pre-commit run black --all-files
+      - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
     image: python:3.11.3
@@ -148,7 +150,7 @@ services:
       RABBITMQ_DEFAULT_PASS: rabbitmq
 
   - name: mysql_test
-    image: mysql:5.7.25
+    image: mysql:8.0.32
     environment:
       MYSQL_DATABASE: oncall_local_dev
       MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -416,4 +418,4 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: a428b546ec4557971dfe3c7eeeac70ddf08faea7336607647ad3f146dd4cb46a
+hmac: 8f34bbbb5a2efe479b40d616b087a0c380390de2e440857bdffe8fd48d860e55

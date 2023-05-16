@@ -127,8 +127,8 @@ export const templateForEdit: { [id: string]: TemplateForEdit } = {
     displayName: 'Source link',
     description: '',
   },
-  routing: {
-    name: 'routing',
+  route_template: {
+    name: 'route_template',
     displayName: 'Routing',
     description:
       'Routes direct alerts to different escalation chains based on the content, such as severity or region.',

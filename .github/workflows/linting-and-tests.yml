@@ -101,7 +101,7 @@ jobs:
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:5.7.25
+        image: mysql:8.0.32
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -141,7 +141,7 @@ jobs:
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:5.7.25
+        image: mysql:8.0.32
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd

@@ -154,7 +154,7 @@ settings:
       - subteam_created
       - subteam_members_changed
       - subteam_updated
-      - user_change
+      - user_profile_changed
   interactivity:
     is_enabled: true
     request_url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/

@@ -27,6 +27,7 @@ from apps.schedules.constants import (
     ICAL_DATETIME_STAMP,
     ICAL_DATETIME_START,
     ICAL_LAST_MODIFIED,
+    ICAL_LOCATION,
     ICAL_STATUS,
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
@@ -289,11 +290,19 @@ class OnCallSchedule(PolymorphicModel):
         with_gap=False,
         filter_by=None,
         all_day_datetime=False,
+        from_cached_final=False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
         shifts = (
             list_of_oncall_shifts_from_ical(
-                self, starting_date, user_timezone, with_empty, with_gap, days=days, filter_by=filter_by
+                self,
+                starting_date,
+                user_timezone,
+                with_empty,
+                with_gap,
+                days=days,
+                filter_by=filter_by,
+                from_cached_final=from_cached_final,
             )
             or []
         )
@@ -365,6 +374,7 @@ class OnCallSchedule(PolymorphicModel):
                 event.add(ICAL_DATETIME_END, e["end"])
                 event.add(ICAL_DATETIME_STAMP, now)
                 event.add(ICAL_LAST_MODIFIED, now)
+                event.add(ICAL_LOCATION, self.CALENDAR_TYPE_VERBAL.get(e["calendar_type"], ""))
                 event_uid = "{}-{}-{}".format(e["shift"]["pk"], e["start"].strftime("%Y%m%d%H%S"), u["pk"])
                 event[ICAL_UID] = event_uid
                 calendar.add_component(event)
@@ -403,10 +413,15 @@ class OnCallSchedule(PolymorphicModel):
     def upcoming_shift_for_user(self, user, days=7):
         user_tz = user.timezone or "UTC"
         now = timezone.now()
-        starting_date = now.date()
+        # consider an extra day before to include events from UTC yesterday
+        starting_date = now.date() - timezone.timedelta(days=1)
         current_shift = upcoming_shift = None
 
-        events = self.final_events(user_tz, starting_date, days=days)
+        if self.cached_ical_final_schedule is None:
+            # no final schedule info available
+            return None, None
+
+        events = self.filter_events(user_tz, starting_date, days=days, all_day_datetime=True, from_cached_final=True)
         for e in events:
             if e["end"] < now:
                 # shift is finished, ignore

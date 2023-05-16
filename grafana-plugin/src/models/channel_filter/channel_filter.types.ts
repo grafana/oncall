@@ -17,6 +17,7 @@ export interface ChannelFilter {
   telegram_channel?: TelegramChannel['id'];
   created_at: string;
   filtering_term: string;
+  filtering_term_as_jinja2: string;
   filtering_term_type: FilteringTermType;
   is_default: boolean;
   notify_in_slack: boolean;

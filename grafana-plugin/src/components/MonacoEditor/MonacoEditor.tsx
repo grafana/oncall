@@ -4,19 +4,27 @@ import { CodeEditor, CodeEditorSuggestionItemKind, LoadingPlaceholder } from '@g
 
 import { getPaths } from 'utils';
 
-import { conf, language } from './jinja2';
+import { conf, language as jinja2Language } from './jinja2';
 
 declare const monaco: any;
 
-interface MonacoJinja2EditorProps {
+interface MonacoEditorProps {
   value: string;
   disabled?: boolean;
   height?: string;
+  focus?: boolean;
   data: any;
   showLineNumbers?: boolean;
+  useAutoCompleteList?: boolean;
+  language?: MONACO_LANGUAGE;
   onChange?: (value: string) => void;
   loading?: boolean;
   monacoOptions?: any;
+}
+
+export enum MONACO_LANGUAGE {
+  json = 'json',
+  jinja2 = 'jinja2',
 }
 
 const PREDEFINED_TERMS = [
@@ -27,8 +35,20 @@ const PREDEFINED_TERMS = [
   'tojson_pretty',
 ];
 
-const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
-  const { value, onChange, disabled, data, height, monacoOptions, showLineNumbers = true, loading = false } = props;
+const MonacoEditor: FC<MonacoEditorProps> = (props) => {
+  const {
+    value,
+    onChange,
+    disabled,
+    data,
+    language = MONACO_LANGUAGE.jinja2,
+    useAutoCompleteList = true,
+    focus = true,
+    height = '130px',
+    monacoOptions,
+    showLineNumbers = true,
+    loading = false,
+  } = props;
 
   const autoCompleteList = useCallback(
     () =>
@@ -45,18 +65,27 @@ const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
       onChange?.(editor.getValue());
     });
 
-    editor.focus();
+    if (focus) {
+      editor.focus();
+    }
 
-    const jinja2Lang = monaco.languages.getLanguages().find((l: { id: string }) => l.id === 'jinja2');
-    if (!jinja2Lang) {
-      monaco.languages.register({ id: 'jinja2' });
-      monaco.languages.setLanguageConfiguration('jinja2', conf);
-      monaco.languages.setMonarchTokensProvider('jinja2', language);
+    if (language === MONACO_LANGUAGE.jinja2) {
+      const jinja2Lang = monaco.languages.getLanguages().find((l: { id: string }) => l.id === 'jinja2');
+      if (!jinja2Lang) {
+        monaco.languages.register({ id: 'jinja2' });
+        monaco.languages.setLanguageConfiguration('jinja2', conf);
+        monaco.languages.setMonarchTokensProvider('jinja2', jinja2Language);
+      }
     }
   }, []);
 
   if (loading) {
     return <LoadingPlaceholder text="Loading..." />;
+  }
+
+  const otherProps: any = {};
+  if (useAutoCompleteList) {
+    otherProps.getSuggestions = { autoCompleteList };
   }
 
   return (
@@ -66,13 +95,13 @@ const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
       readOnly={disabled}
       showLineNumbers={showLineNumbers}
       value={value}
-      language="jinja2"
+      language={language}
       width="100%"
-      height={height ? `${height}` : `130px`}
+      height={height}
       onEditorDidMount={handleMount}
-      getSuggestions={autoCompleteList}
+      {...otherProps}
     />
   );
 };
 
-export default MonacoJinja2Editor;
+export default MonacoEditor;
