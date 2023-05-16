@@ -458,11 +458,24 @@ otherwise it will only display the value.  Fields which are not used are not sho
 
 ## Advanced usage
 
+### Using trigger template field
+
+The [trigger template field](#trigger-type) can be used to provide control over whether a webhook will execute.  
+This is useful in situations where many different kinds of alerts are going to the same integration but only some of
+them should call the webhook.  To accomplish this the trigger template field can contain a template that will process
+data from the alert group and evaluate to empty, True or 1 if the webhook should execute, any other values will result
+in the webhook not executing.
+
 ### Using response data
 
-### Advanced example
+The `responses` section of the payload makes available the responses of other webhooks that have acted on the same
+alert group.  To access them `responses` uses the `id` of the webhook as a key. The response data of the most recent
+execution of the webhook for this same alert group can be accessed this way.
 
-Provide a ServiceNOW or JIRA example?
+The typical application of this is where a webhook will create a ticket in another system and OnCall needs to use
+the `id` of that ticket to keep its status synchronized with the state changes being made in OnCall.
+
+### Advanced examples
 
 Integrate with third-party services:
 
