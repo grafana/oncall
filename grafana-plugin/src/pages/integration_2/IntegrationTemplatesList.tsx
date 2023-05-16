@@ -5,16 +5,16 @@ import cn from 'classnames/bind';
 
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
+import { useStore } from 'state/useStore';
+import { openErrorNotification, openNotification } from 'utils';
 
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from './Integration2.config';
 import IntegrationHelper from './Integration2.helper';
 import styles from './Integration2.module.scss';
 import IntegrationBlockItem from './IntegrationBlockItem';
 import IntegrationTemplateBlock from './IntegrationTemplateBlock';
-import { useStore } from 'state/useStore';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { openErrorNotification, openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
