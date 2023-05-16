@@ -398,6 +398,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                     ? this.getRoutingTemplate(isNewRoute, channelFilterIdForEdit)
                     : templates[selectedTemplate?.name]
                 }
+                templates={templates}
               />
             )}
             {isEditRegexpRouteTemplateModalOpen && (

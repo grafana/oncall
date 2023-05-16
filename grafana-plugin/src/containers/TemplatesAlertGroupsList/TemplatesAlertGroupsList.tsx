@@ -8,6 +8,7 @@ import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 
@@ -16,13 +17,14 @@ import styles from './TemplatesAlertGroupsList.module.css';
 const cx = cn.bind(styles);
 
 interface TemplatesAlertGroupsListProps {
+  templates: AlertTemplatesDTO[];
   alertReceiveChannelId: AlertReceiveChannel['id'];
   onSelectAlertGroup?: (alertGroup: Alert) => void;
   onEditPayload?: (payload: string) => void;
 }
 
 const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
-  const { alertReceiveChannelId, onEditPayload, onSelectAlertGroup } = props;
+  const { alertReceiveChannelId, templates, onEditPayload, onSelectAlertGroup } = props;
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
   const [selectedAlertPayload, setSelectedAlertPayload] = useState<string>(undefined);
@@ -80,7 +82,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <div className={cx('alert-groups-list')}>
                 <MonacoJinja2Editor
                   value={JSON.stringify(selectedAlertPayload, null, 4)}
-                  data={undefined}
+                  data={templates}
                   height={'85vh'}
                   onChange={getChangeHandler()}
                   showLineNumbers
@@ -126,7 +128,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <div className={cx('alert-groups-list')}>
                 <MonacoJinja2Editor
                   value={null}
-                  data={undefined}
+                  data={templates}
                   height={'85vh'}
                   onChange={getChangeHandler()}
                   showLineNumbers

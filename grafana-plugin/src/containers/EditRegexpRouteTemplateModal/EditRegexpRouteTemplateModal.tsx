@@ -29,7 +29,9 @@ interface EditRegexpRouteTemplateModalProps {
 const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateModalProps) => {
   const { onHide, onUpdateRoute, channelFilterId, onOpenEditIntegrationTemplate, alertReceiveChannelId } = props;
   const store = useStore();
+
   const regexpBody = store.alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term;
+
   const [regexpTemplateBody, setRegexpTemplateBody] = useState<string>(regexpBody);
 
   const templateJinja2Body = store.alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term_as_jinja2;

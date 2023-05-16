@@ -35,11 +35,7 @@ interface ExpandedIntegrationRouteDisplayProps {
   routeIndex: number;
   templates: AlertTemplatesDTO[];
   openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
-  onEditRegexpTemplate: (
-    templateRegexpBody: string,
-    templateJijja2Body: string,
-    channelFilterId: ChannelFilter['id']
-  ) => void;
+  onEditRegexpTemplate: (channelFilterId: ChannelFilter['id']) => void;
 }
 
 interface ExpandedIntegrationRouteDisplayState {
@@ -242,7 +238,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     function handleEditRoutingTemplate(channelFilter, channelFilterId) {
       if (channelFilter.filtering_term_type === 0) {
-        onEditRegexpTemplate(channelFilter.filtering_term, channelFilter.filtering_term_as_jinja2, channelFilterId);
+        onEditRegexpTemplate(channelFilterId);
       } else {
         openEditTemplateModal('route_template', channelFilterId);
       }

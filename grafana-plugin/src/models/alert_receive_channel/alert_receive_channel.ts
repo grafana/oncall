@@ -109,27 +109,6 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   @action
   async updateItems(query: any = '') {
-    // const filters = typeof query === 'string' ? { search: query } : query;
-    // const { search } = filters;
-    // const { count, results } = await makeRequest(this.path, { params: { search, page } });
-
-    // this.items = {
-    //   ...this.items,
-    //   ...results.reduce(
-    //     (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
-    //       ...acc,
-    //       [item.id]: omit(item, 'heartbeat'),
-    //     }),
-    //     {}
-    //   ),
-    // };
-
-    // this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
-    // this.searchResult = {
-    //   count,
-    //   results: results.map((item: AlertReceiveChannel) => item.id),
-    // };
-
     const params = typeof query === 'string' ? { search: query } : query;
 
     const result = await makeRequest(this.path, { params });
