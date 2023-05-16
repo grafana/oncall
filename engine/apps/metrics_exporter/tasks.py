@@ -82,7 +82,11 @@ def calculate_and_cache_metrics(organization_id, force=False):
 
     integrations = (
         AlertReceiveChannel.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
-        .filter(~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE) & Q(organization__deleted_at__isnull=True))
+        .filter(
+            ~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE)
+            & Q(organization__deleted_at__isnull=True)
+            & Q(organization_id=organization_id)
+        )
         .select_related("organization", "team")
         .prefetch_related("alert_groups")
     )

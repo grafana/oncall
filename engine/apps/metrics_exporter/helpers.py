@@ -109,8 +109,9 @@ def metrics_remove_deleted_integration_from_cache(integration):
 
     for metric_key in [metric_alert_groups_total_key, metric_alert_groups_response_time_key]:
         metric_cache = cache.get(metric_key)
-        metric_cache.pop(integration.id, None)
-        cache.set(metric_key, metric_cache, timeout=metrics_cache_timeout)
+        if metric_cache:
+            metric_cache.pop(integration.id, None)
+            cache.set(metric_key, metric_cache, timeout=metrics_cache_timeout)
 
 
 def metrics_add_integration_to_cache(integration):
@@ -167,25 +168,25 @@ def metrics_bulk_update_team_label_cache(teams_updated_data, organization_id):
     if not teams_updated_data:
         return
     metrics_cache_timeout = get_metrics_cache_timeout(organization_id)
-    metric_alert_groups_total = cache.get(ALERT_GROUPS_TOTAL, {})
-    response_time_metrics = cache.get(ALERT_GROUPS_RESPONSE_TIME, {})
+    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
+    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
+
+    metric_alert_groups_total = cache.get(metric_alert_groups_total_key, {})
+    metric_alert_groups_response_time = cache.get(metric_alert_groups_response_time_key, {})
     for team_id, team_data in teams_updated_data.items():
         for integration_id in metric_alert_groups_total:
             if metric_alert_groups_total[integration_id]["team_id"] == team_id:
-                integration_response_time_metrics = response_time_metrics.get(integration_id)
+                integration_response_time_metrics = metric_alert_groups_response_time.get(integration_id)
                 if team_data["deleted"]:
-                    metric_alert_groups_total[integration_id]["team_id"] = None
+                    metric_alert_groups_total[integration_id]["team_id"] = "no_team"
                     metric_alert_groups_total[integration_id]["team_name"] = "No team"
                     if integration_response_time_metrics:
-                        integration_response_time_metrics["team_id"] = None
+                        integration_response_time_metrics["team_id"] = "no_team"
                         integration_response_time_metrics["team_name"] = "No team"
                 else:
                     metric_alert_groups_total[integration_id]["team_name"] = team_data["team_name"]
                     if integration_response_time_metrics:
                         integration_response_time_metrics["team_name"] = team_data["team_name"]
 
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
-
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
-    cache.set(metric_alert_groups_response_time_key, response_time_metrics, timeout=metrics_cache_timeout)
+    cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)
