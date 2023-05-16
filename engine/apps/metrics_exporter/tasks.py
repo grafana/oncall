@@ -168,6 +168,8 @@ def metrics_update_alert_groups_state_cache(states_diff, organization_id=None):
     metrics_cache_timeout = get_metrics_cache_timeout(organization_id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
     metric_alert_groups_total = cache.get(metric_alert_groups_total_key, {})
+    if not metric_alert_groups_total:
+        return
     for integration_id, integration_states_diff in states_diff.items():
         integration_alert_groups = metric_alert_groups_total.get(int(integration_id))
         if not integration_alert_groups:
@@ -197,6 +199,8 @@ def metrics_update_alert_groups_response_time_cache(integrations_response_time, 
     metrics_cache_timeout = get_metrics_cache_timeout(organization_id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
     metric_alert_groups_response_time = cache.get(metric_alert_groups_response_time_key, {})
+    if not metric_alert_groups_response_time:
+        return
     for integration_id, integration_response_time in integrations_response_time.items():
         integration_response_time_metrics = metric_alert_groups_response_time.get(int(integration_id))
         if not integration_response_time_metrics:
