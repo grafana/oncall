@@ -1,10 +1,14 @@
 import json
+import random
+import string
 
 from fcm_django.models import FCMDevice
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.tasks import FCMMessageData, MessageType, _construct_fcm_message, _send_push_notification
 from apps.user_management.models import User
+
+TEST_PUSH_TITLE = "Hi, this is a test notification from Grafana OnCall"
 
 
 def send_test_push(user, critical=False):
@@ -18,8 +22,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
     # to have same notification/sound/overrideDND logic. Ideally this logic should be abstracted, not repeated.
     from apps.mobile_app.models import MobileAppUserSettings
 
-    thread_id = f"test_push"
-    test_push_title = "Test push"
+    thread_id = f"{''.join(random.choices(string.digits, k=6))}:test_push"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
     # critical defines the type of notification.
@@ -35,7 +38,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
     ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
 
     fcm_message_data: FCMMessageData = {
-        "title": test_push_title,
+        "title": TEST_PUSH_TITLE,
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": (
             mobile_app_user_settings.default_notification_sound_name
