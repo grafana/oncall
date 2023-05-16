@@ -18,6 +18,7 @@ import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
 import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import LocationHelper from 'utils/LocationHelper';
@@ -31,13 +32,14 @@ interface IntegrationTemplateProps {
   channelFilterId?: ChannelFilter['id'];
   template: TemplateForEdit;
   templateBody: string;
+  templates: AlertTemplatesDTO[];
   onHide: () => void;
   onUpdateTemplates: (values: any) => void;
   onUpdateRoute: (values: any, channelFilterId?: ChannelFilter['id']) => void;
 }
 
 const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
-  const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId } = props;
+  const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId, templates } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [chatOps, setChatOps] = useState(undefined);
@@ -169,6 +171,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}
+            templates={templates}
           />
           {isCheatSheetVisible ? (
             <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
@@ -187,7 +190,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
                 <MonacoEditor
                   value={templateBody}
-                  data={undefined}
+                  data={templates}
                   showLineNumbers={true}
                   height={'85vh'}
                   onChange={getChangeHandler()}
@@ -195,7 +198,6 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
               </div>
             </>
           )}
-          {/* {alertGroupPayload || resultError ? ( */}
           <Result
             alertReceiveChannelId={id}
             templateName={template.name}
@@ -206,13 +208,6 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             error={resultError}
             onSaveAndFollowLink={onSaveAndFollowLink}
           />
-          {/* ) : (
-            <div className={cx('template-block-result')}>
-              <div className={cx('template-block-title')}>
-                <Text>Please select Alert group to see end result</Text>
-              </div>
-            </div>
-          )} */}
         </div>
       </div>
     </Drawer>
