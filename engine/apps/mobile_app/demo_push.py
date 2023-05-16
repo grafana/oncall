@@ -64,7 +64,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
     apns_payload = APNSPayload(
         aps=Aps(
             thread_id=thread_id,
-            alert=ApsAlert(title=fcm_message_data),
+            alert=ApsAlert(title=test_push_title),
             sound=CriticalSound(
                 # The notification shouldn't be critical if the user has disabled "override DND" setting
                 critical=overrideDND,
