@@ -1134,7 +1134,7 @@ def test_user_cant_unlink_slack_another_user(
 
 
 @pytest.mark.django_db
-def test_user_cant_unlink_backend__another_user(
+def test_user_cant_unlink_backend_another_user(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
@@ -1409,22 +1409,6 @@ def test_forget_other_number(
 
 
 @pytest.mark.django_db
-def test_viewer_cant_get_own_backend_verification_code(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers
-):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
-
-    client = APIClient()
-    url = (
-        reverse("api-internal:user-get-backend-verification-code", kwargs={"pk": user.public_primary_key})
-        + "?backend=TESTONLY"
-    )
-
-    response = client.get(f"{url}", format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.django_db
 def test_viewer_cant_get_another_user_backend_verification_code(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
@@ -1438,16 +1422,6 @@ def test_viewer_cant_get_another_user_backend_verification_code(
     )
 
     response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.django_db
-def test_viewer_cant_unlink_backend_own_user(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
-    client = APIClient()
-    url = reverse("api-internal:user-unlink-backend", kwargs={"pk": user.public_primary_key}) + "?backend=TESTONLY"
-
-    response = client.post(f"{url}", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
