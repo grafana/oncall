@@ -10,8 +10,10 @@ import GForm from 'components/GForm/GForm';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
+import {
+  AlertReceiveChannel,
+  AlertReceiveChannelOption,
+} from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 

@@ -79,7 +79,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
     } else {
       let elem = configElements[i] as IntegrationCollapsibleItem;
       if (elem.onStateChange) {
-        elem.onStateChange;
+        elem.onStateChange();
       }
     }
 
