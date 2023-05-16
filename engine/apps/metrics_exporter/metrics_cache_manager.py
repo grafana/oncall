@@ -90,26 +90,3 @@ class MetricsCacheManager:
             MetricsCacheManager.metrics_update_state_cache_for_alert_group(
                 integration_id, organization_id, old_state, new_state
             )
-
-    @staticmethod
-    def metrics_update_diff_for_alert_group(
-        integration_id,
-        response_time_diff,
-        states_diff,
-        old_state=None,
-        new_state=None,
-        response_time=None,
-        started_at=None,
-    ):
-        """Update state and response time metrics diff dicts for alert group"""
-        if response_time and old_state == STATE_FIRING and started_at > get_response_time_period():
-            response_time_seconds = int(response_time.total_seconds())
-            response_time_diff = MetricsCacheManager.update_integration_response_time_diff(
-                response_time_diff, integration_id, response_time_seconds
-            )
-
-        if old_state or new_state:
-            states_diff = MetricsCacheManager.update_integration_states_diff(
-                states_diff, integration_id, old_state, new_state
-            )
-        return response_time_diff, states_diff
