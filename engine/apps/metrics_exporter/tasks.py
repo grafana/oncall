@@ -130,7 +130,6 @@ def calculate_and_cache_metrics(organization_id, force=False):
             elif alert_group.state != STATE_FIRING:
                 response_time = alert_group.get_response_time()
                 if response_time:
-                    alert_group.response_time = response_time
                     all_response_time.append(int(response_time.total_seconds()))
 
         metric_alert_group_response_time[integration.id] = {
