@@ -70,6 +70,11 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       return null;
     }
 
+    const escalationChainRedirectObj: any = { page: 'escalations' };
+    if (channelFilter.escalation_chain) {
+      escalationChainRedirectObj.id = channelFilter.escalation_chain;
+    }
+
     return (
       <>
         <IntegrationBlock
@@ -80,7 +85,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               <HorizontalGroup spacing={'md'}>
                 <TooltipBadge
                   borderType="success"
-                  text={IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}
+                  text={IntegrationHelper.getRouteConditionWording(
+                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+                    routeIndex
+                  )}
                   tooltipTitle={undefined}
                   tooltipContent={undefined}
                 />
@@ -97,35 +105,31 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           }
           content={
             <VerticalGroup spacing="xs">
-              {routeIndex !== channelFiltersTotal.length - 1 && (
-                <IntegrationBlockItem>
-                  <HorizontalGroup spacing="xs">
-                    <InlineLabel width={20} tooltip={'TODO: Add text'}>
-                      Routing Template
-                    </InlineLabel>
-                    <div className={cx('input', 'input--short')}>
-                      <MonacoEditor
-                        value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
-                        disabled={true}
-                        height={MONACO_INPUT_HEIGHT_SMALL}
-                        data={templates}
-                        showLineNumbers={false}
-                        monacoOptions={MONACO_OPTIONS}
-                      />
-                    </div>
-                    <Button
-                      variant={'secondary'}
-                      icon="edit"
-                      size={'md'}
-                      onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+              <IntegrationBlockItem>
+                <HorizontalGroup spacing="xs">
+                  <InlineLabel width={20}>Routing Template</InlineLabel>
+                  <div className={cx('input', 'input--short')}>
+                    <MonacoEditor
+                      value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
+                      disabled={true}
+                      height={MONACO_INPUT_HEIGHT_SMALL}
+                      data={templates}
+                      showLineNumbers={false}
+                      monacoOptions={MONACO_OPTIONS}
                     />
-                    <Button variant="secondary" size="md" onClick={undefined}>
-                      <Text type="link">Help</Text>
-                      <Icon name="angle-down" size="sm" />
-                    </Button>
-                  </HorizontalGroup>
-                </IntegrationBlockItem>
-              )}
+                  </div>
+                  <Button
+                    variant={'secondary'}
+                    icon="edit"
+                    size={'md'}
+                    onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
+                  />
+                  <Button variant="secondary" size="md" onClick={undefined}>
+                    <Text type="link">Help</Text>
+                    <Icon name="angle-down" size="sm" />
+                  </Button>
+                </HorizontalGroup>
+              </IntegrationBlockItem>
 
               {routeIndex !== channelFiltersTotal.length - 1 && (
                 <IntegrationBlockItem>
@@ -180,15 +184,14 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
                     <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
 
-                    {channelFilter.escalation_chain && (
-                      <PluginLink
-                        className={cx('hover-button')}
-                        target="_blank"
-                        query={{ page: 'escalations', id: channelFilter.escalation_chain }}
-                      >
-                        <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
-                      </PluginLink>
-                    )}
+                    <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
+                      <Button
+                        variant={'secondary'}
+                        tooltip={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add escalation chain'}
+                        icon={'external-link-alt'}
+                        size={'md'}
+                      />
+                    </PluginLink>
 
                     {channelFilter.escalation_chain && (
                       <Button

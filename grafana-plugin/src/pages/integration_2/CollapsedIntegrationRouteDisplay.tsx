@@ -46,7 +46,10 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
               <HorizontalGroup spacing={'md'}>
                 <TooltipBadge
                   borderType="success"
-                  text={IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}
+                  text={IntegrationHelper.getRouteConditionWording(
+                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+                    routeIndex
+                  )}
                   tooltipTitle={undefined}
                   tooltipContent={undefined}
                 />

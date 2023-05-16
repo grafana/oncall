@@ -251,7 +251,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
 
     if (isOverwrite) {
-      // This is needed because on Move Up/Down/Removal the store no longer reflects correct state
+      // This is needed because on Move Up/Down/Removal the store no longer reflects the correct state
       this.channelFilters = {
         ...channelFilters,
       };

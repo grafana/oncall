@@ -31,7 +31,7 @@ const IntegrationHelper = {
     return slice.length === line.length ? slice : `${slice} ...`;
   },
 
-  getRouteConditionWording(channelFilters: { [id: string]: ChannelFilter }, routeIndex: number) {
+  getRouteConditionWording(channelFilters: ChannelFilter['id'][], routeIndex: number) {
     const totalCount = Object.keys(channelFilters).length;
 
     if (routeIndex === totalCount - 1) {

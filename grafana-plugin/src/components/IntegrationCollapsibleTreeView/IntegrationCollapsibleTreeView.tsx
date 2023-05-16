@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { IconButton, IconName } from '@grafana/ui';
+import { Icon, IconButton, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { isArray, isUndefined } from 'lodash-es';
 
@@ -14,6 +14,7 @@ export interface IntegrationCollapsibleItem {
   collapsedView: React.ReactNode;
   isCollapsible: boolean;
   isExpanded?: boolean;
+  canHoverIcon?: boolean;
   onStateChange?(): void;
 }
 
@@ -96,15 +97,22 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   }
 };
 
-const IntegrationCollapsibleTreeItem: React.FC<{ item: IntegrationCollapsibleItem; isExpanded: boolean; onClick }> = ({
-  item,
-  isExpanded,
-  onClick,
-}) => {
+const IntegrationCollapsibleTreeItem: React.FC<{
+  item: IntegrationCollapsibleItem;
+  isExpanded: boolean;
+  onClick: () => void;
+  canHoverIcon?: boolean;
+}> = ({ item, isExpanded, onClick, canHoverIcon = true }) => {
+  const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
+
   return (
     <div className={cx('integrationTree__group')}>
       <div className={cx('integrationTree__icon')}>
-        <IconButton name={getIconName()} onClick={!item.isCollapsible ? undefined : onClick} size="lg" />
+        {canHoverIcon ? (
+          <IconButton name={getIconName()} onClick={iconOnClickFn} size="lg" />
+        ) : (
+          <Icon name={getIconName()} onClick={iconOnClickFn} size="lg" />
+        )}
       </div>
       <div className={cx('integrationTree__element', { 'integrationTree__element--visible': isExpanded })}>
         {item.expandedView}

@@ -199,14 +199,20 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
               <HorizontalGroup>
                 {alertReceiveChannelCounter && (
-                  <TooltipBadge
-                    borderType="primary"
-                    tooltipTitle={undefined}
-                    tooltipContent={this.getAlertReceiveChannelCounterTooltip()}
-                    text={
-                      alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count
-                    }
-                  />
+                  <PluginLink
+                    className={cx('hover-button')}
+                    target="_blank"
+                    query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
+                  >
+                    <TooltipBadge
+                      borderType="primary"
+                      tooltipTitle={undefined}
+                      tooltipContent={this.getAlertReceiveChannelCounterTooltip()}
+                      text={
+                        alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count
+                      }
+                    />
+                  </PluginLink>
                 )}
 
                 <TooltipBadge
@@ -259,9 +265,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   expandedView: <HowToConnectComponent id={id} />,
                 },
                 {
-                  customIcon: 'plus',
+                  customIcon: 'layer-group',
                   isExpanded: false,
                   isCollapsible: false,
+                  canHoverIcon: false,
                   expandedView: (
                     <IntegrationBlock
                       hasCollapsedBorder
@@ -317,9 +324,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   collapsedView: undefined,
                 },
                 {
-                  customIcon: 'plus',
+                  customIcon: 'code-branch',
                   isCollapsible: false,
                   collapsedView: null,
+                  canHoverIcon: false,
                   expandedView: (
                     <div className={cx('routesSection')}>
                       <VerticalGroup spacing="md">
@@ -475,6 +483,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     const heartbeat = heartbeatStore.items[heartbeatId];
 
     const heartbeatStatus = Boolean(heartbeat?.status);
+
+    if (!alertReceiveChannel.heartbeat) {
+      return null;
+    }
 
     return (
       <TooltipBadge
@@ -879,7 +891,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                     onClick={() => {
                       setConfirmModal({
                         isOpen: true,
-                        title: 'Are you sure you want to delete integration?',
+                        title: (
+                          <>
+                            Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
+                            integration?
+                          </>
+                        ),
                         body: <>This action cannot be undone.</>,
                         onConfirm: deleteIntegration,
                         dismissText: 'Cancel',
@@ -974,7 +991,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
         <VerticalGroup justify={'flex-start'} spacing={'xs'}>
           {!hasAlerts && (
             <HorizontalGroup spacing={'xs'}>
-              <LoadingPlaceholder text="" className={cx('loadingPlaceholder')} />
+              <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
               <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
             </HorizontalGroup>
           )}
