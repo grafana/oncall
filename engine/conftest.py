@@ -422,6 +422,17 @@ def make_alert_receive_channel():
 
 
 @pytest.fixture
+def make_alert_receive_channel_with_post_save_signal():
+    def _make_alert_receive_channel(organization, **kwargs):
+        if "integration" not in kwargs:
+            kwargs["integration"] = AlertReceiveChannel.INTEGRATION_GRAFANA
+        alert_receive_channel = AlertReceiveChannelFactory(organization=organization, **kwargs)
+        return alert_receive_channel
+
+    return _make_alert_receive_channel
+
+
+@pytest.fixture
 def make_channel_filter():
     def _make_channel_filter(alert_receive_channel, filtering_term=None, **kwargs):
         channel_filter = ChannelFilterFactory(
