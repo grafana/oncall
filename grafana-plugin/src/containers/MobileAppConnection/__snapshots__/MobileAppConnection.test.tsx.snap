@@ -55,7 +55,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -80,7 +80,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2400,7 +2400,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2425,7 +2425,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2513,7 +2513,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2538,7 +2538,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2626,7 +2626,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2651,7 +2651,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2739,7 +2739,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2764,7 +2764,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2952,7 +2952,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2977,7 +2977,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -3056,7 +3056,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -3081,7 +3081,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>

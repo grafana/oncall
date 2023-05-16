@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { ButtonCascader, CascaderOption, VerticalGroup } from '@grafana/ui';
+import { ConfirmModal, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
+import { useStore } from 'state/useStore';
+import { openErrorNotification, openNotification } from 'utils';
 
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from './Integration2.config';
 import IntegrationHelper from './Integration2.helper';
@@ -17,31 +20,36 @@ const cx = cn.bind(styles);
 
 interface IntegrationTemplateListProps {
   templates: AlertTemplatesDTO[];
-  getTemplatesList(): CascaderOption[];
+  alertReceiveChannelId: AlertReceiveChannel['id'];
   openEditTemplateModal: (templateName: string | string[]) => void;
 }
 
 const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
   templates,
   openEditTemplateModal,
-  getTemplatesList,
+  alertReceiveChannelId,
 }) => {
-  const isAutoAcknOrSourceLinkChanged =
-    !templates['acknowledge_condition_template_is_default'] || !templates['source_link_template'];
-  const isPhoneOrSMSChanged =
-    !templates['sms_title_template_is_default'] || !templates['phone_call_title_template_is_default'];
-  const isSlackChanged =
-    !templates['slack_title_template_is_default'] ||
-    !templates['slack_message_template_is_default'] ||
-    !templates['slack_image_url_template_is_default'];
-  const isTelegramChanged =
-    !templates['telegram_title_template_is_default'] ||
-    !templates['telegram_message_template_is_default'] ||
-    !templates['telegram_image_url_template_is_default'];
-  const isEmailOrMessageChanged = !templates['email_title_template_is_default'] || !templates['email_message_template'];
+  const { alertReceiveChannelStore } = useStore();
+  const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
+  const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   return (
     <div className={cx('integration__templates')}>
+      {showConfirmModal && (
+        <ConfirmModal
+          isOpen={true}
+          title={undefined}
+          confirmText={'Reset'}
+          dismissText="Cancel"
+          body={'Are you sure you want to reset Slack Title template to default state?'}
+          description={undefined}
+          confirmationText={undefined}
+          onConfirm={() => onResetTemplate(templateRestoreName)}
+          onDismiss={() => onDismiss()}
+        />
+      )}
+
       <IntegrationBlockItem>
         <Text type="secondary">
           Templates are used to interpret alert from monitoring. Reduce noise, customize visualization
@@ -51,10 +59,12 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       <IntegrationBlockItem>
         <VerticalGroup>
           <IntegrationTemplateBlock
+            onRemove={() => onShowConfirmModal('grouping_id_template')}
+            isLoading={isRestoringTemplate && templateRestoreName === 'grouping_id_template'}
             label={'Grouping'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['grouping_id_template'] || '', false)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_SMALL}
@@ -64,15 +74,16 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 />
               </div>
             )}
-            showHelp
             onEdit={() => openEditTemplateModal('grouping_id_template')}
           />
 
           <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'resolve_condition_template'}
+            onRemove={() => onShowConfirmModal('resolve_condition_template')}
             label={'Auto resolve'}
             renderInput={() => (
               <div className={cx('input', 'input--short')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['resolve_condition_template'] || '', false)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_SMALL}
@@ -92,10 +103,12 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           <Text type={'primary'}>Web</Text>
 
           <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'web_title_template'}
+            onRemove={() => onShowConfirmModal('web_title_template')}
             label={'Title'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['web_title_template'] || '', true)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_TALL}
@@ -109,10 +122,12 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'web_message_template'}
+            onRemove={() => onShowConfirmModal('web_message_template')}
             label={'Message'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['web_message_template'] || '', true)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_TALL}
@@ -126,10 +141,12 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
           />
 
           <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'web_image_url_template'}
+            onRemove={() => onShowConfirmModal('web_image_url_template')}
             label={'Image'}
             renderInput={() => (
               <div className={cx('input', 'input--long')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={IntegrationHelper.getFilteredTemplate(templates['web_image_url_template'] || '', false)}
                   disabled={true}
                   height={MONACO_INPUT_HEIGHT_SMALL}
@@ -144,305 +161,294 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
         </VerticalGroup>
       </IntegrationBlockItem>
 
-      {isAutoAcknOrSourceLinkChanged && (
-        <IntegrationBlockItem>
-          <VerticalGroup>
-            {!templates['acknowledge_condition_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Auto acknowledge'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(
-                        templates['acknowledge_condition_template'] || '',
-                        false
-                      )}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('acknowledge_condition_template')}
-                showHelp
-              />
+      <IntegrationBlockItem>
+        <VerticalGroup>
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'acknowledge_condition_template'}
+            onRemove={() => onShowConfirmModal('acknowledge_condition_template')}
+            label={'Auto acknowledge'}
+            renderInput={() => (
+              <div className={cx('input', 'input--short')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(
+                    templates['acknowledge_condition_template'] || '',
+                    false
+                  )}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
             )}
+            onEdit={() => openEditTemplateModal('acknowledge_condition_template')}
+          />
 
-            {!templates['source_link_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Source Link'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['source_link_template'] || '', false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('source_link_template')}
-              />
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'source_link_template'}
+            onRemove={() => onShowConfirmModal('source_link_template')}
+            label={'Source Link'}
+            renderInput={() => (
+              <div className={cx('input', 'input--short')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['source_link_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
             )}
-          </VerticalGroup>
-        </IntegrationBlockItem>
-      )}
-
-      {isPhoneOrSMSChanged && (
-        <IntegrationBlockItem>
-          <VerticalGroup>
-            {!templates['phone_call_title_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Phone Call'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['phone_call_title_template'] || '', false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('phone_call_title_template')}
-                showHelp
-              />
-            )}
-
-            {!templates['sms_title_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'SMS'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--short')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['sms_title_template'] || '', false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('sms_title_template')}
-              />
-            )}
-          </VerticalGroup>
-        </IntegrationBlockItem>
-      )}
-
-      {isSlackChanged && (
-        <IntegrationBlockItem>
-          <VerticalGroup>
-            <Text type={'primary'}>Slack</Text>
-
-            {!templates['slack_title_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Title'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['slack_title_template'] || '', false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('slack_title_template')}
-              />
-            )}
-
-            {!templates['slack_message_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Message'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['slack_message_template'] || '', true)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_TALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('slack_message_template')}
-              />
-            )}
-
-            {!templates['slack_image_url_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Image'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['slack_image_url_template'] || '', false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('slack_image_url_template')}
-              />
-            )}
-          </VerticalGroup>
-        </IntegrationBlockItem>
-      )}
-
-      {isTelegramChanged && (
-        <IntegrationBlockItem>
-          <VerticalGroup>
-            <Text type={'primary'}>Telegram</Text>
-            {!templates['telegram_title_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Title'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['telegram_title_template'] || '', false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('telegram_title_template')}
-              />
-            )}
-
-            {!templates['telegram_message_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Message'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['telegram_message_template'] || '', true)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_TALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('telegram_message_template')}
-              />
-            )}
-
-            {!templates['telegram_image_url_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Image'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(
-                        templates['telegram_image_url_template'] || '',
-                        false
-                      )}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('telegram_image_url_template')}
-              />
-            )}
-          </VerticalGroup>
-        </IntegrationBlockItem>
-      )}
-
-      {isEmailOrMessageChanged && (
-        <IntegrationBlockItem>
-          <VerticalGroup>
-            <Text type={'primary'}>Email</Text>
-            {!templates['email_title_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Title'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['email_title_template'] || '', false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('email_title_template')}
-              />
-            )}
-
-            {!templates['email_message_template_is_default'] && (
-              <IntegrationTemplateBlock
-                label={'Message'}
-                renderInput={() => (
-                  <div className={cx('input', 'input--long')}>
-                    <MonacoJinja2Editor
-                      value={IntegrationHelper.getFilteredTemplate(templates['email_message_template'] || '', true)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_TALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
-                )}
-                onEdit={() => openEditTemplateModal('email_message_template')}
-              />
-            )}
-          </VerticalGroup>
-        </IntegrationBlockItem>
-      )}
+            onEdit={() => openEditTemplateModal('source_link_template')}
+          />
+        </VerticalGroup>
+      </IntegrationBlockItem>
 
       <IntegrationBlockItem>
         <VerticalGroup>
-          <Text type={'secondary'}>By default alert groups rendered based on Web templates.</Text>
-          <Text type={'secondary'}>
-            Customise how they rendered in SMS, Phone Calls, Mobile App, Slack, Telegram, MS Teams{' '}
-          </Text>
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'phone_call_title_template'}
+            onRemove={() => onShowConfirmModal('phone_call_title_template')}
+            label={'Phone Call'}
+            renderInput={() => (
+              <div className={cx('input', 'input--short')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['phone_call_title_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('phone_call_title_template')}
+          />
 
-          <div className={cx('customise-button')}>
-            <ButtonCascader
-              variant="secondary"
-              onChange={(_key) => {
-                if (Object.values(_key).length > 1) {
-                  openEditTemplateModal(Object.values(_key)[1]);
-                } else {
-                  openEditTemplateModal(_key);
-                }
-              }}
-              options={getTemplatesList()}
-              icon="plus"
-              value={undefined}
-              buttonProps={{ size: 'sm' }}
-            >
-              Customise templates
-            </ButtonCascader>
-          </div>
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'sms_title_template'}
+            onRemove={() => onShowConfirmModal('sms_title_template')}
+            label={'SMS'}
+            renderInput={() => (
+              <div className={cx('input', 'input--short')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['sms_title_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('sms_title_template')}
+          />
+        </VerticalGroup>
+      </IntegrationBlockItem>
+
+      <IntegrationBlockItem>
+        <VerticalGroup>
+          <Text type={'primary'}>Slack</Text>
+
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'slack_title_template'}
+            onRemove={() => onShowConfirmModal('slack_title_template')}
+            label={'Title'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['slack_title_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('slack_title_template')}
+          />
+
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'slack_message_template'}
+            onRemove={() => onShowConfirmModal('slack_message_template')}
+            label={'Message'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['slack_message_template'] || '', true)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_TALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('slack_message_template')}
+          />
+
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'slack_image_url_template'}
+            onRemove={() => onShowConfirmModal('slack_image_url_template')}
+            label={'Image'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['slack_image_url_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('slack_image_url_template')}
+          />
+        </VerticalGroup>
+      </IntegrationBlockItem>
+
+      <IntegrationBlockItem>
+        <VerticalGroup>
+          <Text type={'primary'}>Telegram</Text>
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'telegram_title_template'}
+            onRemove={() => onShowConfirmModal('telegram_title_template')}
+            label={'Title'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['telegram_title_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('telegram_title_template')}
+          />
+
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'telegram_message_template'}
+            onRemove={() => onShowConfirmModal('telegram_message_template')}
+            label={'Message'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['telegram_message_template'] || '', true)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_TALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('telegram_message_template')}
+          />
+
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'telegram_image_url_template'}
+            onRemove={() => onShowConfirmModal('telegram_image_url_template')}
+            label={'Image'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['telegram_image_url_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('telegram_image_url_template')}
+          />
+        </VerticalGroup>
+      </IntegrationBlockItem>
+
+      <IntegrationBlockItem>
+        <VerticalGroup>
+          <Text type={'primary'}>Email</Text>
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'email_title_template'}
+            onRemove={() => onShowConfirmModal('email_title_template')}
+            label={'Title'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['email_title_template'] || '', false)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_SMALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('email_title_template')}
+          />
+
+          <IntegrationTemplateBlock
+            isLoading={isRestoringTemplate && templateRestoreName === 'email_message_template'}
+            onRemove={() => onShowConfirmModal('email_message_template')}
+            label={'Message'}
+            renderInput={() => (
+              <div className={cx('input', 'input--long')}>
+                <MonacoEditor
+                  value={IntegrationHelper.getFilteredTemplate(templates['email_message_template'] || '', true)}
+                  disabled={true}
+                  height={MONACO_INPUT_HEIGHT_TALL}
+                  data={templates}
+                  showLineNumbers={false}
+                  monacoOptions={MONACO_OPTIONS}
+                />
+              </div>
+            )}
+            onEdit={() => openEditTemplateModal('email_message_template')}
+          />
         </VerticalGroup>
       </IntegrationBlockItem>
     </div>
   );
+
+  function onShowConfirmModal(templateName: string) {
+    setTemplateRestoreName(templateName);
+    setShowConfirmModal(true);
+  }
+
+  function onDismiss() {
+    setTemplateRestoreName(undefined);
+    setShowConfirmModal(false);
+  }
+
+  function onResetTemplate(templateName: string) {
+    setTemplateRestoreName(undefined);
+    setIsRestoringTemplate(true);
+
+    alertReceiveChannelStore
+      .saveTemplates(alertReceiveChannelId, { [templateName]: '' })
+      .then(() => {
+        openNotification('The Alert template has been updated');
+      })
+      .catch((err) => {
+        if (err.response?.data?.length > 0) {
+          openErrorNotification(err.response.data);
+        } else {
+          openErrorNotification(err.message);
+        }
+      })
+      .finally(() => {
+        setIsRestoringTemplate(false);
+        setShowConfirmModal(false);
+      });
+  }
 };
 
 export default IntegrationTemplateList;

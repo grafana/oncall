@@ -29,7 +29,7 @@ const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
   return (
     <HorizontalGroup spacing="xs">
       <Avatar size="small" src={user.avatar}></Avatar>
-      <Text type="secondary">{user.email}</Text>
+      <Text type="primary">{user.email}</Text>
     </HorizontalGroup>
   );
 });
