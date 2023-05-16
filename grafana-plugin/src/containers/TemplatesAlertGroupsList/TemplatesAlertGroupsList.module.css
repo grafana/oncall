@@ -22,3 +22,7 @@
 .alert-groups-list button {
   padding-left: 0;
 }
+
+.alert-groups-editor {
+  width: 100%;
+}

@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup, Icon, Drawer } from '@grafana/ui';
+import { Button, HorizontalGroup, Drawer, VerticalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -13,7 +13,7 @@ import {
   webTitleTemplateCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
 import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
@@ -47,14 +47,11 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
 
-  const locationParams: any = { template: template.name };
-  if (template.isRoute) {
-    locationParams.routeId = channelFilterId;
-  }
-
-  LocationHelper.update(locationParams, 'partial');
-
   useEffect(() => {
+    const locationParams: any = { template: template.name };
+    if (template.isRoute) {
+      locationParams.routeId = channelFilterId;
+    }
     LocationHelper.update(locationParams, 'partial');
   }, []);
 
@@ -69,7 +66,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const getChangeHandler = () => {
     return debounce((value: string) => {
       setChangedTemplateBody(value);
-    }, 1000);
+    }, 500);
   };
 
   const onEditPayload = (alertPayload: string) => {
@@ -191,7 +188,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                   </HorizontalGroup>
                 </div>
 
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={templateBody}
                   data={templates}
                   showLineNumbers={true}
