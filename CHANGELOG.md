@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add a way to set a maintenance mode message and display this in the web plugin UI by @joeyorlando ([#1917](https://github.com/grafana/oncall/pull/#1917))
+- Add "send test push" button
 
 ## v1.2.22 (2023-05-12)
 
