@@ -469,7 +469,8 @@ in the webhook not executing.
 ### Using response data
 
 The `responses` section of the payload makes available the responses of other webhooks that have acted on the same
-alert group.  To access them `responses` uses the `id` of the webhook as a key. The response data of the most recent
+alert group.  To access them `responses` uses the `id` of the webhook as a key.  The `id` can be found by hovering
+over the info icon, clicking will copy the `id` to the clipboard. The response data of the most recent
 execution of the webhook for this same alert group can be accessed this way.
 
 The typical application of this is where a webhook will create a ticket in another system and OnCall needs to use
