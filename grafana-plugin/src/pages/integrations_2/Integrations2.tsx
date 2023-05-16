@@ -345,7 +345,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <IconButton tooltip="Settings" name="cog" onClick={() => this.onIntegrationEditClick(item.id)} />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-          <WithConfirm>
+          <WithConfirm
+            description={
+              <Text>
+                <Emoji
+                  className={cx('title')}
+                  text={`Are you sure you want to delete ${item.verbal_name} integration?`}
+                />
+              </Text>
+            }
+          >
             <IconButton
               tooltip="Delete"
               name="trash-alt"
@@ -376,9 +385,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters } = this.state;
+    const { integrationsFilters, page } = this.state;
 
-    return alertReceiveChannelStore.updateItems(integrationsFilters);
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

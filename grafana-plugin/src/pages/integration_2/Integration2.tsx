@@ -42,7 +42,7 @@ import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartGreenIcon, HeartRedIcon } from 'icons';
+import { HeartIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
@@ -485,7 +485,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     const heartbeatStatus = Boolean(heartbeat?.status);
 
-    if (!alertReceiveChannel.heartbeat) {
+    if (
+      !alertReceiveChannel.is_available_for_integration_heartbeat ||
+      alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal === null
+    ) {
       return null;
     }
 
@@ -493,9 +496,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       <TooltipBadge
         text={undefined}
         className={cx('heartbeat-badge')}
-        borderType={alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal ? 'success' : 'danger'}
-        customIcon={heartbeatStatus ? <HeartGreenIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal || 'never'}`}
+        borderType={heartbeatStatus ? 'success' : 'danger'}
+        customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
         tooltipContent={undefined}
       />
     );
