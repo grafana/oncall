@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from datetime import timedelta
 
 import humanize
@@ -116,13 +117,13 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         # deprecated in favour of ConfigAPIView.
         # All new env statuses should be added there
         LiveSetting.populate_settings_if_needed()
-        phone_provider = get_phone_provider()
 
         telegram_configured = not LiveSetting.objects.filter(name__startswith="TELEGRAM", error__isnull=False).exists()
-
+        phone_provider_config = get_phone_provider().config
         return {
             "telegram_configured": telegram_configured,
-            "twilio_configured": phone_provider.config.configured,  # keep for backward compatibility
+            "twilio_configured": phone_provider_config.configured,  # keep for backward compatibility
+            "phone_provider": asdict(phone_provider_config),
         }
 
     def get_stats(self, obj):

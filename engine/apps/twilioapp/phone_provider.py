@@ -245,6 +245,7 @@ class TwilioPhoneProvider(PhoneProvider):
     def _parse_phone_number(self, raw_phone_number):
         return "+" + "".join(c for c in raw_phone_number if c in digits)
 
+    @property
     def config(self) -> ProviderConfig:
         return ProviderConfig(
             configured=not LiveSetting.objects.filter(name__startswith="TWILIO", error__isnull=False).exists(),
