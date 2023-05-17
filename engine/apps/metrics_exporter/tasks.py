@@ -17,10 +17,8 @@ from apps.metrics_exporter.constants import (
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
-    get_metrics_cache_timeout,
     get_metrics_cache_timer_key,
     get_metrics_recalculation_timeout,
-    get_organization_id_by_integration_id,
     get_response_time_period,
 )
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -152,58 +150,3 @@ def calculate_and_cache_metrics(organization_id, force=False):
     if metrics_cache_timer["forced_started"]:
         metrics_cache_timer["forced_started"] = False
         cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout - ONE_HOUR)
-
-
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
-)
-def metrics_update_alert_groups_state_cache(states_diff, organization_id=None):
-    """Update alert groups state metric cache for each integration in states_diff dict."""
-    if not states_diff:
-        return
-    if not organization_id:
-        integration_id = list(states_diff.keys())[0]
-        organization_id = get_organization_id_by_integration_id(integration_id)
-
-    metrics_cache_timeout = get_metrics_cache_timeout(organization_id)
-    metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
-    metric_alert_groups_total = cache.get(metric_alert_groups_total_key, {})
-    if not metric_alert_groups_total:
-        return
-    for integration_id, integration_states_diff in states_diff.items():
-        integration_alert_groups = metric_alert_groups_total.get(int(integration_id))
-        if not integration_alert_groups:
-            continue
-        for previous_state, counter in integration_states_diff["previous_states"].items():
-            if integration_alert_groups[previous_state] - counter > 0:
-                integration_alert_groups[previous_state] -= counter
-            else:
-                integration_alert_groups[previous_state] = 0
-        for new_state, counter in integration_states_diff["new_states"].items():
-            integration_alert_groups[new_state] += counter
-
-    cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)
-
-
-@shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
-)
-def metrics_update_alert_groups_response_time_cache(integrations_response_time, organization_id=None):
-    """Update alert groups response time metric cache for each integration in `integrations_response_time` dict."""
-    if not integrations_response_time:
-        return
-    if not organization_id:
-        integration_id = list(integrations_response_time.keys())[0]
-        organization_id = get_organization_id_by_integration_id(integration_id)
-
-    metrics_cache_timeout = get_metrics_cache_timeout(organization_id)
-    metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
-    metric_alert_groups_response_time = cache.get(metric_alert_groups_response_time_key, {})
-    if not metric_alert_groups_response_time:
-        return
-    for integration_id, integration_response_time in integrations_response_time.items():
-        integration_response_time_metrics = metric_alert_groups_response_time.get(int(integration_id))
-        if not integration_response_time_metrics:
-            continue
-        integration_response_time_metrics["response_time"].extend(integration_response_time)
-    cache.set(metric_alert_groups_response_time_key, metric_alert_groups_response_time, timeout=metrics_cache_timeout)

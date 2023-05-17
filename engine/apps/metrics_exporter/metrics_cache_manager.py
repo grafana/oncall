@@ -1,6 +1,6 @@
 from apps.alerts.constants import ALERTGROUP_STATES, STATE_FIRING
-from apps.metrics_exporter.helpers import get_response_time_period
-from apps.metrics_exporter.tasks import (
+from apps.metrics_exporter.helpers import (
+    get_response_time_period,
     metrics_update_alert_groups_response_time_cache,
     metrics_update_alert_groups_state_cache,
 )
@@ -46,9 +46,7 @@ class MetricsCacheManager:
         return metrics_dict
 
     @staticmethod
-    def metrics_update_state_cache_for_alert_group(
-        integration_id, organization_id=None, old_state=None, new_state=None
-    ):
+    def metrics_update_state_cache_for_alert_group(integration_id, organization_id, old_state=None, new_state=None):
         """
         Update state metric cache for one alert group.
         Run the task to update async if organization_id is None due to an additional request to db
@@ -56,10 +54,7 @@ class MetricsCacheManager:
         metrics_state_diff = MetricsCacheManager.update_integration_states_diff(
             {}, integration_id, previous_state=old_state, new_state=new_state
         )
-        if organization_id:
-            metrics_update_alert_groups_state_cache(metrics_state_diff, organization_id)
-        else:
-            metrics_update_alert_groups_state_cache.apply_async((metrics_state_diff,))
+        metrics_update_alert_groups_state_cache(metrics_state_diff, organization_id)
 
     @staticmethod
     def metrics_update_response_time_cache_for_alert_group(integration_id, organization_id, response_time_seconds):
@@ -70,14 +65,11 @@ class MetricsCacheManager:
         metrics_response_time = MetricsCacheManager.update_integration_response_time_diff(
             {}, integration_id, response_time_seconds
         )
-        if organization_id:
-            metrics_update_alert_groups_response_time_cache(metrics_response_time, organization_id)
-        else:
-            metrics_update_alert_groups_response_time_cache.apply_async((metrics_response_time,))
+        metrics_update_alert_groups_response_time_cache(metrics_response_time, organization_id)
 
     @staticmethod
     def metrics_update_cache_for_alert_group(
-        integration_id, organization_id=None, old_state=None, new_state=None, response_time=None, started_at=None
+        integration_id, organization_id, old_state=None, new_state=None, response_time=None, started_at=None
     ):
         """Call methods to update state and response time metrics cache for one alert group."""
 

@@ -24,11 +24,11 @@ from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupS
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
 from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
-from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
-from apps.metrics_exporter.tasks import (
+from apps.metrics_exporter.helpers import (
     metrics_update_alert_groups_response_time_cache,
     metrics_update_alert_groups_state_cache,
 )
+from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -569,6 +569,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
+            organization_id=self.channel.organization_id,
             old_state=self.state,
             new_state=STATE_ACKNOWLEDGED,
             response_time=self.get_new_response_time(),
@@ -675,6 +676,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
+            organization_id=self.channel.organization_id,
             old_state=self.state,
             new_state=STATE_RESOLVED,
             response_time=self.get_new_response_time(),
@@ -744,6 +746,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         # Update alert group state and response time metrics cache
         MetricsCacheManager.metrics_update_cache_for_alert_group(
             self.channel_id,
+            organization_id=self.channel.organization_id,
             old_state=self.state,
             new_state=STATE_RESOLVED,
             response_time=self.get_new_response_time(),
@@ -2015,7 +2018,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 @receiver(post_save, sender=AlertGroup)
 def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs):
     if created and not instance.is_maintenance_incident:
-        MetricsCacheManager.metrics_update_state_cache_for_alert_group(instance.channel_id, new_state=STATE_FIRING)
+        MetricsCacheManager.metrics_update_state_cache_for_alert_group(
+            instance.channel_id, organization_id=instance.channel.organization_id, new_state=STATE_FIRING
+        )
 
 
 post_save.connect(listen_for_alertgroup_model_save, AlertGroup)
