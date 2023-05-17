@@ -113,9 +113,8 @@ def calculate_and_cache_metrics(organization_id, force=False):
                     "team_name": integration.team_name,
                     "team_id": integration.team_id_or_no_team,
                     "org_id": integration.organization.org_id,
-                    "instance_slug": instance_slug,
-                    "instance_id": instance_id,
-                    "id": integration.organization_id,
+                    "slug": instance_slug,
+                    "id": instance_id,
                 },
             )[state] = integration.alert_groups.filter(alert_group_filter).count()
 
@@ -135,9 +134,8 @@ def calculate_and_cache_metrics(organization_id, force=False):
             "team_name": integration.team_name,
             "team_id": integration.team_id_or_no_team,
             "org_id": integration.organization.org_id,
-            "instance_slug": instance_slug,
-            "instance_id": instance_id,
-            "id": integration.organization_id,
+            "slug": instance_slug,
+            "id": instance_id,
             "response_time": all_response_time,
         }
 

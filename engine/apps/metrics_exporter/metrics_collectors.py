@@ -31,8 +31,7 @@ class ApplicationMetricsCollector:
             "integration",
             "team",
             "org_id",
-            "instance_slug",
-            "instance_id",
+            "slug",
             "id",
         ]
         self._labels_with_state = self._labels + ["state"]
@@ -61,9 +60,8 @@ class ApplicationMetricsCollector:
                         integration_data["integration_name"],  # integration
                         integration_data["team_name"],  # team
                         integration_data["org_id"],  # org_id
-                        integration_data["instance_slug"],  # instance_slug
-                        integration_data["instance_id"],  # instance_id
-                        integration_data["id"],  # id
+                        integration_data["slug"],  # grafana instance slug
+                        integration_data["id"],  # grafana instance id
                     ]
 
                     labels_values = list(map(str, labels_values))
@@ -84,9 +82,8 @@ class ApplicationMetricsCollector:
                         integration_data["integration_name"],  # integration
                         integration_data["team_name"],  # team
                         integration_data["org_id"],  # org_id
-                        integration_data["instance_slug"],  # instance_slug
-                        integration_data["instance_id"],  # instance_id
-                        integration_data["id"],  # id
+                        integration_data["slug"],  # grafana instance slug
+                        integration_data["id"],  # grafana instance id
                     ]
                     labels_values = list(map(str, labels_values))
 
