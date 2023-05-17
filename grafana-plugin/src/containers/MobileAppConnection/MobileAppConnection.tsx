@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -18,6 +18,7 @@ import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
 import DownloadIcons from './parts/DownloadIcons';
 import QRCode from './parts/QRCode/QRCode';
+import { openErrorNotification, openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
@@ -73,6 +74,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   const [userTimeoutId, setUserTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
+  const [isAttemptingTestNotification, setIsAttemptingTestNotification] = useState(false);
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
@@ -188,16 +190,51 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
       userAction={UserActions.UserSettingsWrite}
       message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
     >
-      <div className={cx('container')}>
-        <Block shadowed bordered withBackground className={cx('container__box')}>
-          <DownloadIcons />
-        </Block>
-        <Block shadowed bordered withBackground className={cx('container__box')}>
-          {content}
-        </Block>
-      </div>
+      <VerticalGroup>
+        <div className={cx('container')}>
+          <Block shadowed bordered withBackground className={cx('container__box')}>
+            <DownloadIcons />
+          </Block>
+          <Block shadowed bordered withBackground className={cx('container__box')}>
+            {content}
+          </Block>
+        </div>
+        {mobileAppIsCurrentlyConnected && (
+          <div className={cx('notification-buttons')}>
+            <HorizontalGroup spacing={'md'} justify={'flex-end'}>
+              <Button
+                variant="secondary"
+                onClick={() => onSendTestNotification()}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Test Push notification
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => onSendTestNotification(true)}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Critical Test Push notification
+              </Button>
+            </HorizontalGroup>
+          </div>
+        )}
+      </VerticalGroup>
     </WithPermissionControlDisplay>
   );
+
+  async function onSendTestNotification(isCritical: boolean = false) {
+    setIsAttemptingTestNotification(true);
+
+    try {
+      await userStore.sendTestPushNotification(userPk, isCritical);
+      openNotification('Notification was sent');
+    } catch (ex) {
+      openErrorNotification('There was an error sending the notification');
+    } finally {
+      setIsAttemptingTestNotification(false);
+    }
+  }
 
   function getParsedQRCodeValue() {
     try {
