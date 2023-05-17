@@ -38,6 +38,7 @@ from apps.slack.scenarios.scenario_step import (
     EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
     EVENT_TYPE_SUBTEAM_UPDATED,
     EVENT_TYPE_USER_CHANGE,
+    EVENT_TYPE_USER_PROFILE_CHANGED,
     PAYLOAD_TYPE_BLOCK_ACTIONS,
     PAYLOAD_TYPE_DIALOG_SUBMISSION,
     PAYLOAD_TYPE_EVENT_CALLBACK,
@@ -272,8 +273,12 @@ class SlackEventApiEndpointView(APIView):
                     EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
                 ]:
                     logger.info("Slack event without user slack_id.")
-                elif payload["event"]["type"] == EVENT_TYPE_USER_CHANGE:
-                    logger.info("Event user_change. Dropping request because it does not have SlackUserIdentity.")
+                elif payload["event"]["type"] in (EVENT_TYPE_USER_CHANGE, EVENT_TYPE_USER_PROFILE_CHANGED):
+                    logger.info(
+                        "Event {}. Dropping request because it does not have SlackUserIdentity.".format(
+                            payload["event"]["type"]
+                        )
+                    )
                     return Response()
             else:
                 logger.info("Dropping request because it does not have SlackUserIdentity.")

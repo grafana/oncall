@@ -21,6 +21,7 @@
   --tag-warning: #c69b06;
   --tag-primary: #299c46;
   --tag-secondary: #464c54;
+  --tag-secondary-transparent: rgba(204, 204, 220, 0.07);
   --tag-background-primary: rgba(56, 113, 220, 0.2);
   --tag-border-primary: rgba(56, 113, 220, 0.2);
   --tag-background-danger: rgba(242, 73, 92, 0.15);

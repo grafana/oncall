@@ -17,7 +17,10 @@ PAYLOAD_TYPE_EVENT_CALLBACK = "event_callback"
 EVENT_TYPE_MESSAGE = "message"
 EVENT_TYPE_MESSAGE_CHANNEL = "channel"
 EVENT_TYPE_MESSAGE_IM = "im"
+# Slack event "user_change" is deprecated in favor of "user_profile_changed".
+# Handler for "user_change" is kept for backward compatibility.
 EVENT_TYPE_USER_CHANGE = "user_change"
+EVENT_TYPE_USER_PROFILE_CHANGED = "user_profile_changed"
 EVENT_TYPE_APP_MENTION = "app_mention"
 EVENT_TYPE_MEMBER_JOINED_CHANNEL = "member_joined_channel"
 EVENT_TYPE_IM_OPEN = "im_open"

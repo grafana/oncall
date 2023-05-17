@@ -2,6 +2,7 @@
   width: 40%;
   height: 100%;
   padding: 16px;
+  border: var(--border-weak);
 }
 
 .cheatsheet-item {
