@@ -12,13 +12,13 @@ import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/W
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { openErrorNotification, openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
 import DownloadIcons from './parts/DownloadIcons';
 import QRCode from './parts/QRCode/QRCode';
-import { openErrorNotification, openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
@@ -75,6 +75,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
   const [isAttemptingTestNotification, setIsAttemptingTestNotification] = useState(false);
+  const isCurrentUser = userStore.currentUserPk === userPk;
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
@@ -199,7 +200,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
             {content}
           </Block>
         </div>
-        {mobileAppIsCurrentlyConnected && (
+        {mobileAppIsCurrentlyConnected && isCurrentUser && (
           <div className={cx('notification-buttons')}>
             <HorizontalGroup spacing={'md'} justify={'flex-end'}>
               <Button
@@ -223,7 +224,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     </WithPermissionControlDisplay>
   );
 
-  async function onSendTestNotification(isCritical: boolean = false) {
+  async function onSendTestNotification(isCritical = false) {
     setIsAttemptingTestNotification(true);
 
     try {
