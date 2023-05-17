@@ -143,9 +143,6 @@ engine-manage:  ## run Django's `manage.py` script, inside of a docker container
 ui-test:  ## run the UI tests
 	$(call run_ui_docker_command,yarn test)
 
-ui-e2e-test:  ## run the UI e2e tests
-	$(call run_ui_docker_command,yarn test:integration)
-
 ui-lint:  ## run the UI linter
 	$(call run_ui_docker_command,yarn lint)
 
