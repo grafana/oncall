@@ -59,9 +59,8 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
       (id === 'new'
         ? alertReceiveChannelStore
             .create(data)
-            .then((response) => {
-              onHide();
-              history.push(`${PLUGIN_ROOT}/integrations_2/${response.id}`);
+            .then(async (response) => {
+              await history.push(`${PLUGIN_ROOT}/integrations_2/${response.id}`);
             })
             .catch(() => {
               openErrorNotification('Something went wrong, please try again later.');
