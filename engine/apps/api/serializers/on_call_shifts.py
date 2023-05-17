@@ -32,6 +32,8 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ),  # todo: filter by team?
     )
     updated_shift = serializers.CharField(read_only=True, allow_null=True, source="updated_shift.public_primary_key")
+    # Name is optional to keep backward compatibility with older frontends
+    name = serializers.CharField(required=False)
 
     class Meta:
         model = CustomOnCallShift
@@ -177,6 +179,8 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
+        if validated_data.get("name", None) is None:
+            validated_data["name"] = f"L{validated_data['priority_level']}"
         instance = super().create(validated_data)
 
         instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
