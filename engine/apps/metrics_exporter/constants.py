@@ -8,8 +8,7 @@ class AlertGroupsTotalMetricsDict(typing.TypedDict):
     team_name: str
     team_id: int
     org_id: int
-    instance_slug: str
-    instance_id: int
+    slug: str
     id: int
     firing: int
     acknowledged: int
@@ -22,8 +21,7 @@ class AlertGroupsResponseTimeMetricsDict(typing.TypedDict):
     team_name: str
     team_id: int
     org_id: int
-    instance_slug: str
-    instance_id: int
+    slug: str
     id: int
     response_time: list
 
