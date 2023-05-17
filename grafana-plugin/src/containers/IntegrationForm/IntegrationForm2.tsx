@@ -3,6 +3,7 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import { Drawer, VerticalGroup, HorizontalGroup, Input, Tag, EmptySearchResult, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { useHistory } from 'react-router-dom';
 
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
@@ -16,6 +17,7 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import { form } from './IntegrationForm2.config';
 import { prepareForEdit } from './IntegrationForm2.helpers';
@@ -35,6 +37,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
   const { id, onHide, onUpdate, isTableView = true } = props;
 
   const store = useStore();
+  const history = useHistory();
 
   const { alertReceiveChannelStore, userStore } = store;
 
@@ -43,6 +46,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
   const [filterValue, setFilterValue] = useState('');
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
+  const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
 
   const data =
     id === 'new'
@@ -51,7 +55,13 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
 
   const handleSubmit = useCallback(
     (data: Partial<AlertReceiveChannel>) => {
-      (id === 'new' ? alertReceiveChannelStore.create(data) : alertReceiveChannelStore.update(id, data)).then(() => {
+      (id === 'new'
+        ? alertReceiveChannelStore.create(data).then((response) => {
+            onHide();
+            history.push(`${PLUGIN_ROOT}/integrations_2/${response.id}`);
+          })
+        : alertReceiveChannelStore.update(id, data)
+      ).then(() => {
         onHide();
         onUpdate();
       });
@@ -63,6 +73,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
     return () => {
       setSelectedOption(option);
       setShowNewIntegrationForm(true);
+      setShowIntegrarionsListDrawer(false);
     };
   }, []);
 
@@ -80,7 +91,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
 
   return (
     <>
-      {id === 'new' && (
+      {showIntegrarionsListDrawer && (
         <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
@@ -131,7 +142,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
           </div>
         </Drawer>
       )}
-      {(showNewIntegrationForm || id !== 'new') && (
+      {(showNewIntegrationForm || !showIntegrarionsListDrawer) && (
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
@@ -172,7 +183,13 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
               )}
               <HorizontalGroup justify="flex-end">
                 {id === 'new' ? (
-                  <Button variant="secondary" onClick={() => setShowNewIntegrationForm(false)}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowNewIntegrationForm(false);
+                      setShowIntegrarionsListDrawer(true);
+                    }}
+                  >
                     Back
                   </Button>
                 ) : (
