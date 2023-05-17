@@ -16,6 +16,7 @@ import {
   AlertReceiveChannelOption,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
+import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -56,10 +57,15 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
   const handleSubmit = useCallback(
     (data: Partial<AlertReceiveChannel>) => {
       (id === 'new'
-        ? alertReceiveChannelStore.create(data).then((response) => {
-            onHide();
-            history.push(`${PLUGIN_ROOT}/integrations_2/${response.id}`);
-          })
+        ? alertReceiveChannelStore
+            .create(data)
+            .then((response) => {
+              onHide();
+              history.push(`${PLUGIN_ROOT}/integrations_2/${response.id}`);
+            })
+            .catch(() => {
+              openErrorNotification('Something went wrong, please try again later.');
+            })
         : alertReceiveChannelStore.update(id, data)
       ).then(() => {
         onHide();
