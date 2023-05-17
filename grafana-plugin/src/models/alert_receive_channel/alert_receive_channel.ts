@@ -109,27 +109,6 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   @action
   async updateItems(query: any = '') {
-    // const filters = typeof query === 'string' ? { search: query } : query;
-    // const { search } = filters;
-    // const { count, results } = await makeRequest(this.path, { params: { search, page } });
-
-    // this.items = {
-    //   ...this.items,
-    //   ...results.reduce(
-    //     (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
-    //       ...acc,
-    //       [item.id]: omit(item, 'heartbeat'),
-    //     }),
-    //     {}
-    //   ),
-    // };
-
-    // this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
-    // this.searchResult = {
-    //   count,
-    //   results: results.map((item: AlertReceiveChannel) => item.id),
-    // };
-
     const params = typeof query === 'string' ? { search: query } : query;
 
     const result = await makeRequest(this.path, { params });
@@ -251,7 +230,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
 
     if (isOverwrite) {
-      // This is needed because on Move Up/Down/Removal the store no longer reflects correct state
+      // This is needed because on Move Up/Down/Removal the store no longer reflects the correct state
       this.channelFilters = {
         ...channelFilters,
       };
@@ -439,8 +418,18 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async sendDemoAlert(id: AlertReceiveChannel['id']) {
-    await makeRequest(`${this.path}${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
+  async sendDemoAlert(id: AlertReceiveChannel['id'], payload: string = undefined) {
+    const requestConfig: any = {
+      method: 'POST',
+    };
+
+    if (payload) {
+      requestConfig.data = {
+        demo_alert_payload: payload,
+      };
+    }
+
+    await makeRequest(`${this.path}${id}/send_demo_alert/`, requestConfig).catch(showApiError);
 
     Mixpanel.track('Send Demo Incident', null);
   }

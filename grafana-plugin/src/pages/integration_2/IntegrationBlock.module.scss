@@ -11,10 +11,10 @@
 .integrationBlock__content {
   background: var(--background-primary);
   border: var(--border-weak);
+  padding-bottom: 0;
 
   &--collapsedBorder {
     border-left: none;
     padding-left: 0;
-    padding-bottom: 0;
   }
 }

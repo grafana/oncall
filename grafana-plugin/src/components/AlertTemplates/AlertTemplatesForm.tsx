@@ -9,7 +9,7 @@ import { omit } from 'lodash-es';
 import { templatesToRender, Template } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { getLabelFromTemplateName } from 'components/AlertTemplates/AlertTemplatesForm.helper';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
@@ -216,7 +216,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     </Button>
                   </Text>
                 )}
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={tempValues[activeTemplate.name] ?? (templates[activeTemplate.name] || '')}
                   disabled={false}
                   data={templates}
