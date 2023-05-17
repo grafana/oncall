@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework import fields, serializers
 
 from apps.base.models import LiveSetting
+from apps.phone_notifications.phone_provider import get_phone_provider
 from apps.slack.models import SlackTeamIdentity
 from apps.slack.tasks import resolve_archived_incidents_for_organization, unarchive_incidents_for_organization
 from apps.user_management.models import Organization
@@ -112,14 +113,16 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         return obj.notifications_limit_web_report(user)
 
     def get_env_status(self, obj):
+        # deprecated in favour of ConfigAPIView.
+        # All new env statuses should be added there
         LiveSetting.populate_settings_if_needed()
+        phone_provider = get_phone_provider()
 
         telegram_configured = not LiveSetting.objects.filter(name__startswith="TELEGRAM", error__isnull=False).exists()
-        twilio_configured = not LiveSetting.objects.filter(name__startswith="TWILIO", error__isnull=False).exists()
 
         return {
             "telegram_configured": telegram_configured,
-            "twilio_configured": twilio_configured,
+            "twilio_configured": phone_provider.config.configured,  # keep for backward compatibility
         }
 
     def get_stats(self, obj):

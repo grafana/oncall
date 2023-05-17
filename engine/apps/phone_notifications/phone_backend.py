@@ -322,9 +322,9 @@ class PhoneBackend:
         make_verification_call makes a verification call  to a user.
         Caller should handle exceptions raised by phone_provider.make_verification_call
         """
-        logger.info(f"PhoneBackend.make_verification_call: start verification for user {user.id}")
+        logger.info(f"PhoneBackend.make_verification_call: start verification user_id={user.id}")
         if self._validate_user_number(user):
-            logger.info(f"PhoneBackend.make_verification_call: number already verified for user {user.id}")
+            logger.info(f"PhoneBackend.make_verification_call: number already verified user_id={user.id}")
             raise NumberAlreadyVerified
         self.phone_provider.make_verification_call(user.unverified_phone_number)
 
@@ -356,10 +356,24 @@ class PhoneBackend:
         make_test_call makes a test call to user's verified phone number
         Caller should handle exceptions raised by phone_provider.make_call.
         """
+        if not self.phone_provider.config.test_call:
+            raise ProviderNotSupports
         text = "It is a test call from Grafana OnCall"
         if not user.verified_phone_number:
             raise NumberNotVerified
         self.phone_provider.make_call(user.verified_phone_number, text)
+
+    def send_test_sms(self, user):
+        """
+        send_test_sms sends a test sms to user's verified phone number
+        Caller should handle exceptions raised by phone_provider.send_sms.
+        """
+        if not self.phone_provider.config.test_sms:
+            raise ProviderNotSupports
+        text = "It is a test sms from Grafana OnCall"
+        if not user.verified_phone_number:
+            raise NumberNotVerified
+        self.phone_provider.send_sms(user.verified_phone_number, text)
 
     def _notify_connected_number(self, user):
         text = (
@@ -374,7 +388,7 @@ class PhoneBackend:
         except FailedToSendSMS:
             logger.error("PhoneBackend._notify_connected_number: failed")
         except ProviderNotSupports:
-            logger.error("PhoneBackend._notify_connected_number: provider not supports sms")
+            logger.info("PhoneBackend._notify_connected_number: provider not supports sms")
 
     def _notify_disconnected_number(self, user, number):
         text = (
@@ -386,4 +400,4 @@ class PhoneBackend:
         except FailedToSendSMS:
             logger.error("PhoneBackend._notify_disconnected_number: failed")
         except ProviderNotSupports:
-            logger.error("PhoneBackend._notify_disconnected_number: provider not supports sms")
+            logger.info("PhoneBackend._notify_disconnected_number: provider not supports sms")

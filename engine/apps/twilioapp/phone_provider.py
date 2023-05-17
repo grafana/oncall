@@ -6,6 +6,7 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
+from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
 from apps.phone_notifications.exceptions import (
     FailedToFinishVerification,
@@ -13,7 +14,7 @@ from apps.phone_notifications.exceptions import (
     FailedToSendSMS,
     FailedToStartVerification,
 )
-from apps.phone_notifications.phone_provider import PhoneProvider
+from apps.phone_notifications.phone_provider import PhoneProvider, ProviderConfig
 from apps.twilioapp.gather import get_gather_message, get_gather_url
 from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS
 from apps.twilioapp.status_callback import get_call_status_callback_url, get_sms_status_callback_url
@@ -243,3 +244,12 @@ class TwilioPhoneProvider(PhoneProvider):
 
     def _parse_phone_number(self, raw_phone_number):
         return "+" + "".join(c for c in raw_phone_number if c in digits)
+
+    def config(self) -> ProviderConfig:
+        return ProviderConfig(
+            configured=not LiveSetting.objects.filter(name__startswith="TWILIO", error__isnull=False).exists(),
+            test_sms=False,
+            test_call=True,
+            verification_call=False,
+            verification_sms=True,
+        )

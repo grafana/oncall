@@ -1,4 +1,5 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Optional
 
 from django.conf import settings
@@ -7,6 +8,15 @@ from django.utils.module_loading import import_string
 from apps.base.utils import live_settings
 from apps.phone_notifications.exceptions import ProviderNotSupports
 from apps.phone_notifications.models import ProviderPhoneCall, ProviderSMS
+
+
+@dataclass
+class ProviderConfig:
+    configured: bool
+    test_sms: bool
+    test_call: bool
+    verification_call: bool
+    verification_sms: bool
 
 
 class PhoneProvider(ABC):
@@ -138,12 +148,18 @@ class PhoneProvider(ABC):
         """
         raise ProviderNotSupports
 
+    @property
+    @abstractmethod
+    def config(self) -> ProviderConfig:
+        raise NotImplementedError
+
 
 _providers = {}
 
 
 def get_phone_provider() -> PhoneProvider:
     global _providers
+    # load all providers in memory on first call
     if len(_providers) == 0:
         for provider_alias, importpath in settings.PHONE_PROVIDERS.items():
             _providers[provider_alias] = import_string(importpath)()
