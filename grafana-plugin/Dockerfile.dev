@@ -7,4 +7,7 @@ ENV PATH /etc/app/node_modules/.bin:$PATH
 # https://stackoverflow.com/a/72478714
 ENV WATCHPACK_POLLING true
 
+# installs dependencies for running playwright e2e integration tests
+RUN npx playwright install
+
 CMD ["yarn", "start"]

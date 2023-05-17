@@ -183,16 +183,12 @@ are run on pull request CI builds. New features should ideally include a new/mod
 To run these tests locally simply do the following:
 
 ```bash
-npx playwright install  # install playwright dependencies
 cp ./grafana-plugin/.env.example ./grafana-plugin/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
-cd grafana-plugin
-yarn test:integration
+make ui-e2e-test
 ```
 
 ## Useful `make` commands
-
-See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
 
 > 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
