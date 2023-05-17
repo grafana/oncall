@@ -125,7 +125,8 @@ def calculate_and_cache_metrics(organization_id, force=False):
             if alert_group.response_time:
                 all_response_time.append(int(alert_group.response_time.total_seconds()))
             elif alert_group.state != STATE_FIRING:
-                response_time = alert_group.update_response_time()
+                # get calculated value from current alert group information
+                response_time = alert_group._get_response_time()
                 if response_time:
                     all_response_time.append(int(response_time.total_seconds()))
 

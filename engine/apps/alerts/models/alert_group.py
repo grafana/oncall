@@ -528,16 +528,24 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             result = metrics.response_time
         return result
 
+    def _get_response_time(self):
+        """Return response_time based on current alert group status."""
+        response_time = None
+        timestamps = (self.acknowledged_at, self.resolved_at, self.silenced_at, self.wiped_at)
+        min_timestamp = min((ts for ts in timestamps if ts), default=None)
+        if min_timestamp:
+            response_time = min_timestamp - self.started_at
+        return response_time
+
     def update_response_time(self):
-        """Update response time if needed. Only return value if it was set, None otherwise."""
+        """Update stored response time if needed. Only return value if it was set, None otherwise."""
         updated = None
         if self.response_time is None:
-            timestamps = (self.acknowledged_at, self.resolved_at, self.silenced_at, self.wiped_at)
-            min_timestamp = min((ts for ts in timestamps if ts), default=None)
-            if min_timestamp:
+            response_time = self._get_response_time()
+            if response_time:
                 metrics, _ = AlertGroupMetrics.objects.update_or_create(
                     alert_group=self,
-                    defaults={"response_time": min_timestamp - self.started_at},
+                    defaults={"response_time": response_time},
                 )
                 self.metrics = metrics
                 updated = self.response_time
