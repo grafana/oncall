@@ -54,6 +54,6 @@ acknowledge_condition = None
 
 example_payload = {
     "id": "TestAlert",
-    "message": "This alert was sent by user for the demonstration purposes",
+    "message": "This alert was sent by user for demonstration purposes",
     "data": "{foo: bar}",
 }
