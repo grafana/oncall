@@ -23,8 +23,8 @@ import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartGreenIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel';
+import { HeartIcon, HeartRedIcon } from 'icons';
+import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -36,6 +36,7 @@ import styles from './Integrations2.module.scss';
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
+const MAX_LINE_LENGTH = 40;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -116,7 +117,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     const columns = [
       {
-        width: '25%',
+        width: '35%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
@@ -129,7 +130,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
       },
       {
-        width: '25%',
+        width: '20%',
         title: 'Datasource',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
@@ -147,7 +148,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderHeartbeat(item, alertReceiveChannelStore, heartbeatStore),
       },
       {
-        width: '20%',
+        width: '15%',
         title: 'Team',
         render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
       },
@@ -229,7 +230,14 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return (
       <PluginLink query={{ page: 'integrations_2', id: item.id }}>
         <Text type="link" size="medium">
-          <Emoji className={cx('title')} text={item.verbal_name} />
+          <Emoji
+            className={cx('title')}
+            text={
+              item.verbal_name.length > MAX_LINE_LENGTH
+                ? item.verbal_name.substring(0, MAX_LINE_LENGTH) + '...'
+                : item.verbal_name
+            }
+          />
         </Text>
       </PluginLink>
     );
@@ -292,13 +300,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const heartbeatStatus = Boolean(heartbeat?.status);
     return (
       <div>
-        {alertReceiveChannel.is_available_for_integration_heartbeat && (
+        {alertReceiveChannel.is_available_for_integration_heartbeat && heartbeat?.last_heartbeat_time_verbal && (
           <TooltipBadge
             text={undefined}
             className={cx('heartbeat-badge')}
-            borderType={heartbeat?.last_heartbeat_time_verbal ? 'success' : 'danger'}
-            customIcon={heartbeatStatus ? <HeartGreenIcon /> : <HeartRedIcon />}
-            tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal || 'never'}`}
+            borderType={heartbeatStatus ? 'success' : 'danger'}
+            customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+            tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
             tooltipContent={undefined}
           />
         )}
@@ -337,7 +345,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <IconButton tooltip="Settings" name="cog" onClick={() => this.onIntegrationEditClick(item.id)} />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-          <WithConfirm>
+          <WithConfirm
+            description={
+              <Text>
+                <Emoji
+                  className={cx('title')}
+                  text={`Are you sure you want to delete ${item.verbal_name} integration?`}
+                />
+              </Text>
+            }
+          >
             <IconButton
               tooltip="Delete"
               name="trash-alt"
@@ -368,9 +385,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters } = this.state;
+    const { integrationsFilters, page } = this.state;
 
-    return alertReceiveChannelStore.updateItems(integrationsFilters);
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

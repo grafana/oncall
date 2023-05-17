@@ -49,7 +49,7 @@ exports[`DownloadIcons it renders properly 1`] = `
                 src="[object Object]"
               />
               <span
-                class="root text icon-text text--primary text--medium"
+                class="root text text--primary text--medium icon-text"
               >
                 iOS
               </span>
@@ -74,7 +74,7 @@ exports[`DownloadIcons it renders properly 1`] = `
                 src="[object Object]"
               />
               <span
-                class="root text icon-text text--primary text--medium"
+                class="root text text--primary text--medium icon-text"
               >
                 Android
               </span>

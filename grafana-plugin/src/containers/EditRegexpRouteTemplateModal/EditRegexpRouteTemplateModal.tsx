@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 
 import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -29,7 +29,9 @@ interface EditRegexpRouteTemplateModalProps {
 const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateModalProps) => {
   const { onHide, onUpdateRoute, channelFilterId, onOpenEditIntegrationTemplate, alertReceiveChannelId } = props;
   const store = useStore();
+
   const regexpBody = store.alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term;
+
   const [regexpTemplateBody, setRegexpTemplateBody] = useState<string>(regexpBody);
 
   const templateJinja2Body = store.alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term_as_jinja2;
@@ -86,7 +88,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
           </HorizontalGroup>
 
           <div className={cx('regexp-template-code')}>
-            <MonacoJinja2Editor
+            <MonacoEditor
               value={regexpTemplateBody}
               height={'200px'}
               data={undefined}

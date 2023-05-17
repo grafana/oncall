@@ -1,4 +1,4 @@
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 
 export function prepareForEdit(item: AlertReceiveChannel) {
   return {
