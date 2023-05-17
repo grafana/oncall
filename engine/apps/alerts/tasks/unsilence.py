@@ -33,7 +33,10 @@ def unsilence_task(alert_group_pk):
             return
         if alert_group.status == AlertGroup.SILENCED and alert_group.is_root_alert_group:
             MetricsCacheManager.metrics_update_state_cache_for_alert_group(
-                alert_group.channel_id, old_state=STATE_SILENCED, new_state=STATE_FIRING
+                alert_group.channel_id,
+                alert_group.channel.organization_id,
+                old_state=STATE_SILENCED,
+                new_state=STATE_FIRING,
             )
             task_logger.info(f"unsilence alert_group {alert_group_pk} and start escalation if needed")
             alert_group.un_silence()
