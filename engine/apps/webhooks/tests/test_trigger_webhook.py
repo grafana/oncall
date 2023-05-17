@@ -14,14 +14,15 @@ from settings.base import WEBHOOK_RESPONSE_LIMIT
 
 
 class MockResponse:
-    def __init__(self, status_code=200, content_length=0):
+    def __init__(self, status_code=200, content=None):
         self.status_code = status_code
-        self.headers = {
-            "Content-Length": str(content_length),
-        }
+        if content:
+            self.content = content
+        else:
+            self.content = {"response": self.status_code}
 
     def json(self):
-        return {"response": self.status_code}
+        return self.content
 
 
 @pytest.mark.django_db
@@ -528,7 +529,8 @@ def test_response_content_limit(
         forward_all=False,
     )
 
-    mock_response = MockResponse(content_length=100000)
+    content_length = 100000
+    mock_response = MockResponse(content="A" * content_length)
     with patch("apps.webhooks.utils.socket.gethostbyname") as mock_gethostbyname:
         mock_gethostbyname.return_value = "8.8.8.8"
         with patch("apps.webhooks.models.webhook.requests") as mock_requests:
@@ -545,5 +547,5 @@ def test_response_content_limit(
     # check logs
     log = webhook.responses.all()[0]
     assert log.status_code == 200
-    assert log.content == f"Response content exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
+    assert log.content == f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
     assert log.url == "https://test/"

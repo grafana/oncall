@@ -14,6 +14,8 @@ OPEN_SOURCE_LICENSE_NAME = "OpenSource"
 CLOUD_LICENSE_NAME = "Cloud"
 LICENSE = os.environ.get("ONCALL_LICENSE", default=OPEN_SOURCE_LICENSE_NAME)
 IS_OPEN_SOURCE = LICENSE == OPEN_SOURCE_LICENSE_NAME
+CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE = os.environ.get("CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE", None)
+IS_IN_MAINTENANCE_MODE = CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE is not None
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -475,6 +477,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60 * 10,
         "args": (),
     },
+    "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
+        "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
+        "schedule": 10 * 60,
+        "args": (),
+    },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
         "schedule": 60 * 30,
@@ -486,7 +493,8 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 SELF_IP = os.environ.get("SELF_IP")
 
-SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False)
+SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False) and not IS_IN_MAINTENANCE_MODE
+
 if SILK_PROFILER_ENABLED:
     SILK_PATH = os.environ.get("SILK_PATH", "silk/")
     SILKY_INTERCEPT_PERCENT = getenv_integer("SILKY_INTERCEPT_PERCENT", 100)

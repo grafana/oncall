@@ -20,7 +20,6 @@ test.skip('we can verify our phone number + receive an SMS alert', async ({ page
   // wait for the SMS alert notification to arrive
   const smsAlertNotification = await waitForSms();
 
-  console.log('SMS Alert Notification: ', smsAlertNotification);
   expect(smsAlertNotification).toContain('OnCall');
   expect(smsAlertNotification).toContain('alert');
 });

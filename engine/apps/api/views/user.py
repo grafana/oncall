@@ -17,9 +17,11 @@ from rest_framework.views import APIView
 
 from apps.alerts.paging import check_user_availability
 from apps.api.permissions import (
+    ALL_PERMISSION_CHOICES,
     IsOwnerOrHasRBACPermissions,
     LegacyAccessControlRole,
     RBACPermission,
+    get_permission_from_permission_string,
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
@@ -61,6 +63,10 @@ IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermi
 IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_READ])
 
 
+UPCOMING_SHIFTS_DEFAULT_DAYS = 7
+UPCOMING_SHIFTS_MAX_DAYS = 65
+
+
 class CurrentUserView(APIView):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
@@ -98,13 +104,24 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="icontains")
-    roles = filters.MultipleChoiceFilter(
-        field_name="role", choices=LegacyAccessControlRole.choices()
-    )  # LEGACY.. this should get removed eventually
+    # TODO: remove "roles" in next version
+    roles = filters.MultipleChoiceFilter(field_name="role", choices=LegacyAccessControlRole.choices())
+    permission = filters.ChoiceFilter(method="filter_by_permission", choices=ALL_PERMISSION_CHOICES)
 
     class Meta:
         model = User
-        fields = ["email", "roles"]
+        # TODO: remove "roles" in next version
+        fields = ["email", "roles", "permission"]
+
+    def filter_by_permission(self, queryset, name, value):
+        rbac_permission = get_permission_from_permission_string(value)
+        if not rbac_permission:
+            # TODO: maybe raise a 400 here?
+            return queryset
+
+        return queryset.filter(
+            **User.build_permissions_query(rbac_permission, self.request.user.organization),
+        )
 
 
 class UserView(
@@ -467,8 +484,11 @@ class UserView(
     def upcoming_shifts(self, request, pk):
         user = self.get_object()
         try:
-            days = int(request.query_params.get("days", 7))  # fallback to a week
+            days = int(request.query_params.get("days", UPCOMING_SHIFTS_DEFAULT_DAYS))
         except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if days <= 0 or days > UPCOMING_SHIFTS_MAX_DAYS:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # filter user-related schedules

@@ -160,6 +160,10 @@ def convert_slack_md_to_html(text):
 
 
 def convert_md_to_html(text):
+    # Markdown expects two or more spaces at the end of a line to indicate a line break.
+    # Adding two spaces to any line break to support templates that were built without this in mind.
+    # https://daringfireball.net/projects/markdown/syntax#p
+    text = text.replace("\n", "  \n")
     text = markdown2.markdown(
         text,
         extras=[
@@ -168,13 +172,14 @@ def convert_md_to_html(text):
             # This gives us <pre> and <code> tags for ```-fenced blocks
             "fenced-code-blocks",
             "pyshell",
+            "nl2br",
+            "target-blank-links",
+            "nofollow",
+            "pymdownx.emoji",
+            "pymdownx.magiclink",
+            "tables",
         ],
     ).strip()
-    # Special handling cases for lists
-    text = text.replace("\n\n<ul>", "<ul>")
-    text = text.replace("\n<li>", "<li>")
-    # Special handling cases for newlines
-    text = text.replace("\n", "<br/>")
     return text
 
 

@@ -6,7 +6,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
     class="container"
   >
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -47,7 +47,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+                  class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
                 >
                   <img
                     alt="Apple"
@@ -55,7 +55,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -72,7 +72,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--hover"
+                  class="root root_bordered root--fullWidth root--hover icon-block"
                 >
                   <img
                     alt="Play Store"
@@ -80,7 +80,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -92,7 +92,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
       </div>
     </div>
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -123,7 +123,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
             class="u-width-100 u-flex u-flex-center u-position-relative"
           >
             <div
-              class="root qr-code root_bordered"
+              class="root root_bordered qr-code"
             >
               <svg
                 height="256"
@@ -2351,7 +2351,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
     class="container"
   >
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -2392,7 +2392,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+                  class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
                 >
                   <img
                     alt="Apple"
@@ -2400,7 +2400,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2417,7 +2417,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--hover"
+                  class="root root_bordered root--fullWidth root--hover icon-block"
                 >
                   <img
                     alt="Play Store"
@@ -2425,7 +2425,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2437,7 +2437,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
       </div>
     </div>
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-lq6a48"
@@ -2464,7 +2464,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
     class="container"
   >
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -2505,7 +2505,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+                  class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
                 >
                   <img
                     alt="Apple"
@@ -2513,7 +2513,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2530,7 +2530,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--hover"
+                  class="root root_bordered root--fullWidth root--hover icon-block"
                 >
                   <img
                     alt="Play Store"
@@ -2538,7 +2538,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2550,7 +2550,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
       </div>
     </div>
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-lq6a48"
@@ -2577,7 +2577,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
     class="container"
   >
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -2618,7 +2618,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+                  class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
                 >
                   <img
                     alt="Apple"
@@ -2626,7 +2626,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2643,7 +2643,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--hover"
+                  class="root root_bordered root--fullWidth root--hover icon-block"
                 >
                   <img
                     alt="Play Store"
@@ -2651,7 +2651,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2663,7 +2663,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
       </div>
     </div>
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-lq6a48"
@@ -2690,7 +2690,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
     class="container"
   >
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -2731,7 +2731,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+                  class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
                 >
                   <img
                     alt="Apple"
@@ -2739,7 +2739,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2756,7 +2756,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--hover"
+                  class="root root_bordered root--fullWidth root--hover icon-block"
                 >
                   <img
                     alt="Play Store"
@@ -2764,7 +2764,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2776,7 +2776,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
       </div>
     </div>
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -2826,7 +2826,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
               src="[object Object]"
             />
             <button
-              class="css-mk7eo3-button disconnect-button"
+              class="css-1ed0qk5-button disconnect-button"
               data-testid="test__disconnect"
               type="button"
             >
@@ -2867,7 +2867,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
         href="/a/grafana-oncall-app/cloud"
       >
         <button
-          class="css-1a8393j-button"
+          class="css-b2ba3d-button"
           type="button"
         >
           <div
@@ -2903,7 +2903,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
     class="container"
   >
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -2944,7 +2944,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+                  class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
                 >
                   <img
                     alt="Apple"
@@ -2952,7 +2952,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -2969,7 +2969,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--hover"
+                  class="root root_bordered root--fullWidth root--hover icon-block"
                 >
                   <img
                     alt="Play Store"
@@ -2977,7 +2977,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -2989,7 +2989,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
       </div>
     </div>
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <span
         class="root text text--primary text--medium"
@@ -3007,7 +3007,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
     class="container"
   >
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <div
         class="css-1j7sh2x-vertical-group"
@@ -3048,7 +3048,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+                  class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
                 >
                   <img
                     alt="Apple"
@@ -3056,7 +3056,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     iOS
                   </span>
@@ -3073,7 +3073,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                 target="_blank"
               >
                 <div
-                  class="root icon-block root_bordered root--fullWidth root--hover"
+                  class="root root_bordered root--fullWidth root--hover icon-block"
                 >
                   <img
                     alt="Play Store"
@@ -3081,7 +3081,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                     src="[object Object]"
                   />
                   <span
-                    class="root text icon-text text--primary text--medium"
+                    class="root text text--primary text--medium icon-text"
                   >
                     Android
                   </span>
@@ -3093,7 +3093,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
       </div>
     </div>
     <div
-      class="root container__box root_bordered root_shadowed root--withBackground"
+      class="root root_bordered root_shadowed root--withBackGround container__box"
     >
       <span
         class="root text text--primary text--medium"
