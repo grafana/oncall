@@ -173,19 +173,19 @@ export const form: { name: string; fields: FormItem[] } = {
       },
     },
     {
+      name: 'forward_all',
+      normalize: (value) => Boolean(value),
+      type: FormItemType.Switch,
+      description: "Forwards whole payload of the alert to the webhook's url as POST/PUT data",
+    },
+    {
       name: 'data',
-      getDisabled: (form_data) => Boolean(form_data?.forward_whole_payload),
+      getDisabled: (data) => Boolean(data?.forward_all),
       type: FormItemType.TextArea,
       description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}',
       extra: {
         rows: 9,
       },
-    },
-    {
-      name: 'forward_all',
-      normalize: (value) => Boolean(value),
-      type: FormItemType.Switch,
-      description: "Forwards whole payload of the alert to the webhook's url as POST/PUT data",
     },
   ],
 };

@@ -10,9 +10,11 @@ export enum MaintenanceMode {
 
 export interface AlertReceiveChannel {
   id: string;
-  integration: number;
+  integration: string;
   smile_code: string;
   verbal_name: string;
+  description: string;
+  description_short: string;
   author: User['pk'];
   team: GrafanaTeam['id'];
   created_at: string;
@@ -23,13 +25,13 @@ export interface AlertReceiveChannel {
   instructions: string;
   demo_alert_enabled: boolean;
   maintenance_mode?: MaintenanceMode;
+  maintenance_till?: number;
   heartbeat: Heartbeat | null;
   is_available_for_integration_heartbeat: boolean;
+  routes_count: number;
 }
 
 export interface AlertReceiveChannelChoice {
   display_name: string;
   value: number;
 }
-
-export const MaintenanceIntegration = 24;

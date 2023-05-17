@@ -10,7 +10,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING, LegacyAccessControlRole
+from apps.api.permissions import (
+    DONT_USE_LEGACY_PERMISSION_MAPPING,
+    GrafanaAPIPermission,
+    LegacyAccessControlRole,
+    RBACPermission,
+)
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
@@ -179,6 +184,39 @@ def test_list_users(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_granted_permission(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    perm_to_filter_on = RBACPermission.Permissions.NOTIFICATIONS_READ.value
+    perms_to_grant = [GrafanaAPIPermission(action=perm_to_filter_on)]
+
+    organization = make_organization()
+    admin_user = make_user_for_organization(organization)
+    user1 = make_user_for_organization(organization, permissions=perms_to_grant)
+    user2 = make_user_for_organization(organization, permissions=perms_to_grant)
+    user3 = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    response = client.get(
+        f"{url}?permission={perm_to_filter_on}", format="json", **make_user_auth_headers(admin_user, token)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_user_pks = [u["pk"] for u in response.json()["results"]]
+
+    assert admin_user.public_primary_key in returned_user_pks
+    assert user1.public_primary_key in returned_user_pks
+    assert user2.public_primary_key in returned_user_pks
+    assert user3.public_primary_key not in returned_user_pks
 
 
 @pytest.mark.django_db
@@ -1654,18 +1692,21 @@ def test_phone_number_verification_recaptcha(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "days",
+    ["invalid", 75, -2, 0],
+)
 def test_upcoming_shifts_invalid_days(
-    make_organization,
-    make_user_for_organization,
-    make_token_for_organization,
-    make_user_auth_headers,
+    make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers, days
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
-    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key}) + "?days=invalid"
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key}) + "?days={}".format(
+        days
+    )
 
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
 
@@ -1709,6 +1750,7 @@ def test_upcoming_shifts_oncall(
         )
         on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     client = APIClient()
 
@@ -1762,6 +1804,7 @@ def test_upcoming_shifts_override(
     )
     override.add_rolling_users([[admin]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     client = APIClient()
     url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
@@ -1816,6 +1859,7 @@ def test_upcoming_shifts_multiple_schedules(
             )
             on_call_shift.add_rolling_users([[user]])
         schedule.refresh_ical_file()
+        schedule.refresh_ical_final_schedule()
         schedules.append(schedule)
 
     client = APIClient()

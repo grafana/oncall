@@ -42,6 +42,7 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(errorMsg);
 
     // test
@@ -55,11 +56,32 @@ describe('rootBaseStore', () => {
     expect(rootBaseStore.initializationError).toEqual(errorMsg);
   });
 
+  test('currently undergoing maintenance', async () => {
+    // mocks/setup
+    const onCallApiUrl = 'http://asdfasdf.com';
+    const rootBaseStore = new RootBaseStore();
+    const maintenanceMessage = 'mncvnmvcmnvkjdjkd';
+
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(maintenanceMessage);
+
+    // test
+    await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
+
+    // assertions
+    expect(PluginState.checkIfBackendIsInMaintenanceMode).toHaveBeenCalledTimes(1);
+    expect(PluginState.checkIfBackendIsInMaintenanceMode).toHaveBeenCalledWith();
+
+    expect(rootBaseStore.appLoading).toBe(false);
+    expect(rootBaseStore.initializationError).toEqual(`🚧 ${maintenanceMessage} 🚧`);
+    expect(rootBaseStore.currentlyUndergoingMaintenance).toBe(true);
+  });
+
   test('anonymous user', async () => {
     // mocks/setup
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: true,
       is_installed: true,
@@ -87,6 +109,7 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: false,
@@ -117,6 +140,7 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: false,
@@ -155,6 +179,7 @@ describe('rootBaseStore', () => {
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       ...scenario,
       is_user_anonymous: false,
@@ -193,6 +218,7 @@ describe('rootBaseStore', () => {
     const installPluginError = new Error('asdasdfasdfasf');
     const humanReadableErrorMsg = 'asdfasldkfjaksdjflk';
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: false,
@@ -237,6 +263,7 @@ describe('rootBaseStore', () => {
     const version = 'asdfalkjslkjdf';
     const license = 'lkjdkjfdkjfdjkfd';
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: true,
@@ -272,6 +299,7 @@ describe('rootBaseStore', () => {
     const mockedLoadCurrentUser = jest.fn();
     const syncDataWithOnCallError = 'asdasdfasdfasf';
 
+    PluginState.checkIfBackendIsInMaintenanceMode = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: true,
