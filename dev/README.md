@@ -192,8 +192,6 @@ yarn test:integration
 
 ## Useful `make` commands
 
-See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
-
 > 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
 ## Setting environment variables
