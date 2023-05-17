@@ -5,12 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.23 (2023-05-15)
 
 ### Added
 
 - Add a way to set a maintenance mode message and display this in the web plugin UI by @joeyorlando ([#1917](https://github.com/grafana/oncall/pull/#1917))
 - Add "send test push" button
+
+### Changed
+
+- Use `user_profile_changed` Slack event instead of `user_change` to update Slack user profile by @vadimkerr ([#1938](https://github.com/grafana/oncall/pull/1938))
 
 ## v1.2.22 (2023-05-12)
 

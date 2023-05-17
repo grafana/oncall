@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Badge, Tooltip, Button, IconButton } from '@grafana/ui';
+import { HorizontalGroup, Button, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -19,13 +19,12 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
+import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { HeartGreenIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel';
-import { MaintenanceType } from 'models/maintenance/maintenance.types';
+import { HeartIcon, HeartRedIcon } from 'icons';
+import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -36,7 +35,8 @@ import styles from './Integrations2.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-// const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 15;
+const MAX_LINE_LENGTH = 40;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -105,19 +105,19 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { page, integrationsFilters } = this.state;
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updateItems(integrationsFilters);
+    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId } = this.state;
+    const { alertReceiveChannelId, page } = this.state;
     const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore } = store;
 
-    const results = alertReceiveChannelStore.getSearchResult();
+    const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
 
     const columns = [
       {
-        width: '25%',
+        width: '35%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
@@ -130,7 +130,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
       },
       {
-        width: '25%',
+        width: '20%',
         title: 'Datasource',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
@@ -148,7 +148,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         render: (item: AlertReceiveChannel) => this.renderHeartbeat(item, alertReceiveChannelStore, heartbeatStore),
       },
       {
-        width: '20%',
+        width: '15%',
         title: 'Team',
         render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
       },
@@ -164,7 +164,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       <>
         <div className={cx('root')}>
           <div className={cx('title')}>
-            <HorizontalGroup justify="flex-end">
+            <HorizontalGroup justify="space-between">
+              <Text.Title level={3}>Integrations 2</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   onClick={() => {
@@ -190,16 +191,18 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               rowKey="id"
               data={results}
               columns={columns}
-              // pagination={{
-              //   page,
-              //   total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-              //   onChange: this.handleChangePage,
-              // }}
+              className={cx('integrations-table')}
+              rowClassName={cx('integrations-table-row')}
+              pagination={{
+                page,
+                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                onChange: this.handleChangePage,
+              }}
             />
           </div>
         </div>
         {alertReceiveChannelId && (
-          <IntegrationForm
+          <IntegrationForm2
             onHide={() => {
               this.setState({ alertReceiveChannelId: undefined });
             }}
@@ -227,7 +230,14 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return (
       <PluginLink query={{ page: 'integrations_2', id: item.id }}>
         <Text type="link" size="medium">
-          <Emoji className={cx('title')} text={item.verbal_name} />
+          <Emoji
+            className={cx('title')}
+            text={
+              item.verbal_name.length > MAX_LINE_LENGTH
+                ? item.verbal_name.substring(0, MAX_LINE_LENGTH) + '...'
+                : item.verbal_name
+            }
+          />
         </Text>
       </PluginLink>
     );
@@ -239,25 +249,24 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return (
       <HorizontalGroup spacing="xs">
         <IntegrationLogo scale={0.08} integration={integration} />
-        <Text type="secondary" size="small">
-          {integration?.display_name}
-        </Text>
+        <Text type="secondary">{integration?.display_name}</Text>
       </HorizontalGroup>
     );
   }
 
   renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
-    let routesCounter = undefined;
+    let routesCounter = item.routes_count;
 
     return (
-      <HorizontalGroup>
+      <HorizontalGroup spacing="xs">
         {alertReceiveChannelCounter && (
           <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
-            <Badge
+            <TooltipBadge
+              borderType="primary"
               text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
-              color={'blue'}
-              tooltip={
+              tooltipTitle=""
+              tooltipContent={
                 alertReceiveChannelCounter?.alerts_count +
                 ' alert' +
                 (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
@@ -269,7 +278,15 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             />
           </PluginLink>
         )}
-        {routesCounter && <Badge text={routesCounter} color={'green'} tooltip={`${routesCounter} routes`} />}
+        {routesCounter && (
+          <TooltipBadge
+            borderType="success"
+            icon="link"
+            text={routesCounter}
+            tooltipTitle=""
+            tooltipContent={`${routesCounter} routes`}
+          />
+        )}
       </HorizontalGroup>
     );
   }
@@ -282,20 +299,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     const heartbeatStatus = Boolean(heartbeat?.status);
     return (
-      <div className={cx('heartbeat')}>
-        {alertReceiveChannel.is_available_for_integration_heartbeat && (
-          <Tooltip
-            placement="top"
-            content={
-              heartbeat
-                ? `Last heartbeat: ${heartbeat.last_heartbeat_time_verbal || 'never'}`
-                : 'Click to setup heartbeat'
-            }
-          >
-            <div className={cx('heartbeat-icon')} onClick={() => {}}>
-              {heartbeatStatus ? <HeartGreenIcon /> : <HeartRedIcon />}
-            </div>
-          </Tooltip>
+      <div>
+        {alertReceiveChannel.is_available_for_integration_heartbeat && heartbeat?.last_heartbeat_time_verbal && (
+          <TooltipBadge
+            text={undefined}
+            className={cx('heartbeat-badge')}
+            borderType={heartbeatStatus ? 'success' : 'danger'}
+            customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+            tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
+            tooltipContent={undefined}
+          />
         )}
       </div>
     );
@@ -311,7 +324,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             borderType="primary"
             icon="pause"
             text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
-            tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, item.maintenance_mode)}
+            tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, maintenanceMode)}
             tooltipContent={undefined}
           />
         </div>
@@ -320,12 +333,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     return null;
   }
-
-  handleStopMaintenance = (item: AlertReceiveChannel, maintenanceStore, alertReceiveChannelStore) => {
-    maintenanceStore.stopMaintenanceMode(MaintenanceType.alert_receive_channel, item.id).then(() => {
-      alertReceiveChannelStore.updateItem(item.id);
-    });
-  };
 
   renderTeam(item: AlertReceiveChannel, teams: any) {
     return <TeamName team={teams[item.team]} />;
@@ -338,7 +345,16 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <IconButton tooltip="Settings" name="cog" onClick={() => this.onIntegrationEditClick(item.id)} />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-          <WithConfirm>
+          <WithConfirm
+            description={
+              <Text>
+                <Emoji
+                  className={cx('title')}
+                  text={`Are you sure you want to delete ${item.verbal_name} integration?`}
+                />
+              </Text>
+            }
+          >
             <IconButton
               tooltip="Delete"
               name="trash-alt"
@@ -369,9 +385,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters } = this.state;
+    const { integrationsFilters, page } = this.state;
 
-    return alertReceiveChannelStore.updateItems(integrationsFilters);
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, HorizontalGroup, Drawer, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Drawer, VerticalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -13,12 +13,15 @@ import {
   webTitleTemplateCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
 import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './IntegrationTemplate.module.css';
 
@@ -26,21 +29,31 @@ const cx = cn.bind(styles);
 
 interface IntegrationTemplateProps {
   id: AlertReceiveChannel['id'];
+  channelFilterId?: ChannelFilter['id'];
   template: TemplateForEdit;
   templateBody: string;
+  templates: AlertTemplatesDTO[];
   onHide: () => void;
   onUpdateTemplates: (values: any) => void;
-  onUpdateRoute: (values: any) => void;
+  onUpdateRoute: (values: any, channelFilterId?: ChannelFilter['id']) => void;
 }
 
 const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
-  const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody } = props;
+  const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId, templates } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [chatOps, setChatOps] = useState(undefined);
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
+
+  useEffect(() => {
+    const locationParams: any = { template: template.name };
+    if (template.isRoute) {
+      locationParams.routeId = channelFilterId;
+    }
+    LocationHelper.update(locationParams, 'partial');
+  }, []);
 
   const onShowCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(true);
@@ -53,7 +66,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const getChangeHandler = () => {
     return debounce((value: string) => {
       setChangedTemplateBody(value);
-    }, 1000);
+    }, 500);
   };
 
   const onEditPayload = (alertPayload: string) => {
@@ -95,7 +108,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const handleSubmit = useCallback(() => {
     template.isRoute
-      ? onUpdateRoute({ [template.name]: changedTemplateBody })
+      ? onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId)
       : onUpdateTemplates({ [template.name]: changedTemplateBody });
 
     onHide();
@@ -128,36 +141,37 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     }
   };
   return (
-    <>
-      <Drawer
-        title={
-          <div className={cx('title-container')}>
-            <HorizontalGroup justify="space-between" align="flex-start">
-              <VerticalGroup>
-                <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
-                {template.description && <Text type="secondary">{template.description}</Text>}
-              </VerticalGroup>
+    <Drawer
+      title={
+        <div className={cx('title-container')}>
+          <HorizontalGroup justify="space-between" align="flex-start">
+            <VerticalGroup>
+              <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
+              {template.description && <Text type="secondary">{template.description}</Text>}
+            </VerticalGroup>
 
-              <HorizontalGroup>
-                <Button variant="secondary" onClick={onHide}>
-                  Cancel
-                </Button>
-                <Button variant="primary" onClick={handleSubmit}>
-                  Save
-                </Button>
-              </HorizontalGroup>
+            <HorizontalGroup>
+              <Button variant="secondary" onClick={onHide}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleSubmit}>
+                Save
+              </Button>
             </HorizontalGroup>
-          </div>
-        }
-        onClose={onHide}
-        closeOnMaskClick={false}
-        width={'95%'}
-      >
+          </HorizontalGroup>
+        </div>
+      }
+      onClose={onHide}
+      closeOnMaskClick={false}
+      width={'95%'}
+    >
+      <div className={cx('container-wrapper')}>
         <div className={cx('container')}>
           <TemplatesAlertGroupsList
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}
+            templates={templates}
           />
           {isCheatSheetVisible ? (
             <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
@@ -174,17 +188,16 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                   </HorizontalGroup>
                 </div>
 
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={templateBody}
-                  data={undefined}
+                  data={templates}
                   showLineNumbers={true}
-                  height={'100vh'}
+                  height={'85vh'}
                   onChange={getChangeHandler()}
                 />
               </div>
             </>
           )}
-          {/* {alertGroupPayload || resultError ? ( */}
           <Result
             alertReceiveChannelId={id}
             templateName={template.name}
@@ -195,16 +208,9 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             error={resultError}
             onSaveAndFollowLink={onSaveAndFollowLink}
           />
-          {/* ) : (
-            <div className={cx('template-block-result')}>
-              <div className={cx('template-block-title')}>
-                <Text>Please select Alert group to see end result</Text>
-              </div>
-            </div>
-          )} */}
         </div>
-      </Drawer>
-    </>
+      </div>
+    </Drawer>
   );
 });
 
@@ -222,6 +228,9 @@ interface ResultProps {
 const Result = (props: ResultProps) => {
   const { alertReceiveChannelId, templateName, chatOps, payload, templateBody, error, onSaveAndFollowLink } = props;
 
+  const getCapitalizedChatopsName = (name: string) => {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
   return (
     <div className={cx('template-block-result')}>
       <div className={cx('template-block-title')}>
@@ -237,7 +246,7 @@ const Result = (props: ResultProps) => {
                 <Text>{error}</Text>
               </Block>
             ) : (
-              <Block bordered fullWidth className={cx('block-style')}>
+              <Block bordered fullWidth withBackground>
                 <TemplatePreview
                   key={templateName}
                   templateName={templateName}
@@ -251,7 +260,10 @@ const Result = (props: ResultProps) => {
             {chatOps && (
               <VerticalGroup>
                 <Button onClick={() => onSaveAndFollowLink(chatOps.permalink)}>
-                  Save and open Alert Group in {chatOps.name}
+                  <HorizontalGroup spacing="xs" align="center">
+                    Save and open Alert Group in {getCapitalizedChatopsName(chatOps.name)}{' '}
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
                 </Button>
 
                 {chatOps.comment && (

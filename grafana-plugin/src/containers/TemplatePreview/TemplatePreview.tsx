@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
-import { LoadingPlaceholder, Alert as AlertComponent } from '@grafana/ui';
+import { HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
@@ -64,18 +65,23 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   return result ? (
     <>
       {templateName.includes('condition_template') ? (
-        <AlertComponent severity={isCondition ? 'success' : 'error'} title="">
+        <Text type={isCondition ? 'success' : 'danger'}>
           {isCondition ? (
-            'True'
+            <>
+              <Icon name="check" size="lg" /> True
+            </>
           ) : (
-            <div
-              className={cx('message')}
-              dangerouslySetInnerHTML={{
-                __html: sanitize(result.preview || ''),
-              }}
-            />
+            <HorizontalGroup>
+              <Icon name="exclamation-triangle" size="lg" />
+              <div
+                className={cx('message')}
+                dangerouslySetInnerHTML={{
+                  __html: sanitize(result.preview || ''),
+                }}
+              />
+            </HorizontalGroup>
           )}
-        </AlertComponent>
+        </Text>
       ) : (
         <div
           className={cx('message')}

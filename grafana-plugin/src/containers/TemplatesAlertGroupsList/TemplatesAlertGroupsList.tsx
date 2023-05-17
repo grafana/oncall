@@ -4,11 +4,12 @@ import { Button, HorizontalGroup, Tooltip, Icon, VerticalGroup, IconButton, Badg
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
-import SourceCode from 'components/SourceCode/SourceCode';
+import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
@@ -16,13 +17,14 @@ import styles from './TemplatesAlertGroupsList.module.css';
 const cx = cn.bind(styles);
 
 interface TemplatesAlertGroupsListProps {
+  templates: AlertTemplatesDTO[];
   alertReceiveChannelId: AlertReceiveChannel['id'];
   onSelectAlertGroup?: (alertGroup: Alert) => void;
   onEditPayload?: (payload: string) => void;
 }
 
 const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
-  const { alertReceiveChannelId, onEditPayload, onSelectAlertGroup } = props;
+  const { alertReceiveChannelId, templates, onEditPayload, onSelectAlertGroup } = props;
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
   const [selectedAlertPayload, setSelectedAlertPayload] = useState<string>(undefined);
@@ -78,12 +80,15 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 </HorizontalGroup>
               </div>
               <div className={cx('alert-groups-list')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={JSON.stringify(selectedAlertPayload, null, 4)}
-                  data={undefined}
-                  height={'100vh'}
+                  data={templates}
+                  height={'85vh'}
                   onChange={getChangeHandler()}
                   showLineNumbers
+                  useAutoCompleteList={false}
+                  language={MONACO_LANGUAGE.json}
+                  monacoOptions={MONACO_PAYLOAD_OPTIONS}
                 />
               </div>
             </>
@@ -101,10 +106,20 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               </div>
               <div className={cx('alert-groups-list')}>
                 <VerticalGroup>
-                  <Badge style={{ margin: '16px' }} color="blue" text="Last alert payload" />
-                  <SourceCode className={cx('alert-group-payload-view')} noMaxHeight>
-                    {JSON.stringify(selectedAlertPayload, null, 4)}
-                  </SourceCode>
+                  <Badge color="blue" text="Last alert payload" />
+                  <div className={cx('alert-groups-editor')}>
+                    <MonacoEditor
+                      value={JSON.stringify(selectedAlertPayload, null, 4)}
+                      data={undefined}
+                      disabled
+                      height={'85vh'}
+                      onChange={getChangeHandler()}
+                      showLineNumbers
+                      useAutoCompleteList={false}
+                      language={MONACO_LANGUAGE.json}
+                      monacoOptions={MONACO_PAYLOAD_OPTIONS}
+                    />
+                  </div>
                 </VerticalGroup>
               </div>
             </>
@@ -124,19 +139,23 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 </HorizontalGroup>
               </div>
               <div className={cx('alert-groups-list')}>
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={null}
-                  data={undefined}
-                  height={'100vh'}
+                  disabled={true}
+                  useAutoCompleteList={false}
+                  language={MONACO_LANGUAGE.json}
+                  data={templates}
+                  monacoOptions={MONACO_PAYLOAD_OPTIONS}
+                  showLineNumbers={false}
+                  height={'85vh'}
                   onChange={getChangeHandler()}
-                  showLineNumbers
                 />
               </div>
             </>
           ) : (
             <>
               <div className={cx('template-block-title')}>
-                <HorizontalGroup justify="space-between">
+                <HorizontalGroup justify="space-between" wrap>
                   <HorizontalGroup>
                     <Text>Recent Alert groups</Text>
                     <Tooltip content="Here will be information about alert groups">
