@@ -351,7 +351,7 @@ export class UserStore extends BaseStore {
   async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
     return await makeRequest(`/users/${userId}/send_test_push`, {
       method: 'POST',
-      data: {
+      params: {
         critical: isCritical,
       },
     });

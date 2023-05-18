@@ -5,7 +5,8 @@ import string
 from fcm_django.models import FCMDevice
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
-from apps.mobile_app.tasks import FCMMessageData, MessageType, _construct_fcm_message, _send_push_notification
+from apps.mobile_app.exceptions import DeviceNotSet
+from apps.mobile_app.tasks import FCMMessageData, MessageType, _construct_fcm_message, _send_push_notification, logger
 from apps.user_management.models import User
 
 TEST_PUSH_TITLE = "Hi, this is a test notification from Grafana OnCall"
@@ -13,6 +14,9 @@ TEST_PUSH_TITLE = "Hi, this is a test notification from Grafana OnCall"
 
 def send_test_push(user, critical=False):
     device_to_notify = FCMDevice.objects.filter(user=user).first()
+    if device_to_notify is None:
+        logger.info(f"send_test_push: fcm_device not found user_id={user.id}")
+        raise DeviceNotSet
     message = _get_test_escalation_fcm_message(user, device_to_notify, critical)
     _send_push_notification(device_to_notify, message)
 
