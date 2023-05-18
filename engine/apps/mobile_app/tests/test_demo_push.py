@@ -44,7 +44,7 @@ def test_escalation_fcm_message_user_settings_critical(
     organization, user = make_organization_and_user()
     device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
 
-    message = _get_test_escalation_fcm_message(user, device, critical=False)
+    message = _get_test_escalation_fcm_message(user, device, critical=True)
 
     # Check user settings are passed to FCM message
     assert message.data["default_notification_sound_name"] == "default_sound.mp3"
@@ -79,7 +79,7 @@ def test_escalation_fcm_message_user_settings_critical_override_dnd_disabled(
 
     # Disable important notification override DND
     MobileAppUserSettings.objects.create(user=user, important_notification_override_dnd=False)
-    message = _get_test_escalation_fcm_message(user, device, critical=False)
+    message = _get_test_escalation_fcm_message(user, device, critical=True)
 
     # Check user settings are passed to FCM message
     assert message.data["important_notification_override_dnd"] == "false"
