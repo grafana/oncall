@@ -42,8 +42,8 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           hasCollapsedBorder={false}
           key={channelFilterId}
           heading={
-            <HorizontalGroup justify={'space-between'}>
-              <HorizontalGroup spacing={'md'}>
+            <div className={cx('heading-container')}>
+              <div className={cx('heading-container__item', 'heading-container__item--large')}>
                 <TooltipBadge
                   borderType="success"
                   text={IntegrationHelper.getRouteConditionWording(
@@ -54,18 +54,19 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   tooltipContent={undefined}
                 />
                 {channelFilter.filtering_term && (
-                  <Text type="primary">{IntegrationHelper.truncateLine(channelFilter.filtering_term)}</Text>
+                  <Text type="primary" className={cx('heading-container__text')}>{channelFilter.filtering_term}</Text>
                 )}
-              </HorizontalGroup>
-              <HorizontalGroup>
+              </div>
+
+              <div className={cx('heading-container__item')}>
                 <RouteButtonsDisplay
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
                   setRouteIdForDeletion={() => setRouteIdForDeletion(channelFilterId)}
                 />
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </div>
+            </div>
           }
           content={
             <div className={cx('spacing')}>

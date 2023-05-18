@@ -153,9 +153,11 @@ $LARGE-MARGIN: 24px;
 
   &__container {
     width: 100%;
+    padding-right: 48px;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    overflow: hidden;
     gap: 12px;
   }
 
@@ -177,10 +179,11 @@ $LARGE-MARGIN: 24px;
 }
 
 .templates__content,
-.templates__container {
+.templates__outer-container {
   display: flex;
   width: 100%;
   align-items: center;
+  overflow: hidden;
 }
 
 .templates__edit {
@@ -189,4 +192,8 @@ $LARGE-MARGIN: 24px;
 
 .template-drawer {
   padding-bottom: 24px;
+}
+
+.no-wrap {
+  white-space: nowrap;
 }

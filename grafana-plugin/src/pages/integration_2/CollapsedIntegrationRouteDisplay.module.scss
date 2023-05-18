@@ -5,3 +5,30 @@
 .icon-exclamation {
   color: var(--error-text-color);
 }
+
+.heading-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  gap: 12px;
+
+  &__item {
+    display: flex;
+    white-space: nowrap;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  &__item--large {
+    flex-grow: 1;
+    overflow: hidden;
+  }
+
+  &__text {
+    overflow: hidden;
+    max-width: calc(100% - 48px);
+    text-overflow: ellipsis;
+  }
+}
