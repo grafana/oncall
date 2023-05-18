@@ -8,4 +8,4 @@ class TestCallThrottler(UserRateThrottle):
 
 class TestPushThrottler(UserRateThrottle):
     scope = "send_test_push"
-    rate = "5/m"
+    rate = "10/m"
