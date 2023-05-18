@@ -2,6 +2,9 @@
   max-height: calc(100vh - 300px);
   overflow: scroll;
   margin: 15px -15px;
+  padding: 15px 0;
+  border-top: var(--border-strong);
+  border-bottom: var(--border-strong);
 }
 
 .content {

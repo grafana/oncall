@@ -226,7 +226,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         </HorizontalGroup>
         <div className={cx('content')} data-testid="override-inputs">
           <VerticalGroup>
-            <HorizontalGroup>
+            <HorizontalGroup align="flex-start">
               <Field
                 className={cx('date-time-picker')}
                 label={

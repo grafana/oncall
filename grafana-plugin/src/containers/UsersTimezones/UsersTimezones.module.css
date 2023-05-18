@@ -66,6 +66,15 @@
   overflow: hidden;
 }
 
+.users-placeholder {
+  width: 100%;
+  text-align: center;
+}
+
+.icon {
+  color: var(--secondary-text-color);
+}
+
 .avatar-group {
   position: absolute;
   top: 10px;

@@ -146,6 +146,9 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
         setShiftStart(propsShiftStart);
         setShiftEnd(propsShiftStart.add(1, 'day'));
       }
+    } else {
+      setShiftStart(propsShiftStart);
+      setShiftEnd(propsShiftStart.add(7, 'day'));
     }
   }, [mode]);
 
@@ -313,6 +316,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       <Modal
         top="0"
         isOpen={isOpen}
+        className={cx('modal')}
         width="430px"
         onDismiss={onHide}
         contentElement={(props, children) => (
@@ -420,11 +424,12 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     />
                   </Field>
                 </div>
+
                 <Collapse
                   className={cx('active-periods')}
                   contentClassName={cx('active-periods-content')}
                   isOpen={shiftId !== 'new'}
-                  label={<Text>Active periods</Text>}
+                  label={<Text>Active periods during a week</Text>}
                 >
                   <VerticalGroup spacing="md">
                     <RadioButtonGroup
@@ -519,7 +524,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
           </div>
           <div className={cx('footer')}>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+              <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
               <HorizontalGroup>
                 <Button variant="secondary" onClick={onHide}>
                   {shiftId === 'new' ? 'Cancel' : 'Close'}
@@ -594,50 +599,50 @@ const ShiftPeriod = ({
     [shiftEnd]
   );
 
-  console.log(errors);
-
   return (
-    <div className={cx(hideWeekday ? 'three-fields' : 'two-fields')}>
-      <Field
-        className={cx('date-time-picker')}
-        label={
-          <Text type="primary" size="small">
-            From
-          </Text>
-        }
-      >
-        <WeekdayTimePicker
-          hideWeekday={hideWeekday}
-          value={shiftStart}
-          onWeekDayChange={handleShiftStartWeekdayChange}
-          onTimeChange={handleShiftStartTimeChange}
-          timezone={currentTimezone}
-          weekStart={config.bootData.user.weekStart}
-          error={errors.shift_start}
-        />
-      </Field>
-      <Field
-        className={cx('date-time-picker')}
-        label={
-          <Text type="primary" size="small">
-            Till
-          </Text>
-        }
-      >
-        {
+    <VerticalGroup>
+      <div className={cx(hideWeekday ? 'three-fields' : 'two-fields')}>
+        <Field
+          className={cx('date-time-picker')}
+          label={
+            <Text type="primary" size="small">
+              From
+            </Text>
+          }
+        >
           <WeekdayTimePicker
             hideWeekday={hideWeekday}
-            value={shiftEnd}
-            onWeekDayChange={handleShiftEndWeekdayChange}
-            onTimeChange={handleShiftEndTimeChange}
+            value={shiftStart}
+            onWeekDayChange={handleShiftStartWeekdayChange}
+            onTimeChange={handleShiftStartTimeChange}
             timezone={currentTimezone}
             weekStart={config.bootData.user.weekStart}
-            error={errors.shift_end}
+            error={errors.shift_start}
           />
-        }
-      </Field>
-      {hideWeekday && <Text type="secondary">({toHHmmss(shiftEnd.diff(shiftStart, 'second'))})</Text>}
-    </div>
+        </Field>
+        <Field
+          className={cx('date-time-picker')}
+          label={
+            <Text type="primary" size="small">
+              Till
+            </Text>
+          }
+        >
+          {
+            <WeekdayTimePicker
+              hideWeekday={hideWeekday}
+              value={shiftEnd}
+              onWeekDayChange={handleShiftEndWeekdayChange}
+              onTimeChange={handleShiftEndTimeChange}
+              timezone={currentTimezone}
+              weekStart={config.bootData.user.weekStart}
+              error={errors.shift_end}
+            />
+          }
+        </Field>
+        {hideWeekday && <Text type="secondary">({toHHmmss(shiftEnd.diff(shiftStart, 'second'))})</Text>}
+      </div>
+    </VerticalGroup>
   );
 };
 

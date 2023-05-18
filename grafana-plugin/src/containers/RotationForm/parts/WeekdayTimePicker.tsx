@@ -1,10 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { DateTime, dateTime, SelectableValue } from '@grafana/data';
-import { Select, TimeOfDayPicker } from '@grafana/ui';
+import { Select, TimeOfDayPicker, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
+import Text from 'components/Text/Text';
 import { toDate } from 'containers/RotationForm/RotationForm.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { useStore } from 'state/useStore';
@@ -64,16 +65,19 @@ const WeekdayTimePicker = (props: WeekdayTimePickerProps) => {
   );
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
-      {!hideWeekday && (
-        <div style={{ width: '58%' }} className={cx({ 'control--error': Boolean(error) })}>
-          <Select options={options} onChange={handleWeekDayChange} value={value.getDay()} />
+    <VerticalGroup>
+      <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
+        {!hideWeekday && (
+          <div style={{ width: '58%' }} className={cx({ 'control--error': Boolean(error) })}>
+            <Select options={options} onChange={handleWeekDayChange} value={value.getDay()} />
+          </div>
+        )}
+        <div style={{ width: hideWeekday ? '100%' : '42%' }} className={cx({ 'control--error': Boolean(error) })}>
+          <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
         </div>
-      )}
-      <div style={{ width: hideWeekday ? '100%' : '42%' }} className={cx({ 'control--error': Boolean(error) })}>
-        <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
       </div>
-    </div>
+      {error && <Text type="danger">{error}</Text>}
+    </VerticalGroup>
   );
 };
 

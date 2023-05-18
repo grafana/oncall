@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, Icon, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
@@ -105,14 +105,21 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
         </div>
         <div className={cx('users')}>
           <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
-          <UserAvatars
-            users={users}
-            onCallNow={onCallNow}
-            onTzChange={onTzChange}
-            currentMoment={currentMoment}
-            startMoment={startMoment}
-            scheduleId={scheduleId}
-          />
+          {users && users.length ? (
+            <UserAvatars
+              users={users}
+              onCallNow={onCallNow}
+              onTzChange={onTzChange}
+              currentMoment={currentMoment}
+              startMoment={startMoment}
+              scheduleId={scheduleId}
+            />
+          ) : (
+            <HorizontalGroup justify="center">
+              <Icon className={cx('icon')} name="users-alt" />
+              <Text type="secondary">Add rotation to the schedule to see users</Text>
+            </HorizontalGroup>
+          )}
         </div>
         <div className={cx('time-marks-wrapper')}>
           <div className={cx('time-marks')}>
@@ -153,7 +160,7 @@ interface UserAvatarsProps {
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment } = props;
+  const { users, currentMoment, onCallNow, scheduleId, startMoment } = props;
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
@@ -195,7 +202,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
             activeUtcOffset={activeUtcOffset}
             utcOffset={group.utcOffset}
             onSetActiveUtcOffset={setActiveUtcOffset}
-            onTzChange={onTzChange}
+            // onTzChange={onTzChange}
             xPos={xPos}
             users={group.users}
             startMoment={startMoment}
@@ -218,7 +225,7 @@ interface AvatarGroupProps {
   scheduleId: Schedule['id'];
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
-  onTzChange: (timezone: Timezone) => void;
+  onTzChange?: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 

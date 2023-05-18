@@ -224,7 +224,7 @@ export class ScheduleStore extends BaseStore {
     const response = await makeRequest(`/oncall_shifts/`, {
       data: { type, schedule: scheduleId, ...params },
       method: 'POST',
-    }).catch(this.onApiError);
+    });
 
     this.shifts = {
       ...this.shifts,
@@ -251,7 +251,7 @@ export class ScheduleStore extends BaseStore {
       params: { date: fromString },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
-    }).catch(this.onApiError);
+    });
 
     if (isOverride) {
       this.overridePreview = enrichOverrides(
@@ -285,7 +285,7 @@ export class ScheduleStore extends BaseStore {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
       data: { ...params },
       method: 'PUT',
-    }).catch(this.onApiError);
+    });
 
     this.shifts = {
       ...this.shifts,

@@ -60,8 +60,8 @@
 }
 
 .details {
-  width: auto;
-  max-width: 250px;
+  width: 250px;
+  padding: 5px 0;
 }
 
 .details-user-status {
@@ -105,5 +105,9 @@
 }
 
 .second-column {
-  width: 85px;
+  width: 102px;
+}
+
+.icon {
+  color: var(--secondary-text-color);
 }

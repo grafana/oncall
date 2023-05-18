@@ -8,7 +8,6 @@ import { observer } from 'mobx-react';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { IsOncallIcon } from 'icons';
 import { getShiftTitle } from 'models/schedule/schedule.helpers';
 import { Event, Schedule } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
@@ -137,7 +136,7 @@ interface ScheduleSlotDetailsProps {
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentTimezone, event, isOncall, handleAddOverride, simplified, color } = props;
+  const { user, currentTimezone, event, handleAddOverride, simplified, color } = props;
 
   const store = useStore();
   const { scheduleStore } = store;
@@ -159,7 +158,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
           <div className={cx('details-icon')}>
-            {isOncall ? <IsOncallIcon width={16} height={16} className={cx('is-oncall-icon')} /> : <Icon name="user" />}
+            <Icon className={cx('icon')} name="user" />
           </div>
           <Text type="primary" className={cx('username')}>
             {user?.username}
@@ -167,7 +166,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
           <div className={cx('details-icon')}>
-            <Icon name="clock-nine" />
+            <Icon className={cx('icon')} name="clock-nine" />
           </div>
           <Text type="primary" className={cx('second-column')}>
             User local time
@@ -176,7 +175,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             <br />({getTzOffsetString(currentMoment.tz(user.timezone))})
           </Text>
           <Text type="secondary">
-            Current TZ
+            Current timezone
             <br />
             {currentMoment.tz(currentTimezone).format('DD MMM, HH:mm')}
             <br />({getTzOffsetString(currentMoment.tz(currentTimezone))})
@@ -184,7 +183,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
           <div className={cx('details-icon')}>
-            <Icon name="arrows-h" />
+            <Icon className={cx('icon')} name="arrows-h" />
           </div>
           <Text type="primary" className={cx('second-column')}>
             This shift
