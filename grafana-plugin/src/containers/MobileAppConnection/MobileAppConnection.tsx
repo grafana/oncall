@@ -12,7 +12,7 @@ import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/W
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification, openNotification } from 'utils';
+import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppConnection.module.scss';
@@ -233,7 +233,11 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
       await userStore.sendTestPushNotification(userPk, isCritical);
       openNotification('Notification was sent');
     } catch (ex) {
-      openErrorNotification('There was an error sending the notification');
+      if (ex.response?.status === 429) {
+        openWarningNotification('Too much attempts, try again later');
+      } else {
+        openErrorNotification('There was an error sending the notification');
+      }
     } finally {
       setIsAttemptingTestNotification(false);
     }
