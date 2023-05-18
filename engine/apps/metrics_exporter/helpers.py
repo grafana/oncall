@@ -5,7 +5,7 @@ from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.alerts.constants import STATE_ACKNOWLEDGED, STATE_FIRING, STATE_RESOLVED, STATE_SILENCED
+from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
     ALERT_GROUPS_RESPONSE_TIME,
     ALERT_GROUPS_TOTAL,
@@ -128,10 +128,10 @@ def metrics_add_integration_to_cache(integration):
             "org_id": grafana_org_id,
             "slug": instance_slug,
             "id": instance_id,
-            STATE_FIRING: 0,
-            STATE_ACKNOWLEDGED: 0,
-            STATE_RESOLVED: 0,
-            STATE_SILENCED: 0,
+            AlertGroupState.FIRING.value: 0,
+            AlertGroupState.ACKNOWLEDGED.value: 0,
+            AlertGroupState.RESOLVED.value: 0,
+            AlertGroupState.SILENCED.value: 0,
         },
     )
     cache.set(metric_alert_groups_total_key, metric_alert_groups_total, timeout=metrics_cache_timeout)

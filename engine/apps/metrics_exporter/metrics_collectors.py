@@ -4,7 +4,7 @@ from django.core.cache import cache
 from prometheus_client import CollectorRegistry
 from prometheus_client.metrics_core import GaugeMetricFamily, HistogramMetricFamily
 
-from apps.alerts.constants import ALERTGROUP_STATES
+from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
     ALERT_GROUPS_RESPONSE_TIME,
     ALERT_GROUPS_TOTAL,
@@ -65,8 +65,8 @@ class ApplicationMetricsCollector:
                     ]
 
                     labels_values = list(map(str, labels_values))
-                    for state in ALERTGROUP_STATES:
-                        alert_groups_total.add_metric(labels_values + [state], integration_data[state])
+                    for state in AlertGroupState:
+                        alert_groups_total.add_metric(labels_values + [state.value], integration_data[state.value])
 
             # get alert_groups_response_time metric
             alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)

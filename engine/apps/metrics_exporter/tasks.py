@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 
-from apps.alerts.constants import STATE_ACKNOWLEDGED, STATE_FIRING, STATE_RESOLVED, STATE_SILENCED
+from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
     METRICS_ORGANIZATIONS_IDS,
     METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT,
@@ -21,6 +21,7 @@ from apps.metrics_exporter.helpers import (
     get_metrics_recalculation_timeout,
     get_response_time_period,
 )
+from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
@@ -29,7 +30,6 @@ from common.database import get_random_readonly_database_key_if_present_otherwis
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def save_organizations_ids_in_cache():
-    Organization = apps.get_model("user_management", "Organization")
     organizations_ids = Organization.objects.all().values_list("id", flat=True)
     organizations_ids = list(organizations_ids)
     cache.set(organizations_ids, METRICS_ORGANIZATIONS_IDS, METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT)
@@ -95,10 +95,10 @@ def calculate_and_cache_metrics(organization_id, force=False):
     metric_alert_group_response_time: typing.Dict[int, AlertGroupsResponseTimeMetricsDict] = {}
 
     states = {
-        STATE_FIRING: AlertGroup.get_new_state_filter(),
-        STATE_SILENCED: AlertGroup.get_silenced_state_filter(),
-        STATE_ACKNOWLEDGED: AlertGroup.get_acknowledged_state_filter(),
-        STATE_RESOLVED: AlertGroup.get_resolved_state_filter(),
+        AlertGroupState.FIRING.value: AlertGroup.get_new_state_filter(),
+        AlertGroupState.SILENCED.value: AlertGroup.get_silenced_state_filter(),
+        AlertGroupState.ACKNOWLEDGED.value: AlertGroup.get_acknowledged_state_filter(),
+        AlertGroupState.RESOLVED.value: AlertGroup.get_resolved_state_filter(),
     }
 
     for integration in integrations:
@@ -124,7 +124,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
         for alert_group in alert_groups:
             if alert_group.response_time:
                 all_response_time.append(int(alert_group.response_time.total_seconds()))
-            elif alert_group.state != STATE_FIRING:
+            elif alert_group.state != AlertGroupState.FIRING.value:
                 # get calculated value from current alert group information
                 response_time = alert_group._get_response_time()
                 if response_time:

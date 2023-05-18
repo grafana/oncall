@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from prometheus_client import CollectorRegistry, generate_latest
 
-from apps.alerts.constants import ALERTGROUP_STATES
+from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import ALERT_GROUPS_RESPONSE_TIME, ALERT_GROUPS_TOTAL
 from apps.metrics_exporter.metrics_collectors import ApplicationMetricsCollector
 
@@ -21,7 +21,7 @@ def test_application_metrics_collector(
     for metric in test_metrics_registry.collect():
         if metric.name == ALERT_GROUPS_TOTAL:
             # integration with labels for each alert group state
-            assert len(metric.samples) == len(ALERTGROUP_STATES)
+            assert len(metric.samples) == len(AlertGroupState)
         elif metric.name == ALERT_GROUPS_RESPONSE_TIME:
             # integration with labels for each value in collector's bucket + _count and _sum histogram values
             assert len(metric.samples) == len(collector._buckets) + 2

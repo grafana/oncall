@@ -1,4 +1,4 @@
-from apps.alerts.constants import ALERTGROUP_STATES, STATE_FIRING
+from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.helpers import (
     get_response_time_period,
     metrics_update_alert_groups_response_time_cache,
@@ -25,8 +25,8 @@ class MetricsCacheManager:
     @staticmethod
     def get_default_states_diff_dict():
         default_dict = {
-            "previous_states": {state: 0 for state in ALERTGROUP_STATES},
-            "new_states": {state: 0 for state in ALERTGROUP_STATES},
+            "previous_states": {state.value: 0 for state in AlertGroupState},
+            "new_states": {state.value: 0 for state in AlertGroupState},
         }
         return default_dict
 
@@ -73,7 +73,7 @@ class MetricsCacheManager:
     ):
         """Call methods to update state and response time metrics cache for one alert group."""
 
-        if response_time and old_state == STATE_FIRING and started_at > get_response_time_period():
+        if response_time and old_state == AlertGroupState.FIRING.value and started_at > get_response_time_period():
             response_time_seconds = int(response_time.total_seconds())
             MetricsCacheManager.metrics_update_response_time_cache_for_alert_group(
                 integration_id, organization_id, response_time_seconds
