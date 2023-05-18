@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Do not hide not secret settings in the web plugin UI by @alexintech ([#1964](https://github.com/grafana/oncall/pull/1964))
+
 ## v1.2.33 (2023-05-30)
 
 ### Fixed
@@ -35,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Changed mobile notification title and subtitle. Removed the body. by @imtoori [#2027](https://github.com/grafana/oncall/pull/2027)
+- Do not hide not secret settings in the web plugin UI by @alexintech ([#1964](https://github.com/grafana/oncall/pull/1964))
 
 ## v1.2.31 (2023-05-26)
 
