@@ -14,9 +14,6 @@ ONCALL_API_URL = urljoin(
 )
 
 ONCALL_DELAY_OPTIONS = [1, 5, 15, 30, 60]
-ONCALL_DEFAULT_CONTACT_METHOD = "notify_by_" + os.getenv(
-    "ONCALL_DEFAULT_CONTACT_METHOD", default="email"
-)
 PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP = {
     "sms_contact_method": "notify_by_sms",
     "phone_contact_method": "notify_by_phone_call",
@@ -49,4 +46,10 @@ EXPERIMENTAL_MIGRATE_EVENT_RULES = (
 # Set to true to include service & integration names in the ruleset name
 EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES = (
     os.getenv("EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES", "false").lower() == "true"
+)
+
+# Set to true to migrate unsupported integrations to OnCall webhook integration
+# https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-webhook/
+UNSUPPORTED_INTEGRATION_TO_WEBHOOKS = (
+    os.getenv("UNSUPPORTED_INTEGRATION_TO_WEBHOOKS", "false").lower() == "true"
 )

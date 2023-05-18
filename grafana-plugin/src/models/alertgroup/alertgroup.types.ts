@@ -51,8 +51,13 @@ export interface Alert {
   acknowledged_at: string;
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
+  is_restricted: boolean;
   channel: Channel;
   slack_permalink?: string;
+  permalinks: {
+    slack: string;
+    telegram: string;
+  };
   declare_incident_link?: string;
   related_users: User[];
   render_after_resolve_report_json?: TimeLineItem[];
@@ -83,6 +88,23 @@ export interface Alert {
   undoAction?: AlertAction;
 
   has_pormortem?: boolean; // not implemented yet
+}
+
+export enum IRMPlanStatus {
+  WithinLimits = 'within-limits',
+  NearLimit = 'near-limit',
+  AtLimit = 'at-limit',
+}
+
+export interface ResponseIRMPlan {
+  limits: {
+    id: string;
+    irmProductStartDate: null;
+    isIrmPro: boolean;
+    status: IRMPlanStatus;
+    reasonHTML: string;
+    upgradeURL: string;
+  };
 }
 
 interface RenderForWeb {

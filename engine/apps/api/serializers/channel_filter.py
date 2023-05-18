@@ -26,6 +26,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         queryset=TelegramToOrganizationConnector.objects, filter_field="organization", allow_null=True, required=False
     )
     order = serializers.IntegerField(required=False)
+    filtering_term_as_jinja2 = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["escalation_chain", "alert_receive_channel"]
 
@@ -45,6 +46,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "notify_in_slack",
             "notify_in_telegram",
             "notification_backends",
+            "filtering_term_as_jinja2",
         ]
         read_only_fields = ["created_at", "is_default"]
         extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
@@ -106,6 +108,16 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
                 updated[backend_id] = updated.get(backend_id, {}) | updated_data
             notification_backends = updated
         return notification_backends
+
+    def get_filtering_term_as_jinja2(self, obj):
+        """
+        Returns the regex filtering term as a jinja2, for the preview before migration from regex to jinja2"""
+        if obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
+            return obj.filtering_term
+        elif obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
+            # Four curly braces will result in two curly braces in the final string
+            # rf"..." is a raw f string, to keep original filtering_term
+            return rf'{{{{ payload | json_dumps | regex_search("{obj.filtering_term}") }}}}'
 
 
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):

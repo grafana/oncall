@@ -15,8 +15,8 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -361,9 +361,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
       return (
         <HorizontalGroup>
-          <StatusCounterBadgeWithTooltip
-            type="warning"
-            count={texts.length}
+          <TooltipBadge
+            borderType="warning"
+            icon="exclamation-triangle"
+            text={texts.length}
             tooltipTitle="Warnings"
             tooltipContent={
               <VerticalGroup spacing="none">

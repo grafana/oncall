@@ -1,4 +1,4 @@
-import { AlertReceiveChannel } from './alert_receive_channel';
+import { AlertReceiveChannel } from './alert_receive_channel/alert_receive_channel.types';
 
 export interface ActionDTO {
   id: string;

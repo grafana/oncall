@@ -26,13 +26,13 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9.12"
+          python-version: "3.11.3"
           cache: "pip"
           cache-dependency-path: engine/requirements.txt
       # following 2 steps - need to install the frontend dependencies for the eslint/prettier/stylelint steps
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
       - name: Use cached frontend dependencies
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
       - name: Use cached frontend dependencies
@@ -101,7 +101,7 @@ jobs:
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:5.7.25
+        image: mysql:8.0.32
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -111,7 +111,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9.12"
+          python-version: "3.11.3"
           cache: "pip"
           cache-dependency-path: engine/requirements.txt
       - name: Lint migrations
@@ -141,7 +141,7 @@ jobs:
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:5.7.25
+        image: mysql:8.0.32
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -151,7 +151,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9.12"
+          python-version: "3.11.3"
           cache: "pip"
           cache-dependency-path: engine/requirements.txt
       - name: Unit Test Backend
@@ -199,7 +199,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9.12"
+          python-version: "3.11.3"
           cache: "pip"
           cache-dependency-path: engine/requirements.txt
       - name: Unit Test Backend
@@ -235,7 +235,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9.12"
+          python-version: "3.11.3"
           cache: "pip"
           cache-dependency-path: engine/requirements.txt
       - name: Unit Test Backend
@@ -252,7 +252,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9.12"
+          python-version: "3.11.3"
           cache: "pip"
           cache-dependency-path: tools/pagerduty-migrator/requirements.txt
       - name: Unit Test PD Migrator
@@ -269,6 +269,7 @@ jobs:
     strategy:
       matrix:
         grafana-image-tag:
+          - 8.5.22
           - 9.2.6
           - main
           - latest
@@ -284,7 +285,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
 

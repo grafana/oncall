@@ -38,14 +38,26 @@ the first alert in the alert group:
 
 `alert_payload` is always the first level of any variable you want to call.
 
-The following is an example of an entry in the **Data** field that might return an alert name and description.
+The following is an example of an entry in the **Data** field that would return an alert name and description.
 
-    ```json
     {
     "name": "{{ alert_payload.labels.alertname }}",
     "message": "{{ alert_payload.annotations.description }}"
     }
-    ```
+
+The following is an example would return an alert name and the alert's labels.
+
+    {
+    "alertname" : "{{ alert_payload.labels.alertname }}",
+    "labels" : "{{ alert_payload.labels }}"
+    }
+
+By default, this will return labels in a list format. If you'd like your labels to be sent in formatted JSON, please use `| tojson()` in your data. For example:
+
+    {
+    "alertname" : "{{ alert_payload.labels.alertname }}",
+    "labels" : "{{ alert_payload.labels | tojson() }}"
+    }
 
 > **NOTE:** If you receive an error message and cannot create an outgoing webhook, verify that your JSON is
 > formatted correctly.

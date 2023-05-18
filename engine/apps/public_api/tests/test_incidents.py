@@ -241,7 +241,7 @@ def test_get_incidents_filter_by_route_no_result(
     assert response.json()["results"] == []
 
 
-@mock.patch("apps.alerts.tasks.delete_alert_group.apply_async", return_value=None)
+@mock.patch("apps.public_api.views.incidents.delete_alert_group", return_value=None)
 @pytest.mark.django_db
 def test_delete_incident_success_response(mocked_task, incident_public_api_setup):
     token, incidents, _, _, _ = incident_public_api_setup
@@ -252,7 +252,7 @@ def test_delete_incident_success_response(mocked_task, incident_public_api_setup
     data = {"mode": "delete"}
     response = client.delete(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert mocked_task.call_count == 1
+    assert mocked_task.apply_async.call_count == 1
 
 
 @pytest.mark.django_db
