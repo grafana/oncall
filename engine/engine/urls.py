@@ -42,7 +42,6 @@ urlpatterns = [
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
     path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
     path("api/internal/v1/mobile_app/", include("apps.mobile_app.urls", namespace="mobile_app_tmp")),
-    path("metrics/", include("apps.metrics_exporter.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
