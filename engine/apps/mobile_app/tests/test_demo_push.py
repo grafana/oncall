@@ -33,7 +33,7 @@ def test_test_escalation_fcm_message_user_settings(
 
     # Check expected test push content
     assert message.apns.payload.aps.badge is None
-    assert message.apns.payload.aps.alert.title["title"] == TEST_PUSH_TITLE
+    assert message.apns.payload.aps.alert.title == TEST_PUSH_TITLE
     assert message.data["title"] == TEST_PUSH_TITLE
 
 
@@ -66,7 +66,7 @@ def test_escalation_fcm_message_user_settings_critical(
 
     # Check expected test push content
     assert message.apns.payload.aps.badge is None
-    assert message.apns.payload.aps.alert.title["title"] == TEST_PUSH_TITLE
+    assert message.apns.payload.aps.alert.title == TEST_PUSH_TITLE
     assert message.data["title"] == TEST_PUSH_TITLE
 
 
@@ -91,5 +91,5 @@ def test_escalation_fcm_message_user_settings_critical_override_dnd_disabled(
 
     # Check expected test push content
     assert message.apns.payload.aps.badge is None
-    assert message.apns.payload.aps.alert.title["title"] == TEST_PUSH_TITLE
+    assert message.apns.payload.aps.alert.title == TEST_PUSH_TITLE
     assert message.data["title"] == TEST_PUSH_TITLE
