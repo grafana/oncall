@@ -57,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix inbound email bug when attaching files by @vadimkerr ([#1970](https://github.com/grafana/oncall/pull/1970))
 
+### Added
+
+- Prometheus exporter backend for alert groups related metrics
+
 ## v1.2.25 (2023-05-18)
 
 ### Added
