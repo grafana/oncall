@@ -33,6 +33,7 @@ from apps.api.throttlers import (
     VerifyPhoneNumberThrottlerPerOrg,
     VerifyPhoneNumberThrottlerPerUser,
 )
+from apps.api.throttlers.test_call_throttler import TestPushThrottler
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
@@ -395,7 +396,7 @@ class UserView(
 
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
+    @action(detail=True, methods=["post"], throttle_classes=[TestPushThrottler])
     def send_test_push(self, request, pk):
         user = self.get_object()
         critical = request.query_params.get("critical", "false") == "true"
