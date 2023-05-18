@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
+import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -69,19 +69,21 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           }
           content={
             <div className={cx('spacing')}>
-              <HorizontalGroup>
-                {channelFilter.slack_channel?.display_name && (
+              <VerticalGroup>
+                {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel) => (
                   <HorizontalGroup>
                     <Text type="secondary">Publish to ChatOps</Text>
                     <Icon name="slack" />
                     <Text type="primary" strong>
-                      {channelFilter.slack_channel.display_name}
+                      {chatOpsChannel}
                     </Text>
                   </HorizontalGroup>
-                )}
+                ))}
+
                 <HorizontalGroup>
                   <Icon name="list-ui-alt" />
                   <Text type="secondary">Escalate to</Text>
+
                   {escalationChain?.name && (
                     <PluginLink
                       className={cx('hover-button')}
@@ -93,15 +95,19 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                       </Text>
                     </PluginLink>
                   )}
+
                   {!escalationChain?.name && (
-                    <IconButton
-                      name="info-circle"
-                      tooltip={'You have no selected escalation chain for this route'}
-                      size={'md'}
-                    />
+                    <HorizontalGroup spacing={'xs'}>
+                      <div className={cx('icon-exclamation')}>
+                        <Icon name="exclamation-triangle" />
+                      </div>
+                      <Text type="primary" strong>
+                        No Escalation chain
+                      </Text>
+                    </HorizontalGroup>
                   )}
                 </HorizontalGroup>
-              </HorizontalGroup>
+              </VerticalGroup>
             </div>
           }
         />
