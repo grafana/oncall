@@ -14,7 +14,7 @@ from apps.alerts.models import MaintainableObject
 from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
-from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -133,6 +133,9 @@ class Organization(MaintainableObject):
 
     gcom_token = mirage_fields.EncryptedCharField(max_length=300, null=True, default=None)
     gcom_token_org_last_time_synced = models.DateTimeField(null=True, default=None)
+    gcom_org_contract_type = models.CharField(max_length=300, null=True, default=None)
+    gcom_org_irm_sku_subscription_start_date = models.DateTimeField(null=True, default=None)
+    gcom_org_oldest_admin_with_billing_privileges_user_id = models.PositiveIntegerField(null=True)
 
     last_time_synced = models.DateTimeField(null=True, default=None)
 
@@ -299,7 +302,7 @@ class Organization(MaintainableObject):
             write_chatops_insight_log(
                 author=user,
                 event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
-                chatops_type=ChatOpsType.SLACK,
+                chatops_type=ChatOpsTypePlug.SLACK.value,
                 prev_channel=old_channel_name,
                 new_channel=channel_name,
             )

@@ -1,0 +1,48 @@
+// TODO: Refactor to reuse these tag styles across multiple pages
+$score-primary: rgba(27, 133, 94, 0.15);
+$score-warning: rgba(245, 183, 61, 0.18);
+$score-danger: rgba(209, 14, 92, 0.15);
+
+.root {
+  display: block;
+}
+
+.heartbeat {
+  width: 16px;
+  height: 16px;
+}
+
+.heartbeat-icon {
+  cursor: pointer;
+}
+
+.alertsInfoText {
+  font-size: 12px;
+}
+
+.tag {
+  font-size: 12px;
+  padding: 4px 10px 3px 10px;
+
+  &--danger {
+    background-color: $score-danger;
+    color: var(--tag-text-danger);
+    border: 1px solid var(--tag-border-danger);
+  }
+
+  &--warning {
+    background-color: $score-warning;
+    color: var(--tag-text-warning);
+    border: 1px solid var(--tag-border-warning);
+  }
+}
+
+.tag__icon {
+  &--danger {
+    color: var(--error-text-color);
+  }
+
+  &--warning {
+    color: var(--warning-text-color);
+  }
+}

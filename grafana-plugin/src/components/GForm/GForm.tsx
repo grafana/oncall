@@ -24,6 +24,15 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
         <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
       );
 
+    case FormItemType.Password:
+      return (
+        <Input
+          {...register(formItem.name, formItem.validation)}
+          type="password"
+          onChange={(value) => onChangeFn(undefined, value)}
+        />
+      );
+
     case FormItemType.TextArea:
       return (
         <TextArea
@@ -50,7 +59,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
+            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value.value)} />;
           }}
           control={control}
           name={formItem.name}
@@ -70,7 +79,18 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
 
     case FormItemType.Switch:
       return (
-        <Switch {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+        <InputControl
+          render={({ field: { ...field } }) => {
+            return (
+              <Switch
+                {...register(formItem.name, formItem.validation)}
+                onChange={(value) => onChangeFn(field, value)}
+              />
+            );
+          }}
+          control={control}
+          name={formItem.name}
+        />
       );
 
     case FormItemType.RemoteSelect:
@@ -105,7 +125,7 @@ class GForm extends React.Component<GFormProps, {}> {
             return (
               <Field
                 key={formIndex}
-                disabled={formItem.getDisabled ? formItem.getDisabled(data) : false}
+                disabled={formItem.getDisabled ? formItem.getDisabled(getValues()) : false}
                 label={formItem.label || capitalCase(formItem.name)}
                 invalid={!!errors[formItem.name]}
                 error={`${capitalCase(formItem.name)} is required`}

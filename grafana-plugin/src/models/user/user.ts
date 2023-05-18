@@ -348,6 +348,16 @@ export class UserStore extends BaseStore {
   }
 
   @action
+  async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
+    return await makeRequest(`/users/${userId}/send_test_push`, {
+      method: 'POST',
+      params: {
+        critical: isCritical,
+      },
+    });
+  }
+
+  @action
   async updateNotifyByOptions() {
     const response = await makeRequest('/notification_policies/notify_by_options/', {});
 

@@ -8,6 +8,7 @@ export interface ChannelFilter {
   alert_receive_channel: AlertReceiveChannel['id'];
   slack_channel_id?: SlackChannel['id'];
   telegram_channel?: TelegramChannel['id'];
+  escalation_chain?: string;
   created_at: string;
   filtering_term: string;
   is_default: boolean;

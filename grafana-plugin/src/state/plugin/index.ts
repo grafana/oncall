@@ -25,6 +25,10 @@ type PluginConnectedStatusResponse = PluginStatusResponseBase & {
   is_user_anonymous: boolean;
 };
 
+type PluginIsInMaintenanceModeResponse = {
+  currently_undergoing_maintenance_message: string;
+};
+
 type CloudProvisioningConfigResponse = null;
 
 type SelfHostedProvisioningConfigResponse = Omit<OnCallPluginMetaJSONData, 'onCallApiUrl'> & {
@@ -294,6 +298,13 @@ class PluginState {
     }
 
     return null;
+  };
+
+  static checkIfBackendIsInMaintenanceMode = async (): Promise<string> => {
+    const response = await makeRequest<PluginIsInMaintenanceModeResponse>('/maintenance-mode-status', {
+      method: 'GET',
+    });
+    return response.currently_undergoing_maintenance_message;
   };
 
   static checkIfPluginIsConnected = async (

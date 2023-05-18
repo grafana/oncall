@@ -79,28 +79,28 @@ class LiveSetting(models.Model):
         "INBOUND_EMAIL_WEBHOOK_SECRET": "Inbound email webhook secret",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_SECRET": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_ID": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_INSTALL_RETURN_REDIRECT_HOST": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
