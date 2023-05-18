@@ -64,10 +64,4 @@ class FeaturesAPIView(APIView):
         if is_webhooks_enabled_for_organization(request.auth.organization.pk):
             enabled_features.append(FEATURE_WEBHOOKS2)
 
-        test_push_enabled = DynamicSetting.objects.get_or_create(
-            name="mobile_test_push", defaults={"boolean_value": False}
-        )[0].boolean_value
-        if test_push_enabled:
-            enabled_features.append(FEATURE_MOBILE_TEST_PUSH)
-
         return enabled_features
