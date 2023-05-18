@@ -5,9 +5,9 @@
   &:before {
     content: '';
     position: absolute;
-    height: calc(100% - 10px);
+    height: calc(100% - 20px);
     border: var(--border-weak);
-    margin-top: 0px;
+    margin-top: 20px;
     margin-left: -20px;
   }
 }

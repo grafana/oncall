@@ -285,26 +285,32 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           </Tag>
 
                           <div className={cx('templates__content')}>
-                            <HorizontalGroup>
-                              <HorizontalGroup spacing={'xs'}>
-                                <Text type="secondary">Grouping:</Text>
+                            <div className={cx('templates__container')}>
+                              <div className={cx('templates__item', 'templates__item--large')}>
+                                <Text type="secondary" className={cx('templates__item-text')}>
+                                  Grouping:
+                                </Text>
                                 <Text type="primary">
                                   {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
                                 </Text>
-                              </HorizontalGroup>
+                              </div>
 
-                              <HorizontalGroup spacing={'xs'}>
-                                <Text type="secondary">Autoresolve:</Text>
+                              <div className={cx('templates__item', 'templates__item--large')}>
+                                <Text type="secondary" className={cx('templates__item-text')}>
+                                  Autoresolve:
+                                </Text>
                                 <Text type="primary">
                                   {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
                                 </Text>
-                              </HorizontalGroup>
+                              </div>
 
-                              <HorizontalGroup spacing={'xs'}>
-                                <Text type="secondary">Visualisation:</Text>
+                              <div className={cx('templates__item', 'templates__item--small')}>
+                                <Text type="secondary" className={cx('templates__item-text')}>
+                                  Visualisation:
+                                </Text>
                                 <Text type="primary">Multiple</Text>
-                              </HorizontalGroup>
-                            </HorizontalGroup>
+                              </div>
+                            </div>
 
                             <div className={cx('templates__edit')}>
                               <Button

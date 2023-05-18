@@ -146,8 +146,34 @@ $LARGE-MARGIN: 24px;
   padding: 4px 8px;
 }
 
-.templates__content {
-  padding-left: 12px;
+.templates {
+  &__content {
+    padding-left: 12px;
+  }
+
+  &__container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+
+  &__item {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  &__item--large {
+    max-width: calc((100% - 150px) / 2);
+  }
+  &__item--small {
+    max-width: 150px;
+  }
+
+  &__item-text {
+    margin-right: 4px;
+  }
 }
 
 .templates__content,
