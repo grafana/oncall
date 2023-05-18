@@ -11,8 +11,13 @@ from apps.phone_notifications.models import ProviderPhoneCall, ProviderSMS
 
 
 @dataclass
-class ProviderConfig:
-    configured: bool
+class ProviderFlags:
+    """
+    ProviderFlags is set of feature flags enabled for concrete provider.
+    It is needed to show correct buttons in UI.
+    """
+
+    configured: bool  # indicates if provider live settings are present and valid
     test_sms: bool
     test_call: bool
     verification_call: bool
@@ -150,7 +155,7 @@ class PhoneProvider(ABC):
 
     @property
     @abstractmethod
-    def config(self) -> ProviderConfig:
+    def flags(self) -> ProviderFlags:
         raise NotImplementedError
 
 

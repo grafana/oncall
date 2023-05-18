@@ -119,7 +119,7 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         LiveSetting.populate_settings_if_needed()
 
         telegram_configured = not LiveSetting.objects.filter(name__startswith="TELEGRAM", error__isnull=False).exists()
-        phone_provider_config = get_phone_provider().config
+        phone_provider_config = get_phone_provider().flags
         return {
             "telegram_configured": telegram_configured,
             "twilio_configured": phone_provider_config.configured,  # keep for backward compatibility

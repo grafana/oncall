@@ -356,8 +356,6 @@ class PhoneBackend:
         make_test_call makes a test call to user's verified phone number
         Caller should handle exceptions raised by phone_provider.make_call.
         """
-        if not self.phone_provider.config.test_call:
-            raise ProviderNotSupports
         text = "It is a test call from Grafana OnCall"
         if not user.verified_phone_number:
             raise NumberNotVerified
@@ -368,8 +366,6 @@ class PhoneBackend:
         send_test_sms sends a test sms to user's verified phone number
         Caller should handle exceptions raised by phone_provider.send_sms.
         """
-        if not self.phone_provider.config.test_sms:
-            raise ProviderNotSupports
         text = "It is a test sms from Grafana OnCall"
         if not user.verified_phone_number:
             raise NumberNotVerified
