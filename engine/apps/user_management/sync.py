@@ -1,6 +1,7 @@
 import logging
 
 from celery.utils.log import get_task_logger
+from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
 
@@ -126,12 +127,14 @@ def check_grafana_incident_is_enabled(client):
 def delete_organization_if_needed(organization):
     # Organization has a manually set API token, it will not be found within GCOM
     # and would need to be deleted manually.
-    if organization.gcom_token is None:
-        logger.info(f"Organization {organization.pk} has no gcom_token. Probably it's needed to delete org manually.")
+    PluginAuthToken = apps.get_model("auth_token", "PluginAuthToken")
+    manually_provisioned_token = PluginAuthToken.objects.filter(organization_id=organization.pk).first()
+    if manually_provisioned_token:
+        logger.info(f"Organization {organization.pk} has PluginAuthToken. Probably it's needed to delete org manually.")
         return False
 
     # Use common token as organization.gcom_token could be already revoked
-    client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
+    client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
     is_stack_deleted = client.is_stack_deleted(organization.stack_id)
     if not is_stack_deleted:
         return False

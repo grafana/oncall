@@ -76,6 +76,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
 
           return (
             <EscalationPolicy
+              index={index} // This in here is a MUST for the SortableElement
               key={`item-${escalationPolicy.id}`}
               data={escalationPolicy}
               number={index + offset + 1}

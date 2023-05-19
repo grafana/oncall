@@ -48,7 +48,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
-    description_short = serializers.CharField(max_length=250, required=False)
+    description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
     demo_alert_payload = serializers.SerializerMethodField()
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()

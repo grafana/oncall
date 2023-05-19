@@ -32,7 +32,7 @@ jobs:
       # following 2 steps - need to install the frontend dependencies for the eslint/prettier/stylelint steps
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
       - name: Use cached frontend dependencies
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
       - name: Use cached frontend dependencies
@@ -285,7 +285,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
 

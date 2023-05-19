@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Tooltip, Icon, VerticalGroup, IconButton, Badge } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  Tooltip,
+  Icon,
+  VerticalGroup,
+  IconButton,
+  Badge,
+  LoadingPlaceholder,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
@@ -169,30 +178,37 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 </HorizontalGroup>
               </div>
               <div className={cx('alert-groups-list')}>
-                {alertGroupsList?.length > 0 ? (
+                {alertGroupsList ? (
                   <>
-                    {alertGroupsList.map((alertGroup) => {
-                      return (
-                        <div key={alertGroup.pk}>
-                          <Button fill="text" onClick={() => getAlertGroupPayload(alertGroup.pk)}>
-                            {getAlertGroupName(alertGroup)}
-                          </Button>
-                        </div>
-                      );
-                    })}
+                    {alertGroupsList?.length > 0 ? (
+                      <>
+                        {alertGroupsList.map((alertGroup) => {
+                          return (
+                            <div key={alertGroup.pk}>
+                              <Button fill="text" onClick={() => getAlertGroupPayload(alertGroup.pk)}>
+                                {getAlertGroupName(alertGroup)}
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <Badge
+                        color="blue"
+                        text={
+                          <div className={cx('no-alert-groups-badge')}>
+                            <Icon name="info-circle" />
+                            <Text>
+                              This integration did not receive any alerts. Use custom payload example to preview
+                              results.
+                            </Text>
+                          </div>
+                        }
+                      />
+                    )}
                   </>
                 ) : (
-                  <Badge
-                    color="blue"
-                    text={
-                      <HorizontalGroup>
-                        <Icon name="info-circle" />
-                        <Text>
-                          This integration did not receive any alerts. Use custom payload example to preview results.
-                        </Text>
-                      </HorizontalGroup>
-                    }
-                  />
+                  <LoadingPlaceholder text="Loading alert groups..." />
                 )}
               </div>
             </>

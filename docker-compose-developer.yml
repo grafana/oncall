@@ -52,7 +52,7 @@ services:
       MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
-      - /etc/app/node_modules
+      - node_modules_dev:/etc/app/node_modules
       # https://stackoverflow.com/a/60456034
       - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
     profiles:
@@ -312,6 +312,8 @@ volumes:
   postgresdata_dev:
     labels: *oncall-labels
   mysqldata_dev:
+    labels: *oncall-labels
+  node_modules_dev:
     labels: *oncall-labels
 
 networks:
