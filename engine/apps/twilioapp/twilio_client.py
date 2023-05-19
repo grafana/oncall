@@ -2,12 +2,14 @@ import logging
 import urllib.parse
 
 from django.apps import apps
+from django.db.models import Q
 from django.urls import reverse
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TEST_CALL_TEXT, TwilioLogRecordStatus, TwilioLogRecordType
+from apps.twilioapp.models.twilio_sender import TwilioPhoneCallSender, TwilioSmsSender, TwilioVerificationSender
 from apps.twilioapp.utils import get_calling_code, get_gather_message, get_gather_url, parse_phone_number
 from common.api_helpers.utils import create_engine_url
 
@@ -16,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class TwilioClient:
     @property
-    def twilio_api_client(self):
+    def default_twilio_api_client(self):
         if live_settings.TWILIO_API_KEY_SID and live_settings.TWILIO_API_KEY_SECRET:
             return Client(
                 live_settings.TWILIO_API_KEY_SID, live_settings.TWILIO_API_KEY_SECRET, live_settings.TWILIO_ACCOUNT_SID
@@ -25,27 +27,51 @@ class TwilioClient:
             return Client(live_settings.TWILIO_ACCOUNT_SID, live_settings.TWILIO_AUTH_TOKEN)
 
     @property
-    def twilio_number(self):
+    def default_twilio_number(self):
         return live_settings.TWILIO_NUMBER
 
+    def twilio_sender(self, sender_type, to, accessor):
+        _, _, country_code = self.parse_number(to)
+        TwilioSender = apps.get_model("twilioapp", "TwilioSender")
+        sender = (
+            TwilioSender.objects.instance_of(sender_type)
+            .filter(Q(country_code=country_code) | Q(country_code__isnull=True))
+            .order_by("-country_code")
+            .first()
+        )
+
+        client = self.default_twilio_api_client
+        if sender:
+            client = sender.account.get_twilio_api_client()
+
+        return client, accessor(sender)
+
+    def sms_accessor(self, sender):
+        return sender.sender if sender else self.default_twilio_number
+
+    def phone_accessor(self, sender):
+        return sender.number if sender else self.default_twilio_number
+
+    def verify_accessor(self, sender):
+        return sender.verify_service_sid if sender else live_settings.TWILIO_VERIFY_SERVICE_SID
+
     def send_message(self, body, to):
+        client, from_ = self.twilio_sender(TwilioSmsSender, to, self.sms_accessor)
         status_callback = create_engine_url(reverse("twilioapp:sms_status_events"))
         try:
-            return self.twilio_api_client.messages.create(
-                body=body, to=to, from_=self.twilio_number, status_callback=status_callback
-            )
+            return client.messages.create(body=body, to=to, from_=from_, status_callback=status_callback)
         except TwilioRestException as e:
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
                 logger.warning("twilio_client.send_message: Twilio error 21609. Status Callback is not public url")
-                return self.twilio_api_client.messages.create(body=body, to=to, from_=self.twilio_number)
+                return client.messages.create(body=body, to=to, from_=from_)
             raise e
 
     # Use responsibly
     def parse_number(self, number):
         try:
-            response = self.twilio_api_client.lookups.phone_numbers(number).fetch()
+            response = self.default_twilio_api_client.lookups.phone_numbers(number).fetch()
             return True, response.phone_number, get_calling_code(response.country_code)
         except TwilioRestException as e:
             if e.code == 20404:
@@ -59,11 +85,10 @@ class TwilioClient:
 
     def verification_start_via_twilio(self, user, phone_number, via):
         # https://www.twilio.com/docs/verify/api/verification?code-sample=code-start-a-verification-with-sms&code-language=Python&code-sdk-version=6.x
+        client, verify_service_sid = self.twilio_sender(TwilioVerificationSender, phone_number, self.verify_accessor)
         verification = None
         try:
-            verification = self.twilio_api_client.verify.services(
-                live_settings.TWILIO_VERIFY_SERVICE_SID
-            ).verifications.create(to=phone_number, channel=via)
+            verification = client.verify.services(verify_service_sid).verifications.create(to=phone_number, channel=via)
         except TwilioRestException as e:
             logger.error(f"Twilio verification start error: {e} for User: {user.pk}")
 
@@ -92,11 +117,12 @@ class TwilioClient:
 
     def verification_check_via_twilio(self, user, phone_number, code):
         # https://www.twilio.com/docs/verify/api/verification-check?code-sample=code-check-a-verification-with-a-phone-number&code-language=Python&code-sdk-version=6.x
+        client, verify_service_sid = self.twilio_sender(TwilioVerificationSender, phone_number, self.verify_accessor)
         succeed = False
         try:
-            verification_check = self.twilio_api_client.verify.services(
-                live_settings.TWILIO_VERIFY_SERVICE_SID
-            ).verification_checks.create(to=phone_number, code=code)
+            verification_check = client.verify.services(verify_service_sid).verification_checks.create(
+                to=phone_number, code=code
+            )
         except TwilioRestException as e:
             logger.error(f"Twilio verification check error: {e} for User: {user.pk}")
             self.create_log_record(
@@ -132,6 +158,7 @@ class TwilioClient:
         self.make_call(message=message, to=to)
 
     def make_call(self, message, to, grafana_cloud=False):
+        client, number = self.twilio_sender(TwilioPhoneCallSender, to, self.phone_accessor)
         try:
             start_message = message.replace('"', "")
 
@@ -155,10 +182,10 @@ class TwilioClient:
 
             status_callback_events = ["initiated", "ringing", "answered", "completed"]
 
-            return self.twilio_api_client.calls.create(
+            return client.calls.create(
                 url=url,
                 to=to,
-                from_=self.twilio_number,
+                from_=number,
                 method="GET",
                 status_callback=status_callback,
                 status_callback_event=status_callback_events,
@@ -169,10 +196,10 @@ class TwilioClient:
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
                 logger.warning("twilio_client.make_call: Twilio error 21609. Status Callback is not public url")
-                return self.twilio_api_client.calls.create(
+                return client.calls.create(
                     url=url,
                     to=to,
-                    from_=self.twilio_number,
+                    from_=number,
                     method="GET",
                 )
 
