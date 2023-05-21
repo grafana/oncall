@@ -1,8 +1,12 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, InlineLabel, LoadingPlaceholder, Tooltip } from '@grafana/ui';
+import { Button, InlineLabel, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 
-import Text from 'components/Text/Text';
+import cn from 'classnames/bind';
+
+import styles from './IntegrationTemplateBlock.module.scss';
+
+const cx = cn.bind(styles);
 
 interface IntegrationTemplateBlockProps {
   label: string;
@@ -20,9 +24,7 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   label,
   labelTooltip,
   renderInput,
-  showHelp,
   onEdit,
-  onHelp,
   onRemove,
   isLoading,
 }) => {
@@ -32,27 +34,22 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   }
 
   return (
-    <HorizontalGroup align={'flex-start'} spacing={'xs'}>
+    <div className={cx('container')}>
       <InlineLabel width={20} {...inlineLabelProps}>
         {label}
       </InlineLabel>
-      {renderInput()}
-      <Tooltip content={'Edit'}>
-        <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
-      </Tooltip>
-      <Tooltip content={'Reset Template to default'}>
-        <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
-      </Tooltip>
+      <div className={cx('container__item')}>
+        {renderInput()}
+        <Tooltip content={'Edit'}>
+          <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
+        </Tooltip>
+        <Tooltip content={'Reset Template to default'}>
+          <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
+        </Tooltip>
 
-      {showHelp && (
-        <Button variant="secondary" size="md" onClick={onHelp}>
-          <Text type="link">Help</Text>
-          <Icon name="angle-down" size="sm" />
-        </Button>
-      )}
-
-      {isLoading && <LoadingPlaceholder text="Loading..." />}
-    </HorizontalGroup>
+        {isLoading && <LoadingPlaceholder text="Loading..." />}
+      </div>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ConfirmModal, VerticalGroup } from '@grafana/ui';
+import { ConfirmModal } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
@@ -57,7 +57,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       </IntegrationBlockItem>
 
       <IntegrationBlockItem>
-        <VerticalGroup>
+        <VerticalBlock>
           <IntegrationTemplateBlock
             onRemove={() => onShowConfirmModal('grouping_id_template')}
             isLoading={isRestoringTemplate && templateRestoreName === 'grouping_id_template'}
@@ -95,11 +95,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             )}
             onEdit={() => openEditTemplateModal('resolve_condition_template')}
           />
-        </VerticalGroup>
+        </VerticalBlock>
       </IntegrationBlockItem>
 
       <IntegrationBlockItem>
-        <VerticalGroup>
+        <VerticalBlock>
           <Text type={'primary'}>Web</Text>
 
           <IntegrationTemplateBlock
@@ -158,11 +158,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             )}
             onEdit={() => openEditTemplateModal('web_image_url_template')}
           />
-        </VerticalGroup>
+        </VerticalBlock>
       </IntegrationBlockItem>
 
       <IntegrationBlockItem>
-        <VerticalGroup>
+        <VerticalBlock>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'acknowledge_condition_template'}
             onRemove={() => onShowConfirmModal('acknowledge_condition_template')}
@@ -203,11 +203,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             )}
             onEdit={() => openEditTemplateModal('source_link_template')}
           />
-        </VerticalGroup>
+        </VerticalBlock>
       </IntegrationBlockItem>
 
       <IntegrationBlockItem>
-        <VerticalGroup>
+        <VerticalBlock>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'phone_call_title_template'}
             onRemove={() => onShowConfirmModal('phone_call_title_template')}
@@ -245,11 +245,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             )}
             onEdit={() => openEditTemplateModal('sms_title_template')}
           />
-        </VerticalGroup>
+        </VerticalBlock>
       </IntegrationBlockItem>
 
       <IntegrationBlockItem>
-        <VerticalGroup>
+        <VerticalBlock>
           <Text type={'primary'}>Slack</Text>
 
           <IntegrationTemplateBlock
@@ -308,11 +308,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             )}
             onEdit={() => openEditTemplateModal('slack_image_url_template')}
           />
-        </VerticalGroup>
+        </VerticalBlock>
       </IntegrationBlockItem>
 
       <IntegrationBlockItem>
-        <VerticalGroup>
+        <VerticalBlock>
           <Text type={'primary'}>Telegram</Text>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'telegram_title_template'}
@@ -370,11 +370,11 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             )}
             onEdit={() => openEditTemplateModal('telegram_image_url_template')}
           />
-        </VerticalGroup>
+        </VerticalBlock>
       </IntegrationBlockItem>
 
       <IntegrationBlockItem>
-        <VerticalGroup>
+        <VerticalBlock>
           <Text type={'primary'}>Email</Text>
           <IntegrationTemplateBlock
             isLoading={isRestoringTemplate && templateRestoreName === 'email_title_template'}
@@ -413,7 +413,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
             )}
             onEdit={() => openEditTemplateModal('email_message_template')}
           />
-        </VerticalGroup>
+        </VerticalBlock>
       </IntegrationBlockItem>
     </div>
   );
@@ -449,6 +449,10 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
         setShowConfirmModal(false);
       });
   }
+};
+
+const VerticalBlock: React.FC<{ children: React.ReactElement[] }> = ({ children }) => {
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{children}</div>;
 };
 
 export default IntegrationTemplateList;

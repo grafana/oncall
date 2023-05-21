@@ -158,7 +158,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           <div className={cx('root')}>
             {isTemplateSettingsOpen && (
               <Drawer
-                width="75%"
+                width="640px"
                 scrollableContent
                 title="Template Settings"
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
@@ -865,7 +865,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
               </div>
 
               <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
-                Hearbeat
+                Hearbeat Settings
               </div>
 
               {!alertReceiveChannel.maintenance_till && (
