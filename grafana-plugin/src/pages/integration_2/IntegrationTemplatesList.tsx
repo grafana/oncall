@@ -452,7 +452,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 };
 
 const VerticalBlock: React.FC<{ children: React.ReactElement[] }> = ({ children }) => {
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{children}</div>;
+  return <div className={cx('vertical-block')}>{children}</div>;
 };
 
 export default IntegrationTemplateList;

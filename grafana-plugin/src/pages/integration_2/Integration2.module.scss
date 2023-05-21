@@ -148,6 +148,12 @@ $LARGE-MARGIN: 24px;
   padding: 4px 8px;
 }
 
+.vertical-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .templates {
   &__content {
     padding-left: 12px;
