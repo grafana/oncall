@@ -24,10 +24,67 @@ Alerts from Grafana Alertmanager are automatically routed to this integration.
 {% endif %}
 """
 
-# Default templates
+# Web
+web_title = """{{- payload.get("labels", {}).get("alertname", "No title (check Title Template)") -}}"""
+web_message = """\
+{%- set annotations = payload.annotations.copy() -%}
+{%- set labels = payload.labels.copy() -%}
+
+{%- if "summary" in annotations %}
+{{ annotations.summary }}
+{%- set _ = annotations.pop('summary') -%}
+{%- endif %}
+
+{%- if "message" in annotations %}
+{{ annotations.message }}
+{%- set _ = annotations.pop('message') -%}
+{%- endif %}
+
+{% set severity = labels.severity | default("Unknown") -%}
+{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
+Severity: {{ severity }} {{ severity_emoji }}
+
+{%- set status = payload.status | default("Unknown") %}
+{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
+Status: {{ status }} {{ status_emoji }} (on the source)
+
+{% if "runbook_url" in annotations -%}
+[:book: Runbook:link:]({{ annotations.runbook_url }})
+{%- set _ = annotations.pop('runbook_url') -%}
+{%- endif %}
+
+{%- if "runbook_url_internal" in annotations -%}
+[:closed_book: Runbook (internal):link:]({{ annotations.runbook_url_internal }})
+{%- set _ = annotations.pop('runbook_url_internal') -%}
+{%- endif %}
+
+:label: Labels:
+{%- for k, v in payload["labels"].items() %}
+- {{ k }}: {{ v }}  
+{%- endfor %}
+
+{% if annotations | length > 0 -%}
+:pushpin: Other annotations:
+{%- for k, v in annotations.items() %}
+- {{ k }}: {{ v }}
+{%- endfor %}
+{% endif %}
+"""  # noqa: W291
+
+web_image_url = None
+
+# Behaviour
+source_link = "{{ payload.generatorURL }}"
+
+grouping_id = web_title
+
+resolve_condition = """{{ payload.status == "resolved" }}"""
+
+acknowledge_condition = None
+
+# Slack
 slack_title = """\
-{# Usually title is located in payload.labels.alertname #}
-{% set title = payload.get("labels", {}).get("alertname", "No title (check Web Title Template)") %}
+{% set title = payload.get("labels", {}).get("alertname", "No title (check Title Template)") %}
 {# Combine the title from different built-in variables into slack-formatted url #}
 *<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ title }}>* via {{ integration_name }}
 {% if source_link %}
@@ -35,74 +92,131 @@ slack_title = """\
 {%- endif %}
 """
 
-slack_message = """\
-{{- payload.message }}
-{%- if "status" in payload -%}
-*Status*: {{ payload.status }}
-{% endif -%}
-*Labels:* {% for k, v in payload["labels"].items() %}
-{{ k }}: {{ v }}{% endfor %}
-*Annotations:* 
-{%- for k, v in payload.get("annotations", {}).items() %}
-{#- render annotation as slack markdown url if it starts with http #}
-{{ k }}: {% if v.startswith("http") %} <{{v}}|here> {% else %} {{v}} {% endif -%}
-{% endfor %}
-"""  # noqa:W291
+# default slack message template is identical to web message template, except urls
+# It can be based on web message template (see example), but it can affect existing templates
+# slack_message = """
+# {% set mkdwn_link_regex = "\[([\w\s\d:]+)\]\((https?:\/\/[\w\d./?=#]+)\)" %}
+# {{ web_message
+#   | regex_replace(mkdwn_link_regex, "<\\2|\\1>")
+# }}
+# """
 
+slack_message = """\
+{%- set annotations = payload.annotations.copy() -%}
+{%- set labels = payload.labels.copy() -%}
+
+{%- if "summary" in annotations %}
+{{ annotations.summary }}
+{%- set _ = annotations.pop('summary') -%}
+{%- endif %}
+
+{%- if "message" in annotations %}
+{{ annotations.message }}
+{%- set _ = annotations.pop('message') -%}
+{%- endif %}
+
+{# Set oncall_slack_user_group to slack user group in the following format "@users-oncall" #}
+{%- set oncall_slack_user_group = None -%}
+{%- if oncall_slack_user_group %}
+Heads up {{ oncall_slack_user_group }}
+{%- endif %}
+
+{% set severity = labels.severity | default("Unknown") -%}
+{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
+Severity: {{ severity }} {{ severity_emoji }}
+
+{%- set status = payload.status | default("Unknown") %}
+{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
+Status: {{ status }} {{ status_emoji }} (on the source)
+
+{% if "runbook_url" in annotations -%}
+<{{ annotations.runbook_url }}|:book: Runbook:link:>
+{%- set _ = annotations.pop('runbook_url') -%}
+{%- endif %}
+
+{%- if "runbook_url_internal" in annotations -%}
+<{{ annotations.runbook_url_internal }}|:closed_book: Runbook (internal):link:>
+{%- set _ = annotations.pop('runbook_url_internal') -%}
+{%- endif %}
+
+:label: Labels:
+{%- for k, v in payload["labels"].items() %}
+- {{ k }}: {{ v }}  
+{%- endfor %}
+
+{% if annotations | length > 0 -%}
+:pushpin: Other annotations:
+{%- for k, v in annotations.items() %}
+- {{ k }}: {{ v }}
+{%- endfor %}
+{% endif %}
+"""  # noqa: W291
 
 slack_image_url = None
 
-web_title = """\
-{# Usually title is located in payload.labels.alertname #}
-{{- payload.get("labels", {}).get("alertname", "No title (check Web Title Template)") }}
-"""
+# SMS
+sms_title = web_title
 
-web_message = """\
-{{- payload.message }}
-{%- if "status" in payload %}
-**Status**: {{ payload.status }}
-{% endif -%}
-**Labels:** {% for k, v in payload["labels"].items() %}
-*{{ k }}*: {{ v }}{% endfor %}
-**Annotations:** 
-{%- for k, v in payload.get("annotations", {}).items() %}
-{#- render annotation as markdown url if it starts with http #}
-*{{ k }}*: {% if v.startswith("http") %} [here]({{v}}){% else %} {{v}} {% endif -%}
-{% endfor %}
-"""  # noqa:W291
+# Phone
+phone_call_title = web_title
 
+# Telegram
+telegram_title = web_title
 
-web_image_url = slack_image_url
-
-sms_title = '{{ payload.get("labels", {}).get("alertname", "Title undefined") }}'
-phone_call_title = sms_title
-
-telegram_title = sms_title
-
+# default telegram message template is identical to web message template, except urls
+# It can be based on web message template (see example), but it can affect existing templates
+# telegram_message = """
+# {% set mkdwn_link_regex = "\[([\w\s\d:]+)\]\((https?:\/\/[\w\d./?=#]+)\)" %}
+# {{ web_message
+#   | regex_replace(mkdwn_link_regex, "<a href='\\2'>\\1</a>")
+# }}
+# """
 telegram_message = """\
-{{- payload.messsage }}
-{%- if "status" in payload -%}
-<b>Status</b>: {{ payload.status }}
-{% endif -%}
-<b>Labels:</b> {% for k, v in payload["labels"].items() %}
-{{ k }}: {{ v }}{% endfor %}
-<b>Annotations:</b> 
-{%- for k, v in payload.get("annotations", {}).items() %}
-{#- render annotation as markdown url if it starts with http #}
-{{ k }}: {{ v }}
-{% endfor %}"""  # noqa:W291
+{%- set annotations = payload.annotations.copy() -%}
+{%- set labels = payload.labels.copy() -%}
 
-telegram_image_url = slack_image_url
+{%- if "summary" in annotations %}
+{{ annotations.summary }}
+{%- set _ = annotations.pop('summary') -%}
+{%- endif %}
 
-source_link = "{{ payload.generatorURL }}"
+{%- if "message" in annotations %}
+{{ annotations.message }}
+{%- set _ = annotations.pop('message') -%}
+{%- endif %}
 
-grouping_id = web_title
+{% set severity = labels.severity | default("Unknown") -%}
+{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
+Severity: {{ severity }} {{ severity_emoji }}
 
-resolve_condition = """\
-{{ payload.get("status", "") == "resolved" }}
-"""
+{%- set status = payload.status | default("Unknown") %}
+{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
+Status: {{ status }} {{ status_emoji }} (on the source)
 
-acknowledge_condition = None
+{% if "runbook_url" in annotations -%}
+<a href='{{ annotations.runbook_url }}'>:book: Runbook:link:</a>
+{%- set _ = annotations.pop('runbook_url') -%}
+{%- endif %}
+
+{%- if "runbook_url_internal" in annotations -%}
+<a href='{{ annotations.runbook_url_internal }}'>:closed_book: Runbook (internal):link:</a>
+{%- set _ = annotations.pop('runbook_url_internal') -%}
+{%- endif %}
+
+:label: Labels:
+{%- for k, v in payload["labels"].items() %}
+- {{ k }}: {{ v }}  
+{%- endfor %}
+
+{% if annotations | length > 0 -%}
+:pushpin: Other annotations:
+{%- for k, v in annotations.items() %}
+- {{ k }}: {{ v }}
+{%- endfor %}
+{% endif %}
+"""  # noqa: W291
+
+telegram_image_url = None
 
 example_payload = {
     "receiver": "amixr",
