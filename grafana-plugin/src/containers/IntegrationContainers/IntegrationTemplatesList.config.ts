@@ -63,7 +63,7 @@ export const templatesToRender: TemplateBlock[] = [
     ],
   },
   {
-    name: 'null',
+    name: null,
     contents: [
       {
         name: 'phone_call_title_template',

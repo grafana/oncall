@@ -5,6 +5,8 @@ import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, Con
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
+import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
@@ -12,20 +14,17 @@ import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import GSelect from 'containers/GSelect/GSelect';
+import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
-
-import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from '../../../pages/integration_2/Integration2.config';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 
 const cx = cn.bind(styles);
 

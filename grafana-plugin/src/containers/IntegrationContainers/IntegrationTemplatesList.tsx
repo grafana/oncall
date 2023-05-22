@@ -3,18 +3,18 @@ import React, { useState } from 'react';
 import { ConfirmModal } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
+import IntegrationTemplateBlock from 'components/Integrations/IntegrationTemplateBlock';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
-import { MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
+import { MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import styles from 'pages/integration_2/Integration2.module.scss';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
 
-import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
-import IntegrationTemplateBlock from 'components/Integrations/IntegrationTemplateBlock';
 import { templatesToRender } from './IntegrationTemplatesList.config';
 
 const cx = cn.bind(styles);
@@ -71,7 +71,10 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 renderInput={() => (
                   <div className={cx('input')}>
                     <MonacoEditor
-                      value={IntegrationHelper.getFilteredTemplate(templates[contents.name] || '', false)}
+                      value={IntegrationHelper.getFilteredTemplate(
+                        templates[contents.name] || '',
+                        contents.height === MONACO_INPUT_HEIGHT_TALL
+                      )}
                       disabled={true}
                       height={contents.height}
                       data={templates}

@@ -4,15 +4,15 @@ import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui'
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { useStore } from 'state/useStore';
 
 const cx = cn.bind(styles);
