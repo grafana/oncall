@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Button, InlineLabel, LoadingPlaceholder, Tooltip } from '@grafana/ui';
-
 import cn from 'classnames/bind';
 
 import styles from './IntegrationTemplateBlock.module.scss';

@@ -54,7 +54,9 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   tooltipContent={undefined}
                 />
                 {channelFilter.filtering_term && (
-                  <Text type="primary" className={cx('heading-container__text')}>{channelFilter.filtering_term}</Text>
+                  <Text type="primary" className={cx('heading-container__text')}>
+                    {channelFilter.filtering_term}
+                  </Text>
                 )}
               </div>
 

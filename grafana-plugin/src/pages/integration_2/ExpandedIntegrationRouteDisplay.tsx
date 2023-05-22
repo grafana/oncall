@@ -17,6 +17,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
@@ -25,7 +26,6 @@ import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config
 import IntegrationHelper from './Integration2.helper';
 import IntegrationBlock from './IntegrationBlock';
 import IntegrationBlockItem from './IntegrationBlockItem';
-import { AppFeature } from 'state/features';
 
 const cx = cn.bind(styles);
 
