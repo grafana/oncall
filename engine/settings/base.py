@@ -1,8 +1,10 @@
+import base64
+import json
 import os
 from random import randrange
 
 from celery.schedules import crontab
-from firebase_admin import initialize_app
+from firebase_admin import credentials, initialize_app
 
 from common.utils import getenv_boolean, getenv_integer
 
@@ -587,13 +589,21 @@ EXTRA_MESSAGING_BACKENDS = [
     ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
 ]
 
-FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+# Firebase credentials can be passed as base64 encoded JSON string in GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64 env variable.
+# If it's not passed, firebase_admin will use a file located at GOOGLE_APPLICATION_CREDENTIALS env variable.
+credential = None
+GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64 = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64", None)
+if GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64:
+    credentials_json = json.loads(base64.b64decode(GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64))
+    credential = credentials.Certificate(credentials_json)
+
+# FCM_PROJECT_ID can be different from the project ID in the credentials file.
+FCM_PROJECT_ID = os.environ.get("FCM_PROJECT_ID", None)
 
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 FCM_DJANGO_SETTINGS = {
     # an instance of firebase_admin.App to be used as default for all fcm-django requests
-    # default: None (the default Firebase app)
-    "DEFAULT_FIREBASE_APP": None,
+    "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
     "DELETE_INACTIVE_DEVICES": False,
