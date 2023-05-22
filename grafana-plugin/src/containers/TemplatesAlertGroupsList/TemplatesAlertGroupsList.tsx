@@ -18,7 +18,7 @@ import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
+import { MONACO_PAYLOAD_OPTIONS } from 'containers/Integrations2/Integration2.config';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';

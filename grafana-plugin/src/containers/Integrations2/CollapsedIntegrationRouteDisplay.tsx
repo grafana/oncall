@@ -11,10 +11,10 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { ChannelFilter } from 'models/channel_filter';
 import { useStore } from 'state/useStore';
 
-import styles from './CollapsedIntegrationRouteDisplay.module.scss';
-import { RouteButtonsDisplay } from './ExpandedIntegrationRouteDisplay';
-import IntegrationHelper from './Integration2.helper';
-import IntegrationBlock from './IntegrationBlock';
+import styles from 'containers/Integrations2/CollapsedIntegrationRouteDisplay.module.scss';
+import { RouteButtonsDisplay } from 'containers/Integrations2/ExpandedIntegrationRouteDisplay';
+import IntegrationHelper from 'containers/Integrations2/Integration2.helper';
+import IntegrationBlock from 'containers/Integrations2/IntegrationBlock';
 
 const cx = cn.bind(styles);
 

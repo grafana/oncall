@@ -56,14 +56,14 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
 
-import CollapsedIntegrationRouteDisplay from './CollapsedIntegrationRouteDisplay';
-import ExpandedIntegrationRouteDisplay from './ExpandedIntegrationRouteDisplay';
-import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from './Integration2.config';
-import IntegrationHelper from './Integration2.helper';
-import styles from './Integration2.module.scss';
-import Integration2HeartbeatForm from './Integration2HeartbeatForm';
-import IntegrationBlock from './IntegrationBlock';
-import IntegrationTemplateList from './IntegrationTemplatesList';
+import CollapsedIntegrationRouteDisplay from 'containers/Integrations2/CollapsedIntegrationRouteDisplay';
+import ExpandedIntegrationRouteDisplay from 'containers/Integrations2/ExpandedIntegrationRouteDisplay';
+import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'containers/Integrations2/Integration2.config';
+import IntegrationHelper from 'containers/Integrations2/Integration2.helper';
+import styles from 'pages/integration_2/Integration2.module.scss';
+import Integration2HeartbeatForm from 'containers/Integrations2/Integration2HeartbeatForm';
+import IntegrationBlock from 'containers/Integrations2/IntegrationBlock';
+import IntegrationTemplateList from 'containers/Integrations2/IntegrationTemplatesList';
 
 const cx = cn.bind(styles);
 

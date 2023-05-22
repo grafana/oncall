@@ -10,9 +10,13 @@ import { AlertTemplatesDTO } from 'models/alert_templates';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
 
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from './Integration2.config';
-import IntegrationHelper from './Integration2.helper';
-import styles from './Integration2.module.scss';
+import {
+  MONACO_INPUT_HEIGHT_SMALL,
+  MONACO_INPUT_HEIGHT_TALL,
+  MONACO_OPTIONS,
+} from 'containers/Integrations2/Integration2.config';
+import IntegrationHelper from 'containers/Integrations2/Integration2.helper';
+import styles from 'pages/integration_2/Integration2.module.scss';
 import IntegrationBlockItem from './IntegrationBlockItem';
 import IntegrationTemplateBlock from './IntegrationTemplateBlock';
 
