@@ -63,6 +63,12 @@ class SMSRecord(models.Model):
 
 
 class ProviderSMS(models.Model):
+    """
+    ProviderSMS is an interface between SMSRecord and call data returned from PhoneProvider.
+
+    The idea is same as for ProviderCall - to save provider specific data without exposing them to ProheBackend.
+    """
+
     class Meta:
         abstract = True
 

@@ -50,7 +50,7 @@ class PhoneProvider(ABC):
             number: phone number to call
             text: text of the call
         Returns:
-            Unsaved ProviderPhoneCall instance to link to PhoneCallRecord
+            Unsaved ProviderPhoneCall instance to link to PhoneCallRecord or None if provider-specific data not stored.
 
         Raises:
             FailedToMakeCall: if some exception in external provider happens.
@@ -60,10 +60,11 @@ class PhoneProvider(ABC):
 
     def send_notification_sms(self, number: str, message: str) -> Optional[ProviderSMS]:
         """
-        send_notification_sms sends a sms to notify about alert group
+        send_notification_sms sends a sms to notify about alert group.
 
-        send_notification_sms is needed to execute some logic only for notification sms.
-        For example receive status callback (See TwilioPhoneProvider).
+        send_notification_sms sends a sms to notify about alert group and optionally returns unsaved ProviderSMS
+        instance. If returned, instance will be linked to SMSRecord and saved by PhoneBackend.
+
         You can just wrap send_sms if no additional logic is performed for notification sms:
 
             def send_notification_sms(self, number, text, phone_call_record):
@@ -72,9 +73,8 @@ class PhoneProvider(ABC):
         Args:
             number: phone number to send sms
             message: text of the sms
-            sms_record: instance of SMSRecord.
-                You can use it to link provider sms and sms_record (See TwilioPhoneProvider).
-
+        Returns:
+            Unsaved ProviderSMS instance to link to SMSRecord or None if provider-specific data not stored.
 
         Raises:
             FailedToSendSMS: if some exception in external provider happens
@@ -98,7 +98,7 @@ class PhoneProvider(ABC):
 
     def send_sms(self, number: str, text: str):
         """
-        send_sms sends an SMS to the specified phone number with the given text message.
+        send_sms sends an SMS to the specified phone number with the given text.
 
         Args:
             number: phone number to send a sms
@@ -156,6 +156,9 @@ class PhoneProvider(ABC):
     @property
     @abstractmethod
     def flags(self) -> ProviderFlags:
+        """
+        flags returns ProviderFlags instance to control web UI
+        """
         raise NotImplementedError
 
 
