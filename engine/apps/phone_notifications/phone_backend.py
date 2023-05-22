@@ -54,7 +54,7 @@ class PhoneBackend:
         )
 
         try:
-            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED and settings.IS_OPEN_SOURCE:
                 self._notify_by_cloud_call(user, message)
                 record.save()
             else:
@@ -159,7 +159,7 @@ class PhoneBackend:
         )
 
         try:
-            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED and settings.IS_OPEN_SOURCE:
                 self._notify_by_cloud_sms(user, message)
                 record.save()
             else:
