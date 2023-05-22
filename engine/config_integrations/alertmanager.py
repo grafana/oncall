@@ -111,7 +111,7 @@ slack_message = """\
 {%- set _ = annotations.pop('message') -%}
 {%- endif %}
 
-{# Set oncall_slack_user_group to slack user group in the following format "@users-oncall" #}
+{# Optionally set oncall_slack_user_group to slack user group in the following format "@users-oncall" #}
 {%- set oncall_slack_user_group = None -%}
 {%- if oncall_slack_user_group %}
 Heads up {{ oncall_slack_user_group }}
