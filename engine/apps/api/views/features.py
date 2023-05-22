@@ -14,6 +14,7 @@ FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 FEATURE_WEB_SCHEDULES = "web_schedules"
 FEATURE_WEBHOOKS2 = "webhooks2"
+FEATURE_MOBILE_TEST_PUSH = "mobile_test_push"
 
 
 class FeaturesAPIView(APIView):
