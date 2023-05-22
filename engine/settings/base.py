@@ -597,10 +597,13 @@ if GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64:
     credentials_json = json.loads(base64.b64decode(GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64))
     credential = credentials.Certificate(credentials_json)
 
+# FCM_PROJECT_ID can be different from the project ID in the credentials file.
+FCM_PROJECT_ID = os.environ.get("FCM_PROJECT_ID", None)
+
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 FCM_DJANGO_SETTINGS = {
     # an instance of firebase_admin.App to be used as default for all fcm-django requests
-    "DEFAULT_FIREBASE_APP": initialize_app(credential=credential),
+    "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
     "DELETE_INACTIVE_DEVICES": False,
