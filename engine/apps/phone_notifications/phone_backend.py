@@ -89,7 +89,7 @@ class PhoneBackend:
 
     def _notify_by_provider_call(self, user, message) -> Optional[ProviderPhoneCall]:
         """
-        _make_provider_call makes a notification call using configured phone provider.
+        _notify_by_provider_call makes a notification call using configured phone provider.
         """
         if not self._validate_user_number(user):
             raise NumberNotVerified
@@ -103,7 +103,7 @@ class PhoneBackend:
 
     def _notify_by_cloud_call(self, user, message):
         """
-        make_cloud_call makes a call using connected Grafana Cloud Instance.
+        _notify_by_cloud_call makes a call using connected Grafana Cloud Instance.
         This method should be  used only in OSS instances.
         """
         url = create_engine_url("api/v1/make_call", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
