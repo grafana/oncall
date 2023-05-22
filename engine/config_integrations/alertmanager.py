@@ -1,6 +1,6 @@
 # Main
 enabled = True
-title = "AlertManager"
+title = "Alertmanager"
 slug = "alertmanager"
 short_description = "Prometheus"
 is_displayed_on_web = True

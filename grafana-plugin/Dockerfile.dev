@@ -1,14 +1,6 @@
-FROM node:14.17.0-alpine
+FROM node:18.16.0-alpine
 
 WORKDIR /etc/app
 ENV PATH /etc/app/node_modules/.bin:$PATH
-
-# this allows hot reloading of the container
-# https://stackoverflow.com/a/72478714
-ENV WATCHPACK_POLLING true
-
-COPY ./package.json ./
-COPY ./yarn.lock ./
-RUN yarn install
 
 CMD ["yarn", "start"]

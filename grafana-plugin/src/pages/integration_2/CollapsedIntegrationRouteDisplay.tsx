@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon } from '@grafana/ui';
+import { ConfirmModal, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { useStore } from 'state/useStore';
-import { getVar } from 'utils/DOM';
 
 import styles from './CollapsedIntegrationRouteDisplay.module.scss';
 import { RouteButtonsDisplay } from './ExpandedIntegrationRouteDisplay';
@@ -40,16 +39,22 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     return (
       <>
         <IntegrationBlock
-          hasCollapsedBorder
+          hasCollapsedBorder={false}
           key={channelFilterId}
           heading={
             <HorizontalGroup justify={'space-between'}>
               <HorizontalGroup spacing={'md'}>
-                <Tag color={getVar('--tag-primary')}>
-                  {IntegrationHelper.getRouteConditionWording(alertReceiveChannelStore.channelFilters, routeIndex)}
-                </Tag>
+                <TooltipBadge
+                  borderType="success"
+                  text={IntegrationHelper.getRouteConditionWording(
+                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+                    routeIndex
+                  )}
+                  tooltipTitle={undefined}
+                  tooltipContent={undefined}
+                />
                 {channelFilter.filtering_term && (
-                  <Text type="link">{IntegrationHelper.truncateLine(channelFilter.filtering_term)}</Text>
+                  <Text type="primary">{IntegrationHelper.truncateLine(channelFilter.filtering_term)}</Text>
                 )}
               </HorizontalGroup>
               <HorizontalGroup>
@@ -77,15 +82,24 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                 <HorizontalGroup>
                   <Icon name="list-ui-alt" />
                   <Text type="secondary">Escalate to</Text>
-                  <PluginLink
-                    className={cx('hover-button')}
-                    target="_blank"
-                    query={{ page: 'escalations', id: channelFilter.escalation_chain }}
-                  >
-                    <Text type="primary" strong>
-                      {escalationChain?.name}
-                    </Text>
-                  </PluginLink>
+                  {escalationChain?.name && (
+                    <PluginLink
+                      className={cx('hover-button')}
+                      target="_blank"
+                      query={{ page: 'escalations', id: channelFilter.escalation_chain }}
+                    >
+                      <Text type="primary" strong>
+                        {escalationChain?.name}
+                      </Text>
+                    </PluginLink>
+                  )}
+                  {!escalationChain?.name && (
+                    <IconButton
+                      name="info-circle"
+                      tooltip={'You have no selected escalation chain for this route'}
+                      size={'md'}
+                    />
+                  )}
                 </HorizontalGroup>
               </HorizontalGroup>
             </div>
