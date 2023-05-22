@@ -73,8 +73,8 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           content={
             <div className={cx('spacing')}>
               <VerticalGroup>
-                {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel) => (
-                  <HorizontalGroup>
+                {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel, key) => (
+                  <HorizontalGroup key={key}>
                     <Text type="secondary">Publish to ChatOps</Text>
                     <Icon name="slack" />
                     <Text type="primary" strong>
