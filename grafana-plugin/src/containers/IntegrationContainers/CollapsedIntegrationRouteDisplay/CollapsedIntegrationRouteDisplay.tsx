@@ -7,14 +7,13 @@ import { observer } from 'mobx-react';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay.module.scss';
+import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { useStore } from 'state/useStore';
-
-import styles from 'containers/Integrations2/CollapsedIntegrationRouteDisplay.module.scss';
-import { RouteButtonsDisplay } from 'containers/Integrations2/ExpandedIntegrationRouteDisplay';
-import IntegrationHelper from 'containers/Integrations2/Integration2.helper';
-import IntegrationBlock from 'containers/Integrations2/IntegrationBlock';
 
 const cx = cn.bind(styles);
 

@@ -38,6 +38,13 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
+import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
+import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import Integration2HeartbeatForm from 'containers/IntegrationContainers/Integration2HearbeatForm/Integration2HeartbeatForm';
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
+import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
@@ -47,6 +54,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { API_HOST, API_PATH_PREFIX } from 'network';
+import styles from 'pages/integration_2/Integration2.module.scss';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -55,15 +63,6 @@ import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
-
-import CollapsedIntegrationRouteDisplay from 'containers/Integrations2/CollapsedIntegrationRouteDisplay';
-import ExpandedIntegrationRouteDisplay from 'containers/Integrations2/ExpandedIntegrationRouteDisplay';
-import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'containers/Integrations2/Integration2.config';
-import IntegrationHelper from 'containers/Integrations2/Integration2.helper';
-import styles from 'pages/integration_2/Integration2.module.scss';
-import Integration2HeartbeatForm from 'containers/Integrations2/Integration2HeartbeatForm';
-import IntegrationBlock from 'containers/Integrations2/IntegrationBlock';
-import IntegrationTemplateList from 'containers/Integrations2/IntegrationTemplatesList';
 
 const cx = cn.bind(styles);
 

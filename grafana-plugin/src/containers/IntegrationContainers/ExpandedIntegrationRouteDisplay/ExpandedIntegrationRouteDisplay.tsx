@@ -21,11 +21,11 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
-import styles from './ExpandedIntegrationRouteDisplay.module.scss';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config';
-import IntegrationHelper from './Integration2.helper';
-import IntegrationBlock from './IntegrationBlock';
-import IntegrationBlockItem from './IntegrationBlockItem';
+import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from '../../../pages/integration_2/Integration2.config';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
+import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 
 const cx = cn.bind(styles);
 
