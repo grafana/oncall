@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow passing Firebase credentials via environment variable by @vadimkerr ([#1969](https://github.com/grafana/oncall/pull/1969))
 
+## v1.2.26 (2023-05-18)
+
+### Fixed
+
+- Fix inbound email bug when attaching files by @vadimkerr ([#1970](https://github.com/grafana/oncall/pull/1970))
+
 ## v1.2.25 (2023-05-18)
 
 ### Added
