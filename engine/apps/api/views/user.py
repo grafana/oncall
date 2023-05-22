@@ -157,12 +157,14 @@ class UserView(
         "verify_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "forget_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "get_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_verification_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "get_backend_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "get_telegram_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_slack": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "send_test_sms": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
@@ -178,12 +180,14 @@ class UserView(
             "verify_number",
             "forget_number",
             "get_verification_code",
+            "get_verification_call",
             "get_backend_verification_code",
             "get_telegram_verification_code",
             "unlink_slack",
             "unlink_telegram",
             "unlink_backend",
             "make_test_call",
+            "send_test_sms",
             "export_token",
             "upcoming_shifts",
         ],
@@ -413,6 +417,23 @@ class UserView(
         try:
             phone_backend = PhoneBackend()
             phone_backend.make_test_call(user)
+        except NumberNotVerified:
+            return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
+        except FailedToMakeCall:
+            return Response(
+                "Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except ProviderNotSupports:
+            return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
+    def send_test_sms(self, request, pk):
+        user = self.get_object()
+        try:
+            phone_backend = PhoneBackend()
+            phone_backend.send_test_sms(user)
         except NumberNotVerified:
             return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
         except FailedToMakeCall:

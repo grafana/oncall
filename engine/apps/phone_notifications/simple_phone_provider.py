@@ -2,7 +2,7 @@ from random import randint
 
 from django.core.cache import cache
 
-from .phone_provider import PhoneProvider, ProviderConfig
+from .phone_provider import PhoneProvider, ProviderFlags
 
 
 class SimplePhoneProvider(PhoneProvider):
@@ -32,8 +32,9 @@ class SimplePhoneProvider(PhoneProvider):
     def _cache_key(self, number):
         return f"simple_provider_{number}"
 
-    def config(self) -> ProviderConfig:
-        return ProviderConfig(
+    @property
+    def flags(self) -> ProviderFlags:
+        return ProviderFlags(
             configured=True,
             test_sms=True,
             test_call=False,

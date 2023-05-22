@@ -14,7 +14,7 @@ from apps.phone_notifications.exceptions import (
     FailedToSendSMS,
     FailedToStartVerification,
 )
-from apps.phone_notifications.phone_provider import PhoneProvider, ProviderConfig
+from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 from apps.twilioapp.gather import get_gather_message, get_gather_url
 from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS
 from apps.twilioapp.status_callback import get_call_status_callback_url, get_sms_status_callback_url
@@ -246,8 +246,8 @@ class TwilioPhoneProvider(PhoneProvider):
         return "+" + "".join(c for c in raw_phone_number if c in digits)
 
     @property
-    def config(self) -> ProviderConfig:
-        return ProviderConfig(
+    def flags(self) -> ProviderFlags:
+        return ProviderFlags(
             configured=not LiveSetting.objects.filter(name__startswith="TWILIO", error__isnull=False).exists(),
             test_sms=False,
             test_call=True,
