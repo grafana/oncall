@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon, IconButton } from '@grafana/ui';
+import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -42,8 +42,8 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           hasCollapsedBorder={false}
           key={channelFilterId}
           heading={
-            <HorizontalGroup justify={'space-between'}>
-              <HorizontalGroup spacing={'md'}>
+            <div className={cx('heading-container')}>
+              <div className={cx('heading-container__item', 'heading-container__item--large')}>
                 <TooltipBadge
                   borderType="success"
                   text={IntegrationHelper.getRouteConditionWording(
@@ -54,34 +54,39 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   tooltipContent={undefined}
                 />
                 {channelFilter.filtering_term && (
-                  <Text type="primary">{IntegrationHelper.truncateLine(channelFilter.filtering_term)}</Text>
+                  <Text type="primary" className={cx('heading-container__text')}>
+                    {channelFilter.filtering_term}
+                  </Text>
                 )}
-              </HorizontalGroup>
-              <HorizontalGroup>
+              </div>
+
+              <div className={cx('heading-container__item')}>
                 <RouteButtonsDisplay
                   alertReceiveChannelId={alertReceiveChannelId}
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
                   setRouteIdForDeletion={() => setRouteIdForDeletion(channelFilterId)}
                 />
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </div>
+            </div>
           }
           content={
             <div className={cx('spacing')}>
-              <HorizontalGroup>
-                {channelFilter.slack_channel?.display_name && (
-                  <HorizontalGroup>
+              <VerticalGroup>
+                {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel, key) => (
+                  <HorizontalGroup key={key}>
                     <Text type="secondary">Publish to ChatOps</Text>
                     <Icon name="slack" />
                     <Text type="primary" strong>
-                      {channelFilter.slack_channel.display_name}
+                      {chatOpsChannel}
                     </Text>
                   </HorizontalGroup>
-                )}
+                ))}
+
                 <HorizontalGroup>
                   <Icon name="list-ui-alt" />
                   <Text type="secondary">Escalate to</Text>
+
                   {escalationChain?.name && (
                     <PluginLink
                       className={cx('hover-button')}
@@ -93,15 +98,19 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                       </Text>
                     </PluginLink>
                   )}
+
                   {!escalationChain?.name && (
-                    <IconButton
-                      name="info-circle"
-                      tooltip={'You have no selected escalation chain for this route'}
-                      size={'md'}
-                    />
+                    <HorizontalGroup spacing={'xs'}>
+                      <div className={cx('icon-exclamation')}>
+                        <Icon name="exclamation-triangle" />
+                      </div>
+                      <Text type="primary" strong>
+                        No Escalation chain
+                      </Text>
+                    </HorizontalGroup>
                   )}
                 </HorizontalGroup>
-              </HorizontalGroup>
+              </VerticalGroup>
             </div>
           }
         />
