@@ -3,4 +3,5 @@
   line-height: 100%;
   padding: 5px 8px;
   color: white;
+  white-space: nowrap;
 }
