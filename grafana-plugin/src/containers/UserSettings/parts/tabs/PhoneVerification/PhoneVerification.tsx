@@ -126,6 +126,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
                       codeInputRef.current.focus();
                     }
                   });
+                  break;
                 case 'verification_sms':
                   userStore.fetchVerificationCode(userPk, token).then(() => {
                     setState({ isCodeSent: true });
@@ -133,6 +134,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
                       codeInputRef.current.focus();
                     }
                   });
+                  break;
               }
             });
         });
@@ -149,6 +151,12 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
       userStore.fetchVerificationCode,
     ]
   );
+
+  const onVerifyCallback = useCallback(async () => {
+    userStore.verifyPhone(userPk, code).then(() => {
+      userStore.loadUser(userPk);
+    });
+  }, [code, userPk, userStore.verifyPhone, userStore.loadUser]);
 
   const isPhoneProviderConfigured = teamStore.currentTeam?.env_status.phone_provider?.configured;
   const providerConfiguration = teamStore.currentTeam?.env_status.phone_provider;
@@ -267,6 +275,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         isTestCallInProgress={userStore.isTestCallInProgress}
         providerConfiguration={providerConfiguration}
         onSubmitCallback={onSubmitCallback}
+        onVerifyCallback={onVerifyCallback}
         handleMakeTestCallClick={handleMakeTestCallClick}
         handleSendTestSmsClick={handleSendTestSmsClick}
         onShowForgetScreen={() => setState({ showForgetScreen: true })}
@@ -315,6 +324,7 @@ interface PhoneVerificationButtonsGroupProps {
     verification_sms: boolean;
   };
   onSubmitCallback(type: string): void;
+  onVerifyCallback(): void;
   handleMakeTestCallClick(): void;
   handleSendTestSmsClick(): void;
   onShowForgetScreen(): void;
@@ -330,6 +340,7 @@ function PhoneVerificationButtonsGroup({
   isTestCallInProgress,
   providerConfiguration,
   onSubmitCallback,
+  onVerifyCallback,
   handleMakeTestCallClick,
   handleSendTestSmsClick,
   onShowForgetScreen,
@@ -337,32 +348,45 @@ function PhoneVerificationButtonsGroup({
 }: PhoneVerificationButtonsGroupProps) {
   const showForgetNumber = !!user.verified_phone_number;
   const showVerifyOrSendCodeButton = !user.verified_phone_number;
-
+  const verificationStarted = isCodeSent || isPhoneCallInitiated;
   return (
     <HorizontalGroup>
       {showVerifyOrSendCodeButton && (
         <HorizontalGroup>
-          {providerConfiguration.verification_sms && (
-            <WithPermissionControlTooltip userAction={action}>
-              <Button
-                variant="primary"
-                onClick={() => onSubmitCallback('verification_sms')}
-                disabled={isButtonDisabled}
-              >
-                {isCodeSent ? 'Verify' : 'Send Code'}
-              </Button>
-            </WithPermissionControlTooltip>
-          )}
-          {providerConfiguration.verification_call && (
-            <WithPermissionControlTooltip userAction={action}>
-              <Button
-                variant="primary"
-                onClick={() => onSubmitCallback('verification_call')}
-                disabled={isButtonDisabled}
-              >
-                {isPhoneCallInitiated ? 'Verify' : 'Call to get the code'}
-              </Button>
-            </WithPermissionControlTooltip>
+          {verificationStarted ? (
+            <>
+              <WithPermissionControlTooltip userAction={action}>
+                <Button variant="primary" onClick={onVerifyCallback}>
+                  Verify
+                </Button>
+              </WithPermissionControlTooltip>
+            </>
+          ) : (
+            <HorizontalGroup>
+              {' '}
+              {providerConfiguration.verification_sms && (
+                <WithPermissionControlTooltip userAction={action}>
+                  <Button
+                    variant="primary"
+                    onClick={() => onSubmitCallback('verification_sms')}
+                    disabled={isButtonDisabled}
+                  >
+                    Send Code
+                  </Button>
+                </WithPermissionControlTooltip>
+              )}
+              {providerConfiguration.verification_call && (
+                <WithPermissionControlTooltip userAction={action}>
+                  <Button
+                    variant="primary"
+                    onClick={() => onSubmitCallback('verification_call')}
+                    disabled={isButtonDisabled}
+                  >
+                    Call to get the code
+                  </Button>
+                </WithPermissionControlTooltip>
+              )}
+            </HorizontalGroup>
           )}
         </HorizontalGroup>
       )}

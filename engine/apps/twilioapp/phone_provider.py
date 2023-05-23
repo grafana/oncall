@@ -249,8 +249,8 @@ class TwilioPhoneProvider(PhoneProvider):
     def flags(self) -> ProviderFlags:
         return ProviderFlags(
             configured=not LiveSetting.objects.filter(name__startswith="TWILIO", error__isnull=False).exists(),
-            test_sms=False,
+            test_sms=True,
             test_call=True,
-            verification_call=False,
+            verification_call=True,
             verification_sms=True,
         )
