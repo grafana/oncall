@@ -189,9 +189,12 @@ class AlertTemplater(ABC):
                             if attr == "title"
                             else settings.JINJA_RESULT_MAX_LENGTH
                         )
-                        added_context[f"web_{attr}"] = apply_jinja_template(
-                            added_attr_template, data, result_length_limit=result_length_limit, **context
-                        )
+                        try:
+                            added_context[f"web_{attr}"] = apply_jinja_template(
+                                added_attr_template, data, result_length_limit=result_length_limit, **context
+                            )
+                        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                            added_context[f"web_{attr}"] = e.fallback_message
                     else:
                         added_context[f"web_{attr}"] = f"web_{attr} is not set"
                 context = {**context, **added_context}

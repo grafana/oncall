@@ -48,11 +48,11 @@ const IntegrationHelper = {
     const totalMinDiff = minDiff - hourDiff * 60;
     const totalDiffString = `${hourDiff}h ${totalMinDiff}m left`;
 
-    if (mode) {
+    if (mode !== undefined) {
       return `${mode === MaintenanceMode.Debug ? 'Debug Maintenance' : 'Maintenance'}: ${totalDiffString}`;
     }
 
-    return totalDiffString;
+    return `${hourDiff}h left`;
   },
 };
 
