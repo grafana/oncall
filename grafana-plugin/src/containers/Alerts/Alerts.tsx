@@ -13,7 +13,6 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate, useQueryParams } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 
@@ -63,6 +62,10 @@ export default function Alerts() {
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
+  if (!showSlackInstallAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
+    return null;
+  }
+
   return (
     <div className={cx('alerts-container', { 'alerts-container--legacy': !isTopNavbar() })}>
       {showSlackInstallAlert && (
@@ -79,7 +82,7 @@ export default function Alerts() {
           )}
         </Alert>
       )}
-      {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
+      {showBannerTeam() && (
         <Alert
           className={cx('alert')}
           severity="success"
@@ -93,56 +96,50 @@ export default function Alerts() {
           />
         </Alert>
       )}
-      {store.backendLicense === GRAFANA_LICENSE_OSS &&
-        store.backendVersion &&
-        plugin?.version &&
-        store.backendVersion !== plugin?.version &&
-        !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
-          <Alert
-            className={cx('alert')}
-            severity="warning"
-            title={'Version mismatch!'}
-            onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+      {showMismatchWarning() && (
+        <Alert
+          className={cx('alert')}
+          severity="warning"
+          title={'Version mismatch!'}
+          onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+        >
+          Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
+          otherwise there could be issues with your Grafana OnCall installation!
+          <br />
+          {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
+          <br />
+          Please see{' '}
+          <a
+            href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
+            target="_blank"
+            rel="noreferrer"
+            className={cx('instructions-link')}
           >
-            Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
-            otherwise there could be issues with your Grafana OnCall installation!
-            <br />
-            {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
-            <br />
-            Please see{' '}
-            <a
-              href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
-              target="_blank"
-              rel="noreferrer"
-              className={cx('instructions-link')}
-            >
-              the update instructions
-            </a>
-            .
-          </Alert>
-        )}
-      {Boolean(
-        currentTeam &&
-          currentUser &&
-          isUserActionAllowed(UserActions.UserSettingsWrite) &&
-          (!isPhoneVerified || !isChatOpsConnected) &&
-          !getItem(AlertID.CONNECTIVITY_WARNING)
-      ) && (
+            the update instructions
+          </a>
+          .
+        </Alert>
+      )}
+      {showChannelWarnings() && (
         <Alert
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
           className={cx('alert')}
           severity="warning"
-          title="Connectivity Warning"
+          title="Notification Warning"
         >
           {
             <>
               {!isChatOpsConnected && (
-                <>Communication channels are not connected. Configure at least one channel to receive notifications.</>
+                <>
+                  No messenger connected. Possible notification miss. Connect messenger(s) in{' '}
+                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink> to receive all
+                  notifications.
+                </>
               )}
               {!isPhoneVerified && (
                 <>
                   Your phone number is not verified. You can change your configuration in{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>User settings</PluginLink>
+                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink>
                 </>
               )}
             </>
@@ -151,4 +148,28 @@ export default function Alerts() {
       )}
     </div>
   );
+
+  function showBannerTeam(): boolean {
+    return currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title);
+  }
+
+  function showMismatchWarning(): boolean {
+    return (
+      store.isOpenSource() &&
+      store.backendVersion &&
+      plugin?.version &&
+      store.backendVersion !== plugin?.version &&
+      !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`)
+    );
+  }
+
+  function showChannelWarnings(): boolean {
+    return Boolean(
+      currentTeam &&
+        currentUser &&
+        isUserActionAllowed(UserActions.UserSettingsWrite) &&
+        (!isPhoneVerified || !isChatOpsConnected) &&
+        !getItem(AlertID.CONNECTIVITY_WARNING)
+    );
+  }
 }

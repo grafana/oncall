@@ -1,4 +1,5 @@
 import datetime
+import textwrap
 from uuid import uuid4
 
 import pytest
@@ -7,12 +8,13 @@ from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import (
+    is_icals_equal,
     list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
     parse_event_uid,
     users_in_ical,
 )
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
 
 
 @pytest.mark.django_db
@@ -130,6 +132,55 @@ def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_
         )
 
 
+@pytest.mark.django_db
+def test_shifts_dict_from_cached_final(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+
+    yesterday = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timezone.timedelta(days=1)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    data = {
+        "start": yesterday + timezone.timedelta(hours=10),
+        "rotation_start": yesterday + timezone.timedelta(hours=10),
+        "duration": timezone.timedelta(hours=2),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[u1]])
+
+    override_data = {
+        "start": yesterday + timezone.timedelta(hours=12),
+        "rotation_start": yesterday + timezone.timedelta(hours=12),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[u1]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    shifts = [
+        (s["calendar_type"], s["start"], list(s["users"]))
+        for s in list_of_oncall_shifts_from_ical(schedule, yesterday, days=1, from_cached_final=True)
+    ]
+    expected_events = [
+        (OnCallSchedule.PRIMARY, on_call_shift.start, [u1]),
+        (OnCallSchedule.OVERRIDES, override.start, [u1]),
+    ]
+    assert shifts == expected_events
+
+
 def test_parse_event_uid_v1():
     uuid = uuid4()
     event_uid = f"amixr-{uuid}-U1-E2-S1"
@@ -153,3 +204,139 @@ def test_parse_event_uid_fallback():
     pk, source = parse_event_uid(event_uid)
     assert pk == event_uid
     assert source is None
+
+
+def test_is_icals_equal_compare_events():
+    with_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VTIMEZONE
+        TZID:Europe/Amsterdam
+        X-LIC-LOCATION:Europe/Amsterdam
+        BEGIN:DAYLIGHT
+        TZOFFSETFROM:+0100
+        TZOFFSETTO:+0200
+        TZNAME:CEST
+        DTSTART:19700329T020000
+        RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+        END:DAYLIGHT
+        BEGIN:STANDARD
+        TZOFFSETFROM:+0200
+        TZOFFSETTO:+0100
+        TZNAME:CET
+        DTSTART:19701025T030000
+        RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T152557Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:2
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    without_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T162103Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:2
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    assert is_icals_equal(with_vtimezone, without_vtimezone)
+
+
+def test_is_icals_equal_compare_events_not_equal():
+    with_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VTIMEZONE
+        TZID:Europe/Amsterdam
+        X-LIC-LOCATION:Europe/Amsterdam
+        BEGIN:DAYLIGHT
+        TZOFFSETFROM:+0100
+        TZOFFSETTO:+0200
+        TZNAME:CEST
+        DTSTART:19700329T020000
+        RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+        END:DAYLIGHT
+        BEGIN:STANDARD
+        TZOFFSETFROM:+0200
+        TZOFFSETTO:+0100
+        TZNAME:CET
+        DTSTART:19701025T030000
+        RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T152557Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:2
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    without_vtimezone = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/Amsterdam
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230515
+        DTEND;VALUE=DATE:20230522
+        DTSTAMP:20230503T162103Z
+        UID:something@google.com
+        RECURRENCE-ID;VALUE=DATE:20230501
+        CREATED:20230403T073117Z
+        LAST-MODIFIED:20230424T123617Z
+        SEQUENCE:3
+        STATUS:CONFIRMED
+        SUMMARY:some@user.com
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+    assert not is_icals_equal(with_vtimezone, without_vtimezone)

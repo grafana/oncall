@@ -68,5 +68,5 @@ Alertmanager offers three alert grouping options:
   distraction. Grafana OnCall grouping will help manage this in the following ways:
 
   - Grafana OnCall groups alerts based on the first label of each alert.
-  - Grafana OnCall marks an incident as resolved only when the amount of grouped alerts with state `resolved` equals
-    the amount of alerts with state `firing`.
+  - Grafana OnCall marks an alert group as resolved only when there are fewer than 500 grouped
+  alerts, and every `firing` alert with the same labels has a corresponding `resolved` alert.

@@ -121,7 +121,7 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateItems(
-    f: SchedulesFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
+    f: SchedulesFiltersType | string = { searchTerm: '', type: undefined, used: undefined, mine: undefined },
     page = 1,
     shouldUpdateFn: () => boolean = undefined
   ) {
@@ -188,8 +188,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   async getScoreQuality(scheduleId: Schedule['id']): Promise<ScheduleScoreQualityResponse> {
-    const tomorrow = getFromString(dayjs().add(1, 'day'));
-    return await makeRequest(`/schedules/${scheduleId}/quality?date=${tomorrow}`, { method: 'GET' });
+    return await makeRequest(`/schedules/${scheduleId}/quality`, { method: 'GET' });
   }
 
   @action

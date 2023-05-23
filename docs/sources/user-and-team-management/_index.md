@@ -43,12 +43,33 @@ To learn more about RBAC for Grafana OnCall, refer to the following documentatio
 
 ## Manage Teams in Grafana OnCall
 
-Teams in Grafana OnCall are based on the teams created at the organization level of your Grafana instance,
-in **Configuration > Teams**. Administrators can create a different configuration for each team, and can navigate
-between team configurations in the **Select Team** dropdown menu in the **Alert Group** section of Grafana OnCall.
+Teams in Grafana OnCall enable the configuration of visibility and filtering of resources, such as alert groups,
+integrations, escalation chains, and schedules. OnCall teams are automatically synced with
+[Grafana teams](https://grafana.com/docs/grafana/latest/administration/team-management/) created at the organization
+level of your Grafana instance. To modify global settings like team name or team members, navigate to
+**Configuration > Teams**. For OnCall-specific team settings,
+go to **Alerts & IRM > OnCall > Settings > Teams and Access Settings**.
 
-Users, including admins, can only view and manage teams in OnCall if they are a member of that team.
-An admin user may need to temporarily add themselves to a team to manage it.
+This section displays a list of teams, allowing you to configure team visibility and access to team resources for all
+Grafana users, or only admins and team members. You can also set a default team, which is a user-specific setting;
+the default team will be pre-selected each time a user creates a new resource. The team list includes a `No team` tag,
+signifying that the resource has no team and is accessible to everyone.
+
+Admins can view the list of all teams, while editors and viewers can only see teams (and their resources)
+they are members of or if the team setting "who can see the team name and access the team resources" is set to
+"all users of Grafana".
+
+> ⚠️ In the main Grafana teams section, users can set team-specific user permissions, such as Admin, Editor, or Viewer,
+> but only for resources within that team. Currently, Grafana OnCall ignores this setting and uses global roles instead.
+
+Teams help filter resources on their respective pages, improving organization. You can assign a resource to a team when
+creating it. Alert groups created via the Integration API inherit the team from the integration.
+
+Resources from different teams can be connected with one another. For instance, you can create an integration in one
+team, set up multiple routes for the integration, and utilize escalation chains from other teams. Users, schedules,
+and outgoing webhooks from other teams can also be included in the escalation chain. If a user only has access to the
+first team and not others, they will be unable to view the resource, which will display as `🔒 Private resource`.
+This feature enables the distribution of escalations across various teams.
 
 ## Configure user notification policies
 

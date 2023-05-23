@@ -16,12 +16,9 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 
-from django.db import connection  # noqa: E402
-
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
-connection.cursor()
 from celery import Celery  # noqa: E402
 
 app = Celery("proj")
@@ -56,6 +53,13 @@ def on_after_setup_logger(logger, **kwargs):
         )
 
 
+@celery.signals.worker_ready.connect
+def on_worker_ready(*args, **kwargs):
+    from apps.telegram.tasks import register_telegram_webhook
+
+    register_telegram_webhook.delay()
+
+
 if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
 
     @celery.signals.worker_process_init.connect(weak=False)
@@ -79,3 +83,18 @@ if settings.DEBUG_CELERY_TASKS_PROFILING:
         logger.info("ended: {} of {} with cpu={} at {}".format(task_id, task.name, time.perf_counter(), time.time()))
         sample_mem()
         memdump()
+
+
+if settings.PYROSCOPE_PROFILER_ENABLED:
+
+    @celery.signals.worker_process_init.connect(weak=False)
+    def init_pyroscope(*args, **kwargs):
+        import pyroscope
+
+        pyroscope.configure(
+            application_name=settings.PYROSCOPE_APPLICATION_NAME,
+            server_address=settings.PYROSCOPE_SERVER_ADDRESS,
+            auth_token=settings.PYROSCOPE_AUTH_TOKEN,
+            detect_subprocesses=True,  # detect subprocesses started by the main process; default is False
+            tags={"type": "celery", "celery_worker": os.environ.get("CELERY_WORKER_QUEUE", "no_queue_specified")},
+        )

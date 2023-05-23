@@ -17,9 +17,11 @@ from rest_framework.views import APIView
 
 from apps.alerts.paging import check_user_availability
 from apps.api.permissions import (
+    ALL_PERMISSION_CHOICES,
     IsOwnerOrHasRBACPermissions,
     LegacyAccessControlRole,
     RBACPermission,
+    get_permission_from_permission_string,
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
@@ -31,12 +33,16 @@ from apps.api.throttlers import (
     VerifyPhoneNumberThrottlerPerOrg,
     VerifyPhoneNumberThrottlerPerUser,
 )
+from apps.api.throttlers.test_call_throttler import TestPushThrottler
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from apps.mobile_app.demo_push import send_test_push
+from apps.mobile_app.exceptions import DeviceNotSet
+from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -48,7 +54,7 @@ from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.insight_log import (
     ChatOpsEvent,
-    ChatOpsType,
+    ChatOpsTypePlug,
     EntityEvent,
     write_chatops_insight_log,
     write_resource_insight_log,
@@ -58,6 +64,10 @@ from common.recaptcha import check_recaptcha_internal_api
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
 IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_READ])
+
+
+UPCOMING_SHIFTS_DEFAULT_DAYS = 7
+UPCOMING_SHIFTS_MAX_DAYS = 65
 
 
 class CurrentUserView(APIView):
@@ -97,13 +107,24 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="icontains")
-    roles = filters.MultipleChoiceFilter(
-        field_name="role", choices=LegacyAccessControlRole.choices()
-    )  # LEGACY.. this should get removed eventually
+    # TODO: remove "roles" in next version
+    roles = filters.MultipleChoiceFilter(field_name="role", choices=LegacyAccessControlRole.choices())
+    permission = filters.ChoiceFilter(method="filter_by_permission", choices=ALL_PERMISSION_CHOICES)
 
     class Meta:
         model = User
-        fields = ["email", "roles"]
+        # TODO: remove "roles" in next version
+        fields = ["email", "roles", "permission"]
+
+    def filter_by_permission(self, queryset, name, value):
+        rbac_permission = get_permission_from_permission_string(value)
+        if not rbac_permission:
+            # TODO: maybe raise a 400 here?
+            return queryset
+
+        return queryset.filter(
+            **User.build_permissions_query(rbac_permission, self.request.user.organization),
+        )
 
 
 class UserView(
@@ -138,7 +159,9 @@ class UserView(
         "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "send_test_push": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
     rbac_object_permissions = {
@@ -158,7 +181,9 @@ class UserView(
             "unlink_telegram",
             "unlink_backend",
             "make_test_call",
+            "send_test_push",
             "export_token",
+            "upcoming_shifts",
         ],
         IsOwnerOrHasUserSettingsReadPermission: [
             "check_availability",
@@ -371,6 +396,25 @@ class UserView(
 
         return Response(status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["post"], throttle_classes=[TestPushThrottler])
+    def send_test_push(self, request, pk):
+        user = self.get_object()
+        critical = request.query_params.get("critical", "false") == "true"
+
+        try:
+            send_test_push(user, critical)
+        except DeviceNotSet:
+            return Response(
+                data="Mobile device not connected",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.info(f"UserView.send_test_push: Unable to send test push due to {e}")
+            return Response(
+                data="Something went wrong while sending a test push", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        return Response(status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"])
     def get_backend_verification_code(self, request, pk):
         backend_id = request.query_params.get("backend")
@@ -414,7 +458,7 @@ class UserView(
         write_chatops_insight_log(
             author=request.user,
             event_name=ChatOpsEvent.USER_UNLINKED,
-            chatops_type=ChatOpsType.SLACK,
+            chatops_type=ChatOpsTypePlug.SLACK.value,
             linked_user=user.username,
             linked_user_id=user.public_primary_key,
         )
@@ -430,7 +474,7 @@ class UserView(
             write_chatops_insight_log(
                 author=request.user,
                 event_name=ChatOpsEvent.USER_UNLINKED,
-                chatops_type=ChatOpsType.TELEGRAM,
+                chatops_type=ChatOpsTypePlug.TELEGRAM.value,
                 linked_user=user.username,
                 linked_user_id=user.public_primary_key,
             )
@@ -459,6 +503,44 @@ class UserView(
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def upcoming_shifts(self, request, pk):
+        user = self.get_object()
+        try:
+            days = int(request.query_params.get("days", UPCOMING_SHIFTS_DEFAULT_DAYS))
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if days <= 0 or days > UPCOMING_SHIFTS_MAX_DAYS:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # filter user-related schedules
+        schedules = OnCallSchedule.objects.related_to_user(user)
+
+        # check upcoming shifts
+        upcoming = []
+        for schedule in schedules:
+            current_shift, upcoming_shift = schedule.upcoming_shift_for_user(user, days=days)
+            if current_shift or upcoming_shift:
+                upcoming.append(
+                    {
+                        "schedule_id": schedule.public_primary_key,
+                        "schedule_name": schedule.name,
+                        "is_oncall": current_shift is not None,
+                        "current_shift": current_shift,
+                        "next_shift": upcoming_shift,
+                    }
+                )
+
+        # sort entries by start timestamp
+        def sorting_key(entry):
+            shift = entry["current_shift"] if entry["current_shift"] else entry["next_shift"]
+            return shift["start"]
+
+        upcoming.sort(key=sorting_key)
+
+        return Response(upcoming, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):

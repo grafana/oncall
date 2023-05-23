@@ -17,18 +17,23 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11.3"
+          cache: "pip"
+          cache-dependency-path: engine/requirements.txt
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
+          cache: "yarn"
+          cache-dependency-path: grafana-plugin/yarn.lock
       - uses: snyk/actions/setup@master
-      - name: Install Dependencies
-        run: |
-          pip install -r engine/requirements.txt
-          cd grafana-plugin/
-          yarn --network-timeout 500000
+      - name: Install backend dependencies
+        working-directory: engine
+        run: pip install -r requirements.txt
+      - name: Install frontend dependencies
+        working-directory: grafana-plugin
+        run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
       - name: Run Snyk
         continue-on-error: true
-        run: snyk test --all-projects --severity-threshold=high
+        run: snyk monitor --all-projects --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

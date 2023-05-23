@@ -80,6 +80,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     templates = serializers.DictField(required=False)
     default_route = serializers.DictField(required=False)
     heartbeat = serializers.SerializerMethodField()
+    description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
 
     PREFETCH_RELATED = ["channel_filters"]
     SELECT_RELATED = ["organization", "integration_heartbeat"]
@@ -89,6 +90,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         fields = MaintainableObjectSerializerMixin.Meta.fields + [
             "id",
             "name",
+            "description_short",
             "team_id",
             "link",
             "type",
@@ -359,7 +361,6 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
 
 class IntegrationUpdateSerializer(IntegrationSerializer):
     type = IntegrationTypeField(source="integration", read_only=True)
-    team_id = TeamPrimaryKeyRelatedField(source="team", read_only=True)
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(validated_data)

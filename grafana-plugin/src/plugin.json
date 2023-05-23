@@ -41,7 +41,7 @@
     {
       "type": "page",
       "name": "Alert Groups",
-      "path": "/a/grafana-oncall-app/incidents",
+      "path": "/a/grafana-oncall-app/alert-groups",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
       "addToNav": true
@@ -310,6 +310,18 @@
         ]
       },
       "grants": ["Viewer"]
+    },
+    {
+      "role": {
+        "name": "Notifications Receiver",
+        "description": "Grants the ability to receive OnCall alert notifications. By virtue, also grants the user the ability to edit their own OnCall settings.",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.notifications:read" },
+          { "action": "grafana-oncall-app.user-settings:write" }
+        ]
+      },
+      "grants": []
     },
     {
       "role": {

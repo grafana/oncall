@@ -52,7 +52,7 @@ services:
       MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
-      - /etc/app/node_modules
+      - node_modules_dev:/etc/app/node_modules
       # https://stackoverflow.com/a/60456034
       - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
     profiles:
@@ -198,8 +198,7 @@ services:
   mysql:
     container_name: mysql
     labels: *oncall-labels
-    image: mysql:5.7
-    platform: linux/amd64
+    image: mysql:8.0.32
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     environment:
@@ -211,7 +210,7 @@ services:
       labels: *oncall-labels
       resources:
         limits:
-          memory: 500m
+          memory: 1000m
           cpus: "0.5"
     healthcheck:
       test: "mysql -uroot -pempty oncall_local_dev -e 'select 1'"
@@ -225,8 +224,7 @@ services:
   mysql_to_create_grafana_db:
     container_name: mysql_to_create_grafana_db
     labels: *oncall-labels
-    image: mysql:5.7
-    platform: linux/amd64
+    image: mysql:8.0.32
     command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
@@ -275,13 +273,12 @@ services:
   grafana:
     container_name: grafana
     labels: *oncall-labels
-    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
+    image: "grafana/${GRAFANA_IMAGE:-grafana:latest}"
     restart: always
     environment:
       GF_SECURITY_ADMIN_USER: oncall
       GF_SECURITY_ADMIN_PASSWORD: oncall
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
-      GF_FEATURE_TOGGLES_ENABLE: topnav
     env_file:
       - ./dev/.env.${DB}.dev
     ports:
@@ -315,6 +312,8 @@ volumes:
   postgresdata_dev:
     labels: *oncall-labels
   mysqldata_dev:
+    labels: *oncall-labels
+  node_modules_dev:
     labels: *oncall-labels
 
 networks:

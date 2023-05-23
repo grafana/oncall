@@ -1,5 +1,5 @@
 $padding: 8px;
-$width: 280px;
+$width: 340px;
 
 .root {
   width: $width;
@@ -37,13 +37,6 @@ $width: 280px;
   margin-bottom: 4px;
 }
 
-.line-break {
-  width: 100%;
-  border-top: 1px solid var(--always-gray);
-  margin-top: 8px;
-  opacity: 15%;
-}
-
 .metholodogy {
   padding: 4px 0px;
 }
@@ -53,7 +46,7 @@ $width: 280px;
   padding-left: 24px;
 }
 
-.email {
+.username {
   max-width: calc($width - $padding);
   white-space: nowrap;
   text-overflow: ellipsis;

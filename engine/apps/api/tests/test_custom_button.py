@@ -11,6 +11,8 @@ from apps.alerts.models import CustomButton
 from apps.api.permissions import LegacyAccessControlRole
 
 TEST_URL = "https://amixr.io"
+URL_WITH_TLD = "http://www.google.com"
+URL_WITHOUT_TLD = "http://container:8080"
 
 
 @pytest.fixture()
@@ -457,3 +459,36 @@ def test_get_custom_button_from_other_team_with_flag(
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "dangerous_webhooks,webhook_url,expected_status",
+    [
+        (True, URL_WITH_TLD, status.HTTP_201_CREATED),
+        (True, URL_WITHOUT_TLD, status.HTTP_201_CREATED),
+        (False, URL_WITH_TLD, status.HTTP_201_CREATED),
+        (False, URL_WITHOUT_TLD, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+def test_url_without_tld_custom_button(
+    custom_button_internal_api_setup,
+    make_user_auth_headers,
+    settings,
+    dangerous_webhooks,
+    webhook_url,
+    expected_status,
+):
+    settings.DANGEROUS_WEBHOOKS_ENABLED = dangerous_webhooks
+
+    user, token, _ = custom_button_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:custom_button-list")
+
+    data = {
+        "name": "amixr_button",
+        "webhook": webhook_url,
+        "team": None,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == expected_status

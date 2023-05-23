@@ -26,6 +26,14 @@ go unnoticed. Use Grafana OnCall to:
 
 This section provides conceptual information about Grafana OnCall schedule options.
 
+## Before you begin
+
+- Users with Admin or Editor roles can create, edit and delete schedules.
+- Users with Viewer role cannot receive alert notifications, therefore, cannot be on-call.
+
+For more information about permissions, refer to
+[Manage users and teams for Grafana OnCall]({{< relref "../../../configure-user-settings" >}})
+
 ## About on-call schedules
 
 An on-call schedule consist of one or more rotations that contain on-call shifts. A schedule must be referenced in the

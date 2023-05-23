@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { Field, Form, Input, InputControl, Select, Switch, TextArea } from '@grafana/ui';
 import { capitalCase } from 'change-case';
@@ -17,22 +17,51 @@ const nullNormalizer = (value: string) => {
   return value || null;
 };
 
-function renderFormControl(formItem: FormItem, register: any, control: any) {
+function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: (field, value) => void) {
   switch (formItem.type) {
     case FormItemType.Input:
-      return <Input {...register(formItem.name, formItem.validation)} />;
+      return (
+        <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+      );
+
+    case FormItemType.Password:
+      return (
+        <Input
+          {...register(formItem.name, formItem.validation)}
+          type="password"
+          onChange={(value) => onChangeFn(undefined, value)}
+        />
+      );
 
     case FormItemType.TextArea:
-      return <TextArea rows={formItem.extra?.rows || 4} {...register(formItem.name, formItem.validation)} />;
+      return (
+        <TextArea
+          rows={formItem.extra?.rows || 4}
+          {...register(formItem.name, formItem.validation)}
+          onChange={(value) => onChangeFn(undefined, value)}
+        />
+      );
+
+    case FormItemType.MultiSelect:
+      return (
+        <InputControl
+          render={({ field }) => {
+            return (
+              <GSelect isMulti={true} {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />
+            );
+          }}
+          control={control}
+          name={formItem.name}
+        />
+      );
 
     case FormItemType.Select:
       return (
         <InputControl
-          render={({ field: { onChange, ...field } }) => {
-            return <Select {...field} {...formItem.extra} onChange={(value) => onChange(value.value)} />;
+          render={({ field: { ...field } }) => {
+            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value.value)} />;
           }}
           control={control}
-          // @ts-ignore
           name={formItem.name}
         />
       );
@@ -41,25 +70,36 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <GSelect {...field} {...formItem.extra} />;
+            return <GSelect {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
           }}
           control={control}
-          // @ts-ignore
           name={formItem.name}
         />
       );
 
     case FormItemType.Switch:
-      return <Switch {...register(formItem.name, formItem.validation)} />;
+      return (
+        <InputControl
+          render={({ field: { ...field } }) => {
+            return (
+              <Switch
+                {...register(formItem.name, formItem.validation)}
+                onChange={(value) => onChangeFn(field, value)}
+              />
+            );
+          }}
+          control={control}
+          name={formItem.name}
+        />
+      );
 
     case FormItemType.RemoteSelect:
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <RemoteSelect {...field} {...formItem.extra} />;
+            return <RemoteSelect {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
           }}
           control={control}
-          // @ts-ignore
           name={formItem.name}
         />
       );
@@ -69,45 +109,56 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
   }
 }
 
-const GForm = (props: GFormProps) => {
-  const { data, form, onSubmit } = props;
+class GForm extends React.Component<GFormProps, {}> {
+  render() {
+    const { form, data } = this.props;
 
-  const handleSubmit = useCallback(
-    (data: any) => {
-      const normalizedData = Object.keys(data).reduce((acc, key) => {
-        const formItem = form.fields.find((formItem) => formItem.name === key);
+    return (
+      <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit}>
+        {({ register, errors, control, getValues, setValue }) => {
+          return form.fields.map((formItem: FormItem, formIndex: number) => {
+            if (formItem.isVisible && !formItem.isVisible(getValues())) {
+              setValue(formItem.name, undefined); // clear input value on hide
+              return null;
+            }
 
-        const value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+            return (
+              <Field
+                key={formIndex}
+                disabled={formItem.getDisabled ? formItem.getDisabled(getValues()) : false}
+                label={formItem.label || capitalCase(formItem.name)}
+                invalid={!!errors[formItem.name]}
+                error={`${capitalCase(formItem.name)} is required`}
+                description={formItem.description}
+              >
+                {renderFormControl(formItem, register, control, (field, value) => {
+                  field?.onChange(value);
+                  this.forceUpdate();
+                })}
+              </Field>
+            );
+          });
+        }}
+      </Form>
+    );
+  }
 
-        return {
-          ...acc,
-          [key]: value,
-        };
-      }, {});
+  handleSubmit = (data) => {
+    const { form, onSubmit } = this.props;
 
-      onSubmit(normalizedData);
-    },
-    [onSubmit]
-  );
+    const normalizedData = Object.keys(data).reduce((acc, key) => {
+      const formItem = form.fields.find((formItem) => formItem.name === key);
 
-  return (
-    <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={handleSubmit}>
-      {({ register, errors, control }) => {
-        return form.fields.map((formItem: FormItem, formIndex: number) => (
-          <Field
-            key={formIndex}
-            disabled={formItem.getDisabled ? formItem.getDisabled(data) : false}
-            label={formItem.label || capitalCase(formItem.name)}
-            invalid={!!errors[formItem.name]}
-            error={`${capitalCase(formItem.name)} is required`}
-            description={formItem.description}
-          >
-            {renderFormControl(formItem, register, control)}
-          </Field>
-        ));
-      }}
-    </Form>
-  );
-};
+      const value = formItem?.normalize ? formItem.normalize(data[key]) : nullNormalizer(data[key]);
+
+      return {
+        ...acc,
+        [key]: value,
+      };
+    }, {});
+
+    onSubmit(normalizedData);
+  };
+}
 
 export default GForm;

@@ -17,6 +17,7 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 
 import Collapse from 'components/Collapse/Collapse';
@@ -28,7 +29,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { parseEmojis } from 'containers/AlertRules/AlertRules.helpers';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import ChannelFilterForm from 'containers/ChannelFilterForm/ChannelFilterForm';
-import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
+import EscalationChainForm, { EscalationChainFormMode } from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import GSelect from 'containers/GSelect/GSelect';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
@@ -39,6 +40,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
+import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
@@ -70,7 +72,7 @@ interface AlertRulesState {
 const Notification: React.FC = () => (
   <div>
     Demo alert was generated. Find it on the
-    <PluginLink query={{ page: 'incidents' }}> "Alert Groups" </PluginLink>
+    <PluginLink query={{ page: 'alert-groups' }}> "Alert Groups" </PluginLink>
     page and make sure it didn't freak out your colleagues 😉
   </div>
 );
@@ -348,6 +350,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             )}
             {channelFilterIdToCopyEscalationChain && (
               <EscalationChainForm
+                mode={escalationChainIdToCopy ? EscalationChainFormMode.Copy : EscalationChainFormMode.Create}
                 escalationChainId={escalationChainIdToCopy}
                 onHide={() => {
                   this.setState({
@@ -578,7 +581,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   </>
                 ) : (
                   <Text type="secondary">
-                    Select Escalation Chain first please ↑ or
+                    Select Escalation Chain ↑ or
                     <Button
                       fill="text"
                       size="sm"
@@ -588,7 +591,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                         });
                       }}
                     >
-                      Create a new
+                      Create a new one
                     </Button>{' '}
                   </Text>
                 )}
@@ -681,6 +684,22 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
               tooltipPlacement="top"
             />
           </WithPermissionControlTooltip>
+        )}
+        {store.hasFeature(AppFeature.Webhooks2) && (
+          <CopyToClipboard text={channelFilter.id}>
+            <IconButton
+              variant="primary"
+              tooltip={
+                <div>
+                  ID {channelFilter.id}
+                  <br />
+                  (click to copy ID to clipboard)
+                </div>
+              }
+              tooltipPlacement="top"
+              name="info-circle"
+            />
+          </CopyToClipboard>
         )}
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button variant="secondary" size="sm" onClick={this.getSendDemoAlertToParticularRoute(channelFilterId)}>

@@ -26,17 +26,26 @@ function Debug(props) {
       <Label>{props.title}</Label>
       <Block bordered fullWidth>
         <VerticalGroup spacing="none">
-          {props.source && <SourceCode>{props.source}</SourceCode>}
+          {props.source && <SourceCode showClipboardIconOnly>{props.source}</SourceCode>}
           {props.result && props.result !== props.source && (
             <VerticalGroup spacing="none">
               <Label>Result</Label>
-              <SourceCode>{props.result}</SourceCode>
+              <SourceCode showClipboardIconOnly>{props.result}</SourceCode>
             </VerticalGroup>
           )}
         </VerticalGroup>
       </Block>
     </VerticalGroup>
   );
+}
+
+function format_response_field(str) {
+  try {
+    const jsonValue = JSON.parse(str);
+    return JSON.stringify(jsonValue, null, 4);
+  } catch (e) {
+    return str;
+  }
 }
 
 const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => {
@@ -62,15 +71,33 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
       <div className={cx('content')}>
         <VerticalGroup>
           <Label>Webhook Name</Label>
-          <SourceCode>{data.name}</SourceCode>
+          <SourceCode showClipboardIconOnly>{data.name}</SourceCode>
+          <Label>Webhook ID</Label>
+          <SourceCode showClipboardIconOnly>{data.id}</SourceCode>
           <Label>Trigger Type</Label>
-          <SourceCode>{data.trigger_type_name}</SourceCode>
+          <SourceCode showClipboardIconOnly>{data.trigger_type_name}</SourceCode>
 
-          {data.last_run ? (
+          {data.last_response_log.timestamp ? (
             <VerticalGroup>
               <Label>Last Run Time</Label>
-              <SourceCode>{data.last_response_log.timestamp}</SourceCode>
+              <SourceCode showClipboardIconOnly>{data.last_response_log.timestamp}</SourceCode>
 
+              {data.last_response_log.url && (
+                <Debug title="URL" source={data.url} result={data.last_response_log.url}></Debug>
+              )}
+              {data.last_response_log.status_code && (
+                <VerticalGroup>
+                  <Label>Response Code</Label>
+                  <SourceCode showClipboardIconOnly>{data.last_response_log.status_code}</SourceCode>
+                </VerticalGroup>
+              )}
+
+              {data.last_response_log.content && (
+                <VerticalGroup>
+                  <Label>Response Body</Label>
+                  <SourceCode showClipboardIconOnly>{format_response_field(data.last_response_log.content)}</SourceCode>
+                </VerticalGroup>
+              )}
               {data.last_response_log.request_trigger && (
                 <Debug
                   title="Trigger Template"
@@ -78,28 +105,19 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
                   result={data.last_response_log.request_trigger}
                 ></Debug>
               )}
-              {data.last_response_log.url && (
-                <Debug title="URL" source={data.url} result={data.last_response_log.url}></Debug>
-              )}
               {data.last_response_log.request_headers && (
-                <Debug title="Headers" source={data.headers} result={data.last_response_log.request_headers}></Debug>
+                <Debug
+                  title="Request Headers"
+                  source={data.headers}
+                  result={data.last_response_log.request_headers}
+                ></Debug>
               )}
               {data.last_response_log.request_data && (
-                <Debug title="Data" source={data.data} result={data.last_response_log.request_data}></Debug>
-              )}
-
-              {data.last_response_log.status_code && (
-                <VerticalGroup>
-                  <Label>Response Code</Label>
-                  <SourceCode>{data.last_response_log.status_code}</SourceCode>
-                </VerticalGroup>
-              )}
-
-              {data.last_response_log.content && (
-                <VerticalGroup>
-                  <Label>Response Body</Label>
-                  <SourceCode>{JSON.stringify(data.last_response_log.content, null, 4)}</SourceCode>
-                </VerticalGroup>
+                <Debug
+                  title="Request Data"
+                  source={data.data}
+                  result={format_response_field(data.last_response_log.request_data)}
+                ></Debug>
               )}
             </VerticalGroup>
           ) : (

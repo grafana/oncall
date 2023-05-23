@@ -1,16 +1,14 @@
 import { test } from '@playwright/test';
-import { configureOnCallPlugin } from '../utils/configurePlugin';
 import { verifyThatAlertGroupIsTriggered } from '../utils/alertGroup';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
 import { generateRandomValue } from '../utils/forms';
 import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { createOnCallSchedule } from '../utils/schedule';
 
-test.beforeEach(async ({ page }) => {
-  await configureOnCallPlugin(page);
-});
-
 test('we can create an oncall schedule + receive an alert', async ({ page }) => {
+  // this test does a lot of stuff, lets give it adequate time to do its thing
+  test.slow();
+
   const escalationChainName = generateRandomValue();
   const integrationName = generateRandomValue();
   const onCallScheduleName = generateRandomValue();

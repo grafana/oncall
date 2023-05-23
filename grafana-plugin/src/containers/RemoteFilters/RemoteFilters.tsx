@@ -1,7 +1,17 @@
 import React, { Component } from 'react';
 
 import { SelectableValue, TimeRange } from '@grafana/data';
-import { IconButton, InlineSwitch, MultiSelect, TimeRangeInput, Select, LoadingPlaceholder, Input } from '@grafana/ui';
+import {
+  IconButton,
+  InlineSwitch,
+  MultiSelect,
+  TimeRangeInput,
+  Select,
+  LoadingPlaceholder,
+  Input,
+  Icon,
+  Tooltip,
+} from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { debounce, isEmpty, isUndefined, omitBy, pickBy } from 'lodash-es';
@@ -114,8 +124,13 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       <div className={cx('filters')}>
         {filters.map((filterOption: FilterOption) => (
           <div key={filterOption.name} className={cx('filter')}>
-            <Text type="secondary">{filterOption.display_name || capitalCase(filterOption.name)}:</Text>{' '}
-            {this.renderFilterOption(filterOption)}
+            <Text type="secondary">{filterOption.display_name || capitalCase(filterOption.name)}</Text>
+            {filterOption.description && (
+              <Tooltip content={filterOption.description}>
+                <Icon name="info-circle" />
+              </Tooltip>
+            )}
+            <Text type="secondary">:</Text> {this.renderFilterOption(filterOption)}
             <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
           </div>
         ))}
@@ -184,7 +199,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     if (option.data.default) {
       let defaultValue = option.data.default;
       if (option.data.type === 'options') {
-        defaultValue = [defaultValue];
+        defaultValue = [option.data.default.value];
       }
       if (option.data.type === 'boolean') {
         defaultValue = defaultValue === 'false' ? false : Boolean(defaultValue);

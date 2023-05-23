@@ -23,11 +23,11 @@ from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleSerializer,
     PolymorphicScheduleUpdateSerializer,
 )
+from apps.api.serializers.user import ScheduleUserSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
-from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -81,6 +81,7 @@ class ScheduleView(
         "events": [RBACPermission.Permissions.SCHEDULES_READ],
         "filter_events": [RBACPermission.Permissions.SCHEDULES_READ],
         "next_shifts_per_user": [RBACPermission.Permissions.SCHEDULES_READ],
+        "related_users": [RBACPermission.Permissions.SCHEDULES_READ],
         "quality": [RBACPermission.Permissions.SCHEDULES_READ],
         "notify_empty_oncall_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "notify_oncall_shift_freq_options": [RBACPermission.Permissions.SCHEDULES_READ],
@@ -163,12 +164,14 @@ class ScheduleView(
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.get("type")
+        mine = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("mine"))
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization).defer(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",
+            "cached_ical_final_schedule",
         )
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
@@ -179,6 +182,9 @@ class ScheduleView(
             queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
         if used is not None:
             queryset = queryset.filter(escalation_policies__isnull=not used).distinct()
+        if mine:
+            user = self.request.user
+            queryset = queryset.related_to_user(user)
 
         queryset = queryset.order_by("pk")
         return queryset
@@ -332,13 +338,20 @@ class ScheduleView(
         schedule = self.get_object()
         events = schedule.final_events(user_tz, starting_date, days=30)
 
-        users = {u: None for u in schedule.related_users()}
+        users = {u.public_primary_key: None for u in schedule.related_users()}
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
             if user is not None and users.get(user) is None and e["end"] > now:
                 users[user] = e
 
         result = {"users": users}
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def related_users(self, request, pk):
+        schedule = self.get_object()
+        serializer = ScheduleUserSerializer(schedule.related_users(), many=True)
+        result = {"users": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
@@ -353,13 +366,12 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def quality(self, request, pk):
         schedule = self.get_object()
-        user_tz, date = self.get_request_timezone()
-        days = int(self.request.query_params.get("days", 90))  # todo: check if days could be calculated more precisely
 
-        events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
+        _, date = self.get_request_timezone()
+        days = self.request.query_params.get("days")
+        days = int(days) if days else None
 
-        schedule_score = get_schedule_quality_score(events, days)
-        return Response(schedule_score)
+        return Response(schedule.quality_report(date, days))
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):
@@ -476,6 +488,12 @@ class ScheduleView(
                 "type": "team_select",
                 "href": api_root + "teams/",
                 "global": True,
+            },
+            {
+                "name": "mine",
+                "type": "boolean",
+                "display_name": "Mine",
+                "default": "true",
             },
             {
                 "name": "used",

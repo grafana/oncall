@@ -11,11 +11,11 @@ import Avatar from 'components/Avatar/Avatar';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
@@ -59,7 +59,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
-      filters: { searchTerm: '', type: undefined, used: undefined },
+      filters: { searchTerm: '', type: undefined, used: undefined, mine: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
@@ -306,9 +306,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return (
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
-          <ScheduleCounter
-            type="link"
-            count={item.number_of_escalation_chains}
+          <TooltipBadge
+            borderType="link"
+            icon="link"
+            text={item.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
             tooltipContent={
               <VerticalGroup spacing="sm">
@@ -325,7 +326,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     'Not used yet'
                   )
                 ) : (
-                  <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
+                  <LoadingPlaceholder text="Loading related escalation chains..." />
                 )}
               </VerticalGroup>
             }
@@ -334,9 +335,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         )}
 
         {item.warnings?.length > 0 && (
-          <ScheduleCounter
-            type="warning"
-            count={item.warnings.length}
+          <TooltipBadge
+            borderType="warning"
+            icon="exclamation-triangle"
+            text={item.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
               <VerticalGroup spacing="none">

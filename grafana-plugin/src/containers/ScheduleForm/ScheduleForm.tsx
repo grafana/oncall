@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 
-import { Button, Drawer, VerticalGroup } from '@grafana/ui';
+import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
-import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
@@ -66,22 +65,23 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
   return (
     <Drawer
       scrollableContent
-      title={
-        <Text.Title className={cx('title')} level={4}>
-          {id === 'new' ? 'New' : 'Edit'} Schedule
-        </Text.Title>
-      }
+      title={id === 'new' ? 'New Schedule' : 'Edit Schedule'}
       onClose={onHide}
-      closeOnMaskClick
+      closeOnMaskClick={false}
     >
       <div className={cx('content')}>
         <VerticalGroup>
           <GForm form={formConfig} data={data} onSubmit={handleSubmit} />
-          <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-            <Button form={formConfig.name} type="submit">
-              {id === 'new' ? 'Create' : 'Update'} Schedule
+          <HorizontalGroup justify="flex-end">
+            <Button variant="secondary" onClick={onHide}>
+              Cancel
             </Button>
-          </WithPermissionControlTooltip>
+            <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+              <Button form={formConfig.name} type="submit">
+                {id === 'new' ? 'Create' : 'Update'} Schedule
+              </Button>
+            </WithPermissionControlTooltip>
+          </HorizontalGroup>
         </VerticalGroup>
       </div>
     </Drawer>

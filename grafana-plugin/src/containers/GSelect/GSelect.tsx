@@ -8,12 +8,13 @@ import { observer } from 'mobx-react';
 
 import { useStore } from 'state/useStore';
 
-import styles from './GSelect.module.css';
+import styles from './GSelect.module.scss';
 
 const cx = cn.bind(styles);
 
 interface GSelectProps {
   placeholder: string;
+  isLoading?: boolean;
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
   onChange: (value: string, item: any) => void;
@@ -30,7 +31,6 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
-  fromOrganization?: boolean;
   filterOptions?: (id: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
@@ -45,6 +45,7 @@ const GSelect = observer((props: GSelectProps) => {
     autoFocus,
     showSearch = false,
     allowClear = false,
+    isLoading,
     defaultOpen,
     placeholder,
     className,
@@ -61,7 +62,6 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
-    // fromOrganization,
     width = null,
     icon = null,
   } = props;
@@ -89,6 +89,11 @@ const GSelect = observer((props: GSelectProps) => {
     [model, onChange]
   );
 
+  /**
+   * without debouncing this function when search is available
+   * we risk hammering the API endpoint for every single key stroke
+   * some context on 250ms as the choice here - https://stackoverflow.com/a/44755058/3902555
+   */
   const loadOptions = (query: string) => {
     return model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
@@ -106,8 +111,11 @@ const GSelect = observer((props: GSelectProps) => {
     });
   };
 
+  // TODO: why doesn't this work properly?
+  // const loadOptions = debounce(_loadOptions, showSearch ? 250 : 0);
+
   const values = isMulti
-    ? (value as string[])
+    ? (value ? (value as string[]) : [])
         .filter((id) => id in model.items)
         .map((id: string) => ({
           value: id,
@@ -127,7 +135,7 @@ const GSelect = observer((props: GSelectProps) => {
   useEffect(() => {
     const values = isMulti ? value : [value];
 
-    (values as string[]).forEach((value: string) => {
+    (values ? (values as string[]) : []).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
         model.updateItem(value, true);
       }
@@ -150,6 +158,7 @@ const GSelect = observer((props: GSelectProps) => {
         onChange={onChangeCallback}
         defaultOptions={!disabled}
         loadOptions={loadOptions}
+        isLoading={isLoading}
         // @ts-ignore
         value={values}
         defaultValue={defaultValue}

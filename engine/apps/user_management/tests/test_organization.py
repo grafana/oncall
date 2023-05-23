@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroupLogRecord, AlertReceiveChannel, EscalationPolicy
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
-from apps.schedules.models import OnCallScheduleCalendar
+from apps.schedules.models import OnCallScheduleICal, OnCallScheduleWeb
 from apps.telegram.models import TelegramMessage
 from apps.twilioapp.constants import TwilioCallStatuses, TwilioMessageStatuses
 from apps.user_management.models import Organization
@@ -92,7 +92,10 @@ def test_organization_hard_delete(
     team = make_team(organization=organization)
     team.users.add(user_1)
 
-    schedule = make_schedule(organization=organization, schedule_class=OnCallScheduleCalendar)
+    # Creating different types of schedules to check that deletion works well with PolymorphicModel
+    schedule_web = make_schedule(organization=organization, schedule_class=OnCallScheduleWeb)
+    schedule_ical = make_schedule(organization=organization, schedule_class=OnCallScheduleICal)
+
     custom_action = make_custom_action(organization=organization)
 
     escalation_chain = make_escalation_chain(organization=organization)
@@ -167,7 +170,8 @@ def test_organization_hard_delete(
         user_2,
         team,
         user_notification_policy,
-        schedule,
+        schedule_web,
+        schedule_ical,
         custom_action,
         escalation_chain,
         escalation_policy,

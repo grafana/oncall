@@ -14,7 +14,7 @@ import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
-import { Route, Switch, useLocation } from 'react-router-dom';
+import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
@@ -24,7 +24,9 @@ import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
 import Incidents from 'pages/incidents/Incidents';
+import Integration2 from 'pages/integration_2/Integration2';
 import Integrations from 'pages/integrations/Integrations';
+import Integrations2 from 'pages/integrations_2/Integrations2';
 import Maintenance from 'pages/maintenance/Maintenance';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
@@ -105,6 +107,7 @@ export const Root = observer((props: AppRootProps) => {
 
   const updateBasicData = async () => {
     await store.updateBasicData();
+    await store.alertGroupStore.fetchIRMPlan();
     setDidFinishLoading(true);
   };
 
@@ -125,7 +128,7 @@ export const Root = observer((props: AppRootProps) => {
     <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
-          <Header backendLicense={store.backendLicense} />
+          <Header />
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}
@@ -138,10 +141,10 @@ export const Root = observer((props: AppRootProps) => {
       >
         {userHasAccess ? (
           <Switch>
-            <Route path={getRoutesForPage('incidents')} exact>
+            <Route path={getRoutesForPage('alert-groups')} exact>
               <Incidents query={query} />
             </Route>
-            <Route path={getRoutesForPage('incident')} exact>
+            <Route path={getRoutesForPage('alert-group')} exact>
               <Incident query={query} />
             </Route>
             <Route path={getRoutesForPage('users')} exact>
@@ -149,6 +152,12 @@ export const Root = observer((props: AppRootProps) => {
             </Route>
             <Route path={getRoutesForPage('integrations')} exact>
               <Integrations query={query} />
+            </Route>
+            <Route path={getRoutesForPage('integrations_2')} exact>
+              <Integrations2 query={query} />
+            </Route>
+            <Route path={getRoutesForPage('integration_2')} exact>
+              <Integration2 query={query} />
             </Route>
             <Route path={getRoutesForPage('escalations')} exact>
               <EscalationChains query={query} />
@@ -163,7 +172,7 @@ export const Root = observer((props: AppRootProps) => {
               <OutgoingWebhooks query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
-              <OutgoingWebhooks2 />
+              <OutgoingWebhooks2 query={query} />
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
               <Maintenance query={query} />
@@ -183,6 +192,33 @@ export const Root = observer((props: AppRootProps) => {
             <Route path={getRoutesForPage('cloud')} exact>
               <CloudPage />
             </Route>
+
+            {/* Backwards compatibility redirect routes */}
+            <Route
+              path={getRoutesForPage('incident')}
+              exact
+              render={({ location }) => (
+                <Redirect
+                  to={{
+                    ...location,
+                    pathname: location.pathname.replace(/incident/, 'alert-group'),
+                  }}
+                ></Redirect>
+              )}
+            ></Route>
+            <Route
+              path={getRoutesForPage('incidents')}
+              exact
+              render={({ location }) => (
+                <Redirect
+                  to={{
+                    ...location,
+                    pathname: location.pathname.replace(/incidents/, 'alert-groups'),
+                  }}
+                ></Redirect>
+              )}
+            ></Route>
+
             <Route path="*">
               <NoMatch />
             </Route>
