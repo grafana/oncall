@@ -342,6 +342,10 @@ class UserView(
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
         except FailedToStartVerification:
             return Response("Something went wrong while sending code", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ProviderNotSupports:
+            return Response(
+                "Phone provider not supports sms verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         return Response(status=status.HTTP_200_OK)
 
     @action(
@@ -365,6 +369,10 @@ class UserView(
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
         except FailedToStartVerification:
             return Response("Something went wrong while calling", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ProviderNotSupports:
+            return Response(
+                "Phone provider not supports call verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         return Response(status=status.HTTP_200_OK)
 
     @action(
