@@ -10,7 +10,7 @@ keywords:
   - on-call
   - Alertmanager
   - Prometheus
-title: Alertmanager integration for Grafana OnCall
+title: Migration from OpsGenie
 weight: 300
 ---
 

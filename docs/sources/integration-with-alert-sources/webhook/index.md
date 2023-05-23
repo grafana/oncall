@@ -10,11 +10,11 @@ keywords:
   - on-call
   - Alertmanager
   - Prometheus
-title: Webhook integration for Grafana OnCall
+title: Inbound Webhook
 weight: 700
 ---
 
-# Webhook integrations for Grafana OnCall
+# Inbound Webhook integrations for Grafana OnCall
 
 Grafana OnCall directly supports many integrations, those that aren’t currently listed in the Integrations menu can be
 connected using the webhook integration and configured alert templates.
@@ -46,19 +46,19 @@ To configure a webhook integration:
 
 For example:
 
-    ```json
-    curl -X POST \
-    https://a-prod-us-central-0.grafana.net/integrations/v1/formatted_webhook/m12xmIjOcgwH74UF8CN4dk0Dh/ \
-    -H 'Content-Type: Application/json' \
-    -d '{
-        "alert_uid": "08d6891a-835c-e661-39fa-96b6a9e26552",
-        "title": "The whole system is down",
-        "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg",
-        "state": "alerting",
-        "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime",
-        "message": "Smth happened. Oh no!"
-    }'
-        ```
+```bash
+curl -X POST \
+https://a-prod-us-central-0.grafana.net/integrations/v1/formatted_webhook/m12xmIjOcgwH74UF8CN4dk0Dh/ \
+-H 'Content-Type: Application/json' \
+-d '{
+    "alert_uid": "08d6891a-835c-e661-39fa-96b6a9e26552",
+    "title": "The whole system is down",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg",
+    "state": "alerting",
+    "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime",
+    "message": "Smth happened. Oh no!"
+}'
+```
 
 To learn how to use custom alert templates for formatted webhooks, see
 [Configure alerts templates]({{< relref "../../../alert-behavior/alert-templates/" >}}).

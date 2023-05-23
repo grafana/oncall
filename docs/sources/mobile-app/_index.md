@@ -1,5 +1,5 @@
 ---
-title: Grafana OnCall mobile app
+title: Mobile App
 aliases:
   - /docs/oncall/latest/mobile-app/
 keywords:

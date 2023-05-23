@@ -24,7 +24,7 @@ The following diagram details an example alert workflow with Grafana OnCall:
 <img src="/static/img/docs/oncall/oncall-alertworkflow.png" class="no-shadow" width="700px">
 
 These procedures introduce you to initial Grafana OnCall configuration steps, including monitoring system integration,
-how to set up escalation chains, and how to use your calendar service for on-call scheduling.
+how to set up escalation chains, and how to set up calendar for on-call scheduling.
 
 ## Before you begin
 

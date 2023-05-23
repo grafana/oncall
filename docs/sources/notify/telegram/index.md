@@ -11,7 +11,7 @@ keywords:
   - amixr
   - oncall
   - telegram
-title: Telegram integration for Grafana OnCall
+title: Telegram
 weight: 300
 ---
 

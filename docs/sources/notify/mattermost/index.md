@@ -11,7 +11,7 @@ keywords:
   - amixr
   - oncall
   - slack
-title: Slack integration for Grafana OnCall
+title: Mattermost
 weight: 100
 ---
 

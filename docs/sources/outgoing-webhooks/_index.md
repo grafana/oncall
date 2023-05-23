@@ -10,7 +10,7 @@ keywords:
   - on-call
   - amixr
   - webhooks
-title: Outgoing webhooks at Grafana OnCall
+title: Outgoing Webhooks
 weight: 900
 ---
 

@@ -9,7 +9,7 @@ keywords:
   - Notifications
   - on-call
   - Zabbix
-title: Zabbix integration for Grafana OnCall
+title: Zabbix
 weight: 500
 ---
 

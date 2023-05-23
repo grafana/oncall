@@ -12,7 +12,7 @@ keywords:
   - oncall
   - MS Team
   - Microsoft
-title: Microsoft Teams integration for Grafana OnCall
+title: Microsoft Teams
 weight: 500
 ---
 

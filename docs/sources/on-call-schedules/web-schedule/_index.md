@@ -120,10 +120,6 @@ To revoke an active iCal link:
 1. If there is an active iCal link, click **Revoke iCal link**.
 1. Once revoked, you can generate a new iCal link by clicking **+ Create iCal link**.
 
-
-
-# Create on-call schedules in Grafana OnCall
-
 Schedules allow you to map out recurring on-call coverage and automate the escalation of alert notifications to
 currently on-call users. With Grafana OnCall, you can customize rotations with a live schedule preview to visualize
 your schedule, add users, reorder users, and reference teammates' time zones.

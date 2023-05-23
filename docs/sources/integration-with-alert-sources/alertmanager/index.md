@@ -10,7 +10,7 @@ keywords:
   - on-call
   - Alertmanager
   - Prometheus
-title: Alertmanager integration for Grafana OnCall
+title: Alertmanager
 weight: 300
 ---
 

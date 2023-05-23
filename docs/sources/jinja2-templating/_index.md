@@ -23,9 +23,6 @@ Once Grafana OnCall receives an alert, the following occurs, based on the alert 
 - Alerts are grouped based on your alert grouping configurations, combining similar or related alerts to reduce alert noise.
 - Alerts automatically resolve if an alert from the monitoring system matches the resolve condition for that alert.
 
-
-# Configure alert templates
-
 Grafana OnCall can integrate with any monitoring systems that can send alerts using webhooks with JSON payloads. By
 default, webhooks deliver raw JSON payloads. When Grafana OnCall receives an alert and parses its payload, a default
 pre configured alert template is applied to modify the alert payload to be more human readable. These alert templates
@@ -188,6 +185,5 @@ Built-in functions:
 - `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
 - `regex_replace` - performs a regex find and replace
 - `regex_match` - performs a regex match, returns `True` or `False`. Usage example: `{{ payload.ruleName | regex_match(".*") }}`
-
 
 {{< section >}}

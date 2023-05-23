@@ -9,7 +9,7 @@ keywords:
   - Notifications
   - on-call
   - Prometheus
-title: Grafana Alerting integration for Grafana OnCall
+title: Grafana Alerting
 weight: 100
 ---
 

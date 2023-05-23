@@ -1,6 +1,6 @@
 ---
 aliases:
-  - add-inbound-email/
+  - inbound-email/
   - /docs/oncall/latest/integrations/available-integrations/configure-inbound-email/
 canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-inbound-email/
 keywords:
@@ -9,7 +9,7 @@ keywords:
   - Notifications
   - on-call
   - Email
-title: Inbound Email integration for Grafana OnCall
+title: Inbound Email
 weight: 500
 ---
 
@@ -28,7 +28,7 @@ You must have an Admin role to create integrations in Grafana OnCall.
 ## Grouping and auto-resolve
 
 Alert groups will be grouped by email subject and auto-resolved if the email message text equals "OK".
- This behaviour can be modified via custom templates.
+ This behaviour can be modified via [custom templates]({{< relref "jinja2-templating" >}}).
 
 Alerts from Inbound Email integration have followng payload:
 
