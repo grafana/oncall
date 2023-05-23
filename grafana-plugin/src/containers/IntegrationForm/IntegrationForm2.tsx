@@ -60,7 +60,6 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
         ? alertReceiveChannelStore
             .create(data)
             .then((response) => {
-              onHide();
               history.push(`${PLUGIN_ROOT}/integrations_2/${response.id}`);
             })
             .catch(() => {
