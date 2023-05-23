@@ -200,28 +200,26 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
             {content}
           </Block>
         </div>
-        {false && // temporary disable test notifications
-          mobileAppIsCurrentlyConnected &&
-          isCurrentUser && (
-            <div className={cx('notification-buttons')}>
-              <HorizontalGroup spacing={'md'} justify={'flex-end'}>
-                <Button
-                  variant="secondary"
-                  onClick={() => onSendTestNotification()}
-                  disabled={isAttemptingTestNotification}
-                >
-                  Send Test Push notification
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => onSendTestNotification(true)}
-                  disabled={isAttemptingTestNotification}
-                >
-                  Send Critical Test Push notification
-                </Button>
-              </HorizontalGroup>
-            </div>
-          )}
+        {store.hasFeature(AppFeature.MobileTestPush) && mobileAppIsCurrentlyConnected && isCurrentUser && (
+          <div className={cx('notification-buttons')}>
+            <HorizontalGroup spacing={'md'} justify={'flex-end'}>
+              <Button
+                variant="secondary"
+                onClick={() => onSendTestNotification()}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Test Push notification
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => onSendTestNotification(true)}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Critical Test Push notification
+              </Button>
+            </HorizontalGroup>
+          </div>
+        )}
       </VerticalGroup>
     </WithPermissionControlDisplay>
   );
