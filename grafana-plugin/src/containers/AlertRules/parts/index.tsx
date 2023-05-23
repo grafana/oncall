@@ -16,7 +16,7 @@ interface ChatOpsConnectorsProps {
 }
 
 export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
-  const { channelFilterId, showLineNumber } = props;
+  const { channelFilterId, showLineNumber = true } = props;
 
   const store = useStore();
   const { telegramChannelStore } = store;
