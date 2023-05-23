@@ -289,6 +289,10 @@ jobs:
 
       - name: Collect Workflow Telemetry
         uses: runforesight/workflow-telemetry-action@v1
+        with:
+          comment_on_pr: false
+          proc_trace_chart_show: false
+          proc_trace_table_show: false
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
