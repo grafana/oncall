@@ -472,12 +472,7 @@ def test_user_get_other_verification_code(
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": admin.public_primary_key})
-    with patch(
-        "apps.api.views.user.UserView.get_verification_code",
-        return_value=Response(
-            status=status.HTTP_200_OK,
-        ),
-    ):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock()):
         response = client.get(url, format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
