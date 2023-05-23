@@ -292,10 +292,11 @@ ROLE_PERMISSION_MAPPING = get_user_permission_role_mapping_from_frontend_plugin_
 def make_user():
     def _make_user(role: typing.Optional[LegacyAccessControlRole] = None, **kwargs):
         role = LegacyAccessControlRole.ADMIN if role is None else role
-        permissions = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
-        return UserFactory(
-            role=role, permissions=[GrafanaAPIPermission(action=perm.value) for perm in permissions], **kwargs
-        )
+        permissions = kwargs.pop("permissions", None)
+        if permissions is None:
+            permissions_to_grant = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
+            permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions_to_grant]
+        return UserFactory(role=role, permissions=permissions, **kwargs)
 
     return _make_user
 
@@ -800,23 +801,27 @@ def make_integration_heartbeat():
     return _make_integration_heartbeat
 
 
+@pytest.fixture
 def reload_urls(settings):
     """
     Reloads Django URLs, especially useful when testing conditionally registered URLs
     """
 
-    clear_url_caches()
-    urlconf = settings.ROOT_URLCONF
-    if urlconf in sys.modules:
-        reload(sys.modules[urlconf])
-    else:
-        import_module(urlconf)
+    def _reload_urls():
+        clear_url_caches()
+        urlconf = settings.ROOT_URLCONF
+        if urlconf in sys.modules:
+            reload(sys.modules[urlconf])
+        else:
+            import_module(urlconf)
+
+    return _reload_urls
 
 
 @pytest.fixture()
-def load_slack_urls(settings):
+def load_slack_urls(settings, reload_urls):
     settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
-    reload_urls(settings)
+    reload_urls()
 
 
 @pytest.fixture

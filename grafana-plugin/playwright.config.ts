@@ -14,7 +14,7 @@ const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
   globalSetup: './integration-tests/globalSetup.ts',
   /* Maximum time one test can run for. */
-  timeout: 90 * 1000,
+  timeout: 60 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -26,8 +26,13 @@ const config: PlaywrightTestConfig = {
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 3 : 0,
+  /**
+   * Retry on CI only
+   *
+   * NOTE: until we fix this issue (https://github.com/grafana/oncall/issues/1692) which occasionally leads
+   * to flaky tests.. let's just retry failed tests. If the same test fails 3 times, you know something must be up
+   */
+  retries: !!process.env.CI ? 3 : 0,
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',

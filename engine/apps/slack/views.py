@@ -21,6 +21,7 @@ from apps.slack.scenarios.declare_incident import STEPS_ROUTING as DECLARE_INCID
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
 from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING
 from apps.slack.scenarios.manual_incident import STEPS_ROUTING as MANUAL_INCIDENT_ROUTING
+from apps.slack.scenarios.notified_user_not_in_channel import STEPS_ROUTING as NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING
 from apps.slack.scenarios.onboarding import STEPS_ROUTING as ONBOARDING_STEPS_ROUTING
 from apps.slack.scenarios.paging import STEPS_ROUTING as DIRECT_PAGE_ROUTING
 from apps.slack.scenarios.profile_update import STEPS_ROUTING as PROFILE_UPDATE_ROUTING
@@ -37,6 +38,7 @@ from apps.slack.scenarios.scenario_step import (
     EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
     EVENT_TYPE_SUBTEAM_UPDATED,
     EVENT_TYPE_USER_CHANGE,
+    EVENT_TYPE_USER_PROFILE_CHANGED,
     PAYLOAD_TYPE_BLOCK_ACTIONS,
     PAYLOAD_TYPE_DIALOG_SUBMISSION,
     PAYLOAD_TYPE_EVENT_CALLBACK,
@@ -72,6 +74,7 @@ SCENARIOS_ROUTES.extend(PROFILE_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(MANUAL_INCIDENT_ROUTING)
 SCENARIOS_ROUTES.extend(DIRECT_PAGE_ROUTING)
 SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
+SCENARIOS_ROUTES.extend(NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING)
 
 logger = logging.getLogger(__name__)
 
@@ -270,8 +273,12 @@ class SlackEventApiEndpointView(APIView):
                     EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
                 ]:
                     logger.info("Slack event without user slack_id.")
-                elif payload["event"]["type"] == EVENT_TYPE_USER_CHANGE:
-                    logger.info("Event user_change. Dropping request because it does not have SlackUserIdentity.")
+                elif payload["event"]["type"] in (EVENT_TYPE_USER_CHANGE, EVENT_TYPE_USER_PROFILE_CHANGED):
+                    logger.info(
+                        "Event {}. Dropping request because it does not have SlackUserIdentity.".format(
+                            payload["event"]["type"]
+                        )
+                    )
                     return Response()
             else:
                 logger.info("Dropping request because it does not have SlackUserIdentity.")

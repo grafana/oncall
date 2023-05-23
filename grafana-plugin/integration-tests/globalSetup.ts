@@ -7,7 +7,7 @@ import { goToGrafanaPage } from './utils/navigation';
 /**
  * go to config page and wait for plugin icon to be available on left-hand navigation
  */
-export const configureOnCallPlugin = async (page: Page): Promise<void> => {
+const configureOnCallPlugin = async (page: Page): Promise<void> => {
   // plugin configuration can safely be skipped for non open-source environments
   if (!IS_OPEN_SOURCE) {
     return;
@@ -31,8 +31,14 @@ export const configureOnCallPlugin = async (page: Page): Promise<void> => {
     await clickButton({ page, buttonText: 'Connect' });
   }
 
-  // wait for the "Connected to OnCall" message to know that everything is properly configured
-  await expect(page.getByTestId('status-message-block')).toHaveText(/Connected to OnCall.*/);
+  /**
+   * wait for the "Connected to OnCall" message to know that everything is properly configured
+   *
+   * Regarding increasing the timeout for the "plugin configured" assertion:
+   * This is because it can sometimes take a bit longer for the backend sync to finish. The default assertion
+   * timeout is 5s, which is sometimes not enough if the backend is under load
+   */
+  await expect(page.getByTestId('status-message-block')).toHaveText(/Connected to OnCall.*/, { timeout: 25_000 });
 };
 
 /**

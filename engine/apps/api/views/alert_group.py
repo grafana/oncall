@@ -84,6 +84,8 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
     """
 
+    FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF = 1000
+
     started_at_gte = filters.DateTimeFilter(field_name="started_at", lookup_expr="gte")
     started_at_lte = filters.DateTimeFilter(field_name="started_at", lookup_expr="lte")
     resolved_at_lte = filters.DateTimeFilter(field_name="resolved_at", lookup_expr="lte")
@@ -186,7 +188,6 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
         return queryset
 
     def filter_by_involved_users(self, queryset, name, value):
-        NOTIFICATION_HISTORY_CUTOFF = 1000
         users = value
 
         if not users:
@@ -198,7 +199,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
             UserNotificationPolicyLogRecord.objects.filter(author__in=users)
             .order_by("-alert_group_id")
             .values_list("alert_group_id", flat=True)
-            .distinct()[:NOTIFICATION_HISTORY_CUTOFF]
+            .distinct()[: self.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF]
         )
 
         queryset = queryset.filter(
@@ -620,6 +621,7 @@ class AlertGroupView(
                 "type": "options",
                 "href": api_root + "users/?filters=true&roles=0&roles=1&roles=2",
                 "default": {"display_name": self.request.user.username, "value": self.request.user.public_primary_key},
+                "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups these users involved in.",
             },
             {
                 "name": "status",
@@ -651,6 +653,7 @@ class AlertGroupView(
                 "name": "mine",
                 "type": "boolean",
                 "default": "true",
+                "description": f"This filter works only for last {AlertGroupFilter.FILTER_BY_INVOLVED_USERS_ALERT_GROUPS_CUTOFF} alert groups you're involved in.",
             },
         ]
 

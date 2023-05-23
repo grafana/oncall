@@ -42,7 +42,7 @@ TRIGGER_TYPE_TO_LABEL = {
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, alert_group_id, organization_id=None, team_id=None, user_id=None):
+def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
     webhooks_qs = Webhooks.objects.filter(
         trigger_type=trigger_type,
@@ -122,14 +122,16 @@ def make_request(webhook, alert_group, data):
                 status["request_data"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
             status["status_code"] = response.status_code
-            content_length = response.headers.get("Content-Length")
-            if content_length and int(content_length) < WEBHOOK_RESPONSE_LIMIT:
+            content_length = len(response.content)
+            if content_length <= WEBHOOK_RESPONSE_LIMIT:
                 try:
                     status["content"] = json.dumps(response.json())
                 except JSONDecodeError:
                     status["content"] = response.content.decode("utf-8")
             else:
-                status["content"] = f"Response content exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
+                status[
+                    "content"
+                ] = f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
 
         return triggered, status, None, None
     except InvalidWebhookUrl as e:

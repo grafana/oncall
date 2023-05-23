@@ -7,6 +7,118 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Improve plugin authentication by @vadimkerr ([#1995](https://github.com/grafana/oncall/pull/1995))
+- Fix MultipleObjectsReturned error on webhook endpoints by @vadimkerr ([#1996](https://github.com/grafana/oncall/pull/1996))
+
+## v1.2.27 (2023-05-23)
+
+### Added
+
+- Allow passing Firebase credentials via environment variable by @vadimkerr ([#1969](https://github.com/grafana/oncall/pull/1969))
+
+### Changed
+
+- Update default Alertmanager templates by @iskhakov ([#1944](https://github.com/grafana/oncall/pull/1944))
+
+### Fixed
+
+- Fix SQLite permission issue by @vadimkerr ([#1984](https://github.com/grafana/oncall/pull/1984))
+
+## v1.2.26 (2023-05-18)
+
+### Fixed
+
+- Fix inbound email bug when attaching files by @vadimkerr ([#1970](https://github.com/grafana/oncall/pull/1970))
+
+## v1.2.25 (2023-05-18)
+
+### Added
+
+- Test mobile push backend
+
+## v1.2.24 (2023-05-17)
+
+### Fixed
+
+- Fixed bug in Escalation Chains where reordering an item crashed the list
+
+## v1.2.23 (2023-05-15)
+
+### Added
+
+- Add a way to set a maintenance mode message and display this in the web plugin UI by @joeyorlando ([#1917](https://github.com/grafana/oncall/pull/#1917))
+
+### Changed
+
+- Use `user_profile_changed` Slack event instead of `user_change` to update Slack user profile by @vadimkerr ([#1938](https://github.com/grafana/oncall/pull/1938))
+
+## v1.2.22 (2023-05-12)
+
+### Added
+
+- Add mobile settings for info notifications by @imtoori ([#1926](https://github.com/grafana/oncall/pull/1926))
+
+### Fixed
+
+- Fix bug in the "You're Going Oncall" push notification copy by @joeyorlando ([#1922](https://github.com/grafana/oncall/pull/1922))
+- Fix bug with newlines in markdown converter ([#1925](https://github.com/grafana/oncall/pull/1925))
+- Disable "You're Going Oncall" push notification by default ([1927](https://github.com/grafana/oncall/pull/1927))
+
+## v1.2.21 (2023-05-09)
+
+### Added
+
+- Add a new mobile app push notification which notifies users when they are going on call by @joeyorlando ([#1814](https://github.com/grafana/oncall/pull/1814))
+- Add a new mobile app user setting field, `important_notification_volume_override` by @joeyorlando ([#1893](https://github.com/grafana/oncall/pull/1893))
+
+### Changed
+
+- Improve ical comparison when checking for imported ical updates ([1870](https://github.com/grafana/oncall/pull/1870))
+- Upgrade to Python 3.11.3 by @joeyorlando ([#1849](https://github.com/grafana/oncall/pull/1849))
+
+### Fixed
+
+- Fix issue with how OnCall determines if a cloud Grafana Instance supports RBAC by @joeyorlando ([#1880](https://github.com/grafana/oncall/pull/1880))
+- Fix issue trying to set maintenance mode for integrations belonging to non-current team
+
+## v1.2.20 (2023-05-09)
+
+### Fixed
+
+- Hotfix perform notification task
+
+## v1.2.19 (2023-05-04)
+
+### Fixed
+
+- Fix issue with parsing response when sending Slack message
+
+## v1.2.18 (2023-05-03)
+
+### Added
+
+- Documentation updates
+
+## v1.2.17 (2023-05-02)
+
+### Added
+
+- Add filter descriptions to web ui by @iskhakov ([1845](https://github.com/grafana/oncall/pull/1845))
+- Add "Notifications Receiver" RBAC role by @joeyorlando ([#1853](https://github.com/grafana/oncall/pull/1853))
+
+### Changed
+
+- Remove template editor from Slack by @iskhakov ([1847](https://github.com/grafana/oncall/pull/1847))
+- Remove schedule name uniqueness restriction ([1859](https://github.com/grafana/oncall/pull/1859))
+
+### Fixed
+
+- Fix bugs in web title and message templates rendering and visual representation ([1747](https://github.com/grafana/oncall/pull/1747))
+
+## v1.2.16 (2023-04-27)
+
 ### Added
 
 - Add 2, 3 and 6 hours Alert Group silence options by @tommysitehost ([#1822](https://github.com/grafana/oncall/pull/1822))

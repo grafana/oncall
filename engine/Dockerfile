@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster AS base
+FROM python:3.11.3-slim-buster AS base
 RUN apt-get update && apt-get install -y \
     python3-dev \
     gcc \
@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     netcat \
     curl \
-    bash
+    bash \
+    git
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
@@ -18,9 +19,12 @@ RUN pip install -r requirements.txt
 # https://stackoverflow.com/questions/34398632/docker-how-to-run-pip-requirements-txt-only-if-there-was-a-change/34399661#34399661
 COPY ./ ./
 
-# Collect static files and create an SQLite database
-RUN mkdir -p /var/lib/oncall
+# Collect static files
 RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db DATABASE_TYPE=sqlite3 DATABASE_NAME=/var/lib/oncall/oncall.db SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" SILK_PROFILER_ENABLED="True" python manage.py collectstatic --no-input
+
+# Create SQLite database and set permissions
+RUN mkdir -p /var/lib/oncall
+RUN DATABASE_TYPE=sqlite3 DATABASE_NAME=/var/lib/oncall/oncall.db python manage.py create_sqlite_db
 RUN chown -R 1000:2000 /var/lib/oncall
 
 # This is required for silk profilers to sync between uwsgi workers
