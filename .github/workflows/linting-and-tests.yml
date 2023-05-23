@@ -262,7 +262,9 @@ jobs:
           pytest -x
 
   end-to-end-tests:
-    runs-on: ubuntu-latest
+    # ubuntu-latest only provides 2 CPU cores + 7GB of RAM
+    # macos-12-xl gives us 12 CPU cores + 30GB of RAM
+    runs-on: macos-12-xl
     name: "End to end tests - Grafana: ${{ matrix.grafana-image-tag }}"
     strategy:
       matrix:
@@ -337,7 +339,7 @@ jobs:
       - name: Load engine Docker image on the nodes of the cluster
         run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
 
-      # spin up 2 engine, 2 celery, and 2 grafana pods, this will allow us to parralelize the integration tests
+      # spin up 3 engine, 3 celery, and 3 grafana pods, this will allow us to parralelize the integration tests
       # and complete them much faster by using multiple test processes
       # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized integration
       # test process
@@ -352,14 +354,14 @@ jobs:
             --values ./helm/simple.yml \
             --values ./helm/values-local-image.yml \
             --set-json 'env=[{"name":"GRAFANA_CLOUD_NOTIFICATIONS_ENABLED","value":"False"}]' \
-            --set engine.replicaCount=1 \
-            --set celery.replicaCount=1 \
+            --set engine.replicaCount=3 \
+            --set celery.replicaCount=3 \
             --set celery.worker_beat_enabled="False" \
             --set oncall.twilio.accountSid="${{ secrets.TWILIO_ACCOUNT_SID }}" \
             --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
             --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
             --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
-            --set grafana.replicas=1 \
+            --set grafana.replicas=3 \
             --set grafana.image.tag=${{ matrix.grafana-image-tag }} \
             --set grafana.env.GF_SECURITY_ADMIN_USER=oncall \
             --set grafana.env.GF_SECURITY_ADMIN_PASSWORD=oncall \
