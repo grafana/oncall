@@ -400,13 +400,14 @@ jobs:
         working-directory: grafana-plugin
         run: ./node_modules/.bin/playwright install-deps chromium firefox webkit
 
-      - name: Await k8s pods and other resources up
-        uses: jupyterhub/action-k8s-await-workloads@v1
-        with:
-          workloads: "" # all
-          namespace: "" # default
-          timeout: 300
-          max-restarts: -1
+      # we could instead use the --wait flag for the helm install command above
+      # but there's no reason to block on that step
+      # instead we can let the k8s resources start up behind the scenes and do other
+      # setup tasks (ex. install playwright + its dependencies)
+      - name: Wait until k8s resources are ready
+        run: |
+          kubectl rollout status deployment/helm-testing-oncall-engine --timeout=300s
+          kubectl rollout status deployment/helm-testing-oncall-celery --timeout=300s
 
       - name: Run Integration Tests
         env:
@@ -425,8 +426,8 @@ jobs:
         working-directory: ./grafana-plugin
         run: yarn test:integration
 
-      # always spit out the engine and celery logs, AFTER the e2e tests have completed
-      # can be helpful for debugging failing/flaky tests
+      # spit out the engine, celery, and grafana logs, if the the e2e tests have failed
+      # can be helpful for debugging failing tests
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
         uses: jupyterhub/action-k8s-namespace-report@v1
