@@ -15,7 +15,7 @@ import styles from 'pages/integration_2/Integration2.module.scss';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
 
-import { templatesToRender } from './IntegrationTemplatesList.config';
+import { templatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
 
 const cx = cn.bind(styles);
 
