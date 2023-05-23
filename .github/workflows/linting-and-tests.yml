@@ -298,15 +298,15 @@ jobs:
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
 
-      - name: Use cached frontend dependencies
-        id: cache-frontend-dependencies
-        uses: actions/cache@v3
-        with:
-          path: grafana-plugin/node_modules
-          key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
+      # - name: Use cached frontend dependencies
+      #   id: cache-frontend-dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: grafana-plugin/node_modules
+      #     key: ${{ runner.os }}-frontend-node-modules-${{ hashFiles('grafana-plugin/yarn.lock') }}
 
       - name: Install frontend dependencies
-        if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
+        # if: steps.cache-frontend-dependencies.outputs.cache-hit != 'true'
         working-directory: grafana-plugin
         run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
 
@@ -395,10 +395,10 @@ jobs:
 
       # use the cached browsers, but we still need to install the necessary system dependencies
       # (system deps are installed in the cache-miss step above by the --with-deps flag)
-      - name: Install Playwright System Dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        working-directory: grafana-plugin
-        run: ./node_modules/.bin/playwright install-deps
+      # - name: Install Playwright System Dependencies
+      #   if: steps.playwright-cache.outputs.cache-hit == 'true'
+      #   working-directory: grafana-plugin
+      #   run: ./node_modules/.bin/playwright install-deps
 
       - name: Await k8s pods and other resources up
         uses: jupyterhub/action-k8s-await-workloads@v1
