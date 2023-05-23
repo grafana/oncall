@@ -344,8 +344,8 @@ jobs:
       # and complete them much faster by using multiple test processes
       # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized integration test process
       # NOTE: it appears that using > 1 grafana container w/ SQLite as the database sometimes leads to failed
-      # grafana database migrations (presumably because multiple containers are trying to write to the same
-      # mounted sqlite file @ the same time)
+      # grafana database migrations (this is documented in this GitHub issue
+      # https://github.com/bitnami/charts/issues/10905)
       #
       # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
       # OnCall plugin rather than the latest published version
