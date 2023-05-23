@@ -83,11 +83,6 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
     return <LoadingPlaceholder text="Loading..." />;
   }
 
-  const otherProps: any = {};
-  if (useAutoCompleteList) {
-    otherProps.getSuggestions = { autoCompleteList };
-  }
-
   return (
     <CodeEditor
       monacoOptions={monacoOptions}
@@ -99,7 +94,7 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
       width="100%"
       height={height}
       onEditorDidMount={handleMount}
-      {...otherProps}
+      getSuggestions={useAutoCompleteList ? autoCompleteList : undefined}
     />
   );
 };
