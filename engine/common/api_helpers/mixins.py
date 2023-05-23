@@ -197,6 +197,10 @@ class TeamFilteringMixin:
 
     @property
     def available_teams_lookup_args(self):
+        """
+        This property returns a list of Q objects that are used to filter instances by teams available to the user.
+        NOTE: Always use .distinct() after filtering by available teams as it may return duplicate instances.
+        """
         available_teams_lookup_args = []
         if not self.request.user.role == LegacyAccessControlRole.ADMIN:
             available_teams_lookup_args = [
