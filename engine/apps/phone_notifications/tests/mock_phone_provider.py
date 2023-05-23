@@ -1,4 +1,4 @@
-from apps.phone_notifications.phone_provider import PhoneProvider
+from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 
 
 class MockPhoneProvider(PhoneProvider):
@@ -26,3 +26,13 @@ class MockPhoneProvider(PhoneProvider):
 
     def finish_verification(self, number: str, code: str):
         pass
+
+    @property
+    def flags(self) -> ProviderFlags:
+        return ProviderFlags(
+            configured=True,
+            test_sms=True,
+            test_call=True,
+            verification_call=True,
+            verification_sms=True,
+        )
