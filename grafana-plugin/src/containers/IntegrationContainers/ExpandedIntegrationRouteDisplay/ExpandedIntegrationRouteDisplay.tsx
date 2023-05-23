@@ -1,30 +1,30 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, ConfirmModal } from '@grafana/ui';
+import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, ConfirmModal, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
+import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
-import GSelect from 'containers/GSelect/GSelect';
+import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
-
-import styles from './ExpandedIntegrationRouteDisplay.module.scss';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from './Integration2.config';
-import IntegrationHelper from './Integration2.helper';
-import IntegrationBlock from './IntegrationBlock';
-import IntegrationBlockItem from './IntegrationBlockItem';
 
 const cx = cn.bind(styles);
 
@@ -45,8 +45,19 @@ interface ExpandedIntegrationRouteDisplayState {
 
 const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayProps> = observer(
   ({ alertReceiveChannelId, channelFilterId, templates, routeIndex, openEditTemplateModal, onEditRegexpTemplate }) => {
-    const { escalationPolicyStore, escalationChainStore, alertReceiveChannelStore, grafanaTeamStore } = useStore();
-    const hasChatOpsConnectors = false;
+    const store = useStore();
+    const {
+      telegramChannelStore,
+      teamStore,
+      escalationPolicyStore,
+      escalationChainStore,
+      alertReceiveChannelStore,
+      grafanaTeamStore,
+    } = store;
+
+    const isSlackInstalled = Boolean(teamStore.currentTeam?.slack_team_identity);
+    const isTelegramInstalled =
+      store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -60,6 +71,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       }
     );
 
+    useEffect(() => {
+      escalationChainStore.updateItems();
+    }, []);
+
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
     const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
     if (!channelFilter) {
@@ -71,6 +86,9 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       escalationChainRedirectObj.id = channelFilter.escalation_chain;
     }
 
+    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
+    const isDefault = IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
+
     return (
       <>
         <IntegrationBlock
@@ -81,10 +99,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               <HorizontalGroup spacing={'md'}>
                 <TooltipBadge
                   borderType="success"
-                  text={IntegrationHelper.getRouteConditionWording(
-                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
-                    routeIndex
-                  )}
+                  text={IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
                   tooltipTitle={undefined}
                   tooltipContent={undefined}
                 />
@@ -101,31 +116,30 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           }
           content={
             <VerticalGroup spacing="xs">
-              <IntegrationBlockItem>
-                <HorizontalGroup spacing="xs">
-                  <InlineLabel width={20}>Routing Template</InlineLabel>
-                  <div className={cx('input', 'input--short')}>
-                    <MonacoEditor
-                      value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
-                      disabled={true}
-                      height={MONACO_INPUT_HEIGHT_SMALL}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
+              {/* Show Routing Template only for If/Else Routes, not for Default */}
+              {!isDefault && (
+                <IntegrationBlockItem>
+                  <HorizontalGroup spacing="xs">
+                    <InlineLabel width={20}>Routing Template</InlineLabel>
+                    <div className={cx('input', 'input--short')}>
+                      <MonacoEditor
+                        value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
+                        disabled={true}
+                        height={MONACO_INPUT_HEIGHT_SMALL}
+                        data={templates}
+                        showLineNumbers={false}
+                        monacoOptions={MONACO_OPTIONS}
+                      />
+                    </div>
+                    <Button
+                      variant={'secondary'}
+                      icon="edit"
+                      size={'md'}
+                      onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                     />
-                  </div>
-                  <Button
-                    variant={'secondary'}
-                    icon="edit"
-                    size={'md'}
-                    onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
-                  />
-                  <Button variant="secondary" size="md" onClick={undefined}>
-                    <Text type="link">Help</Text>
-                    <Icon name="angle-down" size="sm" />
-                  </Button>
-                </HorizontalGroup>
-              </IntegrationBlockItem>
+                  </HorizontalGroup>
+                </IntegrationBlockItem>
+              )}
 
               {routeIndex !== channelFiltersTotal.length - 1 && (
                 <IntegrationBlockItem>
@@ -138,11 +152,11 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 </IntegrationBlockItem>
               )}
 
-              {hasChatOpsConnectors && (
+              {(isSlackInstalled || isTelegramInstalled) && (
                 <IntegrationBlockItem>
                   <VerticalGroup spacing="md">
                     <Text type="primary">Publish to ChatOps</Text>
-                    <ChatOpsConnectors channelFilterId={channelFilterId} />
+                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
                   </VerticalGroup>
                 </IntegrationBlockItem>
               )}
@@ -152,18 +166,21 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   <HorizontalGroup spacing={'xs'}>
                     <InlineLabel width={20}>Escalation chain</InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                      <GSelect
-                        showSearch
-                        modelName="escalationChainStore"
-                        isLoading={isRefreshingEscalationChains}
-                        displayField="name"
-                        placeholder="Select Escalation Chain"
-                        className={cx('select', 'control')}
-                        value={channelFilter.escalation_chain}
-                        onChange={onEscalationChainChange}
-                        showWarningIfEmptyValue={true}
+                      <Select
+                        isSearchable
                         width={'auto'}
-                        icon={'list-ul'}
+                        menuShouldPortal
+                        className={cx('select', 'control')}
+                        placeholder="Select escalation chain"
+                        isLoading={isRefreshingEscalationChains}
+                        onChange={onEscalationChainChange}
+                        options={Object.keys(escalationChainStore.items).map(
+                          (eschalationChainId: EscalationChain['id']) => ({
+                            value: escalationChainStore.items[eschalationChainId].id,
+                            label: escalationChainStore.items[eschalationChainId].name,
+                          })
+                        )}
+                        value={channelFilter.escalation_chain}
                         getOptionLabel={(item: SelectableValue) => {
                           return (
                             <>
@@ -175,18 +192,20 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                             </>
                           );
                         }}
-                      />
+                      ></Select>
                     </WithPermissionControlTooltip>
 
-                    <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    <Tooltip content={'Reload escalation chains list'} placement={'top'}>
+                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    </Tooltip>
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
-                      <Button
-                        variant={'secondary'}
-                        tooltip={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add escalation chain'}
-                        icon={'external-link-alt'}
-                        size={'md'}
-                      />
+                      <Tooltip
+                        placement={'top'}
+                        content={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add an escalation chain'}
+                      >
+                        <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
+                      </Tooltip>
                     </PluginLink>
 
                     {channelFilter.escalation_chain && (
@@ -230,7 +249,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
     }
 
-    function onEscalationChainChange(value: string) {
+    function onEscalationChainChange({ value }) {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           escalation_chain: value,
