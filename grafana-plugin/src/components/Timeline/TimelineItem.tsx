@@ -33,7 +33,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
           {number}
         </div>
       )}
-      <div className={cx('content', contentClassName)}>{children}</div>
+      <div className={cx('content', contentClassName, { 'content--noMargin': isDisabled })}>{children}</div>
     </li>
   );
 };
