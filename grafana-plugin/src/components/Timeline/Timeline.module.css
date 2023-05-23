@@ -27,3 +27,6 @@
   word-break: break-word;
   flex-grow: 1;
 }
+.content--noMargin {
+  margin: 0;
+}

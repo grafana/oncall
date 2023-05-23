@@ -12,10 +12,11 @@ import { getVar } from 'utils/DOM';
 
 interface ChatOpsConnectorsProps {
   channelFilterId: ChannelFilter['id'];
+  showLineNumber?: boolean;
 }
 
 export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
-  const { channelFilterId } = props;
+  const { channelFilterId, showLineNumber } = props;
 
   const store = useStore();
   const { telegramChannelStore } = store;
@@ -29,7 +30,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   }
 
   return (
-    <Timeline.Item number={0} backgroundColor={getVar('--tag-secondary')}>
+    <Timeline.Item number={0} backgroundColor={getVar('--tag-secondary')} isDisabled={!showLineNumber}>
       <VerticalGroup>
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}

@@ -152,7 +152,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 <IntegrationBlockItem>
                   <VerticalGroup spacing="md">
                     <Text type="primary">Publish to ChatOps</Text>
-                    <ChatOpsConnectors channelFilterId={channelFilterId} />
+                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
                   </VerticalGroup>
                 </IntegrationBlockItem>
               )}
