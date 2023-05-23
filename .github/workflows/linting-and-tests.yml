@@ -340,9 +340,12 @@ jobs:
       - name: Load engine Docker image on the nodes of the cluster
         run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
 
-      # spin up 3 engine, 3 celery, and 3 grafana pods, this will allow us to parralelize the integration tests,
+      # spin up 3 engine and 3 celery pods, this will allow us to parralelize the integration tests,
       # and complete them much faster by using multiple test processes
       # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized integration test process
+      # NOTE: it appears that using > 1 grafana container w/ SQLite as the database sometimes leads to failed
+      # grafana database migrations (presumably because multiple containers are trying to write to the same
+      # mounted sqlite file @ the same time)
       #
       # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
       # OnCall plugin rather than the latest published version
@@ -361,7 +364,7 @@ jobs:
             --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
             --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
             --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
-            --set grafana.replicas=3 \
+            --set grafana.replicas=1 \
             --set grafana.image.tag=${{ matrix.grafana-image-tag }} \
             --set grafana.env.GF_SECURITY_ADMIN_USER=oncall \
             --set grafana.env.GF_SECURITY_ADMIN_PASSWORD=oncall \
