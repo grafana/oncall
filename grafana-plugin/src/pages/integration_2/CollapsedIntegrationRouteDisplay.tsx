@@ -50,7 +50,10 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex
                   )}
-                  tooltipTitle={undefined}
+                  tooltipTitle={IntegrationHelper.getRouteConditionTooltipWording(
+                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+                    routeIndex
+                  )}
                   tooltipContent={undefined}
                 />
                 {channelFilter.filtering_term && (
@@ -85,7 +88,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
 
                 <HorizontalGroup>
                   <Icon name="list-ui-alt" />
-                  <Text type="secondary">Escalate to</Text>
+                  <Text type="secondary">Trigger escalation chain:</Text>
 
                   {escalationChain?.name && (
                     <PluginLink
@@ -104,9 +107,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                       <div className={cx('icon-exclamation')}>
                         <Icon name="exclamation-triangle" />
                       </div>
-                      <Text type="primary" strong>
-                        No Escalation chain
-                      </Text>
+                      <Text type="primary">No Escalation chain selected</Text>
                     </HorizontalGroup>
                   )}
                 </HorizontalGroup>

@@ -97,7 +97,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 <TooltipBadge
                   borderType="success"
                   text={IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
-                  tooltipTitle={undefined}
+                  tooltipTitle={IntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
                   tooltipContent={undefined}
                 />
               </HorizontalGroup>
@@ -113,6 +113,16 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           }
           content={
             <VerticalGroup spacing="xs">
+              {routeIndex !== channelFiltersTotal.length - 1 && (
+                <IntegrationBlockItem>
+                  <VerticalGroup>
+                    <Text type="secondary">
+                      If the Routing Template is True, group the alerts using the Grouping Template, publish them to
+                      messengers, and trigger the escalation chain.
+                    </Text>
+                  </VerticalGroup>
+                </IntegrationBlockItem>
+              )}
               {/* Show Routing Template only for If/Else Routes, not for Default */}
               {!isDefault && (
                 <IntegrationBlockItem>
@@ -135,17 +145,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                     />
                   </HorizontalGroup>
-                </IntegrationBlockItem>
-              )}
-
-              {routeIndex !== channelFiltersTotal.length - 1 && (
-                <IntegrationBlockItem>
-                  <VerticalGroup>
-                    <Text type="secondary">
-                      If the Routing template evaluates to True, the alert will be grouped with the Grouping template
-                      and proceed to the following steps
-                    </Text>
-                  </VerticalGroup>
                 </IntegrationBlockItem>
               )}
 
@@ -189,7 +188,13 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       />
                     </WithPermissionControlTooltip>
 
-                    <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    <Button
+                      variant={'secondary'}
+                      tooltip={'Refresh Escalation Chains'}
+                      icon={'sync'}
+                      size={'md'}
+                      onClick={onEscalationChainsRefresh}
+                    />
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
                       <Button

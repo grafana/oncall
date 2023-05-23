@@ -100,6 +100,10 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
         <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
+              <Text type="secondary">
+                Integration receives alerts on an unique API URL, interprets them using set of templates tailored for
+                monitoring system and starts escalations.
+              </Text>
               <div className={cx('search-integration')}>
                 <Input
                   autoFocus
@@ -129,7 +133,9 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
                               <Text strong data-testid="integration-display-name">
                                 {alertReceiveChannelChoice.display_name}
                               </Text>
-                              {alertReceiveChannelChoice.featured && <Tag name="Quick connect" colorIndex={5} />}
+                              {alertReceiveChannelChoice.featured && alertReceiveChannelChoice.featured_tag_name && (
+                                <Tag name={alertReceiveChannelChoice.featured_tag_name} colorIndex={5} />
+                              )}
                             </HorizontalGroup>
                             <Text type="secondary" size="small">
                               {alertReceiveChannelChoice.short_description}
