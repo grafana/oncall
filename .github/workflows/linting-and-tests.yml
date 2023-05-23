@@ -265,8 +265,7 @@ jobs:
     # default "ubuntu-latest" runners only provide 2 CPU cores + 7GB of RAM. this seems to lead to HTTP 504s from
     # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
     # this will allow us to run more backend containers and parralelize the tests)
-    runs-on:
-      group: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-8-cores
     name: "End to end tests - Grafana: ${{ matrix.grafana-image-tag }}"
     strategy:
       matrix:
