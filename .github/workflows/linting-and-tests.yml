@@ -406,6 +406,7 @@ jobs:
       # setup tasks (ex. install playwright + its dependencies)
       - name: Wait until k8s resources are ready
         run: |
+          kubectl rollout status deployment/helm-testing-grafana --timeout=300s
           kubectl rollout status deployment/helm-testing-oncall-engine --timeout=300s
           kubectl rollout status deployment/helm-testing-oncall-celery --timeout=300s
 
