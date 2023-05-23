@@ -30,7 +30,7 @@ class TwilioClient:
     def default_twilio_number(self):
         return live_settings.TWILIO_NUMBER
 
-    def twilio_sender(self, sender_type, to, accessor):
+    def _twilio_sender(self, sender_type, to):
         _, _, country_code = self.parse_number(to)
         TwilioSender = apps.get_model("twilioapp", "TwilioSender")
         sender = (
@@ -39,24 +39,23 @@ class TwilioClient:
             .order_by("-country_code")
             .first()
         )
+        client = sender.account.get_twilio_api_client() if sender else self.default_twilio_api_client
+        return client, sender
 
-        client = self.default_twilio_api_client
-        if sender:
-            client = sender.account.get_twilio_api_client()
+    def _sms_sender(self, to):
+        client, sender = self._twilio_sender(TwilioSmsSender, to)
+        return client, sender.sender if sender else self.default_twilio_number
 
-        return client, accessor(sender)
+    def _phone_sender(self, to):
+        client, sender = self._twilio_sender(TwilioPhoneCallSender, to)
+        return client, sender.number if sender else self.default_twilio_number
 
-    def sms_accessor(self, sender):
-        return sender.sender if sender else self.default_twilio_number
-
-    def phone_accessor(self, sender):
-        return sender.number if sender else self.default_twilio_number
-
-    def verify_accessor(self, sender):
-        return sender.verify_service_sid if sender else live_settings.TWILIO_VERIFY_SERVICE_SID
+    def _verify_sender(self, to):
+        client, sender = self._twilio_sender(TwilioVerificationSender, to)
+        return client, sender.verify_service_sid if sender else live_settings.TWILIO_VERIFY_SERVICE_SID
 
     def send_message(self, body, to):
-        client, from_ = self.twilio_sender(TwilioSmsSender, to, self.sms_accessor)
+        client, from_ = self._sms_sender(to)
         status_callback = create_engine_url(reverse("twilioapp:sms_status_events"))
         try:
             return client.messages.create(body=body, to=to, from_=from_, status_callback=status_callback)
@@ -85,7 +84,7 @@ class TwilioClient:
 
     def verification_start_via_twilio(self, user, phone_number, via):
         # https://www.twilio.com/docs/verify/api/verification?code-sample=code-start-a-verification-with-sms&code-language=Python&code-sdk-version=6.x
-        client, verify_service_sid = self.twilio_sender(TwilioVerificationSender, phone_number, self.verify_accessor)
+        client, verify_service_sid = self._verify_sender(phone_number)
         verification = None
         try:
             verification = client.verify.services(verify_service_sid).verifications.create(to=phone_number, channel=via)
@@ -117,7 +116,7 @@ class TwilioClient:
 
     def verification_check_via_twilio(self, user, phone_number, code):
         # https://www.twilio.com/docs/verify/api/verification-check?code-sample=code-check-a-verification-with-a-phone-number&code-language=Python&code-sdk-version=6.x
-        client, verify_service_sid = self.twilio_sender(TwilioVerificationSender, phone_number, self.verify_accessor)
+        client, verify_service_sid = self._verify_sender(phone_number)
         succeed = False
         try:
             verification_check = client.verify.services(verify_service_sid).verification_checks.create(
@@ -158,7 +157,7 @@ class TwilioClient:
         self.make_call(message=message, to=to)
 
     def make_call(self, message, to, grafana_cloud=False):
-        client, number = self.twilio_sender(TwilioPhoneCallSender, to, self.phone_accessor)
+        client, number = self._phone_sender(to)
         try:
             start_message = message.replace('"', "")
 

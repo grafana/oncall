@@ -19,7 +19,7 @@ class TwilioAccount(models.Model):
 
 class TwilioSender(PolymorphicModel):
     name = models.CharField(max_length=100, null=False, default="Default")
-    country_code_name = models.CharField(max_length=100, null=False, default="Default")
+    # Note: country_code does not have + prefix here
     country_code = models.CharField(max_length=16, null=True, default=None)
     account = models.ForeignKey("twilioapp.TwilioAccount", on_delete=models.CASCADE, related_name="twilio_sender")
 
