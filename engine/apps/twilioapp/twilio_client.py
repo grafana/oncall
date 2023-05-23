@@ -33,14 +33,17 @@ class TwilioClient:
     def _twilio_sender(self, sender_type, to):
         _, _, country_code = self.parse_number(to)
         TwilioSender = apps.get_model("twilioapp", "TwilioSender")
-        sender = (
-            TwilioSender.objects.instance_of(sender_type)
-            .filter(Q(country_code=country_code) | Q(country_code__isnull=True))
-            .order_by("-country_code")
-            .first()
+        senders = list(
+            TwilioSender.objects.instance_of(sender_type).filter(
+                Q(country_code=country_code) | Q(country_code__isnull=True)
+            )
         )
-        client = sender.account.get_twilio_api_client() if sender else self.default_twilio_api_client
-        return client, sender
+        senders.sort(key=lambda x: (not x.country_code, x))
+
+        if senders:
+            return senders[0].account.get_twilio_api_client(), senders[0]
+
+        return self.default_twilio_api_client, None
 
     def _sms_sender(self, to):
         client, sender = self._twilio_sender(TwilioSmsSender, to)
