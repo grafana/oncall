@@ -5,6 +5,14 @@ import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
 
 /**
+ * The plugin configuration can sometimes be flaky on CI. In the rare case that it fails
+ * lets retry rather than failing the enter CI job
+ * Example failed CI job
+ * https://github.com/grafana/oncall/actions/runs/5061747867/jobs/9086615168#step:18:18
+ */
+const GLOBAL_SETUP_RETRY_ATTEMPTS = 3;
+
+/**
  * go to config page and wait for plugin icon to be available on left-hand navigation
  */
 export const configureOnCallPlugin = async (page: Page): Promise<void> => {
@@ -62,6 +70,13 @@ const globalSetup = async (config: FullConfig): Promise<void> => {
 
   // make sure the plugin has been configured
   const page = await browserContext.newPage();
+
+  for (let i = 0; i < GLOBAL_SETUP_RETRY_ATTEMPTS - 1; i++) {
+    try {
+      await configureOnCallPlugin(page);
+    } catch (e) {}
+  }
+  // One last time, throwing an error if it fails.
   await configureOnCallPlugin(page);
 
   await browserContext.close();
