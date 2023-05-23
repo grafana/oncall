@@ -1,7 +1,7 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, ConfirmModal } from '@grafana/ui';
+import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, ConfirmModal, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -13,7 +13,6 @@ import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
-import GSelect from 'containers/GSelect/GSelect';
 import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -25,6 +24,7 @@ import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
+import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 
 const cx = cn.bind(styles);
 
@@ -70,6 +70,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
         routeIdForDeletion: undefined,
       }
     );
+
+    useEffect(() => {
+      escalationChainStore.updateItems();
+    }, []);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
     const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
@@ -162,18 +166,21 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   <HorizontalGroup spacing={'xs'}>
                     <InlineLabel width={20}>Escalation chain</InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                      <GSelect
-                        showSearch
-                        modelName="escalationChainStore"
-                        isLoading={isRefreshingEscalationChains}
-                        displayField="name"
-                        placeholder="Select Escalation Chain"
-                        className={cx('select', 'control')}
-                        value={channelFilter.escalation_chain}
-                        onChange={onEscalationChainChange}
-                        showWarningIfEmptyValue={true}
+                      <Select
+                        isSearchable
                         width={'auto'}
-                        icon={'list-ul'}
+                        menuShouldPortal
+                        className={cx('select', 'control')}
+                        placeholder="Select escalation chain"
+                        isLoading={isRefreshingEscalationChains}
+                        onChange={onEscalationChainChange}
+                        options={Object.keys(escalationChainStore.items).map(
+                          (eschalationChainId: EscalationChain['id']) => ({
+                            value: escalationChainStore.items[eschalationChainId].id,
+                            label: escalationChainStore.items[eschalationChainId].name,
+                          })
+                        )}
+                        value={channelFilter.escalation_chain}
                         getOptionLabel={(item: SelectableValue) => {
                           return (
                             <>
@@ -185,18 +192,20 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                             </>
                           );
                         }}
-                      />
+                      ></Select>
                     </WithPermissionControlTooltip>
 
-                    <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    <Tooltip content={'Reload escalation chains list'} placement={'top'}>
+                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    </Tooltip>
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
-                      <Button
-                        variant={'secondary'}
-                        tooltip={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add escalation chain'}
-                        icon={'external-link-alt'}
-                        size={'md'}
-                      />
+                      <Tooltip
+                        placement={'top'}
+                        content={channelFilter.escalation_chain ? 'Edit escalation chain' : 'Add an escalation chain'}
+                      >
+                        <Button variant={'secondary'} icon={'external-link-alt'} size={'md'} />
+                      </Tooltip>
                     </PluginLink>
 
                     {channelFilter.escalation_chain && (
@@ -240,7 +249,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
     }
 
-    function onEscalationChainChange(value: string) {
+    function onEscalationChainChange({ value }) {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           escalation_chain: value,
