@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Allow passing Firebase credentials via environment variable by @vadimkerr ([#1969](https://github.com/grafana/oncall/pull/1969))
+
+### Changed
+
 - Update default Alertmanager templates by @iskhakov ([#1944](https://github.com/grafana/oncall/pull/1944))
 
 ### Fixed
