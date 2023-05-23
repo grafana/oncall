@@ -908,13 +908,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                     onClick={() => {
                       setConfirmModal({
                         isOpen: true,
-                        title: (
-                          <>
+                        title: 'Delete Integration?',
+                        body: (
+                          <Text type="primary">
                             Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
-                            integration?
-                          </>
+                            integration?{' '}
+                          </Text>
                         ),
-                        body: <>This action cannot be undone.</>,
                         onConfirm: deleteIntegration,
                         dismissText: 'Cancel',
                         confirmText: 'Delete',
