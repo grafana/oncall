@@ -34,9 +34,11 @@ class MetricsCacheManager:
     def update_integration_states_diff(metrics_dict, integration_id, previous_state=None, new_state=None):
         metrics_dict.setdefault(integration_id, MetricsCacheManager.get_default_states_diff_dict())
         if previous_state:
-            metrics_dict[integration_id]["previous_states"][previous_state] += 1
+            state_value = previous_state.value
+            metrics_dict[integration_id]["previous_states"][state_value] += 1
         if new_state:
-            metrics_dict[integration_id]["new_states"][new_state] += 1
+            state_value = new_state.value
+            metrics_dict[integration_id]["new_states"][state_value] += 1
         return metrics_dict
 
     @staticmethod
@@ -73,7 +75,7 @@ class MetricsCacheManager:
     ):
         """Call methods to update state and response time metrics cache for one alert group."""
 
-        if response_time and old_state == AlertGroupState.FIRING.value and started_at > get_response_time_period():
+        if response_time and old_state == AlertGroupState.FIRING and started_at > get_response_time_period():
             response_time_seconds = int(response_time.total_seconds())
             MetricsCacheManager.metrics_update_response_time_cache_for_alert_group(
                 integration_id, organization_id, response_time_seconds

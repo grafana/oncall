@@ -522,7 +522,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def _update_metrics(self, organization_id, previous_state, state):
         """Update metrics cache for response time and state as needed."""
         updated_response_time = self.response_time
-        if previous_state != AlertGroupState.FIRING.value or self.restarted_at:
+        if previous_state != AlertGroupState.FIRING or self.restarted_at:
             # only consider response time from the first action
             updated_response_time = None
         MetricsCacheManager.metrics_update_cache_for_alert_group(
@@ -1226,7 +1226,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group._update_metrics(
                 organization_id=user.organization_id,
                 previous_state=previous_state,
-                state=AlertGroupState.ACKNOWLEDGED.value,
+                state=AlertGroupState.ACKNOWLEDGED,
             )
 
             if alert_group.is_root_alert_group:
@@ -1307,7 +1307,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group._update_metrics(
                 organization_id=user.organization_id,
                 previous_state=previous_state,
-                state=AlertGroupState.RESOLVED.value,
+                state=AlertGroupState.RESOLVED,
             )
             log_record = alert_group.log_records.create(type=AlertGroupLogRecord.TYPE_RESOLVED, author=user)
             send_alert_group_signal.apply_async((log_record.pk,))
@@ -1369,7 +1369,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group._update_metrics(
                 organization_id=user.organization_id,
                 previous_state=alert_group.state,
-                state=AlertGroupState.FIRING.value,
+                state=AlertGroupState.FIRING,
             )
             log_record = alert_group.log_records.create(
                 type=AlertGroupLogRecord.TYPE_UN_ACK,
@@ -1412,7 +1412,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group._update_metrics(
                 organization_id=user.organization_id,
                 previous_state=alert_group.state,
-                state=AlertGroupState.FIRING.value,
+                state=AlertGroupState.FIRING,
             )
             log_record = alert_group.log_records.create(
                 type=AlertGroupLogRecord.TYPE_UN_RESOLVED,
@@ -1455,7 +1455,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group._update_metrics(
                 organization_id=user.organization_id,
                 previous_state=alert_group.state,
-                state=AlertGroupState.FIRING.value,
+                state=AlertGroupState.FIRING,
             )
             log_record = alert_group.log_records.create(
                 type=AlertGroupLogRecord.TYPE_UN_SILENCE, author=user, reason="Bulk action restart"
@@ -1586,7 +1586,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             alert_group._update_metrics(
                 organization_id=user.organization_id,
                 previous_state=previous_state,
-                state=AlertGroupState.SILENCED.value,
+                state=AlertGroupState.SILENCED,
             )
             log_record = alert_group.log_records.create(
                 type=AlertGroupLogRecord.TYPE_SILENCE,
@@ -1815,13 +1815,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def state(self):
         if self.resolved:
-            return AlertGroupState.RESOLVED.value
+            return AlertGroupState.RESOLVED
         elif self.acknowledged:
-            return AlertGroupState.ACKNOWLEDGED.value
+            return AlertGroupState.ACKNOWLEDGED
         elif self.silenced:
-            return AlertGroupState.SILENCED.value
+            return AlertGroupState.SILENCED
         else:
-            return AlertGroupState.FIRING.value
+            return AlertGroupState.FIRING
 
     @property
     def notify_in_slack_enabled(self):
@@ -1876,7 +1876,7 @@ def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs)
     if created and not instance.is_maintenance_incident:
         # Update alert group state and response time metrics cache
         instance._update_metrics(
-            organization_id=instance.channel.organization_id, previous_state=None, state=AlertGroupState.FIRING.value
+            organization_id=instance.channel.organization_id, previous_state=None, state=AlertGroupState.FIRING
         )
 
 

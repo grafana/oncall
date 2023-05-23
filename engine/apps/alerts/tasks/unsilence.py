@@ -36,7 +36,9 @@ def unsilence_task(alert_group_pk):
             alert_group.un_silence()
             # update metrics
             alert_group._update_metrics(
-                organization_id=alert_group.channel.organization_id, previous_state=initial_state
+                organization_id=alert_group.channel.organization_id,
+                previous_state=initial_state,
+                state=alert_group.state,
             )
             alert_group.start_escalation_if_needed()
             un_silence_log_record = AlertGroupLogRecord(
