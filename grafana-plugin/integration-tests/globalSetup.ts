@@ -70,10 +70,12 @@ const globalSetup = async (config: FullConfig): Promise<void> => {
 };
 
 /**
- * Let's retry global setup, in the event that it fails due to a grafana or oncall-engine backend error.
+ * Let's retry global setup, in the event that it fails due to an oncall-engine/oncall-celery backend error.
+ * Sometimes the sync endpoint will randomly return HTTP 500.
  * See here for an example CI job which failed global setup
- * https://github.com/grafana/oncall/actions/runs/5062204546/jobs/9087429598#step:18:18
+ * https://github.com/grafana/oncall/actions/runs/5062712137/jobs/9088529416#step:19:2536
  *
+ * References on retrying playwright global setup
  * https://github.com/microsoft/playwright/discussions/11371
  */
 const globalSetupWithRetries = async (config: FullConfig): Promise<void> => {
