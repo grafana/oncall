@@ -432,7 +432,7 @@ jobs:
         uses: jupyterhub/action-k8s-namespace-report@v1
         if: failure()
         with:
-          important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery"
+          important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery deploy/helm-testing-grafana"
 
       - uses: actions/upload-artifact@v3
         if: failure()
