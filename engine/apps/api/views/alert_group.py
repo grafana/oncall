@@ -325,7 +325,7 @@ class AlertGroupView(
             organization_id=self.request.auth.organization.id
         )
         if not ignore_filtering_by_available_teams:
-            alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args).distinct()
+            alert_receive_channels_qs = alert_receive_channels_qs.filter(*self.available_teams_lookup_args)
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
 
