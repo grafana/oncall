@@ -700,6 +700,6 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 # Used in get_phone_provider function to dynamically load current provider.
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
-    "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+    # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
 }
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
