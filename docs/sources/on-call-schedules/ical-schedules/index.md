@@ -12,13 +12,16 @@ keywords:
 weight: 300
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Import on-call schedules
 
 Use your existing calendar app with iCal format to manage and customize on-call schedules — import rotations and shifts
 from your calendar app to Grafana OnCall for widely accessible scheduling. iCal imported schedules appear in Grafana
 OnCall as read-only schedules but can be leveraged similarly to a web-based schedule.
+
+> Unfortunately there is a known limitation with Google Calendar import and export.
+> Google may take up to 24h to import OnCall's calendar (OnCall -> Google) and sometimes our customers report delay in
+> exporting (Google Calendar -> OnCall). If actual calendar is critical for you, we suggest checking
+> [web-based scheduling]({{< relref "web-schedule" >}}).
 
 ## Before you begin
 

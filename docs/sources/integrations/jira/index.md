@@ -1,6 +1,6 @@
 ---
 aliases:
-  - add-jira/
+  - jira/
   - /docs/oncall/latest/integrations/available-integrations/configure-jira/
 canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-jira/
 keywords:
@@ -9,7 +9,7 @@ keywords:
   - Notifications
   - on-call
   - Jira
-title: Jira integration for Grafana OnCall
+title: Jira
 weight: 500
 ---
 

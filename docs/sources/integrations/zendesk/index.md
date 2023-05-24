@@ -9,7 +9,7 @@ keywords:
   - Notifications
   - on-call
   - Zendesk
-title: Zendesk integration for Grafana OnCall
+title: Zendesk
 weight: 500
 ---
 

@@ -6,18 +6,12 @@ title: Escalation Chains and Routes
 weight: 600
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Escalation Chains and Routes
 
 Escalation chains and routes for Grafana OnCall
 
 Administrators can create escalation policies to automatically send alert group notifications to recipients.
 These policies define how, where, and when to send notifications.
-
-See the following topics for more information:
-
-{{< section >}}
 
 Escalation policies dictate how users and groups are notified when an alert notification is created. They can be very
 simple, or very complex. You can define as many escalation configurations for an integration as you need, and you can
@@ -38,12 +32,9 @@ integrate with other services, such as JIRA, and do a number of other automated 
 ## Routes
 
 An escalation workflow can employ **routes** that administrators can configure to filter alerts by regular expressions
+(outdated) or Jinja2 templates
 in their payloads. Notifications for these alerts can be sent to individuals, or they can make use of a new
 or existing escalation chain.
-
-# Configure and manage Routes
-
-Set up escalation chains and routes to configure escalation behavior for alert group notifications.
 
 ## Configure escalation chains
 
@@ -86,14 +77,10 @@ specify using a Jinja template that matches content in the payload body of the f
 specify where to send the notification for each route.
 
 For example, you can send notifications for alerts with `{{ payload.severity == "critical" and payload.service ==
-"database" }}` in the payload to an escalation chain called `Bob_OnCall`. You can create a different route for alerts
+"database" }}` [(Check Jinja2 reference)]({{< relref "jinja2-templating" >}}) in the payload to an escalation chain
+called `Bob_OnCall`. You can create a different route for alerts
 with the payload `{{ "synthetic-monitoring-dev-" in payload.namespace }}` and select a escalation chain called
 `NotifySecurity`.
-
-Alternatively you can use regular expressions, e.g. `\"severity\": \"critical\"` or `\"namespace\" *:
-*\"synthetic-monitoring-dev-.*\"`
-
-You can set up escalation steps for each route in a chain.
 
 > **NOTE:** When you modify an escalation chain or a route, it will modify that escalation chain across
 > all integrations that use it.

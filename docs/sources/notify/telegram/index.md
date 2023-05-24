@@ -15,8 +15,6 @@ title: Telegram
 weight: 300
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Telegram integration for Grafana OnCall
 
 You can manage alerts either directly in your personal Telegram DMs or in a dedicated team channel.

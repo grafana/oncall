@@ -13,19 +13,6 @@ keywords:
 weight: 700
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
-# On-call schedules
-
-Grafana OnCall makes it easier to establish consistent and thoughtful on-call coverage while ensuring that alerts don’t
-go unnoticed. Use Grafana OnCall to:
-
-- Define coverage needs and avoid gaps in coverage
-- Automate alert escalation
-- Configure on-call shift notifications
-
-This section provides conceptual information about Grafana OnCall schedule options.
-
 ## Before you begin
 
 - Users with Admin or Editor roles can create, edit and delete schedules.
@@ -33,22 +20,6 @@ This section provides conceptual information about Grafana OnCall schedule optio
 
 For more information about permissions, refer to
 [Manage users and teams for Grafana OnCall]({{< relref "../../../configure-user-settings" >}})
-
-## About on-call schedules
-
-An on-call schedule consist of one or more rotations that contain on-call shifts. A schedule must be referenced in the
-corresponding escalation chain for alert notifications to be sent to an on-call user.
-
-A fully configured on-call schedule consists of three main components:
-
-- **Rotations**: A recurring schedule containing a set of on-call shifts that users rotate through.
-- **On-call shifts**: The period of time that an individual user is on-call for a particular rotation
-- **Escalation Chains**: Automated steps that determine who to notify of an alert group.
-
-## Types of on-call schedules
-
-On-call schedules look different for different organizations and even teams. Grafana OnCall offers three different
-options for managing your on-call schedules, so you can choose the option that best fits your needs.
 
 ### Web-based schedule
 

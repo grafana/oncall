@@ -15,14 +15,16 @@ title: Notify people
 weight: 800
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Notify people
 
 Grafana OnCall directly supports the export of alert notifications to some popular messaging applications like Slack and
-Telegram. You can use outgoing webhooks to applications that aren't directly supported. For information on configuring
-outgoing webhooks, see [Send alert group notifications by webhook]({{< relref "../../alert-behavior/outgoing-webhooks/" >}}).
+Telegram. You can use [outgoing webhooks]({{< relref "outgoing-webhooks" >}}) for applications that aren't directly
+supported.
 
 To configure supported messaging apps, see the following topics:
 
 {{< section >}}
+
+Users define how do they want to be notified in:
+
+OnCall -> Users -> View My Profile -> User Info -> "Default notificaiton" or "Important notification" steps.

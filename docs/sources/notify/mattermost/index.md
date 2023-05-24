@@ -15,8 +15,9 @@ title: Mattermost
 weight: 100
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Mattermost
 
-TODO
+Mattermost support is not implemented yet.
+
+Please join [GitHub Issue](https://github.com/grafana/oncall/issues/96) or
+check [PR](https://github.com/grafana/oncall/pull/606).

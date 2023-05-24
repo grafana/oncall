@@ -16,8 +16,6 @@ title: Microsoft Teams
 weight: 500
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Microsoft Teams integration for Grafana OnCall
 
 The Microsoft Teams integration for Grafana OnCall embeds your MS Teams channels directly into your incident response

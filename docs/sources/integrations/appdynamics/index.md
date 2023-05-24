@@ -9,7 +9,7 @@ keywords:
   - Notifications
   - on-call
   - AppDynamics
-title: AppDynamics integration for Grafana OnCall
+title: AppDynamics
 weight: 500
 ---
 

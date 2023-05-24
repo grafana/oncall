@@ -10,11 +10,11 @@ keywords:
   - amixr
   - oncall
   - integrations
-title: Integration with alert sources
+title: Integrations
 weight: 500
 ---
 
-# Integration with alert sources
+# Integrations
 
 "Integration" is a main entry point for alerts being consumed by OnCall. Rendering, grouping and routing are configured
 within integrations.

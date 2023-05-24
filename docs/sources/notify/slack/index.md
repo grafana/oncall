@@ -15,8 +15,6 @@ title: Slack
 weight: 100
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Slack integration for Grafana OnCall
 
 The Slack integration for Grafana OnCall incorporates your Slack workspace directly into your incident response workflow
