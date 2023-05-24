@@ -25,6 +25,8 @@ class TwilioCallStatuses:
 
 
 class PhoneCallRecord(models.Model):
+    class Meta:
+        db_table = "twilioapp_phonecall"
 
     exceeded_limit = models.BooleanField(null=True, default=None)
     represents_alert = models.ForeignKey(

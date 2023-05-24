@@ -10,20 +10,13 @@ class Migration(migrations.Migration):
         ('twilioapp', '0002_auto_20220604_1008'),
     ]
 
-    database_operations = [
-        migrations.AlterModelTable('PhoneCall', 'phone_notifications_phonecallrecord'),
-        migrations.AlterModelTable('SMSMessage', 'phone_notifications_smsrecord')
-    ]
-
     state_operations = [
         migrations.DeleteModel('PhoneCall'),
         migrations.DeleteModel('SMSMessage')
     ]
 
     operations = [
-        linter.IgnoreMigration(),
         migrations.SeparateDatabaseAndState(
-            database_operations=database_operations,
             state_operations=state_operations
         )
     ]

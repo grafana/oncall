@@ -34,6 +34,8 @@ class TwilioSMSstatuses:
 
 
 class SMSRecord(models.Model):
+    class Meta:
+        db_table = "twilioapp_smsmessage"
 
     exceeded_limit = models.BooleanField(null=True, default=None)
     represents_alert = models.ForeignKey(
