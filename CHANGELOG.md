@@ -32,7 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix SQLite permission issue by @vadimkerr ([#1984](https://github.com/grafana/oncall/pull/1984))
-- Remove user defined time period from "you're going oncall" mobile push ([2001](https://github.com/grafana/oncall/pull/2001))
 
 ## v1.2.26 (2023-05-18)
 
