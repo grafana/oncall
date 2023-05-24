@@ -1,4 +1,20 @@
-# Grafana OnCall insight logs
+---
+aliases:
+  - /docs/oncall/latest/integrations/
+canonical: https://grafana.com/docs/oncall/latest/integrations/
+keywords:
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - amixr
+  - oncall
+  - integrations
+title: Insight Logs
+weight: 1400
+---
+
+# Insight Logs
 
 > **Note:** Grafana OnCall insight logs are available in Grafana Cloud only.
 We're in process of rolling Insight Logs to all customers,
