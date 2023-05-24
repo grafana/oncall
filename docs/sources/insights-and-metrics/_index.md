@@ -1,15 +1,11 @@
 ---
-aliases:
-  - /docs/oncall/latest/integrations/
-canonical: https://grafana.com/docs/oncall/latest/integrations/
+canonical: https://grafana.com/docs/oncall/latest/insights-and-metrics/
 keywords:
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - on-call
-  - amixr
-  - oncall
-  - integrations
+  - Audit Logs
+  - Insight Logs
+  - Metrics
+  - Loki
+  - Prometheus
 title: Insight Logs
 weight: 1400
 ---
