@@ -1,3 +1,5 @@
+import logging
+
 from django.apps import apps
 from django.urls import reverse
 from twilio.twiml.voice_response import Gather, VoiceResponse
@@ -5,6 +7,8 @@ from twilio.twiml.voice_response import Gather, VoiceResponse
 from apps.alerts.constants import ActionSource
 from apps.twilioapp.models import TwilioPhoneCall
 from common.api_helpers.utils import create_engine_url
+
+logger = logging.getLogger(__name__)
 
 
 def process_gather_data(call_sid: str, digit: str) -> VoiceResponse:
@@ -50,10 +54,12 @@ def process_digit(call_sid, digit):
 
     """
     if call_sid and digit:
+        logger.info(f"twilioapp.process_digit: processing sid={call_sid} digit={digit}")
         twilio_phone_call = TwilioPhoneCall.objects.filter(sid=call_sid).first()
         # Check twilio phone call and then oncall phone call for backward compatibility after PhoneCall migration.
         # Will be removed soon.
         if twilio_phone_call:
+            logger.info(f"twilioapp.process_digit: found legacy twilio_phone_call sid={call_sid} digit={digit}")
             phone_call_record = twilio_phone_call.phone_call_record
         else:
             PhoneCallRecord = apps.get_model("phone_notifications", "PhoneCallRecord")
@@ -62,6 +68,11 @@ def process_digit(call_sid, digit):
         if phone_call_record is not None:
             alert_group = phone_call_record.represents_alert_group
             user = phone_call_record.receiver
+
+            logger.info(
+                f"twilioapp.process_digit: processing using phone_call_record id={phone_call_record.id} "
+                f"twilio_phone_call sid={call_sid} digit={digit} alert_group_id={alert_group.id}"
+            )
 
             if digit == "1":
                 alert_group.acknowledge_by_user(user, action_source=ActionSource.PHONE)
