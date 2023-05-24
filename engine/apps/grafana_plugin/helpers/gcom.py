@@ -20,7 +20,7 @@ class GcomToken:
         self.organization = organization
 
 
-def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
+def check_gcom_permission(token_string: str, context) -> GcomToken:
     """
     Verify that request from plugin is valid. Check it and synchronize the organization details
     with gcom every GCOM_TOKEN_CHECK_PERIOD.
@@ -87,7 +87,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
     return GcomToken(organization)
 
 
-def check_token(token_string: str, context: dict):
+def check_token(token_string: str, context: dict) -> GcomToken | PluginAuthToken:
     token_parts = token_string.split(":")
     if len(token_parts) > 1 and token_parts[0] == "gcom":
         return check_gcom_permission(token_parts[1], context)
