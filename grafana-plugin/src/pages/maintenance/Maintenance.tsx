@@ -29,6 +29,7 @@ interface MaintenancePageState {
   maintenanceData?: {
     type?: MaintenanceType;
     alert_receive_channel_id?: AlertReceiveChannel['id'];
+    disabled?: boolean;
   };
 }
 

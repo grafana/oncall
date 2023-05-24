@@ -39,6 +39,15 @@ function Debug(props) {
   );
 }
 
+function format_response_field(str) {
+  try {
+    const jsonValue = JSON.parse(str);
+    return JSON.stringify(jsonValue, null, 4);
+  } catch (e) {
+    return str;
+  }
+}
+
 const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => {
   const { id, onHide } = props;
 
@@ -63,31 +72,19 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
         <VerticalGroup>
           <Label>Webhook Name</Label>
           <SourceCode showClipboardIconOnly>{data.name}</SourceCode>
+          <Label>Webhook ID</Label>
+          <SourceCode showClipboardIconOnly>{data.id}</SourceCode>
           <Label>Trigger Type</Label>
           <SourceCode showClipboardIconOnly>{data.trigger_type_name}</SourceCode>
 
-          {data.last_run ? (
+          {data.last_response_log.timestamp ? (
             <VerticalGroup>
               <Label>Last Run Time</Label>
               <SourceCode showClipboardIconOnly>{data.last_response_log.timestamp}</SourceCode>
 
-              {data.last_response_log.request_trigger && (
-                <Debug
-                  title="Trigger Template"
-                  source={data.trigger_template}
-                  result={data.last_response_log.request_trigger}
-                ></Debug>
-              )}
               {data.last_response_log.url && (
                 <Debug title="URL" source={data.url} result={data.last_response_log.url}></Debug>
               )}
-              {data.last_response_log.request_headers && (
-                <Debug title="Headers" source={data.headers} result={data.last_response_log.request_headers}></Debug>
-              )}
-              {data.last_response_log.request_data && (
-                <Debug title="Data" source={data.data} result={data.last_response_log.request_data}></Debug>
-              )}
-
               {data.last_response_log.status_code && (
                 <VerticalGroup>
                   <Label>Response Code</Label>
@@ -98,10 +95,29 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
               {data.last_response_log.content && (
                 <VerticalGroup>
                   <Label>Response Body</Label>
-                  <SourceCode showClipboardIconOnly>
-                    {JSON.stringify(data.last_response_log.content, null, 4)}
-                  </SourceCode>
+                  <SourceCode showClipboardIconOnly>{format_response_field(data.last_response_log.content)}</SourceCode>
                 </VerticalGroup>
+              )}
+              {data.last_response_log.request_trigger && (
+                <Debug
+                  title="Trigger Template"
+                  source={data.trigger_template}
+                  result={data.last_response_log.request_trigger}
+                ></Debug>
+              )}
+              {data.last_response_log.request_headers && (
+                <Debug
+                  title="Request Headers"
+                  source={data.headers}
+                  result={data.last_response_log.request_headers}
+                ></Debug>
+              )}
+              {data.last_response_log.request_data && (
+                <Debug
+                  title="Request Data"
+                  source={data.data}
+                  result={format_response_field(data.last_response_log.request_data)}
+                ></Debug>
               )}
             </VerticalGroup>
           ) : (

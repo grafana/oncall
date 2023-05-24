@@ -15,6 +15,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import BUILT_IN_BACKENDS, NotificationChannelAPIOptions
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
@@ -23,7 +24,10 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

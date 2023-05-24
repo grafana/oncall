@@ -80,6 +80,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     templates = serializers.DictField(required=False)
     default_route = serializers.DictField(required=False)
     heartbeat = serializers.SerializerMethodField()
+    description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
 
     PREFETCH_RELATED = ["channel_filters"]
     SELECT_RELATED = ["organization", "integration_heartbeat"]
@@ -89,6 +90,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         fields = MaintainableObjectSerializerMixin.Meta.fields + [
             "id",
             "name",
+            "description_short",
             "team_id",
             "link",
             "type",

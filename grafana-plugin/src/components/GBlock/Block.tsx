@@ -29,13 +29,17 @@ const Block: FC<BlockProps> = (props) => {
 
   return (
     <div
-      className={cx('root', className, {
-        root_bordered: bordered,
-        root_shadowed: shadowed,
-        'root--fullWidth': fullWidth,
-        'root--withBackground': withBackground,
-        'root--hover': hover,
-      })}
+      className={cx(
+        'root',
+        {
+          root_bordered: bordered,
+          root_shadowed: shadowed,
+          'root--fullWidth': fullWidth,
+          'root--withBackGround': withBackground,
+          'root--hover': hover,
+        },
+        className
+      )}
       style={style}
       {...rest}
     >

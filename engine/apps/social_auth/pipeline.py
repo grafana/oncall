@@ -14,7 +14,7 @@ from common.constants.slack_auth import (
     SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR,
     SLACK_AUTH_WRONG_WORKSPACE_ERROR,
 )
-from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import check_slack_installation_possible, create_slack_connector
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     write_chatops_insight_log(
         author=user,
         event_name=ChatOpsEvent.USER_LINKED,
-        chatops_type=ChatOpsType.SLACK,
+        chatops_type=ChatOpsTypePlug.SLACK.value,
         linked_user=user.username,
         linked_user_id=user.public_primary_key,
     )

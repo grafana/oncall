@@ -73,7 +73,12 @@ def create(path: str, payload: dict) -> dict:
 
 
 def delete(path: str) -> None:
-    api_call("delete", path)
+    try:
+        api_call("delete", path)
+    except requests.exceptions.HTTPError as e:
+        # ignore 404s on delete so deleting resources manually while running the script doesn't break it
+        if e.response.status_code != 404:
+            raise
 
 
 def update(path: str, payload: dict) -> dict:

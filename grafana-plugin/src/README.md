@@ -13,4 +13,4 @@ with Brilliant Slack Integration
 ## Documentation
 
 - [On Github](http://github.com/grafana/oncall)
-- [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
+- [Grafana OnCall](https://grafana.com/docs/oncall/latest/)
