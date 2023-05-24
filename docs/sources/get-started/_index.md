@@ -148,7 +148,7 @@ To configure Slack for Grafana OnCall:
 6. Ensure users verify their Slack accounts in their user profile in Grafana OnCall.
 
 For further instruction on connecting to your Slack workspace, refer to
-[Slack integration for Grafana OnCall]({{< relref "/notify/slack/" >}})
+[Slack integration for Grafana OnCall]({{< relref "../notify/slack/" >}})
 
 ### Add your on-call schedule
 

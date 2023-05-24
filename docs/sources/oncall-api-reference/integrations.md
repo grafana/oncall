@@ -75,7 +75,7 @@ The above command returns JSON structured in the following way:
 
 Integrations are sources of alerts and alert groups for Grafana OnCall.
 For example, to learn how to integrate Grafana OnCall with Alertmanager see
-[Alertmanager]({{< relref "/integrations/alertmanager/" >}}).
+[Alertmanager]({{< relref "../integrations/alertmanager" >}}).
 
 **HTTP request**
 
