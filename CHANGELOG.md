@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
 
+### Fixed
+
+- Fix issue with sometimes cached final schedule not being refreshed after an update ([#2004](https://github.com/grafana/oncall/pull/2004))
+
 ## v1.2.28 (2023-05-24)
 
 ### Fixed
