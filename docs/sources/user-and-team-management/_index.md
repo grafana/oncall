@@ -3,10 +3,10 @@ title: User and team management
 aliases:
   - /docs/oncall/latest/user-and-team-management/
 keywords:
-  - Mobile App
   - oncall
+  - RBAC
+  - permissions
   - notification
-  - push notification
 weight: 1300
 ---
 
@@ -17,13 +17,13 @@ users, configure teams, and manage user permissions at [Grafana.com](https://gra
 
 ## User roles and permissions
 
->**Note:** User roles and teams cannot be managed directly from Grafana OnCall.
+> **Note:** User roles and teams cannot be managed directly from Grafana OnCall.
 
 User roles and permissions are assigned and managed at the Grafana organization or Cloud portal level. There are two ways to manage user roles and permissions
 for Grafana OnCall:
 
 1. Basic role authorization
-  
+
 By default, authorization within Grafana OnCall relies on the basic user roles configured at the organization level. All users are assigned a basic role by the
 organization administrator. There are three available roles: `Viewer`, `Editor`, and `Admin`.
 
