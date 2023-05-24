@@ -67,6 +67,6 @@ def test_twilio_respects_changed_credentials(settings):
     live_settings.TWILIO_AUTH_TOKEN = "new_twilio_auth_token"
     live_settings.TWILIO_NUMBER = "new_twilio_number"
 
-    assert twilio_client.default_twilio_api_client.username == "new_twilio_account_sid"
-    assert twilio_client.default_twilio_api_client.password == "new_twilio_auth_token"
-    assert twilio_client.default_twilio_number == "new_twilio_number"
+    assert twilio_client._default_twilio_api_client.username == "new_twilio_account_sid"
+    assert twilio_client._default_twilio_api_client.password == "new_twilio_auth_token"
+    assert twilio_client._default_twilio_number == "new_twilio_number"
