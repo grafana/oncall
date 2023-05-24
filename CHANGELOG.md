@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.2.28 (2023-05-24)
+
+### Changed
+
+- Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
+
+### Fixed
+
+- Improve plugin authentication by @vadimkerr ([#1995](https://github.com/grafana/oncall/pull/1995))
+- Fix MultipleObjectsReturned error on webhook endpoints by @vadimkerr ([#1996](https://github.com/grafana/oncall/pull/1996))
+
 ## v1.2.27 (2023-05-23)
 
 ### Added
@@ -18,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix SQLite permission issue by @vadimkerr ([#1984](https://github.com/grafana/oncall/pull/1984))
+- Remove user defined time period from "you're going oncall" mobile push ([2001](https://github.com/grafana/oncall/pull/2001))
 
 ## v1.2.26 (2023-05-18)
 
