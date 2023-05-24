@@ -10,6 +10,7 @@ from apps.alerts.paging import (
     check_user_availability,
     direct_paging,
 )
+from apps.slack.constants import PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.models import SlackChannel
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
@@ -47,7 +48,11 @@ USERS_DATA_KEY = "users"
 def add_or_update_item(payload, key, item_pk, policy):
     metadata = json.loads(payload["view"]["private_metadata"])
     metadata[key][item_pk] = policy
-    payload["view"]["private_metadata"] = json.dumps(metadata)
+    updated_metadata = json.dumps(metadata)
+    print(updated_metadata)
+    if len(updated_metadata) > PRIVATE_METADATA_MAX_LENGTH:
+        raise ValueError("Cannot add entry, maximum exceeded")
+    payload["view"]["private_metadata"] = updated_metadata
     return payload
 
 
@@ -213,8 +218,13 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
             )
         else:
             # user is available to be paged
-            updated_payload = add_or_update_item(payload, USERS_DATA_KEY, selected_user.pk, DEFAULT_POLICY)
-            view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
+            error_msg = None
+            try:
+                updated_payload = add_or_update_item(payload, USERS_DATA_KEY, selected_user.pk, DEFAULT_POLICY)
+            except ValueError:
+                updated_payload = payload
+                error_msg = "Cannot add user, maximum responders exceeded"
+            view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
             self._slack_client.api_call(
                 "views.update",
                 trigger_id=payload["trigger_id"],
@@ -233,12 +243,17 @@ class OnPagingItemActionChange(scenario_step.ScenarioStep):
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, policy=None):
         policy, key, user_pk = self._parse_action(payload)
 
+        error_msg = None
         if policy == REMOVE_ACTION:
             updated_payload = remove_item(payload, key, user_pk)
         else:
-            updated_payload = add_or_update_item(payload, key, user_pk, policy)
+            try:
+                updated_payload = add_or_update_item(payload, key, user_pk, policy)
+            except ValueError:
+                updated_payload = payload
+                error_msg = "Cannot update policy, maximum responders exceeded"
 
-        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
+        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
         self._slack_client.api_call(
             "views.update",
             trigger_id=payload["trigger_id"],
@@ -269,8 +284,15 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
         }
         # add selected user
         selected_user = _get_selected_user_from_payload(previous_view_payload, private_metadata["input_id_prefix"])
-        updated_payload = add_or_update_item(previous_view_payload, USERS_DATA_KEY, selected_user.pk, DEFAULT_POLICY)
-        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
+        error_msg = None
+        try:
+            updated_payload = add_or_update_item(
+                previous_view_payload, USERS_DATA_KEY, selected_user.pk, DEFAULT_POLICY
+            )
+        except ValueError:
+            updated_payload = payload
+            error_msg = "Cannot add user, maximum responders exceeded"
+        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
         self._slack_client.api_call(
             "views.update",
             trigger_id=payload["trigger_id"],
@@ -291,8 +313,13 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
         if selected_schedule is None:
             return
 
-        updated_payload = add_or_update_item(payload, SCHEDULES_DATA_KEY, selected_schedule.pk, DEFAULT_POLICY)
-        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
+        error_msg = None
+        try:
+            updated_payload = add_or_update_item(payload, SCHEDULES_DATA_KEY, selected_schedule.pk, DEFAULT_POLICY)
+        except ValueError:
+            updated_payload = payload
+            error_msg = "Cannot add schedule, maximum responders exceeded"
+        view = render_dialog(slack_user_identity, slack_team_identity, updated_payload, error_msg=error_msg)
         self._slack_client.api_call(
             "views.update",
             trigger_id=payload["trigger_id"],
@@ -306,7 +333,7 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
 DIVIDER_BLOCK = {"type": "divider"}
 
 
-def render_dialog(slack_user_identity, slack_team_identity, payload, initial=False):
+def render_dialog(slack_user_identity, slack_team_identity, payload, initial=False, error_msg=None):
     private_metadata = json.loads(payload["view"]["private_metadata"])
     submit_routing_uid = private_metadata.get("submit_routing_uid")
     if initial:
@@ -344,6 +371,18 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
 
     # blocks
     blocks = [organization_select, team_select, escalation_select, users_select, schedules_select]
+
+    if error_msg:
+        blocks += [
+            {
+                "type": "section",
+                "block_id": "error_message",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f":warning: {error_msg}",
+                },
+            }
+        ]
 
     # selected items
     selected_users = get_current_items(payload, USERS_DATA_KEY, selected_organization.users)
