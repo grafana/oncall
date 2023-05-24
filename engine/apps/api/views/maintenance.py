@@ -9,6 +9,7 @@ from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.mixins import TeamFilteringMixin
 from common.exceptions import MaintenanceCouldNotBeStartedError
 
 
@@ -26,8 +27,9 @@ class GetObjectMixin:
                     instance = AlertReceiveChannel.objects.get(
                         public_primary_key=pk,
                         organization=organization,
-                        team=request.user.current_team,
                     )
+                    if instance.team is not None and instance.team not in self.request.user.teams.all():
+                        raise BadRequest(detail={"alert_receive_channel_id": ["unknown id"]})
                 except AlertReceiveChannel.DoesNotExist:
                     raise BadRequest(detail={"alert_receive_channel_id": ["unknown id"]})
             else:
@@ -38,7 +40,9 @@ class GetObjectMixin:
         return instance
 
 
-class MaintenanceAPIView(APIView):
+class MaintenanceAPIView(APIView, TeamFilteringMixin):
+    """Deprecated. Maintenance management is now performed on integrations page (alert_receive_channel/ endpoint))"""
+
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -49,12 +53,15 @@ class MaintenanceAPIView(APIView):
 
     def get(self, request):
         organization = self.request.auth.organization
-        team = self.request.user.current_team
 
         response = []
-        integrations_under_maintenance = AlertReceiveChannel.objects.filter(
-            maintenance_mode__isnull=False, organization=organization, team=team
-        ).order_by("maintenance_started_at")
+        integrations_under_maintenance = (
+            AlertReceiveChannel.objects.filter(
+                maintenance_mode__isnull=False, organization=organization, *self.available_teams_lookup_args
+            )
+            .distinct()
+            .order_by("maintenance_started_at")
+        )
 
         if organization.maintenance_mode is not None:
             response.append(
@@ -101,6 +108,8 @@ class MaintenanceAPIView(APIView):
 
 
 class MaintenanceStartAPIView(GetObjectMixin, APIView):
+    """Deprecated. Maintenance management is now performed on integrations page (alert_receive_channel/ endpoint))"""
+
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
@@ -137,6 +146,8 @@ class MaintenanceStartAPIView(GetObjectMixin, APIView):
 
 
 class MaintenanceStopAPIView(GetObjectMixin, APIView):
+    """Deprecated. Maintenance management is now performed on integrations page (alert_receive_channel/ endpoint))"""
+
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {

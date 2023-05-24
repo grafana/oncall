@@ -93,6 +93,14 @@ describe('PluginSetup', () => {
     expect(mockedSetupPlugin).toHaveBeenCalledTimes(2);
   });
 
+  test('currently undergoing maintenance', async () => {
+    const rootBaseStore = new RootBaseStore();
+    rootBaseStore.appLoading = false;
+    rootBaseStore.currentlyUndergoingMaintenance = true;
+    rootBaseStore.initializationError = 'there is some sort of maintenance';
+    await createComponentAndMakeAssertions(rootBaseStore);
+  });
+
   test('app successfully initialized', async () => {
     const rootBaseStore = new RootBaseStore();
     rootBaseStore.appLoading = false;

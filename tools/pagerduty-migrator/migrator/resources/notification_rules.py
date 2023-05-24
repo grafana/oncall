@@ -1,10 +1,7 @@
 import copy
 
 from migrator import oncall_api_client
-from migrator.config import (
-    ONCALL_DEFAULT_CONTACT_METHOD,
-    PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP,
-)
+from migrator.config import PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP
 from migrator.utils import remove_duplicates, transform_wait_delay
 
 
@@ -76,10 +73,8 @@ def transform_notification_rule(
     notification_rule: dict, delay: int, user_id: str
 ) -> list[dict]:
     contact_method_type = notification_rule["contact_method"]["type"]
+    oncall_type = PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP[contact_method_type]
 
-    oncall_type = PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP.get(
-        contact_method_type, ONCALL_DEFAULT_CONTACT_METHOD
-    )
     notify_rule = {"user_id": user_id, "type": oncall_type, "important": False}
 
     if not delay:

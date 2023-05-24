@@ -3,7 +3,7 @@
 exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, and ONCALL_API_URL is passed in process.env, and there is an error calling selfHostedInstallPlugin, it sets an error message 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -20,7 +20,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
     </span>
   </pre>
   <button
-    class="css-mk7eo3-button"
+    class="css-1ed0qk5-button"
     type="button"
   >
     <span
@@ -35,7 +35,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
 exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, checkIfPluginIsConnected is not called, and the configuration form is shown 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -111,7 +111,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
             class="css-1w5c5dq-input-inputWrapper"
           >
             <input
-              class="css-1wdli31-input-input"
+              class="css-1mlczho-input-input"
               data-testid="onCallApiUrl"
               name="onCallApiUrl"
             />
@@ -120,7 +120,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
       </div>
     </div>
     <button
-      class="css-1sara2j-button"
+      class="css-z53gi5-button"
       type="submit"
     >
       <span
@@ -136,7 +136,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
 exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected returns an error, it sets an error message 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -153,7 +153,7 @@ exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected r
     </span>
   </pre>
   <button
-    class="css-mk7eo3-button"
+    class="css-1ed0qk5-button"
     type="button"
   >
     <span
@@ -168,7 +168,7 @@ exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected r
 exports[`PluginConfigPage It doesn't make any network calls if the plugin configured query params are provided 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -192,7 +192,7 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
     </span>
   </pre>
   <button
-    class="css-mk7eo3-button"
+    class="css-1ed0qk5-button"
     type="button"
   >
     <span
@@ -207,7 +207,7 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
 exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -231,7 +231,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
     </span>
   </pre>
   <button
-    class="css-mk7eo3-button"
+    class="css-1ed0qk5-button"
     type="button"
   >
     <span
@@ -246,7 +246,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
 exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -286,7 +286,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
 exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall returns an error 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -303,7 +303,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall returns an
     </span>
   </pre>
   <button
-    class="css-1sara2j-button"
+    class="css-z53gi5-button"
     type="button"
   >
     <span
@@ -318,7 +318,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall returns an
 exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -335,7 +335,7 @@ exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
     </span>
   </pre>
   <button
-    class="css-mk7eo3-button"
+    class="css-1ed0qk5-button"
     type="button"
   >
     <span
@@ -350,7 +350,7 @@ exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
 exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
 <div>
   <legend
-    class="css-xim8hk"
+    class="css-11wqcat"
   >
     Configure Grafana OnCall
   </legend>
@@ -426,7 +426,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
             class="css-1w5c5dq-input-inputWrapper"
           >
             <input
-              class="css-1wdli31-input-input"
+              class="css-1mlczho-input-input"
               data-testid="onCallApiUrl"
               name="onCallApiUrl"
             />
@@ -435,7 +435,7 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
       </div>
     </div>
     <button
-      class="css-1sara2j-button"
+      class="css-z53gi5-button"
       type="submit"
     >
       <span

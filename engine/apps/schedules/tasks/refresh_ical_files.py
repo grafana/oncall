@@ -25,6 +25,17 @@ def start_refresh_ical_files():
 
 
 @shared_dedicated_queue_retry_task()
+def start_refresh_ical_final_schedules():
+    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+
+    task_logger.info("Start refresh ical final schedules")
+
+    schedules = OnCallSchedule.objects.all()
+    for schedule in schedules:
+        refresh_ical_final_schedule.apply_async((schedule.pk,))
+
+
+@shared_dedicated_queue_retry_task()
 def refresh_ical_file(schedule_pk):
     OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
 
@@ -74,3 +85,17 @@ def refresh_ical_file(schedule_pk):
     if run_task:
         notify_about_empty_shifts_in_schedule.apply_async((schedule_pk,))
         notify_about_gaps_in_schedule.apply_async((schedule_pk,))
+
+
+@shared_dedicated_queue_retry_task()
+def refresh_ical_final_schedule(schedule_pk):
+    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    task_logger.info(f"Refresh ical final schedule {schedule_pk}")
+
+    try:
+        schedule = OnCallSchedule.objects.get(pk=schedule_pk)
+    except OnCallSchedule.DoesNotExist:
+        task_logger.info(f"Tried to refresh final schedule for non-existing schedule {schedule_pk}")
+        return
+
+    schedule.refresh_ical_final_schedule()

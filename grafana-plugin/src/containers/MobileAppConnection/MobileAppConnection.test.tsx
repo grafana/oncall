@@ -54,6 +54,7 @@ const mockUseStore = (rest?: any, connected = false, cloud_connected = true) => 
       cloudConnectionStatus: { cloud_connection_status: cloud_connected },
     } as unknown as CloudStore,
     hasFeature: jest.fn().mockReturnValue(true),
+    isOpenSource: jest.fn().mockReturnValue(true),
   } as unknown as RootStore;
 
   useStore.mockReturnValue(store);

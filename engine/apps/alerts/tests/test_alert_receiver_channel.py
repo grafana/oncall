@@ -90,14 +90,25 @@ def test_get_default_template_attribute_fallback_to_web(make_organization, make_
 
 @mock.patch("apps.integrations.tasks.create_alert.apply_async", return_value=None)
 @pytest.mark.django_db
-def test_send_demo_alert(mocked_create_alert, make_organization, make_alert_receive_channel):
+@pytest.mark.parametrize(
+    "payload",
+    [
+        None,
+        {"foo": "bar"},
+    ],
+)
+def test_send_demo_alert(mocked_create_alert, make_organization, make_alert_receive_channel, payload):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=AlertReceiveChannel.INTEGRATION_WEBHOOK
     )
-    alert_receive_channel.send_demo_alert()
+    alert_receive_channel.send_demo_alert(payload=payload)
     assert mocked_create_alert.called
     assert mocked_create_alert.call_args.args[1]["is_demo"]
+    assert (
+        mocked_create_alert.call_args.args[1]["raw_request_data"] == payload
+        or alert_receive_channel.config.example_payload
+    )
     assert mocked_create_alert.call_args.args[1]["force_route_id"] is None
 
 
@@ -111,14 +122,26 @@ def test_send_demo_alert(mocked_create_alert, make_organization, make_alert_rece
         AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
     ],
 )
+@pytest.mark.parametrize(
+    "payload",
+    [
+        None,
+        {"alerts": [{"foo": "bar"}]},
+    ],
+)
 def test_send_demo_alert_alertmanager_payload_shape(
-    mocked_create_alert, make_organization, make_alert_receive_channel, integration
+    mocked_create_alert, make_organization, make_alert_receive_channel, integration, payload
 ):
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization, integration=integration)
-    alert_receive_channel.send_demo_alert()
+    alert_receive_channel.send_demo_alert(payload=payload)
     assert mocked_create_alert.called
     assert mocked_create_alert.call_args.args[1]["is_demo"]
+    assert (
+        mocked_create_alert.call_args.args[1]["alert"] == payload["alerts"][0]
+        if payload
+        else alert_receive_channel.config.example_payload["alerts"][0]
+    )
     assert mocked_create_alert.call_args.args[1]["force_route_id"] is None
 
 
