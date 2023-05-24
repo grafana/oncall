@@ -59,6 +59,7 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
         "DANGEROUS_WEBHOOKS_ENABLED",
+        "PHONE_PROVIDER",
     )
 
     DESCRIPTIONS = {
@@ -146,6 +147,7 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable heartbeat integration with Grafana Cloud OnCall.",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
         "DANGEROUS_WEBHOOKS_ENABLED": "Enable outgoing webhooks to private networks",
+        "PHONE_PROVIDER": f"Phone provider name. Available options: {','.join(list(settings.PHONE_PROVIDERS.keys()))}",
     }
 
     SECRET_SETTING_NAMES = (
@@ -217,6 +219,9 @@ class LiveSetting(models.Model):
         return getattr(settings, setting_name)
 
     def save(self, *args, **kwargs):
+        """
+        Save validates LiveSettings values and save them in database
+        """
         if self.name not in self.AVAILABLE_NAMES:
             raise ValueError(
                 f"Setting with name '{self.name}' is not in list of available names {self.AVAILABLE_NAMES}"

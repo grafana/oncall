@@ -4,6 +4,8 @@ import { BASE_URL, GRAFANA_PASSWORD, GRAFANA_USERNAME, IS_OPEN_SOURCE, ONCALL_AP
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
 
+const GLOBAL_SETUP_RETRIES = 3;
+
 /**
  * go to config page and wait for plugin icon to be available on left-hand navigation
  */
@@ -67,4 +69,23 @@ const globalSetup = async (config: FullConfig): Promise<void> => {
   await browserContext.close();
 };
 
-export default globalSetup;
+/**
+ * Let's retry global setup, in the event that it fails due to an oncall-engine/oncall-celery backend error.
+ * Sometimes the sync endpoint will randomly return HTTP 500.
+ * See here for an example CI job which failed global setup
+ * https://github.com/grafana/oncall/actions/runs/5062712137/jobs/9088529416#step:19:2536
+ *
+ * References on retrying playwright global setup
+ * https://github.com/microsoft/playwright/discussions/11371
+ */
+const globalSetupWithRetries = async (config: FullConfig): Promise<void> => {
+  for (let i = 0; i < GLOBAL_SETUP_RETRIES - 1; i++) {
+    try {
+      return await globalSetup(config);
+    } catch (e) {}
+  }
+  // One last time, throwing an error if it fails.
+  await globalSetup(config);
+};
+
+export default globalSetupWithRetries;

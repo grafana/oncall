@@ -2,7 +2,7 @@ class ActionSource:
     (
         SLACK,
         WEB,
-        TWILIO,
+        PHONE,
         TELEGRAM,
     ) = range(4)
 

@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
+
+## v1.2.28 (2023-05-24)
+
 ### Fixed
 
 - Improve plugin authentication by @vadimkerr ([#1995](https://github.com/grafana/oncall/pull/1995))
 - Fix MultipleObjectsReturned error on webhook endpoints by @vadimkerr ([#1996](https://github.com/grafana/oncall/pull/1996))
+- Remove user defined time period from "you're going oncall" mobile push by @iskhakov ([#2001](https://github.com/grafana/oncall/pull/2001))
 
 ## v1.2.27 (2023-05-23)
 

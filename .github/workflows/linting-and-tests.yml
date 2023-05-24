@@ -287,6 +287,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Collect Workflow Telemetry
+        uses: runforesight/workflow-telemetry-action@v1
+        with:
+          comment_on_pr: false
+          proc_trace_chart_show: false
+          proc_trace_table_show: false
+
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
         with:
@@ -340,9 +347,12 @@ jobs:
       - name: Load engine Docker image on the nodes of the cluster
         run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
 
-      # spin up 3 engine, 3 celery, and 3 grafana pods, this will allow us to parralelize the integration tests,
+      # spin up 3 engine and 3 celery pods, this will allow us to parralelize the integration tests,
       # and complete them much faster by using multiple test processes
       # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized integration test process
+      # NOTE: it appears that using > 1 grafana container w/ SQLite as the database sometimes leads to failed
+      # grafana database migrations (this is documented in this GitHub issue
+      # https://github.com/bitnami/charts/issues/10905)
       #
       # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
       # OnCall plugin rather than the latest published version
@@ -361,7 +371,7 @@ jobs:
             --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
             --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
             --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
-            --set grafana.replicas=3 \
+            --set grafana.replicas=1 \
             --set grafana.image.tag=${{ matrix.grafana-image-tag }} \
             --set grafana.env.GF_SECURITY_ADMIN_USER=oncall \
             --set grafana.env.GF_SECURITY_ADMIN_PASSWORD=oncall \
@@ -400,13 +410,15 @@ jobs:
         working-directory: grafana-plugin
         run: ./node_modules/.bin/playwright install-deps chromium firefox webkit
 
-      - name: Await k8s pods and other resources up
-        uses: jupyterhub/action-k8s-await-workloads@v1
-        with:
-          workloads: "" # all
-          namespace: "" # default
-          timeout: 300
-          max-restarts: -1
+      # we could instead use the --wait flag for the helm install command above
+      # but there's no reason to block on that step
+      # instead we can let the k8s resources start up behind the scenes and do other
+      # setup tasks (ex. install playwright + its dependencies)
+      - name: Wait until k8s resources are ready
+        run: |
+          kubectl rollout status deployment/helm-testing-grafana --timeout=300s
+          kubectl rollout status deployment/helm-testing-oncall-engine --timeout=300s
+          kubectl rollout status deployment/helm-testing-oncall-celery --timeout=300s
 
       - name: Run Integration Tests
         env:
@@ -425,14 +437,14 @@ jobs:
         working-directory: ./grafana-plugin
         run: yarn test:integration
 
-      # always spit out the engine and celery logs, AFTER the e2e tests have completed
-      # can be helpful for debugging failing/flaky tests
+      # spit out the engine, celery, and grafana logs, if the the e2e tests have failed
+      # can be helpful for debugging failing tests
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
         uses: jupyterhub/action-k8s-namespace-report@v1
         if: failure()
         with:
-          important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery"
+          important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery deploy/helm-testing-grafana"
 
       - uses: actions/upload-artifact@v3
         if: failure()
