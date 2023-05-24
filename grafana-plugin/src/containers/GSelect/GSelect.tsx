@@ -8,13 +8,13 @@ import { observer } from 'mobx-react';
 
 import { useStore } from 'state/useStore';
 
-import styles from './GSelect.module.css';
-// import { debounce } from 'lodash';
+import styles from './GSelect.module.scss';
 
 const cx = cn.bind(styles);
 
 interface GSelectProps {
   placeholder: string;
+  isLoading?: boolean;
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
   onChange: (value: string, item: any) => void;
@@ -45,6 +45,7 @@ const GSelect = observer((props: GSelectProps) => {
     autoFocus,
     showSearch = false,
     allowClear = false,
+    isLoading,
     defaultOpen,
     placeholder,
     className,
@@ -145,7 +146,6 @@ const GSelect = observer((props: GSelectProps) => {
 
   return (
     <div className={cx('root', className)}>
-      {/*@ts-ignore*/}
       <Tag
         autoFocus={autoFocus}
         isSearchable={showSearch}
@@ -157,6 +157,7 @@ const GSelect = observer((props: GSelectProps) => {
         onChange={onChangeCallback}
         defaultOptions={!disabled}
         loadOptions={loadOptions}
+        isLoading={isLoading}
         // @ts-ignore
         value={values}
         defaultValue={defaultValue}

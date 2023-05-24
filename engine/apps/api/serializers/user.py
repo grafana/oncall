@@ -11,11 +11,11 @@ from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
 from apps.oss_installation.utils import cloud_user_identity_status
-from apps.twilioapp.utils import check_phone_number_is_valid
 from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
+from common.api_helpers.utils import check_phone_number_is_valid
 from common.timezones import TimeZoneField
 
 from .custom_serializers import DynamicFieldsModelSerializer
@@ -183,6 +183,27 @@ class UserHiddenFieldsSerializer(UserSerializer):
                 if field not in self.fields_available_for_all_users:
                     ret[field] = "******"
             ret["hidden_fields"] = True
+        return ret
+
+
+class ScheduleUserSerializer(UserSerializer):
+    fields_to_keep = [
+        "pk",
+        "organization",
+        "email",
+        "username",
+        "name",
+        "avatar",
+        "avatar_full",
+        "timezone",
+        "working_hours",
+        "slack_user_identity",
+        "telegram_configuration",
+    ]
+
+    def to_representation(self, instance):
+        serialized = super(UserSerializer, self).to_representation(instance)
+        ret = {field: value for field, value in serialized.items() if field in self.fields_to_keep}
         return ret
 
 

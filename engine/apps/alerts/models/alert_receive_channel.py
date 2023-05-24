@@ -145,6 +145,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     smile_code = models.TextField(default=":slightly_smiling_face:")
 
     verbal_name = models.CharField(max_length=150, null=True, default=None)
+    description_short = models.CharField(max_length=250, null=True, default=None)
 
     integration_slack_channel_id = models.CharField(max_length=150, null=True, default=None)
 
@@ -185,6 +186,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
+
+    restricted_at = models.DateTimeField(null=True, default=None)
 
     class Meta:
         constraints = [
@@ -367,7 +370,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def web_link(self):
-        return urljoin(self.organization.web_link, "?page=settings")
+        return urljoin(self.organization.web_link, f"integrations/{self.public_primary_key}")
 
     @property
     def integration_url(self):
@@ -501,19 +504,26 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(heartbeat, self.INTEGRATIONS_TO_REVERSE_URL_MAP[self.integration], None)
 
     # Demo alerts
-    def send_demo_alert(self, force_route_id=None):
+    def send_demo_alert(self, force_route_id=None, payload=None):
         logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
+        if payload is None:
+            payload = self.config.example_payload
         if self.is_demo_alert_enabled:
             if self.has_alertmanager_payload_structure:
-                for alert in self.config.example_payload.get("alerts", []):
-                    create_alertmanager_alerts.apply_async(
-                        [],
-                        {
-                            "alert_receive_channel_pk": self.pk,
-                            "alert": alert,
-                            "is_demo": True,
-                            "force_route_id": force_route_id,
-                        },
+                if (alerts := payload.get("alerts", None)) and type(alerts) == list and len(alerts):
+                    for alert in alerts:
+                        create_alertmanager_alerts.apply_async(
+                            [],
+                            {
+                                "alert_receive_channel_pk": self.pk,
+                                "alert": alert,
+                                "is_demo": True,
+                                "force_route_id": force_route_id,
+                            },
+                        )
+                else:
+                    raise UnableToSendDemoAlert(
+                        "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
                     )
             else:
                 create_alert.apply_async(
@@ -525,7 +535,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                         "link_to_upstream_details": None,
                         "alert_receive_channel_pk": self.pk,
                         "integration_unique_data": None,
-                        "raw_request_data": self.config.example_payload,
+                        "raw_request_data": payload,
                         "is_demo": True,
                         "force_route_id": force_route_id,
                     },

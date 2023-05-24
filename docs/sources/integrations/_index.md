@@ -1,7 +1,7 @@
 ---
 aliases:
-  - /docs/oncall/latest/integrations/
-canonical: https://grafana.com/docs/oncall/latest/integrations/
+  - /docs/oncall/latest/integration-with-alert-sources/
+canonical: https://grafana.com/docs/oncall/latest/integration-with-alert-sources/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -10,26 +10,35 @@ keywords:
   - amixr
   - oncall
   - integrations
-title: Grafana OnCall integrations
+title: Integrations
 weight: 500
 ---
 
-# Grafana OnCall integrations
+# Integrations
 
-Integrations allow you to connect monitoring systems of your choice to send alerts to Grafana OnCall. Regardless of where
-your alerts originate, you can configure alerts to be sent to Grafana OnCall for alert escalation and notification.
-Grafana OnCall receives alerts in JSON format via a POST request, OnCall then parses alert data using preconfigured
-alert templates to determine alert grouping, apply routes, and determine correct escalation.
+"Integration" is a main entry point for alerts being consumed by OnCall. Rendering, grouping and routing are configured
+within integrations.
 
-There are many integrations that are directly supported by Grafana OnCall. Those that aren’t currently listed in the
-Integrations menu can be connected using the webhook integration and configured alert templates.
+"Integration" is a set of Jinja2 templates which is transforming alert payload to the format suitable to OnCall.
+You could check pre-configured templates in the list of avaliable integrations (Integrations ->
+"New integration to receive alerts"), create your own or adjust existing.
+
+Read more about Jinja2 templating used in OnCall [here]({{< relref "jinja2-templating" >}}).
+
+Alert flow within integration:
+
+1. Alert is registered by unique integration url (or [e-mail]({{< relref "inbound-email" >}}) in case of inbound e-mail
+integration)
+2. If there is a non-resolved "alert group" with the same "grouping id", alert will be added to this "alert group".
+3. If there is no non-resolved "alert group" with the same "grouping id", new "alert group" will be issued.
+4. New "alert group" will be routed using routing engine and escalation chain will be started (TODO: link).
 
 ## Configure and manage integrations
 
 You can configure and manage your integrations from the **Integrations** tab in Grafana OnCall. The following sections
 describe how to configure and customize your integrations to ensure alerts are treated appropriately.
 
-### Connect an integration to Grafana OnCall
+### Connect an integration
 
 To configure an integration for Grafana OnCall:
 
@@ -38,40 +47,42 @@ To configure an integration for Grafana OnCall:
 3. Follow the configuration steps on the integration settings page.
 4. Complete any necessary configurations in your tool to send alerts to Grafana OnCall.
 
-### Manage Grafana OnCall integrations
+### Manage integrations
 
 To manage existing integrations, navigate to the **Integrations** tab in Grafana OnCall and select the integration
 you want to manage.
 
-#### Customize alert templates and grouping
+#### Manage integration behaviour and rendering
 
-To customize the alert template for an integration:
+"Integration templates" are Jinja2 templates which are applied to each alert to define it's rendering and behaviour.
+For templates editor:
 
-1. Select an integration from your list of enabled integrations in the **Integrations** tab.
-2. Click **Change alert template and grouping**.
-3. Select a template to edit from the **Edit template for** dropdown menu.
-4. Edit alert templates as needed to customize the fields and content rendered for an alert.
+1. Navigate to the **Integrations** tab, select an integration from the list.
+2. Click the **gear icon** next to the integration name.
 
-To customize alert grouping for an integration:
+Here are a few templates responsible for alert group formation:
 
-1. Click **Change alert template and grouping**.
-2. Select **Alert Behavior** from the dropdown menu next to **Edit template for**.
-3. Edit the **grouping id**, **acknowledge condition**, and **resolve condition** templates as needed to customize
-   your alert behavior.
+- **Alert Behaviour, Grouping id** - defining how alerts will be grouped into alert groups. Alerts with the same result
+- of executing of this template will be grouped together. For example:
 
-For more information on alert templates, see
-[Configure alerts templates]({{< relref "../alert-behavior/alert-templates" >}})
+Alert 1 payload:`{"name": "CPU 90%", "cluster": "EU"}`
 
-#### Add Routes
+Alert 2 payload:`{"name": "CPU 90%", "cluster": "US"}`
 
-To add a route to an integration using regular expression:
+If we want to group them together by name, we could use template `{{ payload.name }}` which will result to the equal
+grouping id "CPU 90%". If we want to group them by region and end up with 2 separate alert groups, we could use such a
+template: `{{ payload.region }}}`
 
-1. Select an integration from your list of enabled integrations in the **Integrations** tab.
-2. Click **+ Add Route**.
-3. Use python style regex to match on your alert content.
-4. Click **Create Route**.
-5. Select an escalation chain for “**IF** alert payload matches regex” and “**ELSE**” to specify where to route each
-   type of alert.
+- **Alert Behaviour, Acknowledge Condition** - If this template will be rendered as "True" or "1", containing alert
+- group will change it's state to "acknowledged".
+
+- **Alert Behaviour, Resolve Condition** - Similar to Acknowledge Condition, will make alert group "resolved".
+
+- **Alert Behaviour, Source Link** - result of rendering of this template will be used in various places of the UI.
+Should point to the most specific place in the alert source related to the alert group. Also rendering result will be
+available in other templates as a variable `{{ source_link }}`.
+
+Read more about Jinja2 (TODO: link) in a specific section.
 
 #### Edit integration name
 
@@ -80,13 +91,5 @@ To edit the name of an integration:
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
 2. Click the **pencil icon** next to the integration name.
 3. Provide a new name and click **Update**.
-
-#### Delete integration
-
-To delete an integration:
-
-1. Select an integration from your list of enabled integrations in the **Integrations** tab.
-2. Click the **trash can** icon next to the selected integration.
-3. Confirm by clicking **Delete**.
 
 {{< section >}}

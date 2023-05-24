@@ -45,7 +45,8 @@ class AlertGroupLogRecord(models.Model):
         TYPE_ROUTE_ASSIGNED,
         TYPE_DIRECT_PAGING,
         TYPE_UNPAGE_USER,
-    ) = range(25)
+        TYPE_RESTRICTED,
+    ) = range(26)
 
     TYPES_FOR_LICENCE_CALCULATION = (
         TYPE_ACK,
@@ -89,6 +90,7 @@ class AlertGroupLogRecord(models.Model):
         (TYPE_ROUTE_ASSIGNED, "A route is assigned to the incident"),
         (TYPE_DIRECT_PAGING, "Trigger direct paging escalation"),
         (TYPE_UNPAGE_USER, "Unpage a user"),
+        (TYPE_RESTRICTED, "Restricted"),
     )
 
     # Handlers should be named like functions.
@@ -258,6 +260,8 @@ class AlertGroupLogRecord(models.Model):
 
         if self.type == AlertGroupLogRecord.TYPE_REGISTERED:
             result += "alert group registered"
+        elif self.type == AlertGroupLogRecord.TYPE_RESTRICTED:
+            result += self.reason
         elif self.type == AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED:
             channel_filter = self.alert_group.channel_filter_with_respect_to_escalation_snapshot
             escalation_chain = self.alert_group.escalation_chain_with_respect_to_escalation_snapshot
