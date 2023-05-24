@@ -25,9 +25,9 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
 
         provisioning_info: ProvisionedPlugin = {"error": None}
 
-        # if settings.LICENSE != settings.OPEN_SOURCE_LICENSE_NAME:
-        #     provisioning_info["error"] = f"License type not authorized"
-        #     return Response(status=status.HTTP_403_FORBIDDEN)
+        if settings.LICENSE != settings.OPEN_SOURCE_LICENSE_NAME:
+            provisioning_info["error"] = f"License type not authorized"
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
         grafana_api_client = GrafanaAPIClient(api_url=grafana_url, api_token=grafana_api_token)
         _, client_status = grafana_api_client.check_token()
