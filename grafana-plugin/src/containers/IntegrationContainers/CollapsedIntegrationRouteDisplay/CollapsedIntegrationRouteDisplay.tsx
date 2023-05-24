@@ -75,9 +75,9 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                 {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel, key) => (
                   <HorizontalGroup key={key}>
                     <Text type="secondary">Publish to ChatOps</Text>
-                    <Icon name="slack" />
+                    <Icon name={chatOpsChannel.icon} />
                     <Text type="primary" strong>
-                      {chatOpsChannel}
+                      {chatOpsChannel.name}
                     </Text>
                   </HorizontalGroup>
                 ))}

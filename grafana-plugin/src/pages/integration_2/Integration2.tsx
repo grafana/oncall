@@ -759,7 +759,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
     return (
       `curl '${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/'` +
       ` -XPOST -H 'Content-Type: application/json'` +
-      `--data-raw '{"demo_alert_payload":{"alerts":[{"a":"b"}]}}' --compressed`
+      `--data-raw '${demoPayload}' --compressed`
     );
   }
 };
@@ -885,11 +885,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                           confirmText: 'Stop',
                           dismissText: 'Cancel',
                           onConfirm: onStopMaintenance,
-                          title: (
-                            <>
+                          title: 'Stop Maintenance',
+                          body: (
+                            <Text type="primary">
                               Are you sure you want to stop the maintenance for{' '}
-                              <Emoji text={alertReceiveChannel.verbal_name} />?
-                            </>
+                              <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                            </Text>
                           ),
                         });
                       }}
