@@ -64,7 +64,7 @@ def test_shift_starts_within_range(timing_window_lower, timing_window_upper, sec
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
             timezone.datetime(2022, 5, 2, 13, 12, 0),
-            67 * 60,
+            None,
         ),
         (
             False,
@@ -79,7 +79,7 @@ def test_shift_starts_within_range(timing_window_lower, timing_window_upper, sec
             timezone.datetime(2022, 5, 2, 12, 5, 0),
             ONE_HOUR_IN_SECONDS,
             timezone.datetime(2022, 5, 2, 12, 58, 0),
-            53 * 60,
+            None,
         ),
         (
             False,

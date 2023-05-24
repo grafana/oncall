@@ -9,7 +9,7 @@ from kombu import uuid as celery_uuid
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.base.utils import live_settings
+from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -224,8 +224,6 @@ def notify_user_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def perform_notification(log_record_pk):
-    SMSMessage = apps.get_model("twilioapp", "SMSMessage")
-    PhoneCall = apps.get_model("twilioapp", "PhoneCall")
     UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
     TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
@@ -259,20 +257,12 @@ def perform_notification(log_record_pk):
         return
 
     if notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-        SMSMessage.send_sms(
-            user,
-            alert_group,
-            notification_policy,
-            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
-        )
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_sms(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
-        PhoneCall.make_call(
-            user,
-            alert_group,
-            notification_policy,
-            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
-        )
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_call(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
         TelegramToUserConnector.notify_user(user, alert_group, notification_policy)

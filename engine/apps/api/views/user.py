@@ -42,11 +42,18 @@ from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.mobile_app.demo_push import send_test_push
 from apps.mobile_app.exceptions import DeviceNotSet
+from apps.phone_notifications.exceptions import (
+    FailedToFinishVerification,
+    FailedToMakeCall,
+    FailedToStartVerification,
+    NumberAlreadyVerified,
+    NumberNotVerified,
+    ProviderNotSupports,
+)
+from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
-from apps.twilioapp.phone_manager import PhoneManager
-from apps.twilioapp.twilio_client import twilio_client
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
@@ -153,6 +160,7 @@ class UserView(
         "verify_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "forget_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "get_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_verification_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "get_backend_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "get_telegram_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_slack": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
@@ -160,6 +168,7 @@ class UserView(
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "send_test_push": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "send_test_sms": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
@@ -175,12 +184,14 @@ class UserView(
             "verify_number",
             "forget_number",
             "get_verification_code",
+            "get_verification_call",
             "get_backend_verification_code",
             "get_telegram_verification_code",
             "unlink_slack",
             "unlink_telegram",
             "unlink_backend",
             "make_test_call",
+            "send_test_sms",
             "send_test_push",
             "export_token",
             "upcoming_shifts",
@@ -316,9 +327,7 @@ class UserView(
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
     def get_verification_code(self, request, pk):
-
         logger.info("get_verification_code: validating reCAPTCHA code")
-        # valid = recaptcha.check_recaptcha_internal_api(request, "mobile_verification_code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
             logger.warning(f"get_verification_code: invalid reCAPTCHA validation")
@@ -326,12 +335,44 @@ class UserView(
         logger.info('get_verification_code: pass reCAPTCHA validation"')
 
         user = self.get_object()
-        phone_manager = PhoneManager(user)
-        code_sent = phone_manager.send_verification_code()
+        phone_backend = PhoneBackend()
+        try:
+            phone_backend.send_verification_sms(user)
+        except NumberAlreadyVerified:
+            return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
+        except FailedToStartVerification:
+            return Response("Something went wrong while sending code", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ProviderNotSupports:
+            return Response(
+                "Phone provider not supports sms verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        return Response(status=status.HTTP_200_OK)
 
-        if not code_sent:
-            logger.warning(f"Mobile app verification code was not successfully sent")
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    @action(
+        detail=True,
+        methods=["get"],
+        throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
+    )
+    def get_verification_call(self, request, pk):
+        logger.info("get_verification_code_via_call: validating reCAPTCHA code")
+        valid = check_recaptcha_internal_api(request, "mobile_verification_code")
+        if not valid:
+            logger.warning(f"get_verification_code_via_call: invalid reCAPTCHA validation")
+            return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
+        logger.info('get_verification_code_via_call: pass reCAPTCHA validation"')
+
+        user = self.get_object()
+        phone_backend = PhoneBackend()
+        try:
+            phone_backend.make_verification_call(user)
+        except NumberAlreadyVerified:
+            return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
+        except FailedToStartVerification:
+            return Response("Something went wrong while calling", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ProviderNotSupports:
+            return Response(
+                "Phone provider not supports call verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         return Response(status=status.HTTP_200_OK)
 
     @action(
@@ -345,29 +386,34 @@ class UserView(
         if not code:
             return Response("Invalid verification code", status=status.HTTP_400_BAD_REQUEST)
         prev_state = target_user.insight_logs_serialized
-        phone_manager = PhoneManager(target_user)
-        verified, error = phone_manager.verify_phone_number(code)
 
-        if not verified:
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        new_state = target_user.insight_logs_serialized
-        write_resource_insight_log(
-            instance=target_user,
-            author=self.request.user,
-            event=EntityEvent.UPDATED,
-            prev_state=prev_state,
-            new_state=new_state,
-        )
-        return Response(status=status.HTTP_200_OK)
+        phone_backend = PhoneBackend()
+        try:
+            verified = phone_backend.verify_phone_number(target_user, code)
+        except FailedToFinishVerification:
+            return Response("Something went wrong while verifying code", status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        if verified:
+            new_state = target_user.insight_logs_serialized
+            write_resource_insight_log(
+                instance=target_user,
+                author=self.request.user,
+                event=EntityEvent.UPDATED,
+                prev_state=prev_state,
+                new_state=new_state,
+            )
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response("Verification code is not correct", status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["put"])
     def forget_number(self, request, pk):
         target_user = self.get_object()
         prev_state = target_user.insight_logs_serialized
-        phone_manager = PhoneManager(target_user)
-        forget = phone_manager.forget_phone_number()
 
-        if forget:
+        phone_backend = PhoneBackend()
+        removed = phone_backend.forget_number(target_user)
+
+        if removed:
             new_state = target_user.insight_logs_serialized
             write_resource_insight_log(
                 instance=target_user,
@@ -381,18 +427,34 @@ class UserView(
     @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
     def make_test_call(self, request, pk):
         user = self.get_object()
-        phone_number = user.verified_phone_number
-
-        if phone_number is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            twilio_client.make_test_call(to=phone_number)
-        except Exception as e:
-            logger.error(f"Unable to make a test call due to {e}")
+            phone_backend = PhoneBackend()
+            phone_backend.make_test_call(user)
+        except NumberNotVerified:
+            return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
+        except FailedToMakeCall:
             return Response(
-                data="Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                "Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        except ProviderNotSupports:
+            return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
+    def send_test_sms(self, request, pk):
+        user = self.get_object()
+        try:
+            phone_backend = PhoneBackend()
+            phone_backend.send_test_sms(user)
+        except NumberNotVerified:
+            return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
+        except FailedToMakeCall:
+            return Response(
+                "Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        except ProviderNotSupports:
+            return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(status=status.HTTP_200_OK)
 

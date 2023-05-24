@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.conf import settings
 
-from apps.twilioapp.twilio_client import twilio_client
+from apps.twilioapp.phone_provider import TwilioPhoneProvider
 
 US_VERIFY = "us_verify"
 US_SMS = "us_sms"
@@ -63,9 +63,9 @@ def setup_us_senders(
 @pytest.mark.parametrize(
     "sender,expected_from",
     [
-        (twilio_client._phone_sender, ENV_TWILIO_NUMBER),
-        (twilio_client._sms_sender, ENV_TWILIO_NUMBER),
-        (twilio_client._verify_sender, ENV_VERIFY_SERVICE_SID),
+        (TwilioPhoneProvider._phone_sender, ENV_TWILIO_NUMBER),
+        (TwilioPhoneProvider._sms_sender, ENV_TWILIO_NUMBER),
+        (TwilioPhoneProvider._verify_sender, ENV_VERIFY_SERVICE_SID),
     ],
 )
 def test_use_env_default_senders(
@@ -79,10 +79,11 @@ def test_use_env_default_senders(
     expected_from,
 ):
     with patch(
-        "apps.twilioapp.twilio_client.TwilioClient.parse_number",
+        "apps.twilioapp.phone_provider.TwilioPhoneProvider._parse_number",
         return_value=(True, None, "44"),
     ):
-        client, _from = sender("")
+        provider = TwilioPhoneProvider()
+        client, _from = sender(provider, "")
         assert _from == expected_from
         assert client.username == ENV_TWILIO_ACCOUNT_SID
         assert client.password == ENV_TWILIO_AUTH_TOKEN
@@ -92,9 +93,9 @@ def test_use_env_default_senders(
 @pytest.mark.parametrize(
     "sender,expected_from",
     [
-        (twilio_client._phone_sender, DB_DEFAULT_PHONE),
-        (twilio_client._sms_sender, DB_DEFAULT_SMS),
-        (twilio_client._verify_sender, DB_DEFAULT_VERIFY),
+        (TwilioPhoneProvider._phone_sender, DB_DEFAULT_PHONE),
+        (TwilioPhoneProvider._sms_sender, DB_DEFAULT_SMS),
+        (TwilioPhoneProvider._verify_sender, DB_DEFAULT_VERIFY),
     ],
 )
 def test_use_db_default_senders(
@@ -108,10 +109,11 @@ def test_use_db_default_senders(
     expected_from,
 ):
     with patch(
-        "apps.twilioapp.twilio_client.TwilioClient.parse_number",
+        "apps.twilioapp.phone_provider.TwilioPhoneProvider._parse_number",
         return_value=(True, None, "44"),
     ):
-        client, _from = sender("")
+        provider = TwilioPhoneProvider()
+        client, _from = sender(provider, "")
         assert _from == expected_from
         assert client.username == DB_TWILIO_ACCOUNT_SID
         assert client.password == DB_TWILIO_AUTH_TOKEN
@@ -121,9 +123,9 @@ def test_use_db_default_senders(
 @pytest.mark.parametrize(
     "sender,expected_from",
     [
-        (twilio_client._phone_sender, US_PHONE),
-        (twilio_client._sms_sender, US_SMS),
-        (twilio_client._verify_sender, US_VERIFY),
+        (TwilioPhoneProvider._phone_sender, US_PHONE),
+        (TwilioPhoneProvider._sms_sender, US_SMS),
+        (TwilioPhoneProvider._verify_sender, US_VERIFY),
     ],
 )
 def test_use_country_code_senders(
@@ -138,10 +140,11 @@ def test_use_country_code_senders(
     expected_from,
 ):
     with patch(
-        "apps.twilioapp.twilio_client.TwilioClient.parse_number",
+        "apps.twilioapp.phone_provider.TwilioPhoneProvider._parse_number",
         return_value=(True, None, "1"),
     ):
-        client, _from = sender("")
+        provider = TwilioPhoneProvider()
+        client, _from = sender(provider, "")
         assert _from == expected_from
         assert client.username == DB_TWILIO_ACCOUNT_SID
         assert client.password == DB_TWILIO_AUTH_TOKEN
