@@ -756,11 +756,10 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   }
 
   function getCurlText() {
-    return (
-      `curl '${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/'` +
-      ` -XPOST -H 'Content-Type: application/json'` +
-      `--data-raw '${demoPayload}' --compressed`
-    );
+    return `curl -X POST \
+    ${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/ \
+    -H 'Content-Type: Application/json' \
+    -d '${demoPayload}'`;
   }
 };
 
