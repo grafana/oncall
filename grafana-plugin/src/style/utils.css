@@ -61,3 +61,10 @@
 .u-cursor-default {
   cursor: default;
 }
+
+.thin-line-break {
+  width: 100%;
+  border-top: 1px solid var(--always-gray);
+  margin-top: 8px;
+  opacity: 15%;
+}

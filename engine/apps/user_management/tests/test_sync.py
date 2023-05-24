@@ -335,7 +335,7 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
 def test_cleanup_organization_deleted(make_organization):
     organization = make_organization(gcom_token="TEST_GCOM_TOKEN")
 
-    with patch.object(GcomAPIClient, "get_instance_info", return_value={"status": "deleted"}):
+    with patch.object(GcomAPIClient, "api_get", return_value=({"items": [{"status": "deleted"}]}, None)):
         cleanup_organization(organization.id)
 
     organization.refresh_from_db()

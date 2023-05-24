@@ -1,6 +1,6 @@
 # Main
 enabled = True
-title = "Formatted Webhook"
+title = "Formatted webhook"
 slug = "formatted_webhook"
 short_description = None
 description = None

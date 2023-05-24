@@ -69,7 +69,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
                 alert_receive_channel_pk=alert_receive_channel.pk,
                 image_url=None,
                 link_to_upstream_details=None,
-                integration_unique_data=request.data,
+                integration_unique_data=None,
                 raw_request_data=payload,
             )
 

@@ -6,10 +6,10 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import IncidentMatcher from 'containers/IncidentMatcher/IncidentMatcher';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
@@ -129,7 +129,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
                 </>
               }
             >
-              <MonacoJinja2Editor
+              <MonacoEditor
                 value={filteringTerm}
                 disabled={false}
                 onChange={handleFilteringTermChange}
@@ -162,7 +162,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
               disabled={data?.is_default}
               error={errors['filtering_term']}
             >
-              <MonacoJinja2Editor
+              <MonacoEditor
                 value={filteringTerm}
                 disabled={false}
                 onChange={handleFilteringTermChange}
