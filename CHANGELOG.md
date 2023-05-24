@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Phone provider refactoring
+
 ### Fixed
 
 - Improve plugin authentication by @vadimkerr ([#1995](https://github.com/grafana/oncall/pull/1995))

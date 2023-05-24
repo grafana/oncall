@@ -227,6 +227,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
+    "apps.phone_notifications",
 ]
 
 REST_FRAMEWORK = {
@@ -704,3 +705,11 @@ PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", defaul
 PYROSCOPE_APPLICATION_NAME = os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall")
 PYROSCOPE_SERVER_ADDRESS = os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040")
 PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
+
+# map of phone provider alias to importpath.
+# Used in get_phone_provider function to dynamically load current provider.
+PHONE_PROVIDERS = {
+    "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
+    # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+}
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
