@@ -6,13 +6,24 @@ test('check schedule quality for simple 1-user schedule', async ({ page }) => {
   const onCallScheduleName = generateRandomValue();
   await createOnCallSchedule(page, onCallScheduleName);
 
-  await expect(page.locator('div[class*="ScheduleQuality"]')).toHaveText('Quality: Great');
+  /**
+   * this page.reload() call is a hack to temporarily get around this issue
+   * https://github.com/grafana/oncall/issues/1968
+   */
+  await page.reload({ waitUntil: 'networkidle' });
 
-  await page.hover('div[class*="ScheduleQuality"]');
-  await expect(page.locator('div[class*="ScheduleQualityDetails"] >> span[class*="Text"] >> nth=2 ')).toHaveText(
+  const scheduleQualityElement = page.getByTestId('schedule-quality');
+
+  await expect(scheduleQualityElement).toHaveText('Quality: Great', { timeout: 15_000 });
+
+  await scheduleQualityElement.hover();
+
+  const scheduleQualityDetailsElement = page.getByTestId('schedule-quality-details');
+
+  await expect(scheduleQualityDetailsElement.locator('span[class*="Text"] >> nth=2 ')).toHaveText(
     'Schedule has no gaps'
   );
-  await expect(page.locator('div[class*="ScheduleQualityDetails"] >> span[class*="Text"] >> nth=3 ')).toHaveText(
+  await expect(scheduleQualityDetailsElement.locator('span[class*="Text"] >> nth=3 ')).toHaveText(
     'Schedule is perfectly balanced'
   );
 });
