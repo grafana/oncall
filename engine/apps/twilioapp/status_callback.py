@@ -1,9 +1,13 @@
+import logging
+
 from django.apps import apps
 from django.urls import reverse
 
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS, TwilioSMSstatuses
 from common.api_helpers.utils import create_engine_url
+
+logger = logging.getLogger(__name__)
 
 
 def update_twilio_call_status(call_sid, call_status):
@@ -20,6 +24,7 @@ def update_twilio_call_status(call_sid, call_status):
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
 
     if call_sid and call_status:
+        logger.info(f"twilioapp.update_twilio_call_status: processing sid={call_sid} status={call_status}")
         status = TwilioCallStatuses.DETERMINANT.get(call_status)
 
         twilio_phone_call = TwilioPhoneCall.objects.filter(sid=call_sid).first()
@@ -27,6 +32,10 @@ def update_twilio_call_status(call_sid, call_status):
         # Check twilio phone call and then oncall phone call for backward compatibility after PhoneCall migration.
         # Will be removed soon.
         if twilio_phone_call:
+            logger.info(
+                f"twilioapp.update_twilio_call_status: found legacy twilio_phone_call sid={call_sid}"
+                f" status={call_status}"
+            )
             status = TwilioCallStatuses.DETERMINANT.get(call_status)
             twilio_phone_call.status = status
             twilio_phone_call.save(update_fields=["status"])
@@ -36,6 +45,10 @@ def update_twilio_call_status(call_sid, call_status):
             phone_call_record = PhoneCallRecord.objects.filter(sid=call_sid).first()
 
         if phone_call_record and status:
+            logger.info(
+                f"twilioapp.update_twilio_call_status: processing using phone_call_record id={phone_call_record.id} "
+                f"sid={call_sid} status={call_status}"
+            )
             log_record_type = None
             log_record_error_code = None
 
@@ -87,6 +100,7 @@ def update_twilio_sms_status(message_sid, message_status):
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
 
     if message_sid and message_status:
+        logger.info(f"twilioapp.update_twilio_message_status: processing sid={message_sid} status={message_status}")
         status = TwilioSMSstatuses.DETERMINANT.get(message_status)
 
         twilio_sms = TwilioSMS.objects.filter(sid=message_sid).first()
@@ -94,6 +108,10 @@ def update_twilio_sms_status(message_sid, message_status):
         # Check twilio phone call and then oncall phone call for backward compatibility after PhoneCall migration.
         # Will be removed soon.
         if twilio_sms:
+            logger.info(
+                f"twilioapp.update_twilio_sms_status: found legacy twilio_phone_call sid={message_sid}"
+                f" status={message_sid}"
+            )
             twilio_sms.status = status
             twilio_sms.save(update_fields=["status"])
             sms_record = twilio_sms.sms_record
@@ -102,6 +120,10 @@ def update_twilio_sms_status(message_sid, message_status):
             sms_record = PhoneCallRecord.objects.filter(sid=message_sid).first()
 
         if sms_record and status:
+            logger.info(
+                f"twilioapp.update_twilio_sms_status: processing using sms_record id={sms_record.id} "
+                f"sid={message_sid} status={message_status}"
+            )
             log_record_type = None
             log_record_error_code = None
             if status == TwilioSMSstatuses.DELIVERED:

@@ -68,8 +68,5 @@ class CallStatusCallback(APIView):
         call_sid = request.POST.get("CallSid")
         call_status = request.POST.get("CallStatus")
 
-        logging.info(f"CallStatusCallback: SID: {call_sid}, Status: {call_status}")
-
         update_twilio_call_status(call_sid=call_sid, call_status=call_status)
-
         return Response(data="", status=status.HTTP_204_NO_CONTENT)
