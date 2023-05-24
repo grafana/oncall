@@ -54,6 +54,10 @@ export interface Alert {
   is_restricted: boolean;
   channel: Channel;
   slack_permalink?: string;
+  permalinks: {
+    slack: string;
+    telegram: string;
+  };
   declare_incident_link?: string;
   related_users: User[];
   render_after_resolve_report_json?: TimeLineItem[];

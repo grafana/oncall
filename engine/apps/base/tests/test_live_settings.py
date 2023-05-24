@@ -4,7 +4,7 @@ import pytest
 
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
-from apps.twilioapp.twilio_client import TwilioClient
+from apps.twilioapp.phone_provider import TwilioPhoneProvider
 
 
 @pytest.mark.django_db
@@ -61,12 +61,12 @@ def test_twilio_respects_changed_credentials(settings):
     settings.TWILIO_AUTH_TOKEN = "twilio_auth_token"
     settings.TWILIO_NUMBER = "twilio_number"
 
-    twilio_client = TwilioClient()
+    twilio_client = TwilioPhoneProvider()
 
     live_settings.TWILIO_ACCOUNT_SID = "new_twilio_account_sid"
     live_settings.TWILIO_AUTH_TOKEN = "new_twilio_auth_token"
     live_settings.TWILIO_NUMBER = "new_twilio_number"
 
-    assert twilio_client.twilio_api_client.username == "new_twilio_account_sid"
-    assert twilio_client.twilio_api_client.password == "new_twilio_auth_token"
-    assert twilio_client.twilio_number == "new_twilio_number"
+    assert twilio_client._twilio_api_client.username == "new_twilio_account_sid"
+    assert twilio_client._twilio_api_client.password == "new_twilio_auth_token"
+    assert twilio_client._twilio_number == "new_twilio_number"

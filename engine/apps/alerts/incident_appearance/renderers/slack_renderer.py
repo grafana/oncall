@@ -218,34 +218,31 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     text = "Invite..."
                     invitation_element = self._get_select_user_element(action_id, text=text)
                     buttons.append(invitation_element)
-                if not self.alert_group.acknowledged:
-                    if not self.alert_group.silenced:
-                        silence_options = [
-                            {"text": {"type": "plain_text", "text": text, "emoji": True}, "value": str(value)}
-                            for value, text in AlertGroup.SILENCE_DELAY_OPTIONS
-                        ]
-                        buttons.append(
-                            {
-                                "placeholder": {"type": "plain_text", "text": "Silence", "emoji": True},
-                                "type": "static_select",
-                                "options": silence_options,
-                                "action_id": ScenarioStep.get_step(
-                                    "distribute_alerts", "SilenceGroupStep"
-                                ).routing_uid(),
-                                # "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
-                            }
-                        )
-                    else:
-                        buttons.append(
-                            {
-                                "text": {"type": "plain_text", "text": "Unsilence", "emoji": True},
-                                "type": "button",
-                                "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
-                                "action_id": ScenarioStep.get_step(
-                                    "distribute_alerts", "UnSilenceGroupStep"
-                                ).routing_uid(),
-                            },
-                        )
+
+                if not self.alert_group.silenced:
+                    silence_options = [
+                        {"text": {"type": "plain_text", "text": text, "emoji": True}, "value": str(value)}
+                        for value, text in AlertGroup.SILENCE_DELAY_OPTIONS
+                    ]
+                    buttons.append(
+                        {
+                            "placeholder": {"type": "plain_text", "text": "Silence", "emoji": True},
+                            "type": "static_select",
+                            "options": silence_options,
+                            "action_id": ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
+                            # "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                        }
+                    )
+                else:
+                    buttons.append(
+                        {
+                            "text": {"type": "plain_text", "text": "Unsilence", "emoji": True},
+                            "type": "button",
+                            "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                            "action_id": ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep").routing_uid(),
+                        },
+                    )
+
                 attach_button = {
                     "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
                     "type": "button",

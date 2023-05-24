@@ -1,5 +1,5 @@
 ---
-title: Grafana OnCall mobile app
+title: Mobile App
 aliases:
   - /docs/oncall/latest/mobile-app/
 keywords:
@@ -7,7 +7,7 @@ keywords:
   - oncall
   - notification
   - push notification
-weight: 1200
+weight: 1100
 ---
 
 # Grafana OnCall Mobile App
@@ -99,5 +99,3 @@ To receive push notifications from the Grafana OnCall mobile app, you must add t
 
 1. From Grafana OnCall, navigate to the **Users** tab and click **View my profile**
 1. In your **User Info** tab, update your Default and Important notification policies to include Mobile push notifications.
-
-For more information about Notification Policies, refer to [Manage users and teams for Grafana OnCall]({{< relref "../configure-user-settings" >}})

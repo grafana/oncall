@@ -1,2 +1,10 @@
-.env.dev
-grafana.dev.ini
+# Ignore everything
+*
+
+# Except
+!.env.dev.example
+!.env.mysql.dev
+!.env.postgres.dev
+!.env.sqlite.dev
+!add_env_var.sh
+!README.md

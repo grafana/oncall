@@ -236,6 +236,22 @@ class RBACPermission(permissions.BasePermission):
         return True
 
 
+ALL_PERMISSION_NAMES = [perm for perm in dir(RBACPermission.Permissions) if not perm.startswith("_")]
+ALL_PERMISSION_CLASSES = [
+    getattr(RBACPermission.Permissions, permission_name) for permission_name in ALL_PERMISSION_NAMES
+]
+ALL_PERMISSION_CHOICES = [
+    (permission_class.value, permission_name)
+    for permission_class, permission_name in zip(ALL_PERMISSION_CLASSES, ALL_PERMISSION_NAMES)
+]
+
+
+def get_permission_from_permission_string(perm: str) -> typing.Optional[LegacyAccessControlCompatiblePermission]:
+    for permission_class in ALL_PERMISSION_CLASSES:
+        if permission_class.value == perm:
+            return permission_class
+
+
 class IsOwner(permissions.BasePermission):
     def __init__(self, ownership_field: typing.Optional[str] = None) -> None:
         self.ownership_field = ownership_field
