@@ -13,14 +13,14 @@ weight: 1400
 # Insight Logs
 
 > **Note:** Grafana OnCall insight logs are available in Grafana Cloud only.
-We're in process of rolling Insight Logs to all customers,
-if you don't see insight logs in your Grafana cloud stack, please reach out to support.
+We're in the process of rolling out Insight Logs to all customers,
+if you don't see insight logs in your Grafana Cloud stack, please reach out to support.
 
-Grafana OnCall insights logs represents certain activities, such as:
+Grafana OnCall Insights Logs represents certain activities, such as when:
 
-- A user creates, updates or deletes resource.
+- A user creates, updates, or deletes a resource.
 - A Maintenance mode is started or finished for an integration.
-- A user configure ChatOps integration.
+- A user configures a ChatOps integration.
 
 This configuration is done for you in Grafana Cloud with [Usage Insights Loki data source](https://grafana.com/docs/grafana-cloud/billing-and-usage/usage-insights/#usage-insights-loki-data-source).
 You can use this query to retrieve all logs related to your OnCall instance.
@@ -31,7 +31,7 @@ You can use this query to retrieve all logs related to your OnCall instance.
 
 ## Resource insight logs
 
-Logs are created each time user modifies any resource in Grafana OnCall.
+Logs are created each time a user modifies any resource in Grafana OnCall.
 
 These logs will have `action_type=resource` field and can be retrieved with following query:
 
@@ -125,7 +125,7 @@ chatops action names: `workspace_connected`, `workspace_disconnected`, `channel_
 ## Examples
 
 Here is some examples of practical queries to Grafana OnCall insight logs.
-LogQL is used to retrieve them, If you are not familiar with LogQL check this [documentation](https://grafana.com/docs/loki/latest/logql/).
+LogQL is used to retrieve them. If you are not familiar with LogQL check this [documentation](https://grafana.com/docs/loki/latest/logql/).
 
 Resource IDs are used a lot in insight logs. You can find them in web ui (example for integration):
 
