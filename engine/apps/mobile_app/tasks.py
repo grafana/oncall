@@ -242,6 +242,9 @@ def _get_alert_group_escalation_fcm_message(
 def _get_youre_going_oncall_fcm_message(
     user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
 ) -> Message:
+    # avoid circular import
+    from apps.mobile_app.models import MobileAppUserSettings
+
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
