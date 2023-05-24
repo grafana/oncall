@@ -444,7 +444,6 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
                 device_to_notify = FCMDevice.objects.filter(user=user).first()
 
                 if not device_to_notify:
-                    logger.info(f"User {user_pk} has no device set up")
                     continue
                 else:
                     device_cache[user_pk] = device_to_notify
