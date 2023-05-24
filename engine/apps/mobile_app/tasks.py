@@ -383,7 +383,9 @@ def should_we_send_going_oncall_push_notification(
         f"shift_starts_within_fifteen_minutes: {shift_starts_within_fifteen_minutes}"
     )
 
-    if shift_starts_within_users_notification_timing_preference or shift_starts_within_fifteen_minutes:
+    # Temporary remove `shift_starts_within_users_notification_timing_preference` from condition to send notification only 15 minutes before the shift starts
+    # TODO: Return it once mobile app ready and default value is changed (https://github.com/grafana/oncall/issues/1999)
+    if shift_starts_within_fifteen_minutes:
         logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
         return seconds_until_shift_starts
     logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
