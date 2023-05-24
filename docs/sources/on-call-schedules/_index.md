@@ -19,7 +19,7 @@ weight: 700
 - Users with Viewer role cannot receive alert notifications, therefore, cannot be on-call.
 
 For more information about permissions, refer to
-[Manage users and teams for Grafana OnCall]({{< relref "../../../configure-user-settings" >}})
+[Manage users and teams for Grafana OnCall]({{< relref "user-and-team-management" >}})
 
 ### Web-based schedule
 

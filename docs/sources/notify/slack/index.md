@@ -30,7 +30,7 @@ To install the Slack integration, you must have Admin permissions in your Grafan
 that you’d like to integrate with.
 
 For Open Source Grafana OnCall Slack installation guidance, refer to
-[Open Source Grafana OnCall]({{< relref "../../../open-source/" >}}).
+[Open Source Grafana OnCall]({{< relref "open-source" >}}).
 
 ## Install Slack integration for Grafana OnCall
 

@@ -61,4 +61,4 @@ https://a-prod-us-central-0.grafana.net/integrations/v1/formatted_webhook/m12xmI
 ```
 
 To learn how to use custom alert templates for formatted webhooks, see
-[Configure alerts templates]({{< relref "../../../alert-behavior/alert-templates/" >}}).
+[Configure alerts templates]({{< relref "jinja2-templating" >}}).
