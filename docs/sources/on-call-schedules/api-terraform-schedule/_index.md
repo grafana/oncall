@@ -11,6 +11,11 @@ keywords:
 weight: 100
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # API & Terraform schedules
+
+If your schedules became comprehensive, or you would like to distribute the same scheduling patterns through multiple
+teams in the org, we suggest considering storing schedules as code.
+
+- [Get started with Grafana OnCall and Terraform (blogpost)](https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/)
+- [Grafana Terraform provider reference (OnCall resources are managed using this provider)](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/oncall_schedule)
+- [OnCall API]({{< relref "oncall-api-reference" >}})

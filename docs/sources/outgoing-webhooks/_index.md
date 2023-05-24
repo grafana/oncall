@@ -14,8 +14,6 @@ title: Outgoing Webhooks
 weight: 900
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
 # Configure outgoing webhooks for Grafana OnCall
 
 Outgoing webhooks allow you to send alert details to a specified URL from Grafana OnCall. Once an outgoing webhook is

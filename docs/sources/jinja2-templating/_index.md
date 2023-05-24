@@ -6,43 +6,21 @@ title: Jinja2 templating
 weight: 1000
 ---
 
-# NOT EDITED AFTER STRUCTURE CHANGE
-
-# Configure alert behavior for Grafana OnCall
-
-The available alert configurations in Grafana OnCall allow you to define how certain alerts are handled and ensure that
-alerts are routed, escalated, and grouped to fit your specific alerting needs. Grafana OnCall can receive alerts from
-any monitoring system that sends alerts via webhook.
-
-## About alert behavior
-
-Once Grafana OnCall receives an alert, the following occurs, based on the alert content:
-
-- Default or customized alert templates are applied to deliver the most useful alert fields with the most valuable information,
-  in a readable format.
-- Alerts are grouped based on your alert grouping configurations, combining similar or related alerts to reduce alert noise.
-- Alerts automatically resolve if an alert from the monitoring system matches the resolve condition for that alert.
+## Jinja2 templating
 
 Grafana OnCall can integrate with any monitoring systems that can send alerts using webhooks with JSON payloads. By
 default, webhooks deliver raw JSON payloads. When Grafana OnCall receives an alert and parses its payload, a default
-pre configured alert template is applied to modify the alert payload to be more human readable. These alert templates
+pre-configured alert template is applied to modify the alert payload to be more human-readable. These alert templates
 are customizable for any integration.
 
-See Format alerts with alert templates in this document to learn more about how to customize alert templates.
-
-## Alert Behavior
-
-Once Grafana OnCall receives an alert, the following occurs, based on the alert content:
-
-- Default or customized alert templates are applied to deliver the most useful alert fields with the most valuable information,
-  in a readable format.
-- Alerts are grouped based on your alert grouping configurations, combining similar or related alerts to reduce alert noise.
-- Alerts automatically resolve if an alert from the monitoring system matches the resolve condition for that alert.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/S6Is8hhyCos" title="YouTube video player"
+frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;
+web-share" allowfullscreen></iframe>
 
 ## Alert payload
 
 Alerts received by Grafana OnCall contain metadata as keys and values in a JSON object. The following is an example of
-an alert from Grafana OnCall:
+an alert received by Grafana OnCall initiated by Grafana Alerting:
 
 ```json
 {
