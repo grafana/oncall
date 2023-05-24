@@ -150,8 +150,7 @@ To configure Slack for Grafana OnCall:
 For further instruction on connecting to your Slack workspace, refer to
 [Slack integration for Grafana OnCall]({{< relref "../notify/slack/" >}})
 
-Grafana OnCall also supports other ChatOps integration like Microsoft Teams and Telegram.
-For more information on available ChatOps integration, refer to [Available ChatOps integrations]({{< relref "../integrations/chatops-integrations" >}})
+Grafana OnCall also supports other ChatOps integration like [Microsoft Teams and Telegram]({{< relref "../notify" >}}).
 
 ### Add your on-call schedule
 
@@ -162,9 +161,6 @@ To integrate your on-call calendar with Grafana OnCall:
 
 1. In the **Schedules** tab of Grafana OnCall, click **+ Add team schedule for on-call rotation**.
 2. Provide a schedule name.
-3. Copy the iCal URL associated with your on-call calendar from your calendar integration settings.
-4. Configure the rest of the schedule settings and click Create Schedule
+3. Configure the rest of the schedule settings and click Create Schedule
 
-Grafana OnCall also supports on-call schedule directly in the Grafana OnCall plugin using web-based schedule.
-For more information on on-call schedules, refer to
-[Configure and manage on-call schedules]({{< relref "on-call-schedules" >}})
+[More information on on-call schedules.]({{< relref "on-call-schedules" >}})
