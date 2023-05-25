@@ -24,6 +24,15 @@ the destination country code by @mderynck ([#1976](https://github.com/grafana/on
 
 ## v1.2.29 (2023-05-25)
 
+### Changed
+
+- Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
+
+### Fixed
+
+- Handle slack metadata limit when creating paging command payload ([#2007](https://github.com/grafana/oncall/pull/2007))
+- Fix issue with sometimes cached final schedule not being refreshed after an update ([#2004](https://github.com/grafana/oncall/pull/2004))
+
 ## v1.2.28 (2023-05-24)
 
 ### Fixed
