@@ -3,7 +3,7 @@ import urllib.parse
 from string import digits
 
 from django.apps import apps
-from django.db.models import Q
+from django.db.models import F, Q
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
@@ -234,11 +234,14 @@ class TwilioPhoneProvider(PhoneProvider):
     def _twilio_sender(self, sender_type, to):
         _, _, country_code = self._parse_number(to)
         TwilioSender = apps.get_model("twilioapp", sender_type)
-        senders = list(TwilioSender.objects.filter(Q(country_code=country_code) | Q(country_code__isnull=True)))
-        senders.sort(key=lambda x: (not x.country_code, x))
+        sender = (
+            TwilioSender.objects.filter(Q(country_code=country_code) | Q(country_code__isnull=True))
+            .order_by(F("country_code").desc(nulls_last=True))
+            .first()
+        )
 
-        if senders:
-            return senders[0].account.get_twilio_api_client(), senders[0]
+        if sender:
+            return sender.account.get_twilio_api_client(), sender
 
         return self._default_twilio_api_client, None
 
