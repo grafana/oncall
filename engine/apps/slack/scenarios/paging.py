@@ -49,7 +49,6 @@ def add_or_update_item(payload, key, item_pk, policy):
     metadata = json.loads(payload["view"]["private_metadata"])
     metadata[key][item_pk] = policy
     updated_metadata = json.dumps(metadata)
-    print(updated_metadata)
     if len(updated_metadata) > PRIVATE_METADATA_MAX_LENGTH:
         raise ValueError("Cannot add entry, maximum exceeded")
     payload["view"]["private_metadata"] = updated_metadata
