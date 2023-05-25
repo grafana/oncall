@@ -30,8 +30,16 @@ def unsilence_task(alert_group_pk):
             )
             return
         if alert_group.status == AlertGroup.SILENCED and alert_group.is_root_alert_group:
+            initial_state = alert_group.state
             task_logger.info(f"unsilence alert_group {alert_group_pk} and start escalation if needed")
+
             alert_group.un_silence()
+            # update metrics
+            alert_group._update_metrics(
+                organization_id=alert_group.channel.organization_id,
+                previous_state=initial_state,
+                state=alert_group.state,
+            )
             alert_group.start_escalation_if_needed()
             un_silence_log_record = AlertGroupLogRecord(
                 type=AlertGroupLogRecord.TYPE_UN_SILENCE,
