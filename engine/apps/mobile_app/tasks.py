@@ -62,7 +62,7 @@ def send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
 def _send_push_notification(
     device_to_notify: FCMDevice, message: Message, error_cb: typing.Optional[typing.Callable[..., None]] = None
 ) -> None:
-    logger.debug(f"Sending push notification with message: {message}")
+    logger.debug(f"Sending push notification to device type {device_to_notify.type} with message: {message}")
 
     def _error_cb():
         if error_cb:
@@ -119,7 +119,6 @@ def _construct_fcm_message(
             **data,
             "type": message_type,
             "thread_id": thread_id,
-            "device_type": device_to_notify.type,
         },
         android=AndroidConfig(
             # from the docs
