@@ -31,7 +31,7 @@ def get_push_notification_subtitle(alert_group):
 
 
     subtitle = f"#{alert_group.inside_organization_number} {alert_title}\n" 
-    + emojize(f"via {alert_group.channel.short_name}", use_aliases=True)
-    + f"\n{alert_status}"
+    +emojize(f"via {alert_group.channel.short_name}", use_aliases=True)
+    +f"\n{alert_status}"
 
     return subtitle
