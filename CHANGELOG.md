@@ -12,9 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
 the destination country code by @mderynck ([#1976](https://github.com/grafana/oncall/pull/1976))
 
-### Changed
+### Fixed
 
-- Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
+- Fix error when updating closed modal window in Slack by @vadimkerr ([#2019](https://github.com/grafana/oncall/pull/2019))
+
+## v1.2.30 (2023-05-25)
+
+### Fixed
+
+- Fix Phone provider status callbacks [#2014](https://github.com/grafana/oncall/pull/2014)
+
+## v1.2.29 (2023-05-25)
 
 ## v1.2.28 (2023-05-24)
 
@@ -37,6 +45,7 @@ the destination country code by @mderynck ([#1976](https://github.com/grafana/on
 ### Fixed
 
 - Fix SQLite permission issue by @vadimkerr ([#1984](https://github.com/grafana/oncall/pull/1984))
+- Remove user defined time period from "you're going oncall" mobile push ([2001](https://github.com/grafana/oncall/pull/2001))
 
 ## v1.2.26 (2023-05-18)
 
