@@ -20,6 +20,7 @@ def get_push_notification_subtitle(alert_group):
     elif alert_group.acknowledged:
         status_verbose = alert_group.get_acknowledge_text()
 
+    number_of_alerts = alert_group.alerts.count()
     if number_of_alerts <= 10:
         alerts_count_str = str(number_of_alerts)
     else:
@@ -30,7 +31,7 @@ def get_push_notification_subtitle(alert_group):
 
 
     subtitle = f"#{alert_group.inside_organization_number} {alert_title}\n" 
-    + emojize(f"{title} via {alert_group.channel.short_name}", use_aliases=True)
+    + emojize(f"via {alert_group.channel.short_name}", use_aliases=True)
     + f"\n{alert_status}"
 
     return subtitle

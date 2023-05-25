@@ -153,7 +153,6 @@ def _get_alert_group_escalation_fcm_message(
     from apps.mobile_app.models import MobileAppUserSettings
 
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-    number_of_alerts = alert_group.alerts.count()
 
     alert_title = "New Alert" if critical else "New Important Alert"
     alert_subtitle = get_push_notification_subtitle(alert_group)
