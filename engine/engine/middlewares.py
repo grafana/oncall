@@ -23,20 +23,18 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
             seconds = (dt - request._logging_start_dt).total_seconds()
             status_code = 0 if response is None else response.status_code
             content_length = request.headers.get("content-length", default=0)
+            user_agent = request.META["HTTP_USER_AGENT"]
             message = (
                 "inbound "
                 f"latency={str(seconds)} status={status_code} method={request.method} path={request.path} "
-                f"content-length={content_length} slow={int(seconds > settings.SLOW_THRESHOLD_SECONDS)} "
+                f"user_agent={user_agent} content-length={content_length} "
+                f"slow={int(seconds > settings.SLOW_THRESHOLD_SECONDS)} "
             )
-            if (
-                hasattr(request, "user")
-                and request.user
-                and request.user.id
-                and hasattr(request.user, "organization_id")
-            ):
+            if hasattr(request, "user") and request.user and request.user.id and hasattr(request.user, "organization"):
                 user_id = request.user.id
-                org_id = request.user.organization_id
-                message += f"user_id={user_id} org_id={org_id} "
+                org_id = request.user.organization.id
+                org_slug = request.user.organization.org_slug
+                message += f"user_id={user_id} org_id={org_id} org_slug={org_slug} "
             if request.path.startswith("/integrations/v1"):
                 split_path = request.path.split("/")
                 integration_type = split_path[3]
