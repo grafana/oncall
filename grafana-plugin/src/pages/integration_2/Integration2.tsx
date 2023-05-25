@@ -48,14 +48,17 @@ import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import {
+  AlertReceiveChannel,
+  AlertReceiveChannelCounters,
+} from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { API_HOST, API_PATH_PREFIX } from 'network';
 import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import styles from 'pages/integration_2/Integration2.module.scss';
-import { PageProps, WithStoreProps } from 'state/types';
+import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification, openErrorNotification } from 'utils';
@@ -128,7 +131,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isTemplateSettingsOpen,
     } = this.state;
     const {
-      store: { alertReceiveChannelStore, grafanaTeamStore },
+      store: { alertReceiveChannelStore },
       match: {
         params: { id },
       },
@@ -197,65 +200,12 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               )}
 
               <div className={cx('no-wrap')}>
-                <HorizontalGroup>
-                  {alertReceiveChannelCounter && (
-                    <PluginLink
-                      className={cx('hover-button')}
-                      target="_blank"
-                      query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
-                    >
-                      <TooltipBadge
-                        borderType="primary"
-                        tooltipTitle={undefined}
-                        tooltipContent={this.getAlertReceiveChannelCounterTooltip()}
-                        text={
-                          alertReceiveChannelCounter?.alerts_count +
-                          '/' +
-                          alertReceiveChannelCounter?.alert_groups_count
-                        }
-                      />
-                    </PluginLink>
-                  )}
-
-                  <TooltipBadge
-                    borderType="success"
-                    icon="link"
-                    text={channelFilterIds.length}
-                    tooltipTitle={`${channelFilterIds.length} Routes`}
-                    tooltipContent={undefined}
-                  />
-
-                  {alertReceiveChannel.maintenance_till && (
-                    <TooltipBadge
-                      borderType="primary"
-                      icon="pause"
-                      text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
-                      tooltipTitle={IntegrationHelper.getMaintenanceText(
-                        alertReceiveChannel.maintenance_till,
-                        alertReceiveChannel.maintenance_mode
-                      )}
-                      tooltipContent={undefined}
-                    />
-                  )}
-
-                  {this.renderHearbeat(alertReceiveChannel)}
-
-                  <HorizontalGroup spacing="xs">
-                    <Text type="secondary">Type:</Text>
-                    <HorizontalGroup spacing="xs">
-                      <IntegrationLogo scale={0.08} integration={integration} />
-                      <Text type="primary">{integration?.display_name}</Text>
-                    </HorizontalGroup>
-                  </HorizontalGroup>
-                  <HorizontalGroup spacing="xs">
-                    <Text type="secondary">Team:</Text>
-                    <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
-                  </HorizontalGroup>
-                  <HorizontalGroup spacing="xs">
-                    <Text type="secondary">Created by:</Text>
-                    <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
-                  </HorizontalGroup>
-                </HorizontalGroup>
+                <IntegrationHeader
+                  alertReceiveChannel={alertReceiveChannel}
+                  alertReceiveChannelCounter={alertReceiveChannelCounter}
+                  channelFilterIds={channelFilterIds}
+                  integration={integration}
+                />
               </div>
             </div>
 
@@ -487,51 +437,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         } as IntegrationCollapsibleItem)
     );
   };
-
-  renderHearbeat = (alertReceiveChannel: AlertReceiveChannel) => {
-    const { heartbeatStore, alertReceiveChannelStore } = this.props.store;
-
-    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
-    const heartbeat = heartbeatStore.items[heartbeatId];
-
-    const heartbeatStatus = Boolean(heartbeat?.status);
-
-    if (
-      !alertReceiveChannel.is_available_for_integration_heartbeat ||
-      alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal === null
-    ) {
-      return null;
-    }
-
-    return (
-      <TooltipBadge
-        text={undefined}
-        className={cx('heartbeat-badge')}
-        borderType={heartbeatStatus ? 'success' : 'danger'}
-        customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
-        tooltipContent={undefined}
-      />
-    );
-  };
-
-  getAlertReceiveChannelCounterTooltip = () => {
-    const { id } = this.props.match.params;
-    const { alertReceiveChannelStore } = this.props.store;
-    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-
-    return (
-      alertReceiveChannelCounter?.alerts_count +
-      ' alert' +
-      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
-      ' in ' +
-      alertReceiveChannelCounter?.alert_groups_count +
-      ' alert group' +
-      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
-    );
-  };
-
-  handleSlackChannelChange = () => {};
 
   handleEditRegexpRouteTemplate = (channelFilterId) => {
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
@@ -1030,6 +935,119 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           )}
         </VerticalGroup>
       </div>
+    );
+  }
+};
+
+interface IntegrationHeaderProps {
+  alertReceiveChannelCounter: AlertReceiveChannelCounters;
+  alertReceiveChannel: AlertReceiveChannel;
+  integration: SelectOption;
+  channelFilterIds: string[];
+}
+
+const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
+  integration,
+  alertReceiveChannelCounter,
+  alertReceiveChannel,
+  channelFilterIds,
+}) => {
+  const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
+
+  return (
+    <HorizontalGroup>
+      {alertReceiveChannelCounter && (
+        <PluginLink
+          className={cx('hover-button')}
+          target="_blank"
+          query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
+        >
+          <TooltipBadge
+            borderType="primary"
+            tooltipTitle={undefined}
+            tooltipContent={getAlertReceiveChannelCounterTooltip()}
+            text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
+          />
+        </PluginLink>
+      )}
+
+      <TooltipBadge
+        borderType="success"
+        icon="link"
+        text={channelFilterIds.length}
+        tooltipTitle={`${channelFilterIds.length} Routes`}
+        tooltipContent={undefined}
+      />
+
+      {alertReceiveChannel.maintenance_till && (
+        <TooltipBadge
+          borderType="primary"
+          icon="pause"
+          text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
+          tooltipTitle={IntegrationHelper.getMaintenanceText(
+            alertReceiveChannel.maintenance_till,
+            alertReceiveChannel.maintenance_mode
+          )}
+          tooltipContent={undefined}
+        />
+      )}
+
+      {renderHearbeat(alertReceiveChannel)}
+
+      <HorizontalGroup spacing="xs">
+        <Text type="secondary">Type:</Text>
+        <HorizontalGroup spacing="xs">
+          <IntegrationLogo scale={0.08} integration={integration} />
+          <Text type="primary">{integration?.display_name}</Text>
+        </HorizontalGroup>
+      </HorizontalGroup>
+      <HorizontalGroup spacing="xs">
+        <Text type="secondary">Team:</Text>
+        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+      </HorizontalGroup>
+      <HorizontalGroup spacing="xs">
+        <Text type="secondary">Created by:</Text>
+        <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
+      </HorizontalGroup>
+    </HorizontalGroup>
+  );
+
+  function getAlertReceiveChannelCounterTooltip() {
+    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[alertReceiveChannel.id];
+
+    return (
+      alertReceiveChannelCounter?.alerts_count +
+      ' alert' +
+      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+      ' in ' +
+      alertReceiveChannelCounter?.alert_groups_count +
+      ' alert group' +
+      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+    );
+  }
+
+  function renderHearbeat(alertReceiveChannel: AlertReceiveChannel) {
+    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
+    const heartbeat = heartbeatStore.items[heartbeatId];
+
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
+    if (
+      !alertReceiveChannel.is_available_for_integration_heartbeat ||
+      alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal === null
+    ) {
+      return null;
+    }
+
+    return (
+      <TooltipBadge
+        text={undefined}
+        className={cx('heartbeat-badge')}
+        borderType={heartbeatStatus ? 'success' : 'danger'}
+        customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
+        tooltipContent={undefined}
+      />
     );
   }
 };
