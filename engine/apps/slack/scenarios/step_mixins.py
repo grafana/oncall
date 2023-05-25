@@ -1,12 +1,15 @@
 import logging
-from abc import ABC, abstractmethod
 
 from apps.api.permissions import user_is_authorized
 
 logger = logging.getLogger(__name__)
 
 
-class AccessControl(ABC):
+class AlertGroupActionsAccessControlMixin:
+    """
+    Mixin for alert group actions intended to use a mixin along with ScenarioStep
+    """
+
     REQUIRED_PERMISSIONS = []
     ACTION_VERBOSE = ""
 
@@ -18,20 +21,6 @@ class AccessControl(ABC):
 
     def check_membership(self):
         return user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
-
-    @abstractmethod
-    def send_denied_message(self, payload):
-        pass
-
-
-class AlertGroupActionsAccessControlMixin(AccessControl):
-    """
-    Mixin for alert group actions
-    """
-
-    def send_denied_message_to_channel(self, payload=None):
-        # Send denied message to thread by default
-        return False
 
     def send_denied_message(self, payload):
         try:
@@ -58,7 +47,7 @@ class AlertGroupActionsAccessControlMixin(AccessControl):
                     },
                 },
             ],
-            thread_ts=None if self.send_denied_message_to_channel(payload) else thread_ts,
+            thread_ts=thread_ts,
             unfurl_links=True,
         )
 
