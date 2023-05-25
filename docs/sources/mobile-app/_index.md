@@ -12,8 +12,6 @@ weight: 1100
 
 # Grafana OnCall Mobile App
 
->**Note**: This application is currently in beta and has limited functionality.
-
 The Grafana OnCall mobile app allows teams to monitor and respond to critical system events from anywhere.
 On-call engineers can start exploring the benefits of the Grafana OnCall mobile app, with real-time alerts, on-call notifications, and a growing feature set.
 
@@ -83,19 +81,39 @@ Your Grafana OnCall OSS instance should be reachable from the same network as yo
 
 ## Mobile app push notifications
 
-There are two push notification options for the mobile app:
+There are three types of push notifications for the mobile app:
 
-- **Mobile push** - Sends a typical push notification to your mobile device according to your device and app notification settings.
-Intended for all types of alerts.
-- **Mobile push important** - Sends a privileged push notification that can bypass Do Not Disturb on your device.
-Intended for critical alerts. Device-specific settings may impact the functionality of these notifications.
+- **Mobile push** - Sends a typical push notification to your mobile device.  Intended for all types of alerts.
+- **Mobile push important** - Sends a push notification for important alerts.  We recommend (and default) to louder notifications.
+- **OnCall Shift Notifications** - Sends announcements for upcoming shifts (optional).
 
->**Note**: Android users may need to review their device settings to ensure the Grafana OnCall mobile app is authorized to bypass Do Not Disturb.
-> In your device settings, allow the Android Critical Message Channel notification channel to Override Do Not Disturb.
-
-### Add mobile app to notification preferences
+### Add mobile app to notification policies
 
 To receive push notifications from the Grafana OnCall mobile app, you must add them to your notification policy steps.
+**Important notifications** should include **Mobile push important** and **Default notifications** should include **Mobile push**.
 
-1. From Grafana OnCall, navigate to the **Users** tab and click **View my profile**
-1. In your **User Info** tab, update your Default and Important notification policies to include Mobile push notifications.
+In the **Settings** tab of the mobile app, tap on **Notification policies** to review, reorder, remove, add or change steps.
+Alternatively, you can do the same on desktop. From Grafana OnCall, navigate to the **Users** page, click **View my profile** and navigate to the **User Info** tab.
+
+### Configuration
+
+Use the **Push notifications** section in the **Settings** tab to configure push notifications.
+
+#### Android
+
+On Android, we leverage the "Notification channels" system feature. Each type of notification (**important**, **default**, and **on-call shifts**) registers a channel.
+In this channel, you may configure the sound style, optional Do Not Disturb override, vibration, and so on.
+- **Customize notifications** takes you to this system menu, while hitting the **back** button or swiping left (if enabled) takes you back to the application.
+- **Volume Override** can optionally be configured in the mobile app itself.  Confusingly, this requires you to provide the **Override Do Not Disturb** permission to the application, in the system configuration.  The app will prompt for this if applicable.
+
+>**Note**: You can explore included sounds and recommendations via the **Sound Library** button, but to actually change the sound, you must go to **Customize notifications**.
+
+#### iPhone
+
+On iPhone, all configuration (such as sound selection, Do Not Disturb override, etc) happens inside the app.
+Device-specific settings may impact the functionality of these notifications.
+
+
+## On-call status & shift information
+
+
