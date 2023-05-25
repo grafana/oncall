@@ -23,7 +23,7 @@ class AlertGroupActionsMixin:
         else:
             self._send_denied_message(payload)
 
-    def get_alert_group_from_slack_message_payload(self, slack_team_identity, payload):
+    def get_alert_group(self, slack_team_identity, payload):
 
         message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
         channel_id = payload["channel"]["id"]
