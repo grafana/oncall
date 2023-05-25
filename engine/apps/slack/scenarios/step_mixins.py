@@ -24,9 +24,9 @@ class AccessControl(ABC):
         pass
 
 
-class IncidentActionsAccessControlMixin(AccessControl):
+class AlertGroupActionsAccessControlMixin(AccessControl):
     """
-    Mixin for auth in incident actions
+    Mixin for alert group actions
     """
 
     def send_denied_message_to_channel(self, payload=None):

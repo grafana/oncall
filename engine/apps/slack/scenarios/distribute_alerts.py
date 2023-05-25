@@ -35,7 +35,7 @@ from apps.slack.tasks import (
 from apps.slack.utils import get_cache_key_update_incident_slack_message
 from common.utils import clean_markup, is_string_with_visible_characters
 
-from .step_mixins import CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin
+from .step_mixins import AlertGroupActionsAccessControlMixin, CheckAlertIsUnarchivedMixin
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -216,7 +216,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
 
 class InviteOtherPersonToIncident(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
 
@@ -253,7 +253,7 @@ class InviteOtherPersonToIncident(
 
 class SilenceGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
 
@@ -279,7 +279,7 @@ class SilenceGroupStep(
 
 class UnSilenceGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
@@ -298,7 +298,7 @@ class UnSilenceGroupStep(
 
 class SelectAttachGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
@@ -449,7 +449,7 @@ class SelectAttachGroupStep(
 
 class AttachGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
@@ -507,7 +507,7 @@ class AttachGroupStep(
 
 class UnAttachGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
@@ -523,7 +523,9 @@ class UnAttachGroupStep(
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin, scenario_step.ScenarioStep):
+class StopInvitationProcess(
+    CheckAlertIsUnarchivedMixin, AlertGroupActionsAccessControlMixin, scenario_step.ScenarioStep
+):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "stop invitation"
 
@@ -541,7 +543,7 @@ class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessCo
 
 class CustomButtonProcessStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     # TODO:
@@ -601,7 +603,7 @@ class CustomButtonProcessStep(
 
 class ResolveGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
@@ -643,7 +645,7 @@ class ResolveGroupStep(
 
 class UnResolveGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
@@ -661,7 +663,7 @@ class UnResolveGroupStep(
 
 class AcknowledgeGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
@@ -682,7 +684,7 @@ class AcknowledgeGroupStep(
 
 class UnAcknowledgeGroupStep(
     CheckAlertIsUnarchivedMixin,
-    IncidentActionsAccessControlMixin,
+    AlertGroupActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
