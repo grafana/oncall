@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
+the destination country code by @mderynck ([#1976](https://github.com/grafana/oncall/pull/1976))
 - Prometheus exporter backend for alert groups related metrics
 
 ### Fixed
