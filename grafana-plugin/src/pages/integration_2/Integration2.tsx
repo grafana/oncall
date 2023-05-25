@@ -264,6 +264,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 {
                   isCollapsible: false,
                   customIcon: 'plug',
+                  canHoverIcon: false,
                   collapsedView: null,
                   expandedView: <HowToConnectComponent id={id} />,
                 },
@@ -456,6 +457,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     return channelFilterIds.map(
       (channelFilterId: ChannelFilter['id'], routeIndex: number) =>
         ({
+          canHoverIcon: true,
           isCollapsible: true,
           // this will keep new routes expanded at the very first time
           isExpanded: this.state.newRoutes.indexOf(channelFilterId) > -1 ? true : false,

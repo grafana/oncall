@@ -10,11 +10,11 @@ const cx = cn.bind(styles);
 
 export interface IntegrationCollapsibleItem {
   customIcon?: IconName;
+  canHoverIcon: boolean;
   expandedView: React.ReactNode;
   collapsedView: React.ReactNode;
   isCollapsible: boolean;
   isExpanded?: boolean;
-  canHoverIcon?: boolean;
   onStateChange?(): void;
 }
 
@@ -101,14 +101,13 @@ const IntegrationCollapsibleTreeItem: React.FC<{
   item: IntegrationCollapsibleItem;
   isExpanded: boolean;
   onClick: () => void;
-  canHoverIcon?: boolean;
-}> = ({ item, isExpanded, onClick, canHoverIcon = true }) => {
+}> = ({ item, isExpanded, onClick }) => {
   const iconOnClickFn = !item.isCollapsible ? undefined : onClick;
 
   return (
     <div className={cx('integrationTree__group')}>
       <div className={cx('integrationTree__icon')}>
-        {canHoverIcon ? (
+        {item.canHoverIcon ? (
           <IconButton name={getIconName()} onClick={iconOnClickFn} size="lg" />
         ) : (
           <Icon name={getIconName()} onClick={iconOnClickFn} size="lg" />
