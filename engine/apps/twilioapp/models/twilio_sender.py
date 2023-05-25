@@ -1,5 +1,4 @@
 from django.db import models
-from polymorphic.models import PolymorphicModel
 from twilio.rest import Client
 
 
@@ -17,11 +16,16 @@ class TwilioAccount(models.Model):
             return Client(self.account_sid, self.auth_token)
 
 
-class TwilioSender(PolymorphicModel):
+class TwilioSender(models.Model):
     name = models.CharField(max_length=100, null=False, default="Default")
     # Note: country_code does not have + prefix here
     country_code = models.CharField(max_length=16, null=True, default=None)
-    account = models.ForeignKey("twilioapp.TwilioAccount", on_delete=models.CASCADE, related_name="twilio_sender")
+    account = models.ForeignKey(
+        "twilioapp.TwilioAccount", on_delete=models.CASCADE, related_name="%(app_label)s_%(class)s_account"
+    )
+
+    class Meta:
+        abstract = True
 
 
 class TwilioSmsSender(TwilioSender):
