@@ -1,5 +1,7 @@
 import logging
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from apps.api.permissions import user_is_authorized
 from apps.slack.models import SlackMessage
 
@@ -28,28 +30,31 @@ class AlertGroupActionsMixin:
         message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
         channel_id = payload["channel"]["id"]
 
+        # Get SlackMessage from DB
         try:
             slack_message = SlackMessage.objects.get(
                 slack_id=message_ts,
                 _slack_team_identity=slack_team_identity,
                 channel_id=channel_id,
             )
-            alert_group = slack_message.get_alert_group()
-        except SlackMessage.DoesNotExist as e:
+        except SlackMessage.DoesNotExist:
             logger.error(
                 f"Tried to get SlackMessage from message_ts:"
                 f"slack_team_identity_id={slack_team_identity.pk},"
                 f"message_ts={message_ts}"
             )
-            raise e
-        except SlackMessage.alert_group.RelatedObjectDoesNotExist as e:
+            raise
+
+        # Get AlertGroup from SlackMessage
+        try:
+            return slack_message.get_alert_group()
+        except ObjectDoesNotExist:
             logger.error(
                 f"Tried to get AlertGroup from SlackMessage:"
                 f"slack_team_identity_id={slack_team_identity.pk},"
                 f"message_ts={message_ts}"
             )
-            raise e
-        return alert_group
+            raise
 
     def _check_membership(self):
         return user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)

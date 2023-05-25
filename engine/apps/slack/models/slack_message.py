@@ -80,7 +80,8 @@ class SlackMessage(models.Model):
                 self.alert_group.slack_message = self
                 self.alert_group.save(update_fields=["slack_message"])
                 return self.alert_group
-            return self.alert.group
+            else:
+                raise
 
     @property
     def permalink(self):
