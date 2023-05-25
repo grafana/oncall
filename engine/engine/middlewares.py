@@ -23,7 +23,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
             seconds = (dt - request._logging_start_dt).total_seconds()
             status_code = 0 if response is None else response.status_code
             content_length = request.headers.get("content-length", default=0)
-            user_agent = request.META["HTTP_USER_AGENT"]
+            user_agent = request.META.get("HTTP_USER_AGENT", "unknown")
             message = (
                 "inbound "
                 f"latency={str(seconds)} status={status_code} method={request.method} path={request.path} "
