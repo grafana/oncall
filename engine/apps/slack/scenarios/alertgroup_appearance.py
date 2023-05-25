@@ -5,12 +5,10 @@ from django.apps import apps
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 
-from .step_mixins import AlertGroupActionsAccessControlMixin, CheckAlertIsUnarchivedMixin
+from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
 
 
-class OpenAlertAppearanceDialogStep(
-    CheckAlertIsUnarchivedMixin, AlertGroupActionsAccessControlMixin, scenario_step.ScenarioStep
-):
+class OpenAlertAppearanceDialogStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "open Alert Appearance"
 

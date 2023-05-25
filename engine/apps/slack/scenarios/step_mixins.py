@@ -6,7 +6,7 @@ from apps.slack.models import SlackMessage
 logger = logging.getLogger(__name__)
 
 
-class AlertGroupActionsAccessControlMixin:
+class AlertGroupActionsMixin:
     """
     Mixin for alert group actions (ack, resolve, etc.). Intended to be used as a mixin along with ScenarioStep.
     It serves two purposes:
