@@ -119,6 +119,7 @@ def _construct_fcm_message(
             **data,
             "type": message_type,
             "thread_id": thread_id,
+            "device_type": device_to_notify.type,
         },
         android=AndroidConfig(
             # from the docs
