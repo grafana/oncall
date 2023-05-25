@@ -18,7 +18,7 @@ from rest_framework import status
 
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
-from apps.mobile_app.alert_rendering import get_push_notification_message
+from apps.mobile_app.alert_rendering import get_push_notification_subtitle
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
@@ -155,22 +155,8 @@ def _get_alert_group_escalation_fcm_message(
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
     number_of_alerts = alert_group.alerts.count()
 
-    alert_title = "New Critical Alert" if critical else "New Alert"
-    alert_subtitle = get_push_notification_message(alert_group)
-
-    status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
-    if alert_group.resolved:
-        status_verbose = alert_group.get_resolve_text()
-    elif alert_group.acknowledged:
-        status_verbose = alert_group.get_acknowledge_text()
-
-    if number_of_alerts <= 10:
-        alerts_count_str = str(number_of_alerts)
-    else:
-        alert_count_rounded = (number_of_alerts // 10) * 10
-        alerts_count_str = f"{alert_count_rounded}+"
-
-    alert_body = f"Status: {status_verbose}, alerts: {alerts_count_str}"
+    alert_title = "New Alert" if critical else "New Important Alert"
+    alert_subtitle = get_push_notification_subtitle(alert_group)
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
@@ -189,7 +175,6 @@ def _get_alert_group_escalation_fcm_message(
     fcm_message_data: FCMMessageData = {
         "title": alert_title,
         "subtitle": alert_subtitle,
-        "body": alert_body,
         "orgId": alert_group.channel.organization.public_primary_key,
         "orgName": alert_group.channel.organization.stack_slug,
         "alertGroupId": alert_group.public_primary_key,
@@ -221,7 +206,7 @@ def _get_alert_group_escalation_fcm_message(
         aps=Aps(
             thread_id=thread_id,
             badge=number_of_alerts,
-            alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
+            alert=ApsAlert(title=alert_title, subtitle=alert_subtitle),
             sound=CriticalSound(
                 # The notification shouldn't be critical if the user has disabled "override DND" setting
                 critical=overrideDND,
