@@ -7,22 +7,54 @@ logger = logging.getLogger(__name__)
 
 class AlertGroupActionsAccessControlMixin:
     """
-    Mixin for alert group actions intended to use a mixin along with ScenarioStep
+    Mixin for alert group actions (ack, resolve, etc.). Intended to be used as a mixin along with ScenarioStep.
+    It serves two purposes:
+        1. Check that user has required permissions to perform an action. Otherwise, send a message to a user ???
+        2. Provide utility method to get AlertGroup instance from Slack message payload.
     """
 
     REQUIRED_PERMISSIONS = []
     ACTION_VERBOSE = ""
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        if self.check_membership():
+        if self._check_membership():
             return super().process_scenario(slack_user_identity, slack_team_identity, payload)
         else:
-            self.send_denied_message(payload)
+            self._send_denied_message(payload)
 
-    def check_membership(self):
+    @classmethod
+    def get_alert_group_from_slack_message_payload(cls, slack_team_identity, payload):
+
+        message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
+        channel_id = payload["channel"]["id"]
+
+        try:
+            slack_message = cls.objects.get(
+                slack_id=message_ts,
+                _slack_team_identity=slack_team_identity,
+                channel_id=channel_id,
+            )
+            alert_group = slack_message.get_alert_group()
+        except cls.DoesNotExist as e:
+            logger.error(
+                f"Tried to get SlackMessage from message_ts:"
+                f"slack_team_identity_id={slack_team_identity.pk},"
+                f"message_ts={message_ts}"
+            )
+            raise e
+        except cls.alert.RelatedObjectDoesNotExist as e:
+            logger.error(
+                f"Tried to get AlertGroup from SlackMessage:"
+                f"slack_team_identity_id={slack_team_identity.pk},"
+                f"message_ts={message_ts}"
+            )
+            raise e
+        return alert_group
+
+    def _check_membership(self):
         return user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
 
-    def send_denied_message(self, payload):
+    def _send_denied_message(self, payload):
         try:
             thread_ts = payload["message_ts"]
         except KeyError:
