@@ -18,6 +18,10 @@ the destination country code by @mderynck ([#1976](https://github.com/grafana/on
 - Fix error when updating closed modal window in Slack by @vadimkerr ([#2019](https://github.com/grafana/oncall/pull/2019))
 - Fix final schedule export failing to update when ical imported events set start/end as date ([#2025](https://github.com/grafana/oncall/pull/2025))
 
+### Changed
+
+- Changed mobile notification title and subtitle. Removed the body. [#2027](https://github.com/grafana/oncall/pull/2027)
+
 ## v1.2.30 (2023-05-25)
 
 ### Fixed
