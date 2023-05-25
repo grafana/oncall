@@ -242,6 +242,9 @@ def _get_alert_group_escalation_fcm_message(
 def _get_youre_going_oncall_fcm_message(
     user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
 ) -> Message:
+    # avoid circular import
+    from apps.mobile_app.models import MobileAppUserSettings
+
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
@@ -444,7 +447,6 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
                 device_to_notify = FCMDevice.objects.filter(user=user).first()
 
                 if not device_to_notify:
-                    logger.info(f"User {user_pk} has no device set up")
                     continue
                 else:
                     device_cache[user_pk] = device_to_notify
