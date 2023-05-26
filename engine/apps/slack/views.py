@@ -294,7 +294,7 @@ class SlackEventApiEndpointView(APIView):
                 "1. The Slack chatops integration was disconnected from the instance that the Alert Group belongs "
                 "to, BUT the Slack workspace is still connected to another instance as well. In this case, simply log "
                 "in to the OnCall web interface and re-install the Slack Integration with this workspace again.\n"
-                "2. (Less likely) The Grafana instance belonging to this Alert Group was delete. In this case the Alert Group is orphaned and cannot be acted upon."
+                "2. (Less likely) The Grafana instance belonging to this Alert Group was deleted. In this case the Alert Group is orphaned and cannot be acted upon."
             )
             # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
             self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
