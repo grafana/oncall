@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix error when updating closed modal window in Slack by @vadimkerr ([#2019](https://github.com/grafana/oncall/pull/2019))
 - Fix final schedule export failing to update when ical imported events set start/end as date ([#2025](https://github.com/grafana/oncall/pull/2025))
 - Properly address `Organization.DoesNotExist` exceptions thrown which result in HTTP 500 for the Slack `interactive_api_endpoint`
-  endpoint by @joeyorlando ([#XYZ](https://github.com/grafana/oncall/pull/XYZ))
+  endpoint by @joeyorlando ([#2040](https://github.com/grafana/oncall/pull/2040))
 
 ### Changed
 
