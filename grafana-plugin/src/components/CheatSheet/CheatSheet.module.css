@@ -3,6 +3,7 @@
   height: 100%;
   padding: 16px;
   border: var(--border-weak);
+  min-width: min-content;
 }
 
 .cheatsheet-item {
