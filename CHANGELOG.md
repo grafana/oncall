@@ -20,7 +20,7 @@ the destination country code by @mderynck ([#1976](https://github.com/grafana/on
 
 ### Changed
 
-- Changed mobile notification title and subtitle. Removed the body. [#2027](https://github.com/grafana/oncall/pull/2027)
+- Changed mobile notification title and subtitle. Removed the body. by @imtoori [#2027](https://github.com/grafana/oncall/pull/2027)
 
 ## v1.2.30 (2023-05-25)
 
