@@ -10,6 +10,7 @@ from django.db.models import JSONField
 
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
+from apps.alerts.signals import alert_group_escalation_snapshot_built
 from apps.alerts.tasks import distribute_alert, send_alert_group_signal
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -101,6 +102,8 @@ class Alert(models.Model):
         )
 
         if group_created:
+            group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+            alert_group_escalation_snapshot_built.send(sender=distribute_alert, alert_group=group)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
 

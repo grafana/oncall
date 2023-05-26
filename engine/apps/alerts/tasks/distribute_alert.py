@@ -1,8 +1,7 @@
 from django.apps import apps
 from django.conf import settings
 
-from apps.alerts.constants import TASK_DELAY_SECONDS
-from apps.alerts.signals import alert_create_signal, alert_group_escalation_snapshot_built
+from apps.alerts.signals import alert_create_signal
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -16,18 +15,20 @@ def distribute_alert(alert_id):
     We need this task to make task processing async and to make sure the task is delivered.
     """
     Alert = apps.get_model("alerts", "Alert")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    # AlertGroup = apps.get_model("alerts", "AlertGroup")
 
     alert = Alert.objects.get(pk=alert_id)
     task_logger.debug(f"Start distribute_alert for alert {alert_id} from alert_group {alert.group_id}")
 
     send_alert_create_signal.apply_async((alert_id,))
+    # Moving this part to where the alert group is created
     # If it's the first alert, let's launch the escalation!
-    if alert.is_the_first_alert_in_group:
-        alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
-        alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
-        alert_group_escalation_snapshot_built.send(sender=distribute_alert, alert_group=alert_group)
+    # if alert.is_the_first_alert_in_group:
+    # alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
+    # alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+    # alert_group_escalation_snapshot_built.send(sender=distribute_alert, alert_group=alert_group)
 
+    # TODO: understand why do we need this
     updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
     if updated_rows != 1:
         task_logger.critical(
