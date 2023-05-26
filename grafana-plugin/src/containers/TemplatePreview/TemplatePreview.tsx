@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
+import { HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -69,17 +69,27 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
           {isCondition ? (
             <>
               <Icon name="check" size="lg" /> True
+              <Text type="secondary">{`Selected alert will ${templateName.substring(
+                0,
+                templateName.indexOf('_')
+              )} alert group`}</Text>
             </>
           ) : (
-            <HorizontalGroup>
-              <Icon name="exclamation-triangle" size="lg" />
-              <div
-                className={cx('message')}
-                dangerouslySetInnerHTML={{
-                  __html: sanitize(result.preview || ''),
-                }}
-              />
-            </HorizontalGroup>
+            <VerticalGroup>
+              <HorizontalGroup>
+                <Icon name="times-circle" size="lg" />
+                <div
+                  className={cx('message')}
+                  dangerouslySetInnerHTML={{
+                    __html: sanitize(result.preview || ''),
+                  }}
+                />
+              </HorizontalGroup>
+              <Text type="secondary">{`Selected alert will not ${templateName.substring(
+                0,
+                templateName.indexOf('_')
+              )} alert group`}</Text>
+            </VerticalGroup>
           )}
         </Text>
       ) : (

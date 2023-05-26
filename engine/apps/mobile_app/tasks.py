@@ -431,7 +431,6 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
         for user in users:
             user_pk = user["pk"]
-            logger.info(f"Evaluating if we should send push notification for schedule {schedule_pk} for user {user_pk}")
 
             user = user_cache.get(user_pk, None)
             if user is None:
