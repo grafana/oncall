@@ -1,24 +1,30 @@
 .title-container {
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 24px 24px 0;
+}
+
+.container-wrapper {
+  padding: 8px;
 }
 
 .container {
   display: flex;
   width: 100%;
-  border: var(--border-weak);
+  border: var(--border-strong);
+  padding: 0 16px;
 }
 
 .template-block-title {
   padding: 16px;
   align-items: baseline;
+  height: 56px;
 }
 
 .template-editor-block-title {
-  padding: 16px;
+  padding: 8px 16px;
   align-items: baseline;
   border: var(--border-weak);
   background-color: var(--background-secondary);
+  height: 56px;
 }
 
 .template-block-list {
@@ -37,10 +43,9 @@
 }
 
 .result {
-  padding: 16px;
+  padding-left: 16px;
 }
 
-.block-style {
-  border: var(--border-weak);
-  background-color: var(--background-secondary);
+.template-block-codeeditor div[aria-label='Code editor container'] {
+  border-bottom: none;
 }

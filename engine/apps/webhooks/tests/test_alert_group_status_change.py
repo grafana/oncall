@@ -22,7 +22,7 @@ def test_alert_group_created(make_organization, make_alert_receive_channel, make
     assert mock_send_event.called
     assert mock_send_event.call_args == call(
         (Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk),
-        kwargs={"organization_id": organization.pk, "team_id": None},
+        kwargs={"organization_id": organization.pk},
     )
 
 
@@ -43,7 +43,7 @@ def test_alert_group_created_for_team(
     assert mock_send_event.called
     assert mock_send_event.call_args == call(
         (Webhook.TRIGGER_ALERT_GROUP_CREATED, alert_group.pk),
-        kwargs={"organization_id": organization.pk, "team_id": team.pk},
+        kwargs={"organization_id": organization.pk},
     )
 
 
@@ -92,7 +92,7 @@ def test_alert_group_status_change(
         alert_group_status_change(action_type, alert_group.pk, user.pk)
 
     assert mock_send_event.call_args == call(
-        (webhook_type, alert_group.pk), kwargs={"organization_id": organization.pk, "team_id": None, "user_id": user.pk}
+        (webhook_type, alert_group.pk), kwargs={"organization_id": organization.pk, "user_id": user.pk}
     )
 
 
@@ -125,5 +125,5 @@ def test_alert_group_status_change_for_team(
 
     assert mock_send_event.call_args == call(
         (Webhook.TRIGGER_RESOLVE, alert_group.pk),
-        kwargs={"organization_id": organization.pk, "team_id": team.pk, "user_id": None},
+        kwargs={"organization_id": organization.pk, "user_id": None},
     )
