@@ -23,6 +23,11 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.metrics_exporter.helpers import (
+    metrics_add_integration_to_cache,
+    metrics_remove_deleted_integration_from_cache,
+    metrics_update_integration_cache,
+)
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
@@ -256,7 +261,15 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def grafana_alerting_sync_manager(self):
         return GrafanaAlertingSyncManager(self)
 
-    @property
+    @cached_property
+    def team_name(self):
+        return self.team.name if self.team else "No team"
+
+    @cached_property
+    def team_id_or_no_team(self):
+        return self.team_id if self.team else "no_team"
+
+    @cached_property
     def emojized_verbal_name(self):
         return emoji.emojize(self.verbal_name, use_aliases=True)
 
@@ -614,6 +627,13 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
         if instance.is_available_for_integration_heartbeat:
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
+
+        metrics_add_integration_to_cache(instance)
+
+    elif instance.deleted_at:
+        metrics_remove_deleted_integration_from_cache(instance)
+    else:
+        metrics_update_integration_cache(instance)
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
         if created:

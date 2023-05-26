@@ -387,7 +387,13 @@ class OnCallSchedule(PolymorphicModel):
                 if component.name == ICAL_COMPONENT_VEVENT and component[ICAL_UID] not in updated_ids:
                     # check if event was ended or cancelled, update ical
                     dtend = component.get(ICAL_DATETIME_END)
-                    if dtend and dtend.dt < starting_datetime:
+                    dtend_datetime = dtend.dt if dtend else None
+                    if dtend_datetime and type(dtend_datetime) == datetime.date:
+                        # shift or overrides coming from ical calendars can be all day events, change to datetime
+                        dtend_datetime = datetime.datetime.combine(
+                            dtend.dt, datetime.datetime.min.time(), tzinfo=pytz.UTC
+                        )
+                    if dtend_datetime and dtend_datetime < starting_datetime:
                         # event ended before window start
                         continue
                     is_cancelled = component.get(ICAL_STATUS)

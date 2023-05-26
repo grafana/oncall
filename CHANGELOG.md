@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
+the destination country code by @mderynck ([#1976](https://github.com/grafana/oncall/pull/1976))
+- Prometheus exporter backend for alert groups related metrics
+
 ### Fixed
 
 - Fix error when updating closed modal window in Slack by @vadimkerr ([#2019](https://github.com/grafana/oncall/pull/2019))
+- Fix final schedule export failing to update when ical imported events set start/end as date ([#2025](https://github.com/grafana/oncall/pull/2025))
+
+### Changed
+
+- Changed mobile notification title and subtitle. Removed the body. by @imtoori [#2027](https://github.com/grafana/oncall/pull/2027)
+
+## v1.2.31 (2023-05-26)
+
+### Fixed
+
+- Fix AmazonSNS ratelimit by @Konstantinov-Innokentii ([#2032](https://github.com/grafana/oncall/pull/2032))
 
 ## v1.2.30 (2023-05-25)
 
@@ -25,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Handle slack metadata limit when creating paging command payload ([#2007](https://github.com/grafana/oncall/pull/2007))
 - Fix issue with sometimes cached final schedule not being refreshed after an update ([#2004](https://github.com/grafana/oncall/pull/2004))
 
 ## v1.2.28 (2023-05-24)

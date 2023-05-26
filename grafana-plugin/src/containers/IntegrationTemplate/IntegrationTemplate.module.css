@@ -25,6 +25,7 @@
   border: var(--border-weak);
   background-color: var(--background-secondary);
   height: 56px;
+  min-width: min-content;
 }
 
 .template-block-list {
