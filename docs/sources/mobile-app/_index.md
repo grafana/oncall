@@ -15,19 +15,16 @@ weight: 1100
 The Grafana OnCall mobile app allows teams to monitor and respond to critical system events from anywhere.
 On-call engineers can start exploring the benefits of the Grafana OnCall mobile app, with real-time alerts, on-call notifications, and a growing feature set.
 
+
 ## About Grafana OnCall mobile app
-
-The current version of the mobile app includes limited functionality and serves primarily as a notification method.
-The mobile app is in development, and some features are not yet available.
-
-Stay tuned, we're working on it!
 
 Grafana OnCall mobile app key features:
 
-- Override Do Not Disturb on your device to ensure delivery of critical alerts
+- Override Do Not Disturb on your device to ensure delivery of important alerts
 - Receive push notifications according to your personal notification settings
-- View alert details from your mobile device
+- Viewing, filtering and responding to Alert Groups (acknowledge, resolve, silence, etc).
 - Login with a quick and secure QR code authorization
+- View your on-call status and information about current and upcoming shift
 
 The OnCall mobile app allows users to receive push notifications as part of their notification policy.
 Push notifications are one of the many notification options in Grafana OnCall.
@@ -92,7 +89,7 @@ There are three types of push notifications for the mobile app:
 To receive push notifications from the Grafana OnCall mobile app, you must add them to your notification policy steps.
 **Important notifications** should include **Mobile push important** and **Default notifications** should include **Mobile push**.
 
-In the **Settings** tab of the mobile app, tap on **Notification policies** to review, reorder, remove, add or change steps.
+In the **Settings** tab of the mobile app, tap on **Notification policies** to review, reorder, remove, add or change steps.  
 Alternatively, you can do the same on desktop. From Grafana OnCall, navigate to the **Users** page, click **View my profile** and navigate to the **User Info** tab.
 
 ### Configuration
@@ -122,7 +119,7 @@ You can also enable or disable Do Not Disturb override for **important** notific
 
 #### On-call shift notifications
 
-On-call shift notifications are sent to all users who are going to be on-call in the next ~15 minutes.
+On-call shift notifications are sent to announce upcoming shifts, roughly ~15 minutes in advance.
 
 To enable or disable on-call shift notifications, use the **On-call shift notifications** section in the **Push notifications** settings.
 
