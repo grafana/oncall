@@ -118,8 +118,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"frequency": ["Cannot set 'frequency' for shifts with type 'override'"]}
                 )
-            if frequency not in (CustomOnCallShift.FREQUENCY_WEEKLY, CustomOnCallShift.FREQUENCY_DAILY) and by_day:
-                raise serializers.ValidationError({"by_day": ["Cannot set days value for this frequency type"]})
             if interval is None:
                 raise serializers.ValidationError(
                     {"interval": ["If frequency is set, interval must be a positive integer"]}
