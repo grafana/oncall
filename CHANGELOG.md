@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.2.31 (2023-05-26)
+
+### Fixed
+
+- Fix AmazonSNS ratelimit by @Konstantinov-Innokentii ([#2032](https://github.com/grafana/oncall/pull/2032))
+
 ## v1.2.30 (2023-05-25)
 
 ### Fixed
@@ -16,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
+
+### Fixed
+
+- Handle slack metadata limit when creating paging command payload ([#2007](https://github.com/grafana/oncall/pull/2007))
+- Fix issue with sometimes cached final schedule not being refreshed after an update ([#2004](https://github.com/grafana/oncall/pull/2004))
 
 ## v1.2.28 (2023-05-24)
 
