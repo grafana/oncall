@@ -22,6 +22,12 @@ the destination country code by @mderynck ([#1976](https://github.com/grafana/on
 
 - Changed mobile notification title and subtitle. Removed the body. by @imtoori [#2027](https://github.com/grafana/oncall/pull/2027)
 
+## v1.2.31 (2023-05-26)
+
+### Fixed
+
+- Fix AmazonSNS ratelimit by @Konstantinov-Innokentii ([#2032](https://github.com/grafana/oncall/pull/2032))
+
 ## v1.2.30 (2023-05-25)
 
 ### Fixed
