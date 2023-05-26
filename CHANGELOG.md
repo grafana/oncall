@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve plugin authentication by @vadimkerr ([#1995](https://github.com/grafana/oncall/pull/1995))
 - Fix MultipleObjectsReturned error on webhook endpoints by @vadimkerr ([#1996](https://github.com/grafana/oncall/pull/1996))
 - Remove user defined time period from "you're going oncall" mobile push by @iskhakov ([#2001](https://github.com/grafana/oncall/pull/2001))
+- Properly address `Organization.DoesNotExist` exceptions thrown which result in HTTP 500 for the Slack `interactive_api_endpoint`
+  endpoint by @joeyorlando ([#XYZ](https://github.com/grafana/oncall/pull/XYZ))
 
 ## v1.2.27 (2023-05-23)
 
