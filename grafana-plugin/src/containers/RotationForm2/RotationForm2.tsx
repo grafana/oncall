@@ -8,7 +8,6 @@ import {
   Icon,
   IconButton,
   InlineSwitch,
-  RadioButtonGroup,
   Select,
   Switch,
   Tooltip,
@@ -25,11 +24,27 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import {
+  putDownMaxValues,
+  reduceTheLastUnitValue,
+  repeatEveryInSeconds,
+  repeatEveryPeriodMultiplier,
+  repeatEveryPeriodToNextPeriodCount,
+  repeatEveryPeriodToUnitName,
+  repeatEveryPeriodToUnitNameShortened,
+  repeatEveryToTimeUnits,
+  secondsToTimeUnits,
+  shiftToLower,
+  TimeUnit,
+  timeUnitsToSeconds,
+  TIME_UNITS_ORDER,
+} from 'containers/RotationForm/RotationForm.helpers';
+import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
 import DateTimePicker from 'containers/RotationForm/parts/DateTimePicker';
 import DaysSelector from 'containers/RotationForm/parts/DaysSelector';
 import DeletionModal from 'containers/RotationForm/parts/DeletionModal';
+import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
 import UserItem from 'containers/RotationForm/parts/UserItem';
-import WeekdayTimePicker from 'containers/RotationForm/parts/WeekdayTimePicker';
 import { getFromString, getShiftTitle } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
@@ -39,7 +54,6 @@ import { getDateTime, getStartOfWeek, getUTCByDay, getUTCString } from 'pages/sc
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
-import { toHHmmss } from 'utils/datetime';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import { getRepeatShiftsEveryOptions } from './RotationForm2.helpers';
@@ -61,11 +75,6 @@ interface RotationForm2Props {
   onUpdate: () => void;
   onDelete: () => void;
   shiftColor?: string;
-}
-
-enum Mode {
-  'SELECTED_DAYS_AND_HOURS' = '0',
-  'CUSTOM_TIME_INTERVAL' = '1',
 }
 
 const RotationForm2 = observer((props: RotationForm2Props) => {
@@ -95,6 +104,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
+  const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
 
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
   const [endLess, setEndless] = useState<boolean>(true);
@@ -103,14 +113,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
 
-  const withinOneDay = useMemo(
-    () => shiftStart.tz(currentTimezone).isSame(shiftEnd.tz(currentTimezone).subtract(1, 'millisecond'), 'day'),
-    [shiftStart, shiftEnd, currentTimezone]
-  );
-
-  const [mode, setMode] = useState<Mode>(withinOneDay ? Mode.SELECTED_DAYS_AND_HOURS : Mode.CUSTOM_TIME_INTERVAL);
   const [showActiveOnSelectedDays, setShowActiveOnSelectedDays] = useState<boolean>(false);
-  const [showActiveOnSelectedPartOfDay, setShowActiveOnSelectedPartOfDay] = useState<boolean>(shiftId !== 'new');
+  const [showActiveOnSelectedPartOfDay, setShowActiveOnSelectedPartOfDay] = useState<boolean>(false);
 
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
@@ -131,26 +135,10 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
   }, [showActiveOnSelectedDays]);
 
   useEffect(() => {
-    if (showActiveOnSelectedPartOfDay) {
-      setShiftStart(propsShiftStart);
-      setShiftEnd(propsShiftStart.add(12, 'hour'));
-    } else {
-      setShiftStart(propsShiftStart);
-      setShiftEnd(propsShiftStart.add(1, 'day'));
+    if (!showActiveOnSelectedPartOfDay) {
+      setShiftEnd(propsShiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
     }
   }, [showActiveOnSelectedPartOfDay]);
-
-  useEffect(() => {
-    if (mode === Mode.SELECTED_DAYS_AND_HOURS) {
-      if (!withinOneDay) {
-        setShiftStart(propsShiftStart);
-        setShiftEnd(propsShiftStart.add(1, 'day'));
-      }
-    } else {
-      setShiftStart(propsShiftStart);
-      setShiftEnd(propsShiftStart.add(7, 'day'));
-    }
-  }, [mode]);
 
   useEffect(() => {
     if (isOpen) {
@@ -219,10 +207,10 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day:
-        repeatEveryPeriod === 0 || repeatEveryPeriod === 1
+      by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart),
+      /*  repeatEveryPeriod === 0 || repeatEveryPeriod === 1
           ? getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart)
-          : null,
+          : null, */
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       title: rotationTitle,
     }),
@@ -264,9 +252,32 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     }
   }, [scheduleId, shiftId, params]);
 
-  const handleRepeatEveryValueChange = useCallback((option) => {
-    setRepeatEveryValue(Number(option.value));
-  }, []);
+  const handleRepeatEveryPeriodChange = useCallback(
+    (value) => {
+      setShiftPeriodDefaultValue(undefined);
+
+      setRepeatEveryPeriod(value);
+
+      if (!showActiveOnSelectedPartOfDay) {
+        setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[value]));
+      }
+    },
+    [showActiveOnSelectedPartOfDay, repeatEveryValue]
+  );
+
+  const handleRepeatEveryValueChange = useCallback(
+    (option) => {
+      setShiftPeriodDefaultValue(undefined);
+
+      const value = Number(option.value);
+      setRepeatEveryValue(value);
+
+      if (!showActiveOnSelectedPartOfDay) {
+        setShiftEnd(shiftStart.add(value, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+      }
+    },
+    [showActiveOnSelectedPartOfDay, repeatEveryPeriod]
+  );
 
   const handleRotationTitleChange = useCallback(
     (title: string) => {
@@ -291,12 +302,20 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
   }, []);
 
   useEffect(() => {
+    if (repeatEveryPeriod === RepeatEveryPeriod.MONTHS) {
+      setShowActiveOnSelectedPartOfDay(false);
+    }
+  }, [repeatEveryPeriod]);
+
+  useEffect(() => {
     if (shift) {
       setRotationTitle(getShiftTitle(shift));
       setRotationStart(getDateTime(shift.rotation_start));
       setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
-      setShiftStart(getDateTime(shift.shift_start));
-      setShiftEnd(getDateTime(shift.shift_end));
+      const shiftStart = getDateTime(shift.shift_start);
+      setShiftStart(shiftStart);
+      const shiftEnd = getDateTime(shift.shift_end);
+      setShiftEnd(shiftEnd);
       setEndless(!shift.until);
 
       setRepeatEveryValue(shift.interval);
@@ -304,6 +323,14 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setSelectedDays(shift.by_day || []);
 
       setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
+
+      const activeOnSelectedPartOfDay =
+        repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds');
+
+      setShowActiveOnSelectedPartOfDay(activeOnSelectedPartOfDay);
+      if (activeOnSelectedPartOfDay) {
+        setShiftPeriodDefaultValue(shiftEnd.diff(shiftStart, 'seconds'));
+      }
 
       setUserGroups(shift.rolling_users);
     }
@@ -420,7 +447,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     <RemoteSelect
                       href="/oncall_shifts/frequency_options/"
                       value={repeatEveryPeriod}
-                      onChange={setRepeatEveryPeriod}
+                      onChange={handleRepeatEveryPeriodChange}
                     />
                   </Field>
                 </div>
@@ -429,72 +456,47 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                   className={cx('active-periods')}
                   contentClassName={cx('active-periods-content')}
                   isOpen={shiftId !== 'new'}
-                  label={<Text>Active periods during a week</Text>}
+                  label={<Text>Active period</Text>}
                 >
                   <VerticalGroup spacing="md">
-                    <RadioButtonGroup
-                      options={[
-                        {
-                          label: 'Selected days and hours',
-                          value: Mode.SELECTED_DAYS_AND_HOURS,
-                        },
-                        { label: 'Custom time interval', value: Mode.CUSTOM_TIME_INTERVAL },
-                      ]}
-                      value={mode}
-                      onChange={setMode}
-                    />
+                    <VerticalGroup>
+                      <HorizontalGroup align="flex-start">
+                        <Switch value={showActiveOnSelectedDays} onChange={handleShowActiveOnSelectedDaysToggle} />
+                        <VerticalGroup>
+                          <Text type="secondary">Active on selected days</Text>
+                          {showActiveOnSelectedDays && (
+                            <DaysSelector
+                              options={store.scheduleStore.byDayOptions}
+                              value={selectedDays}
+                              onChange={setSelectedDays}
+                              weekStart={config.bootData.user.weekStart}
+                            />
+                          )}
+                        </VerticalGroup>
+                      </HorizontalGroup>
 
-                    {mode === Mode.SELECTED_DAYS_AND_HOURS && (
-                      <VerticalGroup>
-                        <HorizontalGroup align="flex-start">
-                          <Switch value={showActiveOnSelectedDays} onChange={handleShowActiveOnSelectedDaysToggle} />
-                          <VerticalGroup>
-                            <Text type="secondary">Active on selected days</Text>
-                            {showActiveOnSelectedDays && (
-                              <DaysSelector
-                                options={store.scheduleStore.byDayOptions}
-                                value={selectedDays}
-                                onChange={setSelectedDays}
-                                weekStart={config.bootData.user.weekStart}
-                              />
-                            )}
-                          </VerticalGroup>
-                        </HorizontalGroup>
-
-                        <HorizontalGroup align="flex-start">
-                          <Switch
-                            value={showActiveOnSelectedPartOfDay}
-                            onChange={handleShowActiveOnSelectedPartOfDayToggle}
-                          />
-                          <VerticalGroup>
-                            <Text type="secondary">Active on selected part of the day</Text>
-                            {showActiveOnSelectedPartOfDay && (
-                              <ShiftPeriod
-                                hideWeekday
-                                shiftStart={shiftStart}
-                                shiftEnd={shiftEnd}
-                                setShiftStart={setShiftStart}
-                                setShiftEnd={setShiftEnd}
-                                currentTimezone={currentTimezone}
-                                errors={errors}
-                              />
-                            )}
-                          </VerticalGroup>
-                        </HorizontalGroup>
-                      </VerticalGroup>
-                    )}
-
-                    {mode === Mode.CUSTOM_TIME_INTERVAL && (
-                      <ShiftPeriod
-                        hideWeekday={false}
-                        shiftStart={shiftStart}
-                        shiftEnd={shiftEnd}
-                        setShiftStart={setShiftStart}
-                        setShiftEnd={setShiftEnd}
-                        currentTimezone={currentTimezone}
-                        errors={errors}
-                      />
-                    )}
+                      <HorizontalGroup align="flex-start">
+                        <Switch
+                          disabled={repeatEveryPeriod === RepeatEveryPeriod.MONTHS}
+                          value={showActiveOnSelectedPartOfDay}
+                          onChange={handleShowActiveOnSelectedPartOfDayToggle}
+                        />
+                        <VerticalGroup>
+                          <Text type="secondary">Active on selected part</Text>
+                          {showActiveOnSelectedPartOfDay && (
+                            <ShiftPeriod
+                              repeatEveryPeriod={repeatEveryPeriod}
+                              repeatEveryValue={repeatEveryValue}
+                              defaultValue={shiftPeriodDefaultValue}
+                              shiftStart={shiftStart}
+                              onShiftEndChange={setShiftEnd}
+                              currentTimezone={currentTimezone}
+                              errors={errors}
+                            />
+                          )}
+                        </VerticalGroup>
+                      </HorizontalGroup>
+                    </VerticalGroup>
                   </VerticalGroup>
                 </Collapse>
                 <div style={{ marginTop: '16px' }}>
@@ -545,103 +547,142 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 });
 
 interface ShiftPeriodProps {
-  hideWeekday: boolean;
+  repeatEveryPeriod: number;
+  repeatEveryValue: number;
+  defaultValue: number;
   shiftStart: dayjs.Dayjs;
-  shiftEnd: dayjs.Dayjs;
-  setShiftStart: (moment: dayjs.Dayjs) => void;
-  setShiftEnd: (moment: dayjs.Dayjs) => void;
+  onShiftEndChange: (moment: dayjs.Dayjs) => void;
   currentTimezone: Timezone;
   errors: any;
 }
 
 const ShiftPeriod = ({
-  hideWeekday,
+  repeatEveryPeriod,
+  repeatEveryValue,
+  defaultValue,
   shiftStart,
-  shiftEnd,
-  setShiftStart,
-  setShiftEnd,
-  currentTimezone,
+  onShiftEndChange,
   errors,
 }: ShiftPeriodProps) => {
-  const handleShiftStartWeekdayChange = useCallback(
-    (value) => {
-      const newShiftStart = shiftStart.add(value, 'day');
+  const [timeUnits, setTimeUnits] = useState<TimeUnit[]>([]);
 
-      setShiftStart(newShiftStart);
-    },
-    [shiftStart]
+  useEffect(() => {
+    if (defaultValue === undefined) {
+      setTimeUnits(reduceTheLastUnitValue(shiftToLower(repeatEveryToTimeUnits(repeatEveryPeriod, repeatEveryValue))));
+    } else {
+      setTimeUnits(
+        putDownMaxValues(secondsToTimeUnits(defaultValue, repeatEveryPeriod), repeatEveryPeriod, repeatEveryValue)
+      );
+    }
+  }, [repeatEveryPeriod, repeatEveryValue]);
+
+  useEffect(() => {
+    const newShiftEnd = shiftStart.add(timeUnitsToSeconds(timeUnits), 'seconds');
+
+    onShiftEndChange(newShiftEnd);
+  }, [timeUnits]);
+
+  const getTimeUnitChangeHandler = (unit: RepeatEveryPeriod) => {
+    return (value) => {
+      const newTimeUnits = [...timeUnits];
+
+      const timeUnit = newTimeUnits.find((timeUnit) => timeUnit.unit === unit);
+      timeUnit.value = value;
+
+      setTimeUnits(newTimeUnits);
+    };
+  };
+
+  const duration = useMemo(
+    () =>
+      timeUnits
+        .map((timeUnit) => {
+          return timeUnit.value + repeatEveryPeriodToUnitNameShortened[timeUnit.unit];
+        })
+        .join(''),
+    [timeUnits]
   );
 
-  const handleShiftStartTimeChange = useCallback(
-    (h, m, s) => {
-      const newShiftStart = shiftStart.tz(currentTimezone).set('hour', h).set('minute', m).set('second', s);
+  const getTimeUnitDeleteHandler = (unit: RepeatEveryPeriod) => {
+    return () => {
+      const newTimeUnits = [...timeUnits];
 
-      setShiftStart(newShiftStart);
-    },
-    [shiftStart]
-  );
+      const timeUnitIndex = newTimeUnits.findIndex((timeUnit) => timeUnit.unit === unit);
+      newTimeUnits.splice(timeUnitIndex, 1);
 
-  const handleShiftEndWeekdayChange = useCallback(
-    (value) => {
-      const newShiftEnd = shiftEnd.add(value, 'day');
+      setTimeUnits(newTimeUnits);
+    };
+  };
 
-      setShiftEnd(newShiftEnd);
-    },
-    [shiftEnd]
-  );
+  const unitToCreate = useMemo(() => {
+    if (!timeUnits.length) {
+      return reduceTheLastUnitValue(shiftToLower(repeatEveryToTimeUnits(repeatEveryPeriod, repeatEveryValue)))[0];
+    }
 
-  const handleShiftEndTimeChange = useCallback(
-    (h, m, s) => {
-      const newShiftEnd = shiftEnd.tz(currentTimezone).set('hour', h).set('minute', m).set('second', s);
+    const minIndex = TIME_UNITS_ORDER.findIndex((tu) => tu === repeatEveryPeriod);
 
-      setShiftEnd(newShiftEnd);
-    },
-    [shiftEnd]
-  );
+    const lastTimeUnit = timeUnits[timeUnits.length - 1];
+    const currentIndex = lastTimeUnit ? TIME_UNITS_ORDER.findIndex((tu) => tu === lastTimeUnit.unit) : -1;
+
+    const unit = TIME_UNITS_ORDER[Math.max(minIndex, currentIndex + 1)];
+
+    if (unit === undefined) {
+      return undefined;
+    }
+
+    const maxValue = Math.min(
+      Math.floor(
+        (repeatEveryInSeconds(repeatEveryPeriod, repeatEveryValue) - timeUnitsToSeconds(timeUnits)) /
+          repeatEveryPeriodMultiplier[unit]
+      ),
+      repeatEveryPeriodToNextPeriodCount[unit]
+    );
+
+    if (maxValue === 0) {
+      return undefined;
+    }
+
+    return { unit, value: 1, maxValue: maxValue - 1 };
+  }, [timeUnits]);
+
+  const handleTimeUnitAdd = useCallback(() => {
+    const newTimeUnits = [...timeUnits, unitToCreate];
+
+    setTimeUnits(newTimeUnits);
+  }, [unitToCreate]);
 
   return (
     <VerticalGroup>
-      <div className={cx(hideWeekday ? 'three-fields' : 'two-fields')}>
-        <Field
-          className={cx('date-time-picker')}
-          label={
-            <Text type="primary" size="small">
-              From
-            </Text>
-          }
-        >
-          <WeekdayTimePicker
-            hideWeekday={hideWeekday}
-            value={shiftStart}
-            onWeekDayChange={handleShiftStartWeekdayChange}
-            onTimeChange={handleShiftStartTimeChange}
-            timezone={currentTimezone}
-            weekStart={config.bootData.user.weekStart}
-            error={errors.shift_start}
+      {timeUnits.map((unit, index: number, arr) => (
+        <HorizontalGroup key={unit.unit}>
+          <TimeUnitSelector
+            unit={unit.unit}
+            value={unit.value}
+            onChange={getTimeUnitChangeHandler(unit.unit)}
+            maxValue={unit.maxValue}
+            className={cx('time-unit')}
           />
-        </Field>
-        <Field
-          className={cx('date-time-picker')}
-          label={
-            <Text type="primary" size="small">
-              Till
-            </Text>
-          }
-        >
-          {
-            <WeekdayTimePicker
-              hideWeekday={hideWeekday}
-              value={shiftEnd}
-              onWeekDayChange={handleShiftEndWeekdayChange}
-              onTimeChange={handleShiftEndTimeChange}
-              timezone={currentTimezone}
-              weekStart={config.bootData.user.weekStart}
-              error={errors.shift_end}
+          {index === arr.length - 1 && (
+            <Button
+              tooltip="Remove segment"
+              variant="secondary"
+              icon="times"
+              size="sm"
+              onClick={getTimeUnitDeleteHandler(unit.unit)}
             />
-          }
-        </Field>
-        {hideWeekday && <Text type="secondary">({toHHmmss(shiftEnd.diff(shiftStart, 'second'))})</Text>}
-      </div>
+          )}
+          {index === arr.length - 1 && unitToCreate !== undefined && (
+            <Button tooltip="Add segment" variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd} />
+          )}
+        </HorizontalGroup>
+      ))}
+      {timeUnits.length === 0 && unitToCreate !== undefined && (
+        <Button variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd}>
+          Add segment
+        </Button>
+      )}
+      <Text type="secondary">({duration || '0m'})</Text>
+      {errors.shift_end && <Text type="danger">Incorrect active period</Text>}
     </VerticalGroup>
   );
 };

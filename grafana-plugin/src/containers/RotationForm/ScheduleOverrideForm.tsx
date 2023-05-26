@@ -209,12 +209,12 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     >
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text.Title onTextChange={handleRotationTitleChange} level={5} editable>
-            <HorizontalGroup spacing="sm">
-              {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
+          <HorizontalGroup spacing="sm">
+            {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
+            <Text.Title onTextChange={handleRotationTitleChange} level={5} editable>
               {rotationTitle}
-            </HorizontalGroup>
-          </Text.Title>
+            </Text.Title>
+          </HorizontalGroup>
           <HorizontalGroup>
             {shiftId !== 'new' && (
               <WithConfirm>

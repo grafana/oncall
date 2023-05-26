@@ -3,8 +3,12 @@
   overflow: scroll;
   margin: 15px -15px;
   padding: 15px 0;
-  border-top: var(--border-strong);
-  border-bottom: var(--border-strong);
+  border-top: var(--border-medium);
+  border-bottom: var(--border-medium);
+}
+
+.header,
+.footer {
 }
 
 .content {
@@ -51,4 +55,8 @@
 
 .active-periods-content {
   padding-top: 8px;
+}
+
+.time-unit {
+  width: 200px;
 }
