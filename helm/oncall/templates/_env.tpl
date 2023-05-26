@@ -247,7 +247,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 
 {{- define "snippet.mysql.db" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
-{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
+{{- required "externalMysql.db_name is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
 "oncall"
 {{- end -}}
@@ -306,7 +306,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- end -}}
 
 {{- define "snippet.postgresql.port" -}}
-{{- if and (not .Values.mariadb.enabled) .Values.externalPostgresql.port -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.port -}}
 {{- required "externalPostgresql.port is required if not postgresql.enabled"  .Values.externalPostgresql.port | quote }}
 {{- else -}}
 "5432"
@@ -314,10 +314,10 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- end -}}
 
 {{- define "snippet.postgresql.db" -}}
-{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.db -}}
-{{- required "externalPostgresql.db is required if not postgresql.enabled" .Values.externalPostgresql.db | quote}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.db_name -}}
+{{- required "externalPostgresql.db_name is required if not postgresql.enabled" .Values.externalPostgresql.db_name | quote}}
 {{- else -}}
-"oncall"
+{{- .Values.postgresql.auth.database | default "oncall" | quote -}}
 {{- end -}}
 {{- end -}}
 
@@ -325,7 +325,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.user -}}
 {{- .Values.externalPostgresql.user | quote}}
 {{- else -}}
-"postgres"
+{{- .Values.postgresql.auth.username | default "postgres" | quote -}}
 {{- end -}}
 {{- end -}}
 
