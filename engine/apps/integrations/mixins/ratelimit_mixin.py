@@ -192,7 +192,7 @@ class IntegrationRateLimitMixin(RateLimitMixin, View):
 
     @ratelimit(
         key=get_rate_limit_per_channel_key,
-        rate=str(RATELIMIT_INTEGRATION) + "/5m",
+        rate=str(5) + "/5m",
         group="integration",
         reason=RATELIMIT_REASON_INTEGRATION,
     )

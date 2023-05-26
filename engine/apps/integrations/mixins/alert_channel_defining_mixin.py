@@ -75,7 +75,7 @@ class AlertChannelDefiningMixin(object):
                 raise PermissionDenied("Integration key was not found. Permission denied.")
 
         del kwargs["alert_channel_key"]
-        kwargs["alert_receive_channel"] = alert_receive_channel
+        # kwargs["alert_receive_channel"] = alert_receive_channel
 
         request = args[0]
         request.alert_receive_channel = alert_receive_channel
