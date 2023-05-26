@@ -391,20 +391,3 @@ class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBea
         process_heartbeat_task.apply_async(
             (alert_receive_channel.pk,),
         )
-
-
-class AlertManagerV2(AlertChannelDefiningMixin, IntegrationHeartBeatRateLimitMixin, APIView):
-    def post(self, request):
-
-        create_alert.apply_async(
-            [],
-            {
-                "title": None,
-                "message": None,
-                "image_url": None,
-                "link_to_upstream_details": None,
-                "alert_receive_channel_pk": request.alert_receive_channel.pk,
-                "integration_unique_data": None,
-                "raw_request_data": request.data,
-            },
-        )
