@@ -6,7 +6,7 @@ keywords:
   - notification
   - push notification
 title: Installation and setup
-weight: 500
+weight: 100
 ---
 
 # Installation and setup

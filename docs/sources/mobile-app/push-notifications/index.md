@@ -6,7 +6,7 @@ keywords:
   - notification
   - push notification
 title: Push notifications
-weight: 500
+weight: 200
 ---
 
 # Push notifications
