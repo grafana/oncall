@@ -30,25 +30,18 @@ from common.api_helpers.utils import create_engine_url
 logger = logging.getLogger(__name__)
 
 
-class AmazonSNS(BrowsableInstructionMixin, SNSEndpoint):
+class AmazonSNS(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, SNSEndpoint):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
-        # Cleaning for SNSEndpoint
-        args[0].alert_channel_key = kwargs["alert_channel_key"]
-        del kwargs["alert_channel_key"]
-        # For browserable API
-        if args[0].method == "GET":
-            args = (args[0], args[0].alert_channel_key)
-
         try:
-            return super(SNSEndpoint, self).dispatch(*args, **kwargs)
+            return super().dispatch(*args, **kwargs)
         except Exception as e:
             print(e)
             return JsonResponse(status=400, data={})
 
     def handle_message(self, message, payload):
         try:
-            alert_receive_channel = AlertReceiveChannel.objects.get(token=self.request.alert_channel_key)
+            alert_receive_channel = self.request.alert_receive_channel
         except AlertReceiveChannel.DoesNotExist:
             raise PermissionDenied("Integration key was not found. Permission denied.")
 
@@ -103,12 +96,13 @@ class AlertManagerAPIView(
     IntegrationRateLimitMixin,
     APIView,
 ):
-    def post(self, request, alert_receive_channel):
+    def post(self, request):
         """
         AlertManager requires super fast response so we create Alerts in Celery Task.
         Otherwise AlertManager raises `context deadline exceeded` exception.
         Unfortunately this HTTP timeout is not configurable on AlertManager's side.
         """
+        alert_receive_channel = self.request.alert_receive_channel
         if not self.check_integration_type(alert_receive_channel):
             return HttpResponseBadRequest(
                 f"This url is for integration with {alert_receive_channel.get_integration_display()}. Key is for "
@@ -142,10 +136,11 @@ class GrafanaAlertingAPIView(AlertManagerAPIView):
 class GrafanaAPIView(AlertManagerAPIView):
     """Support both new and old versions of Grafana Alerting"""
 
-    def post(self, request, alert_receive_channel):
+    def post(self, request):
+        alert_receive_channel = self.request.alert_receive_channel
         # New Grafana has the same payload structure as AlertManager
         if "alerts" in request.data:
-            return super().post(request, alert_receive_channel)
+            return super().post(request)
 
         """
         Example of request.data from old Grafana:
@@ -245,7 +240,8 @@ class GrafanaAPIView(AlertManagerAPIView):
 
 
 class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
-    def post(self, request, alert_receive_channel, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        alert_receive_channel = self.request.alert_receive_channel
         if not alert_receive_channel.config.slug == kwargs["integration_type"]:
             return HttpResponseBadRequest(
                 f"This url is for integration with {alert_receive_channel.config.title}."
@@ -268,7 +264,7 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
 
 # TODO: restore HeartBeatAPIView integration or clean it up as it is not used now
 class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
-    def get(self, request, alert_receive_channel):
+    def get(self, request):
         template = loader.get_template("heartbeat_link.html")
         docs_url = create_engine_url("/#/integrations/heartbeat", override_base=settings.DOCS_URL)
         return HttpResponse(
@@ -279,7 +275,8 @@ class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
             )
         )
 
-    def post(self, request, alert_receive_channel):
+    def post(self, request):
+        alert_receive_channel = self.request.alert_receive_channel
         HeartBeat = apps.get_model("heartbeat", "HeartBeat")
 
         if request.data.get("action") == "activate":
@@ -382,12 +379,12 @@ class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
 
 
 class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBeatRateLimitMixin, APIView):
-    def get(self, request, alert_receive_channel):
-        self._process_heartbeat_signal(request, alert_receive_channel)
+    def get(self, request):
+        self._process_heartbeat_signal(request, request.alert_receive_channel)
         return Response(":)")
 
-    def post(self, request, alert_receive_channel):
-        self._process_heartbeat_signal(request, alert_receive_channel)
+    def post(self, request):
+        self._process_heartbeat_signal(request, request.alert_receive_channel)
         return Response(status=200)
 
     def _process_heartbeat_signal(self, request, alert_receive_channel):
