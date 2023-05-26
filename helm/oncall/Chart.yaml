@@ -2,8 +2,8 @@ apiVersion: v2
 name: oncall
 description: Developer-friendly incident response with brilliant Slack integration
 type: application
-version: 1.2.30
-appVersion: v1.2.30
+version: 1.2.31
+appVersion: v1.2.31
 dependencies:
   - name: cert-manager
     version: v1.8.0
