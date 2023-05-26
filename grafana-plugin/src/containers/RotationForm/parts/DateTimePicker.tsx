@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { DateTime, dateTime } from '@grafana/data';
 import { DatePickerWithInput, TimeOfDayPicker, VerticalGroup } from '@grafana/ui';
@@ -44,22 +44,19 @@ const DateTimePicker = (props: DateTimePickerProps) => {
 
     onChange(newValue);
   };
-  const handleTimeChange = useCallback(
-    (newMoment: DateTime) => {
-      const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
-      const newDate = newMoment.toDate();
-      const newValue = localMoment
-        .set('year', value.getFullYear())
-        .set('month', value.getMonth())
-        .set('date', value.getDate())
-        .set('hour', newDate.getHours())
-        .set('minute', newDate.getMinutes())
-        .set('second', newDate.getSeconds());
+  const handleTimeChange = (newMoment: DateTime) => {
+    const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
+    const newDate = newMoment.toDate();
+    const newValue = localMoment
+      .set('year', value.getFullYear())
+      .set('month', value.getMonth())
+      .set('date', value.getDate())
+      .set('hour', newDate.getHours())
+      .set('minute', newDate.getMinutes())
+      .set('second', newDate.getSeconds());
 
-      onChange(newValue);
-    },
-    [value]
-  );
+    onChange(newValue);
+  };
 
   return (
     <VerticalGroup>

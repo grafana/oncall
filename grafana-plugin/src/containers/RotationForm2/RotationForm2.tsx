@@ -104,6 +104,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
+  const [activePeriod, setActivePeriod] = useState<number | undefined>(undefined);
   const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
 
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
@@ -133,12 +134,6 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setSelectedDays([]);
     }
   }, [showActiveOnSelectedDays]);
-
-  useEffect(() => {
-    if (!showActiveOnSelectedPartOfDay) {
-      setShiftEnd(propsShiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
-    }
-  }, [showActiveOnSelectedPartOfDay]);
 
   useEffect(() => {
     if (isOpen) {
@@ -279,6 +274,27 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     [showActiveOnSelectedPartOfDay, repeatEveryPeriod]
   );
 
+  const handleRotationStartChange = useCallback(
+    (value) => {
+      setRotationStart(value);
+      setShiftStart(value);
+      if (showActiveOnSelectedPartOfDay) {
+        setShiftEnd(value.add(activePeriod, 'seconds'));
+      } else {
+        setShiftEnd(value.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+      }
+    },
+    [showActiveOnSelectedPartOfDay, activePeriod, repeatEveryPeriod, repeatEveryValue]
+  );
+
+  const handleActivePeriodChange = useCallback(
+    (value) => {
+      setActivePeriod(value);
+      setShiftEnd(shiftStart.add(value, 'seconds'));
+    },
+    [shiftStart]
+  );
+
   const handleRotationTitleChange = useCallback(
     (title: string) => {
       setRotationTitle(title);
@@ -297,9 +313,18 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     setShowActiveOnSelectedDays(event.currentTarget.checked);
   }, []);
 
-  const handleShowActiveOnSelectedPartOfDayToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setShowActiveOnSelectedPartOfDay(event.currentTarget.checked);
-  }, []);
+  const handleShowActiveOnSelectedPartOfDayToggle = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.currentTarget.checked;
+      setShowActiveOnSelectedPartOfDay(value);
+
+      if (value) {
+      } else {
+        setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+      }
+    },
+    [shiftStart, repeatEveryPeriod, repeatEveryValue]
+  );
 
   useEffect(() => {
     if (repeatEveryPeriod === RepeatEveryPeriod.MONTHS) {
@@ -329,7 +354,10 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
       setShowActiveOnSelectedPartOfDay(activeOnSelectedPartOfDay);
       if (activeOnSelectedPartOfDay) {
-        setShiftPeriodDefaultValue(shiftEnd.diff(shiftStart, 'seconds'));
+        const activePeriod = shiftEnd.diff(shiftStart, 'seconds');
+
+        setActivePeriod(activePeriod);
+        setShiftPeriodDefaultValue(activePeriod);
       }
 
       setUserGroups(shift.rolling_users);
@@ -388,7 +416,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     <DateTimePicker
                       //minMoment={shiftStart}
                       value={rotationStart}
-                      onChange={setRotationStart}
+                      onChange={handleRotationStartChange}
                       timezone={currentTimezone}
                       error={errors.rotation_start}
                     />
@@ -489,7 +517,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                               repeatEveryValue={repeatEveryValue}
                               defaultValue={shiftPeriodDefaultValue}
                               shiftStart={shiftStart}
-                              onShiftEndChange={setShiftEnd}
+                              onChange={handleActivePeriodChange}
                               currentTimezone={currentTimezone}
                               errors={errors}
                             />
@@ -551,19 +579,12 @@ interface ShiftPeriodProps {
   repeatEveryValue: number;
   defaultValue: number;
   shiftStart: dayjs.Dayjs;
-  onShiftEndChange: (moment: dayjs.Dayjs) => void;
+  onChange: (value: number) => void;
   currentTimezone: Timezone;
   errors: any;
 }
 
-const ShiftPeriod = ({
-  repeatEveryPeriod,
-  repeatEveryValue,
-  defaultValue,
-  shiftStart,
-  onShiftEndChange,
-  errors,
-}: ShiftPeriodProps) => {
+const ShiftPeriod = ({ repeatEveryPeriod, repeatEveryValue, defaultValue, onChange, errors }: ShiftPeriodProps) => {
   const [timeUnits, setTimeUnits] = useState<TimeUnit[]>([]);
 
   useEffect(() => {
@@ -577,9 +598,7 @@ const ShiftPeriod = ({
   }, [repeatEveryPeriod, repeatEveryValue]);
 
   useEffect(() => {
-    const newShiftEnd = shiftStart.add(timeUnitsToSeconds(timeUnits), 'seconds');
-
-    onShiftEndChange(newShiftEnd);
+    onChange(timeUnitsToSeconds(timeUnits));
   }, [timeUnits]);
 
   const getTimeUnitChangeHandler = (unit: RepeatEveryPeriod) => {
