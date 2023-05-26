@@ -292,6 +292,8 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- define "snippet.postgresql.password.secret.key" -}}
 {{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.passwordKey -}}
 {{ .Values.externalPostgresql.passwordKey }}
+{{- else if .Values.postgresql.enabled -}}
+{{ include "postgresql.userPasswordKey" .Subcharts.postgresql }}
 {{- else -}}
 "postgres-password"
 {{- end -}}

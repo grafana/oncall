@@ -1,6 +1,7 @@
 suite: test postgresql deployment environments
 templates:
   - engine/deployment.yaml
+  - engine/job-migrate.yaml
   - celery/deployment-celery.yaml
 release:
   name: oncall
