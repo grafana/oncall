@@ -44,6 +44,11 @@ urlpatterns = [
     path("api/internal/v1/mobile_app/", include("apps.mobile_app.urls", namespace="mobile_app_tmp")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+if settings.FEATURE_PROMETHEUS_EXPORTER_ENABLED:
+    urlpatterns += [
+        path("metrics/", include("apps.metrics_exporter.urls")),
+    ]
+
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("api/internal/v1/slack/", include("apps.slack.urls")),

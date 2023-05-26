@@ -68,6 +68,7 @@ make start COMPOSE_PROFILES=postgres,engine,grafana,rabbitmq
 The possible profiles values are:
 
 - `grafana`
+- `prometheus`
 - `engine`
 - `oncall_ui`
 - `redis`
@@ -137,6 +138,13 @@ license_text = <content-of-the-license-jwt-that-you-downloaded>
 ```
 
 (_Note_: you may need to restart your `grafana` container after modifying its configuration)
+
+### Enabling OnCall prometheus exporter for local development
+
+Add `prometheus` to your `COMPOSE_PROFILES` and set `FEATURE_PROMETHEUS_EXPORTER_ENABLED=True` in your
+`dev/.env.dev` file. You may need to restart your `grafana` container to make sure the new datasource
+is added (or add it manually using the UI; Prometheus will be running in `host.docker.internal:9090`
+by default, using default settings).
 
 ### Django Silk Profiling
 
