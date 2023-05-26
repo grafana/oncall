@@ -103,6 +103,7 @@ Use the **Push notifications** section in the **Settings** tab to configure push
 
 On Android, we leverage the "Notification channels" system feature. Each type of notification (**important**, **default**, and **on-call shifts**) registers a channel.
 In this channel, you may configure the sound style, optional Do Not Disturb override, vibration, and so on.
+
 - **Customize notifications** takes you to this system menu, while hitting the **back** button or swiping left (if enabled) takes you back to the application.
 - **Volume Override** can optionally be configured in the mobile app itself. Confusingly, this requires you to provide the **Override Do Not Disturb** permission to the application, in the system configuration.  The app will prompt for this if applicable.
 
@@ -125,6 +126,3 @@ To enable or disable on-call shift notifications, use the **On-call shift notifi
 ## On-call status & shift information
 
 On the **Feed** page, your avatar on top of the screen indicates whether you are oncall, will be on call soon, or not.  Tap on it to open the **upcoming shifts** view.  This view presents your current, and next upcoming shifts (if any), up to 1 month into the future.
-
-
-
