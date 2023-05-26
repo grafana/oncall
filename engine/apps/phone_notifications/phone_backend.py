@@ -46,7 +46,7 @@ class PhoneBackend:
         renderer = AlertGroupPhoneCallRenderer(alert_group)
         message = renderer.render()
 
-        record = PhoneCallRecord.objects.create(
+        record = PhoneCallRecord(
             represents_alert_group=alert_group,
             receiver=user,
             notification_policy=notification_policy,

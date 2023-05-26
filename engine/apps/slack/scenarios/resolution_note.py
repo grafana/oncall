@@ -13,6 +13,7 @@ from common.api_helpers.utils import create_engine_url
 from .step_mixins import CheckAlertIsUnarchivedMixin
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.ScenarioStep):
@@ -418,12 +419,23 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
         }
 
         if "update" in resolution_note_window_action:
-            self._slack_client.api_call(
-                "views.update",
-                trigger_id=payload["trigger_id"],
-                view=view,
-                view_id=payload["view"]["id"],
-            )
+            try:
+                self._slack_client.api_call(
+                    "views.update",
+                    trigger_id=payload["trigger_id"],
+                    view=view,
+                    view_id=payload["view"]["id"],
+                )
+            except SlackAPIException as e:
+                if e.response["error"] == "not_found":
+                    # Ignore "not_found" error, it means that the view was closed by user before the update request.
+                    # It doesn't disrupt the user experience.
+                    logger.debug(
+                        f"API call to views.update failed for alert group {alert_group_pk}, error: not_found. "
+                        f"Most likely the view was closed by user before the request was processed. "
+                    )
+                else:
+                    raise
         else:
             self._slack_client.api_call(
                 "views.open",

@@ -33,8 +33,7 @@ def update_twilio_call_status(call_sid, call_status):
         # Will be removed soon.
         if twilio_phone_call:
             logger.info(
-                f"twilioapp.update_twilio_call_status: found legacy twilio_phone_call sid={call_sid}"
-                f" status={call_status}"
+                f"twilioapp.update_twilio_call_status: found twilio_phone_call sid={call_sid}" f" status={call_status}"
             )
             status = TwilioCallStatuses.DETERMINANT.get(call_status)
             twilio_phone_call.status = status
@@ -46,7 +45,7 @@ def update_twilio_call_status(call_sid, call_status):
 
         if phone_call_record and status:
             logger.info(
-                f"twilioapp.update_twilio_call_status: processing using phone_call_record id={phone_call_record.id} "
+                f"twilioapp.update_twilio_call_status: found phone_call_record_id={phone_call_record.id} "
                 f"sid={call_sid} status={call_status}"
             )
             log_record_type = None
@@ -71,6 +70,11 @@ def update_twilio_call_status(call_sid, call_status):
                     notification_channel=phone_call_record.notification_policy.notify_by
                     if phone_call_record.notification_policy
                     else None,
+                )
+                log_record.save()
+                logger.info(
+                    f"twilioapp.update_twilio_call_status: created log_record log_record_id={log_record.id} "
+                    f"type={log_record_type}"
                 )
                 user_notification_action_triggered_signal.send(sender=update_twilio_call_status, log_record=log_record)
 
@@ -121,7 +125,7 @@ def update_twilio_sms_status(message_sid, message_status):
 
         if sms_record and status:
             logger.info(
-                f"twilioapp.update_twilio_sms_status: processing using sms_record id={sms_record.id} "
+                f"twilioapp.update_twilio_sms_status: found sms_record_id={sms_record.id} "
                 f"sid={message_sid} status={message_status}"
             )
             log_record_type = None
@@ -143,6 +147,11 @@ def update_twilio_sms_status(message_sid, message_status):
                     notification_channel=sms_record.notification_policy.notify_by
                     if sms_record.notification_policy
                     else None,
+                )
+                log_record.save()
+                logger.info(
+                    f"twilioapp.update_twilio_sms_status: created log_record log_record_id={log_record.id} "
+                    f"type={log_record_type}"
                 )
                 user_notification_action_triggered_signal.send(sender=update_twilio_sms_status, log_record=log_record)
 

@@ -1629,7 +1629,51 @@ def test_refresh_ical_final_schedule_event_in_the_past(
 
     schedule.refresh_ical_final_schedule()
 
-    # check old event is dropped, recent one is kept unchanged
+    # check old event is dropped
+    calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
+    events = [component for component in calendar.walk() if component.name == ICAL_COMPONENT_VEVENT]
+    assert len(events) == 0
+
+
+@pytest.mark.django_db
+def test_refresh_ical_final_schedule_all_day_date_event(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+    cached_ical_final_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID://Grafana Labs//Grafana On-Call//
+        CALSCALE:GREGORIAN
+        X-WR-CALNAME:Cup cut.
+        X-WR-TIMEZONE:UTC
+        BEGIN:VEVENT
+        SUMMARY:{}
+        DTSTART;VALUE=DATE:20221203
+        DTEND;VALUE=DATE:20221205
+        DTSTAMP;VALUE=DATE-TIME:20220414T190951Z
+        UID:O231U3VXVIYRX-202304140000-U5FWIHEASEWS2
+        LAST-MODIFIED;VALUE=DATE-TIME:20220414T190951Z
+        END:VEVENT
+        END:VCALENDAR
+    """.format(
+            u1.username
+        )
+    )
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        cached_ical_final_schedule=cached_ical_final_schedule,
+    )
+
+    schedule.refresh_ical_final_schedule()
+
+    # check old event is dropped
     calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
     events = [component for component in calendar.walk() if component.name == ICAL_COMPONENT_VEVENT]
     assert len(events) == 0
