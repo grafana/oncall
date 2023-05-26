@@ -53,6 +53,13 @@ def on_after_setup_logger(logger, **kwargs):
         )
 
 
+@celery.signals.worker_ready.connect
+def on_worker_ready(*args, **kwargs):
+    from apps.telegram.tasks import register_telegram_webhook
+
+    register_telegram_webhook.delay()
+
+
 if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
 
     @celery.signals.worker_process_init.connect(weak=False)

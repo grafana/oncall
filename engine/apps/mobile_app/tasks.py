@@ -62,7 +62,7 @@ def send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
 def _send_push_notification(
     device_to_notify: FCMDevice, message: Message, error_cb: typing.Optional[typing.Callable[..., None]] = None
 ) -> None:
-    logger.debug(f"Sending push notification with message: {message}")
+    logger.debug(f"Sending push notification to device type {device_to_notify.type} with message: {message}")
 
     def _error_cb():
         if error_cb:
@@ -242,6 +242,9 @@ def _get_alert_group_escalation_fcm_message(
 def _get_youre_going_oncall_fcm_message(
     user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
 ) -> Message:
+    # avoid circular import
+    from apps.mobile_app.models import MobileAppUserSettings
+
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
@@ -383,7 +386,9 @@ def should_we_send_going_oncall_push_notification(
         f"shift_starts_within_fifteen_minutes: {shift_starts_within_fifteen_minutes}"
     )
 
-    if shift_starts_within_users_notification_timing_preference or shift_starts_within_fifteen_minutes:
+    # Temporary remove `shift_starts_within_users_notification_timing_preference` from condition to send notification only 15 minutes before the shift starts
+    # TODO: Return it once mobile app ready and default value is changed (https://github.com/grafana/oncall/issues/1999)
+    if shift_starts_within_fifteen_minutes:
         logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
         return seconds_until_shift_starts
     logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
@@ -426,7 +431,6 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
         for user in users:
             user_pk = user["pk"]
-            logger.info(f"Evaluating if we should send push notification for schedule {schedule_pk} for user {user_pk}")
 
             user = user_cache.get(user_pk, None)
             if user is None:
@@ -442,7 +446,6 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
                 device_to_notify = FCMDevice.objects.filter(user=user).first()
 
                 if not device_to_notify:
-                    logger.info(f"User {user_pk} has no device set up")
                     continue
                 else:
                     device_cache[user_pk] = device_to_notify

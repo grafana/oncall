@@ -115,7 +115,10 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                     showLineNumbers
                     useAutoCompleteList={false}
                     language={MONACO_LANGUAGE.json}
-                    monacoOptions={MONACO_PAYLOAD_OPTIONS}
+                    monacoOptions={{
+                      ...MONACO_PAYLOAD_OPTIONS,
+                      readOnly: true,
+                    }}
                   />
                 </div>
               </div>
