@@ -154,7 +154,7 @@ def _get_alert_group_escalation_fcm_message(
 
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
 
-    alert_title = "New Alert" if critical else "New Important Alert"
+    alert_title = "New Important Alert" if critical else "New Alert"
     alert_subtitle = get_push_notification_subtitle(alert_group)
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
