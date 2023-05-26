@@ -201,6 +201,7 @@ def _get_alert_group_escalation_fcm_message(
         "important_notification_override_dnd": json.dumps(mobile_app_user_settings.important_notification_override_dnd),
     }
 
+    number_of_alerts = alert_group.alerts.count()
     apns_payload = APNSPayload(
         aps=Aps(
             thread_id=thread_id,
