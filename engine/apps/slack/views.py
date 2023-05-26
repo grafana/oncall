@@ -289,8 +289,6 @@ class SlackEventApiEndpointView(APIView):
         elif organization is None:
             # see this GitHub issue for more context on how this situation can arise
             # https://github.com/grafana/oncall-private/issues/1836
-            # tldr; > 2 stacks, stack A and stack B, use the same Slack workspace. Stack A get deleted
-            # the
             warning_text = (
                 "OnCall is not able to process this action because one of the following scenarios: \n"
                 "1. The Slack chatops integration was disconnected from the instance that the Alert Group belongs "
