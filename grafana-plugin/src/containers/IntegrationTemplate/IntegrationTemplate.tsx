@@ -100,7 +100,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const onSaveAndFollowLink = useCallback(
     (link: string) => {
-      onHide();
+      onUpdateTemplates({ [template.name]: changedTemplateBody });
       window.open(link, '_blank');
     },
     [onUpdateTemplates, onUpdateRoute, changedTemplateBody]
@@ -174,7 +174,11 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             templates={templates}
           />
           {isCheatSheetVisible ? (
-            <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
+            <CheatSheet
+              cheatSheetName={template.displayName}
+              cheatSheetData={getCheatSheet(template.displayName)}
+              onClose={onCloseCheatSheet}
+            />
           ) : (
             <>
               <div className={cx('template-block-codeeditor')}>
@@ -189,7 +193,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                 </div>
 
                 <MonacoEditor
-                  value={templateBody}
+                  value={changedTemplateBody}
                   data={templates}
                   showLineNumbers={true}
                   height={'85vh'}
