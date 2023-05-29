@@ -1,7 +1,12 @@
+/*
+  [oncall-private]
+  Any change to this file needs to be done in the oncall-private also
+*/
+
 import dayjs from 'dayjs';
 
-import { MaintenanceMode } from 'models/alert_receive_channel';
-import { ChannelFilter } from 'models/channel_filter';
+import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
 
@@ -31,7 +36,7 @@ const IntegrationHelper = {
     return slice.length === line.length ? slice : `${slice} ...`;
   },
 
-  getRouteConditionWording(channelFilters: { [id: string]: ChannelFilter }, routeIndex: number) {
+  getRouteConditionWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number): 'Default' | 'Else' | 'If' {
     const totalCount = Object.keys(channelFilters).length;
 
     if (routeIndex === totalCount - 1) {
@@ -53,6 +58,19 @@ const IntegrationHelper = {
     }
 
     return `${hourDiff}h left`;
+  },
+
+  getChatOpsChannels(channelFilter: ChannelFilter) {
+    const channels = [];
+
+    if (channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
+      channels.push(channelFilter.slack_channel.display_name);
+    }
+    if (channelFilter.telegram_channel) {
+      channels.push(channelFilter.telegram_channel);
+    }
+
+    return channels;
   },
 };
 

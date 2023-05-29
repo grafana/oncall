@@ -137,10 +137,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day:
-        repeatEveryPeriod === 0 || repeatEveryPeriod === 1
-          ? getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart)
-          : null,
+      by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       title: rotationTitle,
     }),
@@ -351,16 +348,14 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                     />
                   </Field>
                 </HorizontalGroup>
-                {(repeatEveryPeriod === 0 || repeatEveryPeriod === 1) && (
-                  <Field label="Select days to repeat">
-                    <DaysSelector
-                      weekStart={config.bootData.user.weekStart}
-                      options={store.scheduleStore.byDayOptions}
-                      value={selectedDays}
-                      onChange={(value) => setSelectedDays(value)}
-                    />
-                  </Field>
-                )}
+                <Field label="Select days to repeat">
+                  <DaysSelector
+                    weekStart={config.bootData.user.weekStart}
+                    options={store.scheduleStore.byDayOptions}
+                    value={selectedDays}
+                    onChange={(value) => setSelectedDays(value)}
+                  />
+                </Field>
                 <div className={cx('two-fields')}>
                   <Field
                     className={cx('date-time-picker')}

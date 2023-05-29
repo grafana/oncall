@@ -1,0 +1,140 @@
+suite: test postgresql deployment environments
+templates:
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+  - celery/deployment-celery.yaml
+release:
+  name: oncall
+tests:
+  - it: external Postgresql default settings
+    set:
+      database.type: postgresql
+      postgresql.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_TYPE
+            value: postgresql
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_NAME
+            value: oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_PORT
+            value: "5432"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_USER
+            value: postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_HOST
+            value: oncall-postgresql
+
+  - it: external Postgresql custom settings
+    set:
+      database.type: postgresql
+      postgresql.enabled: false
+      externalPostgresql:
+        host: test-host
+        port: 5555
+        db_name: grafana_oncall
+        user: test_user
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_TYPE
+            value: postgresql
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_NAME
+            value: grafana_oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_PORT
+            value: "5555"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_USER
+            value: test_user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_HOST
+            value: test-host
+
+  - it: internal Postgresql default settings
+    set:
+      database.type: postgresql
+      postgresql.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_TYPE
+            value: postgresql
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_NAME
+            value: oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_PORT
+            value: "5432"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_USER
+            value: postgres
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_HOST
+            value: oncall-postgresql
+
+  - it: internal Postgresql custom settings
+    set:
+      database.type: postgresql
+      postgresql:
+        enabled: true
+        auth:
+          database: grafana_oncall
+          username: grafana_oncall
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_TYPE
+            value: postgresql
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_NAME
+            value: grafana_oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_PORT
+            value: "5432"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_USER
+            value: grafana_oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_HOST
+            value: oncall-postgresql

@@ -19,7 +19,6 @@ from recurring_ical_events import UnfoldableCalendar
 
 from apps.schedules.tasks import (
     drop_cached_ical_task,
-    refresh_ical_final_schedule,
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
 )
@@ -665,7 +664,6 @@ class CustomOnCallShift(models.Model):
         drop_cached_ical_task.apply_async((schedule.pk,))
         schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
         schedule_notify_about_gaps_in_schedule.apply_async((schedule.pk,))
-        refresh_ical_final_schedule.apply_async((schedule.pk,))
 
     @cached_property
     def last_updated_shift(self):

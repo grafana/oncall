@@ -3,6 +3,7 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import { Drawer, VerticalGroup, HorizontalGroup, Input, Tag, EmptySearchResult, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { useHistory } from 'react-router-dom';
 
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
@@ -10,10 +11,14 @@ import GForm from 'components/GForm/GForm';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
-import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
+import {
+  AlertReceiveChannel,
+  AlertReceiveChannelOption,
+} from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
+import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import { form } from './IntegrationForm2.config';
 import { prepareForEdit } from './IntegrationForm2.helpers';
@@ -24,14 +29,16 @@ const cx = cn.bind(styles);
 
 interface IntegrationFormProps {
   id: AlertReceiveChannel['id'] | 'new';
+  isTableView?: boolean;
   onHide: () => void;
   onUpdate: () => void;
 }
 
 const IntegrationForm2 = observer((props: IntegrationFormProps) => {
-  const { id, onHide, onUpdate } = props;
+  const { id, onHide, onUpdate, isTableView = true } = props;
 
   const store = useStore();
+  const history = useHistory();
 
   const { alertReceiveChannelStore, userStore } = store;
 
@@ -40,6 +47,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
   const [filterValue, setFilterValue] = useState('');
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
+  const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
 
   const data =
     id === 'new'
@@ -48,7 +56,17 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
 
   const handleSubmit = useCallback(
     (data: Partial<AlertReceiveChannel>) => {
-      (id === 'new' ? alertReceiveChannelStore.create(data) : alertReceiveChannelStore.update(id, data)).then(() => {
+      (id === 'new'
+        ? alertReceiveChannelStore
+            .create(data)
+            .then((response) => {
+              history.push(`${PLUGIN_ROOT}/integrations_2/${response.id}`);
+            })
+            .catch(() => {
+              openErrorNotification('Something went wrong, please try again later.');
+            })
+        : alertReceiveChannelStore.update(id, data)
+      ).then(() => {
         onHide();
         onUpdate();
       });
@@ -60,6 +78,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
     return () => {
       setSelectedOption(option);
       setShowNewIntegrationForm(true);
+      setShowIntegrarionsListDrawer(false);
     };
   }, []);
 
@@ -77,7 +96,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
 
   return (
     <>
-      {id === 'new' && (
+      {showIntegrarionsListDrawer && (
         <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
@@ -96,7 +115,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
                       <Block
                         bordered
                         hover
-                        withBackground
+                        shadowed
                         onClick={handleNewIntegrationOptionSelectCallback(alertReceiveChannelChoice)}
                         key={alertReceiveChannelChoice.value}
                         className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
@@ -128,52 +147,54 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
           </div>
         </Drawer>
       )}
-      {(showNewIntegrationForm || id !== 'new') && (
-        <Drawer
-          scrollableContent
-          title={id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`}
-          onClose={onHide}
-          closeOnMaskClick={false}
-          width="640px"
-        >
+      {(showNewIntegrationForm || !showIntegrarionsListDrawer) && (
+        <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
               <GForm form={form} data={data} onSubmit={handleSubmit} />
-              <Collapse
-                headerWithBackground
-                className={cx('collapse')}
-                isOpen={false}
-                label={<Text type="link">How the integration works</Text>}
-                contentClassName={cx('collapsable-content')}
-              >
-                <Text type="secondary">
-                  The integration will generate the following:
-                  <ul className={cx('integration-info-list')}>
-                    <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
-                    <li className={cx('integration-info-item')}>
-                      Templates to interpret alerts, tailored for Grafana Alerting{' '}
-                    </li>
-                    <li className={cx('integration-info-item')}>Grafana Alerting contact point </li>
-                    <li className={cx('integration-info-item')}>Grafana Alerting notification</li>
-                  </ul>
-                  What you’ll need to do next:
-                  <ul className={cx('integration-info-list')}>
-                    <li className={cx('integration-info-item')}>
-                      Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
-                    </li>
-                    <li className={cx('integration-info-item')}>
-                      Set up routes that are based on alert content, such as severity, region, and service{' '}
-                    </li>
-                    <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
-                    <li className={cx('integration-info-item')}>
-                      Review templates and personalize according to your requirements
-                    </li>
-                  </ul>
-                </Text>
-              </Collapse>
+              {isTableView && (
+                <Collapse
+                  headerWithBackground
+                  className={cx('collapse')}
+                  isOpen={false}
+                  label={<Text type="link">How the integration works</Text>}
+                  contentClassName={cx('collapsable-content')}
+                >
+                  <Text type="secondary">
+                    The integration will generate the following:
+                    <ul className={cx('integration-info-list')}>
+                      <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
+                      <li className={cx('integration-info-item')}>
+                        Templates to interpret alerts, tailored for Grafana Alerting{' '}
+                      </li>
+                      <li className={cx('integration-info-item')}>Grafana Alerting contact point </li>
+                      <li className={cx('integration-info-item')}>Grafana Alerting notification</li>
+                    </ul>
+                    What you’ll need to do next:
+                    <ul className={cx('integration-info-list')}>
+                      <li className={cx('integration-info-item')}>
+                        Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}
+                      </li>
+                      <li className={cx('integration-info-item')}>
+                        Set up routes that are based on alert content, such as severity, region, and service{' '}
+                      </li>
+                      <li className={cx('integration-info-item')}>Connect escalation chains to the routes</li>
+                      <li className={cx('integration-info-item')}>
+                        Review templates and personalize according to your requirements
+                      </li>
+                    </ul>
+                  </Text>
+                </Collapse>
+              )}
               <HorizontalGroup justify="flex-end">
                 {id === 'new' ? (
-                  <Button variant="secondary" onClick={() => setShowNewIntegrationForm(false)}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowNewIntegrationForm(false);
+                      setShowIntegrarionsListDrawer(true);
+                    }}
+                  >
                     Back
                   </Button>
                 ) : (
@@ -194,6 +215,13 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
       )}
     </>
   );
+
+  function getTitle(): string {
+    if (!isTableView) {
+      return 'Integration Settings';
+    }
+    return id === 'new' ? `New ${selectedOption?.display_name} integration` : `Edit integration`;
+  }
 });
 
 export default IntegrationForm2;

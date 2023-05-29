@@ -6,6 +6,7 @@ import uuid
 from importlib import import_module, reload
 
 import pytest
+from celery import Task
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
 from pytest_factoryboy import register
@@ -56,6 +57,9 @@ from apps.base.tests.factories import (
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
+from apps.phone_notifications.phone_backend import PhoneBackend
+from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
+from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
@@ -78,7 +82,6 @@ from apps.telegram.tests.factories import (
     TelegramToUserConnectorFactory,
     TelegramVerificationCodeFactory,
 )
-from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
@@ -114,8 +117,8 @@ register(TelegramMessageFactory)
 
 register(ResolutionNoteSlackMessageFactory)
 
-register(PhoneCallFactory)
-register(SMSFactory)
+register(PhoneCallRecordFactory)
+register(SMSRecordFactory)
 register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
@@ -148,6 +151,22 @@ def mock_telegram_bot_username(monkeypatch):
         return "amixr_bot"
 
     monkeypatch.setattr(Bot, "username", mock_username)
+
+
+@pytest.fixture(autouse=True)
+def mock_phone_provider(monkeypatch):
+    def mock_get_provider(*args, **kwargs):
+        return MockPhoneProvider()
+
+    monkeypatch.setattr(PhoneBackend, "_get_phone_provider", mock_get_provider)
+
+
+@pytest.fixture(autouse=True)
+def mock_apply_async(monkeypatch):
+    def mock_apply_async(*args, **kwargs):
+        return uuid.uuid4()
+
+    monkeypatch.setattr(Task, "apply_async", mock_apply_async)
 
 
 @pytest.fixture
@@ -416,6 +435,17 @@ def make_alert_receive_channel():
         post_save.disconnect(listen_for_alertreceivechannel_model_save, sender=AlertReceiveChannel)
         alert_receive_channel = AlertReceiveChannelFactory(organization=organization, **kwargs)
         post_save.connect(listen_for_alertreceivechannel_model_save, sender=AlertReceiveChannel)
+        return alert_receive_channel
+
+    return _make_alert_receive_channel
+
+
+@pytest.fixture
+def make_alert_receive_channel_with_post_save_signal():
+    def _make_alert_receive_channel(organization, **kwargs):
+        if "integration" not in kwargs:
+            kwargs["integration"] = AlertReceiveChannel.INTEGRATION_GRAFANA
+        alert_receive_channel = AlertReceiveChannelFactory(organization=organization, **kwargs)
         return alert_receive_channel
 
     return _make_alert_receive_channel
@@ -757,19 +787,19 @@ def make_telegram_message():
 
 
 @pytest.fixture()
-def make_phone_call():
-    def _make_phone_call(receiver, status, **kwargs):
-        return PhoneCallFactory(receiver=receiver, status=status, **kwargs)
+def make_phone_call_record():
+    def _make_phone_call_record(receiver, **kwargs):
+        return PhoneCallRecordFactory(receiver=receiver, **kwargs)
 
-    return _make_phone_call
+    return _make_phone_call_record
 
 
 @pytest.fixture()
-def make_sms():
-    def _make_sms(receiver, status, **kwargs):
-        return SMSFactory(receiver=receiver, status=status, **kwargs)
+def make_sms_record():
+    def _make_sms_record(receiver, **kwargs):
+        return SMSRecordFactory(receiver=receiver, **kwargs)
 
-    return _make_sms
+    return _make_sms_record
 
 
 @pytest.fixture()

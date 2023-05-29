@@ -82,15 +82,20 @@ const Text: TextInterface = (props) => {
   return (
     <span
       onClick={onClick}
-      className={cx('root', 'text', className, {
-        'with-maxWidth': Boolean(maxWidth),
-        [`text--${type}`]: true,
-        [`text--${size}`]: true,
-        'text--strong': strong,
-        'text--underline': underline,
-        'no-wrap': !wrap,
-        keyboard,
-      })}
+      className={cx(
+        'root',
+        'text',
+        {
+          'with-maxWidth': Boolean(maxWidth),
+          [`text--${type}`]: true,
+          [`text--${size}`]: true,
+          'text--strong': strong,
+          'text--underline': underline,
+          'no-wrap': !wrap,
+          keyboard,
+        },
+        className
+      )}
       style={{ ...style, maxWidth }}
       {...rest}
     >

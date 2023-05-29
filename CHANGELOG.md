@@ -5,6 +5,88 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
+the destination country code by @mderynck ([#1976](https://github.com/grafana/oncall/pull/1976))
+- Prometheus exporter backend for alert groups related metrics
+- Enable by-day selection when defining monthly and hourly rotations ([2037](https://github.com/grafana/oncall/pull/2037))
+
+### Fixed
+
+- Fix error when updating closed modal window in Slack by @vadimkerr ([#2019](https://github.com/grafana/oncall/pull/2019))
+- Fix final schedule export failing to update when ical imported events set start/end as date ([#2025](https://github.com/grafana/oncall/pull/2025))
+
+### Changed
+
+- Changed mobile notification title and subtitle. Removed the body. by @imtoori [#2027](https://github.com/grafana/oncall/pull/2027)
+
+## v1.2.31 (2023-05-26)
+
+### Fixed
+
+- Fix AmazonSNS ratelimit by @Konstantinov-Innokentii ([#2032](https://github.com/grafana/oncall/pull/2032))
+
+## v1.2.30 (2023-05-25)
+
+### Fixed
+
+- Fix Phone provider status callbacks [#2014](https://github.com/grafana/oncall/pull/2014)
+
+## v1.2.29 (2023-05-25)
+
+### Changed
+
+- Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
+
+### Fixed
+
+- Handle slack metadata limit when creating paging command payload ([#2007](https://github.com/grafana/oncall/pull/2007))
+- Fix issue with sometimes cached final schedule not being refreshed after an update ([#2004](https://github.com/grafana/oncall/pull/2004))
+
+## v1.2.28 (2023-05-24)
+
+### Fixed
+
+- Improve plugin authentication by @vadimkerr ([#1995](https://github.com/grafana/oncall/pull/1995))
+- Fix MultipleObjectsReturned error on webhook endpoints by @vadimkerr ([#1996](https://github.com/grafana/oncall/pull/1996))
+- Remove user defined time period from "you're going oncall" mobile push by @iskhakov ([#2001](https://github.com/grafana/oncall/pull/2001))
+
+## v1.2.27 (2023-05-23)
+
+### Added
+
+- Allow passing Firebase credentials via environment variable by @vadimkerr ([#1969](https://github.com/grafana/oncall/pull/1969))
+
+### Changed
+
+- Update default Alertmanager templates by @iskhakov ([#1944](https://github.com/grafana/oncall/pull/1944))
+
+### Fixed
+
+- Fix SQLite permission issue by @vadimkerr ([#1984](https://github.com/grafana/oncall/pull/1984))
+- Remove user defined time period from "you're going oncall" mobile push ([2001](https://github.com/grafana/oncall/pull/2001))
+
+## v1.2.26 (2023-05-18)
+
+### Fixed
+
+- Fix inbound email bug when attaching files by @vadimkerr ([#1970](https://github.com/grafana/oncall/pull/1970))
+
+## v1.2.25 (2023-05-18)
+
+### Added
+
+- Test mobile push backend
+
+## v1.2.24 (2023-05-17)
+
+### Fixed
+
+- Fixed bug in Escalation Chains where reordering an item crashed the list
+
 ## v1.2.23 (2023-05-15)
 
 ### Added
