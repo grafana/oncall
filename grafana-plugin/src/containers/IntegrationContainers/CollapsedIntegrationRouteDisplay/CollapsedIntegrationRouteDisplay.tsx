@@ -34,6 +34,10 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     }
 
     const escalationChain = escalationChainStore.items[channelFilter.escalation_chain];
+    const routeWording = IntegrationHelper.getRouteConditionWording(
+      alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+      routeIndex
+    );
 
     return (
       <>
@@ -52,7 +56,10 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   tooltipTitle={undefined}
                   tooltipContent={undefined}
                 />
-                {channelFilter.filtering_term && (
+                {routeWording === 'Default' && (
+                  <Text type="primary">All unrouted routes will be served to the default route</Text>
+                )}
+                {routeWording !== 'Default' && channelFilter.filtering_term && (
                   <Text type="primary" className={cx('heading-container__text')}>
                     {channelFilter.filtering_term}
                   </Text>
