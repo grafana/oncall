@@ -154,6 +154,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
+    const hideHTTPEndpoint = alertReceiveChannel.integration === 'inbound_email';
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -212,7 +213,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
             <IntegrationCollapsibleTreeView
               configElements={[
-                {
+                !hideHTTPEndpoint && {
                   isCollapsible: false,
                   customIcon: 'plug',
                   canHoverIcon: false,
@@ -673,7 +674,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
   function getCurlText() {
     return `curl -X POST \
-    ${store.onCallApiUrl}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/ \
+    ${alertReceiveChannel?.integration_url} \
     -H 'Content-Type: Application/json' \
     -d '${demoPayload}'`;
   }
