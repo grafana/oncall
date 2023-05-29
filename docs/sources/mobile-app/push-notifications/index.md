@@ -29,6 +29,10 @@ Alternatively, you can do the same on desktop. From Grafana OnCall, navigate to 
 
 Use the **Push notifications** section in the **Settings** tab to configure push notifications.
 
+You can always confirm how a notification is presented by going to Grafana OnCall on your desktop,
+navigate to the **Users** page, click **View my profile** and navigate to the **Mobile App connection** tab.
+Here you can send a test notification of default or important priority.
+
 ### Android
 
 On Android, we leverage the "Notification channels" system feature.
