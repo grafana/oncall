@@ -13,7 +13,7 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm2/RotationForm2';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { getColor, getFromString } from 'models/schedule/schedule.helpers';
+import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
@@ -78,9 +78,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const layers = store.scheduleStore.rotationPreview
-      ? store.scheduleStore.rotationPreview
-      : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+    const layers = getLayersFromStore(store, scheduleId, startMoment);
 
     const options = layers
       ? layers.map((layer) => ({

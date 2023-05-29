@@ -65,13 +65,13 @@ export const getShiftsFromStore = (
   startMoment: dayjs.Dayjs
 ): ShiftEvents[] => {
   return store.scheduleStore.finalPreview
-    ? store.scheduleStore.finalPreview
+    ? store.scheduleStore.finalPreview[getFromString(startMoment)]
     : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
 };
 
 export const getLayersFromStore = (store: RootStore, scheduleId: Schedule['id'], startMoment: dayjs.Dayjs): Layer[] => {
   return store.scheduleStore.rotationPreview
-    ? store.scheduleStore.rotationPreview
+    ? store.scheduleStore.rotationPreview[getFromString(startMoment)]
     : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
 };
 
@@ -81,7 +81,7 @@ export const getOverridesFromStore = (
   startMoment: dayjs.Dayjs
 ): Layer[] | ShiftEvents[] => {
   return store.scheduleStore.overridePreview
-    ? store.scheduleStore.overridePreview
+    ? store.scheduleStore.overridePreview[getFromString(startMoment)]
     : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as Layer[]);
 };
 

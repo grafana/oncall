@@ -192,7 +192,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
-  useEffect(handleChange, [params]);
+  useEffect(handleChange, [params, startMoment]);
 
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 

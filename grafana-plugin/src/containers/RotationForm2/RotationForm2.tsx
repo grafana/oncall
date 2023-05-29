@@ -224,7 +224,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     ]
   );
 
-  useEffect(handleChange, [params]);
+  useEffect(handleChange, [params, startMoment]);
 
   const handleCreate = useCallback(() => {
     if (shiftId === 'new') {

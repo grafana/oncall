@@ -254,11 +254,13 @@ export class ScheduleStore extends BaseStore {
     });
 
     if (isOverride) {
-      this.overridePreview = enrichOverrides(
+      const overridePreview = enrichOverrides(
         [...(this.events[scheduleId]?.['override']?.[fromString] as Array<{ shiftId: string; events: Event[] }>)],
         response.rotation,
         shiftId
       );
+
+      this.overridePreview = { ...this.overridePreview, [fromString]: overridePreview };
     } else {
       const layers = enrichLayers(
         [...(this.events[scheduleId]?.['rotation']?.[fromString] as Layer[])],
@@ -267,10 +269,10 @@ export class ScheduleStore extends BaseStore {
         params.priority_level
       );
 
-      this.rotationPreview = layers;
+      this.rotationPreview = { ...this.rotationPreview, [fromString]: layers };
     }
 
-    this.finalPreview = splitToShiftsAndFillGaps(response.final);
+    this.finalPreview = { ...this.finalPreview, [fromString]: splitToShiftsAndFillGaps(response.final) };
   }
 
   @action
