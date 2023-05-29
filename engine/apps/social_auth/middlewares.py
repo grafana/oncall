@@ -21,7 +21,7 @@ class SocialAuthAuthCanceledExceptionMiddleware(SocialAuthExceptionMiddleware):
         if backend is not None and isinstance(backend, LoginSlackOAuth2V2):
             redirect_to = "/a/grafana-oncall-app/users/me"
 	if exception:
-	    logger.warning(f"Unhandled exception in SocialAuthAuthCanceledExceptionMiddleware: {exception}")
+	    logger.warning(f"SocialAuthAuthCanceledExceptionMiddleware.process_exception: {exception}")
         if isinstance(exception, exceptions.AuthCanceled):
             # if user canceled authentication, redirect them to the previous page using the same link
             # as we used to redirect after auth/install
