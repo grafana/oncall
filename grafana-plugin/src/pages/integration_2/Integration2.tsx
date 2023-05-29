@@ -54,7 +54,6 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
-import { API_HOST, API_PATH_PREFIX } from 'network';
 import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import styles from 'pages/integration_2/Integration2.module.scss';
@@ -111,6 +110,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       },
       query,
     } = this.props;
+
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
@@ -118,6 +118,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
+
     await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
   }
 
@@ -525,6 +526,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       match: {
         params: { id },
       },
+      history,
     } = this.props;
 
     const promises = [];
@@ -542,7 +544,12 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       promises.push(await alertReceiveChannelStore.updateChannelFilters(id));
     }
 
-    await Promise.all(promises);
+    await Promise.all(promises).catch(() => {
+      if (!alertReceiveChannelStore.items[id]) {
+        // failed fetching the integration (most likely it's not existent)
+        history.push(`${PLUGIN_ROOT}/integrations_2`);
+      }
+    });
   }
 }
 
@@ -588,7 +595,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   isOpen,
   onHideOrCancel,
 }) => {
-  const { alertReceiveChannelStore } = useStore();
+  const store = useStore();
+  const { alertReceiveChannelStore } = store;
   const [demoPayload, setDemoPayload] = useState<string>(
     JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')
   );
@@ -665,7 +673,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
   function getCurlText() {
     return `curl -X POST \
-    ${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/ \
+    ${store.onCallApiUrl}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/ \
     -H 'Content-Type: Application/json' \
     -d '${demoPayload}'`;
   }

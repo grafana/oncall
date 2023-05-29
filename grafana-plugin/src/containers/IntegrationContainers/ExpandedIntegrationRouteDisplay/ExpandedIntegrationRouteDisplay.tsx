@@ -83,12 +83,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     );
 
     useEffect(() => {
-      (async function () {
-        setIsLoading(true);
-        Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
-          setIsLoading(false)
-        );
-      })();
+      setIsLoading(true);
+      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
+        setIsLoading(false)
+      );
     }, []);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
