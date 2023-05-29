@@ -21,3 +21,5 @@ You can filter by status via the **filter** button on the top right.  We are wor
 
 Tap on any Alert Group to go to the detailed view.  This page also provides links for opening in slack and sharing the link to this alert group.
 
+<img src="/static/img/oncall/mobile-app-alertgroups.png" width="300px">
+<img src="/static/img/oncall/mobile-app-alertgroup.png" width="300px">

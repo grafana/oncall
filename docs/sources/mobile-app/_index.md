@@ -16,7 +16,6 @@ weight: 1100
 The Grafana OnCall mobile app allows teams to monitor and respond to critical system events from anywhere.
 On-call engineers can start exploring the benefits of the Grafana OnCall mobile app, with real-time alerts, on-call notifications, and a growing feature set.
 
-
 ## About Grafana OnCall mobile app
 
 Grafana OnCall mobile app key features:

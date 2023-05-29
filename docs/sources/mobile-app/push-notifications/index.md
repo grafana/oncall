@@ -25,6 +25,8 @@ To receive push notifications from the Grafana OnCall mobile app, you must add t
 In the **Settings** tab of the mobile app, tap on **Notification policies** to review, reorder, remove, add or change steps.  
 Alternatively, you can do the same on desktop. From Grafana OnCall, navigate to the **Users** page, click **View my profile** and navigate to the **User Info** tab.
 
+<img src="/static/img/oncall/mobile-app-notification-policies.png" width="300px">
+
 ## Configuration
 
 Use the **Push notifications** section in the **Settings** tab to configure push notifications.
@@ -46,6 +48,14 @@ The app will prompt for this if applicable.
 
 >**Note**: You can explore included sounds and recommendations via the **Sound Library** button, but to change the sound, go to **Customize notifications**.
 
+<img src="/static/img/oncall/mobile-app-v1-android-settings.png" width="300px">
+<img src="/static/img/oncall/mobile-app-v1-android-push-notifications-prompt.png" width="300px">
+<!-- not showing these images because we don't have a nice way to show this many -->
+<!-- <img src="/static/img/oncall/mobile-app-v1-android-push-notifications.png" width="300px"> -->
+<!-- <img src="/static/img/oncall/mobile-app-v1-android-important-channel-1.png" width="300px"> -->
+<img src="/static/img/oncall/mobile-app-v1-android-important-channel-2.png" width="300px">
+<img src="/static/img/oncall/mobile-app-v1-android-sound-recommendation.png" width="300px">
+
 ### iOS
 
 On iOS, all configuration (such as sound selection, Do Not Disturb override, etc) happens inside the app.
@@ -53,6 +63,9 @@ On iOS, all configuration (such as sound selection, Do Not Disturb override, etc
 For every type of notification (**important**, **default**, and **on-call shifts**), you can configure the sound and its style (constant vs intensifying).
 
 You can also enable or disable Do Not Disturb override for **important** notifications.
+
+<img src="/static/img/oncall/mobile-app-settings-iphone.png" width="300px">
+<img src="/static/img/oncall/mobile-app-sound-recommendation.png" width="300px">
 
 ### On-call shift notifications
 

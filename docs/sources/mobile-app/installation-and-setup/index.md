@@ -33,6 +33,9 @@ To connect your account in the mobile app:
 2. Follow the instructions in the app to complete QR code authentication
 3. Once the scan is successful, your mobile app is connected to OnCall
 
+<img src="/static/img/oncall/mobile-app-first-screen.png" width="300px">
+<img src="/static/img/oncall/mobile-app-sign-in.png" width="300px">
+
 ### Where can I find my QR code?
 
 To access your QR code:
