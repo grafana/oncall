@@ -20,6 +20,18 @@ weight: 100
 Grafana OnCall Cloud includes SMS and Phone notifications, OSS users [could leverage]({{< relref "open-source" >}}) Grafana Cloud as a relay or
 configure other providers like Twilio.
 
+## Are there additional costs for outgoing calls/sms?
+
+No, there are no additional costs for outgoing calls/sms.
+
+## Are there rate-limits for calls/sms?
+
+There are no specific limits, but we reserve the right to stop sending sms/calls in case of abnormal volume.
+
+## Route incoming calls to the engineer who is on-call
+
+Grafana OnCall does not provide a phone number for routing incoming requests. [GH Issue.](https://github.com/grafana/oncall/issues/1459)
+
 ## Is there a list of pre-defined phone numbers?
 
 In order to learn the phone number used by OnCall, make a test call at the "Phone Verification" tab.
