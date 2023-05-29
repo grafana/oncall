@@ -92,7 +92,9 @@ To customize alert templates in Grafana OnCall:
    - `Title`, `Message` used for Email
 
 4. Edit the alert behavior as needed:
-   - `Grouping Id` - This output groups other alerts into a single alert group.
+   - `Grouping Id` - Alerts with the same `Grouping Id` will be grouped into the same Alert Group
+if Alert Group in the state "Firing", "Acked" or "Silenced" exists. If previous Alert Group is in the state "Resolved",
+a new Alert Group will be issued.
    - `Acknowledge Condition` - The output should be `ok`, `true`, or `1` to auto-acknowledge the alert group.
      For example, `{{ 1 if payload.state == 'OK' else 0 }}`.
    - `Resolve Condition` - The output should be `ok`, `true` or `1` to auto-resolve the alert group.
