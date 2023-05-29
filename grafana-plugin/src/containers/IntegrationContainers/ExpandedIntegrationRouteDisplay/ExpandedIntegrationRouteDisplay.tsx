@@ -105,7 +105,9 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
     const isDefault = IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
 
-    if (isLoading) return <LoadingPlaceholder text="Loading..." />;
+    if (isLoading) {
+      return <LoadingPlaceholder text="Loading..." />;
+    }
 
     return (
       <>

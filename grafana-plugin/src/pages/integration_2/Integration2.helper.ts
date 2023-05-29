@@ -3,13 +3,13 @@
   Any change to this file needs to be done in the oncall-private also
 */
 
+import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
-import { IconName } from '@grafana/ui';
 
 const IntegrationHelper = {
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {
@@ -61,8 +61,8 @@ const IntegrationHelper = {
     return totalDiffString;
   },
 
-  getChatOpsChannels(channelFilter: ChannelFilter): { name: string; icon: IconName }[] {
-    const channels: { name: string; icon: IconName }[] = [];
+  getChatOpsChannels(channelFilter: ChannelFilter): Array<{ name: string; icon: IconName }> {
+    const channels: Array<{ name: string; icon: IconName }> = [];
 
     if (channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
       channels.push({ name: channelFilter.slack_channel.display_name, icon: 'slack' });
