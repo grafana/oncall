@@ -21,7 +21,7 @@ OnCall helps ensure that alert notifications reach the right people, at the righ
 
 The following diagram details an example alert workflow with Grafana OnCall:
 
-<img src="/static/img/docs/oncall/oncall-alertworkflow.png" class="no-shadow" width="700px">
+<img src="/static/img/docs/oncall/oncall-alert-workflow.png" class="no-shadow" width="700px">
 
 These procedures introduce you to initial Grafana OnCall configuration steps, including monitoring system integration,
 how to set up escalation chains, and how to set up calendar for on-call scheduling.
