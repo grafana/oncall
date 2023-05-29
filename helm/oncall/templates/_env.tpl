@@ -19,8 +19,7 @@
   value: "admin"
 - name: OSS
   value: "True"
-- name: UWSGI_LISTEN
-  value: "1024"
+{{- template "snippet.oncall.uwsgi" . }}
 - name: BROKER_TYPE
   value: {{ .Values.broker.type | default "rabbitmq" }}
 - name: GRAFANA_API_URL
@@ -48,6 +47,15 @@ SECRET_KEY
 {{ required "oncall.secrets.mirageSecretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.mirageSecretKey }}
 {{- else -}}
 MIRAGE_SECRET_KEY
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.uwsgi" -}}
+{{- if .Values.uwsgi -}}
+  {{- range $key, $value := .Values.uwsgi }}
+- name: UWSGI_{{ $key | upper | replace "-" "_" }}
+  value: {{ $value | quote }}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 
