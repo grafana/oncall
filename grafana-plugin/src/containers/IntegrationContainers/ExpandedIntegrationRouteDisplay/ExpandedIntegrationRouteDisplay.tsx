@@ -313,7 +313,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
-  const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
+  const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
   return (
     <HorizontalGroup spacing={'xs'}>
@@ -325,7 +325,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
         </WithPermissionControlTooltip>
       )}
 
-      {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
+      {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Down'}>
             <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'sm'} />
