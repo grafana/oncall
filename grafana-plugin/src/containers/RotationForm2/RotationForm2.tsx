@@ -202,9 +202,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
       by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart),
-      /*  repeatEveryPeriod === 0 || repeatEveryPeriod === 1
-          ? getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart)
-          : null, */
+
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       title: rotationTitle,
     }),
@@ -317,8 +315,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       const value = event.currentTarget.checked;
       setShowActiveOnSelectedPartOfDay(value);
 
-      if (value) {
-      } else {
+      if (!value) {
         setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
       }
     },
