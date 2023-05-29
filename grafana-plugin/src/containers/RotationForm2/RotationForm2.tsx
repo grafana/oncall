@@ -18,7 +18,6 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
-import Collapse from 'components/Collapse/Collapse';
 import Modal from 'components/Modal/Modal';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
@@ -480,53 +479,53 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                   </Field>
                 </div>
 
-                <Collapse
+                {/*  <Collapse
                   className={cx('active-periods')}
                   contentClassName={cx('active-periods-content')}
                   isOpen={shiftId !== 'new'}
                   label={<Text>Active period</Text>}
-                >
-                  <VerticalGroup spacing="md">
-                    <VerticalGroup>
-                      <HorizontalGroup align="flex-start">
-                        <Switch value={showActiveOnSelectedDays} onChange={handleShowActiveOnSelectedDaysToggle} />
-                        <VerticalGroup>
-                          <Text type="secondary">Active on selected days</Text>
-                          {showActiveOnSelectedDays && (
-                            <DaysSelector
-                              options={store.scheduleStore.byDayOptions}
-                              value={selectedDays}
-                              onChange={setSelectedDays}
-                              weekStart={config.bootData.user.weekStart}
-                            />
-                          )}
-                        </VerticalGroup>
-                      </HorizontalGroup>
+                > */}
+                <VerticalGroup spacing="md">
+                  <VerticalGroup>
+                    <HorizontalGroup align="flex-start">
+                      <Switch value={showActiveOnSelectedDays} onChange={handleShowActiveOnSelectedDaysToggle} />
+                      <VerticalGroup>
+                        <Text type="secondary">Mask by weekdays</Text>
+                        {showActiveOnSelectedDays && (
+                          <DaysSelector
+                            options={store.scheduleStore.byDayOptions}
+                            value={selectedDays}
+                            onChange={setSelectedDays}
+                            weekStart={config.bootData.user.weekStart}
+                          />
+                        )}
+                      </VerticalGroup>
+                    </HorizontalGroup>
 
-                      <HorizontalGroup align="flex-start">
-                        <Switch
-                          disabled={repeatEveryPeriod === RepeatEveryPeriod.MONTHS}
-                          value={showActiveOnSelectedPartOfDay}
-                          onChange={handleShowActiveOnSelectedPartOfDayToggle}
-                        />
-                        <VerticalGroup>
-                          <Text type="secondary">Active on selected part</Text>
-                          {showActiveOnSelectedPartOfDay && (
-                            <ShiftPeriod
-                              repeatEveryPeriod={repeatEveryPeriod}
-                              repeatEveryValue={repeatEveryValue}
-                              defaultValue={shiftPeriodDefaultValue}
-                              shiftStart={shiftStart}
-                              onChange={handleActivePeriodChange}
-                              currentTimezone={currentTimezone}
-                              errors={errors}
-                            />
-                          )}
-                        </VerticalGroup>
-                      </HorizontalGroup>
-                    </VerticalGroup>
+                    <HorizontalGroup align="flex-start">
+                      <Switch
+                        disabled={repeatEveryPeriod === RepeatEveryPeriod.MONTHS}
+                        value={showActiveOnSelectedPartOfDay}
+                        onChange={handleShowActiveOnSelectedPartOfDayToggle}
+                      />
+                      <VerticalGroup>
+                        <Text type="secondary">Limit duration</Text>
+                        {showActiveOnSelectedPartOfDay && (
+                          <ShiftPeriod
+                            repeatEveryPeriod={repeatEveryPeriod}
+                            repeatEveryValue={repeatEveryValue}
+                            defaultValue={shiftPeriodDefaultValue}
+                            shiftStart={shiftStart}
+                            onChange={handleActivePeriodChange}
+                            currentTimezone={currentTimezone}
+                            errors={errors}
+                          />
+                        )}
+                      </VerticalGroup>
+                    </HorizontalGroup>
                   </VerticalGroup>
-                </Collapse>
+                </VerticalGroup>
+                {/* </Collapse> */}
                 <div style={{ marginTop: '16px' }}>
                   <HorizontalGroup>
                     <Text size="small">Users</Text>
