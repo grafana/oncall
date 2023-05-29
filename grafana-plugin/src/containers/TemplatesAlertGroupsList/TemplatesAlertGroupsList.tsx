@@ -1,15 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import {
-  Button,
-  HorizontalGroup,
-  Tooltip,
-  Icon,
-  VerticalGroup,
-  IconButton,
-  Badge,
-  LoadingPlaceholder,
-} from '@grafana/ui';
+import { Button, HorizontalGroup, Tooltip, Icon, IconButton, Badge, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
@@ -88,7 +79,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   </HorizontalGroup>
                 </HorizontalGroup>
               </div>
-              <div className={cx('alert-groups-list')}>
+              <div className={cx('alert-groups-editor')}>
                 <MonacoEditor
                   value={JSON.stringify(selectedAlertPayload, null, 4)}
                   data={templates}
@@ -113,26 +104,23 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   </HorizontalGroup>
                 </HorizontalGroup>
               </div>
-              <div className={cx('alert-groups-list')}>
-                <VerticalGroup>
-                  <Badge color="blue" text="Last alert payload" />
-                  <div className={cx('alert-groups-editor')}>
-                    <MonacoEditor
-                      value={JSON.stringify(selectedAlertPayload, null, 4)}
-                      data={undefined}
-                      disabled
-                      height={'85vh'}
-                      onChange={getChangeHandler()}
-                      showLineNumbers
-                      useAutoCompleteList={false}
-                      language={MONACO_LANGUAGE.json}
-                      monacoOptions={{
-                        ...MONACO_PAYLOAD_OPTIONS,
-                        readOnly: true,
-                      }}
-                    />
-                  </div>
-                </VerticalGroup>
+              <div>
+                <div className={cx('alert-groups-editor')}>
+                  <MonacoEditor
+                    value={JSON.stringify(selectedAlertPayload, null, 4)}
+                    data={undefined}
+                    disabled
+                    height={'85vh'}
+                    onChange={getChangeHandler()}
+                    showLineNumbers
+                    useAutoCompleteList={false}
+                    language={MONACO_LANGUAGE.json}
+                    monacoOptions={{
+                      ...MONACO_PAYLOAD_OPTIONS,
+                      readOnly: true,
+                    }}
+                  />
+                </div>
               </div>
             </>
           )}
@@ -150,7 +138,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   </HorizontalGroup>
                 </HorizontalGroup>
               </div>
-              <div className={cx('alert-groups-list')}>
+              <div className={cx('alert-groups-editor')}>
                 <MonacoEditor
                   value={null}
                   disabled={true}

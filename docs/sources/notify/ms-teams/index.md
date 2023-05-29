@@ -37,10 +37,10 @@ The following is required to connect to Microsoft Teams to Grafana OnCall:
 
 ## Install Microsoft Teams integration for Grafana OnCall
 
-1. From the **ChatOps** tab in Grafana OnCall, select **Microsoft Teams** in the side menu.
-1. Click **+Connect Microsoft Teams channel**.
+1. Navigate to **Settings** tab in Grafana OnCall.
+1. From the **Chat Ops** tab, select **Microsoft Teams** in the side menu.
 1. Follow the steps provided to connect to your Teams channels, then click **Done**.
-1. To add additional teams and channels click **+Connect Microsoft Teams channel** again and repeat step 3 as needed.
+1. To add additional teams and channels click **+Add MS Teams channel** again and repeat step 3 as needed.
 
 ## Post-install configuration for Microsoft Teams integration
 
@@ -53,7 +53,7 @@ Configure the following settings to ensure Grafana OnCall alerts are routed to t
 ### Connect Microsoft Teams user to Grafana OnCall
 
 1. From the **Users** tab in Grafana OnCall, click **View my profile**.
-1. Navigate to **Microsoft Teams username**, click **Connect**.
+1. In the **User Info** tab, navigate to **Microsoft Teams username**, click **Connect**.
 1. Follow the steps provided to connect your Teams user.
 1. Navigate back to your Grafana OnCall profile and verify that your Microsoft Teams account is linked to your Grafana
    OnCall user.
