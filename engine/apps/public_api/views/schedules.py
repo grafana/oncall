@@ -1,3 +1,7 @@
+import csv
+
+from django.http import HttpResponse
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
@@ -12,6 +16,7 @@ from apps.public_api.serializers import PolymorphicScheduleSerializer, Polymorph
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import ical_export_from_schedule
 from apps.schedules.models import OnCallSchedule, OnCallScheduleWeb
+from apps.schedules.models.on_call_schedule import ScheduleEvents
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
@@ -120,3 +125,26 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         # Not using existing get_object method because it requires access to the organization user attribute
         export = ical_export_from_schedule(self.request.auth.schedule)
         return Response(export, status=status.HTTP_200_OK)
+
+    @action(methods=["get"], detail=True)
+    def oncall_shifts_export(self, request, pk):
+        schedule = self.get_object()
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename='export.csv'"
+        writer = csv.DictWriter(response, fieldnames=["user_pk", "start", "end"])
+        writer.writeheader()
+
+        thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
+        final_schedule_events: ScheduleEvents = schedule.final_events("UTC", thirty_days_ago, 30)
+
+        # TODO: drop the request if it's not a web calendar
+        # TODO: handle query param filters
+        # TODO: pull dates from query params
+        for event in final_schedule_events:
+            shift_start = event["start"]
+            shift_end = event["end"]
+            for user in event["users"]:
+                writer.writerow({"user_pk": user["pk"], "shift_start": shift_start, "shift_end": shift_end})
+
+        return response

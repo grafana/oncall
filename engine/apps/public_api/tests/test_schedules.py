@@ -781,3 +781,20 @@ def test_create_ical_schedule_without_ical_url(make_organization_and_user_with_t
     }
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+@pytest.only
+def test_oncall_shifts_export_doesnt_work_for_ical_schedules(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleICal)
+
+    client = APIClient()
+
+    url = reverse("api-public:schedules-oncall_shifts_export", kwargs={"pk": schedule.public_primary_key})
+
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
