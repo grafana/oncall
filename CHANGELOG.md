@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
   the destination country code by @mderynck ([#1976](https://github.com/grafana/oncall/pull/1976))
 - Prometheus exporter backend for alert groups related metrics
+- Much expanded/improved docs for mobile app ([2026](https://github.com/grafana/oncall/pull/2026>))
+- Enable by-day selection when defining monthly and hourly rotations ([2037](https://github.com/grafana/oncall/pull/2037))
 
 ### Fixed
 
