@@ -956,7 +956,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
 
   return (
-    <HorizontalGroup>
+    <div className={cx('headerTop')}>
       {alertReceiveChannelCounter && (
         <PluginLink
           className={cx('hover-button')}
@@ -995,22 +995,22 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {renderHearbeat(alertReceiveChannel)}
 
-      <HorizontalGroup spacing="xs">
+      <div className={cx('headerTop__item')}>
         <Text type="secondary">Type:</Text>
         <HorizontalGroup spacing="xs">
           <IntegrationLogo scale={0.08} integration={integration} />
           <Text type="primary">{integration?.display_name}</Text>
         </HorizontalGroup>
-      </HorizontalGroup>
-      <HorizontalGroup spacing="xs">
+      </div>
+      <div className={cx('headerTop__item')}>
         <Text type="secondary">Team:</Text>
         <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
-      </HorizontalGroup>
-      <HorizontalGroup spacing="xs">
+      </div>
+      <div className={cx('headerTop__item')}>
         <Text type="secondary">Created by:</Text>
         <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
-      </HorizontalGroup>
-    </HorizontalGroup>
+      </div>
+    </div>
   );
 
   function getAlertReceiveChannelCounterTooltip() {
