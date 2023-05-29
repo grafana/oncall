@@ -10,9 +10,7 @@ def test_find_name_of_contact_point_grafana_datasource(make_organization, make_a
     sync_manager = GrafanaAlertingSyncManager(alert_receive_channel)
 
     receivers = [
-        {
-            "name": "autogen-contact-point-default"
-        },
+        {"name": "autogen-contact-point-default"},
         {
             "name": "testing",
             "grafana_managed_receiver_configs": [
@@ -20,7 +18,7 @@ def test_find_name_of_contact_point_grafana_datasource(make_organization, make_a
                     "uid": "some-uid",
                     "name": "testing",
                 }
-            ]
+            ],
         },
     ]
 
