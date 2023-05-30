@@ -203,7 +203,16 @@ def test_resolution_notes_modal_closed_before_update(
         "trigger_id": "TEST",
         "view": {"id": "TEST"},
         "actions": [
-            {"value": json.dumps({"alert_group_pk": alert_group.pk, "resolution_note_window_action": "update"})}
+            {
+                "type": "button",
+                "value": json.dumps(
+                    {
+                        "organization_id": organization.pk,
+                        "alert_group_pk": alert_group.pk,
+                        "resolution_note_window_action": "update",
+                    }
+                ),
+            }
         ],
     }
 
