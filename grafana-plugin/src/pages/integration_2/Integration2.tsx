@@ -212,16 +212,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 />
               </div>
 
-              <div className={cx('integration__description-alert')}>
-                {alertReceiveChannel.description && (
+              {alertReceiveChannel.description && (
+                <div className={cx('integration__description-alert')}>
                   <Alert
                     style={{ marginBottom: '0' }}
                     // @ts-ignore
                     title={<div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>}
                     severity="info"
                   />
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             <IntegrationCollapsibleTreeView
