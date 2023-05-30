@@ -198,3 +198,17 @@ $LARGE-MARGIN: 24px;
 .no-wrap {
   white-space: nowrap;
 }
+
+.headerTop {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+  }
+}

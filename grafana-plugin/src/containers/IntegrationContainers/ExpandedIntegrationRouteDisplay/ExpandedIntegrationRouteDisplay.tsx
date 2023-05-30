@@ -1,7 +1,17 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, ConfirmModal, Select } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  InlineLabel,
+  VerticalGroup,
+  Icon,
+  Tooltip,
+  ConfirmModal,
+  Select,
+  LoadingPlaceholder,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -55,6 +65,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       grafanaTeamStore,
     } = store;
 
+    const [isLoading, setIsLoading] = useState(false);
     const isSlackInstalled = Boolean(teamStore.currentTeam?.slack_team_identity);
     const isTelegramInstalled =
       store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
@@ -72,7 +83,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     );
 
     useEffect(() => {
-      escalationChainStore.updateItems();
+      setIsLoading(true);
+      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
+        setIsLoading(false)
+      );
     }, []);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -88,6 +102,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
     const isDefault = IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
+
+    if (isLoading) {
+      return <LoadingPlaceholder text="Loading..." />;
+    }
 
     return (
       <>
@@ -295,7 +313,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
-  const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
+  const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
   return (
     <HorizontalGroup spacing={'xs'}>
@@ -307,7 +325,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
         </WithPermissionControlTooltip>
       )}
 
-      {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
+      {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Down'}>
             <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'sm'} />

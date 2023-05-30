@@ -91,7 +91,7 @@ Create the name of the service account to use
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
   securityContext:
-  {{ toYaml .Values.init.securityContext| nindent 4}}
+  {{ toYaml .Values.init.securityContext | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
     {{- include "snippet.mysql.env" . | nindent 4 }}
@@ -116,13 +116,13 @@ Create the name of the service account to use
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
   securityContext:
-  {{ toYaml .Values.init.securityContext| nindent 4}}
+  {{ toYaml .Values.init.securityContext | nindent 4 }}
   env:
-    {{- include "snippet.oncall.env" . | nindent 12 }}
-    {{- include "snippet.postgresql.env" . | nindent 12 }}
-    {{- include "snippet.rabbitmq.env" . | nindent 12 }}
-    {{- include "snippet.redis.env" . | nindent 12 }}
+    {{- include "snippet.oncall.env" . | nindent 4 }}
+    {{- include "snippet.postgresql.env" . | nindent 4 }}
+    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
+    {{- include "snippet.redis.env" . | nindent 4 }}
     {{- if .Values.env }}
-      {{- toYaml .Values.env | nindent 12 }}
+      {{- toYaml .Values.env | nindent 4 }}
     {{- end }}
 {{- end }}

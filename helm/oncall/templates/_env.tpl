@@ -19,8 +19,7 @@
   value: "admin"
 - name: OSS
   value: "True"
-- name: UWSGI_LISTEN
-  value: "1024"
+{{- template "snippet.oncall.uwsgi" . }}
 - name: BROKER_TYPE
   value: {{ .Values.broker.type | default "rabbitmq" }}
 - name: GRAFANA_API_URL
@@ -48,6 +47,15 @@ SECRET_KEY
 {{ required "oncall.secrets.mirageSecretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.mirageSecretKey }}
 {{- else -}}
 MIRAGE_SECRET_KEY
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.uwsgi" -}}
+{{- if .Values.uwsgi -}}
+  {{- range $key, $value := .Values.uwsgi }}
+- name: UWSGI_{{ $key | upper | replace "-" "_" }}
+  value: {{ $value | quote }}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -247,7 +255,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 
 {{- define "snippet.mysql.db" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
-{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
+{{- required "externalMysql.db_name is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
 "oncall"
 {{- end -}}
@@ -292,6 +300,8 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- define "snippet.postgresql.password.secret.key" -}}
 {{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.passwordKey -}}
 {{ .Values.externalPostgresql.passwordKey }}
+{{- else if .Values.postgresql.enabled -}}
+{{ include "postgresql.userPasswordKey" .Subcharts.postgresql }}
 {{- else -}}
 "postgres-password"
 {{- end -}}
@@ -306,7 +316,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- end -}}
 
 {{- define "snippet.postgresql.port" -}}
-{{- if and (not .Values.mariadb.enabled) .Values.externalPostgresql.port -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.port -}}
 {{- required "externalPostgresql.port is required if not postgresql.enabled"  .Values.externalPostgresql.port | quote }}
 {{- else -}}
 "5432"
@@ -314,10 +324,10 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- end -}}
 
 {{- define "snippet.postgresql.db" -}}
-{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.db -}}
-{{- required "externalPostgresql.db is required if not postgresql.enabled" .Values.externalPostgresql.db | quote}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.db_name -}}
+{{- required "externalPostgresql.db_name is required if not postgresql.enabled" .Values.externalPostgresql.db_name | quote}}
 {{- else -}}
-"oncall"
+{{- .Values.postgresql.auth.database | default "oncall" | quote -}}
 {{- end -}}
 {{- end -}}
 
@@ -325,7 +335,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.user -}}
 {{- .Values.externalPostgresql.user | quote}}
 {{- else -}}
-"postgres"
+{{- .Values.postgresql.auth.username | default "postgres" | quote -}}
 {{- end -}}
 {{- end -}}
 

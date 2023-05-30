@@ -13,6 +13,7 @@ import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
 import styles from './CheatSheet.module.css';
 
 interface CheatSheetProps {
+  cheatSheetName: string;
   cheatSheetData: CheatSheetInterface;
   onClose: () => void;
 }
@@ -20,12 +21,12 @@ interface CheatSheetProps {
 const cx = cn.bind(styles);
 
 const CheatSheet = (props: CheatSheetProps) => {
-  const { cheatSheetData, onClose } = props;
+  const { cheatSheetName, cheatSheetData, onClose } = props;
   return (
     <div className={cx('cheatsheet-container')}>
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text strong>{cheatSheetData.name}</Text>
+          <Text strong>{cheatSheetName} cheatsheet</Text>
           <IconButton name="times" onClick={onClose} />
         </HorizontalGroup>
         <Text type="secondary">{cheatSheetData.description}</Text>

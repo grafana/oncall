@@ -120,6 +120,16 @@ jobs:
           pip install -r requirements.txt
           python manage.py lintmigrations
 
+  unit-test-helm-chart:
+    name: "Helm Chart Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: d3adb5/helm-unittest-action@v2
+        with:
+          helm-version: v3.8.0
+          charts: ./helm/oncall
+
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest

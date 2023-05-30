@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.2.32 (2023-05-30)
+
+### Added
+
+- Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
+  the destination country code by @mderynck ([#1976](https://github.com/grafana/oncall/pull/1976))
+- Prometheus exporter backend for alert groups related metrics
+- Helm chart: configuration of `uwsgi` using environment variables by @alexintech ([#2045](https://github.com/grafana/oncall/pull/2045))
+- Much expanded/improved docs for mobile app ([2026](https://github.com/grafana/oncall/pull/2026>))
+- Enable by-day selection when defining monthly and hourly rotations ([2037](https://github.com/grafana/oncall/pull/2037))
+
+### Fixed
+
+- Fix error when updating closed modal window in Slack by @vadimkerr ([#2019](https://github.com/grafana/oncall/pull/2019))
+- Fix final schedule export failing to update when ical imported events set start/end as date ([#2025](https://github.com/grafana/oncall/pull/2025))
+- Helm chart: fix bugs in helm chart with external postgresql configuration by @alexintech ([#2036](https://github.com/grafana/oncall/pull/2036))
+- Properly address `Organization.DoesNotExist` exceptions thrown which result in HTTP 500 for the Slack `interactive_api_endpoint`
+  endpoint by @joeyorlando ([#2040](https://github.com/grafana/oncall/pull/2040))
+- Fix issue when trying to sync Grafana contact point and config receivers miss a key ([#2046](https://github.com/grafana/oncall/pull/2046))
+
+### Changed
+
+- Changed mobile notification title and subtitle. Removed the body. by @imtoori [#2027](https://github.com/grafana/oncall/pull/2027)
+
+## v1.2.31 (2023-05-26)
+
+### Fixed
+
+- Fix AmazonSNS ratelimit by @Konstantinov-Innokentii ([#2032](https://github.com/grafana/oncall/pull/2032))
+
 ## v1.2.30 (2023-05-25)
 
 ### Fixed
@@ -16,6 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Phone provider refactoring [#1713](https://github.com/grafana/oncall/pull/1713)
+
+### Fixed
+
+- Handle slack metadata limit when creating paging command payload ([#2007](https://github.com/grafana/oncall/pull/2007))
+- Fix issue with sometimes cached final schedule not being refreshed after an update ([#2004](https://github.com/grafana/oncall/pull/2004))
 
 ## v1.2.28 (2023-05-24)
 
