@@ -25,7 +25,7 @@ To receive push notifications from the Grafana OnCall mobile app, you must add t
 In the **Settings** tab of the mobile app, tap on **Notification policies** to review, reorder, remove, add or change steps.  
 Alternatively, you can do the same on desktop. From Grafana OnCall, navigate to the **Users** page, click **View my profile** and navigate to the **User Info** tab.
 
-<img src="/static/img/oncall/mobile-app-notification-policies.png" width="300px">
+<img src="/static/img/oncall/mobile-app-v1-android-notification-policies.png" width="300px">
 
 ## Configuration
 
@@ -33,20 +33,29 @@ Use the **Push notifications** section in the **Settings** tab to configure push
 
 You can always confirm how a notification is presented by going to Grafana OnCall on your desktop,
 navigate to the **Users** page, click **View my profile** and navigate to the **Mobile App connection** tab.
-Here you can send a test notification of default or important priority.
+Here you can send a test notification of default or important priority.  We recommend doing this to try out
+correct configuration of **Do Not Disturb** and **Volume** overrides.
 
 ### Android
 
 On Android, we leverage the "Notification channels" system feature.
 Each type of notification (**important**, **default**, and **on-call shifts**) registers a channel.
-In this channel, you may configure the sound style, optional Do Not Disturb override, vibration, and so on.
+In this channel, you may configure the sound style, vibration, and so on.
 **Customize notifications** takes you to this system menu, while hitting the **back** button or swiping left (if enabled) takes you back to the application.
+
+>**Note**: You can explore included sounds and recommendations via the **Sound Library** button, but to change the sound, go to **Customize notifications**.
+
+#### Override Do Not Disturb
+
+* On standard Android versions, the **Override Do Not Disturb** option is available in the channel options described above.
+* On Samsung devices, you can add the Grafana Oncall app under (System) Settings > Notifications > Do not disturb > App notifications.
+
+#### Override Volume
 
 **Volume Override** can optionally be configured in the mobile app itself.
 Confusingly, this requires you to provide the **Override Do Not Disturb** permission to the application, in the system configuration.
-The app will prompt for this if applicable.
-
->**Note**: You can explore included sounds and recommendations via the **Sound Library** button, but to change the sound, go to **Customize notifications**.
+The app will prompt for this if applicable.  Note that this is a different setting than the **Do Not Disturb** override needed for
+notifications triggered by the application, which is described above.
 
 <img src="/static/img/oncall/mobile-app-v1-android-settings.png" width="300px">
 <img src="/static/img/oncall/mobile-app-v1-android-push-notifications-prompt.png" width="300px">
