@@ -3,6 +3,7 @@
   Any change to this file needs to be done in the oncall-private also
 */
 
+import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -51,23 +52,23 @@ const IntegrationHelper = {
     const hourDiff = date.diff(now, 'hours');
     const minDiff = date.diff(now, 'minutes');
     const totalMinDiff = minDiff - hourDiff * 60;
-    const totalDiffString = `${hourDiff}h ${totalMinDiff}m left`;
+    const totalDiffString = hourDiff > 0 ? `${hourDiff}h ${totalMinDiff}m left` : `${totalMinDiff}m left`;
 
     if (mode !== undefined) {
       return `${mode === MaintenanceMode.Debug ? 'Debug Maintenance' : 'Maintenance'}: ${totalDiffString}`;
     }
 
-    return `${hourDiff}h left`;
+    return totalDiffString;
   },
 
-  getChatOpsChannels(channelFilter: ChannelFilter) {
-    const channels = [];
+  getChatOpsChannels(channelFilter: ChannelFilter): Array<{ name: string; icon: IconName }> {
+    const channels: Array<{ name: string; icon: IconName }> = [];
 
     if (channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
-      channels.push(channelFilter.slack_channel.display_name);
+      channels.push({ name: channelFilter.slack_channel.display_name, icon: 'slack' });
     }
     if (channelFilter.telegram_channel) {
-      channels.push(channelFilter.telegram_channel);
+      channels.push({ name: channelFilter.telegram_channel, icon: 'telegram-alt' });
     }
 
     return channels;
