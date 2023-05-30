@@ -1,7 +1,9 @@
+import json
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from apps.alerts.models import AlertGroup
 from apps.api.permissions import user_is_authorized
 from apps.slack.models import SlackMessage
 
@@ -26,7 +28,32 @@ class AlertGroupActionsMixin:
             self._send_denied_message(payload)
 
     def get_alert_group(self, slack_team_identity, payload):
+        # TODO: comment
 
+        action = payload["actions"][0]
+        action_type = action["type"]
+
+        if action_type == "button":
+            value_string = action["value"]
+        elif action_type == "static_select":
+            value_string = action["selected_option"]["value"]
+        else:
+            raise ValueError(f"Unexpected action type: {action_type}")
+
+        try:
+            value = json.loads(value_string)
+        except (TypeError, json.JSONDecodeError):
+            return self._deprecated_get_alert_group(slack_team_identity, payload)
+
+        try:
+            alert_group_pk = value["alert_group_pk"]
+        except (KeyError, TypeError):
+            return self._deprecated_get_alert_group(slack_team_identity, payload)
+
+        return AlertGroup.all_objects.get(pk=alert_group_pk)
+
+    def _deprecated_get_alert_group(self, slack_team_identity, payload):
+        # TODO: comment
         message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
         channel_id = payload["channel"]["id"]
 
