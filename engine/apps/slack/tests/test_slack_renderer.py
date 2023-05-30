@@ -120,8 +120,8 @@ def test_slack_renderer_silence_button(make_organization, make_alert_receive_cha
 
     values = [json.loads(option["value"]) for option in silence_button["options"]]
     assert values == [
-        {"organization_id": organization.pk, "alert_group_pk": alert_group.pk, "duration": duration}
-        for duration, _ in AlertGroup.SILENCE_DELAY_OPTIONS
+        {"organization_id": organization.pk, "alert_group_pk": alert_group.pk, "delay": delay}
+        for delay, _ in AlertGroup.SILENCE_DELAY_OPTIONS
     ]
 
 
