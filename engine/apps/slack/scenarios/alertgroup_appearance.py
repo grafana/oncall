@@ -10,7 +10,7 @@ from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
 
 class OpenAlertAppearanceDialogStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "open Alert Appearance"
+    ACTION_VERBOSE = "format Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")

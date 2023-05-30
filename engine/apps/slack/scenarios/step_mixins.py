@@ -17,7 +17,7 @@ class AlertGroupActionsMixin:
     """
 
     REQUIRED_PERMISSIONS = []
-    ACTION_VERBOSE = ""
+    ACTION_VERBOSE = "perform action"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         if self._check_membership():

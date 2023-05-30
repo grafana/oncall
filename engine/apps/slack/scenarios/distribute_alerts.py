@@ -221,7 +221,7 @@ class InviteOtherPersonToIncident(
 ):
 
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "invite to incident"
+    ACTION_VERBOSE = "invite to Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         User = apps.get_model("user_management", "User")
@@ -258,7 +258,7 @@ class SilenceGroupStep(
 ):
 
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "silence incident"
+    ACTION_VERBOSE = "silence Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -284,7 +284,7 @@ class UnSilenceGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "unsilence incident"
+    ACTION_VERBOSE = "unsilence Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
 
@@ -303,7 +303,7 @@ class SelectAttachGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "Select Alert Group for Attaching to"
+    ACTION_VERBOSE = "select Alert Group for attach"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
@@ -454,7 +454,7 @@ class AttachGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "Attach incident"
+    ACTION_VERBOSE = "attach Alert Group"
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
@@ -512,7 +512,7 @@ class UnAttachGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "Unattach incident"
+    ACTION_VERBOSE = "unattach Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -612,7 +612,7 @@ class ResolveGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "resolve incident"
+    ACTION_VERBOSE = "resolve Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         ResolutionNoteModalStep = scenario_step.ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
@@ -654,7 +654,7 @@ class UnResolveGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "unresolve incident"
+    ACTION_VERBOSE = "unresolve Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -672,7 +672,7 @@ class AcknowledgeGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "acknowledge incident"
+    ACTION_VERBOSE = "acknowledge Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -693,7 +693,7 @@ class UnAcknowledgeGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "unacknowledge incident"
+    ACTION_VERBOSE = "unacknowledge Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -888,7 +888,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
 
 
 class WipeGroupStep(scenario_step.ScenarioStep):
-    ACTION_VERBOSE = "wipe incident"
+    ACTION_VERBOSE = "wipe Alert Group"
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
@@ -899,7 +899,7 @@ class WipeGroupStep(scenario_step.ScenarioStep):
 
 
 class DeleteGroupStep(scenario_step.ScenarioStep):
-    ACTION_VERBOSE = "delete incident"
+    ACTION_VERBOSE = "delete Alert Group"
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
