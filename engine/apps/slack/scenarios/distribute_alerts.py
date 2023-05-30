@@ -262,10 +262,12 @@ class SilenceGroupStep(
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
 
+        value = payload["actions"][0]["selected_option"]["value"]
         try:
-            silence_delay = int(payload["actions"][0]["selected_options"][0]["value"])
-        except KeyError:
-            silence_delay = int(payload["actions"][0]["selected_option"]["value"])
+            silence_delay = json.loads(value)["delay"]
+        except TypeError:
+            # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
+            silence_delay = int(value)
 
         alert_group = self.get_alert_group(slack_team_identity, payload)
 
@@ -532,8 +534,14 @@ class StopInvitationProcess(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin,
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
-        invitation_pk = payload["actions"][0]["name"].split("_")[1]
-        Invitation.stop_invitation(invitation_pk, self.user)
+        try:
+            value = json.loads(payload["actions"][0]["value"])
+            invitation_id = value["invitation_id"]
+        except KeyError:
+            # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
+            invitation_id = payload["actions"][0]["name"].split("_")[1]
+
+        Invitation.stop_invitation(invitation_id, self.user)
 
     def process_signal(self, log_record):
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
