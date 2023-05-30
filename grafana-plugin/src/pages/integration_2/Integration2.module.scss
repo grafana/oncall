@@ -106,6 +106,14 @@ $LARGE-MARGIN: 24px;
   margin-right: 4px;
 }
 
+.integration__description-alert {
+  padding-top: 24px;
+
+  a {
+    color: var(--primary-text-link);
+  }
+}
+
 .customise-button button {
   padding: 15px;
 }

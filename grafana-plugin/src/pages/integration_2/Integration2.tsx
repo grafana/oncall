@@ -12,6 +12,7 @@ import {
   IconButton,
   ConfirmModal,
   Drawer,
+  Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get, noop } from 'lodash-es';
@@ -65,6 +66,7 @@ import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { DATASOURCE_GRAFANA, PLUGIN_ROOT } from 'utils/consts';
+import sanitize from 'utils/sanitize';
 
 const cx = cn.bind(styles);
 
@@ -208,6 +210,17 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   channelFilterIds={channelFilterIds}
                   integration={integration}
                 />
+              </div>
+
+              <div className={cx('integration__description-alert')}>
+                {alertReceiveChannel.description && (
+                  <Alert
+                    style={{ marginBottom: '0' }}
+                    // @ts-ignore
+                    title={<div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>}
+                    severity="info"
+                  />
+                )}
               </div>
             </div>
 
