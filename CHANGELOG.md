@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Helm chart: configuration of `uwsgi` using environment variables by @alexintech ([#2045](https://github.com/grafana/oncall/pull/2045))
 - Much expanded/improved docs for mobile app ([2026](https://github.com/grafana/oncall/pull/2026>))
 - Enable by-day selection when defining monthly and hourly rotations ([2037](https://github.com/grafana/oncall/pull/2037))
+- Add description to "Default channel for Slack notifications" UI dropdown by @joeyorlando ([2051](https://github.com/grafana/oncall/pull/2051))
 
 ### Fixed
 
