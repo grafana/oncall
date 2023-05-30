@@ -15,7 +15,7 @@ weight: 500
 On the **Feed** page, your avatar on top of the screen indicates whether you are oncall, will be on call soon, or not.
 Tap it to open the **upcoming shifts** view.  This view displays:
 
-* your current shift (if any), per schedule.
-* your next upcoming shift (if any), per schedule.  This only looks up to 31 days into the future.
+- your current shift (if any), per schedule.
+- your next upcoming shift (if any), per schedule.  This only looks up to 31 days into the future.
 
 <img src="/static/img/oncall/mobile-app-shifts.png" width="300px">
