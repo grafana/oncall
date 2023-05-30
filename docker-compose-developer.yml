@@ -3,6 +3,9 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
+x-user: &oncall-user
+  "appuser"
+
 x-oncall-build: &oncall-build-args
   context: ./engine
   target: ${ONCALL_IMAGE_TARGET:-dev}
@@ -52,7 +55,7 @@ services:
       MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
-      - node_modules_dev:/etc/app/node_modules
+      - ./grafana-plugin/node_modules:/etc/app/node_modules
       # https://stackoverflow.com/a/60456034
       - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
     profiles:
@@ -63,6 +66,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: sh -c "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -84,6 +88,7 @@ services:
     container_name: oncall_engine_commands
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     env_file: *oncall-env-files
     environment: *oncall-env-vars
     volumes: *oncall-volumes
@@ -97,6 +102,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: "python manage.py start_celery"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -127,6 +133,7 @@ services:
     container_name: oncall_db_migration
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     command: "python manage.py migrate --noinput"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -312,8 +319,6 @@ volumes:
   postgresdata_dev:
     labels: *oncall-labels
   mysqldata_dev:
-    labels: *oncall-labels
-  node_modules_dev:
     labels: *oncall-labels
 
 networks:
