@@ -540,7 +540,7 @@ class GrafanaAlertingSyncManager:
         name_in_alerting = None
         # find name of contact point in alerting config by contact point uid
         for receiver in receivers:
-            receiver_configs = receiver["grafana_managed_receiver_configs"]
+            receiver_configs = receiver.get("grafana_managed_receiver_configs", [])
             for receiver_config in receiver_configs:
                 if receiver_config["uid"] == contact_point_uid:
                     name_in_alerting = receiver_config["name"]
