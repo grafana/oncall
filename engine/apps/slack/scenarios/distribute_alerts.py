@@ -261,6 +261,7 @@ class SilenceGroupStep(
     ACTION_VERBOSE = "silence incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+        alert_group = self.get_alert_group(slack_team_identity, payload)
 
         value = payload["actions"][0]["selected_option"]["value"]
         try:
@@ -268,8 +269,6 @@ class SilenceGroupStep(
         except TypeError:
             # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
             silence_delay = int(value)
-
-        alert_group = self.get_alert_group(slack_team_identity, payload)
 
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
@@ -335,8 +334,8 @@ class SelectAttachGroupStep(
         if attached_incidents_exists:
             attached_incidents = alert_group.dependent_alert_groups.all()
             text = (
-                f"Oops! This incident cannot be attached to another one because it already has "
-                f"attached incidents ({attached_incidents.count()}):\n"
+                f"Oops! This Alert Group cannot be attached to another one because it already has "
+                f"attached Alert Group ({attached_incidents.count()}):\n"
             )
             for dependent_alert in attached_incidents:
                 if dependent_alert.slack_permalink:
@@ -372,7 +371,7 @@ class SelectAttachGroupStep(
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "Oops! There is no incidents, available to attach.",
+                            "text": "Oops! There are no Alert Groups available to attach.",
                         },
                     }
                 )
@@ -441,7 +440,7 @@ class SelectAttachGroupStep(
                     },
                     "label": {
                         "type": "plain_text",
-                        "text": "Select incident:",
+                        "text": "Select Alert Group:",
                         "emoji": True,
                     },
                 }

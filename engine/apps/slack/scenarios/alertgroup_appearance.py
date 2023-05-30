@@ -29,7 +29,6 @@ class OpenAlertAppearanceDialogStep(CheckAlertIsUnarchivedMixin, AlertGroupActio
         alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
-        blocks = []
 
         private_metadata = {
             "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,

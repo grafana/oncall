@@ -89,10 +89,7 @@ class AlertGroupActionsMixin:
         )
 
 
-class CheckAlertIsUnarchivedMixin(object):
-    REQUIRED_PERMISSIONS = []
-    ACTION_VERBOSE = ""
-
+class CheckAlertIsUnarchivedMixin:
     def check_alert_is_unarchived(self, slack_team_identity, payload, alert_group, warning=True):
         alert_group_is_unarchived = alert_group.started_at.date() > self.organization.archive_alerts_from
         if not alert_group_is_unarchived:
