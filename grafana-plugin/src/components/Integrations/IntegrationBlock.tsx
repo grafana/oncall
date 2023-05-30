@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import Block from 'components/GBlock/Block';
 
 import styles from './IntegrationBlock.module.scss';
+import { noop } from 'lodash-es';
 
 const cx = cn.bind(styles);
 
@@ -13,13 +14,20 @@ interface IntegrationBlockProps {
   hasCollapsedBorder: boolean;
   heading: React.ReactNode;
   content: React.ReactNode;
+  toggle?: () => void;
 }
 
-const IntegrationBlock: React.FC<IntegrationBlockProps> = ({ heading, content, hasCollapsedBorder, className }) => {
+const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
+  heading,
+  content,
+  hasCollapsedBorder,
+  className,
+  toggle = noop,
+}) => {
   return (
     <div className={cx('integrationBlock', className)}>
       {heading && (
-        <Block bordered shadowed className={cx('integrationBlock__heading')}>
+        <Block bordered shadowed className={cx('integrationBlock__heading')} onClick={toggle}>
           {heading}
         </Block>
       )}
@@ -28,6 +36,7 @@ const IntegrationBlock: React.FC<IntegrationBlockProps> = ({ heading, content, h
           className={cx('integrationBlock__content', {
             'integrationBlock__content--collapsedBorder': hasCollapsedBorder,
           })}
+          onClick={toggle}
         >
           {content}
         </div>

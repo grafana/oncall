@@ -14,7 +14,7 @@ import {
   Drawer,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
+import { get, noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -218,14 +218,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   customIcon: 'plug',
                   canHoverIcon: false,
                   collapsedView: null,
-                  expandedView: <HowToConnectComponent id={id} />,
+                  expandedView: () => <HowToConnectComponent id={id} />,
                 },
                 {
                   customIcon: 'layer-group',
                   isExpanded: false,
                   isCollapsible: false,
                   canHoverIcon: false,
-                  expandedView: (
+                  expandedView: () => (
                     <IntegrationBlock
                       hasCollapsedBorder
                       heading={
@@ -290,7 +290,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   isCollapsible: false,
                   collapsedView: null,
                   canHoverIcon: false,
-                  expandedView: (
+                  expandedView: () => (
                     <div className={cx('routesSection')}>
                       <VerticalGroup spacing="md">
                         <Text type={'primary'} className={cx('routesSection__heading')}>
@@ -420,14 +420,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               this.setState((prevState) => ({ newRoutes: prevState.newRoutes.filter((r) => r !== channelFilterId) }));
             }
           },
-          collapsedView: (
+          collapsedView: (toggle) => (
             <CollapsedIntegrationRouteDisplay
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
+              toggle={toggle}
             />
           ),
-          expandedView: (
+          expandedView: () => (
             <ExpandedIntegrationRouteDisplay
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
@@ -890,6 +891,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   return (
     <IntegrationBlock
       hasCollapsedBorder={false}
+      toggle={noop}
       heading={
         <div className={cx('how-to-connect__container')}>
           <Tag

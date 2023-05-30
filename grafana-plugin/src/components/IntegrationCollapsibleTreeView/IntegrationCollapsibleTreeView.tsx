@@ -11,8 +11,8 @@ const cx = cn.bind(styles);
 export interface IntegrationCollapsibleItem {
   customIcon?: IconName;
   canHoverIcon: boolean;
-  expandedView: React.ReactNode;
-  collapsedView: React.ReactNode;
+  collapsedView: (toggle?: () => void) => React.ReactNode; // needs toggle param for toggling on click
+  expandedView: () => React.ReactNode; // for consistency, this is also a function
   isCollapsible: boolean;
   isExpanded?: boolean;
   onStateChange?(): void;
@@ -73,6 +73,8 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   }
 
   function expandOrCollapseAtPos(i: number, j: number = undefined) {
+    console.log('clicked');
+
     if (j) {
       let elem = configElements[i] as IntegrationCollapsibleItem[];
       if (elem[j].onStateChange) {
@@ -116,10 +118,10 @@ const IntegrationCollapsibleTreeItem: React.FC<{
         )}
       </div>
       <div className={cx('integrationTree__element', { 'integrationTree__element--visible': isExpanded })}>
-        {item.expandedView}
+        {item.expandedView?.()}
       </div>
       <div className={cx('integrationTree__element', { 'integrationTree__element--visible': !isExpanded })}>
-        {item.collapsedView}
+        {item.collapsedView?.(onClick)}
       </div>
     </div>
   );

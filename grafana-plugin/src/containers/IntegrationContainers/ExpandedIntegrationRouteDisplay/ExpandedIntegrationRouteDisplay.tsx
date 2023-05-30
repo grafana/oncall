@@ -336,18 +336,25 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
       {!channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Delete'}>
-            <Button variant={'secondary'} icon={'trash-alt'} size={'sm'} onClick={setRouteIdForDeletion} />
+            <Button variant={'secondary'} icon={'trash-alt'} size={'sm'} onClick={onDelete} />
           </Tooltip>
         </WithPermissionControlTooltip>
       )}
     </HorizontalGroup>
   );
 
-  function onRouteMoveDown() {
+  function onDelete(e: React.SyntheticEvent) {
+    e.stopPropagation();
+    setRouteIdForDeletion();
+  }
+
+  function onRouteMoveDown(e: React.SyntheticEvent) {
+    e.stopPropagation();
     alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex + 1);
   }
 
-  function onRouteMoveUp() {
+  function onRouteMoveUp(e: React.SyntheticEvent) {
+    e.stopPropagation();
     alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex - 1);
   }
 };
