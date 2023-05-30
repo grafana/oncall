@@ -73,8 +73,6 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   }
 
   function expandOrCollapseAtPos(i: number, j: number = undefined) {
-    console.log('clicked');
-
     if (j) {
       let elem = configElements[i] as IntegrationCollapsibleItem[];
       if (elem[j].onStateChange) {

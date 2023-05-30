@@ -989,8 +989,8 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         >
           <TooltipBadge
             borderType="primary"
-            tooltipTitle={undefined}
-            tooltipContent={getAlertReceiveChannelCounterTooltip()}
+            tooltipTitle={getAlertReceiveChannelCounterTooltip()}
+            tooltipContent={undefined}
             text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
           />
         </PluginLink>
