@@ -1,31 +1,41 @@
-.root {
-  display: block;
+.body {
+  max-height: calc(100vh - 300px);
+  overflow: scroll;
+  margin: 15px -15px;
+  padding: 15px 0;
+  border-top: var(--border-medium);
+  border-bottom: var(--border-medium);
 }
 
-.title {
-  background: var(--background-primary);
-  top: -15px;
-  position: sticky;
-  margin: -15px -15px 0 -15px;
-  padding: 15px;
-  z-index: 10;
+.content {
+  padding: 0 15px;
 }
 
-.draggable {
-  top: 10%;
-  position: absolute;
-
-  /* transition: transform 300ms ease; */
-}
-
-.header {
-  width: 100%;
+.two-fields {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
 }
 
-.control {
-  width: 195px;
+.two-fields > div {
+  width: 50%;
+}
+
+.inline-switch {
+  height: 18px;
+}
+
+.active-periods {
+  width: 100%;
+}
+
+.active-periods-content {
+  padding-top: 8px;
+}
+
+.time-unit {
+  width: 200px;
 }
 
 .user-title {
@@ -43,10 +53,6 @@
   left: 0;
   height: 100%;
   pointer-events: none;
-}
-
-.inline-switch {
-  height: 18px;
 }
 
 .days {
@@ -67,20 +73,6 @@
 
 .days .day__selected {
   background: #3d71d9;
-}
-
-.two-fields {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.two-fields > div {
-  width: 50%;
-}
-
-.content {
-  margin: 8px 0 16px 0;
 }
 
 .confirmation-modal {

@@ -1,17 +1,51 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { config } from '@grafana/runtime';
-import { IconButton, VerticalGroup, HorizontalGroup, Field, Button, Select, InlineSwitch } from '@grafana/ui';
+import {
+  Button,
+  Field,
+  HorizontalGroup,
+  Icon,
+  IconButton,
+  InlineSwitch,
+  Select,
+  Switch,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
+import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import { getFromString } from 'models/schedule/schedule.helpers';
+import {
+  getRepeatShiftsEveryOptions,
+  putDownMaxValues,
+  reduceTheLastUnitValue,
+  repeatEveryInSeconds,
+  repeatEveryPeriodMultiplier,
+  repeatEveryPeriodToNextPeriodCount,
+  repeatEveryPeriodToUnitName,
+  repeatEveryPeriodToUnitNameShortened,
+  repeatEveryToTimeUnits,
+  secondsToTimeUnits,
+  shiftToLower,
+  TimeUnit,
+  timeUnitsToSeconds,
+  TIME_UNITS_ORDER,
+} from 'containers/RotationForm/RotationForm.helpers';
+import { RepeatEveryPeriod } from 'containers/RotationForm/RotationForm.types';
+import DateTimePicker from 'containers/RotationForm/parts/DateTimePicker';
+import DaysSelector from 'containers/RotationForm/parts/DaysSelector';
+import DeletionModal from 'containers/RotationForm/parts/DeletionModal';
+import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
+import UserItem from 'containers/RotationForm/parts/UserItem';
+import { getFromString, getShiftTitle } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -22,14 +56,11 @@ import { getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import DateTimePicker from './parts/DateTimePicker';
-import DaysSelector from './parts/DaysSelector';
-import DeletionModal from './parts/DeletionModal';
-import UserItem from './parts/UserItem';
-
 import styles from './RotationForm.module.css';
 
-interface RotationFormProps {
+const cx = cn.bind(styles);
+
+interface RotationForm2Props {
   layerPriority: number;
   onHide: () => void;
   startMoment: dayjs.Dayjs;
@@ -44,13 +75,7 @@ interface RotationFormProps {
   shiftColor?: string;
 }
 
-const cx = cn.bind(styles);
-
-const repeatShiftsEveryOptions = Array.from(Array(31).keys())
-  .slice(1)
-  .map((i) => ({ label: String(i), value: i }));
-
-const RotationForm: FC<RotationFormProps> = observer((props) => {
+const RotationForm2 = observer((props: RotationForm2Props) => {
   const {
     onHide,
     onCreate,
@@ -66,21 +91,35 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     shiftColor = '#3D71D9',
   } = props;
 
+  const store = useStore();
+  const shift = store.scheduleStore.shifts[shiftId];
+
+  const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
+
   const [rotationTitle, setRotationTitle] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [offsetTop, setOffsetTop] = useState<number>(0);
-  const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
-  const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
+  const [activePeriod, setActivePeriod] = useState<number | undefined>(undefined);
+  const [shiftPeriodDefaultValue, setShiftPeriodDefaultValue] = useState<number | undefined>(undefined);
+
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
   const [endLess, setEndless] = useState<boolean>(true);
   const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.add(1, 'month'));
-  const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
 
-  const store = useStore();
-  const shift = store.scheduleStore.shifts[shiftId];
+  const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
+  const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
+
+  const [showActiveOnSelectedDays, setShowActiveOnSelectedDays] = useState<boolean>(false);
+  const [showActiveOnSelectedPartOfDay, setShowActiveOnSelectedPartOfDay] = useState<boolean>(false);
+
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
+  const [userGroups, setUserGroups] = useState([]);
+
+  const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
 
   useEffect(() => {
     if (rotationStart.isBefore(shiftStart)) {
@@ -88,15 +127,11 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     }
   }, [rotationStart, shiftStart]);
 
-  const updateShiftStart = useCallback(
-    (value) => {
-      const diff = shiftEnd.diff(shiftStart);
-
-      setShiftStart(value);
-      setShiftEnd(value.add(diff));
-    },
-    [shiftStart, shiftEnd]
-  );
+  useEffect(() => {
+    if (!showActiveOnSelectedDays) {
+      setSelectedDays([]);
+    }
+  }, [showActiveOnSelectedDays]);
 
   useEffect(() => {
     if (isOpen) {
@@ -104,9 +139,9 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
         const coords = getCoords(elm);
 
-        const offsetTop = Math.min(
-          Math.max(coords.top - modal?.offsetHeight - 10, GRAFANA_HEADER_HEIGTH + 10),
-          document.body.offsetHeight - modal?.offsetHeight - 10
+        const offsetTop = Math.max(
+          Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
+          GRAFANA_HEADER_HEIGTH + 10
         );
 
         setOffsetTop(offsetTop);
@@ -114,7 +149,12 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     }
   }, [isOpen]);
 
-  const [userGroups, setUserGroups] = useState([]);
+  const handleChangeEndless = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setEndless(!event.currentTarget.checked);
+    },
+    [endLess]
+  );
 
   const handleDeleteClick = useCallback((force: boolean) => {
     store.scheduleStore.deleteOncallShift(shiftId, force).then(() => {
@@ -128,6 +168,29 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     }
   }, [shiftId]);
 
+  useEffect(() => {
+    if (shiftId === 'new') {
+      updatePreview();
+    }
+  }, []);
+
+  const updatePreview = () => {
+    setErrors({});
+
+    store.scheduleStore
+      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
+      .catch(onError)
+      .finally(() => {
+        setIsOpen(true);
+      });
+  };
+
+  const onError = useCallback((error) => {
+    setErrors(error.response.data);
+  }, []);
+
+  const handleChange = useDebouncedCallback(updatePreview, 200);
+
   const params = useMemo(
     () => ({
       rotation_start: getUTCString(rotationStart),
@@ -138,6 +201,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
       by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart),
+
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       title: rotationTitle,
     }),
@@ -159,52 +223,73 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     ]
   );
 
+  useEffect(handleChange, [params, startMoment]);
+
   const handleCreate = useCallback(() => {
     if (shiftId === 'new') {
-      store.scheduleStore.createRotation(scheduleId, false, { ...params, title: rotationTitle }).then(() => {
-        onCreate();
-      });
+      store.scheduleStore
+        .createRotation(scheduleId, false, { ...params, title: rotationTitle })
+        .then(() => {
+          onCreate();
+        })
+        .catch(onError);
     } else {
-      store.scheduleStore.updateRotation(shiftId, params).then(() => {
-        onUpdate();
-      });
+      store.scheduleStore
+        .updateRotation(shiftId, params)
+        .then(() => {
+          onUpdate();
+        })
+        .catch(onError);
     }
   }, [scheduleId, shiftId, params]);
 
-  useEffect(() => {
-    if (shiftId === 'new') {
-      updatePreview();
-    }
-  }, []);
+  const handleRepeatEveryPeriodChange = useCallback(
+    (value) => {
+      setShiftPeriodDefaultValue(undefined);
 
-  const updatePreview = () => {
-    store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
-      .finally(() => {
-        setIsOpen(true);
-      });
-  };
+      setRepeatEveryPeriod(value);
 
-  const handleChange = useDebouncedCallback(updatePreview, 200);
+      if (!showActiveOnSelectedPartOfDay) {
+        setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[value]));
+      }
+    },
+    [showActiveOnSelectedPartOfDay, repeatEveryValue]
+  );
 
-  useEffect(handleChange, [params]);
+  const handleRepeatEveryValueChange = useCallback(
+    (option) => {
+      setShiftPeriodDefaultValue(undefined);
 
-  useEffect(() => {
-    if (shift) {
-      setRotationTitle(shift.title || `[L${shift.priority_level}] Rotation`);
-      setRotationStart(getDateTime(shift.rotation_start));
-      setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
-      setShiftStart(getDateTime(shift.shift_start));
-      setShiftEnd(getDateTime(shift.shift_end));
-      setEndless(!shift.until);
+      const value = Number(option.value);
+      setRepeatEveryValue(value);
 
-      setRepeatEveryValue(shift.interval);
-      setRepeatEveryPeriod(shift.frequency);
-      setSelectedDays(shift.by_day || []);
+      if (!showActiveOnSelectedPartOfDay) {
+        setShiftEnd(shiftStart.add(value, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+      }
+    },
+    [showActiveOnSelectedPartOfDay, repeatEveryPeriod]
+  );
 
-      setUserGroups(shift.rolling_users);
-    }
-  }, [shift]);
+  const handleRotationStartChange = useCallback(
+    (value) => {
+      setRotationStart(value);
+      setShiftStart(value);
+      if (showActiveOnSelectedPartOfDay) {
+        setShiftEnd(value.add(activePeriod, 'seconds'));
+      } else {
+        setShiftEnd(value.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+      }
+    },
+    [showActiveOnSelectedPartOfDay, activePeriod, repeatEveryPeriod, repeatEveryValue]
+  );
+
+  const handleActivePeriodChange = useCallback(
+    (value) => {
+      setActivePeriod(value);
+      setShiftEnd(shiftStart.add(value, 'seconds'));
+    },
+    [shiftStart]
+  );
 
   const handleRotationTitleChange = useCallback(
     (title: string) => {
@@ -212,7 +297,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       if (shiftId !== 'new') {
         store.scheduleStore.updateRotation(shiftId, { ...params, title }).catch((error) => {
           if (error.response?.data?.title) {
-            setRotationTitle(shift.title || `[L${shift.priority_level}] Rotation`);
+            setRotationTitle(getShiftTitle(shift));
           }
         });
       }
@@ -220,45 +305,68 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     [shiftId, params, shift]
   );
 
-  const handleChangeEndless = useCallback(
+  const handleShowActiveOnSelectedDaysToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setShowActiveOnSelectedDays(event.currentTarget.checked);
+  }, []);
+
+  const handleShowActiveOnSelectedPartOfDayToggle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setEndless(!event.currentTarget.checked);
+      const value = event.currentTarget.checked;
+      setShowActiveOnSelectedPartOfDay(value);
+
+      if (!value) {
+        setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+      }
     },
-    [endLess]
+    [shiftStart, repeatEveryPeriod, repeatEveryValue]
   );
 
-  const handleRepeatEveryValueChange = useCallback((option) => {
-    setRepeatEveryValue(option.value);
-  }, []);
-
-  const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
-  const disableAction = !endLess && rotationEnd.isBefore(dayjs().tz(currentTimezone));
-
-  const [focusElementName, setFocusElementName] = useState<undefined | string>(undefined);
-
-  const getFocusHandler = (elementName: string) => {
-    return () => {
-      setFocusElementName(elementName);
-    };
-  };
-
-  const handleBlur = useCallback(() => {
-    setFocusElementName(undefined);
-  }, []);
+  useEffect(() => {
+    if (repeatEveryPeriod === RepeatEveryPeriod.MONTHS) {
+      setShowActiveOnSelectedPartOfDay(false);
+    }
+  }, [repeatEveryPeriod]);
 
   useEffect(() => {
-    store.scheduleStore.setRotationFormLiveParams({
-      rotationStart,
-      shiftStart,
-      shiftEnd,
-      focusElementName,
-    });
-  }, [params, focusElementName]);
+    if (shift) {
+      setRotationTitle(getShiftTitle(shift));
+      setRotationStart(getDateTime(shift.rotation_start));
+      setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
+      const shiftStart = getDateTime(shift.shift_start);
+      setShiftStart(shiftStart);
+      const shiftEnd = getDateTime(shift.shift_end);
+      setShiftEnd(shiftEnd);
+      setEndless(!shift.until);
+
+      setRepeatEveryValue(shift.interval);
+      setRepeatEveryPeriod(shift.frequency);
+      setSelectedDays(shift.by_day || []);
+
+      setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
+
+      const activeOnSelectedPartOfDay =
+        repeatEveryInSeconds(shift.frequency, shift.interval) !== shiftEnd.diff(shiftStart, 'seconds');
+
+      setShowActiveOnSelectedPartOfDay(activeOnSelectedPartOfDay);
+      if (activeOnSelectedPartOfDay) {
+        const activePeriod = shiftEnd.diff(shiftStart, 'seconds');
+
+        setActivePeriod(activePeriod);
+        setShiftPeriodDefaultValue(activePeriod);
+      }
+
+      setUserGroups(shift.rolling_users);
+    }
+  }, [shift]);
+
+  const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   return (
     <>
       <Modal
+        top="0"
         isOpen={isOpen}
+        className={cx('modal')}
         width="430px"
         onDismiss={onHide}
         contentElement={(props, children) => (
@@ -267,12 +375,15 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           </Draggable>
         )}
       >
-        <>
-          <div className={cx('title')}>
+        <div className={cx('root')}>
+          <div>
             <HorizontalGroup justify="space-between">
-              <Text.Title onTextChange={handleRotationTitleChange} level={5} editable>
-                {rotationTitle}
-              </Text.Title>
+              <HorizontalGroup spacing="sm">
+                {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
+                <Text.Title editModalTitle="Rotation name" onTextChange={handleRotationTitleChange} level={5} editable>
+                  {rotationTitle}
+                </Text.Title>
+              </HorizontalGroup>
               <HorizontalGroup>
                 {shiftId !== 'new' && (
                   <IconButton
@@ -286,31 +397,30 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <VerticalGroup>
+          <div className={cx('body')}>
             <div className={cx('content')}>
-              <VerticalGroup>
+              <VerticalGroup spacing="none">
                 <div className={cx('two-fields')}>
                   <Field
                     label={
                       <Text type="primary" size="small">
-                        Rotation start
+                        Starts
                       </Text>
                     }
                   >
                     <DateTimePicker
-                      minMoment={shiftStart}
+                      //minMoment={shiftStart}
                       value={rotationStart}
-                      onChange={setRotationStart}
+                      onChange={handleRotationStartChange}
                       timezone={currentTimezone}
-                      onFocus={getFocusHandler('rotationStart')}
-                      onBlur={handleBlur}
+                      error={errors.rotation_start}
                     />
                   </Field>
                   <Field
                     label={
                       <HorizontalGroup spacing="xs">
                         <Text type="primary" size="small">
-                          Rotation end
+                          Ends
                         </Text>
                         <InlineSwitch
                           className={cx('inline-switch')}
@@ -326,69 +436,99 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                         <Text type="secondary">Endless</Text>
                       </div>
                     ) : (
-                      <DateTimePicker value={rotationEnd} onChange={setRotationEnd} timezone={currentTimezone} />
+                      <DateTimePicker
+                        value={rotationEnd}
+                        onChange={setRotationEnd}
+                        timezone={currentTimezone}
+                        error={errors.until}
+                      />
                     )}
                   </Field>
                 </div>
-                <HorizontalGroup>
-                  <Field className={cx('control')} label="Repeat shifts every">
+                <div className={cx('two-fields')}>
+                  <Field
+                    label={
+                      <HorizontalGroup spacing="sm">
+                        <Text type="primary" size="small">
+                          Rotate shifts every
+                        </Text>
+                        <Tooltip content="Time interval when users shifts are rotated. Shifts active period can be customised by days of the week and hours during a day.">
+                          <Icon name="info-circle" size="md"></Icon>
+                        </Tooltip>
+                      </HorizontalGroup>
+                    }
+                  >
                     <Select
                       maxMenuHeight={120}
                       value={repeatEveryValue}
-                      options={repeatShiftsEveryOptions}
+                      options={getRepeatShiftsEveryOptions(repeatEveryPeriod)}
                       onChange={handleRepeatEveryValueChange}
                       allowCustomValue
                     />
                   </Field>
-                  <Field className={cx('control')} label="">
+                  <Field label="">
                     <RemoteSelect
                       href="/oncall_shifts/frequency_options/"
                       value={repeatEveryPeriod}
-                      onChange={setRepeatEveryPeriod}
+                      onChange={handleRepeatEveryPeriodChange}
                     />
                   </Field>
-                </HorizontalGroup>
-                <Field label="Select days to repeat">
-                  <DaysSelector
-                    weekStart={config.bootData.user.weekStart}
-                    options={store.scheduleStore.byDayOptions}
-                    value={selectedDays}
-                    onChange={(value) => setSelectedDays(value)}
-                  />
-                </Field>
-                <div className={cx('two-fields')}>
-                  <Field
-                    className={cx('date-time-picker')}
-                    label={
-                      <Text type="primary" size="small">
-                        Parent shift start
-                      </Text>
-                    }
-                  >
-                    <DateTimePicker
-                      value={shiftStart}
-                      onChange={updateShiftStart}
-                      timezone={currentTimezone}
-                      onFocus={getFocusHandler('shiftStart')}
-                      onBlur={handleBlur}
-                    />
-                  </Field>
-                  <Field
-                    className={cx('date-time-picker')}
-                    label={
-                      <Text type="primary" size="small">
-                        Parent shift end
-                      </Text>
-                    }
-                  >
-                    <DateTimePicker
-                      value={shiftEnd}
-                      onChange={setShiftEnd}
-                      timezone={currentTimezone}
-                      onFocus={getFocusHandler('shiftEnd')}
-                      onBlur={handleBlur}
-                    />
-                  </Field>
+                </div>
+
+                {/*  <Collapse
+                  className={cx('active-periods')}
+                  contentClassName={cx('active-periods-content')}
+                  isOpen={shiftId !== 'new'}
+                  label={<Text>Active period</Text>}
+                > */}
+                <VerticalGroup spacing="md">
+                  <VerticalGroup>
+                    <HorizontalGroup align="flex-start">
+                      <Switch value={showActiveOnSelectedDays} onChange={handleShowActiveOnSelectedDaysToggle} />
+                      <VerticalGroup>
+                        <Text type="secondary">Mask by weekdays</Text>
+                        {showActiveOnSelectedDays && (
+                          <DaysSelector
+                            options={store.scheduleStore.byDayOptions}
+                            value={selectedDays}
+                            onChange={setSelectedDays}
+                            weekStart={config.bootData.user.weekStart}
+                          />
+                        )}
+                      </VerticalGroup>
+                    </HorizontalGroup>
+
+                    <HorizontalGroup align="flex-start">
+                      <Switch
+                        disabled={repeatEveryPeriod === RepeatEveryPeriod.MONTHS}
+                        value={showActiveOnSelectedPartOfDay}
+                        onChange={handleShowActiveOnSelectedPartOfDayToggle}
+                      />
+                      <VerticalGroup>
+                        <Text type="secondary">Limit duration</Text>
+                        {showActiveOnSelectedPartOfDay && (
+                          <ShiftPeriod
+                            repeatEveryPeriod={repeatEveryPeriod}
+                            repeatEveryValue={repeatEveryValue}
+                            defaultValue={shiftPeriodDefaultValue}
+                            shiftStart={shiftStart}
+                            onChange={handleActivePeriodChange}
+                            currentTimezone={currentTimezone}
+                            errors={errors}
+                          />
+                        )}
+                      </VerticalGroup>
+                    </HorizontalGroup>
+                  </VerticalGroup>
+                </VerticalGroup>
+                {/* </Collapse> */}
+                <div style={{ marginTop: '16px' }}>
+                  <HorizontalGroup>
+                    <Text size="small">Users</Text>
+                    <Tooltip content="By default each new user creates new rotation group. You can customise groups by dragging.">
+                      <Icon name="info-circle" size="md" />
+                    </Tooltip>
+                  </HorizontalGroup>
                 </div>
                 <UserGroups
                   value={userGroups}
@@ -402,23 +542,25 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                       shiftEnd={params.shift_end}
                     />
                   )}
-                  showError={!isFormValid}
+                  showError={Boolean(errors.rolling_users)}
                 />
               </VerticalGroup>
             </div>
+          </div>
+          <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+              <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
               <HorizontalGroup>
                 <Button variant="secondary" onClick={onHide}>
                   {shiftId === 'new' ? 'Cancel' : 'Close'}
                 </Button>
-                <Button variant="primary" onClick={handleCreate} disabled={!isFormValid || disableAction}>
+                <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
                   {shiftId === 'new' ? 'Create' : 'Update'}
                 </Button>
               </HorizontalGroup>
             </HorizontalGroup>
-          </VerticalGroup>
-        </>
+          </div>
+        </div>
       </Modal>
       {showDeleteRotationConfirmation && (
         <DeletionModal onHide={() => setShowDeleteRotationConfirmation(false)} onConfirm={handleDeleteClick} />
@@ -427,4 +569,136 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   );
 });
 
-export default RotationForm;
+interface ShiftPeriodProps {
+  repeatEveryPeriod: number;
+  repeatEveryValue: number;
+  defaultValue: number;
+  shiftStart: dayjs.Dayjs;
+  onChange: (value: number) => void;
+  currentTimezone: Timezone;
+  errors: any;
+}
+
+const ShiftPeriod = ({ repeatEveryPeriod, repeatEveryValue, defaultValue, onChange, errors }: ShiftPeriodProps) => {
+  const [timeUnits, setTimeUnits] = useState<TimeUnit[]>([]);
+
+  useEffect(() => {
+    if (defaultValue === undefined) {
+      setTimeUnits(reduceTheLastUnitValue(shiftToLower(repeatEveryToTimeUnits(repeatEveryPeriod, repeatEveryValue))));
+    } else {
+      setTimeUnits(
+        putDownMaxValues(secondsToTimeUnits(defaultValue, repeatEveryPeriod), repeatEveryPeriod, repeatEveryValue)
+      );
+    }
+  }, [repeatEveryPeriod, repeatEveryValue]);
+
+  useEffect(() => {
+    onChange(timeUnitsToSeconds(timeUnits));
+  }, [timeUnits]);
+
+  const getTimeUnitChangeHandler = (unit: RepeatEveryPeriod) => {
+    return (value) => {
+      const newTimeUnits = [...timeUnits];
+
+      const timeUnit = newTimeUnits.find((timeUnit) => timeUnit.unit === unit);
+      timeUnit.value = value;
+
+      setTimeUnits(newTimeUnits);
+    };
+  };
+
+  const duration = useMemo(
+    () =>
+      timeUnits
+        .map((timeUnit) => {
+          return timeUnit.value + repeatEveryPeriodToUnitNameShortened[timeUnit.unit];
+        })
+        .join(''),
+    [timeUnits]
+  );
+
+  const getTimeUnitDeleteHandler = (unit: RepeatEveryPeriod) => {
+    return () => {
+      const newTimeUnits = [...timeUnits];
+
+      const timeUnitIndex = newTimeUnits.findIndex((timeUnit) => timeUnit.unit === unit);
+      newTimeUnits.splice(timeUnitIndex, 1);
+
+      setTimeUnits(newTimeUnits);
+    };
+  };
+
+  const unitToCreate = useMemo(() => {
+    if (!timeUnits.length) {
+      return reduceTheLastUnitValue(shiftToLower(repeatEveryToTimeUnits(repeatEveryPeriod, repeatEveryValue)))[0];
+    }
+
+    const minIndex = TIME_UNITS_ORDER.findIndex((tu) => tu === repeatEveryPeriod);
+
+    const lastTimeUnit = timeUnits[timeUnits.length - 1];
+    const currentIndex = lastTimeUnit ? TIME_UNITS_ORDER.findIndex((tu) => tu === lastTimeUnit.unit) : -1;
+
+    const unit = TIME_UNITS_ORDER[Math.max(minIndex, currentIndex + 1)];
+
+    if (unit === undefined) {
+      return undefined;
+    }
+
+    const maxValue = Math.min(
+      Math.floor(
+        (repeatEveryInSeconds(repeatEveryPeriod, repeatEveryValue) - timeUnitsToSeconds(timeUnits)) /
+          repeatEveryPeriodMultiplier[unit]
+      ),
+      repeatEveryPeriodToNextPeriodCount[unit]
+    );
+
+    if (maxValue === 0) {
+      return undefined;
+    }
+
+    return { unit, value: 1, maxValue: maxValue - 1 };
+  }, [timeUnits]);
+
+  const handleTimeUnitAdd = useCallback(() => {
+    const newTimeUnits = [...timeUnits, unitToCreate];
+
+    setTimeUnits(newTimeUnits);
+  }, [unitToCreate]);
+
+  return (
+    <VerticalGroup>
+      {timeUnits.map((unit, index: number, arr) => (
+        <HorizontalGroup key={unit.unit}>
+          <TimeUnitSelector
+            unit={unit.unit}
+            value={unit.value}
+            onChange={getTimeUnitChangeHandler(unit.unit)}
+            maxValue={unit.maxValue}
+            className={cx('time-unit')}
+          />
+          {index === arr.length - 1 && (
+            <Button
+              tooltip="Remove segment"
+              variant="secondary"
+              icon="times"
+              size="sm"
+              onClick={getTimeUnitDeleteHandler(unit.unit)}
+            />
+          )}
+          {index === arr.length - 1 && unitToCreate !== undefined && (
+            <Button tooltip="Add segment" variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd} />
+          )}
+        </HorizontalGroup>
+      ))}
+      {timeUnits.length === 0 && unitToCreate !== undefined && (
+        <Button variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd}>
+          Add segment
+        </Button>
+      )}
+      <Text type="secondary">({duration || '0m'})</Text>
+      {errors.shift_end && <Text type="danger">Incorrect active period</Text>}
+    </VerticalGroup>
+  );
+};
+
+export default RotationForm2;

@@ -4,6 +4,13 @@ import { Timezone } from 'models/timezone/timezone.types';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 
+export const getRepeatShiftsEveryOptions = (repeatEveryPeriod: number) => {
+  const count = repeatEveryPeriod === RepeatEveryPeriod.HOURS ? 24 : 30;
+  return Array.from(Array(count + 1).keys())
+    .slice(1)
+    .map((i) => ({ label: String(i), value: i }));
+};
+
 export const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
   const localMoment = moment.tz(timezone);
 
