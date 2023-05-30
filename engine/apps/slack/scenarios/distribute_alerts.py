@@ -488,7 +488,8 @@ class AttachGroupStep(
                 AttachGroupStep.routing_uid()
             ]["selected_option"]["value"]
             root_alert_group = AlertGroup.all_objects.get(pk=root_alert_group_pk)
-        # old version of attach selection by dropdown
+        # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
+        # Deprecated since at least 28/01/2021
         else:
             try:
                 root_alert_group_pk = int(payload["actions"][0]["selected_options"][0]["value"])
