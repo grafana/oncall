@@ -370,10 +370,12 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         ]
         if not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
             for st in slack_integration_required_templates:
-                response_data.pop(st)
+                if st in response_data:
+                    response_data.pop(st)
         if not settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
             for tt in telegram_integration_required_templates:
-                response_data.pop(tt)
+                if tt in response_data:
+                    response_data.pop(tt)
 
         return response_data
 
