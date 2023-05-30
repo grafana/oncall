@@ -898,7 +898,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
-  const isAlertManager = alertReceiveChannel.integration === DATASOURCE_GRAFANA;
+  const isGrafanaDatasource = alertReceiveChannel.integration === DATASOURCE_GRAFANA;
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
   return (
@@ -930,7 +930,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           </a>
         </div>
       }
-      content={isAlertManager || !hasAlerts ? renderContent() : null}
+      content={isGrafanaDatasource || !hasAlerts ? renderContent() : null}
     />
   );
 
@@ -945,10 +945,10 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             </HorizontalGroup>
           )}
 
-          {isAlertManager && (
+          {isGrafanaDatasource && (
             <HorizontalGroup spacing={'xs'}>
               <Icon name="list-ui-alt" size="md" />
-              <a href={`/alerting/notifications?alertmanager=grafana`} target="_blank">
+              <a href={`/alerting/notifications?alertmanager=grafana`} target="_blank" rel="noreferrer">
                 <Text type={'link'}>Contact Point</Text>
               </a>
               <Text type={'secondary'}>and</Text>
