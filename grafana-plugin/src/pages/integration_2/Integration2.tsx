@@ -948,11 +948,11 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           {isAlertManager && (
             <HorizontalGroup spacing={'xs'}>
               <Icon name="list-ui-alt" size="md" />
-              <a href="/alerting/notifications" target="_blank">
+              <a href={`/alerting/notifications?alertmanager=grafana`} target="_blank">
                 <Text type={'link'}>Contact Point</Text>
               </a>
               <Text type={'secondary'}>and</Text>
-              <a href="/alerting/routes" target="_blank">
+              <a href="/alerting/routes?alertmanager=grafana" target="_blank">
                 <Text type={'link'}>Notification Policy</Text>
               </a>
               <Text type={'secondary'}>created in Grafana Alerting</Text>
