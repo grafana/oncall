@@ -13,27 +13,15 @@ class OpenAlertAppearanceDialogStep(CheckAlertIsUnarchivedMixin, AlertGroupActio
     ACTION_VERBOSE = "format Alert Group"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        alert_group = self.get_alert_group(slack_team_identity, payload)
 
-        try:
-            message_ts = payload["message_ts"]
-        except KeyError:
-            message_ts = payload["container"]["message_ts"]
-
-        try:
-            alert_group_pk = payload["actions"][0]["action_id"].split("_")[1]
-        except (KeyError, IndexError):
-            value = json.loads(payload["actions"][0]["value"])
-            alert_group_pk = value["alert_group_pk"]
-
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
         private_metadata = {
             "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
-            "alert_group_pk": alert_group_pk,
-            "message_ts": message_ts,
+            "alert_group_pk": alert_group.pk,
+            "message_ts": payload.get("message_ts") or payload["container"]["message_ts"],
         }
 
         alert_receive_channel = alert_group.channel

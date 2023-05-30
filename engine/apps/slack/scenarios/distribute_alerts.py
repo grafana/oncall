@@ -306,13 +306,11 @@ class SelectAttachGroupStep(
     ACTION_VERBOSE = "select Alert Group for attach"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        value = json.loads(payload["actions"][0]["value"])
-        alert_group_pk = value.get("alert_group_pk")
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = self.get_alert_group(slack_team_identity, payload)
 
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
+
         blocks = []
         view = {
             "callback_id": AttachGroupStep.routing_uid(),
@@ -325,7 +323,7 @@ class SelectAttachGroupStep(
             "private_metadata": json.dumps(
                 {
                     "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
-                    "alert_group_pk": alert_group_pk,
+                    "alert_group_pk": alert_group.pk,
                 }
             ),
             "close": {"type": "plain_text", "text": "Cancel", "emoji": True},
