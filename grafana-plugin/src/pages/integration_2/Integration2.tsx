@@ -64,7 +64,7 @@ import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
+import { DATASOURCE_GRAFANA, PLUGIN_ROOT } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
@@ -884,7 +884,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
-  const isAlertManager = alertReceiveChannel.integration === DATASOURCE_ALERTING;
+  const isAlertManager = alertReceiveChannel.integration === DATASOURCE_GRAFANA;
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
   return (
