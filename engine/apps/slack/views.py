@@ -55,6 +55,7 @@ from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROU
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
+from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import delete_slack_connector
 
@@ -285,6 +286,19 @@ class SlackEventApiEndpointView(APIView):
                 # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
                 self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
                 return Response(status=200)
+        elif organization is None:
+            # see this GitHub issue for more context on how this situation can arise
+            # https://github.com/grafana/oncall-private/issues/1836
+            warning_text = (
+                "OnCall is not able to process this action because one of the following scenarios: \n"
+                "1. The Slack chatops integration was disconnected from the instance that the Alert Group belongs "
+                "to, BUT the Slack workspace is still connected to another instance as well. In this case, simply log "
+                "in to the OnCall web interface and re-install the Slack Integration with this workspace again.\n"
+                "2. (Less likely) The Grafana instance belonging to this Alert Group was deleted. In this case the Alert Group is orphaned and cannot be acted upon."
+            )
+            # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
+            self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
+            return Response(status=200)
         elif not slack_user_identity.users.exists():
             # Means that slack_user_identity doesn't have any connected user
             # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
@@ -420,76 +434,81 @@ class SlackEventApiEndpointView(APIView):
         channel_id = None
         organization = None
 
-        # view submission or actions in view
-        if "view" in payload:
-            organization_id = None
-            private_metadata = payload["view"].get("private_metadata")
-            # steps with private_metadata in which we know organization before open view
-            if private_metadata and "organization_id" in private_metadata:
-                organization_id = json.loads(private_metadata).get("organization_id")
-            # steps with organization selection in view (e.g. slash commands)
-            elif SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload["view"].get("state", {}).get("values", {}):
-                payload_values = payload["view"]["state"]["values"]
-                selected_value = payload_values[SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
-                    SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
-                ]["selected_option"]["value"]
-                organization_id = int(selected_value.split("-")[0])
-            if organization_id:
-                organization = slack_team_identity.organizations.get(pk=organization_id)
-                return organization
-        # buttons and actions
-        elif payload.get("type") in [
-            PAYLOAD_TYPE_BLOCK_ACTIONS,
-            PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
-            PAYLOAD_TYPE_MESSAGE_ACTION,
-        ]:
-            # for cases when we put organization_id into action value (e.g. public suggestion)
-            if (
-                payload.get("actions")
-                and payload["actions"][0].get("value", {})
-                and "organization_id" in payload["actions"][0]["value"]
-            ):
-                organization_id = int(json.loads(payload["actions"][0]["value"])["organization_id"])
-                organization = slack_team_identity.organizations.get(pk=organization_id)
-                return organization
-
-            channel_id = payload["channel"]["id"]
-            if "message" in payload:
-                message_ts = payload["message"].get("thread_ts") or payload["message"]["ts"]
-            # for interactive message
-            elif "message_ts" in payload:
-                message_ts = payload["message_ts"]
-            else:
-                return
-        # events
-        elif payload.get("type") == PAYLOAD_TYPE_EVENT_CALLBACK:
-            if "channel" in payload["event"]:  # events without channel: user_change, events with subteam, etc.
-                channel_id = payload["event"]["channel"]
-
-            if "message" in payload["event"]:
-                message_ts = payload["event"]["message"].get("thread_ts") or payload["event"]["message"]["ts"]
-            elif "thread_ts" in payload["event"]:
-                message_ts = payload["event"]["thread_ts"]
-            else:
-                return
-
-        if not (message_ts and channel_id):
-            return
-
         try:
-            slack_message = SlackMessage.objects.get(
-                slack_id=message_ts,
-                _slack_team_identity=slack_team_identity,
-                channel_id=channel_id,
-            )
-        except SlackMessage.DoesNotExist:
-            pass
-        else:
-            alert_group = slack_message.get_alert_group()
-            if alert_group:
-                organization = alert_group.channel.organization
-                return organization
-        return organization
+            # view submission or actions in view
+            if "view" in payload:
+                organization_id = None
+                private_metadata = payload["view"].get("private_metadata")
+                # steps with private_metadata in which we know organization before open view
+                if private_metadata and "organization_id" in private_metadata:
+                    organization_id = json.loads(private_metadata).get("organization_id")
+                # steps with organization selection in view (e.g. slash commands)
+                elif SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload["view"].get("state", {}).get("values", {}):
+                    payload_values = payload["view"]["state"]["values"]
+                    selected_value = payload_values[SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
+                        SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
+                    ]["selected_option"]["value"]
+                    organization_id = int(selected_value.split("-")[0])
+                if organization_id:
+                    organization = slack_team_identity.organizations.get(pk=organization_id)
+                    return organization
+            # buttons and actions
+            elif payload.get("type") in [
+                PAYLOAD_TYPE_BLOCK_ACTIONS,
+                PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+                PAYLOAD_TYPE_MESSAGE_ACTION,
+            ]:
+                # for cases when we put organization_id into action value (e.g. public suggestion)
+                if (
+                    payload.get("actions")
+                    and payload["actions"][0].get("value", {})
+                    and "organization_id" in payload["actions"][0]["value"]
+                ):
+                    organization_id = int(json.loads(payload["actions"][0]["value"])["organization_id"])
+                    organization = slack_team_identity.organizations.get(pk=organization_id)
+                    return organization
+
+                channel_id = payload["channel"]["id"]
+                if "message" in payload:
+                    message_ts = payload["message"].get("thread_ts") or payload["message"]["ts"]
+                # for interactive message
+                elif "message_ts" in payload:
+                    message_ts = payload["message_ts"]
+                else:
+                    return
+            # events
+            elif payload.get("type") == PAYLOAD_TYPE_EVENT_CALLBACK:
+                if "channel" in payload["event"]:  # events without channel: user_change, events with subteam, etc.
+                    channel_id = payload["event"]["channel"]
+
+                if "message" in payload["event"]:
+                    message_ts = payload["event"]["message"].get("thread_ts") or payload["event"]["message"]["ts"]
+                elif "thread_ts" in payload["event"]:
+                    message_ts = payload["event"]["thread_ts"]
+                else:
+                    return
+
+            if not (message_ts and channel_id):
+                return
+
+            try:
+                slack_message = SlackMessage.objects.get(
+                    slack_id=message_ts,
+                    _slack_team_identity=slack_team_identity,
+                    channel_id=channel_id,
+                )
+            except SlackMessage.DoesNotExist:
+                pass
+            else:
+                alert_group = slack_message.get_alert_group()
+                if alert_group:
+                    organization = alert_group.channel.organization
+                    return organization
+            return organization
+        except Organization.DoesNotExist:
+            # see this GitHub issue for more context on how this situation can arise
+            # https://github.com/grafana/oncall-private/issues/1836
+            return None
 
     def _open_warning_window_if_needed(self, payload, slack_team_identity, warning_text) -> None:
         if payload.get("trigger_id") is not None:
