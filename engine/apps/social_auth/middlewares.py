@@ -1,5 +1,4 @@
 import logging
-
 from urllib.parse import urljoin
 
 from django.http import HttpResponse
