@@ -44,6 +44,17 @@ grouping_id = '{{ payload.get("alert_uid", "") }}'
 
 resolve_condition = '{{ payload.get("state", "").upper() == "OK" }}'
 
+# TODO: put normal template here
+mobile_app_title = "Alert!"
+
+mobile_app_message = """\
+{{ grafana_oncall_alert_group_id }}
+via {{ integration_name }}
+{{ grafana_oncall_alert_group_status }}
+Status: {{status_verbose}}
+alerts: {{alerts_count_str}}
+"""
+
 acknowledge_condition = None
 
 example_payload = {

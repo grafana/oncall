@@ -18,22 +18,22 @@ export const templatesToRender: TemplateBlock[] = [
       {
         name: 'grouping_id_template',
         label: 'Grouping',
-        height: MONACO_INPUT_HEIGHT_TALL,
+        height: MONACO_INPUT_HEIGHT_SMALL,
       },
       {
         name: 'resolve_condition_template',
-        label: 'Auto resolve',
+        label: 'Autoresolve',
         height: MONACO_INPUT_HEIGHT_SMALL,
       },
     ],
   },
   {
-    name: 'Web',
+    name: 'Web & Mobile',
     contents: [
       {
         name: 'web_title_template',
         label: 'Title',
-        height: MONACO_INPUT_HEIGHT_TALL,
+        height: MONACO_INPUT_HEIGHT_SMALL,
       },
       {
         name: 'web_message_template',
@@ -44,6 +44,21 @@ export const templatesToRender: TemplateBlock[] = [
         name: 'web_image_url_template',
         label: 'Image',
         height: MONACO_INPUT_HEIGHT_SMALL,
+      },
+    ],
+  },
+  {
+    name: 'Mobile Push Notification',
+    contents: [
+      {
+        name: 'mobile_app_title_template',
+        label: 'Title',
+        height: MONACO_INPUT_HEIGHT_SMALL,
+      },
+      {
+        name: 'mobile_app_message_template',
+        label: 'Message',
+        height: MONACO_INPUT_HEIGHT_TALL,
       },
     ],
   },

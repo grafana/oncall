@@ -9,6 +9,15 @@ class AlertMobileAppTemplater(AlertTemplater):
         return "MOBILE_APP"
 
 
+def get_push_notification_title(alert_group):
+    alert = alert_group.alerts.first()
+    templated_alert = AlertMobileAppTemplater(alert).render()
+    alert_title = str_or_backup(templated_alert.title, "Alert Group")
+    print(f"alert_title: {alert_title}")
+    return alert_title
+    # return "New Important Alert" if critical else "New Alert"
+
+
 def get_push_notification_subtitle(alert_group):
     alert = alert_group.alerts.first()
     templated_alert = AlertMobileAppTemplater(alert).render()

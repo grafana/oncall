@@ -18,7 +18,7 @@ from rest_framework import status
 
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
-from apps.mobile_app.alert_rendering import get_push_notification_subtitle
+from apps.mobile_app.alert_rendering import get_push_notification_subtitle, get_push_notification_title
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
@@ -154,7 +154,8 @@ def _get_alert_group_escalation_fcm_message(
 
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
 
-    alert_title = "New Important Alert" if critical else "New Alert"
+    # alert_title = "New Important Alert" if critical else "New Alert"
+    alert_title = get_push_notification_title(alert_group)
     alert_subtitle = get_push_notification_subtitle(alert_group)
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)

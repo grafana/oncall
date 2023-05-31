@@ -12,7 +12,7 @@ class MobileAppBackend(BaseMessagingBackend):
     label = "Mobile push"
     short_label = "Mobile push"
     available_for_use = True
-    template_fields = ["title"]
+    template_fields = ["title", "message"]
 
     def generate_user_verification_code(self, user):
         from apps.mobile_app.models import MobileAppVerificationToken
@@ -50,13 +50,6 @@ class MobileAppBackend(BaseMessagingBackend):
             critical=critical,
         )
 
-    @property
-    def customizable_templates(self):
-        """
-        Disable customization if templates for mobile app
-        """
-        return False
-
 
 class MobileAppCriticalBackend(MobileAppBackend):
     """
@@ -69,6 +62,13 @@ class MobileAppCriticalBackend(MobileAppBackend):
     label = "Mobile push important"
     short_label = "Mobile push important"
     template_fields = []
+
+    @property
+    def customizable_templates(self):
+        """
+        Disable customization if templates for mobile app
+        """
+        return False
 
     def notify_user(self, user, alert_group, notification_policy, critical=True):
         super().notify_user(user, alert_group, notification_policy, critical)

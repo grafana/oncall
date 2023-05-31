@@ -19,7 +19,6 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
-from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
@@ -212,15 +211,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             backend_id = render_for.upper()
             value = self.messaging_backends_templates.get(backend_id, {}).get(attr_name)
         return value
-
-    def get_default_template_attribute(self, render_for, attr_name):
-        defaults = {}
-        backend_id = render_for.upper()
-        # check backend exists
-        if get_messaging_backend_from_id(backend_id):
-            # fallback to web defaults for now
-            defaults = getattr(self, f"INTEGRATION_TO_DEFAULT_WEB_{attr_name.upper()}_TEMPLATE", {})
-        return defaults.get(self.integration)
 
     @classmethod
     def create(cls, **kwargs):

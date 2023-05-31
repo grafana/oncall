@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, set_value
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
+from apps.alerts.incident_appearance.templaters.alert_templater import TemplateLoader
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
@@ -319,7 +320,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                     errors[field_name] = "invalid template"
                 except DjangoValidationError:
                     errors[field_name] = "invalid URL"
-                set_value(ret, [field_name], value)
+                set_value(ret, [f"{field_name}_template"], value)
         return errors
 
     def to_representation(self, obj):
@@ -342,12 +343,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 continue
             for field in backend.template_fields:
                 value = None
-                is_default = False
-                if obj.messaging_backends_templates:
-                    value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if not value:
-                    value = obj.get_default_template_attribute(backend_id, field)
-                    is_default = True
+                template_manager = TemplateLoader()
+                is_default = template_manager.is_attr_template_default(field, obj, render_for=backend_id)
+                value = template_manager.get_attr_template(field, obj, render_for=backend_id)
                 field_name = f"{backend.slug}_{field}_template"
                 templates[field_name] = value
                 templates[f"{field_name}_is_default"] = is_default

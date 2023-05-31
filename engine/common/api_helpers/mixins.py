@@ -19,6 +19,7 @@ from apps.alerts.incident_appearance.templaters import (
 )
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
+from apps.mobile_app.alert_rendering import AlertMobileAppTemplater
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -257,8 +258,9 @@ WEB = "web"
 PHONE_CALL = "phone_call"
 SMS = "sms"
 TELEGRAM = "telegram"
+MOBILE_APP = "mobile_app"
 # templates with its own field in db, this concept replaced by messaging_backend_templates field
-NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
+NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM, MOBILE_APP]
 
 TITLE = "title"
 MESSAGE = "message"
@@ -275,6 +277,7 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     PHONE_CALL: AlertPhoneCallTemplater,
     SMS: AlertSmsTemplater,
     TELEGRAM: AlertTelegramTemplater,
+    MOBILE_APP: AlertMobileAppTemplater,
 }
 
 # add additionally supported messaging backends

@@ -138,6 +138,16 @@ export const templateForEdit: { [id: string]: TemplateForEdit } = {
     },
     isRoute: true,
   },
+  mobile_app_title_template: {
+    name: 'mobile_app_title_template',
+    displayName: 'Title',
+    description: '',
+  },
+  mobile_app_message_template: {
+    name: 'mobile_app_message_template',
+    displayName: 'Subtitle',
+    description: '',
+  },
 };
 
 export const templatesToRender: Template[] = [

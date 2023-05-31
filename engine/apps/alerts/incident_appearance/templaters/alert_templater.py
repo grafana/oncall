@@ -7,31 +7,42 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.slack.slack_formatter import SlackFormatter
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+from common.utils import getattrd
 
 
 class TemplateLoader:
     def get_attr_template(self, attr, alert_receive_channel, render_for=None):
         """
-        Trying to get attr template.
-        First trying to get template for given combination of notification way and attr.
-        If template is None - trying to get default template.
-        If default template doesn't exist return None.
+        Returns template for given attribute (e.g. title, message, etc.) and render_for (e.g. slack, web, etc.).
+        Returns default template if template is None.
+        Returns None If default template doesn't exist.
         """
+        return self.get_customized_attr_template(
+            attr, alert_receive_channel, render_for
+        ) or self.get_default_attr_template(attr, alert_receive_channel, render_for)
 
+    def get_customized_attr_template(self, attr, alert_receive_channel, render_for=None):
         attr_name_for_template = self._get_attr_name_for_template(attr, alert_receive_channel, render_for)
+        # Try getting template from AlertRecieveChannel field (old way)
         attr_template = getattr(alert_receive_channel, attr_name_for_template, None)
+        # Try getting template from messaging backends (new way)
         if attr_template is None and render_for is not None:
-            # check for additional messaging backend templates
             attr_template = alert_receive_channel.get_template_attribute(render_for, attr)
-        return attr_template or self.get_default_attr_template(attr, alert_receive_channel, render_for)
+        return attr_template
 
     def get_default_attr_template(self, attr, alert_receive_channel, render_for=None):
-        default_attr_template_dict = self._get_dict_of_default_templates(attr, alert_receive_channel, render_for)
-        default_attr_template = default_attr_template_dict.get(alert_receive_channel.integration)
+        template_name = f"{render_for.lower()}_{attr}"
+        fallback_template_name = f"web_{attr}"
+        # Try getting default template from integration config
+        default_attr_template = getattrd(alert_receive_channel.config, template_name, None)
+
+        # Fallback to web if default template doesn't exist
         if default_attr_template is None and render_for is not None:
-            # check for additional messaging backend templates
-            default_attr_template = alert_receive_channel.get_default_template_attribute(render_for, attr)
+            default_attr_template = getattrd(alert_receive_channel.config, fallback_template_name, None)
         return default_attr_template
+
+    def is_attr_template_default(self, attr, alert_receive_channel, render_for=None):
+        return self.get_customized_attr_template(attr, alert_receive_channel, render_for) is None
 
     @staticmethod
     def _get_attr_name_for_template(attr, alert_receive_channel, render_for):
@@ -46,21 +57,6 @@ class TemplateLoader:
                 return renderer_specific_attr_name
 
         return f"{attr}_template"
-
-    @staticmethod
-    def _get_dict_of_default_templates(attr, alert_receive_channel, render_for):
-        """
-        Get dict containing default templates for alert receive channel
-        First tries to get renderer specific attribute name, e.g. "INTEGRATION_TO_DEFAULT_SLACK_TITLE_TEMPLATE"
-        If it doesn't exist, fallbacks to common attribute name, e.g. "INTEGRATION_TO_DEFAULT_TITLE_TEMPLATE"
-        """
-        if render_for is not None:
-            templates_dict_attr_name = f"INTEGRATION_TO_DEFAULT_{render_for.upper()}_{attr.upper()}_TEMPLATE"
-
-            if hasattr(alert_receive_channel, templates_dict_attr_name):
-                return getattr(alert_receive_channel, templates_dict_attr_name)
-
-        return getattr(alert_receive_channel, f"INTEGRATION_TO_DEFAULT_{attr.upper()}_TEMPLATE", {})
 
 
 @dataclass
@@ -175,6 +171,8 @@ class AlertTemplater(ABC):
                 "amixr_incident_id": self.alert_group_id,  # Keep for backward compatibility
                 "grafana_oncall_link": self.link,
                 "amixr_link": self.link,  # Keep for backward compatibility
+                "grafana_oncall_alert_group_status": "firing",
+                "grafana_oncall_alert_group_alerts_count": "35",
             }
             # Hardcoding, as AlertWebTemplater.RENDER_FOR_WEB cause circular import
             render_for_web = "web"
