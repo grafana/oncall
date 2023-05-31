@@ -14,18 +14,11 @@ class AlertGroupActionsMixin:
     """
     Mixin for alert group actions (ack, resolve, etc.). Intended to be used as a mixin along with ScenarioStep.
     It serves two purposes:
-        1. Check that user has required permissions to perform an action. Otherwise, send a message to a user ???
+        1. Check that user has required permissions to perform an action. Otherwise, send open a warning window.
         2. Provide utility method to get AlertGroup instance from Slack message payload.
     """
 
     REQUIRED_PERMISSIONS = []
-    ACTION_VERBOSE = "perform action"
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        if self._check_membership():
-            return super().process_scenario(slack_user_identity, slack_team_identity, payload)
-        else:
-            self._send_denied_message(payload)
 
     def get_alert_group(self, slack_team_identity, payload):
         # TODO: comment
@@ -83,36 +76,16 @@ class AlertGroupActionsMixin:
             )
             raise
 
-    def _check_membership(self):
-        return user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
-
-    def _send_denied_message(self, payload):
-        try:
-            thread_ts = payload["message_ts"]
-        except KeyError:
-            thread_ts = payload["message"]["ts"]
-
-        text = "Attempted to {} by {}, but failed due to a lack of permissions.".format(
-            self.ACTION_VERBOSE,
-            self.user.get_username_with_slack_verbal(),
+    def is_authorized(self, alert_group):
+        return self.user.organization == alert_group.channel.organization and user_is_authorized(
+            self.user, self.REQUIRED_PERMISSIONS
         )
 
-        self._slack_client.api_call(
-            "chat.postMessage",
-            channel=payload["channel"]["id"],
-            text=text,
-            blocks=[
-                {
-                    "type": "section",
-                    "block_id": "alert",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": text,
-                    },
-                },
-            ],
-            thread_ts=thread_ts,
-            unfurl_links=True,
+    def open_unauthorized_warning(self, payload):
+        self.open_warning_window(
+            payload,
+            warning_text="You do not have permission to perform this action. Ask an admin to upgrade your permissions.",
+            title="Permission denied",
         )
 
 

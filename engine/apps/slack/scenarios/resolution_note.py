@@ -5,6 +5,7 @@ from django.apps import apps
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.user_management.models import User
@@ -373,6 +374,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
 
 class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
 
@@ -382,6 +384,10 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
             alert_group = AlertGroup.all_objects.get(pk=data["alert_group_pk"])
         else:
             alert_group = self.get_alert_group(slack_team_identity, payload)
+
+        if not self.is_authorized(alert_group):
+            self.open_unauthorized_warning(payload)
+            return
 
         value = data or json.loads(payload["actions"][0]["value"])
         action_resolve = value.get("action_resolve", False)
