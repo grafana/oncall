@@ -36,6 +36,44 @@ ALERT_GROUP_ACTIONS_STEPS = [
 ]
 
 
+ORGANIZATION_ID = 42
+ALERT_GROUP_ID = 24
+SLACK_MESSAGE_TS = "RANDOM_MESSAGE_TS"
+SLACK_CHANNEL_ID = "RANDOM_CHANNEL_ID"
+USER_ID = 56
+INVITATION_ID = 78
+
+
+def _get_payload(action_type="button", **kwargs):
+    """
+    Utility function to generate payload to be used by scenario steps.
+    """
+    if action_type == "button":
+        return {
+            "actions": [
+                {
+                    "type": "button",
+                    "value": json.dumps(
+                        {"organization_id": ORGANIZATION_ID, "alert_group_pk": ALERT_GROUP_ID, **kwargs}
+                    ),
+                }
+            ],
+        }
+    elif action_type == "static_select":
+        return {
+            "actions": [
+                {
+                    "type": "static_select",
+                    "selected_option": {
+                        "value": json.dumps(
+                            {"organization_id": ORGANIZATION_ID, "alert_group_pk": ALERT_GROUP_ID, **kwargs}
+                        )
+                    },
+                }
+            ],
+        }
+
+
 @pytest.mark.parametrize("step_class", ALERT_GROUP_ACTIONS_STEPS)
 @patch.object(
     SlackClientWithErrorHandling,
@@ -140,63 +178,47 @@ def test_get_alert_group_deprecated(
     assert alert_group == result
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [{"type": "button", "value": json.dumps({"organization_id": ORGANIZATION_ID})}],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_acknowledge(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "AcknowledgeGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.acknowledged is True
-
-
-@pytest.mark.django_db
-def test_step_acknowledge_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, acknowledged=False, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "AcknowledgeGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -206,63 +228,47 @@ def test_step_acknowledge_deprecated(
     assert alert_group.acknowledged is True
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [{"type": "button", "value": json.dumps({"organization_id": ORGANIZATION_ID})}],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_unacknowledge(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, acknowledged=True)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "UnAcknowledgeGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.acknowledged is False
-
-
-@pytest.mark.django_db
-def test_step_unacknowledge_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, acknowledged=True)
+    alert_group = make_alert_group(alert_receive_channel, acknowledged=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnAcknowledgeGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -272,63 +278,47 @@ def test_step_unacknowledge_deprecated(
     assert alert_group.acknowledged is False
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [{"type": "button", "value": json.dumps({"organization_id": ORGANIZATION_ID})}],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_resolve(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.resolved is True
-
-
-@pytest.mark.django_db
-def test_step_resolve_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, resolved=False, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -338,63 +328,47 @@ def test_step_resolve_deprecated(
     assert alert_group.resolved is True
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [{"type": "button", "value": json.dumps({"organization_id": ORGANIZATION_ID})}],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_unresolve(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, resolved=True)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "UnResolveGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.resolved is False
-
-
-@pytest.mark.django_db
-def test_step_unresolve_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, resolved=True)
+    alert_group = make_alert_group(alert_receive_channel, resolved=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnResolveGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -404,82 +378,53 @@ def test_step_unresolve_deprecated(
     assert alert_group.resolved is False
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(action_type="static_select", user_id=USER_ID),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [
+                {
+                    "type": "static_select",
+                    "selected_option": {"value": json.dumps({"user_id": USER_ID})},
+                }
+            ],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_invite(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
     make_user,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    second_user = make_user(organization=organization)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "static_select",
-                "selected_option": {
-                    "value": json.dumps(
-                        {
-                            "organization_id": organization.pk,
-                            "alert_group_pk": alert_group.pk,
-                            "user_id": second_user.pk,
-                        }
-                    )
-                },
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.invitations.count() == 1
-
-    invitation = alert_group.invitations.first()
-    assert invitation.author == user
-    assert invitation.invitee == second_user
-
-
-@pytest.mark.django_db
-def test_step_invite_deprecated(
-    make_organization_and_user_with_slack_identities,
-    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    second_user = make_user(organization=organization)
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
+    second_user = make_user(organization=organization, pk=USER_ID)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, resolved=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "static_select",
-                "selected_option": {"value": json.dumps({"user_id": second_user.pk})},
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -493,52 +438,31 @@ def test_step_invite_deprecated(
     assert invitation.invitee == second_user
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(invitation_id=INVITATION_ID),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [
+                {
+                    "name": f"StopInvitationProcess_{INVITATION_ID}",
+                    "type": "button",
+                    "value": json.dumps({"organization_id": ORGANIZATION_ID}),
+                }
+            ],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_stop_invite(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
     make_user,
-    make_alert_receive_channel,
-    make_alert_group,
-    make_alert,
-    make_invitation,
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    second_user = make_user(organization=organization)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group, raw_request_data={})
-
-    invitation = make_invitation(alert_group, user, second_user)
-
-    payload = {
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps(
-                    {
-                        "organization_id": organization.pk,
-                        "alert_group_pk": alert_group.pk,
-                        "invitation_id": invitation.pk,
-                    }
-                ),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "StopInvitationProcess")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    invitation.refresh_from_db()
-    assert invitation.is_active is False
-
-
-@pytest.mark.django_db
-def test_step_stop_invite_deprecated(
-    make_organization_and_user_with_slack_identities,
-    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
@@ -546,30 +470,25 @@ def test_step_stop_invite_deprecated(
     make_slack_message,
     make_invitation,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    second_user = make_user(organization=organization)
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
+    second_user = make_user(organization=organization, pk=USER_ID)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, resolved=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
-    invitation = make_invitation(alert_group, user, second_user)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "name": f"StopInvitationProcess_{invitation.pk}",
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    invitation = make_invitation(alert_group, user, second_user, pk=INVITATION_ID)
 
     step_class = ScenarioStep.get_step("distribute_alerts", "StopInvitationProcess")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -579,67 +498,52 @@ def test_step_stop_invite_deprecated(
     assert invitation.is_active is False
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(action_type="static_select", delay=1800),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [
+                {
+                    "type": "static_select",
+                    "selected_option": {"value": "1800"},
+                }
+            ],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_silence(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, silenced=False)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "static_select",
-                "selected_option": {
-                    "value": json.dumps(
-                        {"organization_id": organization.pk, "alert_group_pk": alert_group.pk, "delay": 1800}
-                    )
-                },
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.silenced is True
-
-
-@pytest.mark.django_db
-def test_step_silence_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, silenced=False)
+    alert_group = make_alert_group(alert_receive_channel, silenced=False, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "static_select",
-                "selected_option": {"value": "1800"},
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -649,63 +553,52 @@ def test_step_silence_deprecated(
     assert alert_group.silenced is True
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload(action_type="static_select", delay=1800),
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "actions": [
+                {
+                    "type": "static_select",
+                    "selected_option": {"value": "1800"},
+                }
+            ],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_unsilence(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, silenced=True)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.silenced is False
-
-
-@pytest.mark.django_db
-def test_step_unsilence_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel, silenced=True)
+    alert_group = make_alert_group(alert_receive_channel, silenced=True, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -715,131 +608,111 @@ def test_step_unsilence_deprecated(
     assert alert_group.silenced is False
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload() | {"trigger_id": "RANDOM_TRIGGER_ID"},
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "trigger_id": "RANDOM_TRIGGER_ID",
+            "actions": [
+                {
+                    "type": "button",
+                    "value": json.dumps({"organization_id": ORGANIZATION_ID}),
+                }
+            ],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_select_attach(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "trigger_id": "RANDOM_TRIGGER_ID",
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    # TODO: assert
-
-
-@pytest.mark.django_db
-def test_step_select_attach_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "trigger_id": "RANDOM_TRIGGER_ID",
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    # TODO: assert
+    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.open",)
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload() | {"trigger_id": "RANDOM_TRIGGER_ID"},
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "trigger_id": "RANDOM_TRIGGER_ID",
+            "actions": [
+                {
+                    "type": "button",
+                    "value": json.dumps({"organization_id": ORGANIZATION_ID}),
+                }
+            ],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_unattach(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    root_alert_group = make_alert_group(alert_receive_channel)
-    alert_group = make_alert_group(alert_receive_channel, root_alert_group=root_alert_group)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("distribute_alerts", "UnAttachGroupStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    alert_group.refresh_from_db()
-    assert alert_group.root_alert_group is None
-
-
-@pytest.mark.django_db
-def test_step_unattach_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
     root_alert_group = make_alert_group(alert_receive_channel)
-    alert_group = make_alert_group(alert_receive_channel, root_alert_group=root_alert_group)
+    alert_group = make_alert_group(alert_receive_channel, root_alert_group=root_alert_group, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("distribute_alerts", "UnAttachGroupStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -849,71 +722,61 @@ def test_step_unattach_deprecated(
     assert alert_group.root_alert_group is None
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _get_payload() | {"message_ts": "RANDOM_TS", "trigger_id": "RANDOM_TRIGGER_ID"},
+        # deprecated payload shape, but still supported to handle older Slack messages
+        {
+            "message_ts": SLACK_MESSAGE_TS,
+            "channel": {"id": SLACK_CHANNEL_ID},
+            "trigger_id": "RANDOM_TRIGGER_ID",
+            "actions": [
+                {
+                    "type": "button",
+                    "value": json.dumps({"organization_id": ORGANIZATION_ID, "alert_group_pk": str(ALERT_GROUP_ID)}),
+                }
+            ],
+        },
+    ],
+)
 @pytest.mark.django_db
 def test_step_format_alert(
-    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
-):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
-    make_alert(alert_group, raw_request_data={})
-
-    payload = {
-        "message_ts": "RANDOM_TS",
-        "trigger_id": "RANDOM_TRIGGER_ID",
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
-            }
-        ],
-    }
-
-    step_class = ScenarioStep.get_step("alertgroup_appearance", "OpenAlertAppearanceDialogStep")
-    step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
-
-    # TODO: assert
-
-
-@pytest.mark.django_db
-def test_step_format_alert_deprecated(
-    make_organization_and_user_with_slack_identities,
+    payload,
+    make_organization,
+    make_slack_team_identity,
+    make_user,
+    make_slack_user_identity,
     make_alert_receive_channel,
     make_alert_group,
     make_alert,
     make_slack_channel,
     make_slack_message,
 ):
-    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    slack_team_identity = make_slack_team_identity()
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity)
+    slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
+
+    organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
     organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
+    user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, pk=ALERT_GROUP_ID)
     make_alert(alert_group, raw_request_data={})
 
-    slack_channel = make_slack_channel(slack_team_identity)
-    slack_message = make_slack_message(alert_group=alert_group, channel_id=slack_channel.slack_id)
-
-    payload = {
-        "message_ts": slack_message.slack_id,
-        "channel": {"id": slack_channel.slack_id},
-        "trigger_id": "RANDOM_TRIGGER_ID",
-        "actions": [
-            {
-                "type": "button",
-                "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": str(alert_group.pk)}),
-            }
-        ],
-    }
+    slack_message = make_slack_message(
+        alert_group=alert_group, channel_id=slack_channel.slack_id, slack_id=SLACK_MESSAGE_TS
+    )
+    slack_message.get_alert_group()  # fix FKs
 
     step_class = ScenarioStep.get_step("alertgroup_appearance", "OpenAlertAppearanceDialogStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    # TODO: assert
+    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.open",)
 
 
 @pytest.mark.django_db
@@ -945,6 +808,8 @@ def test_step_resolution_note(
 
     step_class = ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
-    step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
-    # TODO: assert
+    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.open",)
