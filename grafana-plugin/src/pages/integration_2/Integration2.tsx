@@ -207,7 +207,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 <IntegrationHeader
                   alertReceiveChannel={alertReceiveChannel}
                   alertReceiveChannelCounter={alertReceiveChannelCounter}
-                  channelFilterIds={channelFilterIds}
                   integration={integration}
                 />
               </div>

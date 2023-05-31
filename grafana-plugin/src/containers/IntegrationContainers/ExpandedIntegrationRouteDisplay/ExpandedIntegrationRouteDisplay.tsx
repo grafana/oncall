@@ -174,14 +174,13 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   </VerticalGroup>
                 </IntegrationBlockItem>
               )}
-              {(isSlackInstalled || isTelegramInstalled) && (
-                <IntegrationBlockItem>
-                  <VerticalGroup spacing="md">
-                    <Text type="primary">Publish to ChatOps</Text>
-                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-                  </VerticalGroup>
-                </IntegrationBlockItem>
-              )}
+
+              <IntegrationBlockItem>
+                <VerticalGroup spacing="md">
+                  <Text type="primary">Publish to ChatOps</Text>
+                  <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
+                </VerticalGroup>
+              </IntegrationBlockItem>
 
               <IntegrationBlockItem>
                 <VerticalGroup>
