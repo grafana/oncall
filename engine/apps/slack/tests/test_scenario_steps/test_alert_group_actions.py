@@ -13,6 +13,7 @@ class TestScenario(AlertGroupActionsMixin, ScenarioStep):
     pass
 
 
+# List of steps to be tested for alert group actions (getting alert group from Slack payload + user permissions check)
 ALERT_GROUP_ACTIONS_STEPS = [
     # Acknowledge / Unacknowledge buttons
     ScenarioStep.get_step("distribute_alerts", "AcknowledgeGroupStep"),
@@ -36,6 +37,7 @@ ALERT_GROUP_ACTIONS_STEPS = [
 ]
 
 
+# Constants to simplify parametrized tests
 ORGANIZATION_ID = 42
 ALERT_GROUP_ID = 24
 SLACK_MESSAGE_TS = "RANDOM_MESSAGE_TS"
