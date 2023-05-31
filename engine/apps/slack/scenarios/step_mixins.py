@@ -108,10 +108,9 @@ class AlertGroupActionsMixin:
         """
 
         try:
-            elements = payload["message"]["attachments"][0]["blocks"][0]["elements"]
-        except (KeyError, IndexError):
             # sometimes message is in "original_message" field, not "message"
-            elements = payload["original_message"]["attachments"][0]["blocks"][0]["elements"]
+            message = payload.get("message") or payload["original_message"]
+            elements = message["attachments"][0]["blocks"][0]["elements"]
         except (KeyError, IndexError):
             return None
 

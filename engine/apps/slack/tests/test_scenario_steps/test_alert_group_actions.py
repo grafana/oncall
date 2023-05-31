@@ -417,8 +417,8 @@ def test_step_unresolve(
 @pytest.mark.parametrize(
     "payload",
     [
-        _get_payload(action_type="static_select", user_id=USER_ID),
-        # deprecated payload shape, but still supported to handle older Slack messages
+        # Usual data such as alert_group_pk is not passed to InviteOtherPersonToIncident, so it doesn't increase
+        # payload size too much.
         {
             "message_ts": SLACK_MESSAGE_TS,
             "channel": {"id": SLACK_CHANNEL_ID},
