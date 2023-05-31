@@ -4,10 +4,8 @@ from unittest.mock import patch
 import pytest
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.slack.models import SlackMessage
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.scenarios.step_mixins import AlertGroupActionsMixin
-from apps.slack.slack_client import SlackClientWithErrorHandling
 
 
 class TestScenario(AlertGroupActionsMixin, ScenarioStep):
@@ -75,32 +73,6 @@ def _get_payload(action_type="button", **kwargs):
                 }
             ],
         }
-
-
-@pytest.mark.parametrize("step_class", ALERT_GROUP_ACTIONS_STEPS)
-@patch.object(
-    SlackClientWithErrorHandling,
-    "api_call",
-    return_value={"ok": True},
-)
-@pytest.mark.django_db
-def test_alert_group_actions_slack_message_not_in_db(
-    mock_slack_api_call, step_class, make_organization_and_user_with_slack_identities
-):
-    organization, _, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
-
-    payload = {
-        "message_ts": "RANDOM_MESSAGE_TS",
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
-        "trigger_id": "RANDOM_TRIGGER_ID",
-        "actions": [{"type": "button", "value": json.dumps({"organization_id": organization.pk})}],
-    }
-
-    step = step_class(organization=organization, slack_team_identity=slack_team_identity)
-
-    with pytest.raises(SlackMessage.DoesNotExist):  # TODO: change this
-        step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
 
 @pytest.mark.parametrize("step_class", ALERT_GROUP_ACTIONS_STEPS)

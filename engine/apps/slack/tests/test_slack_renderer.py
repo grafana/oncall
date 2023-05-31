@@ -15,9 +15,9 @@ def test_slack_renderer_acknowledge_button(make_organization, make_alert_receive
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    ack_button = elements[0]
-    assert ack_button["text"]["text"] == "Acknowledge"
-    assert json.loads(ack_button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    button = elements[0]
+    assert button["text"]["text"] == "Acknowledge"
+    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
 
 
 @pytest.mark.django_db
@@ -31,9 +31,9 @@ def test_slack_renderer_unacknowledge_button(
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    ack_button = elements[0]
-    assert ack_button["text"]["text"] == "Unacknowledge"
-    assert json.loads(ack_button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    button = elements[0]
+    assert button["text"]["text"] == "Unacknowledge"
+    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
 
 
 @pytest.mark.django_db
@@ -45,9 +45,9 @@ def test_slack_renderer_resolve_button(make_organization, make_alert_receive_cha
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    ack_button = elements[1]
-    assert ack_button["text"]["text"] == "Resolve"
-    assert json.loads(ack_button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    button = elements[1]
+    assert button["text"]["text"] == "Resolve"
+    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
 
 
 @pytest.mark.django_db
@@ -59,9 +59,9 @@ def test_slack_renderer_unresolve_button(make_organization, make_alert_receive_c
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    ack_button = elements[0]
-    assert ack_button["text"]["text"] == "Unresolve"
-    assert json.loads(ack_button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    button = elements[0]
+    assert button["text"]["text"] == "Unresolve"
+    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
 
 
 @pytest.mark.django_db
@@ -78,11 +78,9 @@ def test_slack_renderer_invite_action(
 
     ack_button = elements[2]
     assert ack_button["placeholder"]["text"] == "Invite..."
-    assert json.loads(ack_button["options"][0]["value"]) == {
-        "organization_id": organization.pk,
-        "alert_group_pk": alert_group.pk,
-        "user_id": user.pk,
-    }
+
+    # Check only user_id is passed. Otherwise, if there are a lot of users, the payload could be unnecessarily large.
+    assert json.loads(ack_button["options"][0]["value"]) == {"user_id": user.pk}
 
 
 @pytest.mark.django_db
@@ -96,10 +94,10 @@ def test_slack_renderer_stop_invite_button(
     make_alert(alert_group=alert_group, raw_request_data={})
     invitation = make_invitation(alert_group, user, user)
 
-    stop_inviting_action = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[1]["actions"][0]
+    action = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[1]["actions"][0]
 
-    assert stop_inviting_action["text"] == f"Stop inviting {user.username}"
-    assert json.loads(stop_inviting_action["value"]) == {
+    assert action["text"] == f"Stop inviting {user.username}"
+    assert json.loads(action["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
         "invitation_id": invitation.pk,
@@ -115,10 +113,10 @@ def test_slack_renderer_silence_button(make_organization, make_alert_receive_cha
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    silence_button = elements[3]
-    assert silence_button["placeholder"]["text"] == "Silence"
+    button = elements[3]
+    assert button["placeholder"]["text"] == "Silence"
 
-    values = [json.loads(option["value"]) for option in silence_button["options"]]
+    values = [json.loads(option["value"]) for option in button["options"]]
     assert values == [
         {"organization_id": organization.pk, "alert_group_pk": alert_group.pk, "delay": delay}
         for delay, _ in AlertGroup.SILENCE_DELAY_OPTIONS
@@ -133,10 +131,10 @@ def test_slack_renderer_unsilence_button(make_organization, make_alert_receive_c
     make_alert(alert_group=alert_group, raw_request_data={})
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
-    unsilence_button = elements[3]
+    button = elements[3]
 
-    assert unsilence_button["text"]["text"] == "Unsilence"
-    assert json.loads(unsilence_button["value"]) == {
+    assert button["text"]["text"] == "Unsilence"
+    assert json.loads(button["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
     }
@@ -150,10 +148,10 @@ def test_slack_renderer_attach_button(make_organization, make_alert_receive_chan
     make_alert(alert_group=alert_group, raw_request_data={})
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
-    unsilence_button = elements[4]
+    button = elements[4]
 
-    assert unsilence_button["text"]["text"] == "Attach to ..."
-    assert json.loads(unsilence_button["value"]) == {
+    assert button["text"]["text"] == "Attach to ..."
+    assert json.loads(button["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
     }
@@ -170,10 +168,10 @@ def test_slack_renderer_unattach_button(make_organization, make_alert_receive_ch
     alert_group = make_alert_group(alert_receive_channel, root_alert_group=root_alert_group)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    unattach_action = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["actions"][0]
+    action = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["actions"][0]
 
-    assert unattach_action["text"] == "Unattach"
-    assert json.loads(unattach_action["value"]) == {
+    assert action["text"] == "Unattach"
+    assert json.loads(action["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
     }
@@ -190,9 +188,9 @@ def test_slack_renderer_format_alert_button(
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    ack_button = elements[5]
-    assert ack_button["text"]["text"] == ":mag: Format Alert"
-    assert json.loads(ack_button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
+    button = elements[5]
+    assert button["text"]["text"] == ":mag: Format Alert"
+    assert json.loads(button["value"]) == {"organization_id": organization.pk, "alert_group_pk": alert_group.pk}
 
 
 @pytest.mark.django_db
@@ -206,9 +204,9 @@ def test_slack_renderer_resolution_notes_button(
 
     elements = AlertGroupSlackRenderer(alert_group).render_alert_group_attachments()[0]["blocks"][0]["elements"]
 
-    ack_button = elements[6]
-    assert ack_button["text"]["text"] == "Add Resolution notes"
-    assert json.loads(ack_button["value"]) == {
+    button = elements[6]
+    assert button["text"]["text"] == "Add Resolution notes"
+    assert json.loads(button["value"]) == {
         "organization_id": organization.pk,
         "alert_group_pk": alert_group.pk,
         "resolution_note_window_action": "edit",
