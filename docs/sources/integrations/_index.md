@@ -23,7 +23,7 @@ within integrations.
 You could check pre-configured templates in the list of avaliable integrations (Integrations ->
 "New integration to receive alerts"), create your own or adjust existing.
 
-Read more about Jinja2 templating used in OnCall [here]({{< relref "jinja2-templating" >}}).
+Read more about Jinja2 templating used in OnCall [here]({{< relref "../jinja2-templating" >}}).
 
 Alert flow within integration:
 
