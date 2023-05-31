@@ -343,6 +343,13 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def _get_select_user_element(
         self, action_id, multi_select=False, initial_user=None, initial_users_list=None, text=None
     ):
+        def get_action_value(user_id):
+            """
+            In contrast to other buttons and select menus, self._alert_group_action_value is not used here.
+            It's because there could be a lot of users, and we don't want to increase the payload size too much.
+            """
+            return json.dumps({"user_id": user_id})
+
         MAX_STATIC_SELECT_OPTIONS = 100
 
         if not text:
@@ -368,7 +375,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 user_verbal = user_verbal[:72] + "..."
             option = {
                 "text": {"type": "plain_text", "text": user_verbal},
-                "value": self._alert_group_action_value(user_id=user.pk),
+                "value": get_action_value(user.pk),
             }
             options.append(option)
 
@@ -384,7 +391,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         elif users_count == 0:  # strange case when there are no users to select
             option = {
                 "text": {"type": "plain_text", "text": "No users to select"},
-                "value": self._alert_group_action_value(user_id=None),
+                "value": get_action_value(None),
             }
             options.append(option)
             element["options"] = options
@@ -400,7 +407,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     user_verbal = f"{user.get_username_with_slack_verbal()}"
                     option = {
                         "text": {"type": "plain_text", "text": user_verbal},
-                        "value": self._alert_group_action_value(user_id=user.pk),
+                        "value": get_action_value(user.pk),
                     }
                     initial_options.append(option)
                 element["initial_options"] = initial_options
@@ -408,7 +415,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             user_verbal = f"{initial_user.get_username_with_slack_verbal()}"
             initial_option = {
                 "text": {"type": "plain_text", "text": user_verbal},
-                "value": self._alert_group_action_value(user_id=initial_user.pk),
+                "value": get_action_value(initial_user.pk),
             }
             element["initial_option"] = initial_option
 
