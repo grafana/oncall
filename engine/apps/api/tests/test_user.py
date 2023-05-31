@@ -17,6 +17,7 @@ from apps.api.permissions import (
     RBACPermission,
 )
 from apps.base.models import UserNotificationPolicy
+from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
 
@@ -471,7 +472,7 @@ def test_user_get_other_verification_code(
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": admin.public_primary_key})
-    with patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock()):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock()):
         response = client.get(url, format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
@@ -486,7 +487,7 @@ def test_validation_of_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
     with patch(
-        "apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None)
+        "apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True
     ) as verify_phone_number:
         url_with_token = f"{url}?token=some_token"
         r = client.put(url_with_token, format="json", **make_user_auth_headers(user, token))
@@ -501,6 +502,24 @@ def test_validation_of_verification_code(
         url_with_empty_token = f"{url}?token="
         r = client.put(url_with_empty_token, format="json", **make_user_auth_headers(user, token))
         assert r.status_code == 400
+        assert verify_phone_number.call_count == 1
+
+
+@pytest.mark.django_db
+def test_verification_code_provider_exception(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+    with patch(
+        "apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number",
+        side_effect=FailedToFinishVerification,
+    ) as verify_phone_number:
+        url_with_token = f"{url}?token=some_token"
+        r = client.put(url_with_token, format="json", **make_user_auth_headers(user, token))
+        assert r.status_code == 503
         assert verify_phone_number.call_count == 1
 
 
@@ -561,7 +580,7 @@ def test_user_verify_another_phone(
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": other_user.public_primary_key})
 
-    with patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None)):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True):
         response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
@@ -686,7 +705,7 @@ def test_admin_can_detail_users(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_admin_can_get_own_verification_code(
     mock_verification_start,
@@ -702,7 +721,7 @@ def test_admin_can_get_own_verification_code(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_admin_can_get_another_user_verification_code(
     mock_verification_start,
@@ -719,7 +738,7 @@ def test_admin_can_get_another_user_verification_code(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_admin_can_verify_own_phone(
     mocked_verification_check,
@@ -734,7 +753,7 @@ def test_admin_can_verify_own_phone(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_admin_can_verify_another_user_phone(
     mocked_verification_check,
@@ -912,7 +931,7 @@ def test_user_can_detail_users(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_user_can_get_own_verification_code(
     mock_verification_start, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -926,7 +945,7 @@ def test_user_can_get_own_verification_code(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_user_cant_get_another_user_verification_code(
     mock_verification_start,
@@ -944,7 +963,7 @@ def test_user_cant_get_another_user_verification_code(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_user_can_verify_own_phone(
     mocked_verification_check, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -958,7 +977,7 @@ def test_user_can_verify_own_phone(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_user_cant_verify_another_user_phone(
     mocked_verification_check,
@@ -1218,7 +1237,7 @@ def test_viewer_cant_detail_users(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_viewer_cant_get_own_verification_code(
     mock_verification_start, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -1232,7 +1251,7 @@ def test_viewer_cant_get_own_verification_code(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_viewer_cant_get_another_user_verification_code(
     mock_verification_start,
@@ -1250,7 +1269,7 @@ def test_viewer_cant_get_another_user_verification_code(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_viewer_cant_verify_own_phone(
     mocked_verification_check, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -1264,7 +1283,7 @@ def test_viewer_cant_verify_own_phone(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_viewer_cant_verify_another_user_phone(
     mocked_verification_check,
@@ -1340,9 +1359,7 @@ def test_forget_own_number(
 
     client = APIClient()
     url = reverse("api-internal:user-forget-number", kwargs={"pk": user.public_primary_key})
-    with patch(
-        "apps.twilioapp.phone_manager.PhoneManager.notify_about_changed_verified_phone_number", return_value=None
-    ):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend._notify_disconnected_number", return_value=None):
         response = client.put(url, None, format="json", **make_user_auth_headers(user, token))
         assert response.status_code == expected_status
 
@@ -1390,9 +1407,7 @@ def test_forget_other_number(
 
     client = APIClient()
     url = reverse("api-internal:user-forget-number", kwargs={"pk": admin_primary_key})
-    with patch(
-        "apps.twilioapp.phone_manager.PhoneManager.notify_about_changed_verified_phone_number", return_value=None
-    ):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend._notify_disconnected_number", return_value=None):
         response = client.put(url, None, format="json", **make_user_auth_headers(other_user, token))
         assert response.status_code == expected_status
 
@@ -1574,8 +1589,8 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @patch(
     "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.get_throttle_limits",
     return_value=(1, 10 * 60),
@@ -1616,8 +1631,8 @@ def test_phone_number_verification_flow_ratelimit_per_user(
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @patch(
     "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.get_throttle_limits",
     return_value=(1, 10 * 60),
@@ -1659,7 +1674,7 @@ def test_phone_number_verification_flow_ratelimit_per_org(
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=True)
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.parametrize(
     "recaptcha_testing_pass,expected_status",
     [
@@ -1686,7 +1701,7 @@ def test_phone_number_verification_recaptcha(
         response = client.get(url, format="json", **request_headers)
         assert response.status_code == expected_status
         if expected_status == status.HTTP_200_OK:
-            mock_verification_start.assert_called_once_with()
+            mock_verification_start.assert_called_once_with(user)
         else:
             mock_verification_start.assert_not_called()
 

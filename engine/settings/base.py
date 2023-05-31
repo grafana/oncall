@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     "apps.public_api",
     "apps.grafana_plugin",
     "apps.webhooks",
+    "apps.metrics_exporter",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -227,6 +228,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
+    "apps.phone_notifications",
 ]
 
 REST_FRAMEWORK = {
@@ -481,6 +483,10 @@ CELERY_BEAT_SCHEDULE = {
     "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
         "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
         "schedule": 10 * 60,
+    },
+    "save_organizations_ids_in_cache": {
+        "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
+        "schedule": 60 * 30,
         "args": (),
     },
 }
@@ -704,3 +710,11 @@ PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", defaul
 PYROSCOPE_APPLICATION_NAME = os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall")
 PYROSCOPE_SERVER_ADDRESS = os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040")
 PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
+
+# map of phone provider alias to importpath.
+# Used in get_phone_provider function to dynamically load current provider.
+PHONE_PROVIDERS = {
+    "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
+    # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+}
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
