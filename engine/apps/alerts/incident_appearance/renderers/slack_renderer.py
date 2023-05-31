@@ -419,7 +419,12 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return element
 
     def _alert_group_action_value(self, **kwargs):
-        # TODO: add comment
+        """
+        Store organization and alert group IDs in Slack button or select menu values.
+        alert_group_pk is used in apps.slack.scenarios.step_mixins.AlertGroupActionsMixin to get the right alert group
+        when handling AG actions in Slack.
+        """
+
         data = {
             "organization_id": self.alert_group.channel.organization_id,
             "alert_group_pk": self.alert_group.pk,
