@@ -18,4 +18,4 @@ Tap it to open the **upcoming shifts** view.  This view displays:
 - your current shift (if any), per schedule.
 - your next upcoming shift (if any), per schedule.  This only looks up to 31 days into the future.
 
-<img src="/static/img/oncall/mobile-app-shifts.png" width="300px">
+<img src="/static/img/oncall/mobile-app-v1-android-shifts.png" width="300px">
