@@ -460,7 +460,7 @@ class AttachGroupStep(
     AlertGroupActionsMixin,
     scenario_step.ScenarioStep,
 ):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
+    REQUIRED_PERMISSIONS = []  # Permissions are handled in SelectAttachGroupStep
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
@@ -494,8 +494,7 @@ class AttachGroupStep(
                 AttachGroupStep.routing_uid()
             ]["selected_option"]["value"]
             root_alert_group = AlertGroup.all_objects.get(pk=root_alert_group_pk)
-        # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
-        # Deprecated since at least 28/01/2021
+        # old version of attach selection by dropdown
         else:
             try:
                 root_alert_group_pk = int(payload["actions"][0]["selected_options"][0]["value"])
@@ -504,11 +503,6 @@ class AttachGroupStep(
 
             root_alert_group = AlertGroup.all_objects.get(pk=root_alert_group_pk)
             alert_group = self.get_alert_group(slack_team_identity, payload)
-
-        if not self.is_authorized(alert_group):
-            self.open_unauthorized_warning(payload)
-            return
-
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group) and self.check_alert_is_unarchived(
             slack_team_identity, payload, root_alert_group
         ):
