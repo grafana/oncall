@@ -198,6 +198,9 @@ class AlertReceiveChannelView(
                     "display_name": integration_title,
                     "short_description": AlertReceiveChannel.INTEGRATION_SHORT_DESCRIPTION[integration_id],
                     "featured": integration_id in AlertReceiveChannel.INTEGRATION_FEATURED,
+                    "featured_tag_name": AlertReceiveChannel.INTEGRATION_FEATURED_TAG_NAME[integration_id]
+                    if integration_id in AlertReceiveChannel.INTEGRATION_FEATURED_TAG_NAME
+                    else None,
                 }
                 # if integration is featured we show it in the beginning
                 if choice["featured"]:

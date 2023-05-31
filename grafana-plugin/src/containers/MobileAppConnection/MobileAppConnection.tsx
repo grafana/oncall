@@ -215,7 +215,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
                 onClick={() => onSendTestNotification(true)}
                 disabled={isAttemptingTestNotification}
               >
-                Send Critical Test Push notification
+                Send Important Test Push notification
               </Button>
             </HorizontalGroup>
           </div>

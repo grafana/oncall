@@ -104,7 +104,14 @@ $LARGE-MARGIN: 24px;
 .loadingPlaceholder {
   margin-bottom: 0;
   margin-right: 4px;
-  animation: none;
+}
+
+.integration__description-alert {
+  padding-top: 24px;
+
+  a {
+    color: var(--primary-text-link);
+  }
 }
 
 .customise-button button {
