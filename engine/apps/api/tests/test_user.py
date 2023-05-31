@@ -17,7 +17,7 @@ from apps.api.permissions import (
     RBACPermission,
 )
 from apps.base.models import UserNotificationPolicy
-from apps.phone_notifications.exceptions import FailedToFinishVerification
+from apps.phone_notifications.exceptions import FailedToFinishVerification, NumberBlocked
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
 
@@ -1672,6 +1672,27 @@ def test_phone_number_verification_flow_ratelimit_per_org(
     url = reverse("api-internal:user-verify-number", kwargs={"pk": second_user.public_primary_key})
     response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(second_user, token))
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+@pytest.mark.django_db
+def test_phone_number_verification_flow_number_blocked(
+    make_organization_and_user_with_plugin_token, make_user_auth_headers
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+
+    def _make_request():
+        return client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert _make_request().status_code == status.HTTP_200_OK
+
+    with patch(
+        "apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", side_effect=NumberBlocked
+    ) as mock_send_verification_sms:
+        assert _make_request().status_code == status.HTTP_403_FORBIDDEN
+        mock_send_verification_sms.assert_called_once_with(user)
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())

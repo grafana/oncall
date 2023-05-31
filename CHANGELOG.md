@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Better handle "Verification delivery attempt blocked" exceptions from Twilio by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ## v1.2.33 (2023-05-30)
 
 ### Fixed

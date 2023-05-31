@@ -32,3 +32,7 @@ class CallsLimitExceeded(Exception):
 
 class SMSLimitExceeded(Exception):
     pass
+
+
+class NumberBlocked(Exception):
+    pass

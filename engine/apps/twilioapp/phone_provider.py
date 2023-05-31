@@ -15,6 +15,7 @@ from apps.phone_notifications.exceptions import (
     FailedToMakeCall,
     FailedToSendSMS,
     FailedToStartVerification,
+    NumberBlocked,
 )
 from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 from apps.twilioapp.gather import get_gather_message, get_gather_url
@@ -171,13 +172,28 @@ class TwilioPhoneProvider(PhoneProvider):
             )
 
     def _send_verification_code(self, number: str, via: str):
-        # https://www.twilio.com/docs/verify/api/verification?code-sample=code-start-a-verification-with-sms&code-language=Python&code-sdk-version=6.x
+        """
+        https://www.twilio.com/docs/verify/api/verification?code-sample=code-start-a-verification-with-sms&code-language=Python&code-sdk-version=6.x
+
+        https://www.twilio.com/docs/api/errors#6-anchor
+        """
         try:
             client, verify_service_sid = self._verify_sender(number)
             verification = client.verify.services(verify_service_sid).verifications.create(to=number, channel=via)
             logger.info(f"TwilioPhoneProvider._send_verification_code: verification status {verification.status}")
         except TwilioRestException as e:
             logger.error(f"Twilio verification start error: {e} to number {number}")
+            if e.code == 60410:
+                """
+                https://www.twilio.com/docs/api/errors/60410
+
+                A verification delivery attempt was blocked. This is because Fraud Guard has identified potential
+                fraudulent messages being sent to one or more destination. A temporary block on SMS traffic has been
+                placed for the next 12 hours on the prefix you used. This block will be lifted at the end of this
+                12-hour period. If further fraudulent activity is detected after this block, this pattern will continue
+                with further temporary 12 hour blocks until the issue is no longer observed.
+                """
+                raise NumberBlocked
             raise FailedToStartVerification
 
     def _normalize_phone_number(self, number: str):

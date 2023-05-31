@@ -47,6 +47,7 @@ from apps.phone_notifications.exceptions import (
     FailedToMakeCall,
     FailedToStartVerification,
     NumberAlreadyVerified,
+    NumberBlocked,
     NumberNotVerified,
     ProviderNotSupports,
 )
@@ -342,6 +343,8 @@ class UserView(
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
         except FailedToStartVerification:
             return Response("Something went wrong while sending code", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except NumberBlocked:
+            return Response("Unauthorized", status=status.HTTP_403_FORBIDDEN)
         except ProviderNotSupports:
             return Response(
                 "Phone provider not supports sms verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
