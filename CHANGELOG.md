@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Properly address `Organization.DoesNotExist` exceptions thrown which result in HTTP 500 for the Slack `interactive_api_endpoint`
   endpoint by @joeyorlando ([#2040](https://github.com/grafana/oncall/pull/2040))
 - Fix issue when trying to sync Grafana contact point and config receivers miss a key ([#2046](https://github.com/grafana/oncall/pull/2046))
-- Reduce number of alert groups returned by `Attach To` in slack to avoid event trigger timeoue @mderynck ([#2049](https://github.com/grafana/oncall/pull/2049))
+- Reduce number of alert groups returned by `Attach To` in slack to avoid event trigger timeout @mderynck ([#2049](https://github.com/grafana/oncall/pull/2049))
 
 ### Changed
 
