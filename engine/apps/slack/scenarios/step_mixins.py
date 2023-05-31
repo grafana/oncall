@@ -1,8 +1,6 @@
 import json
 import logging
 
-from django.core.exceptions import ObjectDoesNotExist
-
 from apps.alerts.models import AlertGroup
 from apps.api.permissions import user_is_authorized
 from apps.slack.models import SlackMessage, SlackTeamIdentity
@@ -149,30 +147,12 @@ class AlertGroupActionsMixin:
         channel_id = payload["channel"]["id"]
 
         # Get SlackMessage from DB
-        try:
-            slack_message = SlackMessage.objects.get(
-                slack_id=message_ts,
-                _slack_team_identity=slack_team_identity,
-                channel_id=channel_id,
-            )
-        except SlackMessage.DoesNotExist:
-            logger.error(
-                f"Tried to get SlackMessage from message_ts:"
-                f"slack_team_identity_id={slack_team_identity.pk},"
-                f"message_ts={message_ts}"
-            )
-            raise
-
-        # Get AlertGroup from SlackMessage
-        try:
-            return slack_message.get_alert_group()
-        except ObjectDoesNotExist:
-            logger.error(
-                f"Tried to get AlertGroup from SlackMessage:"
-                f"slack_team_identity_id={slack_team_identity.pk},"
-                f"message_ts={message_ts}"
-            )
-            raise
+        slack_message = SlackMessage.objects.get(
+            slack_id=message_ts,
+            _slack_team_identity=slack_team_identity,
+            channel_id=channel_id,
+        )
+        return slack_message.get_alert_group()
 
 
 class CheckAlertIsUnarchivedMixin:
