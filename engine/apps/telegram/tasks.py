@@ -5,6 +5,7 @@ from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from telegram import error
+from telegram.ext import CallbackQueryHandler, Filters, MessageHandler, Updater
 
 from apps.alerts.models import Alert, AlertGroup
 from apps.base.models import UserNotificationPolicy
@@ -35,6 +36,35 @@ def register_telegram_webhook(token=None):
         telegram_client.register_webhook()
     except (error.InvalidToken, error.Unauthorized, error.BadRequest) as e:
         logger.warning(f"Tried to register Telegram webhook using token: {telegram_client.token}, got error: {e}")
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+)
+@handle_missing_token
+def start_telegram_polling(token=None):
+    telegram_client = TelegramClient(token=token)
+
+    telegram_client.delete_webhook()
+
+    updater = Updater(token=telegram_client.token, use_context=True)
+    callback_handler = CallbackQueryHandler(handle_message)
+
+    # register the message handler function with the dispatcher
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
+    updater.dispatcher.add_handler(callback_handler)
+
+    # start the long polling loop
+    updater.start_polling()
+
+
+def handle_message(update, context):
+    logger.info(f"Update from Telegram: {update}")
+    from apps.telegram.updates.update_manager import UpdateManager
+
+    UpdateManager.process_update(update)
+    # do something with the message, e.g. log it
+    # logger.info('Received message from chat %s: %s', chat_id, message)
 
 
 @shared_dedicated_queue_retry_task(
