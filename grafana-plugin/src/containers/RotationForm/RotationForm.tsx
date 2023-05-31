@@ -18,6 +18,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
+import Block from 'components/GBlock/Block';
 import Modal from 'components/Modal/Modal';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
@@ -73,6 +74,7 @@ interface RotationForm2Props {
   onUpdate: () => void;
   onDelete: () => void;
   shiftColor?: string;
+  onShowRotationForm: (shiftId: Shift['id']) => void;
 }
 
 const RotationForm2 = observer((props: RotationForm2Props) => {
@@ -89,6 +91,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     shiftStart: propsShiftStart = getStartOfWeek(currentTimezone),
     shiftEnd: propsShiftEnd,
     shiftColor = '#3D71D9',
+    onShowRotationForm,
   } = props;
 
   const store = useStore();
@@ -225,23 +228,27 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   useEffect(handleChange, [params, startMoment]);
 
-  const handleCreate = useCallback(() => {
-    if (shiftId === 'new') {
-      store.scheduleStore
-        .createRotation(scheduleId, false, { ...params, title: rotationTitle })
-        .then(() => {
-          onCreate();
-        })
-        .catch(onError);
-    } else {
-      store.scheduleStore
-        .updateRotation(shiftId, params)
-        .then(() => {
-          onUpdate();
-        })
-        .catch(onError);
-    }
+  const create = useCallback(() => {
+    store.scheduleStore
+      .createRotation(scheduleId, false, { ...params, title: rotationTitle })
+      .then(() => {
+        onCreate();
+      })
+      .catch(onError);
   }, [scheduleId, shiftId, params]);
+
+  const update = useCallback(() => {
+    store.scheduleStore
+      .updateRotation(shiftId, params)
+      .then(() => {
+        onUpdate();
+      })
+      .catch(onError);
+  }, [shiftId, params]);
+
+  const handleEditNewerRotationClick = useCallback(() => {
+    onShowRotationForm(shift.updated_shift);
+  }, [shift?.updated_shift]);
 
   const handleRepeatEveryPeriodChange = useCallback(
     (value) => {
@@ -361,6 +368,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
+  const disabled = Boolean(shift && shift.updated_shift);
+
   return (
     <>
       <Modal
@@ -400,6 +409,22 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
           <div className={cx('body')}>
             <div className={cx('content')}>
               <VerticalGroup spacing="none">
+                {shift && shift.updated_shift && (
+                  <Block bordered className={cx('updated-shift-info')}>
+                    <VerticalGroup>
+                      <HorizontalGroup align="flex-start">
+                        <Icon name="info-circle" size="md"></Icon>
+                        <Text>
+                          This rotation is read-only because it has newer version.{' '}
+                          <Text onClick={handleEditNewerRotationClick} type="link" clickable>
+                            Edit the newer version
+                          </Text>{' '}
+                          instead
+                        </Text>
+                      </HorizontalGroup>
+                    </VerticalGroup>
+                  </Block>
+                )}
                 <div className={cx('two-fields')}>
                   <Field
                     label={
@@ -414,6 +439,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                       onChange={handleRotationStartChange}
                       timezone={currentTimezone}
                       error={errors.rotation_start}
+                      disabled={disabled}
                     />
                   </Field>
                   <Field
@@ -427,6 +453,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                           transparent
                           value={!endLess}
                           onChange={handleChangeEndless}
+                          disabled={disabled}
                         />
                       </HorizontalGroup>
                     }
@@ -441,6 +468,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                         onChange={setRotationEnd}
                         timezone={currentTimezone}
                         error={errors.until}
+                        disabled={disabled}
                       />
                     )}
                   </Field>
@@ -450,7 +478,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     label={
                       <HorizontalGroup spacing="sm">
                         <Text type="primary" size="small">
-                          Rotate shifts every
+                          Shift frequency
                         </Text>
                         <Tooltip content="Time interval when users shifts are rotated. Shifts active period can be customised by days of the week and hours during a day.">
                           <Icon name="info-circle" size="md"></Icon>
@@ -463,6 +491,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                       value={repeatEveryValue}
                       options={getRepeatShiftsEveryOptions(repeatEveryPeriod)}
                       onChange={handleRepeatEveryValueChange}
+                      disabled={disabled}
                       allowCustomValue
                     />
                   </Field>
@@ -471,6 +500,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                       href="/oncall_shifts/frequency_options/"
                       value={repeatEveryPeriod}
                       onChange={handleRepeatEveryPeriodChange}
+                      disabled={disabled}
                     />
                   </Field>
                 </div>
@@ -484,15 +514,20 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                 <VerticalGroup spacing="md">
                   <VerticalGroup>
                     <HorizontalGroup align="flex-start">
-                      <Switch value={showActiveOnSelectedDays} onChange={handleShowActiveOnSelectedDaysToggle} />
+                      <Switch
+                        disabled={disabled}
+                        value={showActiveOnSelectedDays}
+                        onChange={handleShowActiveOnSelectedDaysToggle}
+                      />
                       <VerticalGroup>
-                        <Text type="secondary">Mask by weekdays</Text>
+                        <Text type="secondary">Days of the week</Text>
                         {showActiveOnSelectedDays && (
                           <DaysSelector
                             options={store.scheduleStore.byDayOptions}
                             value={selectedDays}
                             onChange={setSelectedDays}
                             weekStart={config.bootData.user.weekStart}
+                            disabled={disabled}
                           />
                         )}
                       </VerticalGroup>
@@ -500,12 +535,12 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
                     <HorizontalGroup align="flex-start">
                       <Switch
-                        disabled={repeatEveryPeriod === RepeatEveryPeriod.MONTHS}
+                        disabled={disabled || repeatEveryPeriod === RepeatEveryPeriod.MONTHS}
                         value={showActiveOnSelectedPartOfDay}
                         onChange={handleShowActiveOnSelectedPartOfDayToggle}
                       />
                       <VerticalGroup>
-                        <Text type="secondary">Limit duration</Text>
+                        <Text type="secondary">Shift length</Text>
                         {showActiveOnSelectedPartOfDay && (
                           <ShiftPeriod
                             repeatEveryPeriod={repeatEveryPeriod}
@@ -514,6 +549,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                             shiftStart={shiftStart}
                             onChange={handleActivePeriodChange}
                             currentTimezone={currentTimezone}
+                            disabled={disabled}
                             errors={errors}
                           />
                         )}
@@ -531,6 +567,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                   </HorizontalGroup>
                 </div>
                 <UserGroups
+                  disabled={disabled}
                   value={userGroups}
                   onChange={setUserGroups}
                   isMultipleGroups={true}
@@ -554,7 +591,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                 <Button variant="secondary" onClick={onHide}>
                   {shiftId === 'new' ? 'Cancel' : 'Close'}
                 </Button>
-                <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
+                <Button variant="primary" onClick={shiftId === 'new' ? create : update} disabled={!isFormValid}>
                   {shiftId === 'new' ? 'Create' : 'Update'}
                 </Button>
               </HorizontalGroup>
@@ -576,10 +613,18 @@ interface ShiftPeriodProps {
   shiftStart: dayjs.Dayjs;
   onChange: (value: number) => void;
   currentTimezone: Timezone;
+  disabled: boolean;
   errors: any;
 }
 
-const ShiftPeriod = ({ repeatEveryPeriod, repeatEveryValue, defaultValue, onChange, errors }: ShiftPeriodProps) => {
+const ShiftPeriod = ({
+  repeatEveryPeriod,
+  repeatEveryValue,
+  defaultValue,
+  onChange,
+  errors,
+  disabled,
+}: ShiftPeriodProps) => {
   const [timeUnits, setTimeUnits] = useState<TimeUnit[]>([]);
 
   useEffect(() => {
@@ -670,6 +715,7 @@ const ShiftPeriod = ({ repeatEveryPeriod, repeatEveryValue, defaultValue, onChan
       {timeUnits.map((unit, index: number, arr) => (
         <HorizontalGroup key={unit.unit}>
           <TimeUnitSelector
+            disabled={disabled}
             unit={unit.unit}
             value={unit.value}
             onChange={getTimeUnitChangeHandler(unit.unit)}
@@ -678,6 +724,7 @@ const ShiftPeriod = ({ repeatEveryPeriod, repeatEveryValue, defaultValue, onChan
           />
           {index === arr.length - 1 && (
             <Button
+              disabled={disabled}
               tooltip="Remove segment"
               variant="secondary"
               icon="times"
@@ -686,12 +733,19 @@ const ShiftPeriod = ({ repeatEveryPeriod, repeatEveryValue, defaultValue, onChan
             />
           )}
           {index === arr.length - 1 && unitToCreate !== undefined && (
-            <Button tooltip="Add segment" variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd} />
+            <Button
+              disabled={disabled}
+              tooltip="Add segment"
+              variant="secondary"
+              icon="plus"
+              size="sm"
+              onClick={handleTimeUnitAdd}
+            />
           )}
         </HorizontalGroup>
       ))}
       {timeUnits.length === 0 && unitToCreate !== undefined && (
-        <Button variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd}>
+        <Button disabled={disabled} variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd}>
           Add segment
         </Button>
       )}

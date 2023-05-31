@@ -1,6 +1,5 @@
 .root {
-  display: inline-flex;
-  align-items: center;
+  display: inline;
 }
 
 .text {
@@ -46,6 +45,10 @@
 
   &--large {
     font-size: 20px;
+  }
+
+  &--clickable {
+    cursor: pointer;
   }
 }
 

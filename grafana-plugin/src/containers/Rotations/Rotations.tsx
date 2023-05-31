@@ -255,6 +255,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
               onDelete();
             }}
+            onShowRotationForm={this.onShowRotationForm}
           />
         )}
       </>

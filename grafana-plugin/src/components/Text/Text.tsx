@@ -25,6 +25,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   hidden?: boolean;
   editModalTitle?: string;
   maxWidth?: string;
+  clickable?: boolean;
 }
 
 interface TextInterface extends React.FC<TextProps> {
@@ -54,6 +55,7 @@ const Text: TextInterface = (props) => {
     editModalTitle = 'New value',
     style,
     maxWidth,
+    clickable,
     ...rest
   } = props;
 
@@ -91,6 +93,7 @@ const Text: TextInterface = (props) => {
           [`text--${size}`]: true,
           'text--strong': strong,
           'text--underline': underline,
+          'text--clickable': clickable,
           'no-wrap': !wrap,
           keyboard,
         },

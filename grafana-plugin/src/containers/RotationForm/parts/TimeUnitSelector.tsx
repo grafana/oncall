@@ -16,9 +16,10 @@ interface TimeUnitSelectorProps {
   maxValue: number;
   onChange: (value) => void;
   className?: string;
+  disabled?: boolean;
 }
 
-const TimeUnitSelector = ({ value, unit, onChange, maxValue, className }: TimeUnitSelectorProps) => {
+const TimeUnitSelector = ({ value, unit, onChange, maxValue, className, disabled }: TimeUnitSelectorProps) => {
   const handleChange = ({ value }) => {
     onChange(value);
   };
@@ -36,7 +37,7 @@ const TimeUnitSelector = ({ value, unit, onChange, maxValue, className }: TimeUn
 
   return (
     <div className={cx('root', className)}>
-      <Select value={value} options={options} onChange={handleChange} />
+      <Select disabled={disabled} value={value} options={options} onChange={handleChange} />
     </div>
   );
 };

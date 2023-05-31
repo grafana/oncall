@@ -13,9 +13,10 @@ interface DaysSelectorProps {
   onChange: (value: string[]) => void;
   options: SelectOption[];
   weekStart: string;
+  disabled?: boolean;
 }
 
-const DaysSelector = ({ value, onChange, options: optionsProp, weekStart }: DaysSelectorProps) => {
+const DaysSelector = ({ value, onChange, options: optionsProp, weekStart, disabled }: DaysSelectorProps) => {
   const getDayClickHandler = (day: string) => {
     return () => {
       const newValue = [...value];
@@ -29,15 +30,13 @@ const DaysSelector = ({ value, onChange, options: optionsProp, weekStart }: Days
     };
   };
 
-  console.log(weekStart);
-
   const options = useMemo(() => {
     const index = optionsProp.findIndex(({ display_name }) => display_name.toLowerCase() === weekStart.toLowerCase());
     return [...optionsProp.slice(index), ...optionsProp.slice(0, index)];
   }, [optionsProp, weekStart]);
 
   return (
-    <div className={cx('days')}>
+    <div className={cx('days', { days_disabled: disabled })}>
       {options.map(({ display_name, value: itemValue }) => (
         <div
           key={display_name}
