@@ -143,8 +143,13 @@ class AlertGroupActionsMixin:
         Old messages may not have alert_group_pk encoded into buttons, so we need to query SlackMessage to figure out
         the AlertGroup.
         """
+
         message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
         channel_id = payload["channel"]["id"]
+
+        # All Slack messages from OnCall should have alert_group_pk encoded into buttons, so reaching this point means
+        # something probably went wrong.
+        logger.warning(f"alert_group_pk not found in payload, fetching SlackMessage from DB. message_ts: {message_ts}")
 
         # Get SlackMessage from DB
         slack_message = SlackMessage.objects.get(
