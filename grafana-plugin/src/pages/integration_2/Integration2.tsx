@@ -497,7 +497,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     if (
       !alertReceiveChannel.is_available_for_integration_heartbeat ||
-      alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal === null
+      !alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal
     ) {
       return null;
     }

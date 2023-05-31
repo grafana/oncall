@@ -165,10 +165,10 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
                     <ul className={cx('integration-info-list')}>
                       <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
                       <li className={cx('integration-info-item')}>
-                        Templates to interpret alerts, tailored for Grafana Alerting{' '}
+                        Templates to interpret alerts, tailored for {selectedOption?.display_name}{' '}
                       </li>
-                      <li className={cx('integration-info-item')}>Grafana Alerting contact point </li>
-                      <li className={cx('integration-info-item')}>Grafana Alerting notification</li>
+                      <li className={cx('integration-info-item')}>{selectedOption?.display_name} contact point </li>
+                      <li className={cx('integration-info-item')}>{selectedOption?.display_name} notification</li>
                     </ul>
                     What you’ll need to do next:
                     <ul className={cx('integration-info-list')}>
