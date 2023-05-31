@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix templates when slack or telegram is disabled ([#2064](https://github.com/grafana/oncall/pull/2064))
+- Fix orphaned messages in Slack by @vadimkerr ([#2023](https://github.com/grafana/oncall/pull/2023))
 
 ## v1.2.33 (2023-05-30)
 
