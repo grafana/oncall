@@ -207,7 +207,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 <IntegrationHeader
                   alertReceiveChannel={alertReceiveChannel}
                   alertReceiveChannelCounter={alertReceiveChannelCounter}
-                  channelFilterIds={channelFilterIds}
                   integration={integration}
                 />
               </div>
@@ -255,7 +254,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
                           <div className={cx('templates__content')}>
                             <div className={cx('templates__container')}>
-                              <div className={cx('templates__item', 'templates__item--large')}>
+                              <div
+                                className={cx('templates__item', 'templates__item--large')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
                                 <Text type="secondary" className={cx('templates__item-text')}>
                                   Grouping:
                                 </Text>
@@ -264,7 +266,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                                 </Text>
                               </div>
 
-                              <div className={cx('templates__item', 'templates__item--large')}>
+                              <div
+                                className={cx('templates__item', 'templates__item--large')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
                                 <Text type="secondary" className={cx('templates__item-text')}>
                                   Autoresolve:
                                 </Text>
@@ -273,7 +278,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                                 </Text>
                               </div>
 
-                              <div className={cx('templates__item', 'templates__item--small')}>
+                              <div
+                                className={cx('templates__item', 'templates__item--small')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
                                 <Text type="secondary" className={cx('templates__item-text')}>
                                   Visualisation:
                                 </Text>
@@ -968,14 +976,12 @@ interface IntegrationHeaderProps {
   alertReceiveChannelCounter: AlertReceiveChannelCounters;
   alertReceiveChannel: AlertReceiveChannel;
   integration: SelectOption;
-  channelFilterIds: string[];
 }
 
 const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   integration,
   alertReceiveChannelCounter,
   alertReceiveChannel,
-  channelFilterIds,
 }) => {
   const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
 
@@ -989,8 +995,8 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         >
           <TooltipBadge
             borderType="primary"
-            tooltipTitle={getAlertReceiveChannelCounterTooltip()}
-            tooltipContent={undefined}
+            tooltipTitle={undefined}
+            tooltipContent={getAlertReceiveChannelCounterTooltip()}
             text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
           />
         </PluginLink>
@@ -999,9 +1005,17 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       <TooltipBadge
         borderType="success"
         icon="link"
-        text={channelFilterIds.length}
-        tooltipTitle={`${channelFilterIds.length} Routes`}
-        tooltipContent={undefined}
+        text={`${alertReceiveChannel.connected_escalations_chains_count}/${alertReceiveChannel.routes_count}`}
+        tooltipTitle=""
+        tooltipContent={
+          alertReceiveChannel.connected_escalations_chains_count +
+          ' connected escalation chain' +
+          (alertReceiveChannel.connected_escalations_chains_count === 1 ? '' : 's') +
+          ' in ' +
+          alertReceiveChannel.routes_count +
+          ' route' +
+          (alertReceiveChannel.routes_count === 1 ? '' : 's')
+        }
       />
 
       {alertReceiveChannel.maintenance_till && (
