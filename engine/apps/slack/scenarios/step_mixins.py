@@ -17,7 +17,7 @@ class AlertGroupActionsMixin:
 
     def get_alert_group(self, slack_team_identity: SlackTeamIdentity, payload: dict) -> AlertGroup:
         """
-        Get AlertGroup instance from payload sent by Slack on button click or select menu change.
+        Get AlertGroup instance on AG Slack message button click or select menu change.
         """
 
         alert_group = (
@@ -34,7 +34,7 @@ class AlertGroupActionsMixin:
 
     def is_authorized(self, alert_group: AlertGroup) -> bool:
         """
-        Check that user has required permissions to perform an action
+        Check that user has required permissions to perform an action.
         """
 
         return self.user.organization == alert_group.channel.organization and user_is_authorized(
@@ -76,7 +76,7 @@ class AlertGroupActionsMixin:
     def _get_alert_group_from_action(self, payload: dict) -> AlertGroup | None:
         """
         Get AlertGroup instance from action data in payload. Action data is data encoded into buttons and select
-        menus in apps.alerts.incident_appearance.renderers.slack_renderer.AlertGroupSlackRenderer._get_buttons_blocks
+        menus in apps.alerts.incident_appearance.renderers.slack_renderer.AlertGroupSlackRenderer._get_buttons_blocks.
         """
 
         action = payload["actions"][0]

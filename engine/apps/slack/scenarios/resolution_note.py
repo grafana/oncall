@@ -392,7 +392,6 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
         value = data or json.loads(payload["actions"][0]["value"])
         resolution_note_window_action = value.get("resolution_note_window_action", "") or value.get("action_value", "")
         action_resolve = value.get("action_resolve", False)
-
         channel_id = payload["channel"]["id"] if "channel" in payload else None
 
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
