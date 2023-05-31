@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Better handle "Verification delivery attempt blocked" exceptions from Twilio by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+- Better handle "Verification delivery attempt blocked" and "Geo Permission configuration is not permitting call"
+  exceptions from Twilio by @joeyorlando ([#2065](https://github.com/grafana/oncall/pull/2065))
 
 ## v1.2.33 (2023-05-30)
 

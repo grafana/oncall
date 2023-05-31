@@ -17,7 +17,7 @@ from apps.api.permissions import (
     RBACPermission,
 )
 from apps.base.models import UserNotificationPolicy
-from apps.phone_notifications.exceptions import FailedToFinishVerification, NumberBlocked
+from apps.phone_notifications.exceptions import CallOrSMSNotAllowed, FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
 
@@ -1675,7 +1675,7 @@ def test_phone_number_verification_flow_ratelimit_per_org(
 
 
 @pytest.mark.django_db
-def test_phone_number_verification_flow_number_blocked(
+def test_phone_number_verification_flow_sms_not_allowed(
     make_organization_and_user_with_plugin_token, make_user_auth_headers
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
@@ -1686,13 +1686,38 @@ def test_phone_number_verification_flow_number_blocked(
     def _make_request():
         return client.get(url, format="json", **make_user_auth_headers(user, token))
 
-    assert _make_request().status_code == status.HTTP_200_OK
+    with patch(
+        "apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms"
+    ) as mock_send_verification_sms:
+        assert _make_request().status_code == status.HTTP_200_OK
+        mock_send_verification_sms.assert_called_once_with(user)
 
     with patch(
-        "apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", side_effect=NumberBlocked
+        "apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", side_effect=CallOrSMSNotAllowed
     ) as mock_send_verification_sms:
         assert _make_request().status_code == status.HTTP_403_FORBIDDEN
         mock_send_verification_sms.assert_called_once_with(user)
+
+
+@pytest.mark.django_db
+def test_make_test_call_call_not_allowed(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:user-make-test-call", kwargs={"pk": user.public_primary_key})
+
+    def _make_request():
+        return client.post(url, format="json", **make_user_auth_headers(user, token))
+
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend.make_test_call") as mock_make_test_call:
+        assert _make_request().status_code == status.HTTP_200_OK
+        mock_make_test_call.assert_called_once_with(user)
+
+    with patch(
+        "apps.phone_notifications.phone_backend.PhoneBackend.make_test_call", side_effect=CallOrSMSNotAllowed
+    ) as mock_make_test_call:
+        assert _make_request().status_code == status.HTTP_403_FORBIDDEN
+        mock_make_test_call.assert_called_once_with(user)
 
 
 @patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())

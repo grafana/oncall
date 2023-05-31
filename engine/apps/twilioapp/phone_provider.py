@@ -11,11 +11,11 @@ from twilio.rest import Client
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
 from apps.phone_notifications.exceptions import (
+    CallOrSMSNotAllowed,
     FailedToFinishVerification,
     FailedToMakeCall,
     FailedToSendSMS,
     FailedToStartVerification,
-    NumberBlocked,
 )
 from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 from apps.twilioapp.gather import get_gather_message, get_gather_url
@@ -26,6 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 class TwilioPhoneProvider(PhoneProvider):
+    """
+    List of all twilio error codes and what they mean
+    https://www.twilio.com/docs/api/errors
+    """
+
     def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall:
         message = self._escape_call_message(message)
 
@@ -117,6 +122,13 @@ class TwilioPhoneProvider(PhoneProvider):
             self._call_create(twiml_query, number, with_callback=False)
         except TwilioRestException as e:
             logger.error(f"TwilioPhoneProvider.make_call: failed {e}")
+            if e.code == 21215:
+                """
+                Geo Permission configuration is not permitting call
+                You attempted to initiate an outbound phone call to a phone number that is not enabled on your account.
+                Please check your Geographic Permissions, fix it, and try again.
+                """
+                raise CallOrSMSNotAllowed
             raise FailedToMakeCall
 
     def send_sms(self, number: str, message: str):
@@ -174,8 +186,6 @@ class TwilioPhoneProvider(PhoneProvider):
     def _send_verification_code(self, number: str, via: str):
         """
         https://www.twilio.com/docs/verify/api/verification?code-sample=code-start-a-verification-with-sms&code-language=Python&code-sdk-version=6.x
-
-        https://www.twilio.com/docs/api/errors#6-anchor
         """
         try:
             client, verify_service_sid = self._verify_sender(number)
@@ -193,7 +203,7 @@ class TwilioPhoneProvider(PhoneProvider):
                 12-hour period. If further fraudulent activity is detected after this block, this pattern will continue
                 with further temporary 12 hour blocks until the issue is no longer observed.
                 """
-                raise NumberBlocked
+                raise CallOrSMSNotAllowed
             raise FailedToStartVerification
 
     def _normalize_phone_number(self, number: str):

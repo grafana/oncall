@@ -43,11 +43,11 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.mobile_app.demo_push import send_test_push
 from apps.mobile_app.exceptions import DeviceNotSet
 from apps.phone_notifications.exceptions import (
+    CallOrSMSNotAllowed,
     FailedToFinishVerification,
     FailedToMakeCall,
     FailedToStartVerification,
     NumberAlreadyVerified,
-    NumberBlocked,
     NumberNotVerified,
     ProviderNotSupports,
 )
@@ -343,8 +343,8 @@ class UserView(
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
         except FailedToStartVerification:
             return Response("Something went wrong while sending code", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        except NumberBlocked:
-            return Response("Unauthorized", status=status.HTTP_403_FORBIDDEN)
+        except CallOrSMSNotAllowed:
+            return Response("Texts to this number are not allowed", status=status.HTTP_403_FORBIDDEN)
         except ProviderNotSupports:
             return Response(
                 "Phone provider not supports sms verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -439,6 +439,8 @@ class UserView(
             return Response(
                 "Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        except CallOrSMSNotAllowed:
+            return Response("Calls to this number are not allowed", status=status.HTTP_403_FORBIDDEN)
         except ProviderNotSupports:
             return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
