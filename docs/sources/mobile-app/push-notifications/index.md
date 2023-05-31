@@ -47,8 +47,10 @@ In this channel, you may configure the sound style, vibration, and so on.
 
 #### Override Do Not Disturb
 
-- On standard Android versions, the **Override Do Not Disturb** option is available in the channel options described above.
-- On Samsung devices, you can add the Grafana Oncall app under (System) Settings > Notifications > Do not disturb > App notifications.
+- On most Android versions, the **Override Do Not Disturb** option is available in the channel options described above.
+- On some Samsung devices, you can add the Grafana Oncall app under (System) Settings > Notifications > Do not disturb > App notifications.
+- If your device does something different, you may need to search for this setting for notifications via the (System) Settings app.
+  Do not confuse this with the **Override Do Not Disturb** application permission, needed for **Volume Overrides** (see below).
 
 #### Override Volume
 
