@@ -742,7 +742,7 @@ class UnAcknowledgeGroupStep(
             ]
             text = (
                 f"{user_verbal} hasn't responded to an acknowledge timeout reminder."
-                f" Alert Group is unacknowledged automatically"
+                f" Alert Group is unacknowledged automatically."
             )
             if alert_group.slack_message.ack_reminder_message_ts:
                 try:
@@ -785,7 +785,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             if alert_group.acknowledged_by == AlertGroup.USER:
                 if self.user == alert_group.acknowledged_by_user:
                     user_verbal = alert_group.acknowledged_by_user.get_username_with_slack_verbal()
-                    text = f"{user_verbal} confirmed that the incident is still acknowledged"
+                    text = f"{user_verbal} confirmed that the Alert Group is still acknowledged."
                     self._slack_client.api_call(
                         "chat.update",
                         channel=channel,
@@ -799,11 +799,11 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                         "chat.postEphemeral",
                         channel=channel,
                         user=slack_user_identity.slack_id,
-                        text="This alert is acknowledged by another user. Acknowledge it yourself first.",
+                        text="This Alert Group is acknowledged by another user. Acknowledge it yourself first.",
                     )
             elif alert_group.acknowledged_by == AlertGroup.SOURCE:
                 user_verbal = self.user.get_username_with_slack_verbal()
-                text = f"{user_verbal} confirmed that the incident is still acknowledged"
+                text = f"{user_verbal} confirmed that the Alert Group is still acknowledged."
                 self._slack_client.api_call(
                     "chat.update",
                     channel=channel,
@@ -822,7 +822,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 "chat.postEphemeral",
                 channel=channel,
                 user=slack_user_identity.slack_id,
-                text="This alert is already unacknowledged.",
+                text="This Alert Group is already unacknowledged.",
             )
 
     def process_signal(self, log_record):
@@ -832,12 +832,12 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
         alert_group = log_record.alert_group
         channel_id = alert_group.slack_message.channel_id
         user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
-        text = f"{user_verbal}, please confirm that you're still working on this incident."
+        text = f"{user_verbal}, please confirm that you're still working on this Alert Group."
 
         if alert_group.channel.organization.unacknowledge_timeout != Organization.UNACKNOWLEDGE_TIMEOUT_NEVER:
             attachments = [
                 {
-                    "fallback": "Are you still working on this incident?",
+                    "fallback": "Are you still working on this Alert Group?",
                     "text": text,
                     "callback_id": "alert",
                     "attachment_type": "default",
