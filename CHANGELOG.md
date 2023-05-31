@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Better handle "Verification delivery attempt blocked" and "Geo Permission configuration is not permitting call"
   exceptions from Twilio by @joeyorlando ([#2065](https://github.com/grafana/oncall/pull/2065))
+- Fix templates when slack or telegram is disabled ([#2064](https://github.com/grafana/oncall/pull/2064))
 
 ## v1.2.33 (2023-05-30)
 
