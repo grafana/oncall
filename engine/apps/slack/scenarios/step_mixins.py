@@ -115,9 +115,6 @@ class AlertGroupActionsMixin:
             return None
 
         for element in elements:
-            if element.get("type") != "button":
-                continue
-
             value_string = element.get("value")
             if not value_string:
                 continue

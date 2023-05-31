@@ -117,15 +117,15 @@ def test_alert_group_actions_unauthorized(
     alert_group = make_alert_group(alert_receive_channel)
 
     payload = {
-        "message_ts": "RANDOM_MESSAGE_TS",
-        "channel": {"id": "RANDOM_CHANNEL_ID"},
-        "trigger_id": "RANDOM_TRIGGER_ID",
         "actions": [
             {
                 "type": "button",
                 "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
             }
         ],
+        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "message": {"ts": "RANDOM_MESSAGE_TS"},
+        "trigger_id": "RANDOM_TRIGGER_ID",
     }
 
     step = step_class(organization=organization, user=user, slack_team_identity=slack_team_identity)
@@ -151,13 +151,17 @@ def test_get_alert_group_button(
                 "type": "button",
                 "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk}),
             }
-        ]
+        ],
+        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "message": {"ts": "RANDOM_MESSAGE_TS"},
     }
 
     step = TestScenario(organization=organization, user=user, slack_team_identity=slack_team_identity)
     result = step.get_alert_group(slack_team_identity, payload)
 
-    assert alert_group == result
+    alert_group.refresh_from_db()
+    assert alert_group == result  # check it's the right alert group
+    assert alert_group.slack_message is not None  # check that orphaned Slack message is repaired
 
 
 @pytest.mark.django_db
@@ -177,17 +181,52 @@ def test_get_alert_group_static_select(
                     "value": json.dumps({"organization_id": organization.pk, "alert_group_pk": alert_group.pk})
                 },
             }
-        ]
+        ],
+        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "message": {"ts": "RANDOM_MESSAGE_TS"},
     }
 
     step = TestScenario(organization=organization, user=user, slack_team_identity=slack_team_identity)
     result = step.get_alert_group(slack_team_identity, payload)
 
-    assert alert_group == result
+    alert_group.refresh_from_db()
+    assert alert_group == result  # check it's the right alert group
+    assert alert_group.slack_message is not None  # check that orphaned Slack message is repaired
 
 
 @pytest.mark.django_db
-def test_get_alert_group_deprecated(
+def test_get_alert_group_from_message(
+    make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group
+):
+    organization, user, slack_team_identity, _ = make_organization_and_user_with_slack_identities()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    payload = {
+        "actions": [
+            {
+                "type": "button",
+                "value": "no alert_group_pk",
+            }
+        ],
+        "message": {
+            "ts": "RANDOM_MESSAGE_TS",
+            "attachments": [{"blocks": [{"elements": [{"value": json.dumps({"alert_group_pk": alert_group.pk})}]}]}],
+        },
+        "channel": {"id": "RANDOM_CHANNEL_ID"},
+    }
+
+    step = TestScenario(organization=organization, user=user, slack_team_identity=slack_team_identity)
+    result = step.get_alert_group(slack_team_identity, payload)
+
+    alert_group.refresh_from_db()
+    assert alert_group == result  # check it's the right alert group
+    assert alert_group.slack_message is not None  # check that orphaned Slack message is repaired
+
+
+@pytest.mark.django_db
+def test_get_alert_group_from_slack_message_in_db(
     make_organization_and_user_with_slack_identities,
     make_alert_receive_channel,
     make_alert_group,
@@ -840,6 +879,8 @@ def test_step_resolution_note(
                 ),
             }
         ],
+        "channel": {"id": "RANDOM_CHANNEL_ID"},
+        "message": {"ts": "RANDOM_MESSAGE_TS"},
     }
 
     step_class = ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
