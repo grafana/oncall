@@ -12,9 +12,10 @@ import {
   IconButton,
   ConfirmModal,
   Drawer,
+  Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
+import { get, noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -64,7 +65,8 @@ import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
+import { DATASOURCE_GRAFANA, PLUGIN_ROOT } from 'utils/consts';
+import sanitize from 'utils/sanitize';
 
 const cx = cn.bind(styles);
 
@@ -205,10 +207,20 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 <IntegrationHeader
                   alertReceiveChannel={alertReceiveChannel}
                   alertReceiveChannelCounter={alertReceiveChannelCounter}
-                  channelFilterIds={channelFilterIds}
                   integration={integration}
                 />
               </div>
+
+              {alertReceiveChannel.description && (
+                <div className={cx('integration__description-alert')}>
+                  <Alert
+                    style={{ marginBottom: '0' }}
+                    // @ts-ignore
+                    title={<div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>}
+                    severity="info"
+                  />
+                </div>
+              )}
             </div>
 
             <IntegrationCollapsibleTreeView
@@ -218,14 +230,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   customIcon: 'plug',
                   canHoverIcon: false,
                   collapsedView: null,
-                  expandedView: <HowToConnectComponent id={id} />,
+                  expandedView: () => <HowToConnectComponent id={id} />,
                 },
                 {
                   customIcon: 'layer-group',
                   isExpanded: false,
                   isCollapsible: false,
                   canHoverIcon: false,
-                  expandedView: (
+                  expandedView: () => (
                     <IntegrationBlock
                       hasCollapsedBorder
                       heading={
@@ -242,7 +254,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
                           <div className={cx('templates__content')}>
                             <div className={cx('templates__container')}>
-                              <div className={cx('templates__item', 'templates__item--large')}>
+                              <div
+                                className={cx('templates__item', 'templates__item--large')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
                                 <Text type="secondary" className={cx('templates__item-text')}>
                                   Grouping:
                                 </Text>
@@ -251,7 +266,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                                 </Text>
                               </div>
 
-                              <div className={cx('templates__item', 'templates__item--large')}>
+                              <div
+                                className={cx('templates__item', 'templates__item--large')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
                                 <Text type="secondary" className={cx('templates__item-text')}>
                                   Autoresolve:
                                 </Text>
@@ -260,7 +278,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                                 </Text>
                               </div>
 
-                              <div className={cx('templates__item', 'templates__item--small')}>
+                              <div
+                                className={cx('templates__item', 'templates__item--small')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
                                 <Text type="secondary" className={cx('templates__item-text')}>
                                   Visualisation:
                                 </Text>
@@ -290,7 +311,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   isCollapsible: false,
                   collapsedView: null,
                   canHoverIcon: false,
-                  expandedView: (
+                  expandedView: () => (
                     <div className={cx('routesSection')}>
                       <VerticalGroup spacing="md">
                         <Text type={'primary'} className={cx('routesSection__heading')}>
@@ -420,14 +441,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               this.setState((prevState) => ({ newRoutes: prevState.newRoutes.filter((r) => r !== channelFilterId) }));
             }
           },
-          collapsedView: (
+          collapsedView: (toggle) => (
             <CollapsedIntegrationRouteDisplay
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
+              toggle={toggle}
             />
           ),
-          expandedView: (
+          expandedView: () => (
             <ExpandedIntegrationRouteDisplay
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
@@ -884,12 +906,13 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
-  const isAlertManager = alertReceiveChannel.integration === DATASOURCE_ALERTING;
+  const isGrafanaDatasource = alertReceiveChannel.integration === DATASOURCE_GRAFANA;
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
   return (
     <IntegrationBlock
       hasCollapsedBorder={false}
+      toggle={noop}
       heading={
         <div className={cx('how-to-connect__container')}>
           <Tag
@@ -915,7 +938,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           </a>
         </div>
       }
-      content={isAlertManager || !hasAlerts ? renderContent() : null}
+      content={isGrafanaDatasource || !hasAlerts ? renderContent() : null}
     />
   );
 
@@ -930,14 +953,14 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             </HorizontalGroup>
           )}
 
-          {isAlertManager && (
+          {isGrafanaDatasource && (
             <HorizontalGroup spacing={'xs'}>
               <Icon name="list-ui-alt" size="md" />
-              <a href="/alerting/notifications" target="_blank">
+              <a href={`/alerting/notifications?alertmanager=grafana`} target="_blank" rel="noreferrer">
                 <Text type={'link'}>Contact Point</Text>
               </a>
               <Text type={'secondary'}>and</Text>
-              <a href="/alerting/routes" target="_blank">
+              <a href="/alerting/routes?alertmanager=grafana" target="_blank">
                 <Text type={'link'}>Notification Policy</Text>
               </a>
               <Text type={'secondary'}>created in Grafana Alerting</Text>
@@ -953,14 +976,12 @@ interface IntegrationHeaderProps {
   alertReceiveChannelCounter: AlertReceiveChannelCounters;
   alertReceiveChannel: AlertReceiveChannel;
   integration: SelectOption;
-  channelFilterIds: string[];
 }
 
 const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   integration,
   alertReceiveChannelCounter,
   alertReceiveChannel,
-  channelFilterIds,
 }) => {
   const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
 
@@ -984,9 +1005,17 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       <TooltipBadge
         borderType="success"
         icon="link"
-        text={channelFilterIds.length}
-        tooltipTitle={`${channelFilterIds.length} Routes`}
-        tooltipContent={undefined}
+        text={`${alertReceiveChannel.connected_escalations_chains_count}/${alertReceiveChannel.routes_count}`}
+        tooltipTitle=""
+        tooltipContent={
+          alertReceiveChannel.connected_escalations_chains_count +
+          ' connected escalation chain' +
+          (alertReceiveChannel.connected_escalations_chains_count === 1 ? '' : 's') +
+          ' in ' +
+          alertReceiveChannel.routes_count +
+          ' route' +
+          (alertReceiveChannel.routes_count === 1 ? '' : 's')
+        }
       />
 
       {alertReceiveChannel.maintenance_till && (
@@ -1044,7 +1073,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
     if (
       !alertReceiveChannel.is_available_for_integration_heartbeat ||
-      alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal === null
+      !alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal
     ) {
       return null;
     }
