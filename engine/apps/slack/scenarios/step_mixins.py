@@ -14,7 +14,7 @@ class AlertGroupActionsMixin:
     """
     Mixin for alert group actions (ack, resolve, etc.). Intended to be used as a mixin along with ScenarioStep.
     It serves two purposes:
-        1. Check that user has required permissions to perform an action. Otherwise, send open a warning window.
+        1. Check that user has required permissions to perform an action. Otherwise, open a warning window.
         2. Provide utility method to get AlertGroup instance from Slack message payload.
     """
 

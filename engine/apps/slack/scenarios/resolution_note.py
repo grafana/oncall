@@ -390,8 +390,8 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
             return
 
         value = data or json.loads(payload["actions"][0]["value"])
-        action_resolve = value.get("action_resolve", False)
         resolution_note_window_action = value.get("resolution_note_window_action", "") or value.get("action_value", "")
+        action_resolve = value.get("action_resolve", False)
 
         channel_id = payload["channel"]["id"] if "channel" in payload else None
 
