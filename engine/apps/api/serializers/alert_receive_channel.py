@@ -216,23 +216,6 @@ class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
 
 class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
-    CORE_TEMPLATE_NAMES = [
-        "slack_title_template",
-        "slack_message_template",
-        "slack_image_url_template",
-        "web_title_template",
-        "web_message_template",
-        "web_image_url_template",
-        "telegram_title_template",
-        "telegram_message_template",
-        "telegram_image_url_template",
-        "sms_title_template",
-        "phone_call_title_template",
-        "source_link_template",
-        "grouping_id_template",
-        "resolve_condition_template",
-        "acknowledge_condition_template",
-    ]
 
     payload_example = SerializerMethodField()
     is_based_on_alertmanager = SerializerMethodField()
@@ -341,7 +324,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
     def to_representation(self, obj):
         ret = super().to_representation(obj)
-        # ret = self._get_templates_to_show(ret)
 
         core_templates = self._get_core_templates(obj)
         ret.update(core_templates)
