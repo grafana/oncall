@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Run containers as a non-root user by @alexintech [#2053](https://github.com/grafana/oncall/pull/2053)
+
+## v1.2.33 (2023-05-30)
+
+### Fixed
+
+- Revert #2040 breaking `/escalate` Slack command
+
+## v1.2.32 (2023-05-30)
+
 ### Added
 
 - Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
@@ -15,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Helm chart: configuration of `uwsgi` using environment variables by @alexintech ([#2045](https://github.com/grafana/oncall/pull/2045))
 - Much expanded/improved docs for mobile app ([2026](https://github.com/grafana/oncall/pull/2026>))
 - Enable by-day selection when defining monthly and hourly rotations ([2037](https://github.com/grafana/oncall/pull/2037))
+- Add description to "Default channel for Slack notifications" UI dropdown by @joeyorlando ([2051](https://github.com/grafana/oncall/pull/2051))
 
 ### Fixed
 
@@ -28,7 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Changed mobile notification title and subtitle. Removed the body. by @imtoori [#2027](https://github.com/grafana/oncall/pull/2027)
-- Run containers as a non-root user by @alexintech [#2053](https://github.com/grafana/oncall/pull/2053)
 
 ## v1.2.31 (2023-05-26)
 
