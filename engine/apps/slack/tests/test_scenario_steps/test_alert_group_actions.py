@@ -610,8 +610,8 @@ def test_step_silence(
             "channel": {"id": SLACK_CHANNEL_ID},
             "actions": [
                 {
-                    "type": "static_select",
-                    "selected_option": {"value": "1800"},
+                    "type": "button",
+                    "value": json.dumps({"organization_id": ORGANIZATION_ID}),
                 }
             ],
         },
@@ -659,18 +659,6 @@ def test_step_unsilence(
     "payload",
     [
         _get_payload() | {"trigger_id": "RANDOM_TRIGGER_ID"},
-        # deprecated payload shape, but still supported to handle older Slack messages
-        {
-            "message_ts": SLACK_MESSAGE_TS,
-            "channel": {"id": SLACK_CHANNEL_ID},
-            "trigger_id": "RANDOM_TRIGGER_ID",
-            "actions": [
-                {
-                    "type": "button",
-                    "value": json.dumps({"organization_id": ORGANIZATION_ID}),
-                }
-            ],
-        },
     ],
 )
 @pytest.mark.django_db
