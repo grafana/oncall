@@ -373,10 +373,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             user_verbal = f"{user.get_username_with_slack_verbal()}"
             if len(user_verbal) > 75:
                 user_verbal = user_verbal[:72] + "..."
-            option = {
-                "text": {"type": "plain_text", "text": user_verbal},
-                "value": get_action_value(user.pk),
-            }
+            option = {"text": {"type": "plain_text", "text": user_verbal}, "value": get_action_value(user.pk)}
             options.append(option)
 
         if users_count > MAX_STATIC_SELECT_OPTIONS:
