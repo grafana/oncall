@@ -37,6 +37,8 @@ from common.utils import clean_markup, is_string_with_visible_characters
 
 from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
 
+ATTACH_TO_ALERT_GROUPS_LIMIT = 20
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -406,7 +408,7 @@ class SelectAttachGroupStep(
             .order_by("-pk")
         )
 
-        for alert_group_to_attach in alert_groups_queryset[:60]:
+        for alert_group_to_attach in alert_groups_queryset[:ATTACH_TO_ALERT_GROUPS_LIMIT]:
             # long_verbose_name_without_formatting was removed from here because it increases queries count due to
             # alerts.first().
             # alert_group_to_attach.alerts.exists() and alerts.all()[0] don't make additional queries to db due to
@@ -443,7 +445,7 @@ class SelectAttachGroupStep(
                             "text": "Attach to...",
                         },
                         "action_id": AttachGroupStep.routing_uid(),
-                        "options": collected_options[:60],
+                        "options": collected_options[:ATTACH_TO_ALERT_GROUPS_LIMIT],
                     },
                     "label": {
                         "type": "plain_text",

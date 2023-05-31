@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix templates when slack or telegram is disabled ([#2064](https://github.com/grafana/oncall/pull/2064))
+
+## v1.2.33 (2023-05-30)
+
+### Fixed
+
+- Revert #2040 breaking `/escalate` Slack command
+
+## v1.2.32 (2023-05-30)
+
 ### Added
 
 - Add models and framework to use different services (Phone, SMS, Verify) in Twilio depending on
@@ -15,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Helm chart: configuration of `uwsgi` using environment variables by @alexintech ([#2045](https://github.com/grafana/oncall/pull/2045))
 - Much expanded/improved docs for mobile app ([2026](https://github.com/grafana/oncall/pull/2026>))
 - Enable by-day selection when defining monthly and hourly rotations ([2037](https://github.com/grafana/oncall/pull/2037))
+- Add description to "Default channel for Slack notifications" UI dropdown by @joeyorlando ([2051](https://github.com/grafana/oncall/pull/2051))
 
 ### Fixed
 
@@ -24,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Properly address `Organization.DoesNotExist` exceptions thrown which result in HTTP 500 for the Slack `interactive_api_endpoint`
   endpoint by @joeyorlando ([#2040](https://github.com/grafana/oncall/pull/2040))
 - Fix issue when trying to sync Grafana contact point and config receivers miss a key ([#2046](https://github.com/grafana/oncall/pull/2046))
+- Reduce number of alert groups returned by `Attach To` in slack to avoid event trigger timeout @mderynck ([#2049](https://github.com/grafana/oncall/pull/2049))
 
 ### Changed
 

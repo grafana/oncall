@@ -46,6 +46,15 @@ const IntegrationHelper = {
     return routeIndex ? 'Else' : 'If';
   },
 
+  getRouteConditionTooltipWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number) {
+    const totalCount = Object.keys(channelFilters).length;
+
+    if (routeIndex === totalCount - 1) {
+      return 'If the alert payload does not match to the previous routes, it will be directed to this default route.';
+    }
+    return 'If the alert payload evaluates the route template as True, it will be directed to this route. It will not be evaluated against the subsequent routes.';
+  },
+
   getMaintenanceText(maintenanceUntill: number, mode: number = undefined) {
     const date = dayjs(new Date(maintenanceUntill * 1000));
     const now = dayjs();
