@@ -32,7 +32,6 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
@@ -58,7 +57,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     const store = useStore();
     const {
       telegramChannelStore,
-      teamStore,
       escalationPolicyStore,
       escalationChainStore,
       alertReceiveChannelStore,
@@ -66,9 +64,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     } = store;
 
     const [isLoading, setIsLoading] = useState(false);
-    const isSlackInstalled = Boolean(teamStore.currentTeam?.slack_team_identity);
-    const isTelegramInstalled =
-      store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -170,14 +165,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 </IntegrationBlockItem>
               )}
 
-              {(isSlackInstalled || isTelegramInstalled) && (
-                <IntegrationBlockItem>
-                  <VerticalGroup spacing="md">
-                    <Text type="primary">Publish to ChatOps</Text>
-                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-                  </VerticalGroup>
-                </IntegrationBlockItem>
-              )}
+              <IntegrationBlockItem>
+                <VerticalGroup spacing="md">
+                  <Text type="primary">Publish to ChatOps</Text>
+                  <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
+                </VerticalGroup>
+              </IntegrationBlockItem>
 
               <IntegrationBlockItem>
                 <VerticalGroup>
