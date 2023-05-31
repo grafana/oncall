@@ -325,9 +325,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         """Update core templates if needed."""
         errors = {}
 
-        core_template_names = self.CORE_TEMPLATE_NAMES
-
-        for field_name in core_template_names:
+        for field_name in self.core_templates_names:
             value = data.get(field_name)
             validator = jinja_template_env.from_string
             if value is not None:
@@ -343,7 +341,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
     def to_representation(self, obj):
         ret = super().to_representation(obj)
-        ret = self._get_templates_to_show(ret)
+        # ret = self._get_templates_to_show(ret)
 
         core_templates = self._get_core_templates(obj)
         ret.update(core_templates)
@@ -399,8 +397,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def _get_core_templates(self, obj):
         core_templates = {}
 
-        core_template_names = self.CORE_TEMPLATE_NAMES
-        for template_name in core_template_names:
+        for template_name in self.core_templates_names:
             template_value = getattr(obj, template_name)
             defaults = getattr(obj, f"INTEGRATION_TO_DEFAULT_{template_name.upper()}", {})
             default_template_value = defaults.get(obj.integration)
@@ -408,3 +405,36 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             core_templates[f"{template_name}_is_default"] = not bool(template_value)
 
         return core_templates
+
+    @property
+    def core_templates_names(self):
+        core_templates = [
+            "web_title_template",
+            "web_message_template",
+            "web_image_url_template",
+            "sms_title_template",
+            "phone_call_title_template",
+            "source_link_template",
+            "grouping_id_template",
+            "resolve_condition_template",
+            "acknowledge_condition_template",
+        ]
+
+        slack_integration_required_templates = [
+            "slack_title_template",
+            "slack_message_template",
+            "slack_image_url_template",
+        ]
+        telegram_integration_required_templates = [
+            "telegram_title_template",
+            "telegram_message_template",
+            "telegram_image_url_template",
+        ]
+
+        apppend = []
+
+        if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
+            core_templates += slack_integration_required_templates
+        if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
+            core_templates += telegram_integration_required_templates
+        return apppend + core_templates
