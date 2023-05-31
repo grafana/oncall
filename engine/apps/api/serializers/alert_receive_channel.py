@@ -334,29 +334,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
         return ret
 
-    def _get_templates_to_show(self, response_data):
-        """
-        For On-prem installations with disabled features it is needed to disable corresponding templates
-        """
-        slack_integration_required_templates = [
-            "slack_title_template",
-            "slack_message_template",
-            "slack_image_url_template",
-        ]
-        telegram_integration_required_templates = [
-            "telegram_title_template",
-            "telegram_message_template",
-            "telegram_image_url_template",
-        ]
-        if not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-            for st in slack_integration_required_templates:
-                response_data.pop(st)
-        if not settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-            for tt in telegram_integration_required_templates:
-                response_data.pop(tt)
-
-        return response_data
-
     def _get_messaging_backend_templates(self, obj):
         """Return additional messaging backend templates if any."""
         templates = {}
@@ -390,6 +367,10 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
     @property
     def core_templates_names(self):
+        """
+        core_templates_names returns names of templates introduced before messaging backends system with respect to
+        enabled integrations.
+        """
         core_templates = [
             "web_title_template",
             "web_message_template",
