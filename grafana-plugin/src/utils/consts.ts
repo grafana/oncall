@@ -34,4 +34,4 @@ export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/chat-
 // Make sure if you chage max-width here you also change it in responsive.css
 export const TABLE_COLUMN_MAX_WIDTH = 1500;
 
-export const DATASOURCE_ALERTING = 'alertmanager';
+export const DATASOURCE_GRAFANA = 'grafana';

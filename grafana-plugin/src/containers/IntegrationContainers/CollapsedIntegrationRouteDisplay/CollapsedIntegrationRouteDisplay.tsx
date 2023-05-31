@@ -21,10 +21,11 @@ interface CollapsedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
+  toggle: () => void;
 }
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
-  ({ channelFilterId, alertReceiveChannelId, routeIndex }) => {
+  ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
     const { escalationChainStore, alertReceiveChannelStore } = useStore();
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
 
@@ -34,12 +35,17 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     }
 
     const escalationChain = escalationChainStore.items[channelFilter.escalation_chain];
+    const routeWording = IntegrationHelper.getRouteConditionWording(
+      alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+      routeIndex
+    );
 
     return (
       <>
         <IntegrationBlock
           hasCollapsedBorder={false}
           key={channelFilterId}
+          toggle={toggle}
           heading={
             <div className={cx('heading-container')}>
               <div className={cx('heading-container__item', 'heading-container__item--large')}>
@@ -52,7 +58,10 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   tooltipTitle={undefined}
                   tooltipContent={undefined}
                 />
-                {channelFilter.filtering_term && (
+                {routeWording === 'Default' && (
+                  <Text type="primary">All unrouted routes will be served to the default route</Text>
+                )}
+                {routeWording !== 'Default' && channelFilter.filtering_term && (
                   <Text type="primary" className={cx('heading-container__text')}>
                     {channelFilter.filtering_term}
                   </Text>
@@ -75,9 +84,9 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                 {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel, key) => (
                   <HorizontalGroup key={key}>
                     <Text type="secondary">Publish to ChatOps</Text>
-                    <Icon name="slack" />
+                    <Icon name={chatOpsChannel.icon} />
                     <Text type="primary" strong>
-                      {chatOpsChannel}
+                      {chatOpsChannel.name}
                     </Text>
                   </HorizontalGroup>
                 ))}
