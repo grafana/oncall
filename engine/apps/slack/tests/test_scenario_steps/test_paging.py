@@ -139,6 +139,63 @@ def test_add_user_no_warning(
 
 
 @pytest.mark.django_db
+def test_add_user_maximum_exceeded(
+    make_organization_and_user_with_slack_identities, make_schedule, make_on_call_shift, make_user_notification_policy
+):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    # set up schedule: user is on call
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        team=None,
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(hours=23, minutes=59, seconds=59),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    # setup notification policy
+    make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
+    )
+
+    payload = make_slack_payload(organization=organization, user=user)
+
+    step = OnPagingUserChange(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.PRIVATE_METADATA_MAX_LENGTH", 100):
+        with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.update",)
+    view_data = mock_slack_api_call.call_args.kwargs["view"]
+    metadata = json.loads(view_data["private_metadata"])
+    # metadata unchanged, ignoring the prefix
+    original_metadata = json.loads(payload["view"]["private_metadata"])
+    metadata.pop("input_id_prefix")
+    original_metadata.pop("input_id_prefix")
+    assert metadata == original_metadata
+    # error message is displayed
+    error_block = {
+        "type": "section",
+        "block_id": "error_message",
+        "text": {"type": "mrkdwn", "text": ":warning: Cannot add user, maximum responders exceeded"},
+    }
+    assert error_block in view_data["blocks"]
+
+
+@pytest.mark.django_db
 def test_add_user_raise_warning(make_organization_and_user_with_slack_identities):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     # user is not on call
@@ -245,6 +302,38 @@ def test_add_schedule(make_organization_and_user_with_slack_identities, make_sch
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[SCHEDULES_DATA_KEY] == {str(schedule.pk): DEFAULT_POLICY}
     assert metadata[USERS_DATA_KEY] == {str(user.pk): IMPORTANT_POLICY}
+
+
+@pytest.mark.django_db
+def test_add_schedule_responders_exceeded(make_organization_and_user_with_slack_identities, make_schedule):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
+    payload = make_slack_payload(
+        organization=organization,
+        schedule=schedule,
+        current_users={str(user.pk): IMPORTANT_POLICY},
+    )
+
+    step = OnPagingScheduleChange(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.PRIVATE_METADATA_MAX_LENGTH", 100):
+        with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.update",)
+    view_data = mock_slack_api_call.call_args.kwargs["view"]
+    metadata = json.loads(view_data["private_metadata"])
+    # metadata unchanged, ignoring the prefix
+    original_metadata = json.loads(payload["view"]["private_metadata"])
+    metadata.pop("input_id_prefix")
+    original_metadata.pop("input_id_prefix")
+    assert metadata == original_metadata
+    # error message is displayed
+    error_block = {
+        "type": "section",
+        "block_id": "error_message",
+        "text": {"type": "mrkdwn", "text": ":warning: Cannot add schedule, maximum responders exceeded"},
+    }
+    assert error_block in view_data["blocks"]
 
 
 @pytest.mark.django_db

@@ -69,3 +69,4 @@ def test_unsilence_alert_group(
     assert alert_group.silenced_at is None
     assert alert_group.silenced_until is None
     assert alert_group.silenced_by_user is None
+    assert alert_group.restarted_at is not None

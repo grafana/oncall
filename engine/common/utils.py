@@ -193,14 +193,6 @@ def clean_markup(text):
     return cleaned
 
 
-def escape_for_twilio_phone_call(text):
-    # https://www.twilio.com/docs/api/errors/12100
-    text = text.replace("&", "&amp;")
-    text = text.replace(">", "&gt;")
-    text = text.replace("<", "&lt;")
-    return text
-
-
 def escape_html(text):
     return html.escape(text)
 

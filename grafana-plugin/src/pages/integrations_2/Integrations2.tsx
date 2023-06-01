@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Button, IconButton } from '@grafana/ui';
+import { HorizontalGroup, Button, IconButton, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -165,7 +165,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         <div className={cx('root')}>
           <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
-              <Text.Title level={3}>Integrations 2</Text.Title>
+              <VerticalGroup>
+                <Text.Title level={3}>Integrations 2</Text.Title>
+                <Text type="secondary">
+                  Receive alerts, group and interpret using templates and route to escalations
+                </Text>
+              </VerticalGroup>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   onClick={() => {
@@ -257,6 +262,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
     let routesCounter = item.routes_count;
+    let connectedEscalationsChainsCount = item.connected_escalations_chains_count;
 
     return (
       <HorizontalGroup spacing="xs">
@@ -282,9 +288,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             borderType="success"
             icon="link"
-            text={routesCounter}
+            text={`${connectedEscalationsChainsCount}/${routesCounter}`}
             tooltipTitle=""
-            tooltipContent={`${routesCounter} routes`}
+            tooltipContent={
+              connectedEscalationsChainsCount +
+              ' connected escalation chain' +
+              (connectedEscalationsChainsCount === 1 ? '' : 's') +
+              ' in ' +
+              routesCounter +
+              ' route' +
+              (routesCounter === 1 ? '' : 's')
+            }
           />
         )}
       </HorizontalGroup>

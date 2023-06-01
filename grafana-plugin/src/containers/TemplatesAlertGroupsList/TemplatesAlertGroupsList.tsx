@@ -1,15 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import {
-  Button,
-  HorizontalGroup,
-  Tooltip,
-  Icon,
-  VerticalGroup,
-  IconButton,
-  Badge,
-  LoadingPlaceholder,
-} from '@grafana/ui';
+import { Button, HorizontalGroup, Tooltip, Icon, IconButton, Badge, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
@@ -46,6 +37,12 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
       .then((result) => setAlertGroupsList(result.slice(0, 30)));
   }, []);
 
+  const getCodeEditorHeight = () => {
+    const mainDiv = document.getElementById('content-container-id');
+    const height = mainDiv?.getBoundingClientRect().height - 59;
+    return `${height}px`;
+  };
+
   const getChangeHandler = () => {
     return debounce((value: string) => {
       onEditPayload(value);
@@ -74,7 +71,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   };
 
   return (
-    <div className={cx('template-block-list')}>
+    <div className={cx('template-block-list')} id="content-container-id">
       {selectedAlertPayload ? (
         <>
           {isEditMode ? (
@@ -88,11 +85,11 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   </HorizontalGroup>
                 </HorizontalGroup>
               </div>
-              <div className={cx('alert-groups-list')}>
+              <div className={cx('alert-groups-editor')}>
                 <MonacoEditor
                   value={JSON.stringify(selectedAlertPayload, null, 4)}
                   data={templates}
-                  height={'85vh'}
+                  height={getCodeEditorHeight()}
                   onChange={getChangeHandler()}
                   showLineNumbers
                   useAutoCompleteList={false}
@@ -113,23 +110,23 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   </HorizontalGroup>
                 </HorizontalGroup>
               </div>
-              <div className={cx('alert-groups-list')}>
-                <VerticalGroup>
-                  <Badge color="blue" text="Last alert payload" />
-                  <div className={cx('alert-groups-editor')}>
-                    <MonacoEditor
-                      value={JSON.stringify(selectedAlertPayload, null, 4)}
-                      data={undefined}
-                      disabled
-                      height={'85vh'}
-                      onChange={getChangeHandler()}
-                      showLineNumbers
-                      useAutoCompleteList={false}
-                      language={MONACO_LANGUAGE.json}
-                      monacoOptions={MONACO_PAYLOAD_OPTIONS}
-                    />
-                  </div>
-                </VerticalGroup>
+              <div>
+                <div className={cx('alert-groups-editor')}>
+                  <MonacoEditor
+                    value={JSON.stringify(selectedAlertPayload, null, 4)}
+                    data={undefined}
+                    disabled
+                    height={getCodeEditorHeight()}
+                    onChange={getChangeHandler()}
+                    showLineNumbers
+                    useAutoCompleteList={false}
+                    language={MONACO_LANGUAGE.json}
+                    monacoOptions={{
+                      ...MONACO_PAYLOAD_OPTIONS,
+                      readOnly: true,
+                    }}
+                  />
+                </div>
               </div>
             </>
           )}
@@ -147,7 +144,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   </HorizontalGroup>
                 </HorizontalGroup>
               </div>
-              <div className={cx('alert-groups-list')}>
+              <div className={cx('alert-groups-editor')}>
                 <MonacoEditor
                   value={null}
                   disabled={true}
@@ -156,7 +153,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   data={templates}
                   monacoOptions={MONACO_PAYLOAD_OPTIONS}
                   showLineNumbers={false}
-                  height={'85vh'}
+                  height={getCodeEditorHeight()}
                   onChange={getChangeHandler()}
                 />
               </div>
@@ -184,10 +181,12 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                       <>
                         {alertGroupsList.map((alertGroup) => {
                           return (
-                            <div key={alertGroup.pk}>
-                              <Button fill="text" onClick={() => getAlertGroupPayload(alertGroup.pk)}>
-                                {getAlertGroupName(alertGroup)}
-                              </Button>
+                            <div
+                              key={alertGroup.pk}
+                              onClick={() => getAlertGroupPayload(alertGroup.pk)}
+                              className={cx('alert-groups-list-item')}
+                            >
+                              <Text type="link"> {getAlertGroupName(alertGroup)}</Text>
                             </div>
                           );
                         })}

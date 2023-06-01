@@ -4,7 +4,7 @@ aliases:
 keywords:
   - Open Source
 title: Open Source
-weight: 300
+weight: 400
 ---
 
 # Grafana OnCall open source guide
@@ -227,7 +227,7 @@ After enabling the email integration, it will be possible to use the `Notify by 
 ## Inbound Email Setup
 
 Grafana OnCall is capable of creating alert groups from
-[Inbound Email integration]({{< relref "../integrations/available-integrations/configure-inbound-email" >}}).
+[Inbound Email integration]({{< relref "../integrations/inbound-email" >}}).
 
 To configure Inbound Email integration for Grafana OnCall OSS populate env variables with your Email Service Provider data:
 

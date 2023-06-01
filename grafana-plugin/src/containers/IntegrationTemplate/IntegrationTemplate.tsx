@@ -55,6 +55,12 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     LocationHelper.update(locationParams, 'partial');
   }, []);
 
+  const getCodeEditorHeight = () => {
+    const mainDiv = document.getElementById('content-container-id');
+    const height = mainDiv?.getBoundingClientRect().height - 59;
+    return `${height}px`;
+  };
+
   const onShowCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(true);
   }, []);
@@ -100,7 +106,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const onSaveAndFollowLink = useCallback(
     (link: string) => {
-      onHide();
+      onUpdateTemplates({ [template.name]: changedTemplateBody });
       window.open(link, '_blank');
     },
     [onUpdateTemplates, onUpdateRoute, changedTemplateBody]
@@ -166,7 +172,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       width={'95%'}
     >
       <div className={cx('container-wrapper')}>
-        <div className={cx('container')}>
+        <div className={cx('container')} id={'content-container-id'}>
           <TemplatesAlertGroupsList
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
@@ -174,12 +180,16 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             templates={templates}
           />
           {isCheatSheetVisible ? (
-            <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
+            <CheatSheet
+              cheatSheetName={template.displayName}
+              cheatSheetData={getCheatSheet(template.displayName)}
+              onClose={onCloseCheatSheet}
+            />
           ) : (
             <>
               <div className={cx('template-block-codeeditor')}>
                 <div className={cx('template-editor-block-title')}>
-                  <HorizontalGroup justify="space-between">
+                  <HorizontalGroup justify="space-between" wrap>
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
@@ -189,10 +199,10 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                 </div>
 
                 <MonacoEditor
-                  value={templateBody}
+                  value={changedTemplateBody}
                   data={templates}
                   showLineNumbers={true}
-                  height={'85vh'}
+                  height={getCodeEditorHeight()}
                   onChange={getChangeHandler()}
                 />
               </div>

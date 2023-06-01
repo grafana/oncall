@@ -12,9 +12,10 @@ import {
   IconButton,
   ConfirmModal,
   Drawer,
+  Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
+import { get, noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -27,6 +28,7 @@ import IntegrationCollapsibleTreeView, {
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
@@ -36,6 +38,10 @@ import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
+import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
+import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
+import Integration2HeartbeatForm from 'containers/IntegrationContainers/Integration2HearbeatForm/Integration2HeartbeatForm';
+import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
@@ -43,27 +49,24 @@ import TeamName from 'containers/TeamName/TeamName';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import {
+  AlertReceiveChannel,
+  AlertReceiveChannelCounters,
+} from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
-import { API_HOST, API_PATH_PREFIX } from 'network';
-import { PageProps, WithStoreProps } from 'state/types';
+import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
+import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import styles from 'pages/integration_2/Integration2.module.scss';
+import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { DATASOURCE_ALERTING, PLUGIN_ROOT } from 'utils/consts';
-
-import CollapsedIntegrationRouteDisplay from './CollapsedIntegrationRouteDisplay';
-import ExpandedIntegrationRouteDisplay from './ExpandedIntegrationRouteDisplay';
-import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from './Integration2.config';
-import IntegrationHelper from './Integration2.helper';
-import styles from './Integration2.module.scss';
-import Integration2HeartbeatForm from './Integration2HeartbeatForm';
-import IntegrationBlock from './IntegrationBlock';
-import IntegrationTemplateList from './IntegrationTemplatesList';
+import { DATASOURCE_GRAFANA, PLUGIN_ROOT } from 'utils/consts';
+import sanitize from 'utils/sanitize';
 
 const cx = cn.bind(styles);
 
@@ -109,6 +112,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       },
       query,
     } = this.props;
+
     const {
       store: { alertReceiveChannelStore },
     } = this.props;
@@ -116,6 +120,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
+
     await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
   }
 
@@ -129,7 +134,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isTemplateSettingsOpen,
     } = this.state;
     const {
-      store: { alertReceiveChannelStore, grafanaTeamStore },
+      store: { alertReceiveChannelStore },
       match: {
         params: { id },
       },
@@ -151,6 +156,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
+    const hideHTTPEndpoint = alertReceiveChannel.integration === 'inbound_email';
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -158,7 +164,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           <div className={cx('root')}>
             {isTemplateSettingsOpen && (
               <Drawer
-                width="75%"
+                width="640px"
                 scrollableContent
                 title="Template Settings"
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
@@ -197,83 +203,45 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 </Text>
               )}
 
-              <HorizontalGroup>
-                {alertReceiveChannelCounter && (
-                  <PluginLink
-                    className={cx('hover-button')}
-                    target="_blank"
-                    query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
-                  >
-                    <TooltipBadge
-                      borderType="primary"
-                      tooltipTitle={undefined}
-                      tooltipContent={this.getAlertReceiveChannelCounterTooltip()}
-                      text={
-                        alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count
-                      }
-                    />
-                  </PluginLink>
-                )}
-
-                <TooltipBadge
-                  borderType="success"
-                  icon="link"
-                  text={channelFilterIds.length}
-                  tooltipTitle={`${channelFilterIds.length} Routes`}
-                  tooltipContent={undefined}
+              <div className={cx('no-wrap')}>
+                <IntegrationHeader
+                  alertReceiveChannel={alertReceiveChannel}
+                  alertReceiveChannelCounter={alertReceiveChannelCounter}
+                  integration={integration}
                 />
+              </div>
 
-                {alertReceiveChannel.maintenance_till && (
-                  <TooltipBadge
-                    borderType="primary"
-                    icon="pause"
-                    text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
-                    tooltipTitle={IntegrationHelper.getMaintenanceText(
-                      alertReceiveChannel.maintenance_till,
-                      alertReceiveChannel.maintenance_mode
-                    )}
-                    tooltipContent={undefined}
+              {alertReceiveChannel.description && (
+                <div className={cx('integration__description-alert')}>
+                  <Alert
+                    style={{ marginBottom: '0' }}
+                    // @ts-ignore
+                    title={<div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>}
+                    severity="info"
                   />
-                )}
-
-                {this.renderHearbeat(alertReceiveChannel)}
-
-                <HorizontalGroup spacing="xs">
-                  <Text type="secondary">Type:</Text>
-                  <HorizontalGroup spacing="xs">
-                    <IntegrationLogo scale={0.08} integration={integration} />
-                    <Text type="primary">{integration?.display_name}</Text>
-                  </HorizontalGroup>
-                </HorizontalGroup>
-                <HorizontalGroup spacing="xs">
-                  <Text type="secondary">Team:</Text>
-                  <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
-                </HorizontalGroup>
-                <HorizontalGroup spacing="xs">
-                  <Text type="secondary">Created by:</Text>
-                  <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
-                </HorizontalGroup>
-              </HorizontalGroup>
+                </div>
+              )}
             </div>
 
             <IntegrationCollapsibleTreeView
               configElements={[
-                {
+                !hideHTTPEndpoint && {
                   isCollapsible: false,
                   customIcon: 'plug',
+                  canHoverIcon: false,
                   collapsedView: null,
-                  expandedView: <HowToConnectComponent id={id} />,
+                  expandedView: () => <HowToConnectComponent id={id} />,
                 },
                 {
                   customIcon: 'layer-group',
                   isExpanded: false,
                   isCollapsible: false,
                   canHoverIcon: false,
-                  expandedView: (
+                  expandedView: () => (
                     <IntegrationBlock
                       hasCollapsedBorder
                       heading={
-                        <div className={cx('templates__container')}>
+                        <div className={cx('templates__outer-container')}>
                           <Tag
                             color={getVar('--tag-secondary-transparent')}
                             border={getVar('--border-weak')}
@@ -285,26 +253,41 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           </Tag>
 
                           <div className={cx('templates__content')}>
-                            <HorizontalGroup>
-                              <HorizontalGroup spacing={'xs'}>
-                                <Text type="secondary">Grouping:</Text>
+                            <div className={cx('templates__container')}>
+                              <div
+                                className={cx('templates__item', 'templates__item--large')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
+                                <Text type="secondary" className={cx('templates__item-text')}>
+                                  Grouping:
+                                </Text>
                                 <Text type="primary">
                                   {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
                                 </Text>
-                              </HorizontalGroup>
+                              </div>
 
-                              <HorizontalGroup spacing={'xs'}>
-                                <Text type="secondary">Autoresolve:</Text>
+                              <div
+                                className={cx('templates__item', 'templates__item--large')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
+                                <Text type="secondary" className={cx('templates__item-text')}>
+                                  Autoresolve:
+                                </Text>
                                 <Text type="primary">
                                   {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
                                 </Text>
-                              </HorizontalGroup>
+                              </div>
 
-                              <HorizontalGroup spacing={'xs'}>
-                                <Text type="secondary">Visualisation:</Text>
+                              <div
+                                className={cx('templates__item', 'templates__item--small')}
+                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                              >
+                                <Text type="secondary" className={cx('templates__item-text')}>
+                                  Visualisation:
+                                </Text>
                                 <Text type="primary">Multiple</Text>
-                              </HorizontalGroup>
-                            </HorizontalGroup>
+                              </div>
+                            </div>
 
                             <div className={cx('templates__edit')}>
                               <Button
@@ -328,7 +311,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   isCollapsible: false,
                   collapsedView: null,
                   canHoverIcon: false,
-                  expandedView: (
+                  expandedView: () => (
                     <div className={cx('routesSection')}>
                       <VerticalGroup spacing="md">
                         <Text type={'primary'} className={cx('routesSection__heading')}>
@@ -361,6 +344,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   this.setState({
                     isEditTemplateModalOpen: undefined,
                   });
+                  this.setState({ isTemplateSettingsOpen: true });
                   LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
                 }}
                 channelFilterId={channelFilterIdForEdit}
@@ -447,6 +431,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     return channelFilterIds.map(
       (channelFilterId: ChannelFilter['id'], routeIndex: number) =>
         ({
+          canHoverIcon: true,
           isCollapsible: true,
           // this will keep new routes expanded at the very first time
           isExpanded: this.state.newRoutes.indexOf(channelFilterId) > -1 ? true : false,
@@ -456,14 +441,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               this.setState((prevState) => ({ newRoutes: prevState.newRoutes.filter((r) => r !== channelFilterId) }));
             }
           },
-          collapsedView: (
+          collapsedView: (toggle) => (
             <CollapsedIntegrationRouteDisplay
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
+              toggle={toggle}
             />
           ),
-          expandedView: (
+          expandedView: () => (
             <ExpandedIntegrationRouteDisplay
               alertReceiveChannelId={id}
               channelFilterId={channelFilterId}
@@ -476,51 +462,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         } as IntegrationCollapsibleItem)
     );
   };
-
-  renderHearbeat = (alertReceiveChannel: AlertReceiveChannel) => {
-    const { heartbeatStore, alertReceiveChannelStore } = this.props.store;
-
-    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
-    const heartbeat = heartbeatStore.items[heartbeatId];
-
-    const heartbeatStatus = Boolean(heartbeat?.status);
-
-    if (
-      !alertReceiveChannel.is_available_for_integration_heartbeat ||
-      alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal === null
-    ) {
-      return null;
-    }
-
-    return (
-      <TooltipBadge
-        text={undefined}
-        className={cx('heartbeat-badge')}
-        borderType={heartbeatStatus ? 'success' : 'danger'}
-        customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
-        tooltipContent={undefined}
-      />
-    );
-  };
-
-  getAlertReceiveChannelCounterTooltip = () => {
-    const { id } = this.props.match.params;
-    const { alertReceiveChannelStore } = this.props.store;
-    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-
-    return (
-      alertReceiveChannelCounter?.alerts_count +
-      ' alert' +
-      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
-      ' in ' +
-      alertReceiveChannelCounter?.alert_groups_count +
-      ' alert group' +
-      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
-    );
-  };
-
-  handleSlackChannelChange = () => {};
 
   handleEditRegexpRouteTemplate = (channelFilterId) => {
     this.setState({ isEditRegexpRouteTemplateModalOpen: true, channelFilterIdForEdit: channelFilterId });
@@ -608,6 +549,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       match: {
         params: { id },
       },
+      history,
     } = this.props;
 
     const promises = [];
@@ -625,7 +567,12 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       promises.push(await alertReceiveChannelStore.updateChannelFilters(id));
     }
 
-    await Promise.all(promises);
+    await Promise.all(promises).catch(() => {
+      if (!alertReceiveChannelStore.items[id]) {
+        // failed fetching the integration (most likely it's not existent)
+        history.push(`${PLUGIN_ROOT}/integrations_2`);
+      }
+    });
   }
 }
 
@@ -671,7 +618,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   isOpen,
   onHideOrCancel,
 }) => {
-  const { alertReceiveChannelStore } = useStore();
+  const store = useStore();
+  const { alertReceiveChannelStore } = store;
   const [demoPayload, setDemoPayload] = useState<string>(
     JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')
   );
@@ -747,11 +695,10 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
   }
 
   function getCurlText() {
-    return (
-      `curl '${API_HOST}${API_PATH_PREFIX}${API_PATH_PREFIX}/alert_receive_channels/${alertReceiveChannel.id}/send_demo_alert/'` +
-      ` -XPOST -H 'Content-Type: application/json'` +
-      `--data-raw '{"demo_alert_payload":{"alerts":[{"a":"b"}]}}' --compressed`
-    );
+    return `curl -X POST \
+    ${alertReceiveChannel?.integration_url} \
+    -H 'Content-Type: Application/json' \
+    -d '${demoPayload}'`;
   }
 };
 
@@ -855,7 +802,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
               </div>
 
               <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
-                Hearbeat
+                Hearbeat Settings
               </div>
 
               {!alertReceiveChannel.maintenance_till && (
@@ -876,11 +823,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                           confirmText: 'Stop',
                           dismissText: 'Cancel',
                           onConfirm: onStopMaintenance,
-                          title: (
-                            <>
+                          title: 'Stop Maintenance',
+                          body: (
+                            <Text type="primary">
                               Are you sure you want to stop the maintenance for{' '}
-                              <Emoji text={alertReceiveChannel.verbal_name} />?
-                            </>
+                              <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                            </Text>
                           ),
                         });
                       }}
@@ -899,13 +847,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                     onClick={() => {
                       setConfirmModal({
                         isOpen: true,
-                        title: (
-                          <>
+                        title: 'Delete Integration?',
+                        body: (
+                          <Text type="primary">
                             Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
-                            integration?
-                          </>
+                            integration?{' '}
+                          </Text>
                         ),
-                        body: <>This action cannot be undone.</>,
                         onConfirm: deleteIntegration,
                         dismissText: 'Cancel',
                         confirmText: 'Delete',
@@ -958,12 +906,13 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
-  const isAlertManager = alertReceiveChannel.integration === DATASOURCE_ALERTING;
+  const isGrafanaDatasource = alertReceiveChannel.integration === DATASOURCE_GRAFANA;
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
   return (
     <IntegrationBlock
       hasCollapsedBorder={false}
+      toggle={noop}
       heading={
         <div className={cx('how-to-connect__container')}>
           <Tag
@@ -989,7 +938,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           </a>
         </div>
       }
-      content={isAlertManager || !hasAlerts ? renderContent() : null}
+      content={isGrafanaDatasource || !hasAlerts ? renderContent() : null}
     />
   );
 
@@ -1004,14 +953,14 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             </HorizontalGroup>
           )}
 
-          {isAlertManager && (
+          {isGrafanaDatasource && (
             <HorizontalGroup spacing={'xs'}>
               <Icon name="list-ui-alt" size="md" />
-              <a href="/alerting/notifications" target="_blank">
+              <a href={`/alerting/notifications?alertmanager=grafana`} target="_blank" rel="noreferrer">
                 <Text type={'link'}>Contact Point</Text>
               </a>
               <Text type={'secondary'}>and</Text>
-              <a href="/alerting/routes" target="_blank">
+              <a href="/alerting/routes?alertmanager=grafana" target="_blank">
                 <Text type={'link'}>Notification Policy</Text>
               </a>
               <Text type={'secondary'}>created in Grafana Alerting</Text>
@@ -1019,6 +968,125 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           )}
         </VerticalGroup>
       </div>
+    );
+  }
+};
+
+interface IntegrationHeaderProps {
+  alertReceiveChannelCounter: AlertReceiveChannelCounters;
+  alertReceiveChannel: AlertReceiveChannel;
+  integration: SelectOption;
+}
+
+const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
+  integration,
+  alertReceiveChannelCounter,
+  alertReceiveChannel,
+}) => {
+  const { grafanaTeamStore, heartbeatStore, alertReceiveChannelStore } = useStore();
+
+  return (
+    <div className={cx('headerTop')}>
+      {alertReceiveChannelCounter && (
+        <PluginLink
+          className={cx('hover-button')}
+          target="_blank"
+          query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
+        >
+          <TooltipBadge
+            borderType="primary"
+            tooltipTitle={undefined}
+            tooltipContent={getAlertReceiveChannelCounterTooltip()}
+            text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
+          />
+        </PluginLink>
+      )}
+
+      <TooltipBadge
+        borderType="success"
+        icon="link"
+        text={`${alertReceiveChannel.connected_escalations_chains_count}/${alertReceiveChannel.routes_count}`}
+        tooltipTitle=""
+        tooltipContent={
+          alertReceiveChannel.connected_escalations_chains_count +
+          ' connected escalation chain' +
+          (alertReceiveChannel.connected_escalations_chains_count === 1 ? '' : 's') +
+          ' in ' +
+          alertReceiveChannel.routes_count +
+          ' route' +
+          (alertReceiveChannel.routes_count === 1 ? '' : 's')
+        }
+      />
+
+      {alertReceiveChannel.maintenance_till && (
+        <TooltipBadge
+          borderType="primary"
+          icon="pause"
+          text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
+          tooltipTitle={IntegrationHelper.getMaintenanceText(
+            alertReceiveChannel.maintenance_till,
+            alertReceiveChannel.maintenance_mode
+          )}
+          tooltipContent={undefined}
+        />
+      )}
+
+      {renderHearbeat(alertReceiveChannel)}
+
+      <div className={cx('headerTop__item')}>
+        <Text type="secondary">Type:</Text>
+        <HorizontalGroup spacing="xs">
+          <IntegrationLogo scale={0.08} integration={integration} />
+          <Text type="primary">{integration?.display_name}</Text>
+        </HorizontalGroup>
+      </div>
+      <div className={cx('headerTop__item')}>
+        <Text type="secondary">Team:</Text>
+        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+      </div>
+      <div className={cx('headerTop__item')}>
+        <Text type="secondary">Created by:</Text>
+        <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
+      </div>
+    </div>
+  );
+
+  function getAlertReceiveChannelCounterTooltip() {
+    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[alertReceiveChannel.id];
+
+    return (
+      alertReceiveChannelCounter?.alerts_count +
+      ' alert' +
+      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+      ' in ' +
+      alertReceiveChannelCounter?.alert_groups_count +
+      ' alert group' +
+      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+    );
+  }
+
+  function renderHearbeat(alertReceiveChannel: AlertReceiveChannel) {
+    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
+    const heartbeat = heartbeatStore.items[heartbeatId];
+
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
+    if (
+      !alertReceiveChannel.is_available_for_integration_heartbeat ||
+      !alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal
+    ) {
+      return null;
+    }
+
+    return (
+      <TooltipBadge
+        text={undefined}
+        className={cx('heartbeat-badge')}
+        borderType={heartbeatStatus ? 'success' : 'danger'}
+        customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
+        tooltipContent={undefined}
+      />
     );
   }
 };

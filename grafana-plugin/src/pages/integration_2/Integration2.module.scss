@@ -104,7 +104,14 @@ $LARGE-MARGIN: 24px;
 .loadingPlaceholder {
   margin-bottom: 0;
   margin-right: 4px;
-  animation: none;
+}
+
+.integration__description-alert {
+  padding-top: 24px;
+
+  a {
+    color: var(--primary-text-link);
+  }
 }
 
 .customise-button button {
@@ -124,12 +131,7 @@ $LARGE-MARGIN: 24px;
 }
 
 .input {
-  &--short {
-    width: 500px;
-  }
-  &--long {
-    width: 700px;
-  }
+  flex-grow: 1;
 }
 
 .how-to-connect__container {
@@ -146,15 +148,50 @@ $LARGE-MARGIN: 24px;
   padding: 4px 8px;
 }
 
-.templates__content {
-  padding-left: 12px;
+.vertical-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.templates {
+  &__content {
+    padding-left: 12px;
+  }
+
+  &__container {
+    width: 100%;
+    padding-right: 48px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    gap: 12px;
+  }
+
+  &__item {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  &__item--large {
+    max-width: calc((100% - 150px) / 2);
+  }
+  &__item--small {
+    max-width: 150px;
+  }
+
+  &__item-text {
+    margin-right: 4px;
+  }
 }
 
 .templates__content,
-.templates__container {
+.templates__outer-container {
   display: flex;
   width: 100%;
   align-items: center;
+  overflow: hidden;
 }
 
 .templates__edit {
@@ -163,4 +200,22 @@ $LARGE-MARGIN: 24px;
 
 .template-drawer {
   padding-bottom: 24px;
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+.headerTop {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+  }
 }
