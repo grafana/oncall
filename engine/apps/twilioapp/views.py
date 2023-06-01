@@ -29,7 +29,7 @@ class AllowOnlyTwilio(BasePermission):
 
         return self.validate_request(request, live_settings.TWILIO_ACCOUNT_SID, live_settings.TWILIO_AUTH_TOKEN)
 
-    def validate_request(self, request, expected_sid, auth_token):
+    def validate_request(self, request, expected_account_sid, auth_token):
         if auth_token:
             validator = RequestValidator(auth_token)
             location = create_engine_url(request.get_full_path())
@@ -40,7 +40,7 @@ class AllowOnlyTwilio(BasePermission):
             )
             return request_valid
         else:
-            return expected_sid == request.data["AccountSid"]
+            return expected_account_sid == request.data["AccountSid"]
 
 
 class HealthCheckView(APIView):
