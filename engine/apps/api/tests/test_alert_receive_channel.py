@@ -772,3 +772,45 @@ def test_stop_maintenance_integration(
     assert alert_receive_channel.maintenance_uuid is None
     assert alert_receive_channel.maintenance_started_at is None
     assert alert_receive_channel.maintenance_author is None
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_send_demo_alert(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
+    )
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel-send-demo-alert",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_alert_receive_channel_send_demo_alert_not_enabled(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL
+    )
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel-send-demo-alert",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
