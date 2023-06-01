@@ -21,10 +21,11 @@ interface CollapsedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
+  toggle: () => void;
 }
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
-  ({ channelFilterId, alertReceiveChannelId, routeIndex }) => {
+  ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
     const { escalationChainStore, alertReceiveChannelStore } = useStore();
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
 
@@ -44,6 +45,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
         <IntegrationBlock
           hasCollapsedBorder={false}
           key={channelFilterId}
+          toggle={toggle}
           heading={
             <div className={cx('heading-container')}>
               <div className={cx('heading-container__item', 'heading-container__item--large')}>
@@ -53,7 +55,10 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex
                   )}
-                  tooltipTitle={undefined}
+                  tooltipTitle={IntegrationHelper.getRouteConditionTooltipWording(
+                    alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
+                    routeIndex
+                  )}
                   tooltipContent={undefined}
                 />
                 {routeWording === 'Default' && (
@@ -91,7 +96,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
 
                 <HorizontalGroup>
                   <Icon name="list-ui-alt" />
-                  <Text type="secondary">Escalate to</Text>
+                  <Text type="secondary">Trigger escalation chain:</Text>
 
                   {escalationChain?.name && (
                     <PluginLink
@@ -110,9 +115,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                       <div className={cx('icon-exclamation')}>
                         <Icon name="exclamation-triangle" />
                       </div>
-                      <Text type="primary" strong>
-                        No Escalation chain
-                      </Text>
+                      <Text type="primary">No Escalation chain selected</Text>
                     </HorizontalGroup>
                   )}
                 </HorizontalGroup>

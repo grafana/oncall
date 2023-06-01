@@ -100,6 +100,10 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
         <Drawer scrollableContent title="New Integration" onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
+              <Text type="secondary">
+                Integration receives alerts on an unique API URL, interprets them using set of templates tailored for
+                monitoring system and starts escalations.
+              </Text>
               <div className={cx('search-integration')}>
                 <Input
                   autoFocus
@@ -129,7 +133,9 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
                               <Text strong data-testid="integration-display-name">
                                 {alertReceiveChannelChoice.display_name}
                               </Text>
-                              {alertReceiveChannelChoice.featured && <Tag name="Quick connect" colorIndex={5} />}
+                              {alertReceiveChannelChoice.featured && alertReceiveChannelChoice.featured_tag_name && (
+                                <Tag name={alertReceiveChannelChoice.featured_tag_name} colorIndex={5} />
+                              )}
                             </HorizontalGroup>
                             <Text type="secondary" size="small">
                               {alertReceiveChannelChoice.short_description}
@@ -152,7 +158,7 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
           <div className={cx('content')}>
             <VerticalGroup>
               <GForm form={form} data={data} onSubmit={handleSubmit} />
-              {isTableView && (
+              {isTableView && selectedOption && (
                 <Collapse
                   headerWithBackground
                   className={cx('collapse')}
@@ -165,10 +171,10 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
                     <ul className={cx('integration-info-list')}>
                       <li className={cx('integration-info-item')}>Unique URL endpoint for receiving alerts </li>
                       <li className={cx('integration-info-item')}>
-                        Templates to interpret alerts, tailored for Grafana Alerting{' '}
+                        Templates to interpret alerts, tailored for {selectedOption.display_name}{' '}
                       </li>
-                      <li className={cx('integration-info-item')}>Grafana Alerting contact point </li>
-                      <li className={cx('integration-info-item')}>Grafana Alerting notification</li>
+                      <li className={cx('integration-info-item')}>{selectedOption.display_name} contact point </li>
+                      <li className={cx('integration-info-item')}>{selectedOption.display_name} notification</li>
                     </ul>
                     What you’ll need to do next:
                     <ul className={cx('integration-info-list')}>
