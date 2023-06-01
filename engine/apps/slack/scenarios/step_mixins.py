@@ -37,8 +37,10 @@ class AlertGroupActionsMixin:
         Check that user has required permissions to perform an action.
         """
 
-        return self.user.organization == alert_group.channel.organization and user_is_authorized(
-            self.user, self.REQUIRED_PERMISSIONS
+        return (
+            self.user is not None
+            and self.user.organization == alert_group.channel.organization
+            and user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
         )
 
     def open_unauthorized_warning(self, payload: dict) -> None:
