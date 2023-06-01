@@ -1,4 +1,4 @@
-import pytz
+import pytz_deprecation_shim as pytz
 from django.utils import timezone
 
 

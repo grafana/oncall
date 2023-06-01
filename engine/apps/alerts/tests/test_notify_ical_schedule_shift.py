@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import icalendar
 import pytest
-import pytz
+import pytz_deprecation_shim as pytz
 from django.utils import timezone
 
 from apps.alerts.tasks.notify_ical_schedule_shift import get_current_shifts_from_ical, notify_ical_schedule_shift

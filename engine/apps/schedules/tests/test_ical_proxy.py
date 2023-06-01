@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import pytz
+import pytz_deprecation_shim as pytz
 from django.utils import timezone
 
 from apps.schedules.ical_events import ical_events

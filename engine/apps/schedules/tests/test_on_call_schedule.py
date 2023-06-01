@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import icalendar
 import pytest
-import pytz
+import pytz_deprecation_shim as pytz
 from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole

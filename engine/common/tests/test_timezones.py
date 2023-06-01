@@ -1,5 +1,6 @@
 import pytest
-import pytz
+import pytz as deprecated_pytz
+import pytz_deprecation_shim as pytz
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
 
@@ -45,7 +46,8 @@ def test_raise_exception_if_not_valid_timezone_custom_exception():
 
 
 class TestTimeZoneField:
-    @pytest.mark.parametrize("tz", pytz.all_timezones)
+    # all_timezones is not exported from pytz_deprecation_shim...
+    @pytest.mark.parametrize("tz", deprecated_pytz.all_timezones)
     def test_valid_timezones(self, tz):
         class MySerializer(serializers.Serializer):
             tz = tz.TimeZoneField()

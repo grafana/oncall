@@ -7,7 +7,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, QuerySet
 from django.utils import timezone
-from ordered_model.models import OrderedModel
+from ordered_model.models import OrderedModel, OrderedModelQuerySet
 
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
@@ -66,7 +66,7 @@ def validate_channel_choice(value):
         raise ValidationError("%(value)s is not a valid option", params={"value": value})
 
 
-class UserNotificationPolicyQuerySet(models.QuerySet):
+class UserNotificationPolicyQuerySet(OrderedModelQuerySet):
     def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
         model = self.model
 

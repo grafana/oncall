@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Iterable, List, Optional, Tuple, TypedDict, Union
 
 import icalendar
-import pytz
+import pytz_deprecation_shim as pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator

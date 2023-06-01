@@ -1,4 +1,4 @@
-import pytz
+import pytz_deprecation_shim as pytz
 from rest_framework import serializers
 
 from common.api_helpers.exceptions import BadRequest

@@ -7,7 +7,7 @@ import typing
 from collections import namedtuple
 from typing import TYPE_CHECKING
 
-import pytz
+import pytz_deprecation_shim as pytz
 import requests
 from django.apps import apps
 from django.db.models import Q

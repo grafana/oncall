@@ -1,7 +1,7 @@
 from unittest.mock import PropertyMock, patch
 
 import pytest
-import pytz
+import pytz_deprecation_shim as pytz
 from rest_framework.exceptions import ValidationError
 
 from apps.alerts.escalation_snapshot.snapshot_classes import EscalationSnapshot

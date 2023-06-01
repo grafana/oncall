@@ -1,6 +1,6 @@
 import logging
 
-import pytz
+import pytz as deprecated_pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -319,7 +319,8 @@ class UserView(
 
     @action(detail=False, methods=["get"])
     def timezone_options(self, request):
-        return Response(pytz.common_timezones)
+        # common_timezones is not exported from pytz_deprecation_shim...
+        return Response(deprecated_pytz.common_timezones)
 
     @action(
         detail=True,

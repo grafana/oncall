@@ -8,6 +8,31 @@ from firebase_admin import credentials, initialize_app
 
 from common.utils import getenv_boolean, getenv_integer
 
+"""
+tldr; this should be removed, and pytz removed when upgrading to django v5
+
+From the docs (https://docs.djangoproject.com/en/4.2/releases/4.0/#zoneinfo-default-timezone-implementation):
+
+The Python standard library’s zoneinfo is now the default timezone implementation in Django.
+
+This is the next step in the migration from using pytz to using zoneinfo. Django 3.2 allowed the use of non-pytz time
+zones. Django 4.0 makes zoneinfo the default implementation. Support for pytz is now deprecated and will be removed in
+Django 5.0.
+
+zoneinfo is part of the Python standard library from Python 3.9. The backports.zoneinfo package is automatically
+installed alongside Django if you are using Python 3.8.
+
+The move to zoneinfo should be largely transparent. Selection of the current timezone, conversion of datetime instances
+to the current timezone in forms and templates, as well as operations on aware datetimes in UTC are unaffected.
+
+However, if you are working with non-UTC time zones, and using the pytz normalize() and localize() APIs, possibly with
+the TIME_ZONE setting, you will need to audit your code, since pytz and zoneinfo are not entirely equivalent.
+
+To give time for such an audit, the transitional USE_DEPRECATED_PYTZ setting allows continued use of pytz during the
+4.x release cycle. This setting will be removed in Django 5.0.
+"""
+USE_DEPRECATED_PYTZ = True
+
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
@@ -172,20 +197,20 @@ if not REDIS_URI:
 # Cache
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": [
             REDIS_URI,
         ],
         "OPTIONS": {
-            "DB": 1,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
-            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": {
+            "db": 1,
+            "parser_class": "redis.connection.HiredisParser",
+            "pool_class": "redis.BlockingConnectionPool",
+            "pool_class_kwargs": {
                 "max_connections": 50,
                 "timeout": 20,
             },
-            "MAX_CONNECTIONS": 1000,
-            "PICKLE_VERSION": -1,
+            "max_connections": 1000,
+            "pickle_version": -1,
         },
     },
 }

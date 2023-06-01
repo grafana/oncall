@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 import humanize
-import pytz
+import pytz_deprecation_shim as pytz
 from django.apps import apps
 from django.db import models, transaction
 from django.utils import timezone

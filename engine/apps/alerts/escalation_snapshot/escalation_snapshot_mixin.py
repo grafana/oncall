@@ -2,7 +2,7 @@ import datetime
 import logging
 from typing import Optional
 
-import pytz
+import pytz_deprecation_shim as pytz
 from celery import uuid as celery_uuid
 from dateutil.parser import parse
 from django.apps import apps

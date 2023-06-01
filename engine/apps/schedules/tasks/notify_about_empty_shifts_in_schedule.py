@@ -1,4 +1,4 @@
-import pytz
+import pytz_deprecation_shim as pytz
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.core.cache import cache

@@ -6,7 +6,7 @@ import string
 from calendar import monthrange
 from uuid import uuid4
 
-import pytz
+import pytz_deprecation_shim as pytz
 from dateutil import relativedelta
 from django.apps import apps
 from django.conf import settings

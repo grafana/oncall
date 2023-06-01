@@ -2,7 +2,7 @@ from dataclasses import asdict
 from datetime import timedelta
 
 import humanize
-import pytz
+import pytz_deprecation_shim as pytz
 from django.apps import apps
 from django.utils import timezone
 from rest_framework import fields, serializers

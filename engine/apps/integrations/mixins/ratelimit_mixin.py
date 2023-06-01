@@ -6,9 +6,9 @@ from django.apps import apps
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.views import View
-from ratelimit import ALL
-from ratelimit.exceptions import Ratelimited
-from ratelimit.utils import is_ratelimited
+from django_ratelimit import ALL
+from django_ratelimit.core import is_ratelimited
+from django_ratelimit.exceptions import Ratelimited
 
 from apps.integrations.tasks import start_notify_about_integration_ratelimit
 
