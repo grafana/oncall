@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix a bug with permissions for telegram user settings by @alexintech ([#2075](https://github.com/grafana/oncall/pull/2075))
 - Fix orphaned messages in Slack by @vadimkerr ([#2023](https://github.com/grafana/oncall/pull/2023))
+- Fix duplicated slack shift-changed notifications ([#2080](https://github.com/grafana/oncall/pull/2080))
 
 ## v1.2.34 (2023-05-31)
 
