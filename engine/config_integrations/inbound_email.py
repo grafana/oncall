@@ -46,3 +46,5 @@ grouping_id = '{{ payload.get("subject", "").upper() }}'
 resolve_condition = '{{ payload.get("message", "").upper() == "OK" }}'
 
 acknowledge_condition = None
+
+example_payload = None
