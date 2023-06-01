@@ -52,5 +52,5 @@ example_payload = {
     "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg",
     "state": "alerting",
     "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime",
-    "message": "This alert was sent by user for the demonstration purposes\nSmth happened. Oh no!",
+    "message": "This alert was sent by user for demonstration purposes\nSmth happened. Oh no!",
 }
