@@ -22,8 +22,12 @@ class AllowOnlyTwilio(BasePermission):
     # https://www.twilio.com/docs/usage/tutorials/how-to-secure-your-django-project-by-validating-incoming-twilio-requests
     # https://www.django-rest-framework.org/api-guide/permissions/
     def has_permission(self, request, view):
+        request_account_sid = request.data.get("AccountSid")
+        if not request_account_sid:
+            return False
+
         TwilioAccount = apps.get_model("twilioapp", "TwilioAccount")
-        account = TwilioAccount.objects.filter(account_sid=request.data["AccountSid"]).first()
+        account = TwilioAccount.objects.filter(account_sid=request_account_sid).first()
         if account:
             return self.validate_request(request, account.account_sid, account.auth_token)
 
