@@ -803,7 +803,7 @@ def test_alert_receive_channel_send_demo_alert_not_enabled(
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL
+        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
     )
     client = APIClient()
 
