@@ -27,6 +27,15 @@
   padding-left: 0;
 }
 
+.alert-groups-list-item {
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.alert-groups-list-item:hover {
+  background-color: var(--background-secondary);
+}
+
 .alert-groups-editor {
   width: 100%;
 }

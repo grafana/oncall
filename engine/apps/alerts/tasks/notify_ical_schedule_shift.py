@@ -255,6 +255,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
     for prev_ical_file, current_ical_file in prev_and_current_ical_files:
         if prev_ical_file and (not current_ical_file or not is_icals_equal(current_ical_file, prev_ical_file)):
+            task_logger.info(f"ical files are different")
             # If icals are not equal then compare current_events from them
             is_prev_ical_diff = True
             prev_calendar = icalendar.Calendar.from_ical(prev_ical_file)
@@ -295,6 +296,7 @@ def notify_ical_schedule_shift(schedule_pk):
         shift_changed, diff_uids = calculate_shift_diff(current_shifts, prev_shifts)
 
     if shift_changed:
+        task_logger.info(f"shifts_changed: {diff_uids}")
         # Get only new/changed shifts to send a reminder message.
         new_shifts = []
         for uid in diff_uids:
@@ -361,6 +363,7 @@ def notify_ical_schedule_shift(schedule_pk):
         schedule.save(update_fields=["current_shifts", "empty_oncall"])
 
         if len(new_shifts) > 0 or empty_oncall:
+            task_logger.info(f"new_shifts: {new_shifts}")
             slack_client = SlackClientWithErrorHandling(schedule.organization.slack_team_identity.bot_access_token)
             step = scenario_step.ScenarioStep.get_step("schedules", "EditScheduleShiftNotifyStep")
             report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, empty_oncall)

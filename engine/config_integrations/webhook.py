@@ -2,9 +2,10 @@
 enabled = True
 title = "Webhook"
 slug = "webhook"
-short_description = None
+short_description = "If your monitoring system isn't listed, choose Webhook for generic templates, and feel free to modify them as needed."
 description = None
-is_featured = False
+is_featured = True
+featured_tag_name = "Generic"
 is_displayed_on_web = True
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
