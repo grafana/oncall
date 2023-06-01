@@ -60,7 +60,6 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   }, 1000);
 
   useEffect(handleTemplateBodyChange, [templateBody, payload]);
-  // onResult(result);
 
   return result ? (
     <>
@@ -93,12 +92,20 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
           )}
         </Text>
       ) : (
-        <div
-          className={cx('message')}
-          dangerouslySetInnerHTML={{
-            __html: sanitize(result.preview || ''),
-          }}
-        />
+        <>
+          {templateName.includes('image') ? (
+            <div className={cx('image-result')}>
+              <img src={result.preview} />
+            </div>
+          ) : (
+            <div
+              className={cx('message')}
+              dangerouslySetInnerHTML={{
+                __html: sanitize(result.preview.replace(/\n/g, '<br />') || ''),
+              }}
+            />
+          )}
+        </>
       )}
     </>
   ) : (
