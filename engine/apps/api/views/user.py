@@ -653,4 +653,4 @@ def handle_phone_notificator_failed(exc: BaseFailed) -> Response:
     if exc.graceful_msg:
         return Response(exc.graceful_msg, status=status.HTTP_400_BAD_REQUEST)
     else:
-        return Response("Something went wrong", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response("Something went wrong", status=status.HTTP_503_SERVICE_UNAVAILABLE)
