@@ -521,7 +521,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
 
         if not self.is_demo_alert_enabled:
-            raise UnableToSendDemoAlert(f"Unable to send demo alert for this integration.")
+            raise UnableToSendDemoAlert("Unable to send demo alert for this integration.")
 
         if payload is None:
             payload = self.config.example_payload
