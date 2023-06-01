@@ -165,7 +165,7 @@ class EscalationChainViewSet(
                 channel_filter["alert_receive_channel__public_primary_key"],
                 {
                     "id": channel_filter["alert_receive_channel__public_primary_key"],
-                    "display_name": emojize(channel_filter["alert_receive_channel__verbal_name"], use_aliases=True),
+                    "display_name": emojize(channel_filter["alert_receive_channel__verbal_name"], language="alias"),
                     "channel_filters": [],
                 },
             )["channel_filters"].append(channel_filter_data)

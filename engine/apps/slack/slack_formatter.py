@@ -37,7 +37,7 @@ class SlackFormatter(SlackFormatter):
         # Handle links
         message = self._LINK_PAT.sub(self._sub_hyperlink, message)
         # Introduce unicode emoji
-        message = emoji.emojize(message, use_aliases=True)
+        message = emoji.emojize(message, language="alias")
 
         return message
 
