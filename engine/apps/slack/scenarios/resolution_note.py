@@ -380,9 +380,11 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, data=None):
         if data:
+            # Argument "data" is used when step is called from other step, e.g. AddRemoveThreadMessageStep
             AlertGroup = apps.get_model("alerts", "AlertGroup")
             alert_group = AlertGroup.all_objects.get(pk=data["alert_group_pk"])
         else:
+            # Handle "Add Resolution notes" button click
             alert_group = self.get_alert_group(slack_team_identity, payload)
 
         if not self.is_authorized(alert_group):

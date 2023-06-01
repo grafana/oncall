@@ -17,7 +17,7 @@ class AlertGroupActionsMixin:
 
     def get_alert_group(self, slack_team_identity: SlackTeamIdentity, payload: dict) -> AlertGroup:
         """
-        Get AlertGroup instance on AG Slack message button click or select menu change.
+        Get AlertGroup instance on Slack message button click or select menu change.
         """
 
         alert_group = (
