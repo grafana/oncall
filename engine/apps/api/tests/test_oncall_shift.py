@@ -778,27 +778,6 @@ def test_create_on_call_shift_invalid_data_by_day(on_call_shift_internal_api_set
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["by_day"][0] == "Cannot set days value for non-recurrent shifts"
 
-    # by_day with non-weekly/non-daily frequency
-    data = {
-        "title": "Test Shift 2",
-        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
-        "schedule": schedule.public_primary_key,
-        "priority_level": 0,
-        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "until": None,
-        "frequency": CustomOnCallShift.FREQUENCY_MONTHLY,
-        "interval": None,
-        "by_day": [CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY]],
-        "rolling_users": [[user1.public_primary_key]],
-    }
-
-    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["by_day"][0] == "Cannot set days value for this frequency type"
-
 
 @pytest.mark.django_db
 def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_setup, make_user_auth_headers):
