@@ -1,3 +1,4 @@
+import csv
 from unittest.mock import patch
 
 import pytest
@@ -784,17 +785,89 @@ def test_create_ical_schedule_without_ical_url(make_organization_and_user_with_t
 
 
 @pytest.mark.django_db
-@pytest.only
-def test_oncall_shifts_export_doesnt_work_for_ical_schedules(
+def test_oncall_shifts_request_validation(
     make_organization_and_user_with_token,
     make_schedule,
 ):
     organization, _, token = make_organization_and_user_with_token()
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleICal)
+    ical_schedule = make_schedule(organization, schedule_class=OnCallScheduleICal)
+    terraform_schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    web_schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    schedule_type_validation_msg = "OnCall shifts exports are currently only available for web calendars"
+    valid_date_msg = "is not a valid date, must be in any valid ISO 8601 format"
 
     client = APIClient()
 
-    url = reverse("api-public:schedules-oncall_shifts_export", kwargs={"pk": schedule.public_primary_key})
+    def _make_request(schedule, query_params=""):
+        url = reverse("api-public:schedules-oncall-shifts-export", kwargs={"pk": schedule.public_primary_key})
+        return client.get(f"{url}{query_params}", format="json", HTTP_AUTHORIZATION=token)
 
-    response = client.get(url, format="json", HTTP_AUTHORIZATION=token)
+    # only web schedules are allowed for now
+    response = _make_request(ical_schedule)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == schedule_type_validation_msg
+
+    response = _make_request(terraform_schedule)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == schedule_type_validation_msg
+
+    # query param validation
+    response = _make_request(web_schedule, "?start_date=2021-01-01")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == "end_date is required"
+
+    response = _make_request(web_schedule, "?start_date=asdfasdf")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == f"start_date {valid_date_msg}"
+
+    response = _make_request(web_schedule, "?end_date=2021-01-01")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == "start_date is required"
+
+    response = _make_request(web_schedule, "?start_date=2021-01-01&end_date=asdfasdf")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == f"end_date {valid_date_msg}"
+
+    response = _make_request(web_schedule, "?end_date=2021-01-01&start_date=2022-01-01")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == "start_date must be less than or equal to end_date"
+
+
+@pytest.mark.django_db
+def test_oncall_shifts_export(
+    make_organization_and_user_with_token,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    start_date = timezone.datetime(2023, 1, 1, 9, 0, 0)
+    make_on_call_shift(
+        organization=organization,
+        schedule=schedule,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        priority_level=1,
+        by_day=["MO", "WE", "FR"],
+        start=start_date,
+        until=start_date + timezone.timedelta(days=28),
+        rolling_users=[{user.pk: user.public_primary_key}],
+        rotation_start=start_date,
+        duration=timezone.timedelta(hours=8),
+    )
+
+    client = APIClient()
+
+    url = reverse("api-public:schedules-oncall-shifts-export", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(f"{url}?start_date=2023-01-01&end_date=2023-02-01", format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    total_time_on_call = 0
+    for row in csv.DictReader(response.content):
+        total_time_on_call += row["shift_end"] - row["shift_start"]
+
+    # 3 shifts per week x 4 weeks x 8 hours per shift = 96
+    assert total_time_on_call == 96
