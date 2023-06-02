@@ -850,6 +850,7 @@ def test_oncall_shifts_export(
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         frequency=CustomOnCallShift.FREQUENCY_DAILY,
         priority_level=1,
+        interval=1,
         by_day=["MO", "WE", "FR"],
         start=start_date,
         until=start_date + timezone.timedelta(days=28),
