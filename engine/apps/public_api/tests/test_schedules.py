@@ -867,8 +867,6 @@ def test_oncall_shifts_export(
 
     assert response.status_code == status.HTTP_200_OK
 
-    print(response.content)
-
     total_time_on_call = 0
     for row in csv.DictReader(io.StringIO(response.content.decode())):
         if row["user_pk"] == user.public_primary_key:
