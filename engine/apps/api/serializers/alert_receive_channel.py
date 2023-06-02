@@ -49,7 +49,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
     description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
-    demo_alert_payload = serializers.SerializerMethodField()
+    demo_alert_payload = serializers.CharField(source="config.example_payload", read_only=True)
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
 
@@ -161,14 +161,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
 
     def get_alert_groups_count(self, obj):
         return 0
-
-    def get_demo_alert_payload(self, obj):
-        if obj.is_demo_alert_enabled:
-            try:
-                return obj.config.example_payload
-            except AttributeError:
-                return "{}"
-        return None
 
     def get_routes_count(self, obj) -> int:
         return obj.channel_filters.count()
