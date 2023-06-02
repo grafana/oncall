@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add public API endpoint to export a schedule's oncall-shifts as a `.csv` by @joeyorlando ([2047](https://github.com/grafana/oncall/pull/2047))
+- Add public API endpoint to export a schedule's final shifts by @joeyorlando ([2047](https://github.com/grafana/oncall/pull/2047))
 
 ### Fixed
 
