@@ -122,7 +122,7 @@ class TwilioPhoneProvider(PhoneProvider):
 
     def _get_graceful_msg(self, e, number):
         if e.code in (30003, 30005):
-            raise f"Destination handset {number} is unreachable"
+            return f"Destination handset {number} is unreachable"
         elif e.code == 30004:
             return f"Sending message to {number} is blocked"
         elif e.code == 30006:
@@ -131,7 +131,7 @@ class TwilioPhoneProvider(PhoneProvider):
             return f"Provider for {number} is experiencing timeouts"
         elif e.code == 60200:
             return f"{number} is incorrectly formatted"
-        elif e.code in (60410, 60605):
+        elif e.code in (21215, 60410, 60605):
             return f"Verification to {number} is blocked"
         elif e.code == 60203:
             return f"Max verification attempts for {number} reached"
