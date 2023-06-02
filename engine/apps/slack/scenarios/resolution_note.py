@@ -5,12 +5,13 @@ from django.apps import apps
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 
-from .step_mixins import CheckAlertIsUnarchivedMixin
+from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -372,18 +373,28 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         return blocks
 
 
-class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.ScenarioStep):
+class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, data=None):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        if data:
+            # Argument "data" is used when step is called from other step, e.g. AddRemoveThreadMessageStep
+            AlertGroup = apps.get_model("alerts", "AlertGroup")
+            alert_group = AlertGroup.all_objects.get(pk=data["alert_group_pk"])
+        else:
+            # Handle "Add Resolution notes" button click
+            alert_group = self.get_alert_group(slack_team_identity, payload)
+
+        if not self.is_authorized(alert_group):
+            self.open_unauthorized_warning(payload)
+            return
+
         value = data or json.loads(payload["actions"][0]["value"])
         resolution_note_window_action = value.get("resolution_note_window_action", "") or value.get("action_value", "")
-        alert_group_pk = value.get("alert_group_pk")
         action_resolve = value.get("action_resolve", False)
         channel_id = payload["channel"]["id"] if "channel" in payload else None
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
 
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
@@ -413,7 +424,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
             "private_metadata": json.dumps(
                 {
                     "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
-                    "alert_group_pk": alert_group_pk,
+                    "alert_group_pk": alert_group.pk,
                 }
             ),
         }
@@ -431,7 +442,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                     # Ignore "not_found" error, it means that the view was closed by user before the update request.
                     # It doesn't disrupt the user experience.
                     logger.debug(
-                        f"API call to views.update failed for alert group {alert_group_pk}, error: not_found. "
+                        f"API call to views.update failed for alert group {alert_group.pk}, error: not_found. "
                         f"Most likely the view was closed by user before the request was processed. "
                     )
                 else:

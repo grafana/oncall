@@ -16,5 +16,5 @@ class EmailMessage(models.Model):
         "base.UserNotificationPolicy", on_delete=models.SET_NULL, null=True, default=None
     )
 
-    receiver = models.ForeignKey("user_management.User", on_delete=models.PROTECT, null=True, default=None)
+    receiver = models.ForeignKey("user_management.User", on_delete=models.CASCADE, null=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)

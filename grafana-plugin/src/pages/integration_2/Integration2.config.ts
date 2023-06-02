@@ -1,3 +1,8 @@
+/*
+  [oncall-private]
+  Any change to this file needs to be done in the oncall-private also
+*/
+
 import { KeyValuePair } from 'utils';
 
 export const TEXTAREA_ROWS_COUNT = 4;
@@ -45,10 +50,6 @@ const TemplateOptions = {
   TelegramTitle: new KeyValuePair('telegram_title_template', 'Title'),
   TelegramMessage: new KeyValuePair('telegram_message_template', 'Message'),
   TelegramImage: new KeyValuePair('telegram_image_url_template', 'Image'),
-  /*Should it be in Oncallprivate repo? (All MsTeams)*/
-  MSTeamsTitle: new KeyValuePair('MSTeams Title', 'Title'),
-  MSTeamsMessage: new KeyValuePair('MSTeams Message', 'Message'),
-  MSTeamsImage: new KeyValuePair('MSTeams Image', 'Image'),
 
   Email: new KeyValuePair('Email', 'Email'),
   Slack: new KeyValuePair('Slack', 'Slack'),
@@ -102,24 +103,6 @@ export const INTEGRATION_TEMPLATES_LIST = [
       {
         label: TemplateOptions.SlackImage.value,
         value: TemplateOptions.SlackImage.key,
-      },
-    ],
-  },
-  {
-    label: TemplateOptions.MSTeams.value,
-    value: TemplateOptions.MSTeams.key,
-    children: [
-      {
-        label: TemplateOptions.MSTeamsTitle.value,
-        value: TemplateOptions.MSTeamsTitle.key,
-      },
-      {
-        label: TemplateOptions.MSTeamsMessage.value,
-        value: TemplateOptions.MSTeamsMessage.key,
-      },
-      {
-        label: TemplateOptions.MSTeamsImage.value,
-        value: TemplateOptions.MSTeamsImage.key,
       },
     ],
   },

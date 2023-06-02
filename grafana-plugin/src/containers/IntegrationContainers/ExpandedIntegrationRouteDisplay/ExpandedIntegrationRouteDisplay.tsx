@@ -1,7 +1,17 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, HorizontalGroup, InlineLabel, VerticalGroup, Icon, Tooltip, ConfirmModal, Select } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  InlineLabel,
+  VerticalGroup,
+  Icon,
+  Tooltip,
+  ConfirmModal,
+  Select,
+  LoadingPlaceholder,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -22,7 +32,6 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
@@ -48,16 +57,13 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     const store = useStore();
     const {
       telegramChannelStore,
-      teamStore,
       escalationPolicyStore,
       escalationChainStore,
       alertReceiveChannelStore,
       grafanaTeamStore,
     } = store;
 
-    const isSlackInstalled = Boolean(teamStore.currentTeam?.slack_team_identity);
-    const isTelegramInstalled =
-      store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
+    const [isLoading, setIsLoading] = useState(false);
 
     const [{ isEscalationCollapsed, isRefreshingEscalationChains, routeIdForDeletion }, setState] = useReducer(
       (state: ExpandedIntegrationRouteDisplayState, newState: Partial<ExpandedIntegrationRouteDisplayState>) => ({
@@ -72,7 +78,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     );
 
     useEffect(() => {
-      escalationChainStore.updateItems();
+      setIsLoading(true);
+      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
+        setIsLoading(false)
+      );
     }, []);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -89,6 +98,10 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
     const isDefault = IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
 
+    if (isLoading) {
+      return <LoadingPlaceholder text="Loading..." />;
+    }
+
     return (
       <>
         <IntegrationBlock
@@ -100,7 +113,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 <TooltipBadge
                   borderType="success"
                   text={IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
-                  tooltipTitle={undefined}
+                  tooltipTitle={IntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
                   tooltipContent={undefined}
                 />
               </HorizontalGroup>
@@ -116,6 +129,16 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
           }
           content={
             <VerticalGroup spacing="xs">
+              {routeIndex !== channelFiltersTotal.length - 1 && (
+                <IntegrationBlockItem>
+                  <VerticalGroup>
+                    <Text type="secondary">
+                      If the Routing Template is True, group the alerts using the Grouping Template, publish them to
+                      messengers, and trigger the escalation chain.
+                    </Text>
+                  </VerticalGroup>
+                </IntegrationBlockItem>
+              )}
               {/* Show Routing Template only for If/Else Routes, not for Default */}
               {!isDefault && (
                 <IntegrationBlockItem>
@@ -152,14 +175,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 </IntegrationBlockItem>
               )}
 
-              {(isSlackInstalled || isTelegramInstalled) && (
-                <IntegrationBlockItem>
-                  <VerticalGroup spacing="md">
-                    <Text type="primary">Publish to ChatOps</Text>
-                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-                  </VerticalGroup>
-                </IntegrationBlockItem>
-              )}
+              <IntegrationBlockItem>
+                <VerticalGroup spacing="md">
+                  <Text type="primary">Publish to ChatOps</Text>
+                  <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
+                </VerticalGroup>
+              </IntegrationBlockItem>
 
               <IntegrationBlockItem>
                 <VerticalGroup>
@@ -195,9 +216,13 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       ></Select>
                     </WithPermissionControlTooltip>
 
-                    <Tooltip content={'Reload escalation chains list'} placement={'top'}>
-                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
-                    </Tooltip>
+                    <Button
+                      variant={'secondary'}
+                      tooltip={'Refresh Escalation Chains'}
+                      icon={'sync'}
+                      size={'md'}
+                      onClick={onEscalationChainsRefresh}
+                    />
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
                       <Tooltip
@@ -295,7 +320,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
-  const channelFiltersTotal = Object.keys(alertReceiveChannelStore.channelFilters);
+  const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
   return (
     <HorizontalGroup spacing={'xs'}>
@@ -307,7 +332,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
         </WithPermissionControlTooltip>
       )}
 
-      {routeIndex < channelFiltersTotal.length - 2 && !channelFilter.is_default && (
+      {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Move Down'}>
             <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'sm'} />
@@ -318,18 +343,25 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
       {!channelFilter.is_default && (
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip placement="top" content={'Delete'}>
-            <Button variant={'secondary'} icon={'trash-alt'} size={'sm'} onClick={setRouteIdForDeletion} />
+            <Button variant={'secondary'} icon={'trash-alt'} size={'sm'} onClick={onDelete} />
           </Tooltip>
         </WithPermissionControlTooltip>
       )}
     </HorizontalGroup>
   );
 
-  function onRouteMoveDown() {
+  function onDelete(e: React.SyntheticEvent) {
+    e.stopPropagation();
+    setRouteIdForDeletion();
+  }
+
+  function onRouteMoveDown(e: React.SyntheticEvent) {
+    e.stopPropagation();
     alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex + 1);
   }
 
-  function onRouteMoveUp() {
+  function onRouteMoveUp(e: React.SyntheticEvent) {
+    e.stopPropagation();
     alertReceiveChannelStore.moveChannelFilterToPosition(alertReceiveChannelId, routeIndex, routeIndex - 1);
   }
 };
