@@ -9,7 +9,7 @@ description = None
 is_displayed_on_web = settings.FEATURE_INBOUND_EMAIL_ENABLED
 is_featured = False
 is_able_to_autoresolve = True
-is_demo_alert_enabled = False
+is_demo_alert_enabled = True
 
 
 # Default templates
@@ -46,3 +46,5 @@ grouping_id = '{{ payload.get("subject", "").upper() }}'
 resolve_condition = '{{ payload.get("message", "").upper() == "OK" }}'
 
 acknowledge_condition = None
+
+example_payload = {"subject": "Test email subject", "message": "Test email message", "sender": "sender@example.com"}

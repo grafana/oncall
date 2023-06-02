@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add public API endpoint to export a schedule's oncall-shifts as a `.csv` by @joeyorlando ([2047](https://github.com/grafana/oncall/pull/2047))
 
+### Fixed
+
+- Fix demo alert for inbound email integration by @vadimkerr ([#2081](https://github.com/grafana/oncall/pull/2081))
+
 ## v1.2.35 (2023-06-01)
 
 ### Fixed

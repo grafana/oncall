@@ -7,7 +7,7 @@ description = None
 is_displayed_on_web = False
 is_featured = False
 is_able_to_autoresolve = False
-is_demo_alert_enabled = True
+is_demo_alert_enabled = False
 
 description = None
 
@@ -45,3 +45,5 @@ grouping_id = None
 resolve_condition = None
 
 acknowledge_condition = None
+
+example_payload = None
