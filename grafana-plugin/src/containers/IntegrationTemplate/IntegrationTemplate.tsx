@@ -21,6 +21,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 
 import styles from './IntegrationTemplate.module.css';
@@ -46,6 +47,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
+  const [editorHeight, setEditorHeight] = useState<string>(undefined);
 
   useEffect(() => {
     const locationParams: any = { template: template.name };
@@ -55,11 +57,13 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     LocationHelper.update(locationParams, 'partial');
   }, []);
 
-  const getCodeEditorHeight = () => {
-    const mainDiv = document.getElementById('content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - 59;
-    return `${height}px`;
-  };
+  useEffect(() => {
+    waitForElement('#content-container-id').then(() => {
+      const mainDiv = document.getElementById('content-container-id');
+      const height = mainDiv?.getBoundingClientRect().height - 59;
+      setEditorHeight(`${height}px`);
+    });
+  }, []);
 
   const onShowCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(true);
@@ -197,14 +201,15 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                     </Button>
                   </HorizontalGroup>
                 </div>
-
-                <MonacoEditor
-                  value={changedTemplateBody}
-                  data={templates}
-                  showLineNumbers={true}
-                  height={getCodeEditorHeight()}
-                  onChange={getChangeHandler()}
-                />
+                <div className={cx('template-editor-block-content')}>
+                  <MonacoEditor
+                    value={changedTemplateBody}
+                    data={templates}
+                    showLineNumbers={true}
+                    height={editorHeight}
+                    onChange={getChangeHandler()}
+                  />
+                </div>
               </div>
             </>
           )}
