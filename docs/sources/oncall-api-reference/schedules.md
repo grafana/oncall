@@ -197,3 +197,25 @@ curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
 **HTTP request**
 
 `DELETE {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
+
+# Export a schedule's shifts
+
+**HTTP request**
+
+```shell
+curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/oncall_shifts_export?start_date=2023-01-01&end_date=2023-02-01" \
+  --request GET \
+  --header "Authorization: meowmeowmeow"
+```
+
+The response body will contain `text/csv` content as such:
+
+```csv
+user_pk,start,end
+UBM7DV7BKFUYU,2023-06-02 09:00:00,2023-06-02 17:00:00
+UAHG785BNVMCD,2023-06-02 09:00:00,2023-06-02 17:00:00
+...
+```
+
+_Note_: `start_date` and `end_date` are both required query parameters, that should represent ISO 8601 formatted dates.
+`end_date` must be greater than or equal to `start_date`.
