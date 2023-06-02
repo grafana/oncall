@@ -1,4 +1,5 @@
 import csv
+import io
 from unittest.mock import patch
 
 import pytest
@@ -866,11 +867,15 @@ def test_oncall_shifts_export(
 
     assert response.status_code == status.HTTP_200_OK
 
+    print(response.content)
+
     total_time_on_call = 0
-    for row in csv.DictReader(response.content):
-        end = timezone.datetime.strptime(row["shift_end"])
-        start = timezone.datetime.strptime(row["shift_start"])
-        total_time_on_call += (end - start).hours
+    for row in csv.DictReader(io.StringIO(response.content.decode())):
+        if row["user_pk"] == user.public_primary_key:
+            end = timezone.datetime.fromisoformat(row["shift_end"])
+            start = timezone.datetime.fromisoformat(row["shift_start"])
+            shift_time_in_seconds = (end - start).total_seconds()
+            total_time_on_call += shift_time_in_seconds / (60 * 60)
 
     # 3 shifts per week x 4 weeks x 8 hours per shift = 96
     assert total_time_on_call == 96

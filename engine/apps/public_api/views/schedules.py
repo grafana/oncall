@@ -183,7 +183,11 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
 
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = "attachment; filename='export.csv'"
-        writer = csv.DictWriter(response, fieldnames=["user_pk", "start", "end"])
+
+        user_pk_field_name = "user_pk"
+        shift_start_field_name = "shift_start"
+        shift_end_field_name = "shift_end"
+        writer = csv.DictWriter(response, fieldnames=[user_pk_field_name, shift_start_field_name, shift_end_field_name])
         writer.writeheader()
 
         final_schedule_events: ScheduleEvents = schedule.final_events("UTC", start_date, (end_date - start_date).days)
@@ -196,6 +200,12 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
             shift_start = event["start"]
             shift_end = event["end"]
             for user in event["users"]:
-                writer.writerow({"user_pk": user["pk"], "shift_start": shift_start, "shift_end": shift_end})
+                writer.writerow(
+                    {
+                        user_pk_field_name: user["pk"],
+                        shift_start_field_name: shift_start,
+                        shift_end_field_name: shift_end,
+                    }
+                )
 
         return response
