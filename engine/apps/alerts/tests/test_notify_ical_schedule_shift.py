@@ -304,3 +304,130 @@ def test_current_shift_changes_trigger_notification(
         notify_ical_schedule_shift(schedule.oncallschedule_ptr_id)
 
     assert mock_slack_api_call.called
+
+
+@pytest.mark.django_db
+def test_vtimezone_changes_no_triggering_notification(
+    make_organization_and_user_with_slack_identities,
+    make_user,
+    make_schedule,
+):
+    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    make_user(organization=organization, username="user1")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    ical_before = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        X-WR-TIMEZONE:Europe/London
+        METHOD:PUBLISH
+        BEGIN:VTIMEZONE
+        TZID:Europe/Rome
+        BEGIN:STANDARD
+        TZOFFSETFROM:0200
+        TZOFFSETTO:0100
+        TZNAME:CET
+        DTSTART:19701025T030000
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VTIMEZONE
+        TZID:America/Argentina/Buenos_Aires
+        X-LIC-LOCATION:America/Argentina/Buenos_Aires
+        BEGIN:STANDARD
+        TZOFFSETFROM:-0300
+        TZOFFSETTO:-0300
+        TZNAME:-03
+        DTSTART:19700101T000000
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230101
+        DTEND;VALUE=DATE:20230102
+        RRULE:FREQ=DAILY
+        DTSTAMP:20230101T000000
+        UID:id1@google.com
+        CREATED:20230101T000000
+        DESCRIPTION:
+        LAST-MODIFIED:20230101T000000
+        LOCATION:
+        SEQUENCE:1
+        STATUS:CONFIRMED
+        SUMMARY:user1
+        TRANSP:TRANSPARENT
+        END:VEVENT
+        END:VCALENDAR"""
+    )
+
+    # same data, timezones in different order (eg. google usually randomly reorders them)
+    ical_after = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/London
+        BEGIN:VTIMEZONE
+        TZID:America/Argentina/Buenos_Aires
+        X-LIC-LOCATION:America/Argentina/Buenos_Aires
+        BEGIN:STANDARD
+        TZOFFSETFROM:-0300
+        TZOFFSETTO:-0300
+        TZNAME:-03
+        DTSTART:19700101T000000
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VTIMEZONE
+        TZID:Europe/Rome
+        BEGIN:STANDARD
+        TZOFFSETFROM:0200
+        TZOFFSETTO:0100
+        TZNAME:CET
+        DTSTART:19701025T030000
+        END:STANDARD
+        END:VTIMEZONE
+        BEGIN:VEVENT
+        DTSTART;VALUE=DATE:20230101
+        DTEND;VALUE=DATE:20230102
+        RRULE:FREQ=DAILY
+        DTSTAMP:20230101T000000
+        UID:id1@google.com
+        CREATED:20230101T000000
+        DESCRIPTION:
+        LAST-MODIFIED:20230101T000000
+        LOCATION:
+        SEQUENCE:1
+        STATUS:CONFIRMED
+        SUMMARY:user1
+        TRANSP:TRANSPARENT
+        END:VEVENT
+        END:VCALENDAR"""
+    )
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        name="test_ical_schedule",
+        channel="channel",
+        ical_url_primary="url",
+        prev_ical_file_primary=ical_before,
+        cached_ical_file_primary=ical_after,
+        prev_ical_file_overrides=None,
+        cached_ical_file_overrides=None,
+    )
+
+    # setup current shifts before checking/triggering for notifications
+    calendar = icalendar.Calendar.from_ical(ical_before)
+    current_shifts, _ = get_current_shifts_from_ical(calendar, schedule, 0)
+    schedule.current_shifts = json.dumps(current_shifts, default=str)
+    schedule.empty_oncall = False
+    schedule.save()
+
+    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+        notify_ical_schedule_shift(schedule.oncallschedule_ptr_id)
+
+    assert not mock_slack_api_call.called
