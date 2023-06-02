@@ -1,7 +1,8 @@
 import csv
+import logging
+from datetime import date
 
 from django.http import HttpResponse
-from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
@@ -23,6 +24,8 @@ from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 from common.insight_log import EntityEvent, write_resource_insight_log
+
+logger = logging.getLogger(__name__)
 
 
 class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -130,17 +133,65 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
     def oncall_shifts_export(self, request, pk):
         schedule = self.get_object()
 
+        if not isinstance(schedule, OnCallScheduleWeb):
+            return Response(
+                "OnCall shifts exports are currently only available for web calendars",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        start_date_field_name = "start_date"
+        end_date_field_name = "end_date"
+
+        def _field_is_required(field_name):
+            return Response(f"{field_name} is required", status=status.HTTP_400_BAD_REQUEST)
+
+        def _field_is_invalid_date(field_name):
+            return Response(
+                f"{field_name} is not a valid date, must be in any valid ISO 8601 format",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        def _convert_date(value):
+            if not value:
+                return None
+
+            try:
+                return date.fromisoformat(value)
+            except ValueError:
+                return None
+
+        start_date_str = request.query_params.get(start_date_field_name, None)
+        start_date = _convert_date(start_date_str)
+
+        end_date_str = request.query_params.get(end_date_field_name, None)
+        end_date = _convert_date(end_date_str)
+
+        if start_date_str is None:
+            return _field_is_required(start_date_field_name)
+        elif start_date is None:
+            return _field_is_invalid_date(start_date_field_name)
+        elif end_date_str is None:
+            return _field_is_required(end_date_field_name)
+        elif end_date is None:
+            return _field_is_invalid_date(end_date_field_name)
+
+        if start_date > end_date:
+            return Response(
+                f"{start_date_field_name} must be less than or equal to {end_date_field_name}",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = "attachment; filename='export.csv'"
         writer = csv.DictWriter(response, fieldnames=["user_pk", "start", "end"])
         writer.writeheader()
 
-        thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
-        final_schedule_events: ScheduleEvents = schedule.final_events("UTC", thirty_days_ago, 30)
+        final_schedule_events: ScheduleEvents = schedule.final_events("UTC", start_date, (end_date - start_date).days)
 
-        # TODO: drop the request if it's not a web calendar
-        # TODO: handle query param filters
-        # TODO: pull dates from query params
+        logger.info(
+            f"Exporting oncall shifts for schedule {pk} between dates {start_date_str} and {end_date_str}. {len(final_schedule_events)} shift events were found."
+        )
+
         for event in final_schedule_events:
             shift_start = event["start"]
             shift_end = event["end"]
