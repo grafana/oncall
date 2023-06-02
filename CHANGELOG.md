@@ -5,7 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.35 (2023-06-01)
+
+### Fixed
+
+- Fix a bug with permissions for telegram user settings by @alexintech ([#2075](https://github.com/grafana/oncall/pull/2075))
+- Fix orphaned messages in Slack by @vadimkerr ([#2023](https://github.com/grafana/oncall/pull/2023))
+- Fix duplicated slack shift-changed notifications ([#2080](https://github.com/grafana/oncall/pull/2080))
+
+## v1.2.34 (2023-05-31)
+
+### Added
+
+- Add description to "Default channel for Slack notifications" UI dropdown by @joeyorlando ([2051](https://github.com/grafana/oncall/pull/2051))
+
+### Fixed
+
+- Fix templates when slack or telegram is disabled ([#2064](https://github.com/grafana/oncall/pull/2064))
+- Reduce number of alert groups returned by `Attach To` in slack to avoid event trigger timeout @mderynck ([#2049](https://github.com/grafana/oncall/pull/2049))
+
+## v1.2.33 (2023-05-30)
+
+### Fixed
+
+- Revert #2040 breaking `/escalate` Slack command
+
+## v1.2.32 (2023-05-30)
 
 ### Added
 
@@ -24,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Helm chart: fix bugs in helm chart with external postgresql configuration by @alexintech ([#2036](https://github.com/grafana/oncall/pull/2036))
 - Properly address `Organization.DoesNotExist` exceptions thrown which result in HTTP 500 for the Slack `interactive_api_endpoint`
   endpoint by @joeyorlando ([#2040](https://github.com/grafana/oncall/pull/2040))
+- Fix issue when trying to sync Grafana contact point and config receivers miss a key ([#2046](https://github.com/grafana/oncall/pull/2046))
 
 ### Changed
 

@@ -13,6 +13,7 @@ export interface AlertReceiveChannelOption {
   value: number;
   featured: boolean;
   short_description: string;
+  featured_tag_name: string;
 }
 
 export interface AlertReceiveChannelCounters {
@@ -43,6 +44,7 @@ export interface AlertReceiveChannel {
   heartbeat: Heartbeat | null;
   is_available_for_integration_heartbeat: boolean;
   routes_count: number;
+  connected_escalations_chains_count: number;
   allow_delete: boolean;
   deleted?: boolean;
 }
