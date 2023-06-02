@@ -198,33 +198,137 @@ curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
 
 `DELETE {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
-# Export a schedule's shifts
+# Export a schedule's final shifts
 
 **HTTP request**
 
 ```shell
-curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/oncall_shifts_export?start_date=2023-01-01&end_date=2023-02-01" \
+curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/final_shifts?start_date=2023-01-01&end_date=2023-02-01" \
   --request GET \
   --header "Authorization: meowmeowmeow"
 ```
 
-The response body will contain `text/csv` content as such:
+The above command returns JSON structured in the following way:
 
-```csv
-user_pk,shift_start,shift_end
-UQENVYDBP3IFE,2023-01-02 09:00:00+00:00,2023-01-02 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-04 09:00:00+00:00,2023-01-04 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-06 09:00:00+00:00,2023-01-06 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-09 09:00:00+00:00,2023-01-09 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-11 09:00:00+00:00,2023-01-11 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-13 09:00:00+00:00,2023-01-13 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-16 09:00:00+00:00,2023-01-16 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-18 09:00:00+00:00,2023-01-18 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-20 09:00:00+00:00,2023-01-20 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-23 09:00:00+00:00,2023-01-23 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-25 09:00:00+00:00,2023-01-25 17:00:00+00:00
-UQENVYDBP3IFE,2023-01-27 09:00:00+00:00,2023-01-27 17:00:00+00:00
+```json
+{
+  "count": 12,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "user_pk": "UC2CHRT5SD34X",
+      "shift_start": "2023-01-02T09:00:00Z",
+      "shift_end": "2023-01-02T17:00:00Z"
+    },
+    {
+      "user_pk": "U7S8H84ARFTGN",
+      "shift_start": "2023-01-04T09:00:00Z",
+      "shift_end": "2023-01-04T17:00:00Z"
+    },
+    {
+      "user_pk": "UC2CHRT5SD34X",
+      "shift_start": "2023-01-06T09:00:00Z",
+      "shift_end": "2023-01-06T17:00:00Z"
+    },
+    {
+      "user_pk": "U7S8H84ARFTGN",
+      "shift_start": "2023-01-09T09:00:00Z",
+      "shift_end": "2023-01-09T17:00:00Z"
+    },
+    {
+      "user_pk": "UC2CHRT5SD34X",
+      "shift_start": "2023-01-11T09:00:00Z",
+      "shift_end": "2023-01-11T17:00:00Z"
+    },
+    {
+      "user_pk": "U7S8H84ARFTGN",
+      "shift_start": "2023-01-13T09:00:00Z",
+      "shift_end": "2023-01-13T17:00:00Z"
+    },
+    {
+      "user_pk": "UC2CHRT5SD34X",
+      "shift_start": "2023-01-16T09:00:00Z",
+      "shift_end": "2023-01-16T17:00:00Z"
+    },
+    {
+      "user_pk": "U7S8H84ARFTGN",
+      "shift_start": "2023-01-18T09:00:00Z",
+      "shift_end": "2023-01-18T17:00:00Z"
+    },
+    {
+      "user_pk": "UC2CHRT5SD34X",
+      "shift_start": "2023-01-20T09:00:00Z",
+      "shift_end": "2023-01-20T17:00:00Z"
+    },
+    {
+      "user_pk": "U7S8H84ARFTGN",
+      "shift_start": "2023-01-23T09:00:00Z",
+      "shift_end": "2023-01-23T17:00:00Z"
+    },
+    {
+      "user_pk": "UC2CHRT5SD34X",
+      "shift_start": "2023-01-25T09:00:00Z",
+      "shift_end": "2023-01-25T17:00:00Z"
+    },
+    {
+      "user_pk": "U7S8H84ARFTGN",
+      "shift_start": "2023-01-27T09:00:00Z",
+      "shift_end": "2023-01-27T17:00:00Z"
+    }
+  ]
+}
 ```
 
-_Note_: `start_date` and `end_date` are both required query parameters, that should represent ISO 8601 formatted dates.
-`end_date` must be greater than or equal to `start_date`.
+## Caveats
+
+Some notes on the `start_date` and `end_date` query parameters:
+
+- they are both required and should represent ISO 8601 formatted dates
+- `end_date` must be greater than or equal to `start_date`
+- `end_date` cannot be more than 365 days in the future from `start_date`
+
+Lastly, this endpoint is currently only active for web schedules. It will return HTTP 400 for schedules
+defined via Terraform or iCal.
+
+## Example script to transform data to .csv for all of your schedules
+
+The following Python script will generate a `.csv` file, `oncall-report-2023-01-01-to-2023-01-31.csv`. This file will
+contain two columns, `user_pk` and `hours_on_call`, which represents how many hours each user was on call during the
+period starting January 1, 2023 to January 31, 2023 (inclusive).
+
+```python
+import collections
+import csv
+import requests
+from datetime import datetime
+
+# CUSTOMIZE THE FOLLOWING VARIABLES
+START_DATE = "2023-01-01"
+END_DATE = "2023-01-31"
+OUTPUT_FILE_NAME = f"oncall-report-{START_DATE}-to-{END_DATE}.csv"
+MY_ONCALL_API_BASE_URL = "https://oncall-prod-us-central-0.grafana.net/oncall/api/v1/schedules"
+MY_ONCALL_API_KEY = "meowmeowwoofwoof"
+
+headers = {"Authorization": MY_ONCALL_API_KEY}
+schedule_ids = [schedule["id"] for schedule in requests.get(MY_ONCALL_API_BASE_URL, headers=headers).json()["results"]]
+user_on_call_hours = collections.defaultdict(int)
+
+for schedule_id in schedule_ids:
+  response = requests.get(
+    f"{MY_ONCALL_API_BASE_URL}/{schedule_id}/final_shifts?start_date={START_DATE}&end_date={END_DATE}",
+    headers=headers)
+
+  for final_shift in response.json()["results"]:
+    end = datetime.fromisoformat(final_shift["shift_end"])
+    start = datetime.fromisoformat(final_shift["shift_start"])
+    shift_time_in_seconds = (end - start).total_seconds()
+    user_on_call_hours[final_shift["user_pk"]] += shift_time_in_seconds / (60 * 60)
+
+with open(OUTPUT_FILE_NAME, "w") as fp:
+  csv_writer = csv.DictWriter(fp, ["user_pk", "hours_on_call"])
+  csv_writer.writeheader()
+
+  for user_pk, hours_on_call in user_on_call_hours.items():
+    csv_writer.writerow({"user_pk": user_pk, "hours_on_call": hours_on_call})
+```

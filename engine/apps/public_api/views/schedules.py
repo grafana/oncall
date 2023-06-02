@@ -1,8 +1,6 @@
-import csv
 import logging
 from datetime import date
 
-from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
@@ -17,7 +15,7 @@ from apps.public_api.serializers import PolymorphicScheduleSerializer, Polymorph
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import ical_export_from_schedule
 from apps.schedules.models import OnCallSchedule, OnCallScheduleWeb
-from apps.schedules.models.on_call_schedule import ScheduleEvents
+from apps.schedules.models.on_call_schedule import ScheduleEvents, ScheduleFinalShifts
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
@@ -130,7 +128,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         return Response(export, status=status.HTTP_200_OK)
 
     @action(methods=["get"], detail=True)
-    def oncall_shifts_export(self, request, pk):
+    def final_shifts(self, request, pk):
         schedule = self.get_object()
 
         if not isinstance(schedule, OnCallScheduleWeb):
@@ -181,31 +179,38 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = "attachment; filename='export.csv'"
+        days_between_start_and_end = (end_date - start_date).days
+        if days_between_start_and_end > 365:
+            return Response(
+                f"The difference between {start_date_field_name} and {end_date_field_name} must be less than one year (365 days)",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        user_pk_field_name = "user_pk"
-        shift_start_field_name = "shift_start"
-        shift_end_field_name = "shift_end"
-        writer = csv.DictWriter(response, fieldnames=[user_pk_field_name, shift_start_field_name, shift_end_field_name])
-        writer.writeheader()
-
-        final_schedule_events: ScheduleEvents = schedule.final_events("UTC", start_date, (end_date - start_date).days)
+        final_schedule_events: ScheduleEvents = schedule.final_events("UTC", start_date, days_between_start_and_end)
 
         logger.info(
             f"Exporting oncall shifts for schedule {pk} between dates {start_date_str} and {end_date_str}. {len(final_schedule_events)} shift events were found."
         )
 
-        for event in final_schedule_events:
-            shift_start = event["start"]
-            shift_end = event["end"]
-            for user in event["users"]:
-                writer.writerow(
-                    {
-                        user_pk_field_name: user["pk"],
-                        shift_start_field_name: shift_start,
-                        shift_end_field_name: shift_end,
-                    }
-                )
+        data: ScheduleFinalShifts = [
+            {
+                "user_pk": user["pk"],
+                "shift_start": event["start"],
+                "shift_end": event["end"],
+            }
+            for event in final_schedule_events
+            for user in event["users"]
+        ]
 
-        return response
+        # right now we'll "mock out" the pagination related parameters (next and previous)
+        # rather than use a Pagination class from drf (as currently it operates on querysets). We've decided on this
+        # to make this response schema consistent with the rest of the public API + make it easy to add pagination
+        # here in the future (should we decide to migrate "final_shifts" to an actual model)
+        return Response(
+            {
+                "count": len(data),
+                "next": None,
+                "previous": None,
+                "results": data,
+            }
+        )

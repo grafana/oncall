@@ -97,8 +97,15 @@ class ScheduleEvent(TypedDict):
     shift: ScheduleEventShift
 
 
+class ScheduleFinalShift(TypedDict):
+    user_pk: str
+    shift_start: str
+    shift_end: str
+
+
 ScheduleEvents = List[ScheduleEvent]
 ScheduleEventIntervals = List[List[datetime.datetime]]
+ScheduleFinalShifts = List[ScheduleFinalShift]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():

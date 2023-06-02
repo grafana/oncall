@@ -1,5 +1,4 @@
-import csv
-import io
+import collections
 from unittest.mock import patch
 
 import pytest
@@ -801,7 +800,7 @@ def test_oncall_shifts_request_validation(
     client = APIClient()
 
     def _make_request(schedule, query_params=""):
-        url = reverse("api-public:schedules-oncall-shifts-export", kwargs={"pk": schedule.public_primary_key})
+        url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
         return client.get(f"{url}{query_params}", format="json", HTTP_AUTHORIZATION=token)
 
     # only web schedules are allowed for now
@@ -834,14 +833,20 @@ def test_oncall_shifts_request_validation(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data == "start_date must be less than or equal to end_date"
 
+    response = _make_request(web_schedule, "?end_date=2021-01-01&start_date=2019-12-31")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == "The difference between start_date and end_date must be less than one year (365 days)"
+
 
 @pytest.mark.django_db
 def test_oncall_shifts_export(
     make_organization_and_user_with_token,
+    make_user,
     make_schedule,
     make_on_call_shift,
 ):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, user1, token = make_organization_and_user_with_token()
+    user2 = make_user(organization=organization)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
     start_date = timezone.datetime(2023, 1, 1, 9, 0, 0)
@@ -855,25 +860,37 @@ def test_oncall_shifts_export(
         by_day=["MO", "WE", "FR"],
         start=start_date,
         until=start_date + timezone.timedelta(days=28),
-        rolling_users=[{user.pk: user.public_primary_key}],
+        rolling_users=[{user1.pk: user1.public_primary_key}, {user2.pk: user2.public_primary_key}],
         rotation_start=start_date,
         duration=timezone.timedelta(hours=8),
     )
 
     client = APIClient()
 
-    url = reverse("api-public:schedules-oncall-shifts-export", kwargs={"pk": schedule.public_primary_key})
+    url = reverse("api-public:schedules-final-shifts", kwargs={"pk": schedule.public_primary_key})
     response = client.get(f"{url}?start_date=2023-01-01&end_date=2023-02-01", format="json", HTTP_AUTHORIZATION=token)
+    response_json = response.json()
+    shifts = response_json["results"]
+
+    total_time_on_call = collections.defaultdict(int)
+    for row in shifts:
+        end = timezone.datetime.fromisoformat(row["shift_end"])
+        start = timezone.datetime.fromisoformat(row["shift_start"])
+        shift_time_in_seconds = (end - start).total_seconds()
+        total_time_on_call[row["user_pk"]] += shift_time_in_seconds / (60 * 60)
 
     assert response.status_code == status.HTTP_200_OK
 
-    total_time_on_call = 0
-    for row in csv.DictReader(io.StringIO(response.content.decode())):
-        if row["user_pk"] == user.public_primary_key:
-            end = timezone.datetime.fromisoformat(row["shift_end"])
-            start = timezone.datetime.fromisoformat(row["shift_start"])
-            shift_time_in_seconds = (end - start).total_seconds()
-            total_time_on_call += shift_time_in_seconds / (60 * 60)
+    # 3 shifts per week x 4 weeks x 8 hours per shift = 96 / 2 users = 48h per user for this period
+    expected_time_on_call = 48
+    assert total_time_on_call[user1.public_primary_key] == expected_time_on_call
+    assert total_time_on_call[user2.public_primary_key] == expected_time_on_call
 
-    # 3 shifts per week x 4 weeks x 8 hours per shift = 96
-    assert total_time_on_call == 96
+    # pagination parameters are mocked out for now
+    assert response_json["next"] is None
+    assert response_json["previous"] is None
+    assert response_json["count"] == len(shifts)
+
+    print(response_json["results"])
+
+    assert True is False
