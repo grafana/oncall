@@ -867,7 +867,9 @@ def test_oncall_shifts_export(
 
     total_time_on_call = 0
     for row in csv.DictReader(response.content):
-        total_time_on_call += row["shift_end"] - row["shift_start"]
+        end = timezone.datetime.strptime(row["shift_end"])
+        start = timezone.datetime.strptime(row["shift_start"])
+        total_time_on_call += (end - start).hours
 
     # 3 shifts per week x 4 weeks x 8 hours per shift = 96
     assert total_time_on_call == 96
