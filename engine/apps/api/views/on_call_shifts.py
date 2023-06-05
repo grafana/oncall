@@ -71,7 +71,8 @@ class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerialize
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized
-        serializer.save()
+        force_update = self.request.query_params.get("force", "") == "true"
+        serializer.save(force_update=force_update)
         new_state = serializer.instance.insight_logs_serialized
         write_resource_insight_log(
             instance=serializer.instance,

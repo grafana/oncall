@@ -403,6 +403,56 @@ def test_update_started_on_call_shift(
 
 
 @pytest.mark.django_db
+def test_update_started_on_call_shift_force_update(
+    on_call_shift_internal_api_setup,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+
+    client = APIClient()
+    start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
+
+    title = "Test Shift Rotation"
+    on_call_shift = make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        title=title,
+        start=start_date,
+        duration=timezone.timedelta(hours=3),
+        rotation_start=start_date,
+        rolling_users=[{user1.pk: user1.public_primary_key}],
+    )
+    data_to_update = {
+        "title": title,
+        "priority_level": 2,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": None,
+        "interval": None,
+        "by_day": None,
+        "rolling_users": [[user1.public_primary_key]],
+    }
+
+    assert on_call_shift.priority_level != data_to_update["priority_level"]
+
+    url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key}) + "?force=true"
+
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    # check no shift was created
+    assert response.data["id"] == on_call_shift.public_primary_key
+    on_call_shift.refresh_from_db()
+    assert on_call_shift.priority_level == data_to_update["priority_level"]
+    assert on_call_shift.updated_shift is None
+    assert on_call_shift.until is None
+
+
+@pytest.mark.django_db
 def test_update_old_on_call_shift_with_future_version(
     on_call_shift_internal_api_setup,
     make_on_call_shift,
