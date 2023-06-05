@@ -216,73 +216,85 @@ The above command returns JSON structured in the following way:
   "results": [
     {
       "user_pk": "UC2CHRT5SD34X",
-      "user_email": "spongebob@grafana.com",
+      "user_email": "alice@example.com",
+      "user_username": "alice",
       "shift_start": "2023-01-02T09:00:00Z",
       "shift_end": "2023-01-02T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
-      "user_email": "squarepants@grafana.com",
+      "user_email": "bob@example.com",
+      "user_username": "bob",
       "shift_start": "2023-01-04T09:00:00Z",
       "shift_end": "2023-01-04T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
-      "user_email": "spongebob@grafana.com",
+      "user_email": "alice@example.com",
+      "user_username": "alice",
       "shift_start": "2023-01-06T09:00:00Z",
       "shift_end": "2023-01-06T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
-      "user_email": "squarepants@grafana.com",
+      "user_email": "bob@example.com",
+      "user_username": "bob",
       "shift_start": "2023-01-09T09:00:00Z",
       "shift_end": "2023-01-09T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
-      "user_email": "spongebob@grafana.com",
+      "user_email": "alice@example.com",
+      "user_username": "alice",
       "shift_start": "2023-01-11T09:00:00Z",
       "shift_end": "2023-01-11T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
-      "user_email": "squarepants@grafana.com",
+      "user_email": "bob@example.com",
+      "user_username": "bob",
       "shift_start": "2023-01-13T09:00:00Z",
       "shift_end": "2023-01-13T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
-      "user_email": "spongebob@grafana.com",
+      "user_email": "alice@example.com",
+      "user_username": "alice",
       "shift_start": "2023-01-16T09:00:00Z",
       "shift_end": "2023-01-16T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
-      "user_email": "squarepants@grafana.com",
+      "user_email": "bob@example.com",
+      "user_username": "bob",
       "shift_start": "2023-01-18T09:00:00Z",
       "shift_end": "2023-01-18T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
-      "user_email": "spongebob@grafana.com",
+      "user_email": "alice@example.com",
+      "user_username": "alice",
       "shift_start": "2023-01-20T09:00:00Z",
       "shift_end": "2023-01-20T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
-      "user_email": "squarepants@grafana.com",
+      "user_email": "bob@example.com",
+      "user_username": "bob",
       "shift_start": "2023-01-23T09:00:00Z",
       "shift_end": "2023-01-23T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
-      "user_email": "spongebob@grafana.com",
+      "user_email": "alice@example.com",
+      "user_username": "alice",
       "shift_start": "2023-01-25T09:00:00Z",
       "shift_end": "2023-01-25T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
-      "user_email": "squarepants@grafana.com",
+      "user_email": "bob@example.com",
+      "user_username": "bob",
       "shift_start": "2023-01-27T09:00:00Z",
       "shift_end": "2023-01-27T17:00:00Z"
     }

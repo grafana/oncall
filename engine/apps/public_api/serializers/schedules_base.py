@@ -71,3 +71,17 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         }
 
         return result
+
+
+class FinalShiftQueryParamsSerializer(serializers.Serializer):
+    start_date = serializers.DateField(required=True)
+    end_date = serializers.DateField(required=True)
+
+    def validate(self, attrs):
+        if attrs["start_date"] > attrs["end_date"]:
+            raise serializers.ValidationError("start_date must be less than or equal to end_date")
+        if attrs["end_date"] - attrs["start_date"] > timezone.timedelta(days=365):
+            raise serializers.ValidationError(
+                "The difference between start_date and end_date must be less than one year (365 days)"
+            )
+        return attrs

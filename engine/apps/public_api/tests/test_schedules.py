@@ -795,7 +795,7 @@ def test_oncall_shifts_request_validation(
     web_schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
     schedule_type_validation_msg = "OnCall shifts exports are currently only available for web calendars"
-    valid_date_msg = "is not a valid date, must be in any valid ISO 8601 format"
+    valid_date_msg = "Date has wrong format. Use one of these formats instead: YYYY-MM-DD."
 
     client = APIClient()
 
@@ -815,27 +815,35 @@ def test_oncall_shifts_request_validation(
     # query param validation
     response = _make_request(web_schedule, "?start_date=2021-01-01")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == "end_date is required"
+    assert response.json()["end_date"][0] == "This field is required."
 
     response = _make_request(web_schedule, "?start_date=asdfasdf")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == f"start_date {valid_date_msg}"
+    assert response.json()["start_date"][0] == valid_date_msg
 
     response = _make_request(web_schedule, "?end_date=2021-01-01")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == "start_date is required"
+    assert response.json()["start_date"][0] == "This field is required."
 
     response = _make_request(web_schedule, "?start_date=2021-01-01&end_date=asdfasdf")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == f"end_date {valid_date_msg}"
+    assert response.json()["end_date"][0] == valid_date_msg
 
     response = _make_request(web_schedule, "?end_date=2021-01-01&start_date=2022-01-01")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == "start_date must be less than or equal to end_date"
+    assert response.json() == {
+        "non_field_errors": [
+            "start_date must be less than or equal to end_date",
+        ]
+    }
 
     response = _make_request(web_schedule, "?end_date=2021-01-01&start_date=2019-12-31")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data == "The difference between start_date and end_date must be less than one year (365 days)"
+    assert response.json() == {
+        "non_field_errors": [
+            "The difference between start_date and end_date must be less than one year (365 days)",
+        ]
+    }
 
 
 @pytest.mark.django_db
@@ -847,11 +855,13 @@ def test_oncall_shifts_export(
 ):
     organization, _, token = make_organization_and_user_with_token()
 
-    user1_email = "spongebob@grafana.com"
-    user2_email = "squarepants@grafana.com"
+    user1_email = "alice@example.com"
+    user2_email = "bob@example.com"
+    user1_username = "alice"
+    user2_username = "bob"
 
-    user1 = make_user(organization=organization, email=user1_email)
-    user2 = make_user(organization=organization, email=user2_email)
+    user1 = make_user(organization=organization, email=user1_email, username=user1_username)
+    user2 = make_user(organization=organization, email=user2_email, username=user2_username)
 
     user1_public_primary_key = user1.public_primary_key
     user2_public_primary_key = user2.public_primary_key
@@ -881,12 +891,23 @@ def test_oncall_shifts_export(
     shifts = response_json["results"]
 
     total_time_on_call = collections.defaultdict(int)
-    pk_to_email_mapping = {user1_public_primary_key: user1_email, user2_public_primary_key: user2_email}
+    pk_to_user_mapping = {
+        user1_public_primary_key: {
+            "email": user1_email,
+            "username": user1_username,
+        },
+        user2_public_primary_key: {
+            "email": user2_email,
+            "username": user2_username,
+        },
+    }
+
     for row in shifts:
         user_pk = row["user_pk"]
 
-        # make sure we're exporting email as well
-        assert pk_to_email_mapping[user_pk] == row["user_email"]
+        # make sure we're exporting email and username as well
+        assert pk_to_user_mapping[user_pk]["email"] == row["user_email"]
+        assert pk_to_user_mapping[user_pk]["username"] == row["user_username"]
 
         end = timezone.datetime.fromisoformat(row["shift_end"])
         start = timezone.datetime.fromisoformat(row["shift_start"])

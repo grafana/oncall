@@ -101,6 +101,7 @@ class ScheduleEvent(TypedDict):
 class ScheduleFinalShift(TypedDict):
     user_pk: str
     user_email: str
+    user_username: str
     shift_start: str
     shift_end: str
 

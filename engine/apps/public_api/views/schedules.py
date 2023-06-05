@@ -1,5 +1,4 @@
 import logging
-from datetime import date
 
 from django_filters import rest_framework as filters
 from rest_framework import status
@@ -12,6 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.auth_token.auth import ApiTokenAuthentication, ScheduleExportAuthentication
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import PolymorphicScheduleSerializer, PolymorphicScheduleUpdateSerializer
+from apps.public_api.serializers.schedules_base import FinalShiftQueryParamsSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import ical_export_from_schedule
 from apps.schedules.models import OnCallSchedule, OnCallScheduleWeb
@@ -137,65 +137,24 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        start_date_field_name = "start_date"
-        end_date_field_name = "end_date"
+        serializer = FinalShiftQueryParamsSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
 
-        def _field_is_required(field_name):
-            return Response(f"{field_name} is required", status=status.HTTP_400_BAD_REQUEST)
-
-        def _field_is_invalid_date(field_name):
-            return Response(
-                f"{field_name} is not a valid date, must be in any valid ISO 8601 format",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        def _convert_date(value):
-            if not value:
-                return None
-
-            try:
-                return date.fromisoformat(value)
-            except ValueError:
-                return None
-
-        start_date_str = request.query_params.get(start_date_field_name, None)
-        start_date = _convert_date(start_date_str)
-
-        end_date_str = request.query_params.get(end_date_field_name, None)
-        end_date = _convert_date(end_date_str)
-
-        if start_date_str is None:
-            return _field_is_required(start_date_field_name)
-        elif start_date is None:
-            return _field_is_invalid_date(start_date_field_name)
-        elif end_date_str is None:
-            return _field_is_required(end_date_field_name)
-        elif end_date is None:
-            return _field_is_invalid_date(end_date_field_name)
-
-        if start_date > end_date:
-            return Response(
-                f"{start_date_field_name} must be less than or equal to {end_date_field_name}",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
+        start_date = serializer.validated_data["start_date"]
+        end_date = serializer.validated_data["end_date"]
         days_between_start_and_end = (end_date - start_date).days
-        if days_between_start_and_end > 365:
-            return Response(
-                f"The difference between {start_date_field_name} and {end_date_field_name} must be less than one year (365 days)",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         final_schedule_events: ScheduleEvents = schedule.final_events("UTC", start_date, days_between_start_and_end)
 
         logger.info(
-            f"Exporting oncall shifts for schedule {pk} between dates {start_date_str} and {end_date_str}. {len(final_schedule_events)} shift events were found."
+            f"Exporting oncall shifts for schedule {pk} between dates {start_date} and {end_date}. {len(final_schedule_events)} shift events were found."
         )
 
         data: ScheduleFinalShifts = [
             {
                 "user_pk": user["pk"],
                 "user_email": user["email"],
+                "user_username": user["display_name"],
                 "shift_start": event["start"],
                 "shift_end": event["end"],
             }
