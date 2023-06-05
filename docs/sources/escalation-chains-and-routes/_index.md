@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/escalation-chains-and-routes/
 canonical: https://grafana.com/docs/oncall/latest/escalation-chains-and-routes/
 title: Escalation Chains and Routes
 weight: 600

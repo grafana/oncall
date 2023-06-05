@@ -1,7 +1,5 @@
 ---
 title: User and team management
-aliases:
-  - /docs/oncall/latest/user-and-team-management/
 keywords:
   - oncall
   - RBAC

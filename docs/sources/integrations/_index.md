@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/integration-with-alert-sources/
 canonical: https://grafana.com/docs/oncall/latest/integration-with-alert-sources/
 keywords:
   - Grafana Cloud

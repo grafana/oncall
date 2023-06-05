@@ -7,7 +7,9 @@ RUN apt-get update && apt-get install -y \
     netcat \
     curl \
     bash \
-    git
+    git \
+    libpcre3 \
+    libpcre3-dev
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./

@@ -1,7 +1,5 @@
 ---
 title: Mobile App
-aliases:
-  - /docs/oncall/latest/mobile-app/
 canonical: https://grafana.com/docs/oncall/latest/mobile-app/
 keywords:
   - Mobile App
