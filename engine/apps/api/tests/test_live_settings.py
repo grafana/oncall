@@ -103,6 +103,34 @@ def test_live_settings_update_not_trigger_unpopulate_slack_identities(
 
 
 @pytest.mark.django_db
+def test_live_settings_update_validate_settings_once(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_live_setting,
+    settings,
+):
+    """
+    Check that settings are validated only once per update.
+    """
+
+    settings.FEATURE_LIVE_SETTINGS_ENABLED = True
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    LiveSetting.populate_settings_if_needed()
+    live_setting = LiveSetting.objects.get(name="EMAIL_HOST")  # random setting
+
+    client = APIClient()
+    url = reverse("api-internal:live_settings-detail", kwargs={"pk": live_setting.public_primary_key})
+    data = {"id": live_setting.public_primary_key, "value": "TEST_UPDATED_VALUE", "name": "EMAIL_HOST"}
+
+    with mock.patch.object(LiveSetting, "validate_settings") as mock_validate_settings:
+        response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == HTTP_200_OK
+    mock_validate_settings.assert_called_once()
+
+
+@pytest.mark.django_db
 def test_live_settings_telegram_calls_set_webhook_once(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
@@ -129,4 +157,6 @@ def test_live_settings_telegram_calls_set_webhook_once(
             response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == HTTP_200_OK
-    mock_set_webhook.assert_called_once()
+    mock_set_webhook.assert_called_once_with(
+        "TEST_UPDATED_VALUE/telegram/", allowed_updates=("message", "callback_query")
+    )
