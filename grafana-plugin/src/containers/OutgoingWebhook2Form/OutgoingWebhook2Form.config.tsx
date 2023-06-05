@@ -161,7 +161,7 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'authorization_header',
-      type: FormItemType.Input,
+      type: FormItemType.Password,
     },
     {
       name: 'trigger_template',
