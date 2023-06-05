@@ -220,9 +220,6 @@ class LiveSetting(models.Model):
         return getattr(settings, setting_name)
 
     def save(self, *args, **kwargs):
-        """
-        Save checks that setting name is in list of available names, then saves it.
-        """
         if self.name not in self.AVAILABLE_NAMES:
             raise ValueError(
                 f"Setting with name '{self.name}' is not in list of available names {self.AVAILABLE_NAMES}"
