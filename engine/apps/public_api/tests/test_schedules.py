@@ -855,8 +855,8 @@ def test_oncall_shifts_export(
 ):
     organization, _, token = make_organization_and_user_with_token()
 
-    user1_email = "alice@example.com"
-    user2_email = "bob@example.com"
+    user1_email = "alice909450945045@example.com"
+    user2_email = "bob123123123123123@example.com"
     user1_username = "alice"
     user2_username = "bob"
 
