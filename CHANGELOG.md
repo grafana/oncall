@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Do not hide not secret settings in the web plugin UI by @alexintech ([#1964](https://github.com/grafana/oncall/pull/1964))
+- Fix Telegram ratelimit on live setting change by @vadimkerr and @alexintech ([#2100](https://github.com/grafana/oncall/pull/2100))
 
 ## v1.2.36 (2023-06-02)
 
