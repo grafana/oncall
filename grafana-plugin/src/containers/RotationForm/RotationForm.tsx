@@ -265,9 +265,12 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const handleRepeatEveryValueChange = useCallback(
     (option) => {
-      setShiftPeriodDefaultValue(undefined);
+      const value = Math.floor(Number(option.value));
+      if (isNaN(value) || value < 1) {
+        return;
+      }
 
-      const value = Number(option.value);
+      setShiftPeriodDefaultValue(undefined);
       setRepeatEveryValue(value);
 
       if (!showActiveOnSelectedPartOfDay) {
@@ -475,10 +478,12 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                 </div>
                 <div className={cx('two-fields')}>
                   <Field
+                    invalid={Boolean(errors.interval)}
+                    error={'Invalid recurrence period'}
                     label={
                       <HorizontalGroup spacing="sm">
                         <Text type="primary" size="small">
-                          Shift frequency
+                          Recurrence period
                         </Text>
                         <Tooltip content="Time interval when users shifts are rotated. Shifts active period can be customised by days of the week and hours during a day.">
                           <Icon name="info-circle" size="md"></Icon>
@@ -497,6 +502,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                   </Field>
                   <Field label="">
                     <RemoteSelect
+                      showSearch={false}
                       href="/oncall_shifts/frequency_options/"
                       value={repeatEveryPeriod}
                       onChange={handleRepeatEveryPeriodChange}
@@ -504,13 +510,6 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     />
                   </Field>
                 </div>
-
-                {/*  <Collapse
-                  className={cx('active-periods')}
-                  contentClassName={cx('active-periods-content')}
-                  isOpen={shiftId !== 'new'}
-                  label={<Text>Active period</Text>}
-                > */}
                 <VerticalGroup spacing="md">
                   <VerticalGroup>
                     <HorizontalGroup align="flex-start">
@@ -520,7 +519,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                         onChange={handleShowActiveOnSelectedDaysToggle}
                       />
                       <VerticalGroup>
-                        <Text type="secondary">Days of the week</Text>
+                        <Text type="secondary">Mask by weekdays</Text>
                         {showActiveOnSelectedDays && (
                           <DaysSelector
                             options={store.scheduleStore.byDayOptions}
@@ -540,7 +539,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                         onChange={handleShowActiveOnSelectedPartOfDayToggle}
                       />
                       <VerticalGroup>
-                        <Text type="secondary">Shift length</Text>
+                        <Text type="secondary">Limit each shift length</Text>
                         {showActiveOnSelectedPartOfDay && (
                           <ShiftPeriod
                             repeatEveryPeriod={repeatEveryPeriod}
@@ -557,7 +556,6 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     </HorizontalGroup>
                   </VerticalGroup>
                 </VerticalGroup>
-                {/* </Collapse> */}
                 <div style={{ marginTop: '16px' }}>
                   <HorizontalGroup>
                     <Text size="small">Users</Text>
