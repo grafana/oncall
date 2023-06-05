@@ -1363,7 +1363,9 @@ def test_on_call_shift_preview(
             "is_gap": False,
             "priority_level": 2,
             "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "users": [
+                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            ],
             "source": "web",
         }
     ]
