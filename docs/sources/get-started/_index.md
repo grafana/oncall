@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/oncall/latest/get-started/
   - /getting-started/
 canonical: https://grafana.com/docs/oncall/latest/get-started/
 keywords:
@@ -68,7 +67,7 @@ For more information on Grafana OnCall integrations and further configuration gu
 
 ### Learn Alert Flow
 
-All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "jinja2-templating" >}})). Alert Group could have mutually
+All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "../jinja2-templating" >}})). Alert Group could have mutually
 exclusive states:
 
 - **Firing:** Once Alert Group is registered, Escalation Policy associated with it is getting started. Escalation policy will work while Alert Group is in this status.

@@ -1,7 +1,6 @@
 ---
 aliases:
   - ../../chat-options/configure-telegram/
-  - /docs/oncall/latest/integrations/chatops-integrations/configure-telegram/
 canonical: https://grafana.com/docs/oncall/latest/integrations/chatops-integrations/configure-telegram/
 keywords:
   - Grafana Cloud
