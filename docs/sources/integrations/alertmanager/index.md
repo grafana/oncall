@@ -1,7 +1,6 @@
 ---
 aliases:
   - add-alertmanager/
-  - /docs/oncall/latest/integrations/available-integrations/configure-alertmanager/
 canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-alertmanager/
 keywords:
   - Grafana Cloud

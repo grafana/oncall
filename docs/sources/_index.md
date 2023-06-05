@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/
 canonical: https://grafana.com/docs/oncall/latest/
 keywords:
   - Grafana Cloud

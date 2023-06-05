@@ -1,7 +1,6 @@
 ---
 aliases:
   - ../outgoing-webhooks/
-  - /docs/oncall/latest/outgoing-webhooks/
 canonical: https://grafana.com/docs/oncall/latest/outgoing-webhooks/
 keywords:
   - Grafana Cloud
