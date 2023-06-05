@@ -195,6 +195,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         data: ScheduleFinalShifts = [
             {
                 "user_pk": user["pk"],
+                "user_email": user["email"],
                 "shift_start": event["start"],
                 "shift_end": event["end"],
             }

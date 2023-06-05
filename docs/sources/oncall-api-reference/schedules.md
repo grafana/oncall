@@ -218,61 +218,73 @@ The above command returns JSON structured in the following way:
   "results": [
     {
       "user_pk": "UC2CHRT5SD34X",
+      "user_email": "spongebob@grafana.com",
       "shift_start": "2023-01-02T09:00:00Z",
       "shift_end": "2023-01-02T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
+      "user_email": "squarepants@grafana.com",
       "shift_start": "2023-01-04T09:00:00Z",
       "shift_end": "2023-01-04T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
+      "user_email": "spongebob@grafana.com",
       "shift_start": "2023-01-06T09:00:00Z",
       "shift_end": "2023-01-06T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
+      "user_email": "squarepants@grafana.com",
       "shift_start": "2023-01-09T09:00:00Z",
       "shift_end": "2023-01-09T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
+      "user_email": "spongebob@grafana.com",
       "shift_start": "2023-01-11T09:00:00Z",
       "shift_end": "2023-01-11T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
+      "user_email": "squarepants@grafana.com",
       "shift_start": "2023-01-13T09:00:00Z",
       "shift_end": "2023-01-13T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
+      "user_email": "spongebob@grafana.com",
       "shift_start": "2023-01-16T09:00:00Z",
       "shift_end": "2023-01-16T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
+      "user_email": "squarepants@grafana.com",
       "shift_start": "2023-01-18T09:00:00Z",
       "shift_end": "2023-01-18T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
+      "user_email": "spongebob@grafana.com",
       "shift_start": "2023-01-20T09:00:00Z",
       "shift_end": "2023-01-20T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
+      "user_email": "squarepants@grafana.com",
       "shift_start": "2023-01-23T09:00:00Z",
       "shift_end": "2023-01-23T17:00:00Z"
     },
     {
       "user_pk": "UC2CHRT5SD34X",
+      "user_email": "spongebob@grafana.com",
       "shift_start": "2023-01-25T09:00:00Z",
       "shift_end": "2023-01-25T17:00:00Z"
     },
     {
       "user_pk": "U7S8H84ARFTGN",
+      "user_email": "squarepants@grafana.com",
       "shift_start": "2023-01-27T09:00:00Z",
       "shift_end": "2023-01-27T17:00:00Z"
     }
@@ -294,11 +306,10 @@ defined via Terraform or iCal.
 ## Example script to transform data to .csv for all of your schedules
 
 The following Python script will generate a `.csv` file, `oncall-report-2023-01-01-to-2023-01-31.csv`. This file will
-contain two columns, `user_pk` and `hours_on_call`, which represents how many hours each user was on call during the
-period starting January 1, 2023 to January 31, 2023 (inclusive).
+contain three columns, `user_pk`, `user_email`, and `hours_on_call`, which represents how many hours each user was
+on call during the period starting January 1, 2023 to January 31, 2023 (inclusive).
 
 ```python
-import collections
 import csv
 import requests
 from datetime import datetime
@@ -312,7 +323,7 @@ MY_ONCALL_API_KEY = "meowmeowwoofwoof"
 
 headers = {"Authorization": MY_ONCALL_API_KEY}
 schedule_ids = [schedule["id"] for schedule in requests.get(MY_ONCALL_API_BASE_URL, headers=headers).json()["results"]]
-user_on_call_hours = collections.defaultdict(int)
+user_on_call_hours = {}
 
 for schedule_id in schedule_ids:
   response = requests.get(
@@ -320,15 +331,25 @@ for schedule_id in schedule_ids:
     headers=headers)
 
   for final_shift in response.json()["results"]:
+    user_pk = final_shift["user_pk"]
     end = datetime.fromisoformat(final_shift["shift_end"])
     start = datetime.fromisoformat(final_shift["shift_start"])
     shift_time_in_seconds = (end - start).total_seconds()
-    user_on_call_hours[final_shift["user_pk"]] += shift_time_in_seconds / (60 * 60)
+    shift_time_in_hours = shift_time_in_seconds / (60 * 60)
+
+    if user_pk in user_on_call_hours:
+      user_on_call_hours[user_pk]["hours_on_call"] += shift_time_in_hours
+    else:
+      user_on_call_hours[user_pk] = {
+        "email": final_shift["user_email"],
+        "hours_on_call": shift_time_in_hours,
+      }
 
 with open(OUTPUT_FILE_NAME, "w") as fp:
-  csv_writer = csv.DictWriter(fp, ["user_pk", "hours_on_call"])
+  csv_writer = csv.DictWriter(fp, ["user_pk", "user_email", "hours_on_call"])
   csv_writer.writeheader()
 
-  for user_pk, hours_on_call in user_on_call_hours.items():
-    csv_writer.writerow({"user_pk": user_pk, "hours_on_call": hours_on_call})
+  for user_pk, user_info in user_on_call_hours.items():
+    csv_writer.writerow({
+      "user_pk": user_pk, "user_email": user_info["email"], "hours_on_call": user_info["hours_on_call"]})
 ```

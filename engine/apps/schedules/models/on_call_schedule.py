@@ -76,6 +76,7 @@ class QualityReport(TypedDict):
 class ScheduleEventUser(TypedDict):
     display_name: str
     pk: str
+    email: str
 
 
 class ScheduleEventShift(TypedDict):
@@ -99,6 +100,7 @@ class ScheduleEvent(TypedDict):
 
 class ScheduleFinalShift(TypedDict):
     user_pk: str
+    user_email: str
     shift_start: str
     shift_end: str
 
@@ -330,6 +332,7 @@ class OnCallSchedule(PolymorphicModel):
                 "users": [
                     {
                         "display_name": user.username,
+                        "email": user.email,
                         "pk": user.public_primary_key,
                     }
                     for user in shift["users"]

@@ -845,8 +845,16 @@ def test_oncall_shifts_export(
     make_schedule,
     make_on_call_shift,
 ):
-    organization, user1, token = make_organization_and_user_with_token()
-    user2 = make_user(organization=organization)
+    organization, _, token = make_organization_and_user_with_token()
+
+    user1_email = "spongebob@grafana.com"
+    user2_email = "squarepants@grafana.com"
+
+    user1 = make_user(organization=organization, email=user1_email)
+    user2 = make_user(organization=organization, email=user2_email)
+
+    user1_public_primary_key = user1.public_primary_key
+    user2_public_primary_key = user2.public_primary_key
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
     start_date = timezone.datetime(2023, 1, 1, 9, 0, 0)
@@ -860,7 +868,7 @@ def test_oncall_shifts_export(
         by_day=["MO", "WE", "FR"],
         start=start_date,
         until=start_date + timezone.timedelta(days=28),
-        rolling_users=[{user1.pk: user1.public_primary_key}, {user2.pk: user2.public_primary_key}],
+        rolling_users=[{user1.pk: user1_public_primary_key}, {user2.pk: user2_public_primary_key}],
         rotation_start=start_date,
         duration=timezone.timedelta(hours=8),
     )
@@ -873,7 +881,13 @@ def test_oncall_shifts_export(
     shifts = response_json["results"]
 
     total_time_on_call = collections.defaultdict(int)
+    pk_to_email_mapping = {user1_public_primary_key: user1_email, user2_public_primary_key: user2_email}
     for row in shifts:
+        user_pk = row["user_pk"]
+
+        # make sure we're exporting email as well
+        assert pk_to_email_mapping[user_pk] == row["user_email"]
+
         end = timezone.datetime.fromisoformat(row["shift_end"])
         start = timezone.datetime.fromisoformat(row["shift_start"])
         shift_time_in_seconds = (end - start).total_seconds()
@@ -883,14 +897,10 @@ def test_oncall_shifts_export(
 
     # 3 shifts per week x 4 weeks x 8 hours per shift = 96 / 2 users = 48h per user for this period
     expected_time_on_call = 48
-    assert total_time_on_call[user1.public_primary_key] == expected_time_on_call
-    assert total_time_on_call[user2.public_primary_key] == expected_time_on_call
+    assert total_time_on_call[user1_public_primary_key] == expected_time_on_call
+    assert total_time_on_call[user2_public_primary_key] == expected_time_on_call
 
     # pagination parameters are mocked out for now
     assert response_json["next"] is None
     assert response_json["previous"] is None
     assert response_json["count"] == len(shifts)
-
-    print(response_json["results"])
-
-    assert True is False
