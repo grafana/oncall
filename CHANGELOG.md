@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.2.36 (2023-06-02)
 
+### Added
+
+- Add public API endpoint to export a schedule's final shifts by @joeyorlando ([2047](https://github.com/grafana/oncall/pull/2047))
+
 ### Fixed
 
 - Fix demo alert for inbound email integration by @vadimkerr ([#2081](https://github.com/grafana/oncall/pull/2081))
