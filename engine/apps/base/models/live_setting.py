@@ -212,6 +212,7 @@ class LiveSetting(models.Model):
     def validate_settings(cls):
         settings_to_validate = cls.objects.all()
         for setting in settings_to_validate:
+            setting.error = LiveSettingValidator(live_setting=setting).get_error()
             setting.save(update_fields=["error"])
 
     @staticmethod
@@ -220,13 +221,11 @@ class LiveSetting(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Save validates LiveSettings values and save them in database
+        Save checks that setting name is in list of available names, then saves it.
         """
         if self.name not in self.AVAILABLE_NAMES:
             raise ValueError(
                 f"Setting with name '{self.name}' is not in list of available names {self.AVAILABLE_NAMES}"
             )
-
-        self.error = LiveSettingValidator(live_setting=self).get_error()
 
         super().save(*args, **kwargs)

@@ -5,6 +5,8 @@ from django.urls import reverse
 from rest_framework.status import HTTP_200_OK
 from rest_framework.test import APIClient
 
+from apps.base.models import LiveSetting
+
 
 @pytest.mark.django_db
 def test_list_live_setting(
@@ -98,3 +100,33 @@ def test_live_settings_update_not_trigger_unpopulate_slack_identities(
     assert not mocked_unpopulate_task.called
 
     assert response.status_code == HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_live_settings_telegram_calls_set_webhook_once(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_live_setting,
+    settings,
+):
+    """
+    Check that when TELEGRAM_WEBHOOK_HOST live setting is updated, set_webhook method is called only once.
+    If set_webhook is called more than once in a short period of time, there will be a rate limit error.
+    """
+
+    settings.FEATURE_LIVE_SETTINGS_ENABLED = True
+
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    LiveSetting.populate_settings_if_needed()
+    live_setting = LiveSetting.objects.get(name="TELEGRAM_WEBHOOK_HOST")
+
+    client = APIClient()
+    url = reverse("api-internal:live_settings-detail", kwargs={"pk": live_setting.public_primary_key})
+    data = {"id": live_setting.public_primary_key, "value": "TEST_UPDATED_VALUE", "name": "TELEGRAM_WEBHOOK_HOST"}
+
+    with mock.patch("telegram.Bot.get_webhook_info", return_value=mock.Mock(url="TEST_VALUE")):
+        with mock.patch("telegram.Bot.set_webhook") as mock_set_webhook:
+            response = client.put(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == HTTP_200_OK
+    mock_set_webhook.assert_called_once()
