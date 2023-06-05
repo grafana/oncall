@@ -2,7 +2,7 @@
 keywords:
   - Open Source
 title: Open Source
-weight: 300
+weight: 400
 ---
 
 # Grafana OnCall open source guide
@@ -152,7 +152,7 @@ settings:
       - subteam_created
       - subteam_members_changed
       - subteam_updated
-      - user_change
+      - user_profile_changed
   interactivity:
     is_enabled: true
     request_url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
@@ -225,7 +225,7 @@ After enabling the email integration, it will be possible to use the `Notify by 
 ## Inbound Email Setup
 
 Grafana OnCall is capable of creating alert groups from
-[Inbound Email integration]({{< relref "../integrations/available-integrations/configure-inbound-email" >}}).
+[Inbound Email integration]({{< relref "../integrations/inbound-email" >}}).
 
 To configure Inbound Email integration for Grafana OnCall OSS populate env variables with your Email Service Provider data:
 

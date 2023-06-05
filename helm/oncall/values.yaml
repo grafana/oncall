@@ -144,6 +144,19 @@ oncall:
     apiKeySid: ""
     # Twilio API key secret/password to allow OnCall to send SMSes and make phone calls
     apiKeySecret: ""
+    # Use existing secret for authToken, phoneNumber, verifySid, apiKeySid and apiKeySecret.
+    existingSecret: ""
+    # Twilio password to allow OnCall to send SMSes and make calls
+    # the key in the secret containing the auth token
+    authTokenKey: ""
+    # the key in the secret containing the phone number
+    phoneNumberKey: ""
+    # the key in the secret containing verify service sid
+    verifySidKey: ""
+    # the key in the secret containing api key sid
+    apiKeySidKey: ""
+    # the key in the secret containing the api key secret
+    apiKeySecretKey: ""
 
 # Whether to run django database migrations automatically
 migrate:
@@ -152,6 +165,12 @@ migrate:
   ttlSecondsAfterFinished: 20
   # use a helm hook to manage the migration job
   useHook: false
+
+# Sets environment variables with name capitalized and prefixed with UWSGI_, and dashes are substituted with underscores.
+# see more: https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#environment-variables
+# Set null to disable all UWSGI environment variables
+uwsgi:
+  listen: 1024
 
 # Additional env variables to add to deployments
 env: {}
@@ -247,7 +266,7 @@ postgresql:
     database: oncall
 
 # Make sure to create the database with the following parameters:
-# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# CREATE DATABASE oncall WITH ENCODING UTF8;
 externalPostgresql:
   host:
   port:

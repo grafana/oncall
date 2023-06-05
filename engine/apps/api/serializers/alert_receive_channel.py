@@ -12,6 +12,7 @@ from rest_framework.fields import SerializerMethodField, set_value
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
@@ -47,8 +48,10 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
-    description_short = serializers.CharField(max_length=250, required=False)
-    demo_alert_payload = serializers.SerializerMethodField()
+    description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
+    demo_alert_payload = serializers.CharField(source="config.example_payload", read_only=True)
+    routes_count = serializers.SerializerMethodField()
+    connected_escalations_chains_count = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -83,6 +86,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "is_available_for_integration_heartbeat",
             "allow_delete",
             "demo_alert_payload",
+            "routes_count",
+            "connected_escalations_chains_count",
         ]
         read_only_fields = [
             "created_at",
@@ -94,6 +99,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "demo_alert_enabled",
             "maintenance_mode",
             "demo_alert_payload",
+            "routes_count",
+            "connected_escalations_chains_count",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
@@ -155,13 +162,13 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     def get_alert_groups_count(self, obj):
         return 0
 
-    def get_demo_alert_payload(self, obj):
-        if obj.is_demo_alert_enabled:
-            try:
-                return obj.config.example_payload
-            except AttributeError:
-                return "{}"
-        return None
+    def get_routes_count(self, obj) -> int:
+        return obj.channel_filters.count()
+
+    def get_connected_escalations_chains_count(self, obj) -> int:
+        return len(
+            set(ChannelFilter.objects.filter(alert_receive_channel=obj).values_list("escalation_chain", flat=True))
+        )
 
 
 class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):
@@ -201,25 +208,9 @@ class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
 
 class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
-    CORE_TEMPLATE_NAMES = [
-        "slack_title_template",
-        "slack_message_template",
-        "slack_image_url_template",
-        "web_title_template",
-        "web_message_template",
-        "web_image_url_template",
-        "telegram_title_template",
-        "telegram_message_template",
-        "telegram_image_url_template",
-        "sms_title_template",
-        "phone_call_title_template",
-        "source_link_template",
-        "grouping_id_template",
-        "resolve_condition_template",
-        "acknowledge_condition_template",
-    ]
 
     payload_example = SerializerMethodField()
+    is_based_on_alertmanager = SerializerMethodField()
 
     class Meta:
         model = AlertReceiveChannel
@@ -227,6 +218,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "id",
             "verbal_name",
             "payload_example",
+            "is_based_on_alertmanager",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
@@ -245,6 +237,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 return obj.alert_groups.last().alerts.first().raw_request_data
             except AttributeError:
                 return None
+
+    def get_is_based_on_alertmanager(self, obj):
+        return obj.has_alertmanager_payload_structure
 
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
     def to_internal_value(self, data):
@@ -305,9 +300,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         """Update core templates if needed."""
         errors = {}
 
-        core_template_names = self.CORE_TEMPLATE_NAMES
-
-        for field_name in core_template_names:
+        for field_name in self.core_templates_names:
             value = data.get(field_name)
             validator = jinja_template_env.from_string
             if value is not None:
@@ -323,7 +316,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
     def to_representation(self, obj):
         ret = super().to_representation(obj)
-        ret = self._get_templates_to_show(ret)
 
         core_templates = self._get_core_templates(obj)
         ret.update(core_templates)
@@ -333,29 +325,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         ret.update(additional_templates)
 
         return ret
-
-    def _get_templates_to_show(self, response_data):
-        """
-        For On-prem installations with disabled features it is needed to disable corresponding templates
-        """
-        slack_integration_required_templates = [
-            "slack_title_template",
-            "slack_message_template",
-            "slack_image_url_template",
-        ]
-        telegram_integration_required_templates = [
-            "telegram_title_template",
-            "telegram_message_template",
-            "telegram_image_url_template",
-        ]
-        if not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-            for st in slack_integration_required_templates:
-                response_data.pop(st)
-        if not settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-            for tt in telegram_integration_required_templates:
-                response_data.pop(tt)
-
-        return response_data
 
     def _get_messaging_backend_templates(self, obj):
         """Return additional messaging backend templates if any."""
@@ -379,8 +348,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def _get_core_templates(self, obj):
         core_templates = {}
 
-        core_template_names = self.CORE_TEMPLATE_NAMES
-        for template_name in core_template_names:
+        for template_name in self.core_templates_names:
             template_value = getattr(obj, template_name)
             defaults = getattr(obj, f"INTEGRATION_TO_DEFAULT_{template_name.upper()}", {})
             default_template_value = defaults.get(obj.integration)
@@ -388,3 +356,40 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             core_templates[f"{template_name}_is_default"] = not bool(template_value)
 
         return core_templates
+
+    @property
+    def core_templates_names(self):
+        """
+        core_templates_names returns names of templates introduced before messaging backends system with respect to
+        enabled integrations.
+        """
+        core_templates = [
+            "web_title_template",
+            "web_message_template",
+            "web_image_url_template",
+            "sms_title_template",
+            "phone_call_title_template",
+            "source_link_template",
+            "grouping_id_template",
+            "resolve_condition_template",
+            "acknowledge_condition_template",
+        ]
+
+        slack_integration_required_templates = [
+            "slack_title_template",
+            "slack_message_template",
+            "slack_image_url_template",
+        ]
+        telegram_integration_required_templates = [
+            "telegram_title_template",
+            "telegram_message_template",
+            "telegram_image_url_template",
+        ]
+
+        apppend = []
+
+        if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
+            core_templates += slack_integration_required_templates
+        if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
+            core_templates += telegram_integration_required_templates
+        return apppend + core_templates

@@ -1,0 +1,221 @@
+$FLEX-GAP: 4px;
+$LARGE-MARGIN: 24px;
+
+.integration {
+  &__heading-container {
+    margin-bottom: calc($LARGE-MARGIN - 12px);
+  }
+
+  &__subheading-container {
+    margin-bottom: $LARGE-MARGIN;
+  }
+
+  &__payloadInput {
+    width: 100%;
+  }
+
+  &__alertsPanel {
+    padding-bottom: 12px;
+  }
+
+  &__name {
+    margin-bottom: 0;
+  }
+
+  &__heading-container {
+    display: flex;
+    gap: $FLEX-GAP;
+  }
+
+  &__heading {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    width: 100%;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $FLEX-GAP;
+    margin-left: auto;
+  }
+
+  &__actionsList {
+    display: flex;
+    flex-direction: column;
+    width: 160px;
+    border-radius: 2px;
+  }
+
+  &__description {
+    display: block;
+    margin-bottom: $LARGE-MARGIN;
+  }
+
+  &__counter {
+    font-size: 12px;
+  }
+
+  &__countersBadge {
+    line-height: 16px;
+    padding: 3px 4px;
+  }
+
+  &__input-field {
+    margin-right: 24px;
+  }
+}
+
+.integration__actionItem {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  min-width: 84px;
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+
+  &:hover {
+    background: var(--gray-9);
+  }
+}
+
+.hamburger-menu {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  justify-content: center;
+  background-color: rgba(204, 204, 220, 0.16);
+  color: var(--secondary-background);
+  border: 1px solid transparent;
+  height: 32px;
+  width: 30px;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--primary-text-color);
+}
+
+.loadingPlaceholder {
+  margin-bottom: 0;
+  margin-right: 4px;
+}
+
+.integration__description-alert {
+  padding-top: 24px;
+
+  a {
+    color: var(--primary-text-link);
+  }
+}
+
+.customise-button button {
+  padding: 15px;
+}
+
+.routesSection {
+  padding-top: 20px;
+
+  &__heading {
+    font-size: 16px;
+  }
+
+  &__add {
+    margin-bottom: $LARGE-MARGIN;
+  }
+}
+
+.input {
+  flex-grow: 1;
+}
+
+.how-to-connect__container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tag,
+.how-to-connect__tag {
+  height: 25px;
+}
+
+.heartbeat-badge {
+  padding: 4px 8px;
+}
+
+.vertical-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.templates {
+  &__content {
+    padding-left: 12px;
+  }
+
+  &__container {
+    width: 100%;
+    padding-right: 48px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    gap: 12px;
+  }
+
+  &__item {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  &__item--large {
+    max-width: calc((100% - 150px) / 2);
+  }
+  &__item--small {
+    max-width: 150px;
+  }
+
+  &__item-text {
+    margin-right: 4px;
+  }
+}
+
+.templates__content,
+.templates__outer-container {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  overflow: hidden;
+}
+
+.templates__edit {
+  margin-left: 0;
+}
+
+.template-drawer {
+  padding-bottom: 24px;
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+.headerTop {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+  }
+}

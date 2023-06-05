@@ -7,12 +7,16 @@ from apps.alerts.models import Alert, AlertGroup
 
 
 class AlertGroupForAlertManager(AlertGroup):
+    MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE = 500
+
     def is_alert_a_resolve_signal(self, alert):
         non_resolved_hashes = set()
         hash = alert.get_integration_optimization_hash()
         if alert.calculated_is_resolve_signal:
             # Calculate leftover hashes
-            for alert in AlertForAlertManager.objects.filter(group=self).exclude(pk=alert.pk).all():
+            for alert in AlertForAlertManager.objects.filter(group=self).exclude(pk=alert.pk)[
+                : AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE
+            ]:
                 if alert.calculated_is_resolve_signal:
                     try:
                         non_resolved_hashes.remove(alert.get_integration_optimization_hash())

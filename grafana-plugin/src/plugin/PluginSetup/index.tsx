@@ -47,16 +47,18 @@ const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...p
   if (store.initializationError) {
     return (
       <PluginSetupWrapper text={store.initializationError}>
-        <div className="configure-plugin">
-          <HorizontalGroup>
-            <Button variant="primary" onClick={setupPlugin} size="sm">
-              Retry
-            </Button>
-            <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
-              Configure Plugin
-            </LinkButton>
-          </HorizontalGroup>
-        </div>
+        {!store.currentlyUndergoingMaintenance && (
+          <div className="configure-plugin">
+            <HorizontalGroup>
+              <Button variant="primary" onClick={setupPlugin} size="sm">
+                Retry
+              </Button>
+              <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
+                Configure Plugin
+              </LinkButton>
+            </HorizontalGroup>
+          </div>
+        )}
       </PluginSetupWrapper>
     );
   }

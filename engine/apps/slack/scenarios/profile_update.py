@@ -41,9 +41,16 @@ class ProfileUpdateStep(scenario_step.ScenarioStep):
 
 
 STEPS_ROUTING = [
+    # Slack event "user_change" is deprecated in favor of "user_profile_changed".
+    # Handler for "user_change" is kept for backward compatibility.
     {
         "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_USER_CHANGE,
+        "step": ProfileUpdateStep,
+    },
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "event_type": scenario_step.EVENT_TYPE_USER_PROFILE_CHANGED,
         "step": ProfileUpdateStep,
     },
 ]
