@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow mobile app to consume "internal" schedules API endpoints by @joeyorlando ([#2109](https://github.com/grafana/oncall/pull/2109))
 
+### Fixed
+
+- Fix + revert [#2057](https://github.com/grafana/oncall/pull/2057) which reverted a change which properly handles
+  `Organization.DoesNotExist` exceptions for Slack events by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ## v1.2.39 (2023-06-06)
 
 ### Changed
