@@ -76,6 +76,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     name = serializers.CharField(required=False, source="verbal_name")
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     link = serializers.ReadOnlyField(source="integration_url")
+    inbound_email = serializers.ReadOnlyField()
     type = IntegrationTypeField(source="integration")
     templates = serializers.DictField(required=False)
     default_route = serializers.DictField(required=False)
@@ -93,6 +94,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             "description_short",
             "team_id",
             "link",
+            "inbound_email",
             "type",
             "default_route",
             "templates",
