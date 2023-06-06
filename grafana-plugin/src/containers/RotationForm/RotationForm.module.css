@@ -11,6 +11,10 @@
   padding: 0 15px;
 }
 
+.override-form-content {
+  padding: 15px 0;
+}
+
 .two-fields {
   display: flex;
   gap: 8px;

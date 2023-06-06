@@ -224,7 +224,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <div className={cx('content')} data-testid="override-inputs">
+        <div className={cx('override-form-content')} data-testid="override-inputs">
           <VerticalGroup>
             <HorizontalGroup align="flex-start">
               <Field
