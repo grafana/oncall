@@ -527,9 +527,9 @@ def test_channel_filter_convert_from_regex_to_jinja2(
     make_channel_filter(alert_receive_channel, is_default=True)
 
     # r"..." used to keep this string as raw string
-    regex_filtering_term = r"\".*\": \"This alert was sent by user for the demonstration purposes\""
-    final_filtering_term = r'{{ payload | json_dumps | regex_search("\".*\": \"This alert was sent by user for the demonstration purposes\"") }}'
-    payload = {"description": "This alert was sent by user for the demonstration purposes"}
+    regex_filtering_term = r"\".*\": \"This alert was sent by user for demonstration purposes\""
+    final_filtering_term = r'{{ payload | json_dumps | regex_search("\".*\": \"This alert was sent by user for demonstration purposes\"") }}'
+    payload = {"description": "This alert was sent by user for demonstration purposes"}
 
     regex_channel_filter = make_channel_filter(
         alert_receive_channel,

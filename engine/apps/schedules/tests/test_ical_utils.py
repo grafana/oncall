@@ -2,12 +2,14 @@ import datetime
 import textwrap
 from uuid import uuid4
 
+import icalendar
 import pytest
 import pytz
 from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import (
+    get_icalendar_tz_or_utc,
     is_icals_equal,
     list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
@@ -15,6 +17,59 @@ from apps.schedules.ical_utils import (
     users_in_ical,
 )
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
+
+
+def test_get_icalendar_tz_or_utc():
+    ical_data = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        X-WR-TIMEZONE:Europe/London
+        BEGIN:VTIMEZONE
+        TZID:America/Argentina/Buenos_Aires
+        X-LIC-LOCATION:America/Argentina/Buenos_Aires
+        BEGIN:STANDARD
+        TZOFFSETFROM:-0300
+        TZOFFSETTO:-0300
+        TZNAME:-03
+        DTSTART:19700101T000000
+        END:STANDARD
+        END:VTIMEZONE
+        END:VCALENDAR
+    """
+    )
+    ical = icalendar.Calendar.from_ical(ical_data)
+    tz = get_icalendar_tz_or_utc(ical)
+    assert tz == pytz.timezone("Europe/London")
+
+
+def test_get_icalendar_tz_or_utc_fallback():
+    ical_data = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        PRODID:-//Google Inc//Google Calendar 70.9054//EN
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        BEGIN:VTIMEZONE
+        TZID:America/Argentina/Buenos_Aires
+        X-LIC-LOCATION:America/Argentina/Buenos_Aires
+        BEGIN:STANDARD
+        TZOFFSETFROM:-0300
+        TZOFFSETTO:-0300
+        TZNAME:-03
+        DTSTART:19700101T000000
+        END:STANDARD
+        END:VTIMEZONE
+        END:VCALENDAR
+    """
+    )
+    ical = icalendar.Calendar.from_ical(ical_data)
+    tz = get_icalendar_tz_or_utc(ical)
+    assert tz == pytz.timezone("UTC")
 
 
 @pytest.mark.django_db

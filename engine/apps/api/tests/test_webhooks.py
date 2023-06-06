@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.webhooks.models import Webhook
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 
 TEST_URL = "https://some-url"
 
@@ -44,8 +45,8 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "url": "https://github.com/",
             "data": '{"name": "{{ alert_payload }}"}',
             "username": "Chris Vanstras",
-            "password": "qwerty",
-            "authorization_header": "auth_token",
+            "password": WEBHOOK_FIELD_PLACEHOLDER,
+            "authorization_header": WEBHOOK_FIELD_PLACEHOLDER,
             "forward_all": False,
             "headers": None,
             "http_method": "POST",
@@ -85,8 +86,8 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "url": "https://github.com/",
         "data": '{"name": "{{ alert_payload }}"}',
         "username": "Chris Vanstras",
-        "password": "qwerty",
-        "authorization_header": "auth_token",
+        "password": WEBHOOK_FIELD_PLACEHOLDER,
+        "authorization_header": WEBHOOK_FIELD_PLACEHOLDER,
         "forward_all": False,
         "headers": None,
         "http_method": "POST",

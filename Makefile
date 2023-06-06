@@ -16,6 +16,7 @@ ENGINE_PROFILE = engine
 UI_PROFILE = oncall_ui
 REDIS_PROFILE = redis
 RABBITMQ_PROFILE = rabbitmq
+PROMETHEUS_PROFILE = prometheus
 GRAFANA_PROFILE = grafana
 
 DEV_ENV_DIR = ./dev
