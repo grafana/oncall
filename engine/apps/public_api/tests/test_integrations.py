@@ -789,5 +789,5 @@ def test_get_list_integrations_link_and_inbound_email(
             assert integration_link is None
             assert integration_inbound_email == "test123@test.com"
         else:
-            assert integration_link == f"https://test.com/integrations/v1/{integration['type']}/test123/"
+            assert integration_link == f"https://test.com/integrations/v1/{integration_type}/test123/"
             assert integration_inbound_email is None
