@@ -56,6 +56,7 @@ def test_update_user(
     assert response.json()["current_team"] == data["current_team"]
 
 
+@override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=False)
 @pytest.mark.django_db
 def test_update_user_cant_change_email_and_username(
     make_organization,
@@ -94,7 +95,7 @@ def test_update_user_cant_change_email_and_username(
                 "user": admin.username,
             }
         },
-        "cloud_connection_status": 0,
+        "cloud_connection_status": None,
         "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[admin.role],
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
@@ -106,6 +107,7 @@ def test_update_user_cant_change_email_and_username(
     assert response.json() == expected_response
 
 
+@override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=False)
 @pytest.mark.django_db
 def test_list_users(
     make_organization,
@@ -150,7 +152,7 @@ def test_list_users(
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
                 "avatar_full": admin.avatar_full_url,
-                "cloud_connection_status": 0,
+                "cloud_connection_status": None,
             },
             {
                 "pk": editor.public_primary_key,
@@ -176,7 +178,7 @@ def test_list_users(
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
                 "avatar_full": editor.avatar_full_url,
-                "cloud_connection_status": 0,
+                "cloud_connection_status": None,
             },
         ],
     }

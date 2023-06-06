@@ -33,7 +33,7 @@ def register_telegram_webhook(token=None):
 
     try:
         telegram_client.register_webhook()
-    except (error.InvalidToken, error.Unauthorized, error.BadRequest) as e:
+    except (error.InvalidToken, error.Forbidden, error.BadRequest) as e:
         logger.warning(f"Tried to register Telegram webhook using token: {telegram_client.token}, got error: {e}")
 
 

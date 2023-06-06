@@ -105,7 +105,7 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
     viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
     data = {
         "priority_level": 1,
         "start": date,
@@ -139,7 +139,7 @@ def test_list_users_to_notify_from_ical_until_terminated_event(
     other_user = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
 
     data = {
         "start": date,
