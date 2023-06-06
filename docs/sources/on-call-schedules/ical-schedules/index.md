@@ -1,14 +1,13 @@
 ---
 title: iCal on-call schedules
-aliases:
-  - /docs/oncall/latest/on-call-schedules/ical-schedules/
 canonical: https://grafana.com/docs/oncall/latest/on-call-schedules/ical-schedules/
 description: "Learn how to manage on-call schedules with iCal import"
 keywords:
   - Grafana
   - oncall
   - on-call
-  - calendar 
+  - calendar
+title: Import on-call schedules
 weight: 300
 ---
 

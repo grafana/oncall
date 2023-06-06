@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/alertgroups/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/alertgroups/
 title: Alert groups HTTP API
 weight: 400

@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/jinja2-templating/
 canonical: https://grafana.com/docs/oncall/latest/jinja2-templating/
 title: Jinja2 templating
 weight: 1000
