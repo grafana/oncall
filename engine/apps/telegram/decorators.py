@@ -30,7 +30,7 @@ def ignore_bot_deleted(f):
     def decorated(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except error.Forbidden:
+        except error.Unauthorized:
             logger.warning(f"Tried to send Telegram message, but user deleted the bot. args: {args}, kwargs: {kwargs}")
 
     return decorated

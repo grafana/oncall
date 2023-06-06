@@ -1,10 +1,9 @@
 import logging
 from typing import Optional, Tuple, Union
 
-from telegram import Bot, InlineKeyboardMarkup, Message
-from telegram.constants import ParseMode
-from telegram.error import BadRequest, Forbidden, InvalidToken
-from telegram.request import HTTPXRequest
+from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
+from telegram.error import BadRequest, InvalidToken, Unauthorized
+from telegram.utils.request import Request
 
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
@@ -28,13 +27,13 @@ class TelegramClient:
 
     @property
     def api_client(self) -> Bot:
-        return Bot(self.token, request=HTTPXRequest(read_timeout=15))
+        return Bot(self.token, request=Request(read_timeout=15))
 
     def is_chat_member(self, chat_id: Union[int, str]) -> bool:
         try:
             self.api_client.get_chat(chat_id=chat_id)
             return True
-        except Forbidden:
+        except Unauthorized:
             return False
 
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:

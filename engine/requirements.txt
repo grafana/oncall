@@ -12,7 +12,7 @@ uwsgi==2.0.21
 django-cors-headers==3.7.0
 django-debug-toolbar==4.1
 django-sns-view==0.1.2
-python-telegram-bot==20.0a3
+python-telegram-bot==13.13
 django-silk==5.0.3
 django-redis-cache==3.0.0
 hiredis==1.0.0
