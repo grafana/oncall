@@ -277,6 +277,17 @@ services:
     profiles:
       - postgres
 
+  prometheus:
+    container_name: prometheus
+    labels: *oncall-labels
+    image: prom/prometheus
+    volumes:
+      - ./dev/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    profiles:
+      - prometheus
+
   grafana:
     container_name: grafana
     labels: *oncall-labels
@@ -301,6 +312,7 @@ services:
     volumes:
       - grafanadata_dev:/var/lib/grafana
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+      - ./provisioning:/etc/grafana/provisioning
       - ${GRAFANA_DEV_PROVISIONING:-/dev/null}:/etc/grafana/grafana.ini
     depends_on:
       postgres:

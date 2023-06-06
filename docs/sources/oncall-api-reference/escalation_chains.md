@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/escalation_chains/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/
 title: Escalation Chains HTTP API
 weight: 200

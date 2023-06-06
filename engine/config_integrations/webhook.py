@@ -57,4 +57,4 @@ resolve_condition = """\
 {%- endif %}"""
 acknowledge_condition = None
 
-example_payload = {"message": "This alert was sent by user for the demonstration purposes"}
+example_payload = {"message": "This alert was sent by user for demonstration purposes"}
