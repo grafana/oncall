@@ -43,7 +43,7 @@ $LARGE-MARGIN: 24px;
   &__actionsList {
     display: flex;
     flex-direction: column;
-    width: 160px;
+    width: 200px;
     border-radius: 2px;
   }
 
@@ -83,22 +83,6 @@ $LARGE-MARGIN: 24px;
   &:hover {
     background: var(--gray-9);
   }
-}
-
-.hamburger-menu {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  vertical-align: middle;
-  justify-content: center;
-  background-color: rgba(204, 204, 220, 0.16);
-  color: var(--secondary-background);
-  border: 1px solid transparent;
-  height: 32px;
-  width: 30px;
-  padding: 4px;
-  cursor: pointer;
-  color: var(--primary-text-color);
 }
 
 .loadingPlaceholder {
