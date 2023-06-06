@@ -27,6 +27,7 @@ from apps.api.serializers.user import ScheduleUserSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
@@ -72,7 +73,10 @@ class ScheduleView(
     ModelViewSet,
     mixins.ListModelMixin,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
