@@ -480,3 +480,19 @@ rabbitmq-password
   value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
 {{- end -}}
 {{- end }}
+
+{{- define "snippet.oncall.exporter.env" -}}
+{{- if .Values.oncall.exporter.enabled -}}
+- name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+  value: {{ .Values.oncall.exporter.enabled | toString | title | quote }}
+- name: PROMETHEUS_EXPORTER_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "oncall.fullname" . }}-exporter
+      key: exporter-secret
+      optional: true
+{{- else -}}
+- name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+  value: {{ .Values.oncall.exporter.enabled | toString | title | quote }}
+{{- end -}}
+{{- end }}
