@@ -1,5 +1,6 @@
 import logging
 
+import telegram.error
 from celery import uuid as celery_uuid
 from celery.utils.log import get_task_logger
 from django.apps import apps
@@ -30,6 +31,9 @@ logger.setLevel(logging.DEBUG)
 )
 @handle_missing_token
 def register_telegram_webhook(token=None):
+    if settings.TELEGRAM_LONG_POLLING_ENABLED:
+        return
+
     telegram_client = TelegramClient(token=token)
 
     try:
@@ -48,6 +52,10 @@ def start_telegram_polling(token=None):
     telegram_client.delete_webhook()
 
     updater = Updater(token=telegram_client.token, use_context=True)
+
+    # Register the error handler function with the dispatcher
+    updater.dispatcher.add_error_handler(error_handler)
+
     callback_handler = CallbackQueryHandler(handle_message)
 
     # register the message handler function with the dispatcher
@@ -56,6 +64,14 @@ def start_telegram_polling(token=None):
 
     # start the long polling loop
     updater.start_polling()
+
+
+def error_handler(update, context):
+    try:
+        raise context.error
+    except telegram.error.Conflict as e:
+        # Handle conflict error here
+        logger.warning(f"Tried to start telegram long polling, but conflict exists, got error: {e}")
 
 
 def handle_message(update, context):

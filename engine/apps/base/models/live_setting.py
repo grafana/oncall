@@ -50,7 +50,6 @@ class LiveSetting(models.Model):
         "TWILIO_VERIFY_SERVICE_SID",
         "TELEGRAM_TOKEN",
         "TELEGRAM_WEBHOOK_HOST",
-        "TELEGRAM_LONG_POLLING_ENABLED",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",
@@ -148,7 +147,6 @@ class LiveSetting(models.Model):
         "TELEGRAM_WEBHOOK_HOST": (
             "Externally available URL for Telegram to make requests. Must use https and ports 80, 88, 443, 8443."
         ),
-        "TELEGRAM_LONG_POLLING_ENABLED": ("Enable Telegram long polling instead of webhook integration."),
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
             " These statistics are sent to https://stats.grafana.org/.  For more information on what's sent, look at the "

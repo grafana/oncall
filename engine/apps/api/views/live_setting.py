@@ -13,7 +13,7 @@ from apps.base.models import LiveSetting
 from apps.oss_installation.tasks import sync_users_with_cloud
 from apps.slack.tasks import unpopulate_slack_user_identities
 from apps.telegram.client import TelegramClient
-from apps.telegram.tasks import register_telegram_webhook, start_telegram_polling
+from apps.telegram.tasks import register_telegram_webhook
 from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
@@ -66,9 +66,6 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
             self._post_update_hook(name, old_value)
 
     def _post_update_hook(self, name, old_value):
-        if name == "TELEGRAM_LONG_POLLING_ENABLED":
-            start_telegram_polling.delay()
-
         if name == "TELEGRAM_TOKEN":
             self._reset_telegram_integration(old_token=old_value)
             register_telegram_webhook.delay()
