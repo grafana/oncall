@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Allow mobile app to consume "internal" schedules API endpoints by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+- Allow mobile app to consume "internal" schedules API endpoints by @joeyorlando ([#2109](https://github.com/grafana/oncall/pull/2109))
 
 ## v1.2.39 (2023-06-06)
 
