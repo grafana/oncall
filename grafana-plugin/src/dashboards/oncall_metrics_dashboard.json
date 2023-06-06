@@ -166,7 +166,7 @@
           "editorMode": "builder",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "sum($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})",
+          "expr": "max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])",
           "format": "time_series",
           "fullMetaSearch": false,
           "instant": true,
@@ -480,10 +480,6 @@
               {
                 "color": "text",
                 "value": null
-              },
-              {
-                "color": "text",
-                "value": 80.0001
               }
             ]
           },
@@ -575,7 +571,6 @@
           "decimals": 0,
           "displayName": "${__field.labels.integration}",
           "mappings": [],
-          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -617,7 +612,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(sum by (integration) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})[1h:])",
+          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[1h:])",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -784,7 +779,7 @@
               },
               {
                 "color": "red",
-                "value": 1200
+                "value": 5400
               }
             ]
           },
@@ -863,7 +858,10 @@
               "job": true,
               "org_id": true,
               "slug": true,
-              "team": true
+              "team": true,
+              "pod": true,
+              "container": true,
+              "namespace": true
             },
             "indexByName": {},
             "renameByName": {
@@ -1028,6 +1026,10 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 5400
               }
             ]
           },
