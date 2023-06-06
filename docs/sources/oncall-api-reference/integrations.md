@@ -24,6 +24,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -96,6 +97,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -171,6 +173,7 @@ The above command returns JSON structured in the following way:
       "name": "Grafana :blush:",
       "team_id": null,
       "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+      "inbound_email": null,
       "type": "grafana",
       "default_route": {
         "id": "RVBE4RKQSCGJ2",
@@ -252,6 +255,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",

@@ -33,6 +33,7 @@ def test_get_list_integrations(
                 "name": "grafana",
                 "description_short": "Some description",
                 "link": integration.integration_url,
+                "inbound_email": None,
                 "type": "grafana",
                 "default_route": {
                     "escalation_chain_id": None,
@@ -165,6 +166,7 @@ def test_update_integration_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -227,6 +229,7 @@ def test_update_integration_template_messaging_backend(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -305,6 +308,7 @@ def test_update_resolve_signal_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -415,6 +419,7 @@ def test_update_sms_template_with_empty_dict(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -477,6 +482,7 @@ def test_update_integration_name(
         "name": "grafana_updated",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -539,6 +545,7 @@ def test_update_integration_name_and_description_short(
         "name": "grafana_updated",
         "description_short": "Some description",
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -604,6 +611,7 @@ def test_set_default_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -672,6 +680,7 @@ def test_set_default_messaging_backend_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
