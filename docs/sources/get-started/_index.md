@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/oncall/latest/get-started/
   - /getting-started/
 canonical: https://grafana.com/docs/oncall/latest/get-started/
 keywords:

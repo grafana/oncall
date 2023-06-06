@@ -245,7 +245,6 @@ MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
     "engine.middlewares.RequestTimeLoggingMiddleware",
     "engine.middlewares.BanAlertConsumptionBasedOnSettingsMiddleware",
-    "engine.middlewares.RequestBodyReadingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
