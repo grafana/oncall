@@ -306,10 +306,12 @@ class SlackEventApiEndpointView(APIView):
             return Response(status=200)
 
         # Capture cases when we expect stateful message from user
-        if not step_was_found and "type" in payload and payload["type"] == PAYLOAD_TYPE_EVENT_CALLBACK:
+        if payload.get("type") == PAYLOAD_TYPE_EVENT_CALLBACK:
+            event_type = payload["event"]["type"]
+
             # Message event is from channel
             if (
-                payload["event"]["type"] == EVENT_TYPE_MESSAGE
+                event_type == EVENT_TYPE_MESSAGE
                 and payload["event"]["channel_type"] == EVENT_TYPE_MESSAGE_CHANNEL
                 and (
                     "subtype" not in payload["event"]
@@ -330,9 +332,10 @@ class SlackEventApiEndpointView(APIView):
                         step.process_scenario(slack_user_identity, slack_team_identity, payload)
                         step_was_found = True
             # We don't do anything on app mention, but we doesn't want to unsubscribe from this event yet.
-            if payload["event"]["type"] == EVENT_TYPE_APP_MENTION:
+            if event_type == EVENT_TYPE_APP_MENTION:
                 logger.info(f"Received event of type {EVENT_TYPE_APP_MENTION} from slack. Skipping.")
                 return Response(status=200)
+
         # Routing to Steps based on routing rules
         if not step_was_found:
             for route in SCENARIOS_ROUTES:
