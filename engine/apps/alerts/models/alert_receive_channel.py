@@ -398,6 +398,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
+        if self.integration != AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
+            return None
+
         return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
