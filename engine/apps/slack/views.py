@@ -391,7 +391,7 @@ class SlackEventApiEndpointView(APIView):
                                     step_was_found = True
 
                     if payload_type_is_block_actions:
-                        for action in route_payload_type:
+                        for action in payload_actions:
                             if action["type"] == route["block_action_type"]:
                                 if action["action_id"].startswith(route["block_action_id"]):
                                     Step = route["step"]
