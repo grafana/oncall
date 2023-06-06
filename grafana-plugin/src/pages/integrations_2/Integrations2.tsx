@@ -1,13 +1,15 @@
 import React from 'react';
 
-import { HorizontalGroup, Button, IconButton } from '@grafana/ui';
+import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
+import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -18,7 +20,7 @@ import {
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
@@ -28,6 +30,7 @@ import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_chann
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
@@ -37,11 +40,23 @@ const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
 const MAX_LINE_LENGTH = 40;
+const ACTIONS_LIST_WIDTH = 200;
+const ACTIONS_LIST_BORDER = 2;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
   alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
   page: number;
+  confirmationModal: {
+    isOpen: boolean;
+    title: any;
+    dismissText: string;
+    confirmText: string;
+    body?: React.ReactNode;
+    description?: string;
+    confirmationText?: string;
+    onConfirm: () => void;
+  };
 }
 
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
@@ -52,6 +67,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     integrationsFilters: { searchTerm: '' },
     errorData: initErrorDataState(),
     page: 1,
+    confirmationModal: undefined,
   };
 
   async componentDidMount() {
@@ -110,7 +126,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, page } = this.state;
+    const { alertReceiveChannelId, page, confirmationModal } = this.state;
     const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore } = store;
 
     const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
@@ -165,7 +181,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         <div className={cx('root')}>
           <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
-              <Text.Title level={3}>Integrations 2</Text.Title>
+              <VerticalGroup>
+                <Text.Title level={3}>Integrations 2</Text.Title>
+                <Text type="secondary">
+                  Receive alerts, group and interpret using templates and route to escalations
+                </Text>
+              </VerticalGroup>
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   onClick={() => {
@@ -208,6 +229,24 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             onUpdate={this.update}
             id={alertReceiveChannelId}
+          />
+        )}
+
+        {confirmationModal && (
+          <ConfirmModal
+            isOpen={confirmationModal.isOpen}
+            title={confirmationModal.title}
+            confirmText={confirmationModal.confirmText}
+            dismissText="Cancel"
+            body={confirmationModal.body}
+            description={confirmationModal.description}
+            confirmationText={confirmationModal.confirmationText}
+            onConfirm={confirmationModal.onConfirm}
+            onDismiss={() =>
+              this.setState({
+                confirmationModal: undefined,
+              })
+            }
           />
         )}
       </>
@@ -257,6 +296,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
     let routesCounter = item.routes_count;
+    let connectedEscalationsChainsCount = item.connected_escalations_chains_count;
 
     return (
       <HorizontalGroup spacing="xs">
@@ -282,9 +322,17 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <TooltipBadge
             borderType="success"
             icon="link"
-            text={routesCounter}
+            text={`${connectedEscalationsChainsCount}/${routesCounter}`}
             tooltipTitle=""
-            tooltipContent={`${routesCounter} routes`}
+            tooltipContent={
+              connectedEscalationsChainsCount +
+              ' connected escalation chain' +
+              (connectedEscalationsChainsCount === 1 ? '' : 's') +
+              ' in ' +
+              routesCounter +
+              ' route' +
+              (routesCounter === 1 ? '' : 's')
+            }
           />
         )}
       </HorizontalGroup>
@@ -340,29 +388,66 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   renderButtons = (item: AlertReceiveChannel) => {
     return (
-      <HorizontalGroup justify="flex-end">
-        <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-          <IconButton tooltip="Settings" name="cog" onClick={() => this.onIntegrationEditClick(item.id)} />
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-          <WithConfirm
-            description={
-              <Text>
-                <Emoji
-                  className={cx('title')}
-                  text={`Are you sure you want to delete ${item.verbal_name} integration?`}
-                />
-              </Text>
-            }
-          >
-            <IconButton
-              tooltip="Delete"
-              name="trash-alt"
-              onClick={() => this.handleDeleteAlertReceiveChannel(item.id)}
-            />
-          </WithConfirm>
-        </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      <WithContextMenu
+        renderMenuItems={() => (
+          <div className={cx('integrations-actionsList')}>
+            <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
+              <div className={cx('integrations-actionItem')} onClick={() => this.onIntegrationEditClick(item.id)}>
+                <Text type="primary">Integration settings</Text>
+              </div>
+            </WithPermissionControlTooltip>
+
+            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID is copied')}>
+              <div className={cx('integrations-actionItem')}>
+                <HorizontalGroup spacing={'xs'}>
+                  <Icon name="copy" />
+
+                  <Text type="primary">UID: {item.id}</Text>
+                </HorizontalGroup>
+              </div>
+            </CopyToClipboard>
+
+            <div className="thin-line-break" />
+
+            <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
+              <>
+                <div className={cx('integrations-actionItem')}>
+                  <div
+                    onClick={() => {
+                      this.setState({
+                        confirmationModal: {
+                          isOpen: true,
+                          confirmText: 'Delete',
+                          dismissText: 'Cancel',
+                          onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
+                          title: 'Delete integration',
+                          body: (
+                            <Text type="primary">
+                              Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
+                            </Text>
+                          ),
+                        },
+                      });
+                    }}
+                    style={{ width: '100%' }}
+                  >
+                    <Text type="danger">
+                      <HorizontalGroup spacing={'xs'}>
+                        <Icon name="trash-alt" />
+                        <span>Delete Integration</span>
+                      </HorizontalGroup>
+                    </Text>
+                  </div>
+                </div>
+              </>
+            </WithPermissionControlTooltip>
+          </div>
+        )}
+      >
+        {({ openMenu }) => (
+          <HamburgerMenu openMenu={openMenu} listBorder={ACTIONS_LIST_BORDER} listWidth={ACTIONS_LIST_WIDTH} />
+        )}
+      </WithContextMenu>
     );
   };
 
@@ -376,6 +461,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
 
     alertReceiveChannelStore.deleteAlertReceiveChannel(alertReceiveChannelId).then(this.applyFilters);
+    this.setState({ confirmationModal: undefined });
   };
 
   handleIntegrationsFiltersChange = (integrationsFilters: Filters) => {

@@ -109,7 +109,10 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>
                 </div>
               </Field>
-              <Field label="Default channel for Slack notifications">
+              <Field
+                label="Default channel for Slack notifications"
+                description="The selected channel will be used as a fallback in the event that a schedule or integration does not have a configured channel"
+              >
                 <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
                   <GSelect
                     showSearch

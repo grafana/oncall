@@ -172,20 +172,16 @@ class AlertReceiveChannelView(
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
         alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=pk)
-        demo_alert_payload = request.data.get("demo_alert_payload", None)
+        payload = request.data.get("demo_alert_payload", None)
 
-        if not demo_alert_payload:
-            # If no payload provided, use the demo payload for backword compatibility
-            payload = alert_receive_channel.config.example_payload
-        else:
-            if type(demo_alert_payload) != dict:
-                raise BadRequest(detail="Payload for demo alert must be a valid json object")
-            payload = demo_alert_payload
+        if payload is not None and not isinstance(payload, dict):
+            raise BadRequest(detail="Payload for demo alert must be a valid json object")
 
         try:
             alert_receive_channel.send_demo_alert(payload=payload)
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
+
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
@@ -198,6 +194,9 @@ class AlertReceiveChannelView(
                     "display_name": integration_title,
                     "short_description": AlertReceiveChannel.INTEGRATION_SHORT_DESCRIPTION[integration_id],
                     "featured": integration_id in AlertReceiveChannel.INTEGRATION_FEATURED,
+                    "featured_tag_name": AlertReceiveChannel.INTEGRATION_FEATURED_TAG_NAME[integration_id]
+                    if integration_id in AlertReceiveChannel.INTEGRATION_FEATURED_TAG_NAME
+                    else None,
                 }
                 # if integration is featured we show it in the beginning
                 if choice["featured"]:

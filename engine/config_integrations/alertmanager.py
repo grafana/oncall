@@ -276,7 +276,7 @@ example_payload = {
             "labels": {"alertname": "TestAlert", "region": "eu-1", "severity": "critical"},
             "annotations": {
                 "message": "This is test alert",
-                "description": "This alert was sent by user for the demonstration purposes",
+                "description": "This alert was sent by user for demonstration purposes",
                 "runbook_url": "https://grafana.com/",
             },
             "startsAt": "2018-12-25T15:47:47.377363608Z",

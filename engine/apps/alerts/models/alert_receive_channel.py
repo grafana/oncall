@@ -519,42 +519,35 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     # Demo alerts
     def send_demo_alert(self, force_route_id=None, payload=None):
         logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
+
+        if not self.is_demo_alert_enabled:
+            raise UnableToSendDemoAlert("Unable to send demo alert for this integration.")
+
         if payload is None:
             payload = self.config.example_payload
-        if self.is_demo_alert_enabled:
-            if self.has_alertmanager_payload_structure:
-                if (alerts := payload.get("alerts", None)) and type(alerts) == list and len(alerts):
-                    for alert in alerts:
-                        create_alertmanager_alerts.apply_async(
-                            [],
-                            {
-                                "alert_receive_channel_pk": self.pk,
-                                "alert": alert,
-                                "is_demo": True,
-                                "force_route_id": force_route_id,
-                            },
-                        )
-                else:
-                    raise UnableToSendDemoAlert(
-                        "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
-                    )
-            else:
-                create_alert.apply_async(
-                    [],
-                    {
-                        "title": "Demo alert",
-                        "message": "Demo alert",
-                        "image_url": None,
-                        "link_to_upstream_details": None,
-                        "alert_receive_channel_pk": self.pk,
-                        "integration_unique_data": None,
-                        "raw_request_data": payload,
-                        "is_demo": True,
-                        "force_route_id": force_route_id,
-                    },
+
+        if self.has_alertmanager_payload_structure:
+            alerts = payload.get("alerts", None)
+            if not isinstance(alerts, list) or not len(alerts):
+                raise UnableToSendDemoAlert(
+                    "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
+                )
+            for alert in alerts:
+                create_alertmanager_alerts.delay(
+                    alert_receive_channel_pk=self.pk, alert=alert, is_demo=True, force_route_id=force_route_id
                 )
         else:
-            raise UnableToSendDemoAlert("Unable to send demo alert for this integration")
+            create_alert.delay(
+                title="Demo alert",
+                message="Demo alert",
+                image_url=None,
+                link_to_upstream_details=None,
+                alert_receive_channel_pk=self.pk,
+                integration_unique_data=None,
+                raw_request_data=payload,
+                is_demo=True,
+                force_route_id=force_route_id,
+            )
 
     @property
     def has_alertmanager_payload_structure(self):

@@ -575,10 +575,7 @@ def calculate_shift_diff(first_shift, second_shift):
 
 
 def get_icalendar_tz_or_utc(icalendar):
-    try:
-        calendar_timezone = icalendar.walk("VTIMEZONE")[0]["TZID"]
-    except (IndexError, KeyError):
-        calendar_timezone = "UTC"
+    calendar_timezone = icalendar.get("X-WR-TIMEZONE", "UTC")
 
     if pytz_timezone := is_valid_timezone(calendar_timezone):
         return pytz_timezone

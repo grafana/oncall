@@ -19,3 +19,29 @@
   padding: 4px 10px;
   width: 40px;
 }
+
+.integrations-actionsList {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  border-radius: 2px;
+}
+
+.integrations-actionItem {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  min-width: 84px;
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+
+  &:hover {
+    background: var(--gray-9);
+  }
+}

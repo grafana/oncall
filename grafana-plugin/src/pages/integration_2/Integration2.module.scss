@@ -43,7 +43,7 @@ $LARGE-MARGIN: 24px;
   &__actionsList {
     display: flex;
     flex-direction: column;
-    width: 160px;
+    width: 200px;
     border-radius: 2px;
   }
 
@@ -85,26 +85,17 @@ $LARGE-MARGIN: 24px;
   }
 }
 
-.hamburger-menu {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  vertical-align: middle;
-  justify-content: center;
-  background-color: rgba(204, 204, 220, 0.16);
-  color: var(--secondary-background);
-  border: 1px solid transparent;
-  height: 32px;
-  width: 30px;
-  padding: 4px;
-  cursor: pointer;
-  color: var(--primary-text-color);
-}
-
 .loadingPlaceholder {
   margin-bottom: 0;
   margin-right: 4px;
-  animation: none;
+}
+
+.integration__description-alert {
+  padding-top: 24px;
+
+  a {
+    color: var(--primary-text-link);
+  }
 }
 
 .customise-button button {
@@ -197,4 +188,18 @@ $LARGE-MARGIN: 24px;
 
 .no-wrap {
   white-space: nowrap;
+}
+
+.headerTop {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+  }
 }

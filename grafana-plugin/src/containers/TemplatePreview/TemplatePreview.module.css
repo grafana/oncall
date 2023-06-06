@@ -13,3 +13,8 @@
 .message code {
   white-space: break-spaces;
 }
+
+.image-result img {
+  max-width: 100%;
+  max-height: 100%;
+}

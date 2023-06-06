@@ -3,6 +3,7 @@
   Any change to this file needs to be done in the oncall-private also
 */
 
+import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -45,29 +46,38 @@ const IntegrationHelper = {
     return routeIndex ? 'Else' : 'If';
   },
 
+  getRouteConditionTooltipWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number) {
+    const totalCount = Object.keys(channelFilters).length;
+
+    if (routeIndex === totalCount - 1) {
+      return 'If the alert payload does not match to the previous routes, it will be directed to this default route.';
+    }
+    return 'If the alert payload evaluates the route template as True, it will be directed to this route. It will not be evaluated against the subsequent routes.';
+  },
+
   getMaintenanceText(maintenanceUntill: number, mode: number = undefined) {
     const date = dayjs(new Date(maintenanceUntill * 1000));
     const now = dayjs();
     const hourDiff = date.diff(now, 'hours');
     const minDiff = date.diff(now, 'minutes');
     const totalMinDiff = minDiff - hourDiff * 60;
-    const totalDiffString = `${hourDiff}h ${totalMinDiff}m left`;
+    const totalDiffString = hourDiff > 0 ? `${hourDiff}h ${totalMinDiff}m left` : `${totalMinDiff}m left`;
 
     if (mode !== undefined) {
       return `${mode === MaintenanceMode.Debug ? 'Debug Maintenance' : 'Maintenance'}: ${totalDiffString}`;
     }
 
-    return `${hourDiff}h left`;
+    return totalDiffString;
   },
 
-  getChatOpsChannels(channelFilter: ChannelFilter) {
-    const channels = [];
+  getChatOpsChannels(channelFilter: ChannelFilter): Array<{ name: string; icon: IconName }> {
+    const channels: Array<{ name: string; icon: IconName }> = [];
 
     if (channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
-      channels.push(channelFilter.slack_channel.display_name);
+      channels.push({ name: channelFilter.slack_channel.display_name, icon: 'slack' });
     }
     if (channelFilter.telegram_channel) {
-      channels.push(channelFilter.telegram_channel);
+      channels.push({ name: channelFilter.telegram_channel, icon: 'telegram-alt' });
     }
 
     return channels;

@@ -1,5 +1,6 @@
 import logging
 
+from django.apps import apps
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import BasePermission
@@ -17,11 +18,24 @@ logger = logging.getLogger(__name__)
 
 
 class AllowOnlyTwilio(BasePermission):
+
+    # https://www.twilio.com/docs/usage/tutorials/how-to-secure-your-django-project-by-validating-incoming-twilio-requests
+    # https://www.django-rest-framework.org/api-guide/permissions/
     def has_permission(self, request, view):
-        # https://www.twilio.com/docs/usage/tutorials/how-to-secure-your-django-project-by-validating-incoming-twilio-requests
-        # https://www.django-rest-framework.org/api-guide/permissions/
-        if live_settings.TWILIO_AUTH_TOKEN:
-            validator = RequestValidator(live_settings.TWILIO_AUTH_TOKEN)
+        request_account_sid = request.data.get("AccountSid")
+        if not request_account_sid:
+            return False
+
+        TwilioAccount = apps.get_model("twilioapp", "TwilioAccount")
+        account = TwilioAccount.objects.filter(account_sid=request_account_sid).first()
+        if account:
+            return self.validate_request(request, account.account_sid, account.auth_token)
+
+        return self.validate_request(request, live_settings.TWILIO_ACCOUNT_SID, live_settings.TWILIO_AUTH_TOKEN)
+
+    def validate_request(self, request, expected_account_sid, auth_token):
+        if auth_token:
+            validator = RequestValidator(auth_token)
             location = create_engine_url(request.get_full_path())
             request_valid = validator.validate(
                 request.build_absolute_uri(location=location),
@@ -30,7 +44,7 @@ class AllowOnlyTwilio(BasePermission):
             )
             return request_valid
         else:
-            return live_settings.TWILIO_ACCOUNT_SID == request.data["AccountSid"]
+            return expected_account_sid == request.data["AccountSid"]
 
 
 class HealthCheckView(APIView):
