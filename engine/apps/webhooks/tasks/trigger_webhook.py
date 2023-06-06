@@ -11,6 +11,7 @@ from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
 from apps.user_management.models import User
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.utils import (
     InvalidWebhookData,
     InvalidWebhookHeaders,
@@ -94,6 +95,12 @@ def _build_payload(webhook, alert_group, user):
     return data
 
 
+def mask_authorization_header(headers):
+    if "Authorization" in headers:
+        headers["Authorization"] = WEBHOOK_FIELD_PLACEHOLDER
+    return headers
+
+
 def make_request(webhook, alert_group, data):
     status = {
         "url": None,
@@ -115,7 +122,8 @@ def make_request(webhook, alert_group, data):
         if triggered:
             status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
+            headers = mask_authorization_header(request_kwargs.get("headers", {}))
+            status["request_headers"] = json.dumps(headers)
             if "json" in request_kwargs:
                 status["request_data"] = json.dumps(request_kwargs["json"])
             else:
