@@ -170,7 +170,7 @@ def test_escalation_step_notify_on_call_schedule(
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     # create on_call_shift with user to notify
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -218,7 +218,7 @@ def test_escalation_step_notify_on_call_schedule_viewer_user(
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     # create on_call_shift with user to notify
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
