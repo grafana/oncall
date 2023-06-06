@@ -2,6 +2,7 @@ import json
 from unittest.mock import call, patch
 
 import pytest
+from django.conf import settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -16,6 +17,13 @@ WARNING_TEXT = (
     "2. (Less likely) The Grafana instance belonging to this Alert Group was deleted. In this case the Alert Group is orphaned and cannot be acted upon."
 )
 
+SLACK_TEAM_ID = "T043LP0P2M8"
+SLACK_ACCESS_TOKEN = "asdfasdf"
+SLACK_BOT_ACCESS_TOKEN = "cmncvmnvcnm"
+SLACK_BOT_USER_ID = "mncvnmvcmnvcmncv,,cx,"
+
+SLACK_USER_ID = "iurtiurituritu"
+
 
 def _make_request(payload):
     return APIClient().post(
@@ -29,6 +37,17 @@ def _make_request(payload):
     )
 
 
+@pytest.fixture
+def slack_team_identity(make_slack_team_identity):
+    return make_slack_team_identity(
+        slack_id=SLACK_TEAM_ID,
+        detected_token_revoked=None,
+        access_token=SLACK_ACCESS_TOKEN,
+        bot_access_token=SLACK_BOT_ACCESS_TOKEN,
+        bot_user_id=SLACK_BOT_USER_ID,
+    )
+
+
 @patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
 @patch("apps.slack.views.SlackEventApiEndpointView._open_warning_window_if_needed")
 @pytest.mark.django_db
@@ -37,29 +56,12 @@ def test_organization_not_found_scenario_properly_handled(
     _mock_verify_signature,
     make_organization,
     make_slack_user_identity,
-    make_slack_team_identity,
+    slack_team_identity,
 ):
-    slack_team_id = "T043LP0P2M8"
-    slack_access_token = "asdfasdf"
-    slack_bot_access_token = "cmncvmnvcnm"
-    slack_bot_user_id = "mncvnmvcmnvcmncv,,cx,"
-
-    slack_user_id = "iurtiurituritu"
-
-    def _make_slack_team_identity():
-        return make_slack_team_identity(
-            slack_id=slack_team_id,
-            detected_token_revoked=None,
-            access_token=slack_access_token,
-            bot_access_token=slack_bot_access_token,
-            bot_user_id=slack_bot_user_id,
-        )
-
     # SCENARIO 1
     # two orgs connected to same slack workspace, the one belonging to the alert group/slack message
     # is no longer connected to the slack workspace, but another org still is
-    slack_team_identity = _make_slack_team_identity()
-    make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=slack_user_id)
+    make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
 
     make_organization(slack_team_identity=slack_team_identity)
     org2 = make_organization()
@@ -73,10 +75,10 @@ def test_organization_not_found_scenario_properly_handled(
         "type": PAYLOAD_TYPE_BLOCK_ACTIONS,
         "trigger_id": EVENT_TRIGGER_ID,
         "user": {
-            "id": slack_user_id,
+            "id": SLACK_USER_ID,
         },
         "team": {
-            "id": slack_team_id,
+            "id": SLACK_TEAM_ID,
         },
         "actions": event_payload_actions,
     }
@@ -94,3 +96,39 @@ def test_organization_not_found_scenario_properly_handled(
 
     mock_call = call(event_payload, slack_team_identity, WARNING_TEXT)
     mock_open_warning_window_if_needed.assert_has_calls([mock_call, mock_call])
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch("apps.slack.views.SlackEventApiEndpointView._open_warning_window_if_needed")
+@pytest.mark.django_db
+def test_organization_not_found_scenario_doesnt_break_slash_commands(
+    mock_open_warning_window_if_needed,
+    _mock_verify_signature,
+    make_organization,
+    make_slack_user_identity,
+    slack_team_identity,
+):
+
+    make_organization(slack_team_identity=slack_team_identity)
+    make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+
+    response = _make_request(
+        {
+            "token": "axvnc,mvc,mv,mcvmnxcmnxc",
+            "team_id": SLACK_TEAM_ID,
+            "team_domain": "testingtest-nim4013",
+            "channel_id": "C043HQ70QMB",
+            "channel_name": "testy-testing",
+            "user_id": "U043HQ3VABF",
+            "user_name": "bob.smith",
+            "command": settings.SLACK_DIRECT_PAGING_SLASH_COMMAND,
+            "text": "potato",
+            "api_app_id": "A0909234092340293402934234234234234234",
+            "is_enterprise_install": "false",
+            "response_url": "https://hooks.slack.com/commands/cvcv/cvcv/cvcv",
+            "trigger_id": "asdfasdf.4122782784722.cvcv",
+        }
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_open_warning_window_if_needed.assert_not_called()
