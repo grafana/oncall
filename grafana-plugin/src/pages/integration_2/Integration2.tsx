@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   Button,
@@ -23,6 +23,7 @@ import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 import { debounce } from 'throttle-debounce';
 
 import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -83,7 +84,7 @@ interface Integration2State extends PageBaseState {
   isAddingRoute: boolean;
 }
 
-const ACTIONS_LIST_WIDTH = 160;
+const ACTIONS_LIST_WIDTH = 200;
 const ACTIONS_LIST_BORDER = 2;
 const NEW_ROUTE_DEFAULT = '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
 
@@ -586,27 +587,6 @@ const DemoNotification: React.FC = () => {
   );
 };
 
-const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }> = ({ openMenu }) => {
-  const ref = useRef<HTMLDivElement>();
-
-  return (
-    <div
-      ref={ref}
-      className={cx('hamburger-menu')}
-      onClick={() => {
-        const boundingRect = ref.current.getBoundingClientRect();
-
-        openMenu({
-          pageX: boundingRect.right - ACTIONS_LIST_WIDTH + ACTIONS_LIST_BORDER * 2,
-          pageY: boundingRect.top + boundingRect.height,
-        } as any);
-      }}
-    >
-      <Icon size="sm" name="ellipsis-v" />
-    </div>
-  );
-};
-
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;
   alertReceiveChannel: AlertReceiveChannel;
@@ -839,6 +819,19 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                 </WithPermissionControlTooltip>
               )}
 
+              <CopyToClipboard
+                text={alertReceiveChannel.id}
+                onCopy={() => openNotification('Integration ID is copied')}
+              >
+                <div className={cx('integration__actionItem')}>
+                  <HorizontalGroup spacing={'xs'}>
+                    <Icon name="copy" />
+
+                    <Text type="primary">UID: {alertReceiveChannel.id}</Text>
+                  </HorizontalGroup>
+                </div>
+              </CopyToClipboard>
+
               <div className="thin-line-break" />
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
@@ -859,6 +852,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                         confirmText: 'Delete',
                       });
                     }}
+                    style={{ width: '100%' }}
                   >
                     <Text type="danger">
                       <HorizontalGroup spacing={'xs'}>
@@ -872,7 +866,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
             </div>
           )}
         >
-          {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
+          {({ openMenu }) => (
+            <HamburgerMenu
+              openMenu={openMenu}
+              listBorder={ACTIONS_LIST_BORDER}
+              listWidth={ACTIONS_LIST_WIDTH}
+              withBackground
+            />
+          )}
         </WithContextMenu>
       </div>
     </>
