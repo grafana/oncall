@@ -207,14 +207,14 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["put"])
     def change_team(self, request, pk):
+        instance = self.get_object()
+
         if "team_id" not in request.query_params:
             raise BadRequest(detail="team_id must be specified")
 
         team_id = request.query_params["team_id"]
         if team_id == "null":
             team_id = None
-
-        instance = self.get_object()
 
         try:
             instance.change_team(team_id=team_id, user=self.request.user)
@@ -247,14 +247,16 @@ class AlertReceiveChannelView(
 
     # This method is required for PreviewTemplateMixin
     def get_alert_to_template(self, payload=None):
+        channel = self.get_object()
+
         try:
             if payload is None:
-                return self.get_object().alert_groups.last().alerts.first()
+                return channel.alert_groups.last().alerts.first()
             else:
                 if type(payload) != dict:
                     raise PreviewTemplateException("Payload must be a valid json object")
                 # Build Alert and AlertGroup objects to pass to templater without saving them to db
-                alert_group_to_template = AlertGroup(channel=self.get_object())
+                alert_group_to_template = AlertGroup(channel=channel)
                 return Alert(raw_request_data=payload, group=alert_group_to_template)
         except AttributeError:
             return None

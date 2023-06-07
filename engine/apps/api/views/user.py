@@ -479,12 +479,13 @@ class UserView(
 
     @action(detail=True, methods=["get"])
     def get_backend_verification_code(self, request, pk):
+        user = self.get_object()
+
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        user = self.get_object()
         code = backend.generate_user_verification_code(user)
         return Response(code)
 
@@ -547,12 +548,13 @@ class UserView(
     @action(detail=True, methods=["post"])
     def unlink_backend(self, request, pk):
         # TODO: insight logs support
+        user = self.get_object()
+
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        user = self.get_object()
         try:
             backend.unlink_user(user)
             write_chatops_insight_log(

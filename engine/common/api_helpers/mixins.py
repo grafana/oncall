@@ -300,6 +300,13 @@ class PreviewTemplateMixin:
         template_name = request.data.get("template_name", None)
         payload = request.data.get("payload", None)
 
+        try:
+            alert_to_template = self.get_alert_to_template(payload=payload)
+            if alert_to_template is None:
+                raise BadRequest(detail="Alert to preview does not exist")
+        except PreviewTemplateException as e:
+            raise BadRequest(detail=str(e))
+
         if template_body is None or template_name is None:
             response = {"preview": None}
             return Response(response, status=status.HTTP_200_OK)
@@ -314,13 +321,6 @@ class PreviewTemplateMixin:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
-
-        try:
-            alert_to_template = self.get_alert_to_template(payload=payload)
-            if alert_to_template is None:
-                raise BadRequest(detail="Alert to preview does not exist")
-        except PreviewTemplateException as e:
-            raise BadRequest(detail=str(e))
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
