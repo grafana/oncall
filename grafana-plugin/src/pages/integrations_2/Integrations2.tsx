@@ -265,9 +265,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  renderName(item: AlertReceiveChannel) {
+  renderName = (item: AlertReceiveChannel) => {
+    const {
+      query: { p },
+    } = this.props;
+
     return (
-      <PluginLink query={{ page: 'integrations_2', id: item.id }}>
+      <PluginLink query={{ page: 'integrations_2', id: item.id, p }}>
         <Text type="link" size="medium">
           <Emoji
             className={cx('title')}
@@ -280,7 +284,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         </Text>
       </PluginLink>
     );
-  }
+  };
 
   renderDatasource(item: AlertReceiveChannel, alertReceiveChannelStore) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];

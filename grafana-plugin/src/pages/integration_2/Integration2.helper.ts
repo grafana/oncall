@@ -70,14 +70,20 @@ const IntegrationHelper = {
     return totalDiffString;
   },
 
-  getChatOpsChannels(channelFilter: ChannelFilter): Array<{ name: string; icon: IconName }> {
+  getChatOpsChannels(
+    channelFilter: ChannelFilter,
+    telegramInfo: Array<{ id: string; channel_name: string }>
+  ): Array<{ name: string; icon: IconName }> {
     const channels: Array<{ name: string; icon: IconName }> = [];
 
-    if (channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
+    if (channelFilter.notify_in_slack && channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
       channels.push({ name: channelFilter.slack_channel.display_name, icon: 'slack' });
     }
-    if (channelFilter.telegram_channel) {
-      channels.push({ name: channelFilter.telegram_channel, icon: 'telegram-alt' });
+
+    const matchingTelegram = telegramInfo?.find((t) => t.id === channelFilter.telegram_channel);
+
+    if (channelFilter.telegram_channel && channelFilter.notify_in_telegram && matchingTelegram?.channel_name) {
+      channels.push({ name: matchingTelegram.channel_name, icon: 'telegram-alt' });
     }
 
     return channels;
