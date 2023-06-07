@@ -823,7 +823,7 @@
       },
       "id": 20,
       "options": {
-        "cellHeight": "md",
+        "cellHeight": "sm",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -1247,6 +1247,11 @@
   "templating": {
     "list": [
       {
+        "current": {
+          "selected": true,
+          "text": "grafanacloud-usage",
+          "value": "grafanacloud-usage"
+        },
         "hide": 0,
         "includeAll": false,
         "label": "Data source",
