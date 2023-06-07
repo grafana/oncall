@@ -30,9 +30,8 @@ def test_internal_api_detail_actions_get_object(
     url = reverse(f"api-internal:{basename}-{action.url_name}", kwargs={"pk": "NONEXISTENT"})
 
     with patch.object(viewset_class, "get_object", side_effect=NotFound) as mock_get_object:
-        response = client.generic(
-            path=url, method=list(action.mapping.keys())[0], **make_user_auth_headers(user, token)
-        )
+        method = list(action.mapping.keys())[0]  # get the first allowed method
+        response = client.generic(path=url, method=method, **make_user_auth_headers(user, token))
 
     """
     If you see this errors in tests, make sure to call self.get_object() in action method that's added / changed.
@@ -64,7 +63,8 @@ def test_public_api_detail_actions_get_object(make_organization_and_user_with_to
     url = reverse(f"api-public:{basename}-{action.url_name}", kwargs={"pk": "NONEXISTENT"})
 
     with patch.object(viewset_class, "get_object", side_effect=NotFound) as mock_get_object:
-        response = client.generic(path=url, method=list(action.mapping.keys())[0], HTTP_AUTHORIZATION=token)
+        method = list(action.mapping.keys())[0]  # get the first allowed method
+        response = client.generic(path=url, method=method, HTTP_AUTHORIZATION=token)
 
     """
     If you see this errors in tests, make sure to call self.get_object() in action method that's added / changed.
