@@ -30,14 +30,14 @@ class SlackFormatter(SlackFormatter):
         message = message.replace("<!here|@here>", "@here")
         message = message.replace("<!everyone>", "@everyone")
         message = message.replace("<!everyone|@everyone>", "@everyone")
-        message = self._slack_to_accepted_emoji(message)
+        message = self.slack_to_accepted_emoji(message)
 
         # Handle mentions of users, channels and bots (e.g "<@U0BM1CGQY|calvinchanubc> has joined the channel")
         message = self._MENTION_PAT.sub(self._sub_annotated_mention, message)
         # Handle links
         message = self._LINK_PAT.sub(self._sub_hyperlink, message)
         # Introduce unicode emoji
-        message = emoji.emojize(message, use_aliases=True)
+        message = emoji.emojize(message, language="alias")
 
         return message
 

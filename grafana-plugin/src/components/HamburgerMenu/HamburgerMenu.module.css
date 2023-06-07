@@ -1,0 +1,19 @@
+.hamburger-menu {
+  cursor: pointer;
+  color: var(--primary-text-color);
+}
+
+.hamburger-menu-withBackground {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  justify-content: center;
+  background-color: rgba(204, 204, 220, 0.16);
+  border: 1px solid transparent;
+  height: 32px;
+  width: 30px;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--primary-text-color);
+}

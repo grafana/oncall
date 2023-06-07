@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Allow mobile app to consume "internal" schedules API endpoints by @joeyorlando ([#2109](https://github.com/grafana/oncall/pull/2109))
+- Add inbound email address in integration API by @vadimkerr ([#2113](https://github.com/grafana/oncall/pull/2113))
+
+### Fixed
+
+- Fix + revert [#2057](https://github.com/grafana/oncall/pull/2057) which reverted a change which properly handles
+  `Organization.DoesNotExist` exceptions for Slack events by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+- Fix Telegram ratelimit on live setting change by @vadimkerr and @alexintech ([#2100](https://github.com/grafana/oncall/pull/2100))
+
 ## v1.2.39 (2023-06-06)
 
 ### Changed

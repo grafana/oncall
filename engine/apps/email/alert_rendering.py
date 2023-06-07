@@ -43,7 +43,7 @@ def build_subject_and_message(alert_group, emails_left):
             "title": str_or_backup(templated_alert.title, title_fallback),
             "message": str_or_backup(message, ""),  # not render message at all if smth goes wrong
             "organization": alert_group.channel.organization.org_title,
-            "integration": emojize(alert_group.channel.short_name, use_aliases=True),
+            "integration": emojize(alert_group.channel.short_name, language="alias"),
             "limit_notification": emails_left <= 20,
             "emails_left": emails_left,
         },

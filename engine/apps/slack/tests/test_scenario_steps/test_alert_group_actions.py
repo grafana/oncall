@@ -9,6 +9,13 @@ from apps.slack.scenarios.step_mixins import AlertGroupActionsMixin
 
 
 class TestScenario(AlertGroupActionsMixin, ScenarioStep):
+    """
+    set a __test__ = False attribute in classes that pytest should ignore otherwise we end up getting the following:
+    PytestCollectionWarning: cannot collect test class 'TestScenario' because it has a __init__ constructor
+    """
+
+    __test__ = False
+
     pass
 
 

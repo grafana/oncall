@@ -310,7 +310,7 @@ class AlertGroupView(
     pagination_class = TwentyFiveCursorPaginator
 
     filter_backends = [SearchFilter, AlertGroupFilterBackend]
-    search_fields = ["public_primary_key", "inside_organization_number", "web_title_cache"]
+    # search_fields = ["=public_primary_key", "=inside_organization_number", "web_title_cache"]
 
     filterset_class = AlertGroupFilter
 
