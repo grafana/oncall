@@ -120,6 +120,8 @@ class EscalationChainViewSet(
 
     @action(methods=["post"], detail=True)
     def copy(self, request, pk):
+        obj = self.get_object()
+
         name = request.data.get("name")
         team_id = request.data.get("team")
         if team_id == "null":
@@ -131,7 +133,6 @@ class EscalationChainViewSet(
             if EscalationChain.objects.filter(organization=request.auth.organization, name=name).exists():
                 raise BadRequest(detail={"name": ["Escalation chain with this name already exists."]})
 
-        obj = self.get_object()
         try:
             team = request.user.available_teams.get(public_primary_key=team_id) if team_id else None
         except Team.DoesNotExist:

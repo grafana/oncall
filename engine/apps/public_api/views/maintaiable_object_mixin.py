@@ -15,6 +15,8 @@ class MaintainableObjectMixin(viewsets.ViewSet):
 
     @action(detail=True, methods=["post"])
     def maintenance_start(self, request, pk) -> Response:
+        instance = self.get_object()
+
         mode = str(request.data.get("mode", None)).lower()
         duration = request.data.get("duration", None)
 
@@ -31,7 +33,6 @@ class MaintainableObjectMixin(viewsets.ViewSet):
         except (ValueError, TypeError):
             raise BadRequest(detail={"duration": ["Invalid duration"]})
 
-        instance = self.get_object()
         try:
             instance.start_maintenance(mode, duration, request.user)
         except MaintenanceCouldNotBeStartedError as e:
