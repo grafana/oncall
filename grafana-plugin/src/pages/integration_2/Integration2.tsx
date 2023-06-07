@@ -136,6 +136,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.state;
     const {
       store: { alertReceiveChannelStore },
+      query: { p },
       match: {
         params: { id },
       },
@@ -165,7 +166,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           <div className={cx('root')}>
             {isTemplateSettingsOpen && (
               <Drawer
-                width="640px"
+                width="75%"
                 scrollableContent
                 title="Template Settings"
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
@@ -187,7 +188,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations_2' }}>
+              <PluginLink query={{ page: 'integrations_2', p }}>
                 <IconButton name="arrow-left" size="xxl" />
               </PluginLink>
               <h1 className={cx('integration__name')}>
@@ -600,9 +601,9 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 }) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
-  const [demoPayload, setDemoPayload] = useState<string>(
-    JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')
-  );
+  const stringifiedJson = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
+  const initialDemoJSON = stringifiedJson.substring(1, stringifiedJson.length - 1);
+  const [demoPayload, setDemoPayload] = useState<string>(alertReceiveChannel.demo_alert_payload);
   let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
   return (
@@ -611,7 +612,14 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
       closeOnEscape
       isOpen={isOpen}
       onDismiss={onHideOrCancel}
-      title={`Send demo alert to ${alertReceiveChannel.verbal_name}`}
+      title={
+        <HorizontalGroup>
+          <Text.Title level={4}>
+            Send demo alert to {''}
+            <Emoji text={alertReceiveChannel.verbal_name} />
+          </Text.Title>
+        </HorizontalGroup>
+      }
     >
       <VerticalGroup>
         <HorizontalGroup spacing={'xs'}>
@@ -630,7 +638,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
         <div className={cx('integration__payloadInput')}>
           <MonacoEditor
-            value={JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')}
+            value={initialDemoJSON}
             disabled={true}
             height={`200px`}
             useAutoCompleteList={false}
@@ -1043,7 +1051,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       </div>
       <div className={cx('headerTop__item')}>
         <Text type="secondary">Team:</Text>
-        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
       </div>
       <div className={cx('headerTop__item')}>
         <Text type="secondary">Created by:</Text>

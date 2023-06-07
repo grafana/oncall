@@ -168,17 +168,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 </IntegrationBlockItem>
               )}
 
-              {routeIndex !== channelFiltersTotal.length - 1 && (
-                <IntegrationBlockItem>
-                  <VerticalGroup>
-                    <Text type="secondary">
-                      If the Routing template evaluates to True, the alert will be grouped with the Grouping template
-                      and proceed to the following steps
-                    </Text>
-                  </VerticalGroup>
-                </IntegrationBlockItem>
-              )}
-
               <IntegrationBlockItem>
                 <VerticalGroup spacing="md">
                   <Text type="primary">Publish to ChatOps</Text>
