@@ -35,4 +35,4 @@ def get_push_notification_subtitle(alert_group):
         + f"\n{alert_status}"
     )
 
-    return emojize(subtitle, use_aliases=True)
+    return emojize(subtitle, language="alias")

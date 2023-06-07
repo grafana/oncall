@@ -122,7 +122,9 @@ install-precommit-hook: install-pre-commit
 	pre-commit install
 
 test:  ## run backend tests
-	$(call run_engine_docker_command,pytest)
+# always use settings.ci-test django settings file when running the tests
+# if we use settings.dev it's very possible that some fail just based on the settings alone
+	$(call run_engine_docker_command,pytest --ds=settings.ci-test)
 
 start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)
