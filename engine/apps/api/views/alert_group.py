@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain
 from apps.alerts.paging import unpage_user
+from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.api.serializers.team import TeamSerializer
@@ -458,7 +459,10 @@ class AlertGroupView(
         else:
             if organization.is_resolution_note_required and not alert_group.has_resolution_notes:
                 return Response(
-                    data="Alert group without resolution note cannot be resolved due to organization settings.",
+                    data={
+                        "code": AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value,
+                        "detail": "Alert group without resolution note cannot be resolved due to organization settings",
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
