@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel
+from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models import UserNotificationPolicyLogRecord
 
@@ -1805,3 +1806,41 @@ def test_direct_paging_integration_treated_as_deleted(
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.json()["alert_receive_channel"]["deleted"] is True
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize
+def test_alert_group_resolve_resolution_note(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    new_alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=new_alert_group, raw_request_data=alert_raw_request_data)
+
+    organization.is_resolution_note_required = True
+    organization.save()
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
+
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
+    # check that resolution note is required
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json().code == AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value
+
+    with patch("apps.alerts.tasks.send_update_resolution_note_signal") as mock_signal:
+        url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
+        response = client.post(
+            url, format="json", data={"resolution_note": "hi"}, **make_user_auth_headers(user, token)
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        assert new_alert_group.has_resolution_notes
+        assert mock_signal.called
