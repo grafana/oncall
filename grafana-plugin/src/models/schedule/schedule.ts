@@ -285,6 +285,21 @@ export class ScheduleStore extends BaseStore {
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
+      params: { force: true },
+      data: { ...params },
+      method: 'PUT',
+    });
+
+    this.shifts = {
+      ...this.shifts,
+      [response.id]: response,
+    };
+
+    return response;
+  }
+
+  async updateRotationAsNew(shiftId: Shift['id'], params: Partial<Shift>) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
       data: { ...params },
       method: 'PUT',
     });

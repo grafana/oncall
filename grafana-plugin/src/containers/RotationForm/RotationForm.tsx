@@ -246,6 +246,15 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       .catch(onError);
   }, [shiftId, params]);
 
+  const updateAsNew = useCallback(() => {
+    store.scheduleStore
+      .updateRotationAsNew(shiftId, params)
+      .then(() => {
+        onUpdate();
+      })
+      .catch(onError);
+  }, [shiftId, params]);
+
   const handleEditNewerRotationClick = useCallback(() => {
     onShowRotationForm(shift.updated_shift);
   }, [shift?.updated_shift]);
@@ -584,14 +593,27 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
           </div>
           <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+              <Text type="secondary">Current TZ: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
               <HorizontalGroup>
-                <Button variant="secondary" onClick={onHide}>
+                <Button disabled={disabled} variant="secondary" onClick={onHide}>
                   {shiftId === 'new' ? 'Cancel' : 'Close'}
                 </Button>
-                <Button variant="primary" onClick={shiftId === 'new' ? create : update} disabled={!isFormValid}>
-                  {shiftId === 'new' ? 'Create' : 'Update'}
-                </Button>
+                {shiftId !== 'new' && (
+                  <Tooltip content="Stop the current rotation and start a new one">
+                    <Button disabled={disabled} variant="secondary" onClick={updateAsNew}>
+                      Save as new
+                    </Button>
+                  </Tooltip>
+                )}
+                <Tooltip content="Update the current rotation, even events in the past">
+                  <Button
+                    variant="primary"
+                    onClick={shiftId === 'new' ? create : update}
+                    disabled={disabled || !isFormValid}
+                  >
+                    {shiftId === 'new' ? 'Create' : 'Update'}
+                  </Button>
+                </Tooltip>
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
