@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -26,8 +26,16 @@ interface CollapsedIntegrationRouteDisplayProps {
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
   ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
-    const { escalationChainStore, alertReceiveChannelStore } = useStore();
+    const { escalationChainStore, alertReceiveChannelStore, telegramChannelStore } = useStore();
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
+    const [telegramInfo, setTelegramInfo] = useState<Array<{ id: string; channel_name: string }>>([]);
+
+    useEffect(() => {
+      (async function () {
+        const telegram = await telegramChannelStore.getAll();
+        setTelegramInfo(telegram);
+      })();
+    }, [channelFilterId]);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
     if (!channelFilter) {
@@ -84,15 +92,17 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           content={
             <div className={cx('spacing')}>
               <VerticalGroup>
-                {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel, key) => (
-                  <HorizontalGroup key={key}>
-                    <Text type="secondary">Publish to ChatOps</Text>
-                    <Icon name={chatOpsChannel.icon} />
-                    <Text type="primary" strong>
-                      {chatOpsChannel.name}
-                    </Text>
-                  </HorizontalGroup>
-                ))}
+                {IntegrationHelper.getChatOpsChannels(channelFilter, telegramInfo)
+                  .filter((it) => it)
+                  .map((chatOpsChannel, key) => (
+                    <HorizontalGroup key={key}>
+                      <Text type="secondary">Publish to ChatOps</Text>
+                      <Icon name={chatOpsChannel.icon} />
+                      <Text type="primary" strong>
+                        {chatOpsChannel.name}
+                      </Text>
+                    </HorizontalGroup>
+                  ))}
 
                 <HorizontalGroup>
                   <Icon name="list-ui-alt" />
