@@ -29,4 +29,4 @@ class SlackChannelView(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.Retr
             is_archived=False,
         )
 
-        return queryset.order_by("name")
+        return queryset.order_by("id")

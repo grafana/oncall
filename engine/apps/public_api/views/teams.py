@@ -27,4 +27,4 @@ class TeamView(PublicPrimaryKeyMixin, RetrieveModelMixin, ListModelMixin, viewse
         queryset = self.request.auth.organization.teams.all()
         if name:
             queryset = queryset.filter(name=name)
-        return queryset.order_by("name")
+        return queryset.order_by("id")
