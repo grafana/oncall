@@ -57,6 +57,8 @@ CELERY_TASK_ROUTES = {
     "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
     "apps.heartbeat.tasks.restore_heartbeat_tasks": {"queue": "default"},
+    "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
+    "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_file": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
@@ -116,6 +118,7 @@ CELERY_TASK_ROUTES = {
     "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
+    "apps.metrics_exporter.tasks.calculate_and_cache_metrics": {"queue": "long"},
     # SLACK
     "apps.integrations.tasks.notify_about_integration_ratelimit_in_slack": {"queue": "slack"},
     "apps.slack.helpers.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},

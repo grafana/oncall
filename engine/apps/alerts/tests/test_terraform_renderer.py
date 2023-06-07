@@ -1,5 +1,5 @@
 import pytest
-from django.utils import dateparse, timezone
+from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.alerts.models import EscalationPolicy
@@ -91,6 +91,8 @@ def test_render_terraform_file(
         name="test_calendar_schedule",
     )
 
+    start = timezone.datetime.fromisoformat("2021-08-16T17:00:00Z")
+
     shift = make_on_call_shift(
         organization=organization,
         name="test_shift",
@@ -98,8 +100,8 @@ def test_render_terraform_file(
         frequency=CustomOnCallShift.FREQUENCY_WEEKLY,
         interval=1,
         week_start=CustomOnCallShift.MONDAY,
-        start=dateparse.parse_datetime("2021-08-16T17:00:00"),
-        rotation_start=dateparse.parse_datetime("2021-08-16T17:00:00"),
+        start=start,
+        rotation_start=start,
         duration=timezone.timedelta(seconds=3600),
         by_day=["MO", "SA"],
         rolling_users=[{user.pk: user.public_primary_key}],

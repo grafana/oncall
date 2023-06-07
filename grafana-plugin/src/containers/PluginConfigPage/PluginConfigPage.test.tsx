@@ -45,7 +45,7 @@ const originalError = console.error;
 
 beforeEach(() => {
   delete global.window.location;
-  global.window = Object.create(window);
+  global.window ??= Object.create(window);
   global.window.location = {
     protocol: MOCK_PROTOCOL,
     host: MOCK_HOST,

@@ -17,6 +17,7 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 
 import Collapse from 'components/Collapse/Collapse';
@@ -39,6 +40,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
+import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
@@ -290,6 +292,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
               )}
             </div>
           </Block>
+
           {alertReceiveChannel.description && (
             <div className={cx('description-style')}>
               <Alert
@@ -682,6 +685,22 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
               tooltipPlacement="top"
             />
           </WithPermissionControlTooltip>
+        )}
+        {store.hasFeature(AppFeature.Webhooks2) && (
+          <CopyToClipboard text={channelFilter.id}>
+            <IconButton
+              variant="primary"
+              tooltip={
+                <div>
+                  ID {channelFilter.id}
+                  <br />
+                  (click to copy ID to clipboard)
+                </div>
+              }
+              tooltipPlacement="top"
+              name="info-circle"
+            />
+          </CopyToClipboard>
         )}
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button variant="secondary" size="sm" onClick={this.getSendDemoAlertToParticularRoute(channelFilterId)}>

@@ -16,10 +16,12 @@ from icalendar import Calendar
 
 from apps.api.permissions import RBACPermission
 from apps.schedules.constants import (
+    CALENDAR_TYPE_FINAL,
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
     ICAL_DATETIME_START,
     ICAL_DESCRIPTION,
+    ICAL_LOCATION,
     ICAL_SUMMARY,
     ICAL_UID,
     RE_EVENT_UID_V1,
@@ -107,6 +109,7 @@ def list_of_oncall_shifts_from_ical(
     with_gaps=False,
     days=1,
     filter_by=None,
+    from_cached_final=False,
 ):
     """
     Parse the ical file and return list of events with users
@@ -127,10 +130,14 @@ def list_of_oncall_shifts_from_ical(
 
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
-    calendars = schedule.get_icalendars()
+    if from_cached_final:
+        calendars = [Calendar.from_ical(schedule.cached_ical_final_schedule)]
+    else:
+        calendars = schedule.get_icalendars()
 
     # TODO: Review offset usage
-    user_timezone_offset = timezone.datetime.now().astimezone(pytz.timezone(user_timezone)).utcoffset()
+    pytz_tz = pytz.timezone(user_timezone)
+    user_timezone_offset = timezone.datetime.now().astimezone(pytz_tz).utcoffset()
     datetime_min = timezone.datetime.combine(date, datetime.time.min) + timezone.timedelta(milliseconds=1)
     datetime_start = (datetime_min - user_timezone_offset).astimezone(pytz.UTC)
     datetime_end = datetime_start + timezone.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
@@ -140,7 +147,9 @@ def list_of_oncall_shifts_from_ical(
 
     for idx, calendar in enumerate(calendars):
         if calendar is not None:
-            if idx == 0:
+            if from_cached_final:
+                calendar_type = CALENDAR_TYPE_FINAL
+            elif idx == 0:
                 calendar_type = OnCallSchedule.PRIMARY
             else:
                 calendar_type = OnCallSchedule.OVERRIDES
@@ -171,7 +180,15 @@ def list_of_oncall_shifts_from_ical(
                     "shift_pk": None,
                 }
             )
-    result = sorted(result_datetime, key=lambda dt: dt["start"]) + result_date
+
+    def event_start_cmp_key(e):
+        return (
+            datetime.datetime.combine(e["start"], datetime.datetime.min.time(), tzinfo=pytz_tz)
+            if type(e["start"]) == datetime.date
+            else e["start"]
+        )
+
+    result = sorted(result_datetime + result_date, key=event_start_cmp_key)
     # if there is no events, return None
     return result or None
 
@@ -185,6 +202,13 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
         pk, source = parse_event_uid(event.get(ICAL_UID))
         users = get_users_from_ical_event(event, schedule.organization)
         missing_users = get_missing_users_from_ical_event(event, schedule.organization)
+        event_calendar_type = calendar_type
+        if calendar_type == CALENDAR_TYPE_FINAL:
+            event_calendar_type = (
+                schedule.OVERRIDES
+                if event.get(ICAL_LOCATION, "") == schedule.CALENDAR_TYPE_VERBAL[schedule.OVERRIDES]
+                else schedule.PRIMARY
+            )
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
@@ -198,7 +222,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         "missing_users": missing_users,
                         "priority": priority,
                         "source": source,
-                        "calendar_type": calendar_type,
+                        "calendar_type": event_calendar_type,
                         "shift_pk": pk,
                     }
                 )
@@ -213,7 +237,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                             "missing_users": missing_users,
                             "priority": priority,
                             "source": source,
-                            "calendar_type": calendar_type,
+                            "calendar_type": event_calendar_type,
                             "shift_pk": pk,
                         }
                     )
@@ -509,21 +533,15 @@ def is_icals_equal(first, second):
         second_cal = Calendar.from_ical(second)
         first_subcomponents = first_cal.subcomponents
         second_subcomponents = second_cal.subcomponents
-        if len(first_subcomponents) != len(second_subcomponents):
-            return False
-        first_cal_events = {}
-        second_cal_events = {}
-        for cmp in first_cal.subcomponents:
-            first_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for cmp in second_cal.subcomponents:
-            second_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for first_uid, first_seq in first_cal_events.items():
-            if first_uid not in second_cal_events:
-                return False
-            second_seq = second_cal_events.get(first_uid, None)
-            if first_seq != second_seq:
-                return False
-        return True
+        # only consider VEVENT components
+        first_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in first_subcomponents if cmp.name == "VEVENT"
+        }
+        second_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in second_subcomponents if cmp.name == "VEVENT"
+        }
+        # check events and their respective sequences are equal
+        return first_cal_events == second_cal_events
 
 
 def ical_date_to_datetime(date, tz, start):
@@ -557,10 +575,7 @@ def calculate_shift_diff(first_shift, second_shift):
 
 
 def get_icalendar_tz_or_utc(icalendar):
-    try:
-        calendar_timezone = icalendar.walk("VTIMEZONE")[0]["TZID"]
-    except (IndexError, KeyError):
-        calendar_timezone = "UTC"
+    calendar_timezone = icalendar.get("X-WR-TIMEZONE", "UTC")
 
     if pytz_timezone := is_valid_timezone(calendar_timezone):
         return pytz_timezone
@@ -601,7 +616,10 @@ def create_base_icalendar(name: str) -> Calendar:
     cal.add("calscale", "GREGORIAN")
     cal.add("x-wr-calname", name)
     cal.add("x-wr-timezone", "UTC")
+    cal.add("version", "2.0")
     cal.add("prodid", "//Grafana Labs//Grafana On-Call//")
+    # suggested minimum interval for polling for changes
+    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "P1H")
 
     return cal
 
@@ -614,7 +632,7 @@ def get_events_from_calendars(ical_obj: Calendar, calendars: tuple) -> None:
                     ical_obj.add_component(component)
 
 
-def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: User) -> None:
+def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: User, name: str = None) -> None:
     for calendar in calendars:
         if calendar:
             for component in calendar.walk():
@@ -622,14 +640,35 @@ def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: U
                     event_user = get_usernames_from_ical_event(component)
                     event_user_value = event_user[0][0]
                     if event_user_value == user.username or event_user_value.lower() == user.email.lower():
+                        if name:
+                            component["SUMMARY"] = "{}: {}".format(name, component["SUMMARY"])
                         ical_obj.add_component(component)
 
 
+def _is_final_export_enabled(schedule: OnCallSchedule) -> bool:
+    DynamicSetting = apps.get_model("base", "DynamicSetting")
+    enabled_final_export = DynamicSetting.objects.get_or_create(
+        name="enabled_final_schedule_export",
+        defaults={
+            "json_value": {
+                "schedule_ids": [],
+            }
+        },
+    )[0]
+    return schedule.public_primary_key in enabled_final_export.json_value["schedule_ids"]
+
+
+def _get_ical_data_final_schedule(schedule: OnCallSchedule) -> str:
+    ical_data = schedule.cached_ical_final_schedule
+    if ical_data is None:
+        schedule.refresh_ical_final_schedule()
+        ical_data = schedule.cached_ical_final_schedule
+    return ical_data
+
+
 def ical_export_from_schedule(schedule: OnCallSchedule) -> bytes:
-    calendars = schedule.get_icalendars()
-    ical_obj = create_base_icalendar(schedule.name)
-    get_events_from_calendars(ical_obj, calendars)
-    return ical_obj.to_ical()
+    ical_data = _get_ical_data_final_schedule(schedule)
+    return ical_data.encode()
 
 
 def user_ical_export(user: User, schedules: list[OnCallSchedule]) -> bytes:
@@ -637,8 +676,10 @@ def user_ical_export(user: User, schedules: list[OnCallSchedule]) -> bytes:
     ical_obj = create_base_icalendar(schedule_name)
 
     for schedule in schedules:
-        calendars = schedule.get_icalendars()
-        get_user_events_from_calendars(ical_obj, calendars, user)
+        name = schedule.name
+        ical_data = _get_ical_data_final_schedule(schedule)
+        calendars = [Calendar.from_ical(ical_data)]
+        get_user_events_from_calendars(ical_obj, calendars, user, name=name)
 
     return ical_obj.to_ical()
 

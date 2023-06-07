@@ -1,0 +1,8 @@
+.root {
+  min-width: 200px;
+
+  & > div {
+    // If not set then inner div will not benefit of min-width
+    min-width: 200px;
+  }
+}

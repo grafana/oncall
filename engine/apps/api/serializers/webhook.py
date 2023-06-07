@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
@@ -29,7 +30,6 @@ class WebhookSerializer(serializers.ModelSerializer):
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
     user = serializers.HiddenField(default=CurrentUserDefault())
-    last_run = serializers.SerializerMethodField()
     trigger_type = serializers.CharField(required=True)
     forward_all = serializers.BooleanField(allow_null=True, required=False)
     last_response_log = serializers.SerializerMethodField()
@@ -40,6 +40,8 @@ class WebhookSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "is_webhook_enabled",
+            "is_legacy",
             "team",
             "data",
             "user",
@@ -55,8 +57,8 @@ class WebhookSerializer(serializers.ModelSerializer):
             "http_method",
             "trigger_type",
             "trigger_type_name",
-            "last_run",
             "last_response_log",
+            "integration_filter",
         ]
         extra_kwargs = {
             "name": {"required": True, "allow_null": False, "allow_blank": False},
@@ -64,6 +66,21 @@ class WebhookSerializer(serializers.ModelSerializer):
         }
 
         validators = [UniqueTogetherValidator(queryset=Webhook.objects.all(), fields=["name", "organization"])]
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if instance.password:
+            result["password"] = WEBHOOK_FIELD_PLACEHOLDER
+        if instance.authorization_header:
+            result["authorization_header"] = WEBHOOK_FIELD_PLACEHOLDER
+        return result
+
+    def to_internal_value(self, data):
+        if data.get("password") == WEBHOOK_FIELD_PLACEHOLDER:
+            data["password"] = self.instance.password
+        if data.get("authorization_header") == WEBHOOK_FIELD_PLACEHOLDER:
+            data["authorization_header"] = self.instance.authorization_header
+        return super().to_internal_value(data)
 
     def _validate_template_field(self, template):
         try:
@@ -99,12 +116,6 @@ class WebhookSerializer(serializers.ModelSerializer):
         if data is None:
             return False
         return data
-
-    def get_last_run(self, obj):
-        last_run = ""
-        if last_log := obj.responses.all().last():
-            last_run = last_log.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
-        return last_run
 
     def get_last_response_log(self, obj):
         return WebhookResponseSerializer(obj.responses.all().last()).data

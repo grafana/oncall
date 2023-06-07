@@ -17,7 +17,7 @@ def test_get_list_integrations(
     make_integration_heartbeat,
 ):
     organization, user, token = make_organization_and_user_with_token()
-    integration = make_alert_receive_channel(organization, verbal_name="grafana")
+    integration = make_alert_receive_channel(organization, verbal_name="grafana", description_short="Some description")
     default_channel_filter = make_channel_filter(integration, is_default=True)
     make_integration_heartbeat(integration)
 
@@ -31,7 +31,9 @@ def test_get_list_integrations(
                 "id": integration.public_primary_key,
                 "team_id": None,
                 "name": "grafana",
+                "description_short": "Some description",
                 "link": integration.integration_url,
+                "inbound_email": None,
                 "type": "grafana",
                 "default_route": {
                     "escalation_chain_id": None,
@@ -162,7 +164,9 @@ def test_update_integration_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -223,7 +227,9 @@ def test_update_integration_template_messaging_backend(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -300,7 +306,9 @@ def test_update_resolve_signal_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -409,7 +417,9 @@ def test_update_sms_template_with_empty_dict(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -470,7 +480,72 @@ def test_update_integration_name(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana_updated",
+        "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
+        "type": "grafana",
+        "default_route": {
+            "escalation_chain_id": None,
+            "id": default_channel_filter.public_primary_key,
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+        },
+        "heartbeat": {
+            "link": f"{integration.integration_url}heartbeat/",
+        },
+        "templates": {
+            "grouping_key": None,
+            "resolve_signal": None,
+            "acknowledge_signal": None,
+            "source_link": None,
+            "slack": {"title": None, "message": None, "image_url": None},
+            "web": {"title": None, "message": None, "image_url": None},
+            "sms": {
+                "title": None,
+            },
+            "phone_call": {
+                "title": None,
+            },
+            "telegram": {
+                "title": None,
+                "message": None,
+                "image_url": None,
+            },
+            TEST_MESSAGING_BACKEND_FIELD: {
+                "title": None,
+                "message": None,
+                "image_url": None,
+            },
+        },
+        "maintenance_mode": None,
+        "maintenance_started_at": None,
+        "maintenance_end_at": None,
+    }
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_update_integration_name_and_description_short(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization, verbal_name="grafana", description_short="Some description")
+    default_channel_filter = make_channel_filter(integration, is_default=True)
+    make_integration_heartbeat(integration)
+
+    client = APIClient()
+    data_for_update = {"name": "grafana_updated"}
+    expected_response = {
+        "id": integration.public_primary_key,
+        "team_id": None,
+        "name": "grafana_updated",
+        "description_short": "Some description",
+        "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -534,7 +609,9 @@ def test_set_default_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -601,7 +678,9 @@ def test_set_default_messaging_backend_template(
         "id": integration.public_primary_key,
         "team_id": None,
         "name": "grafana",
+        "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -664,3 +743,51 @@ def test_get_list_integrations_direct_paging_hidden(
     # Check no direct paging integrations in the response
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["results"] == []
+
+
+@pytest.mark.django_db
+def test_get_list_integrations_link_and_inbound_email(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_integration_heartbeat,
+    settings,
+):
+    """
+    Check that "link" and "inbound_email" fields are populated correctly for different integration types.
+    """
+
+    settings.BASE_URL = "https://test.com"
+    settings.INBOUND_EMAIL_DOMAIN = "test.com"
+
+    organization, user, token = make_organization_and_user_with_token()
+
+    for integration in AlertReceiveChannel._config:
+        make_alert_receive_channel(organization, integration=integration.slug, token="test123")
+
+    client = APIClient()
+    url = reverse("api-public:integrations-list")
+
+    response = client.get(url, HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+    for integration in response.json()["results"]:
+        integration_type, integration_link, integration_inbound_email = (
+            integration["type"],
+            integration["link"],
+            integration["inbound_email"],
+        )
+
+        if integration_type in [
+            AlertReceiveChannel.INTEGRATION_MANUAL,
+            AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
+            AlertReceiveChannel.INTEGRATION_MAINTENANCE,
+        ]:
+            assert integration_link is None
+            assert integration_inbound_email is None
+        elif integration_type == AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
+            assert integration_link is None
+            assert integration_inbound_email == "test123@test.com"
+        else:
+            assert integration_link == f"https://test.com/integrations/v1/{integration_type}/test123/"
+            assert integration_inbound_email is None

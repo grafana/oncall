@@ -72,7 +72,7 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
               class="css-1w5c5dq-input-inputWrapper"
             >
               <input
-                class="css-uzu9xn-input-input"
+                class="css-12lx392-input-input"
                 data-testid="onCallApiUrl"
                 name="onCallApiUrl"
               />
@@ -106,7 +106,7 @@ exports[`ConfigurationForm It doesn't allow the user to submit if the URL is inv
         </div>
       </div>
       <button
-        class="css-1sara2j-button"
+        class="css-z53gi5-button"
         disabled=""
         type="submit"
       >
@@ -193,7 +193,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
               class="css-1w5c5dq-input-inputWrapper"
             >
               <input
-                class="css-1wdli31-input-input"
+                class="css-1mlczho-input-input"
                 data-testid="onCallApiUrl"
                 name="onCallApiUrl"
               />
@@ -209,7 +209,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
         </span>
       </pre>
       <div
-        class="root info-block root--withBackground"
+        class="root root--withBackGround info-block"
       >
         <span
           class="root text text--secondary text--medium"
@@ -263,7 +263,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
         </span>
       </div>
       <button
-        class="css-1sara2j-button"
+        class="css-z53gi5-button"
         type="submit"
       >
         <span

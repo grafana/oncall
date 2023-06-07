@@ -6,7 +6,6 @@ export interface OutgoingWebhook2 {
   forward_all: boolean;
   http_method: string;
   id: string;
-  last_run: string;
   name: string;
   password: string;
   team: GrafanaTeam['id'];
@@ -17,6 +16,8 @@ export interface OutgoingWebhook2 {
   headers: string;
   trigger_template: string;
   last_response_log?: OutgoingWebhook2Response;
+  is_webhook_enabled: boolean;
+  is_legacy: boolean;
 }
 
 export interface OutgoingWebhook2Response {

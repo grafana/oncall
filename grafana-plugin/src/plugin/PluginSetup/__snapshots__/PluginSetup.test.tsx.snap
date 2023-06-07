@@ -62,6 +62,24 @@ exports[`PluginSetup app successfully initialized 1`] = `
 </div>
 `;
 
+exports[`PluginSetup currently undergoing maintenance 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      there is some sort of maintenance
+    </div>
+  </div>
+</div>
+`;
+
 exports[`PluginSetup there is an error message - retry setup 1`] = `
 <div>
   <div
@@ -87,7 +105,7 @@ exports[`PluginSetup there is an error message - retry setup 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <button
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             type="button"
           >
             <span
@@ -101,7 +119,7 @@ exports[`PluginSetup there is an error message - retry setup 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <a
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             href="/plugins/grafana-oncall-app?page=configuration"
             tabindex="0"
           >
@@ -143,7 +161,7 @@ exports[`PluginSetup there is an error message 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <button
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             type="button"
           >
             <span
@@ -157,7 +175,7 @@ exports[`PluginSetup there is an error message 1`] = `
           class="css-cvef6c-layoutChildrenWrapper"
         >
           <a
-            class="css-zy62io-button"
+            class="css-1pq88ji-button"
             href="/plugins/grafana-oncall-app?page=configuration"
             tabindex="0"
           >

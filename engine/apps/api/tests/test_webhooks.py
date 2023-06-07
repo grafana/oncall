@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.webhooks.models import Webhook
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 
 TEST_URL = "https://some-url"
 
@@ -44,12 +45,14 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "url": "https://github.com/",
             "data": '{"name": "{{ alert_payload }}"}',
             "username": "Chris Vanstras",
-            "password": "qwerty",
-            "authorization_header": "auth_token",
+            "password": WEBHOOK_FIELD_PLACEHOLDER,
+            "authorization_header": WEBHOOK_FIELD_PLACEHOLDER,
             "forward_all": False,
             "headers": None,
             "http_method": "POST",
-            "last_run": "",
+            "integration_filter": None,
+            "is_webhook_enabled": True,
+            "is_legacy": False,
             "last_response_log": {
                 "request_data": "",
                 "request_headers": "",
@@ -83,12 +86,14 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "url": "https://github.com/",
         "data": '{"name": "{{ alert_payload }}"}',
         "username": "Chris Vanstras",
-        "password": "qwerty",
-        "authorization_header": "auth_token",
+        "password": WEBHOOK_FIELD_PLACEHOLDER,
+        "authorization_header": WEBHOOK_FIELD_PLACEHOLDER,
         "forward_all": False,
         "headers": None,
         "http_method": "POST",
-        "last_run": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -118,7 +123,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "the_webhook",
         "url": TEST_URL,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
@@ -132,7 +137,9 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
         "forward_all": True,
         "headers": None,
         "http_method": "POST",
-        "last_run": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -143,7 +150,7 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Triggered",
+        "trigger_type_name": "Alert Group Created",
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -173,7 +180,7 @@ def test_create_valid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
 
@@ -189,7 +196,9 @@ def test_create_valid_templated_field(
         "headers": None,
         "data": None,
         "http_method": "POST",
-        "last_run": "",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
         "last_response_log": {
             "request_data": "",
             "request_headers": "",
@@ -200,7 +209,7 @@ def test_create_valid_templated_field(
             "url": "",
         },
         "trigger_template": None,
-        "trigger_type_name": "Triggered",
+        "trigger_type_name": "Alert Group Created",
     }
     # update expected value for changed field
     expected_response[field_name] = value
@@ -230,7 +239,7 @@ def test_create_invalid_templated_field(
         "name": "webhook_with_valid_data",
         "url": TEST_URL,
         field_name: value,
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
 
@@ -248,7 +257,7 @@ def test_update_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
     data = {
         "name": "github_button_updated",
         "url": "https://github.com/",
-        "trigger_type": str(Webhook.TRIGGER_NEW),
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
         "team": None,
     }
     response = client.put(
