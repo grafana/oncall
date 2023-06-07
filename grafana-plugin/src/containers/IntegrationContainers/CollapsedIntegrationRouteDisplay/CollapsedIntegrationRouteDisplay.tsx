@@ -26,7 +26,8 @@ interface CollapsedIntegrationRouteDisplayProps {
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
   ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
-    const { escalationChainStore, alertReceiveChannelStore, telegramChannelStore } = useStore();
+    const store = useStore();
+    const { escalationChainStore, alertReceiveChannelStore, telegramChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
     const [telegramInfo, setTelegramInfo] = useState<Array<{ id: string; channel_name: string }>>([]);
 
@@ -92,7 +93,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           content={
             <div className={cx('spacing')}>
               <VerticalGroup>
-                {IntegrationHelper.getChatOpsChannels(channelFilter, telegramInfo)
+                {IntegrationHelper.getChatOpsChannels(channelFilter, telegramInfo, store)
                   .filter((it) => it)
                   .map((chatOpsChannel, key) => (
                     <HorizontalGroup key={key}>
