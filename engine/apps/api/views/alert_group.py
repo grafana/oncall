@@ -464,7 +464,7 @@ class AlertGroupView(
                     alert_group=alert_group,
                     author=self.request.user,
                     source=ResolutionNote.Source.WEB,
-                    text=resolution_note_text[3000:],
+                    message_text=resolution_note_text[:3000],  # trim text to fit in the db field
                 )
                 send_update_resolution_note_signal.apply_async(
                     kwargs={

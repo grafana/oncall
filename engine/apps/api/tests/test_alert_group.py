@@ -1809,7 +1809,6 @@ def test_direct_paging_integration_treated_as_deleted(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize
 def test_alert_group_resolve_resolution_note(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
@@ -1833,9 +1832,11 @@ def test_alert_group_resolve_resolution_note(
     response = client.post(url, format="json", **make_user_auth_headers(user, token))
     # check that resolution note is required
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json().code == AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value
+    assert response.json()["code"] == AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value
 
-    with patch("apps.alerts.tasks.send_update_resolution_note_signal") as mock_signal:
+    with patch(
+        "apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async"
+    ) as mock_signal:
         url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
         response = client.post(
             url, format="json", data={"resolution_note": "hi"}, **make_user_auth_headers(user, token)
