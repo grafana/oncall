@@ -25,7 +25,13 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getDateTime, getStartOfWeek, getUTCByDay, getUTCString } from 'pages/schedule/Schedule.helpers';
+import {
+  getDateTime,
+  getStartOfWeek,
+  getUTCByDay,
+  getUTCString,
+  getUTCWeekStart,
+} from 'pages/schedule/Schedule.helpers';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
@@ -164,6 +170,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
       by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart),
+      week_start: getUTCWeekStart(store.scheduleStore.byDayOptions, shiftStart),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
     }),
     [
