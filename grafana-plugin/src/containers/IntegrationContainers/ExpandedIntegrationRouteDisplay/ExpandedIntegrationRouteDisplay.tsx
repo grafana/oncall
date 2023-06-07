@@ -14,13 +14,16 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import CopyToClipboard from 'react-copy-to-clipboard';
 
+import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
@@ -33,6 +36,7 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { useStore } from 'state/useStore';
+import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
@@ -161,17 +165,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       onClick={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                     />
                   </HorizontalGroup>
-                </IntegrationBlockItem>
-              )}
-
-              {routeIndex !== channelFiltersTotal.length - 1 && (
-                <IntegrationBlockItem>
-                  <VerticalGroup>
-                    <Text type="secondary">
-                      If the Routing template evaluates to True, the alert will be grouped with the Grouping template
-                      and proceed to the following steps
-                    </Text>
-                  </VerticalGroup>
                 </IntegrationBlockItem>
               )}
 
@@ -341,11 +334,38 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
       )}
 
       {!channelFilter.is_default && (
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Tooltip placement="top" content={'Delete'}>
-            <Button variant={'secondary'} icon={'trash-alt'} size={'sm'} onClick={onDelete} />
-          </Tooltip>
-        </WithPermissionControlTooltip>
+        <WithContextMenu
+          renderMenuItems={() => (
+            <div className={cx('integrations-actionsList')}>
+              <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
+                <div className={cx('integrations-actionItem')}>
+                  <HorizontalGroup spacing={'xs'}>
+                    <Icon name="copy" />
+
+                    <Text type="primary">UID: {channelFilter.id}</Text>
+                  </HorizontalGroup>
+                </div>
+              </CopyToClipboard>
+
+              <div className="thin-line-break" />
+
+              <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integrations-actionItem')} onClick={onDelete}>
+                  <Text type="danger">
+                    <HorizontalGroup spacing={'xs'}>
+                      <Icon name="trash-alt" />
+                      <span>Delete Route</span>
+                    </HorizontalGroup>
+                  </Text>
+                </div>
+              </WithPermissionControlTooltip>
+            </div>
+          )}
+        >
+          {({ openMenu }) => (
+            <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} className={cx('hamburgerMenu-small')} />
+          )}
+        </WithContextMenu>
       )}
     </HorizontalGroup>
   );

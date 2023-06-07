@@ -1,6 +1,7 @@
 from calendar import monthrange
 
 import pytest
+import pytz
 from django.utils import timezone
 
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
@@ -12,7 +13,7 @@ def test_get_on_call_users_from_single_event(make_organization_and_user, make_on
     organization, user = make_organization_and_user()
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
 
     data = {
         "priority_level": 1,
@@ -96,7 +97,7 @@ def test_get_on_call_users_from_recurrent_event(make_organization_and_user, make
     organization, user = make_organization_and_user()
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
 
     data = {
         "priority_level": 1,
@@ -575,7 +576,7 @@ def test_rolling_users_event_with_interval_monthly(
     user_2 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    start_date = timezone.datetime(year=2022, month=10, day=1, hour=10, minute=30)
+    start_date = timezone.datetime(year=2022, month=10, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
     days_for_next_month_1 = monthrange(2022, 10)[1]
     days_for_next_month_2 = monthrange(2022, 11)[1] + days_for_next_month_1
     days_for_next_month_3 = monthrange(2022, 12)[1] + days_for_next_month_2
@@ -939,7 +940,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30)
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
     days_in_curr_month = monthrange(2022, 12)[1]
     days_in_next_month = monthrange(2023, 1)[1]
 
@@ -995,7 +996,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly_by_monthday(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30)
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
     days_in_curr_month = monthrange(2022, 12)[1]
     days_in_next_month = monthrange(2023, 1)[1]
 
@@ -1314,7 +1315,7 @@ def test_get_oncall_users_for_multiple_schedules(
     schedule_1 = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedule_2 = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
 
-    now = timezone.now().replace(tzinfo=None, microsecond=0)
+    now = timezone.now().replace(microsecond=0)
 
     on_call_shift_1 = make_on_call_shift(
         organization=organization,
@@ -1417,7 +1418,7 @@ def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
 def test_shift_convert_to_ical(make_organization_and_user, make_on_call_shift):
     organization, user = make_organization_and_user()
 
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
     until = date + timezone.timedelta(days=30)
 
     data = {

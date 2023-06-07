@@ -39,6 +39,7 @@ class TelegramClient:
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:
         webhook_url = webhook_url or create_engine_url("/telegram/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST)
 
+        # avoid unnecessary set_webhook calls to make sure Telegram rate limits are not exceeded
         webhook_info = self.api_client.get_webhook_info()
         if webhook_info.url == webhook_url:
             return

@@ -41,6 +41,9 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ByTeamFilter
 
+    # self.get_object() is not used in export action because ScheduleExportAuthentication is used
+    extra_actions_ignore_no_get_object = ["export"]
+
     def get_queryset(self):
         name = self.request.query_params.get("name", None)
 

@@ -173,7 +173,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     !isPhoneProviderConfigured;
 
   const isPhoneDisabled = !!user.verified_phone_number;
-  const isCodeFieldDisabled = !isCodeSent || !isUserActionAllowed(action);
+  const isCodeFieldDisabled = (!isCodeSent && !isPhoneCallInitiated) || !isUserActionAllowed(action);
   const showToggle = user.verified_phone_number && isCurrentUser;
 
   if (showForgetScreen) {
