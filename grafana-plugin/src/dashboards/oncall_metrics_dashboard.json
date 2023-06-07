@@ -82,7 +82,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 2
       },
       "id": 18,
       "options": {
@@ -104,7 +104,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 4
       },
       "id": 19,
       "panels": [],
@@ -139,9 +139,9 @@
         "h": 7,
         "w": 5,
         "x": 0,
-        "y": 6
+        "y": 5
       },
-      "id": 4,
+      "id": 25,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -162,15 +162,15 @@
             "uid": "${datasource}"
           },
           "disableTextWrap": false,
-          "editorMode": "builder",
+          "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
           "expr": "max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])",
           "format": "time_series",
           "fullMetaSearch": false,
-          "instant": true,
+          "instant": false,
           "legendFormat": "__auto",
-          "range": false,
+          "range": true,
           "refId": "A",
           "useBackend": false
         }
@@ -224,7 +224,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "yellow",
+                  "fixedColor": "dark-yellow",
                   "mode": "fixed"
                 }
               }
@@ -248,16 +248,16 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 7,
+        "w": 6,
         "x": 5,
-        "y": 6
+        "y": 5
       },
       "id": 1,
       "options": {
         "displayMode": "gradient",
         "minVizHeight": 10,
         "minVizWidth": 0,
-        "orientation": "horizontal",
+        "orientation": "vertical",
         "reduceOptions": {
           "calcs": ["lastNotNull"],
           "fields": "",
@@ -274,9 +274,9 @@
             "uid": "${datasource}"
           },
           "disableTextWrap": false,
-          "editorMode": "builder",
+          "editorMode": "code",
           "excludeNullMetadata": false,
-          "expr": "sum by(state) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})",
+          "expr": "sum by (state) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
           "fullMetaSearch": false,
           "legendFormat": "__auto",
           "range": true,
@@ -316,106 +316,41 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
+          "decimals": 0,
           "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
           "unit": "none"
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "resolved"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "firing"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "acknowledged"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "yellow",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "silenced"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "#b6b6ba",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
-        "w": 7,
-        "x": 12,
-        "y": 6
+        "w": 5,
+        "x": 11,
+        "y": 5
       },
-      "id": 13,
+      "id": 29,
       "options": {
-        "displayLabels": ["percent"],
-        "legend": {
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true,
-          "values": []
-        },
-        "pieType": "pie",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "textMode": "auto"
       },
       "pluginVersion": "9.5.2",
       "targets": [
@@ -424,42 +359,24 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
+          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(state) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})",
+          "excludeNullMetadata": false,
+          "exemplar": false,
+          "expr": "increase(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])[$__range:])",
+          "format": "time_series",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "instant": true,
           "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
+          "range": false,
+          "refId": "A",
+          "useBackend": false
         }
       ],
-      "title": "Total alert groups by states %",
-      "transformations": [
-        {
-          "id": "joinByLabels",
-          "options": {
-            "value": "state"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "acknowledged": false,
-              "firing": false,
-              "resolved": false
-            },
-            "indexByName": {
-              "acknowledged": 1,
-              "firing": 0,
-              "resolved": 2,
-              "silenced": 3
-            },
-            "renameByName": {
-              "firing": ""
-            }
-          }
-        }
-      ],
-      "type": "piechart"
+      "timeTo": "5m",
+      "title": "Total new alert groups for period",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -484,13 +401,26 @@
           },
           "unit": "s"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sum(oncall_alert_groups_response_time_seconds_sum{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"}) / sum(oncall_alert_groups_response_time_seconds_count{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"})"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MTTR"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 7,
-        "w": 5,
-        "x": 19,
-        "y": 6
+        "w": 4,
+        "x": 16,
+        "y": 5
       },
       "id": 14,
       "options": {
@@ -500,6 +430,91 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "avg_over_time((sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Mean time to respond (MTTR)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": -10000000
+              },
+              {
+                "color": "super-light-yellow",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "avg(sum(oncall_alert_groups_response_time_seconds_sum{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"}) / sum(oncall_alert_groups_response_time_seconds_count{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"}))"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MTTR"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 4,
+        "x": 20,
+        "y": 5
+      },
+      "id": 32,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["diff"],
           "fields": "",
           "values": false
         },
@@ -514,14 +529,14 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})",
-          "instant": true,
+          "expr": "avg(sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
+          "instant": false,
           "legendFormat": "__auto",
-          "range": false,
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Mean time to respond (MTTR)",
+      "title": "MTTR changed for period",
       "type": "stat"
     },
     {
@@ -586,14 +601,14 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 12
       },
-      "id": 2,
+      "id": 24,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "right",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -624,12 +639,123 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed",
+            "seriesBy": "min"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 54,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MTTR"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "avg(sum($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "MTTR changed for period",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "id": 11,
       "panels": [],
@@ -648,11 +774,11 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "left",
+            "align": "auto",
             "cellOptions": {
               "mode": "gradient",
               "type": "gauge",
-              "valueDisplayMode": "text"
+              "valueDisplayMode": "color"
             },
             "filterable": false,
             "inspect": false
@@ -662,7 +788,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "green",
                 "value": null
               }
             ]
@@ -690,14 +816,14 @@
         ]
       },
       "gridPos": {
-        "h": 11,
+        "h": 23,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "id": 20,
       "options": {
-        "cellHeight": "sm",
+        "cellHeight": "md",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -714,9 +840,9 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "editorMode": "builder",
+          "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by(integration) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})",
+          "expr": "sort_desc(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -759,7 +885,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "left",
+            "align": "auto",
             "cellOptions": {
               "mode": "gradient",
               "type": "gauge",
@@ -806,10 +932,10 @@
         ]
       },
       "gridPos": {
-        "h": 11,
+        "h": 23,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 32
       },
       "id": 21,
       "options": {
@@ -832,7 +958,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"} / $alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})",
+          "expr": "sort_desc(avg_over_time((sum by (integration)($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum by (integration)($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -852,20 +978,20 @@
             "excludeByName": {
               "Time": true,
               "cluster": true,
+              "container": true,
               "id": true,
               "instance": true,
               "job": true,
+              "namespace": true,
               "org_id": true,
-              "slug": true,
-              "team": true,
               "pod": true,
-              "container": true,
-              "namespace": true
+              "slug": true,
+              "team": true
             },
             "indexByName": {},
             "renameByName": {
               "Metric": "Integration",
-              "Value": "Alert groups",
+              "Value": "MTTR",
               "integration": "Integration"
             }
           }
@@ -879,7 +1005,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 55
       },
       "id": 12,
       "panels": [],
@@ -898,11 +1024,11 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "left",
+            "align": "auto",
             "cellOptions": {
-              "mode": "gradient",
+              "mode": "basic",
               "type": "gauge",
-              "valueDisplayMode": "text"
+              "valueDisplayMode": "color"
             },
             "filterable": false,
             "inspect": false
@@ -912,7 +1038,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
+                "color": "green",
                 "value": null
               }
             ]
@@ -943,7 +1069,7 @@
         "h": 11,
         "w": 12,
         "x": 0,
-        "y": 36
+        "y": 56
       },
       "id": 22,
       "options": {
@@ -966,7 +1092,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by(team) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"})",
+          "expr": "sort_desc(sum by(team) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1006,7 +1132,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "continuous-GrYlRd"
           },
           "custom": {
             "align": "left",
@@ -1059,7 +1185,7 @@
         "h": 11,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 56
       },
       "id": 23,
       "options": {
@@ -1082,7 +1208,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(sum by(team) ($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum by(team) ($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
+          "expr": "sort_desc(avg_over_time((sum by(team) ($alert_groups_response_time_seconds_sum{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}) / sum by(team)($alert_groups_response_time_seconds_count{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1105,7 +1231,7 @@
             "indexByName": {},
             "renameByName": {
               "Metric": "Integration",
-              "Value": "Alert groups",
+              "Value": "MTTR",
               "team": "Team"
             }
           }
@@ -1114,7 +1240,7 @@
       "type": "table"
     }
   ],
-  "refresh": "",
+  "refresh": false,
   "schemaVersion": 38,
   "style": "dark",
   "tags": ["oncall"],
