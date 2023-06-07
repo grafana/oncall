@@ -47,6 +47,16 @@ def test_shift_starts_within_range(timing_window_lower, timing_window_upper, sec
     )
 
 
+def test_get_youre_going_oncall_notification_title():
+    # TODO:
+    pass
+
+
+def test_get_youre_going_oncall_fcm_message():
+    # TODO:
+    pass
+
+
 @pytest.mark.parametrize(
     "info_notifications_enabled,now,going_oncall_notification_timing,schedule_start,expected",
     [

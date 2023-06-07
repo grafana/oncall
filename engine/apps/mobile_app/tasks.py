@@ -9,7 +9,7 @@ import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
-from django.utils import timezone
+from django.utils import dateformat, timezone
 from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
@@ -224,8 +224,38 @@ def _get_alert_group_escalation_fcm_message(
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
 
+def _get_youre_going_oncall_notification_title(
+    schedule: OnCallSchedule, seconds_until_going_oncall: int, schedule_event: ScheduleEvent
+) -> str:
+    time_until_going_oncall = humanize.naturaldelta(seconds_until_going_oncall)
+
+    shift_start = schedule_event["start"]
+    shift_end = schedule_event["end"]
+    shift_starts_and_ends_on_same_day = shift_start.date() == shift_end.date()
+
+    def _format_datetime(dt):
+        """
+        django's DateFormat class supports PHP date() style date formatting.
+        For example:
+        7th October 2003 11:39 (note the "th" part in "7th" isn't possible w/ Python datetime formatting)
+
+        https://stackoverflow.com/questions/3644417/python-format-datetime-with-st-nd-rd-th-english-ordinal-suffix-like
+        https://github.com/django/django/blob/main/django/utils/dateformat.py#L1-L12
+        """
+        df = dateformat.DateFormat(dt)
+        return df.format("H:i" if shift_starts_and_ends_on_same_day else "F jS H:i")
+
+    formatted_shift = f"{_format_datetime(shift_start)} - {_format_datetime(shift_end)}"
+
+    return f"You're going on call in {time_until_going_oncall} for schedule {schedule.name}, {formatted_shift}"
+
+
 def _get_youre_going_oncall_fcm_message(
-    user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
+    user: User,
+    schedule: OnCallSchedule,
+    device_to_notify: FCMDevice,
+    seconds_until_going_oncall: int,
+    schedule_event: ScheduleEvent,
 ) -> Message:
     # avoid circular import
     from apps.mobile_app.models import MobileAppUserSettings
@@ -234,8 +264,8 @@ def _get_youre_going_oncall_fcm_message(
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-    notification_title = (
-        f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}"
+    notification_title = _get_youre_going_oncall_notification_title(
+        schedule, seconds_until_going_oncall, schedule_event
     )
 
     data: FCMMessageData = {
