@@ -391,3 +391,31 @@ class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBea
         process_heartbeat_task.apply_async(
             (alert_receive_channel.pk,),
         )
+
+
+class AlertManagerV2(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
+    def post(self, request, *args, **kwargs):
+        alert_receive_channel = self.request.alert_receive_channel
+        # if not alert_receive_channel.config.slug == kwargs["integration_type"]:
+        #     return HttpResponseBadRequest(
+        #         f"This url is for integration with {alert_receive_channel.config.title}."
+        #         f"Key is for {alert_receive_channel.get_integration_display()}"
+        #     )
+        alerts = request.data.get("alerts", [])
+        num_firing = len(list(filter(lambda a: a["status"] == "firing", alerts)))
+        num_resolved = len(list(filter(lambda a: a["status"] == "resolved", alerts)))
+        data = {**request.data, "num_firing": num_firing, "num_resolved": num_resolved}
+        # del data["alerts"]
+        create_alert.apply_async(
+            [],
+            {
+                "title": None,
+                "message": None,
+                "image_url": None,
+                "link_to_upstream_details": None,
+                "alert_receive_channel_pk": alert_receive_channel.pk,
+                "integration_unique_data": None,
+                "raw_request_data": data,
+            },
+        )
+        return Response("Ok.")
