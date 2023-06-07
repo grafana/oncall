@@ -13,8 +13,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
 from apps.alerts.paging import unpage_user
+from apps.alerts.tasks import send_update_resolution_note_signal
+from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.api.serializers.team import TeamSerializer
@@ -456,11 +458,30 @@ class AlertGroupView(
         if alert_group.is_maintenance_incident:
             alert_group.stop_maintenance(self.request.user)
         else:
-            if organization.is_resolution_note_required and not alert_group.has_resolution_notes:
-                return Response(
-                    data="Alert group without resolution note cannot be resolved due to organization settings.",
-                    status=status.HTTP_400_BAD_REQUEST,
+            resolution_note_text = request.data.get("resolution_note")
+            if resolution_note_text:
+                rn = ResolutionNote.objects.create(
+                    alert_group=alert_group,
+                    author=self.request.user,
+                    source=ResolutionNote.Source.WEB,
+                    message_text=resolution_note_text[:3000],  # trim text to fit in the db field
                 )
+                send_update_resolution_note_signal.apply_async(
+                    kwargs={
+                        "alert_group_pk": alert_group.pk,
+                        "resolution_note_pk": rn.pk,
+                    }
+                )
+            else:
+                # Check resolution note required setting only if resolution_note_text was not provided.
+                if organization.is_resolution_note_required and not alert_group.has_resolution_notes:
+                    return Response(
+                        data={
+                            "code": AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value,
+                            "detail": "Alert group without resolution note cannot be resolved due to organization settings",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
