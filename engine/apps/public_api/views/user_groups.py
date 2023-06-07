@@ -26,4 +26,4 @@ class UserGroupView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet
         ).distinct()
         if slack_handle:
             queryset = queryset.filter(handle=slack_handle)
-        return queryset.order_by("name")
+        return queryset.order_by("id")
