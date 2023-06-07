@@ -30,4 +30,4 @@ class SlackChannelView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericView
         if channel_name:
             queryset = queryset.filter(name=channel_name)
 
-        return queryset
+        return queryset.order_by("name")
