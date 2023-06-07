@@ -1356,6 +1356,7 @@
         "definition": "label_values(${alert_groups_total},slug)",
         "hide": 0,
         "includeAll": true,
+        "label": "Instance",
         "multi": true,
         "name": "instance",
         "options": [],
