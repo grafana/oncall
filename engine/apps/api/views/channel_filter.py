@@ -134,7 +134,7 @@ class ChannelFilterView(
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
         """Deprecated action. May be used in the older version of the plugin."""
-        instance = ChannelFilter.objects.get(public_primary_key=pk)
+        instance = self.get_object()
         try:
             instance.send_demo_alert()
         except UnableToSendDemoAlert as e:

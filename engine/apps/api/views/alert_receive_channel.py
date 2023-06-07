@@ -171,14 +171,14 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
-        alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=pk)
+        instance = self.get_object()
         payload = request.data.get("demo_alert_payload", None)
 
         if payload is not None and not isinstance(payload, dict):
             raise BadRequest(detail="Payload for demo alert must be a valid json object")
 
         try:
-            alert_receive_channel.send_demo_alert(payload=payload)
+            instance.send_demo_alert(payload=payload)
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
 
@@ -282,7 +282,7 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"])
     def start_maintenance(self, request, pk):
-        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+        instance = self.get_object()
 
         mode = request.data.get("mode", None)
         duration = request.data.get("duration", None)
@@ -312,7 +312,7 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"])
     def stop_maintenance(self, request, pk):
-        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+        instance = self.get_object()
         user = request.user
         instance.force_disable_maintenance(user)
         return Response(status=status.HTTP_200_OK)
