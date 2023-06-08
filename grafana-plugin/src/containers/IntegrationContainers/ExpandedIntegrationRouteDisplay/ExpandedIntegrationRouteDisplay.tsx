@@ -83,7 +83,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     useEffect(() => {
       setIsLoading(true);
-      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
+      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateItems()]).then(() =>
         setIsLoading(false)
       );
     }, []);
@@ -168,12 +168,14 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 </IntegrationBlockItem>
               )}
 
-              <IntegrationBlockItem>
-                <VerticalGroup spacing="md">
-                  <Text type="primary">Publish to ChatOps</Text>
-                  <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-                </VerticalGroup>
-              </IntegrationBlockItem>
+              {IntegrationHelper.hasChatopsInstalled(store) && (
+                <IntegrationBlockItem>
+                  <VerticalGroup spacing="md">
+                    <Text type="primary">Publish to ChatOps</Text>
+                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
+                  </VerticalGroup>
+                </IntegrationBlockItem>
+              )}
 
               <IntegrationBlockItem>
                 <VerticalGroup>
