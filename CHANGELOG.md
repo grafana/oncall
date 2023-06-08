@@ -5,12 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Run containers as a non-root user by @alexintech [#2053](https://github.com/grafana/oncall/pull/2053)
+
 ## v1.2.41 (2023-06-08)
 
 ### Added
 
-- Twilio Provider improvements  by @Konstantinov-Innokentii,  @mderynck and @joeyorlando
-[#2074](https://github.com/grafana/oncall/pull/2074) [#2034](https://github.com/grafana/oncall/pull/2034)
+- Twilio Provider improvements by @Konstantinov-Innokentii, @mderynck and @joeyorlando
+  [#2074](https://github.com/grafana/oncall/pull/2074) [#2034](https://github.com/grafana/oncall/pull/2034)
 
 ## v1.2.40 (2023-06-07)
 
@@ -28,10 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix + revert [#2057](https://github.com/grafana/oncall/pull/2057) which reverted a change which properly handles
   `Organization.DoesNotExist` exceptions for Slack events by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
 - Fix Telegram ratelimit on live setting change by @vadimkerr and @alexintech ([#2100](https://github.com/grafana/oncall/pull/2100))
-
-### Changed
-
-- Run containers as a non-root user by @alexintech [#2053](https://github.com/grafana/oncall/pull/2053)
 
 ## v1.2.39 (2023-06-06)
 
