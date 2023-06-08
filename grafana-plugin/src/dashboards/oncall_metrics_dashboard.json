@@ -375,7 +375,7 @@
         }
       ],
       "timeTo": "5m",
-      "title": "Total new alert groups for period",
+      "title": "New alert groups for selected period",
       "type": "stat"
     },
     {
@@ -626,7 +626,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[1h:])",
+          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[1h:]) != 0",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -882,7 +882,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "continuous-GrYlRd"
           },
           "custom": {
             "align": "auto",
@@ -1026,7 +1026,7 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "mode": "basic",
+              "mode": "gradient",
               "type": "gauge",
               "valueDisplayMode": "color"
             },
