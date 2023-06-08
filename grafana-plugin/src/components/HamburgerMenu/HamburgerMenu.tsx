@@ -9,6 +9,7 @@ interface HamburgerMenuProps {
   openMenu: React.MouseEventHandler<HTMLElement>;
   listWidth: number;
   listBorder: number;
+  stopPropagation?: boolean;
   withBackground?: boolean;
   className?: string;
 }
@@ -17,12 +18,16 @@ const cx = cn.bind(styles);
 
 const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
   const ref = useRef<HTMLDivElement>();
-  const { openMenu, listBorder, listWidth, withBackground, className } = props;
+  const { openMenu, listBorder, listWidth, withBackground, className, stopPropagation = false } = props;
   return (
     <div
       ref={ref}
       className={withBackground ? cx('hamburgerMenu--withBackground') : cx('hamburgerMenu', className)}
-      onClick={() => {
+      onClick={(e) => {
+        if (stopPropagation) {
+          e.stopPropagation();
+        }
+
         const boundingRect = ref.current.getBoundingClientRect();
 
         openMenu({

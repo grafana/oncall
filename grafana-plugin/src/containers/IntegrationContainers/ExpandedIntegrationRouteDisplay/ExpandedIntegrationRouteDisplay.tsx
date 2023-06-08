@@ -365,16 +365,20 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           )}
         >
           {({ openMenu }) => (
-            <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} className={'hamburgerMenu--small'} />
+            <HamburgerMenu
+              openMenu={openMenu}
+              listBorder={2}
+              listWidth={200}
+              className={'hamburgerMenu--small'}
+              stopPropagation={true}
+            />
           )}
         </WithContextMenu>
       )}
     </HorizontalGroup>
   );
 
-  function onDelete(e: React.SyntheticEvent) {
-    e.stopPropagation();
-
+  function onDelete() {
     setRouteIdForDeletion();
   }
 
