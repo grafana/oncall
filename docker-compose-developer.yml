@@ -3,6 +3,9 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
+x-user: &oncall-user
+  "appuser"
+
 x-oncall-build: &oncall-build-args
   context: ./engine
   target: ${ONCALL_IMAGE_TARGET:-dev}
@@ -65,6 +68,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: sh -c "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -86,6 +90,7 @@ services:
     container_name: oncall_engine_commands
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     env_file: *oncall-env-files
     environment: *oncall-env-vars
     volumes: *oncall-volumes
@@ -99,6 +104,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: "python manage.py start_celery"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -129,6 +135,7 @@ services:
     container_name: oncall_db_migration
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     command: "python manage.py migrate --noinput"
     env_file: *oncall-env-files
     environment: *oncall-env-vars

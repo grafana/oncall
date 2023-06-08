@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.urls import reverse
 from twilio.twiml.voice_response import Gather, VoiceResponse
 
@@ -56,30 +55,30 @@ def process_digit(call_sid, digit):
     if call_sid and digit:
         logger.info(f"twilioapp.process_digit: processing sid={call_sid} digit={digit}")
         twilio_phone_call = TwilioPhoneCall.objects.filter(sid=call_sid).first()
-        # Check twilio phone call and then oncall phone call for backward compatibility after PhoneCall migration.
-        # Will be removed soon.
-        if twilio_phone_call:
-            logger.info(f"twilioapp.process_digit: found legacy twilio_phone_call sid={call_sid} digit={digit}")
-            phone_call_record = twilio_phone_call.phone_call_record
-        else:
-            PhoneCallRecord = apps.get_model("phone_notifications", "PhoneCallRecord")
-            phone_call_record = PhoneCallRecord.objects.filter(sid=call_sid).first()
+        if twilio_phone_call is None:
+            logger.info(f"twilioapp.process_digit: twilio_phone_call not found sid={call_sid}")
+            return
 
-        if phone_call_record is not None:
-            alert_group = phone_call_record.represents_alert_group
-            user = phone_call_record.receiver
+        logger.info(f"twilioapp.process_digit: found twilio_phone_call sid={call_sid} digit={digit}")
+        phone_call_record = twilio_phone_call.phone_call_record
 
-            logger.info(
-                f"twilioapp.process_digit: processing using phone_call_record id={phone_call_record.id} "
-                f"twilio_phone_call sid={call_sid} digit={digit} alert_group_id={alert_group.id}"
-            )
+        if phone_call_record is None:
+            logger.info(f"twilioapp.process_digit: twilio_phone_call has no phone_call_record sid={call_sid}")
+            return
 
-            if digit == "1":
-                alert_group.acknowledge_by_user(user, action_source=ActionSource.PHONE)
-            elif digit == "2":
-                alert_group.resolve_by_user(user, action_source=ActionSource.PHONE)
-            elif digit == "3":
-                alert_group.silence_by_user(user, silence_delay=1800, action_source=ActionSource.PHONE)
+        logger.info(f"twilioapp.process_digit: found phone_call_record id={phone_call_record.id} sid={call_sid}")
+        alert_group = phone_call_record.represents_alert_group
+        user = phone_call_record.receiver
+        logger.info(
+            f"twilioapp.process_digit: processing digit phone_call_record id={phone_call_record.id} "
+            f"twilio_phone_call_sid={call_sid} digit={digit} alert_group_id={alert_group.id} user_id={user.id}"
+        )
+        if digit == "1":
+            alert_group.acknowledge_by_user(user, action_source=ActionSource.PHONE)
+        elif digit == "2":
+            alert_group.resolve_by_user(user, action_source=ActionSource.PHONE)
+        elif digit == "3":
+            alert_group.silence_by_user(user, silence_delay=1800, action_source=ActionSource.PHONE)
 
 
 def get_gather_url():

@@ -61,12 +61,10 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         calls_today = PhoneCallRecord.objects.filter(
             created_at__gte=day_start,
-            represents_alert_group__channel__organization=self.organization,
             receiver=user,
         ).count()
         sms_today = SMSMessage.objects.filter(
             created_at__gte=day_start,
-            represents_alert_group__channel__organization=self.organization,
             receiver=user,
         ).count()
 
