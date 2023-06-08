@@ -214,9 +214,9 @@ Grafana OnCall supports Zvonok.com phone call notifications delivery. To configu
 Zvonok.com, complete the following steps:
 
 1. Change `PHONE_PROVIDER` value to `zvonok`.
-1. Create API public key on [Profile->Settings] (https://zvonok.com/manager/users/profile-settings/) page and assign it's 
+1. Create API public key on [Profile->Settings](https://zvonok.com/manager/users/profile-settings/) page and assign it's 
    value to `ZVONOK_API_KEY`.
-1. Create [Calls by API] (https://zvonok.com/manager/phones/all/?sup_type=api) campaign and assign it's ID value to
+1. Create [Calls by API](https://zvonok.com/manager/phones/all/?sup_type=api) campaign and assign it's ID value to
    `ZVONOK_CALL_CAMPAIGN_ID`.
 
 ## Email Setup
