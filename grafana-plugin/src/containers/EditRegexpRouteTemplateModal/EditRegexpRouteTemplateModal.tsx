@@ -95,7 +95,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
             </Tooltip>
           </HorizontalGroup>
 
-          <div className={cx('regexp-template-code', showErrorTemplate && 'regexp-template-code-error')}>
+          <div className={cx('regexp-template-code', { 'regexp-template-code-error': showErrorTemplate })}>
             <MonacoEditor
               value={regexpTemplateBody}
               height={'200px'}
