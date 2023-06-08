@@ -24,6 +24,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     shift_start = serializers.DateTimeField(source="start")
     shift_end = serializers.SerializerMethodField()
     by_day = serializers.ListField(required=False, allow_null=True)
+    week_start = serializers.CharField(required=False, allow_null=True)
     rolling_users = RollingUsersField(
         allow_null=True,
         required=False,
@@ -51,6 +52,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "frequency",
             "interval",
             "by_day",
+            "week_start",
             "source",
             "rolling_users",
             "updated_shift",
@@ -64,6 +66,11 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def get_shift_end(self, obj):
         return obj.start + obj.duration
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
+        return ret
 
     def to_internal_value(self, data):
         data["source"] = CustomOnCallShift.SOURCE_WEB
@@ -79,6 +86,15 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 if day not in CustomOnCallShift.WEB_WEEKDAY_MAP:
                     raise serializers.ValidationError(["Invalid day value."])
         return by_day
+
+    def validate_week_start(self, week_start):
+        if week_start is None:
+            week_start = CustomOnCallShift.MONDAY
+
+        if week_start not in CustomOnCallShift.WEB_WEEKDAY_MAP:
+            raise serializers.ValidationError(["Invalid week start value."])
+
+        return CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[week_start]
 
     def validate_interval(self, interval):
         if interval is not None:
@@ -171,7 +187,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         if validated_data.get("schedule"):
             validated_data["team"] = validated_data["schedule"].team
 
-        validated_data["week_start"] = CustomOnCallShift.MONDAY
+        validated_data["week_start"] = validated_data.get("week_start", CustomOnCallShift.MONDAY)
 
         return validated_data
 
