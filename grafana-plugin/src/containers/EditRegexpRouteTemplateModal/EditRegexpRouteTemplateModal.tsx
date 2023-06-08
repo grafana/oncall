@@ -12,6 +12,7 @@ import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';
+import { openErrorNotification } from 'utils';
 
 import styles from './EditRegexpRouteTemplateModal.module.css';
 
@@ -33,6 +34,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
   const regexpBody = store.alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term;
 
   const [regexpTemplateBody, setRegexpTemplateBody] = useState<string>(regexpBody);
+  const [showErrorTemplate, setShowErrorTemplate] = useState<boolean>(false);
 
   const templateJinja2Body = store.alertReceiveChannelStore.channelFilters[channelFilterId]?.filtering_term_as_jinja2;
 
@@ -40,14 +42,20 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
 
   const handleRegexpBodyChange = () => {
     return debounce((value: string) => {
+      setShowErrorTemplate(false);
       setRegexpTemplateBody(value);
     }, 1000);
   };
 
   const handleSave = useCallback(() => {
-    onUpdateRoute({ ['route_template']: regexpTemplateBody }, channelFilterId, 0);
+    if (!regexpTemplateBody) {
+      setShowErrorTemplate(true);
+      openErrorNotification('Route template body can not be empty');
+    } else {
+      onUpdateRoute({ ['route_template']: regexpTemplateBody }, channelFilterId, 0);
 
-    onHide();
+      onHide();
+    }
   }, [regexpTemplateBody]);
 
   const handleConvertToJinja2 = useCallback(() => {
@@ -87,7 +95,7 @@ const EditRegexpRouteTemplateModal = observer((props: EditRegexpRouteTemplateMod
             </Tooltip>
           </HorizontalGroup>
 
-          <div className={cx('regexp-template-code')}>
+          <div className={cx('regexp-template-code', showErrorTemplate && 'regexp-template-code-error')}>
             <MonacoEditor
               value={regexpTemplateBody}
               height={'200px'}
