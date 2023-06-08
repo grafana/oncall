@@ -365,7 +365,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           )}
         >
           {({ openMenu }) => (
-            <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} className={cx('hamburgerMenu-small')} />
+            <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} className={'hamburgerMenu--small'} />
           )}
         </WithContextMenu>
       )}
@@ -374,6 +374,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 
   function onDelete(e: React.SyntheticEvent) {
     e.stopPropagation();
+
     setRouteIdForDeletion();
   }
 

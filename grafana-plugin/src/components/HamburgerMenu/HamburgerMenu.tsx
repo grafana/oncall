@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from './HamburgerMenu.module.css';
+import styles from './HamburgerMenu.module.scss';
 
 interface HamburgerMenuProps {
   openMenu: React.MouseEventHandler<HTMLElement>;
@@ -21,7 +21,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
   return (
     <div
       ref={ref}
-      className={withBackground ? cx('hamburger-menu-withBackground') : cx('hamburger-menu', className)}
+      className={withBackground ? cx('hamburgerMenu--withBackground') : cx('hamburgerMenu', className)}
       onClick={() => {
         const boundingRect = ref.current.getBoundingClientRect();
 
