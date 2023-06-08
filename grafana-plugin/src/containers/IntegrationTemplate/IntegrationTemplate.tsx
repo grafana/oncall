@@ -21,6 +21,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { openErrorNotification } from 'utils';
 import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 
@@ -117,11 +118,17 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   );
 
   const handleSubmit = useCallback(() => {
-    template.isRoute
-      ? onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId)
-      : onUpdateTemplates({ [template.name]: changedTemplateBody });
-
-    onHide();
+    if (template.isRoute) {
+      if (changedTemplateBody) {
+        onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId);
+        onHide();
+      } else {
+        openErrorNotification('Route template body can not be empty');
+      }
+    } else {
+      onUpdateTemplates({ [template.name]: changedTemplateBody });
+      onHide();
+    }
   }, [onUpdateTemplates, changedTemplateBody]);
 
   const getCheatSheet = (templateName) => {

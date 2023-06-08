@@ -346,7 +346,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   this.setState({
                     isEditTemplateModalOpen: undefined,
                   });
-                  this.setState({ isTemplateSettingsOpen: true });
+                  if (selectedTemplate?.name !== 'route_template') {
+                    this.setState({ isTemplateSettingsOpen: true });
+                  }
                   LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
                 }}
                 channelFilterId={channelFilterIdForEdit}
