@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Twilio Provider improvements by @Konstantinov-Innokentii, @mderynck and @joeyorlando
   [#2074](https://github.com/grafana/oncall/pull/2074) [#2034](https://github.com/grafana/oncall/pull/2034)
-
 - Run containers as a non-root user by @alexintech [#2053](https://github.com/grafana/oncall/pull/2053)
 
 ## v1.2.40 (2023-06-07)
