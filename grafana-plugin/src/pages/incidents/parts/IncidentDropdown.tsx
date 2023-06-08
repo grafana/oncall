@@ -9,6 +9,7 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import { SilenceSelect } from './SilenceSelect';
@@ -17,18 +18,18 @@ const cx = cn.bind(styles);
 
 const getIncidentTagColor = (alert: Alert) => {
   if (alert.status === IncidentStatus.Resolved) {
-    return getComputedStyle(document.documentElement).getPropertyValue('--tag-primary');
+    return getVar('--tag-primary');
   }
   if (alert.status === IncidentStatus.Firing) {
-    return getComputedStyle(document.documentElement).getPropertyValue('--tag-danger');
+    return getVar('--tag-danger');
   }
   if (alert.status === IncidentStatus.Acknowledged) {
-    return getComputedStyle(document.documentElement).getPropertyValue('--tag-warning');
+    return getVar('--tag-warning');
   }
-  return getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary');
+  return getVar('--tag-secondary');
 };
 
-function ListMenu({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {
+function IncidentStatusTag({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {
   const forwardedRef = useRef<HTMLSpanElement>();
 
   return (
@@ -108,7 +109,7 @@ export const IncidentDropdown: FC<{
           </div>
         )}
       >
-        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -148,7 +149,7 @@ export const IncidentDropdown: FC<{
           </div>
         )}
       >
-        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -206,7 +207,7 @@ export const IncidentDropdown: FC<{
           </div>
         )}
       >
-        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -259,7 +260,7 @@ export const IncidentDropdown: FC<{
         </div>
       )}
     >
-      {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+      {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
     </WithContextMenu>
   );
 };

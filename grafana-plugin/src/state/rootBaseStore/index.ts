@@ -12,12 +12,14 @@ import { CloudStore } from 'models/cloud/cloud';
 import { DirectPagingStore } from 'models/direct_paging/direct_paging';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
+import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { MaintenanceStore } from 'models/maintenance/maintenance';
 import { OrganizationLogStore } from 'models/organization_log/organization_log';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -31,6 +33,7 @@ import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 // ------ Dashboard ------ //
 
@@ -54,15 +57,15 @@ export class RootBaseStore {
   initializationError = null;
 
   @observable
+  currentlyUndergoingMaintenance = false;
+
+  @observable
   isMobile = false;
 
   initialQuery = qs.parse(window.location.search);
 
   @observable
   selectedAlertReceiveChannel?: AlertReceiveChannel['id'];
-
-  @observable
-  isLess1280: boolean;
 
   @observable
   features?: { [key: string]: boolean };
@@ -84,6 +87,8 @@ export class RootBaseStore {
   grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
+
+  outgoingWebhook2Store: OutgoingWebhook2Store = new OutgoingWebhook2Store(this);
   alertReceiveChannelFiltersStore: AlertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
   escalationChainStore: EscalationChainStore = new EscalationChainStore(this);
   escalationPolicyStore: EscalationPolicyStore = new EscalationPolicyStore(this);
@@ -100,6 +105,7 @@ export class RootBaseStore {
   apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
   OrganizationLogStore: OrganizationLogStore = new OrganizationLogStore(this);
   globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
+  filtersStore: FiltersStore = new FiltersStore(this);
   // stores
 
   async updateBasicData() {
@@ -156,6 +162,12 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
+    const isInMaintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode();
+    if (isInMaintenanceMode !== null) {
+      this.currentlyUndergoingMaintenance = true;
+      return this.setupPluginError(`🚧 ${isInMaintenanceMode} 🚧`);
+    }
+
     // at this point we know the plugin is provionsed
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
@@ -163,6 +175,7 @@ export class RootBaseStore {
     }
 
     const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
+
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
@@ -213,6 +226,10 @@ export class RootBaseStore {
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only
     return this.features?.[feature];
+  }
+
+  isOpenSource(): boolean {
+    return this.backendLicense === GRAFANA_LICENSE_OSS;
   }
 
   @observable

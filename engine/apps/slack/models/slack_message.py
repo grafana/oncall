@@ -80,7 +80,8 @@ class SlackMessage(models.Model):
                 self.alert_group.slack_message = self
                 self.alert_group.save(update_fields=["slack_message"])
                 return self.alert_group
-            return self.alert.group
+            else:
+                raise
 
     @property
     def permalink(self):
@@ -112,11 +113,11 @@ class SlackMessage(models.Model):
     def send_slack_notification(self, user, alert_group, notification_policy):
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
         slack_message = alert_group.get_slack_message()
-        user_verbal = user.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal = user.get_username_with_slack_verbal(mention=True)
 
         slack_user_identity = user.slack_user_identity
         if slack_user_identity is None:
-            text = "{}\nTried to invite {} to look at incident. Unfortunately {} is not in slack.".format(
+            text = "{}\nTried to invite {} to look at the alert group. Unfortunately {} is not in slack.".format(
                 alert_group.long_verbose_name, user_verbal, user_verbal
             )
 
@@ -131,7 +132,7 @@ class SlackMessage(models.Model):
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_SLACK,
             ).save()
         else:
-            text = "{}\nInviting {} to look at incident.".format(alert_group.long_verbose_name, user_verbal)
+            text = "{}\nInviting {} to look at the alert group.".format(alert_group.long_verbose_name, user_verbal)
 
         blocks = [
             {
@@ -217,32 +218,3 @@ class SlackMessage(models.Model):
                 pass
             else:
                 raise e
-
-    @classmethod
-    def get_alert_group_from_slack_message_payload(cls, slack_team_identity, payload):
-
-        message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
-        channel_id = payload["channel"]["id"]
-
-        try:
-            slack_message = cls.objects.get(
-                slack_id=message_ts,
-                _slack_team_identity=slack_team_identity,
-                channel_id=channel_id,
-            )
-            alert_group = slack_message.get_alert_group()
-        except cls.DoesNotExist as e:
-            logger.error(
-                f"Tried to get SlackMessage from message_ts:"
-                f"slack_team_identity_id={slack_team_identity.pk},"
-                f"message_ts={message_ts}"
-            )
-            raise e
-        except cls.alert.RelatedObjectDoesNotExist as e:
-            logger.error(
-                f"Tried to get AlertGroup from SlackMessage:"
-                f"slack_team_identity_id={slack_team_identity.pk},"
-                f"message_ts={message_ts}"
-            )
-            raise e
-        return alert_group

@@ -56,6 +56,33 @@ def test_create_escalation_policy(escalation_policy_internal_api_setup, make_use
 
 
 @pytest.mark.django_db
+def test_create_escalation_policy_webhook(
+    escalation_policy_internal_api_setup, make_custom_webhook, make_user_auth_headers
+):
+    token, escalation_chain, _, user, _ = escalation_policy_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:escalation_policy-list")
+
+    webhook = make_custom_webhook(organization=user.organization)
+    data = {
+        "step": EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
+        "escalation_chain": escalation_chain.public_primary_key,
+        "custom_webhook": webhook.public_primary_key,
+    }
+
+    max_order = EscalationPolicy.objects.filter(escalation_chain=escalation_chain).aggregate(maxorder=Max("order"))[
+        "maxorder"
+    ]
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["order"] == max_order + 1
+    assert response.data["custom_webhook"] == webhook.public_primary_key
+    escalation_policy = EscalationPolicy.objects.get(public_primary_key=response.data["id"])
+    assert escalation_policy.custom_webhook == webhook
+
+
+@pytest.mark.django_db
 def test_update_notify_multiple_users_step(escalation_policy_internal_api_setup, make_user_auth_headers):
     token, _, escalation_policy, first_user, second_user = escalation_policy_internal_api_setup
     client = APIClient()
@@ -624,6 +651,7 @@ def test_escalation_policy_can_not_create_with_non_step_type_related_data(
         (EscalationPolicy.STEP_NOTIFY_IF_TIME, ["from_time", "to_time"]),
         (EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS, ["notify_to_users_queue"]),
         (EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON, ["custom_button_trigger"]),
+        (EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK, ["custom_webhook"]),
     ],
 )
 def test_escalation_policy_update_drop_non_step_type_related_data(
@@ -662,6 +690,7 @@ def test_escalation_policy_update_drop_non_step_type_related_data(
         "from_time",
         "to_time",
         "custom_button_trigger",
+        "custom_webhook",
     ]
     for f in related_fields:
         fields_to_check.remove(f)
@@ -713,6 +742,7 @@ def test_escalation_policy_switch_importance(
         "num_minutes_in_window": None,
         "slack_integration_required": escalation_policy.slack_integration_required,
         "custom_button_trigger": None,
+        "custom_webhook": None,
         "notify_schedule": None,
         "notify_to_group": None,
         "important": True,
@@ -770,6 +800,7 @@ def test_escalation_policy_filter_by_user(
             "num_minutes_in_window": None,
             "slack_integration_required": False,
             "custom_button_trigger": None,
+            "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
             "important": False,
@@ -787,6 +818,7 @@ def test_escalation_policy_filter_by_user(
             "num_minutes_in_window": None,
             "slack_integration_required": False,
             "custom_button_trigger": None,
+            "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
             "important": False,
@@ -849,6 +881,7 @@ def test_escalation_policy_filter_by_slack_channel(
             "num_minutes_in_window": None,
             "slack_integration_required": False,
             "custom_button_trigger": None,
+            "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
             "important": False,
@@ -864,3 +897,25 @@ def test_escalation_policy_filter_by_slack_channel(
     assert response.status_code == status.HTTP_200_OK
 
     assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("enabled", [True, False])
+def test_escalation_policy_escalation_options_webhooks(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    enabled,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    url = reverse("api-internal:escalation_policy-escalation-options")
+
+    with patch("apps.api.views.escalation_policy.is_webhooks_enabled_for_organization", return_value=enabled):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    returned_options = [option["value"] for option in response.json()]
+    if enabled:
+        assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK in returned_options
+    else:
+        assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK not in returned_options

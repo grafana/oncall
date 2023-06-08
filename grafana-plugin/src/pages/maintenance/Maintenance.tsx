@@ -29,6 +29,7 @@ interface MaintenancePageState {
   maintenanceData?: {
     type?: MaintenanceType;
     alert_receive_channel_id?: AlertReceiveChannel['id'];
+    disabled?: boolean;
   };
 }
 
@@ -139,7 +140,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     variant="primary"
                     icon="plus"
                   >
-                    Create
+                    New maintenance
                   </Button>
                 </WithPermissionControlTooltip>
               </div>

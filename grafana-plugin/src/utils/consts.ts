@@ -11,7 +11,7 @@ export const GRAFANA_LICENSE_OSS = 'OpenSource';
 export const BREAKPOINT_TABS = 1024;
 
 // Default redirect page
-export const DEFAULT_PAGE = 'incidents';
+export const DEFAULT_PAGE = 'alert-groups';
 
 export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 
@@ -28,8 +28,10 @@ export const FARO_ENDPOINT_OPS =
 export const FARO_ENDPOINT_PROD =
   'https://faro-collector-prod-us-central-0.grafana.net/collect/03a11ed03c3af04dcfc3be9755f2b053';
 
-export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup';
-export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/';
+export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/oncall/latest/open-source/#slack-setup';
+export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notify/telegram/';
 
 // Make sure if you chage max-width here you also change it in responsive.css
 export const TABLE_COLUMN_MAX_WIDTH = 1500;
+
+export const DATASOURCE_GRAFANA = 'grafana';

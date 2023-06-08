@@ -5,7 +5,8 @@ from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
-from apps.mobile_app.tasks import notify_user_async
+from apps.mobile_app.models import MobileAppUserSettings
+from apps.mobile_app.tasks import _get_alert_group_escalation_fcm_message, notify_user_async
 from apps.oss_installation.models import CloudConnector
 
 MOBILE_APP_BACKEND_ID = 5
@@ -40,6 +41,7 @@ def test_notify_user_async_cloud(
 
     # check FCM is contacted directly when using the cloud license
     settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
     with patch.object(FCMDevice, "send_message", return_value="ok") as mock:
         notify_user_async(
             user_pk=user.pk,
@@ -196,6 +198,7 @@ def test_notify_user_retry(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
     # check that FirebaseError is raised when send_message returns it so Celery task can retry
     with patch.object(
         FCMDevice, "send_message", return_value=FirebaseError(code="test_error_code", message="test_error_message")
@@ -207,3 +210,90 @@ def test_notify_user_retry(
                 notification_policy_pk=notification_policy.pk,
                 critical=False,
             )
+
+
+@pytest.mark.django_db
+def test_fcm_message_user_settings(
+    make_organization_and_user, make_alert_receive_channel, make_alert_group, make_alert
+):
+    organization, user = make_organization_and_user()
+    device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
+
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    message = _get_alert_group_escalation_fcm_message(alert_group, user, device, critical=False)
+
+    # Check user settings are passed to FCM message
+    assert message.data["default_notification_sound_name"] == "default_sound.mp3"
+    assert message.data["default_notification_volume_type"] == "constant"
+    assert message.data["default_notification_volume_override"] == "false"
+    assert message.data["default_notification_volume"] == "0.8"
+    assert message.data["important_notification_sound_name"] == "default_sound_important.mp3"
+    assert message.data["important_notification_volume_type"] == "constant"
+    assert message.data["important_notification_volume"] == "0.8"
+    assert message.data["important_notification_volume_override"] == "true"
+    assert message.data["important_notification_override_dnd"] == "true"
+
+    # Check APNS notification sound is set correctly
+    apns_sound = message.apns.payload.aps.sound
+    assert apns_sound.critical is False
+    assert apns_sound.name == "default_sound.aiff"
+    assert apns_sound.volume is None  # APNS doesn't allow to specify volume for non-critical notifications
+
+
+@pytest.mark.django_db
+def test_fcm_message_user_settings_critical(
+    make_organization_and_user, make_alert_receive_channel, make_alert_group, make_alert
+):
+    organization, user = make_organization_and_user()
+    device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
+
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    message = _get_alert_group_escalation_fcm_message(alert_group, user, device, critical=True)
+
+    # Check user settings are passed to FCM message
+    assert message.data["default_notification_sound_name"] == "default_sound.mp3"
+    assert message.data["default_notification_volume_type"] == "constant"
+    assert message.data["default_notification_volume_override"] == "false"
+    assert message.data["default_notification_volume"] == "0.8"
+    assert message.data["important_notification_sound_name"] == "default_sound_important.mp3"
+    assert message.data["important_notification_volume_type"] == "constant"
+    assert message.data["important_notification_volume"] == "0.8"
+    assert message.data["important_notification_volume_override"] == "true"
+    assert message.data["important_notification_override_dnd"] == "true"
+
+    # Check APNS notification sound is set correctly
+    apns_sound = message.apns.payload.aps.sound
+    assert apns_sound.critical is True
+    assert apns_sound.name == "default_sound_important.aiff"
+    assert apns_sound.volume == 0.8
+    assert message.apns.payload.aps.custom_data["interruption-level"] == "critical"
+
+
+@pytest.mark.django_db
+def test_fcm_message_user_settings_critical_override_dnd_disabled(
+    make_organization_and_user, make_alert_receive_channel, make_alert_group, make_alert
+):
+    organization, user = make_organization_and_user()
+    device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
+
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    # Disable important notification override DND
+    MobileAppUserSettings.objects.create(user=user, important_notification_override_dnd=False)
+    message = _get_alert_group_escalation_fcm_message(alert_group, user, device, critical=True)
+
+    # Check user settings are passed to FCM message
+    assert message.data["important_notification_override_dnd"] == "false"
+
+    # Check APNS notification sound is set correctly
+    apns_sound = message.apns.payload.aps.sound
+    assert apns_sound.critical is False
+    assert message.apns.payload.aps.custom_data["interruption-level"] == "time-sensitive"

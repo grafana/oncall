@@ -6,6 +6,7 @@ from django.core import mail
 from django.core.mail.backends.locmem import EmailBackend
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+from apps.email.alert_rendering import build_subject_and_message
 from apps.email.tasks import get_from_email, notify_user_async
 from apps.user_management.subscription_strategy.free_public_beta_subscription_strategy import (
     FreePublicBetaSubscriptionStrategy,
@@ -190,3 +191,21 @@ def test_get_from_email(
     user = make_user_for_organization(organization)
 
     assert get_from_email(user) == expected
+
+
+@pytest.mark.django_db
+def test_subject_newlines_removed(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, messaging_backends_templates={"EMAIL": {"title": "test\nnewlines"}}
+    )
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group, raw_request_data={})
+
+    subject, _ = build_subject_and_message(alert_group, 1)
+    assert subject == "[testnewlines] You are invited to check an alert group"

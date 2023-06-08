@@ -163,10 +163,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day:
-        repeatEveryPeriod === 0 || repeatEveryPeriod === 1
-          ? getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart)
-          : null,
+      by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
     }),
     [
@@ -244,6 +241,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   }, []);
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
+  const disableAction = !endLess && rotationEnd.isBefore(dayjs().tz(currentTimezone));
 
   const [focusElementName, setFocusElementName] = useState<undefined | string>(undefined);
 
@@ -361,15 +359,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   />
                 </Field>
               </HorizontalGroup>
-              {(repeatEveryPeriod === 0 || repeatEveryPeriod === 1) && (
-                <Field label="Select days to repeat">
-                  <DaysSelector
-                    options={store.scheduleStore.byDayOptions}
-                    value={selectedDays}
-                    onChange={(value) => setSelectedDays(value)}
-                  />
-                </Field>
-              )}
+              <Field label="Select days to repeat">
+                <DaysSelector
+                  options={store.scheduleStore.byDayOptions}
+                  value={selectedDays}
+                  onChange={(value) => setSelectedDays(value)}
+                />
+              </Field>
               <div className={cx('two-fields')}>
                 <Field
                   className={cx('date-time-picker')}
@@ -419,7 +415,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
               <Button variant="secondary" onClick={onHide}>
                 {shiftId === 'new' ? 'Cancel' : 'Close'}
               </Button>
-              <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
+              <Button variant="primary" onClick={handleCreate} disabled={!isFormValid || disableAction}>
                 {shiftId === 'new' ? 'Create' : 'Update'}
               </Button>
             </HorizontalGroup>

@@ -11,17 +11,17 @@ import Avatar from 'components/Avatar/Avatar';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
-import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
-import SchedulesFilters from 'components/SchedulesFilters/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
@@ -59,7 +59,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
-      filters: { searchTerm: '', type: undefined, used: undefined },
+      filters: { searchTerm: '', type: undefined, used: undefined, mine: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
@@ -90,8 +90,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   render() {
-    const { store } = this.props;
-    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
+    const { store, query } = this.props;
+
+    const { grafanaTeamStore } = store;
+    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
 
     const { results, count } = store.scheduleStore.getSearchResult();
 
@@ -103,19 +105,19 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderType,
       },
       {
-        width: '5%',
+        width: '10%',
         title: 'Status',
         key: 'name',
         render: (item: Schedule) => this.renderStatus(item),
       },
       {
-        width: '30%',
+        width: '25%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
       },
       {
-        width: '30%',
+        width: '25%',
         title: 'Oncall',
         key: 'users',
         render: this.renderOncallNow,
@@ -131,9 +133,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderUserGroup,
       },
       {
-        width: '5%',
-        key: 'warning',
-        render: this.renderWarning,
+        width: '20%',
+        title: 'Team',
+        render: (item: Schedule) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '50px',
@@ -150,7 +152,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         <div className={cx('root')}>
           <VerticalGroup>
             <div className={cx('schedules__filters-container')}>
-              <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
+              <RemoteFilters
+                query={query}
+                page="schedules"
+                grafanaTeamStore={store.grafanaTeamStore}
+                onChange={this.handleSchedulesFiltersChange}
+              />
               <div className={cx('schedules__actions')}>
                 {users && (
                   <UserTimezoneSelect
@@ -290,10 +297,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return typeToVerbal[value];
   };
 
-  renderWarning = (item: Schedule) => {
-    return <ScheduleWarning item={item} />;
-  };
-
   renderStatus = (item: Schedule) => {
     const {
       store: { scheduleStore },
@@ -303,9 +306,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return (
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
-          <ScheduleCounter
-            type="link"
-            count={item.number_of_escalation_chains}
+          <TooltipBadge
+            borderType="link"
+            icon="link"
+            text={item.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
             tooltipContent={
               <VerticalGroup spacing="sm">
@@ -313,8 +317,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                   relatedEscalationChains.length ? (
                     relatedEscalationChains.map((escalationChain) => (
                       <div key={escalationChain.pk}>
-                        <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
-                          {escalationChain.name}
+                        <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className="link">
+                          <Text type="link">{escalationChain.name}</Text>
                         </PluginLink>
                       </div>
                     ))
@@ -322,11 +326,29 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     'Not used yet'
                   )
                 ) : (
-                  <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
+                  <LoadingPlaceholder text="Loading related escalation chains..." />
                 )}
               </VerticalGroup>
             }
             onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
+          />
+        )}
+
+        {item.warnings?.length > 0 && (
+          <TooltipBadge
+            borderType="warning"
+            icon="exclamation-triangle"
+            text={item.warnings.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {item.warnings.map((warning, index) => (
+                  <Text type="primary" key={index}>
+                    {warning}
+                  </Text>
+                ))}
+              </VerticalGroup>
+            }
           />
         )}
       </HorizontalGroup>
@@ -370,6 +392,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderUserGroup = (value: Schedule) => {
     return value.user_group?.handle || '-';
   };
+
+  renderTeam(record: Schedule, teams: any) {
+    return <TeamName team={teams[record.team]} />;
+  }
 
   renderButtons = (item: Schedule) => {
     return (

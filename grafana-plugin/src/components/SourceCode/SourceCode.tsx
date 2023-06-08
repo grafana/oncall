@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, IconButton } from '@grafana/ui';
+import { Button, IconButton, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -15,10 +15,11 @@ interface SourceCodeProps {
   showClipboardIconOnly?: boolean;
   showCopyToClipboard?: boolean;
   children?: any;
+  className?: string;
 }
 
 const SourceCode: FC<SourceCodeProps> = (props) => {
-  const { children, noMaxHeight = false, showClipboardIconOnly = false, showCopyToClipboard = true } = props;
+  const { children, noMaxHeight = false, showClipboardIconOnly = false, showCopyToClipboard = true, className } = props;
   const showClipboardCopy = showClipboardIconOnly || showCopyToClipboard;
 
   return (
@@ -31,7 +32,9 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
           }}
         >
           {showClipboardIconOnly ? (
-            <IconButton className={cx('copyIcon')} size={'lg'} name="copy" data-testid="test__copyIcon" />
+            <Tooltip placement="top" content="Copy to Clipboard">
+              <IconButton className={cx('copyIcon')} size={'lg'} name="copy" data-testid="test__copyIcon" />
+            </Tooltip>
           ) : (
             <Button
               className={cx('copyButton')}
@@ -46,9 +49,13 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
         </CopyToClipboard>
       )}
       <pre
-        className={cx('scroller', {
-          'scroller--maxHeight': !noMaxHeight,
-        })}
+        className={cx(
+          'scroller',
+          {
+            'scroller--maxHeight': !noMaxHeight,
+          },
+          className
+        )}
       >
         <code>{children}</code>
       </pre>

@@ -96,12 +96,12 @@ const IncidentMatcher = observer((props: IncidentMatcherProps) => {
         </div>
         <div className={cx('incident-payload')}>
           <Text.Title className={cx('title')} level={5}>
-            Incident payload
+            Alert Group payload
           </Text.Title>
           {selectedAlertItem ? (
             <SourceCode noMaxHeight>{JSON.stringify(selectedAlertItem, null, 2)}</SourceCode>
           ) : (
-            <Text type="secondary">← Select incident first</Text>
+            <Text type="secondary">← Select alert group first</Text>
           )}
         </div>
       </div>

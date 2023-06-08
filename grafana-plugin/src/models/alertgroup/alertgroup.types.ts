@@ -1,5 +1,6 @@
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
 
 export enum IncidentStatus {
@@ -50,8 +51,13 @@ export interface Alert {
   acknowledged_at: string;
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
+  is_restricted: boolean;
   channel: Channel;
   slack_permalink?: string;
+  permalinks: {
+    slack: string;
+    telegram: string;
+  };
   declare_incident_link?: string;
   related_users: User[];
   render_after_resolve_report_json?: TimeLineItem[];
@@ -75,12 +81,30 @@ export interface Alert {
   root_alert_group?: Alert;
   alert_receive_channel: Partial<AlertReceiveChannel>;
   paged_users: Array<Pick<User, 'pk' | 'username' | 'avatar'>>;
+  team: GrafanaTeam['id'];
 
   // set by client
   loading?: boolean;
   undoAction?: AlertAction;
 
   has_pormortem?: boolean; // not implemented yet
+}
+
+export enum IRMPlanStatus {
+  WithinLimits = 'within-limits',
+  NearLimit = 'near-limit',
+  AtLimit = 'at-limit',
+}
+
+export interface ResponseIRMPlan {
+  limits: {
+    id: string;
+    irmProductStartDate: null;
+    isIrmPro: boolean;
+    status: IRMPlanStatus;
+    reasonHTML: string;
+    upgradeURL: string;
+  };
 }
 
 interface RenderForWeb {

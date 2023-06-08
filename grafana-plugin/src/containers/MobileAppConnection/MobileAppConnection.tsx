@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -12,8 +12,8 @@ import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/W
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -40,20 +40,25 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   // Show link to cloud page for OSS instances with no cloud connection
   if (store.hasFeature(AppFeature.CloudConnection) && !cloudStore.cloudConnectionStatus.cloud_connection_status) {
     return (
-      <VerticalGroup spacing="lg">
-        <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
-        <WithPermissionControlDisplay
-          userAction={UserActions.OtherSettingsWrite}
-          message="You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
+      <WithPermissionControlDisplay
+        userAction={UserActions.UserSettingsWrite}
+        message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
+      >
+        <VerticalGroup spacing="lg">
+          <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
+          <WithPermissionControlDisplay
+            userAction={UserActions.OtherSettingsWrite}
+            message="You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
             permissions."
-        >
-          <PluginLink query={{ page: 'cloud' }}>
-            <Button variant="secondary" icon="external-link-alt">
-              Connect Cloud OnCall
-            </Button>
-          </PluginLink>
-        </WithPermissionControlDisplay>
-      </VerticalGroup>
+          >
+            <PluginLink query={{ page: 'cloud' }}>
+              <Button variant="secondary" icon="external-link-alt">
+                Connect Cloud OnCall
+              </Button>
+            </PluginLink>
+          </WithPermissionControlDisplay>
+        </VerticalGroup>
+      </WithPermissionControlDisplay>
     );
   }
 
@@ -69,6 +74,8 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   const [userTimeoutId, setUserTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
+  const [isAttemptingTestNotification, setIsAttemptingTestNotification] = useState(false);
+  const isCurrentUser = userStore.currentUserPk === userPk;
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
@@ -166,7 +173,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
-        {store.backendLicense === GRAFANA_LICENSE_OSS && QRCodeDataParsed && (
+        {store.isOpenSource() && QRCodeDataParsed && (
           <Text type="secondary">
             Server URL embedded in this QR:
             <br />
@@ -180,15 +187,59 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   return (
-    <div className={cx('container')}>
-      <Block shadowed bordered withBackground className={cx('container__box')}>
-        <DownloadIcons />
-      </Block>
-      <Block shadowed bordered withBackground className={cx('container__box')}>
-        {content}
-      </Block>
-    </div>
+    <WithPermissionControlDisplay
+      userAction={UserActions.UserSettingsWrite}
+      message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
+    >
+      <VerticalGroup>
+        <div className={cx('container')}>
+          <Block shadowed bordered withBackground className={cx('container__box')}>
+            <DownloadIcons />
+          </Block>
+          <Block shadowed bordered withBackground className={cx('container__box')}>
+            {content}
+          </Block>
+        </div>
+        {store.hasFeature(AppFeature.MobileTestPush) && mobileAppIsCurrentlyConnected && isCurrentUser && (
+          <div className={cx('notification-buttons')}>
+            <HorizontalGroup spacing={'md'} justify={'flex-end'}>
+              <Button
+                variant="secondary"
+                onClick={() => onSendTestNotification()}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Test Push notification
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => onSendTestNotification(true)}
+                disabled={isAttemptingTestNotification}
+              >
+                Send Important Test Push notification
+              </Button>
+            </HorizontalGroup>
+          </div>
+        )}
+      </VerticalGroup>
+    </WithPermissionControlDisplay>
   );
+
+  async function onSendTestNotification(isCritical = false) {
+    setIsAttemptingTestNotification(true);
+
+    try {
+      await userStore.sendTestPushNotification(userPk, isCritical);
+      openNotification('Notification was sent');
+    } catch (ex) {
+      if (ex.response?.status === 429) {
+        openWarningNotification('Too much attempts, try again later');
+      } else {
+        openErrorNotification('There was an error sending the notification');
+      }
+    } finally {
+      setIsAttemptingTestNotification(false);
+    }
+  }
 
   function getParsedQRCodeValue() {
     try {
@@ -273,7 +324,7 @@ function QRLoading() {
       <Text type="primary" className={cx('qr-loader__text')}>
         Regenerating QR code...
       </Text>
-      <LoadingPlaceholder />
+      <LoadingPlaceholder text="Loading..." />
     </div>
   );
 }

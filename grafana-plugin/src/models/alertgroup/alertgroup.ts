@@ -1,16 +1,17 @@
 import { action, observable } from 'mobx';
 import qs from 'query-string';
 
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import BaseStore from 'models/base_store';
 import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
-import { showApiError, refreshPageError, openErrorNotification } from 'utils';
+import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { Alert, AlertAction, IncidentStatus, ResponseIRMPlan } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -69,6 +70,9 @@ export class AlertGroupStore extends BaseStore {
   @observable
   liveUpdatesPaused = false;
 
+  @observable
+  irmPlan: ResponseIRMPlan = undefined;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -126,6 +130,17 @@ export class AlertGroupStore extends BaseStore {
     }
 
     return this.searchResult[query].map((id: Alert['pk']) => this.items[id]);
+  }
+
+  async getAlertGroupsForIntegration(integrationId: AlertReceiveChannel['id']) {
+    const { results } = await makeRequest(`${this.path}`, {
+      params: { integration: integrationId },
+    });
+    return results;
+  }
+
+  async getAlertsFromGroup(pk: Alert['pk']) {
+    return await makeRequest(`${this.path}${pk}`, {});
   }
 
   @action
@@ -204,7 +219,13 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  // methods were moved from rrotBaseStore.
+  async fetchIRMPlan() {
+    if (!this.rootStore.isOpenSource()) {
+      this.irmPlan = await makeRequest(`/usage-limits`, { method: 'GET' });
+    }
+  }
+
+  // methods were moved from rootBaseStore.
   // TODO check if methods are dublicating existing ones
   @action
   async updateIncidents() {

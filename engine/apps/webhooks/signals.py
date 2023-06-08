@@ -1,0 +1,6 @@
+from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_escalation_snapshot_built
+
+from .listeners import on_action_triggered, on_alert_group_created
+
+alert_group_escalation_snapshot_built.connect(on_alert_group_created)
+alert_group_action_triggered_signal.connect(on_action_triggered)

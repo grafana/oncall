@@ -58,9 +58,11 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
         return
 
     if alert_receive_channel.allow_source_based_resolving:
-        task = resolve_alert_group_by_source_if_needed.apply_async((alert.group.pk,), countdown=5)
-        alert.group.active_resolve_calculation_id = task.id
-        alert.group.save(update_fields=["active_resolve_calculation_id"])
+        alert_group = alert.group
+        if alert_group.resolved_by != alert_group.NOT_YET_STOP_AUTORESOLVE:
+            task = resolve_alert_group_by_source_if_needed.apply_async((alert.group.pk,), countdown=5)
+            alert.group.active_resolve_calculation_id = task.id
+            alert.group.save(update_fields=["active_resolve_calculation_id"])
 
     logger.info(f"Created alert {alert.pk} for alert group {alert.group.pk}")
 

@@ -89,9 +89,7 @@ class Alert(models.Model):
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
         if channel_filter is None:
-            channel_filter = ChannelFilter.select_filter(
-                alert_receive_channel, raw_request_data, title, message, force_route_id
-            )
+            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
 
         group, group_created = AlertGroup.all_objects.get_or_create_grouping(
             channel=alert_receive_channel,

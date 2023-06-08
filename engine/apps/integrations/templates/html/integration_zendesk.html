@@ -1,0 +1,34 @@
+<h4>How to start sending alerts to Grafana OnCall from Zendesk</h4>
+
+<p>Create a new "Trigger or automation" webhook connection in Zendesk to send events to Grafana OnCall using the
+    integration URL above.<br>
+    Refer to Zendesk documentation for more information on how to create and manage webhooks:
+    <a href="https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems"
+       target="_blank">
+        https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems
+    </a>
+</p>
+
+<p>After setting up a webhook in Zendesk, create a new trigger with the following condition:<br>
+    <code>Meet ANY of the following conditions: "Ticket Is Created", "Ticket status Changed"</code></p>
+
+
+<p>Set <code>Notify webhook</code> as the trigger action and select the webhook you created earlier.<br>
+    In the JSON body field, use the following JSON template:</p>
+
+{% verbatim %}
+<pre>
+{
+  "ticket": {
+    "id": "{{ticket.id}}",
+    "url": "{{ticket.url}}",
+    "status": "{{ticket.status}}",
+    "title": "{{ticket.title}}",
+    "description": "{{ticket.description}}"
+  }
+}
+</pre>
+{% endverbatim %}
+
+<p>After setting up the connection, you can test it by creating a new ticket in Zendesk. You should see a new alert
+    group in Grafana OnCall.</p>

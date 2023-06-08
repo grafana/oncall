@@ -46,6 +46,7 @@ class GCOMInstanceInfo(TypedDict):
     orgName: str
     url: str
     status: str
+    clusterSlug: str
     config: Optional[GCOMInstanceInfoConfig]
 
 
@@ -216,6 +217,23 @@ class GcomAPIClient(APIClient):
         data, _ = self.api_get(url)
         return data
 
+    def _feature_toggle_is_enabled(self, instance_info: GCOMInstanceInfo, feature_name: str) -> bool:
+        """
+        there are two ways that feature toggles can be enabled, this method takes into account both
+        https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#enable
+        """
+        instance_feature_toggles = instance_info.get("config", {}).get("feature_toggles", {})
+
+        if not instance_feature_toggles:
+            return False
+
+        # features enabled via enable key are space separated
+        features_enabled_via_enable_key = instance_feature_toggles.get("enable", "").split(" ")
+        feature_enabled_via_enable_key = feature_name in features_enabled_via_enable_key
+        feature_enabled_via_direct_key = instance_feature_toggles.get(feature_name, "false") == "true"
+
+        return feature_enabled_via_enable_key or feature_enabled_via_direct_key
+
     def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
         """
         NOTE: must use an "Admin" GCOM token when calling this method
@@ -223,14 +241,15 @@ class GcomAPIClient(APIClient):
         instance_info = self.get_instance_info(stack_id, True)
         if not instance_info:
             return False
-        return instance_info.get("config", {}).get("feature_toggles", {}).get("accessControlOnCall", "false") == "true"
+        return self._feature_toggle_is_enabled(instance_info, "accessControlOnCall")
 
     def get_instances(self, query: str):
         return self.api_get(query)
 
     def is_stack_deleted(self, stack_id: str) -> bool:
-        instance_info = self.get_instance_info(stack_id)
-        return instance_info and instance_info.get("status") == self.STACK_STATUS_DELETED
+        url = f"instances?includeDeleted=true&id={stack_id}"
+        instance_infos, _ = self.api_get(url)
+        return instance_infos["items"] and instance_infos["items"][0].get("status") == self.STACK_STATUS_DELETED
 
     def post_active_users(self, body):
         return self.api_post("app-active-users", body)

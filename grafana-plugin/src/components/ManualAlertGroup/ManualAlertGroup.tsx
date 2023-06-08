@@ -5,12 +5,13 @@ import cn from 'classnames/bind';
 
 import Block from 'components/GBlock/Block';
 import GForm from 'components/GForm/GForm';
-import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import Text from 'components/Text/Text';
 import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
 import { prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
+
+import { manualAlertFormConfig } from './ManualAlertGroup.config';
 
 import styles from './ManualAlertGroup.module.css';
 
@@ -21,29 +22,12 @@ interface ManualAlertGroupProps {
 
 const cx = cn.bind(styles);
 
-const manualAlertFormConfig: { name: string; fields: FormItem[] } = {
-  name: 'Manual Alert Group',
-  fields: [
-    {
-      name: 'title',
-      type: FormItemType.Input,
-      label: 'Title',
-      validation: { required: true },
-    },
-    {
-      name: 'message',
-      type: FormItemType.TextArea,
-      label: 'Describe what is going on',
-    },
-  ],
-};
-
 const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   const store = useStore();
   const [userResponders, setUserResponders] = useState([]);
   const [scheduleResponders, setScheduleResponders] = useState([]);
   const { onHide, onCreate } = props;
-  const data = {};
+  const data = { team: store.userStore.currentUser?.current_team };
 
   const handleFormSubmit = async (data) => {
     store.directPagingStore
@@ -67,7 +51,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
 
   return (
     <>
-      <Drawer scrollableContent title="Create manual alert group" onClose={onHide} closeOnMaskClick>
+      <Drawer scrollableContent title="Create manual alert group" onClose={onHide} closeOnMaskClick={false}>
         <VerticalGroup spacing="lg">
           <EscalationVariants
             value={{ userResponders, scheduleResponders }}

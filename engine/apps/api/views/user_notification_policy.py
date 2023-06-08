@@ -15,15 +15,20 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import BUILT_IN_BACKENDS, NotificationChannelAPIOptions
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
+from common.api_helpers.serializers import get_move_to_position_param
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
@@ -135,16 +140,10 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
 
     @action(detail=True, methods=["put"])
     def move_to_position(self, request, pk):
-        position = request.query_params.get("position", None)
-        if position is not None:
-            step = self.get_object()
-            try:
-                step.to(int(position))
-                return Response(status=status.HTTP_200_OK)
-            except ValueError as e:
-                raise BadRequest(detail=f"{e}")
-        else:
-            raise BadRequest(detail="Position was not provided")
+        instance = self.get_object()
+        position = get_move_to_position_param(request)
+        instance.to(position)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def delay_options(self, request):

@@ -8,9 +8,11 @@ import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
 
 import PluginLink from 'components/PluginLink/PluginLink';
+import Text from 'components/Text/Text';
 import TimeRange from 'components/TimeRange/TimeRange';
 import Timeline from 'components/Timeline/Timeline';
 import GSelect from 'containers/GSelect/GSelect';
+import TeamName from 'containers/TeamName/TeamName';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
@@ -18,8 +20,13 @@ import {
   EscalationPolicy as EscalationPolicyType,
   EscalationPolicyOption,
 } from 'models/escalation_policy/escalation_policy.types';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
+import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
+import { ScheduleStore } from 'models/schedule/schedule';
 import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import DragHandle from './DragHandle';
@@ -29,22 +36,31 @@ import styles from './EscalationPolicy.module.css';
 
 const cx = cn.bind(styles);
 
-export interface EscalationPolicyProps {
+interface ElementSortableProps {
+  index: number;
+}
+
+export interface EscalationPolicyProps extends ElementSortableProps {
   data: EscalationPolicyType;
   waitDelays?: any[];
+  isDisabled?: boolean;
   numMinutesInWindowOptions: SelectOption[];
   channels?: any[];
   onChange: (id: EscalationPolicyType['id'], value: Partial<EscalationPolicyType>) => void;
   onDelete: (data: EscalationPolicyType) => void;
   escalationChoices: any[];
   number: number;
-  color: string;
+  backgroundColor: string;
   isSlackInstalled: boolean;
+  teamStore: GrafanaTeamStore;
+  outgoingWebhookStore: OutgoingWebhookStore;
+  outgoingWebhook2Store: OutgoingWebhook2Store;
+  scheduleStore: ScheduleStore;
 }
 
 export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
   render() {
-    const { data, escalationChoices, number, color } = this.props;
+    const { data, escalationChoices, number, backgroundColor, isDisabled } = this.props;
     const { id, step, is_final } = data;
 
     const escalationOption = escalationChoices.find(
@@ -52,14 +68,20 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     );
 
     return (
-      <Timeline.Item key={id} contentClassName={cx('root')} number={number} color={color}>
+      <Timeline.Item
+        key={id}
+        contentClassName={cx('root')}
+        number={number}
+        textColor={isDisabled ? getVar('--tag-text-success') : undefined}
+        backgroundColor={backgroundColor}
+      >
         <WithPermissionControlTooltip disableByPaywall userAction={UserActions.EscalationChainsWrite}>
           <DragHandle />
         </WithPermissionControlTooltip>
         {escalationOption &&
           reactStringReplace(escalationOption.display_name, /\{\{([^}]+)\}\}/g, this.replacePlaceholder)}
         {this._renderNote()}
-        {is_final ? null : (
+        {is_final || isDisabled ? null : (
           <WithPermissionControlTooltip className={cx('delete')} userAction={UserActions.EscalationChainsWrite}>
             <IconButton
               name="trash-alt"
@@ -91,6 +113,8 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         return this._renderNotifySchedule();
       case 'custom_action':
         return this._renderTriggerCustomAction();
+      case 'custom_webhook':
+        return this._renderTriggerCustomWebhook();
       case 'num_alerts_in_window':
         return this.renderNumAlertsInWindow();
       case 'num_minutes_in_window':
@@ -130,7 +154,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderNotifyToUsersQueue() {
-    const { data } = this.props;
+    const { data, isDisabled } = this.props;
     const { notify_to_users_queue } = data;
 
     return (
@@ -143,6 +167,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           isMulti
           showSearch
           allowClear
+          disabled={isDisabled}
           modelName="userStore"
           displayField="username"
           valueField="pk"
@@ -151,13 +176,14 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={notify_to_users_queue}
           onChange={this._getOnChangeHandler('notify_to_users_queue')}
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
   }
 
   private renderImportance() {
-    const { data } = this.props;
+    const { data, isDisabled } = this.props;
     const { important } = data;
 
     return (
@@ -165,26 +191,51 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         <Select
           menuShouldPortal
           className={cx('select', 'control')}
+          disabled={isDisabled}
           value={Number(important)}
           // @ts-ignore
           onChange={this._getOnSelectChangeHandler('important')}
           options={[
-            { value: 0, label: 'Default', description: 'Manage "Default notifications" in personal settings' },
-            { value: 1, label: 'Important', description: 'Manage "Important notifications" in personal settings' },
+            {
+              value: 0,
+              label: 'Default',
+              // @ts-ignore
+              description: (
+                <>
+                  Manage&nbsp;"Default&nbsp;notifications"
+                  <br />
+                  in personal settings
+                </>
+              ),
+            },
+            {
+              value: 1,
+              label: 'Important',
+              // @ts-ignore
+              description: (
+                <>
+                  Manage&nbsp;"Important&nbsp;notifications"
+                  <br />
+                  in personal settings
+                </>
+              ),
+            },
           ]}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
   }
 
   private renderTimeRange() {
-    const { data } = this.props;
+    const { data, isDisabled } = this.props;
 
     return (
       <WithPermissionControlTooltip key="time-range" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <TimeRange
           from={data.from_time}
           to={data.to_time}
+          disabled={isDisabled}
           onChange={this._getOnTimeRangeChangeHandler()}
           className={cx('select', 'control')}
         />
@@ -193,13 +244,14 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderWaitDelays() {
-    const { data, waitDelays = [] } = this.props;
+    const { data, isDisabled, waitDelays = [] } = this.props;
     const { wait_delay } = data;
 
     return (
       <WithPermissionControlTooltip key="wait-delay" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <Select
           menuShouldPortal
+          disabled={isDisabled}
           placeholder="Select Wait Delay"
           className={cx('select', 'control')}
           // @ts-ignore
@@ -209,13 +261,14 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
             value: waitDelay.value,
             label: waitDelay.display_name,
           }))}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
   }
 
   private renderNumAlertsInWindow() {
-    const { data } = this.props;
+    const { data, isDisabled } = this.props;
     const { num_alerts_in_window } = data;
 
     return (
@@ -226,6 +279,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
       >
         <Input
           placeholder="Count"
+          disabled={isDisabled}
           className={cx('control')}
           value={num_alerts_in_window}
           onChange={this._getOnInputChangeHandler('num_alerts_in_window')}
@@ -241,7 +295,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private renderNumMinutesInWindowOptions() {
-    const { data, numMinutesInWindowOptions = [] } = this.props;
+    const { data, isDisabled, numMinutesInWindowOptions = [] } = this.props;
     const { num_minutes_in_window } = data;
 
     return (
@@ -252,6 +306,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
       >
         <Select
           menuShouldPortal
+          disabled={isDisabled}
           placeholder="Period"
           className={cx('select', 'control')}
           // @ts-ignore
@@ -267,7 +322,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderNotifySchedule() {
-    const { data } = this.props;
+    const { data, isDisabled, teamStore, scheduleStore } = this.props;
     const { notify_schedule } = data;
 
     return (
@@ -279,6 +334,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         <GSelect
           showSearch
           allowClear
+          disabled={isDisabled}
           modelName="scheduleStore"
           displayField="name"
           valueField="id"
@@ -286,14 +342,22 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={notify_schedule}
           onChange={this._getOnChangeHandler('notify_schedule')}
-          fromOrganization
+          getOptionLabel={(item: SelectableValue) => {
+            const team = teamStore.items[scheduleStore.items[item.value].team];
+            return (
+              <>
+                <Text>{item.label} </Text>
+                <TeamName team={team} size="small" />
+              </>
+            );
+          }}
         />
       </WithPermissionControlTooltip>
     );
   }
 
   private _renderNotifyUserGroup() {
-    const { data } = this.props;
+    const { data, isDisabled } = this.props;
     const { notify_to_group } = data;
 
     return (
@@ -303,6 +367,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         userAction={UserActions.EscalationChainsWrite}
       >
         <GSelect
+          disabled={isDisabled}
           modelName="userGroupStore"
           displayField="name"
           valueField="id"
@@ -310,18 +375,21 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={notify_to_group}
           onChange={this._getOnChangeHandler('notify_to_group')}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
   }
 
   private _renderTriggerCustomAction() {
-    const { data } = this.props;
+    const { data, isDisabled, teamStore, outgoingWebhookStore } = this.props;
     const { custom_button_trigger } = data;
 
     return (
       <WithPermissionControlTooltip key="custom-button" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <GSelect
+          showSearch
+          disabled={isDisabled}
           modelName="outgoingWebhookStore"
           displayField="name"
           valueField="id"
@@ -329,7 +397,51 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={custom_button_trigger}
           onChange={this._getOnChangeHandler('custom_button_trigger')}
-          fromOrganization
+          getOptionLabel={(item: SelectableValue) => {
+            const team = teamStore.items[outgoingWebhookStore.items[item.value].team];
+            return (
+              <>
+                <Text>{item.label} </Text>
+                <TeamName team={team} size="small" />
+              </>
+            );
+          }}
+          width={'auto'}
+        />
+      </WithPermissionControlTooltip>
+    );
+  }
+
+  private _renderTriggerCustomWebhook() {
+    const { data, isDisabled, teamStore, outgoingWebhook2Store } = this.props;
+    const { custom_webhook } = data;
+
+    return (
+      <WithPermissionControlTooltip
+        key="custom-webhook"
+        disableByPaywall
+        userAction={UserActions.EscalationChainsWrite}
+      >
+        <GSelect
+          showSearch
+          disabled={isDisabled}
+          modelName="outgoingWebhook2Store"
+          displayField="name"
+          valueField="id"
+          placeholder="Select Webhook"
+          className={cx('select', 'control')}
+          value={custom_webhook}
+          onChange={this._getOnChangeHandler('custom_webhook')}
+          getOptionLabel={(item: SelectableValue) => {
+            const team = teamStore.items[outgoingWebhook2Store.items[item.value].team];
+            return (
+              <>
+                <Text>{item.label} </Text>
+                <TeamName team={team} size="small" />
+              </>
+            );
+          }}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
@@ -399,4 +511,4 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   };
 }
 
-export default SortableElement(EscalationPolicy);
+export default SortableElement(EscalationPolicy) as React.ComponentClass<EscalationPolicyProps>;

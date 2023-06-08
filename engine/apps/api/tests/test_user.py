@@ -10,8 +10,15 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING, LegacyAccessControlRole
+from apps.api.permissions import (
+    DONT_USE_LEGACY_PERMISSION_MAPPING,
+    GrafanaAPIPermission,
+    LegacyAccessControlRole,
+    RBACPermission,
+)
 from apps.base.models import UserNotificationPolicy
+from apps.phone_notifications.exceptions import FailedToFinishVerification
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.user_management.models.user import default_working_hours
 
 
@@ -49,6 +56,7 @@ def test_update_user(
     assert response.json()["current_team"] == data["current_team"]
 
 
+@override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=False)
 @pytest.mark.django_db
 def test_update_user_cant_change_email_and_username(
     make_organization,
@@ -87,7 +95,7 @@ def test_update_user_cant_change_email_and_username(
                 "user": admin.username,
             }
         },
-        "cloud_connection_status": 0,
+        "cloud_connection_status": None,
         "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[admin.role],
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
@@ -99,6 +107,7 @@ def test_update_user_cant_change_email_and_username(
     assert response.json() == expected_response
 
 
+@override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=False)
 @pytest.mark.django_db
 def test_list_users(
     make_organization,
@@ -143,7 +152,7 @@ def test_list_users(
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
                 "avatar_full": admin.avatar_full_url,
-                "cloud_connection_status": 0,
+                "cloud_connection_status": None,
             },
             {
                 "pk": editor.public_primary_key,
@@ -169,7 +178,7 @@ def test_list_users(
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
                 "avatar_full": editor.avatar_full_url,
-                "cloud_connection_status": 0,
+                "cloud_connection_status": None,
             },
         ],
     }
@@ -178,6 +187,39 @@ def test_list_users(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+def test_list_users_filtered_by_granted_permission(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    perm_to_filter_on = RBACPermission.Permissions.NOTIFICATIONS_READ.value
+    perms_to_grant = [GrafanaAPIPermission(action=perm_to_filter_on)]
+
+    organization = make_organization()
+    admin_user = make_user_for_organization(organization)
+    user1 = make_user_for_organization(organization, permissions=perms_to_grant)
+    user2 = make_user_for_organization(organization, permissions=perms_to_grant)
+    user3 = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-list")
+
+    response = client.get(
+        f"{url}?permission={perm_to_filter_on}", format="json", **make_user_auth_headers(admin_user, token)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_user_pks = [u["pk"] for u in response.json()["results"]]
+
+    assert admin_user.public_primary_key in returned_user_pks
+    assert user1.public_primary_key in returned_user_pks
+    assert user2.public_primary_key in returned_user_pks
+    assert user3.public_primary_key not in returned_user_pks
 
 
 @pytest.mark.django_db
@@ -432,7 +474,7 @@ def test_user_get_other_verification_code(
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": admin.public_primary_key})
-    with patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock()):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock()):
         response = client.get(url, format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
@@ -447,7 +489,7 @@ def test_validation_of_verification_code(
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
     with patch(
-        "apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None)
+        "apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True
     ) as verify_phone_number:
         url_with_token = f"{url}?token=some_token"
         r = client.put(url_with_token, format="json", **make_user_auth_headers(user, token))
@@ -462,6 +504,24 @@ def test_validation_of_verification_code(
         url_with_empty_token = f"{url}?token="
         r = client.put(url_with_empty_token, format="json", **make_user_auth_headers(user, token))
         assert r.status_code == 400
+        assert verify_phone_number.call_count == 1
+
+
+@pytest.mark.django_db
+def test_verification_code_provider_exception(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+    with patch(
+        "apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number",
+        side_effect=FailedToFinishVerification,
+    ) as verify_phone_number:
+        url_with_token = f"{url}?token=some_token"
+        r = client.put(url_with_token, format="json", **make_user_auth_headers(user, token))
+        assert r.status_code == 503
         assert verify_phone_number.call_count == 1
 
 
@@ -522,7 +582,7 @@ def test_user_verify_another_phone(
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": other_user.public_primary_key})
 
-    with patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None)):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True):
         response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(tester, token))
 
     assert response.status_code == expected_status
@@ -647,7 +707,7 @@ def test_admin_can_detail_users(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_admin_can_get_own_verification_code(
     mock_verification_start,
@@ -663,7 +723,7 @@ def test_admin_can_get_own_verification_code(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_admin_can_get_another_user_verification_code(
     mock_verification_start,
@@ -680,7 +740,7 @@ def test_admin_can_get_another_user_verification_code(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_admin_can_verify_own_phone(
     mocked_verification_check,
@@ -695,7 +755,7 @@ def test_admin_can_verify_own_phone(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_admin_can_verify_another_user_phone(
     mocked_verification_check,
@@ -873,7 +933,7 @@ def test_user_can_detail_users(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_user_can_get_own_verification_code(
     mock_verification_start, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -887,7 +947,7 @@ def test_user_can_get_own_verification_code(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_user_cant_get_another_user_verification_code(
     mock_verification_start,
@@ -905,7 +965,7 @@ def test_user_cant_get_another_user_verification_code(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_user_can_verify_own_phone(
     mocked_verification_check, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -919,7 +979,7 @@ def test_user_can_verify_own_phone(
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_user_cant_verify_another_user_phone(
     mocked_verification_check,
@@ -1179,7 +1239,7 @@ def test_viewer_cant_detail_users(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_viewer_cant_get_own_verification_code(
     mock_verification_start, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -1193,7 +1253,7 @@ def test_viewer_cant_get_own_verification_code(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.django_db
 def test_viewer_cant_get_another_user_verification_code(
     mock_verification_start,
@@ -1211,7 +1271,7 @@ def test_viewer_cant_get_another_user_verification_code(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_viewer_cant_verify_own_phone(
     mocked_verification_check, make_organization_and_user_with_plugin_token, make_user_auth_headers
@@ -1225,7 +1285,7 @@ def test_viewer_cant_verify_own_phone(
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @pytest.mark.django_db
 def test_viewer_cant_verify_another_user_phone(
     mocked_verification_check,
@@ -1301,9 +1361,7 @@ def test_forget_own_number(
 
     client = APIClient()
     url = reverse("api-internal:user-forget-number", kwargs={"pk": user.public_primary_key})
-    with patch(
-        "apps.twilioapp.phone_manager.PhoneManager.notify_about_changed_verified_phone_number", return_value=None
-    ):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend._notify_disconnected_number", return_value=None):
         response = client.put(url, None, format="json", **make_user_auth_headers(user, token))
         assert response.status_code == expected_status
 
@@ -1351,9 +1409,7 @@ def test_forget_other_number(
 
     client = APIClient()
     url = reverse("api-internal:user-forget-number", kwargs={"pk": admin_primary_key})
-    with patch(
-        "apps.twilioapp.phone_manager.PhoneManager.notify_about_changed_verified_phone_number", return_value=None
-    ):
+    with patch("apps.phone_notifications.phone_backend.PhoneBackend._notify_disconnected_number", return_value=None):
         response = client.put(url, None, format="json", **make_user_auth_headers(other_user, token))
         assert response.status_code == expected_status
 
@@ -1535,8 +1591,8 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
     assert response.status_code == status.HTTP_200_OK
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @patch(
     "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.get_throttle_limits",
     return_value=(1, 10 * 60),
@@ -1577,8 +1633,8 @@ def test_phone_number_verification_flow_ratelimit_per_user(
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
-@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.verify_phone_number", return_value=True)
 @patch(
     "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.get_throttle_limits",
     return_value=(1, 10 * 60),
@@ -1620,7 +1676,7 @@ def test_phone_number_verification_flow_ratelimit_per_org(
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
 
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=True)
+@patch("apps.phone_notifications.phone_backend.PhoneBackend.send_verification_sms", return_value=Mock())
 @pytest.mark.parametrize(
     "recaptcha_testing_pass,expected_status",
     [
@@ -1647,6 +1703,197 @@ def test_phone_number_verification_recaptcha(
         response = client.get(url, format="json", **request_headers)
         assert response.status_code == expected_status
         if expected_status == status.HTTP_200_OK:
-            mock_verification_start.assert_called_once_with()
+            mock_verification_start.assert_called_once_with(user)
         else:
             mock_verification_start.assert_not_called()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "days",
+    ["invalid", 75, -2, 0],
+)
+def test_upcoming_shifts_invalid_days(
+    make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers, days
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key}) + "?days={}".format(
+        days
+    )
+
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_upcoming_shifts_oncall(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+    shifts = (
+        # user, priority, start time (h), duration (seconds)
+        (admin, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+    )
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": today + timezone.timedelta(hours=start_h),
+            "rotation_start": today + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(seconds=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    client = APIClient()
+
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_data = response.data[0]
+    assert returned_data["schedule_id"] == schedule.public_primary_key
+    assert returned_data["schedule_name"] == schedule.name
+    assert returned_data["is_oncall"]
+    assert returned_data["current_shift"]["start"] == on_call_shift.start
+    next_shift_start = on_call_shift.start + timezone.timedelta(days=1)
+    assert returned_data["next_shift"]["start"] == next_shift_start
+
+    # empty response for other user
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": other_user.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == []
+
+
+@pytest.mark.django_db
+def test_upcoming_shifts_override(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
+
+    override_data = {
+        "start": tomorrow + timezone.timedelta(hours=22),
+        "rotation_start": tomorrow + timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[admin]])
+    schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
+
+    client = APIClient()
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_data = response.data[0]
+    assert returned_data["schedule_id"] == schedule.public_primary_key
+    assert returned_data["schedule_name"] == schedule.name
+    assert returned_data["is_oncall"] is False
+    assert returned_data["current_shift"] is None
+    assert returned_data["next_shift"]["start"] == override.start
+
+
+@pytest.mark.django_db
+def test_upcoming_shifts_multiple_schedules(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization = make_organization()
+    admin = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    schedules = []
+    # create schedules in a reversed order to check the output is sorted later
+    for i in range(2, -1, -1):
+        schedule = make_schedule(
+            organization,
+            schedule_class=OnCallScheduleWeb,
+        )
+        shifts = (
+            # user, priority, start time (h), duration (seconds)
+            (admin, 1, 0, (24 * 60 * 60) - 1),  # r1-1: 0-23:59:59
+        )
+        today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        for user, priority, start_h, duration in shifts:
+            data = {
+                "start": today + timezone.timedelta(hours=start_h) + timezone.timedelta(days=i),
+                "rotation_start": today + timezone.timedelta(hours=start_h) + timezone.timedelta(days=i),
+                "duration": timezone.timedelta(seconds=duration),
+                "priority_level": priority,
+                "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+                "schedule": schedule,
+            }
+            on_call_shift = make_on_call_shift(
+                organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+            )
+            on_call_shift.add_rolling_users([[user]])
+        schedule.refresh_ical_file()
+        schedule.refresh_ical_final_schedule()
+        schedules.append(schedule)
+
+    client = APIClient()
+    url = reverse("api-internal:user-upcoming-shifts", kwargs={"pk": admin.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    returned_data = response.data
+    for i, schedule in enumerate(reversed(schedules)):
+        assert returned_data[i]["schedule_name"] == schedule.name
+        expected_start = today + timezone.timedelta(hours=start_h) + timezone.timedelta(days=i)
+        if i == 0:
+            assert returned_data[i]["is_oncall"]
+            assert returned_data[i]["current_shift"]["start"] == expected_start
+            assert returned_data[i]["next_shift"]["start"] == expected_start + timezone.timedelta(days=1)
+        else:
+            assert returned_data[i]["is_oncall"] is False
+            assert returned_data[i]["current_shift"] is None
+            assert returned_data[i]["next_shift"]["start"] == expected_start

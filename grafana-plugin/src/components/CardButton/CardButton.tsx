@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from 'react';
+import React, { FC } from 'react';
 
 import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -21,13 +21,9 @@ const cx = cn.bind(styles);
 const CardButton: FC<CardButtonProps> = (props) => {
   const { icon, description, title, selected, onClick } = props;
 
-  const handleClick = useCallback(() => {
-    onClick(!selected);
-  }, [selected]);
-
   return (
     <Block
-      onClick={handleClick}
+      onClick={() => onClick(!selected)}
       withBackground
       className={cx('root', { root_selected: selected })}
       data-testid="test__cardButton"

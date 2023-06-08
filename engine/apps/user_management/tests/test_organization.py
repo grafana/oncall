@@ -6,9 +6,8 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroupLogRecord, AlertReceiveChannel, EscalationPolicy
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
-from apps.schedules.models import OnCallScheduleCalendar
+from apps.schedules.models import OnCallScheduleICal, OnCallScheduleWeb
 from apps.telegram.models import TelegramMessage
-from apps.twilioapp.constants import TwilioCallStatuses, TwilioMessageStatuses
 from apps.user_management.models import Organization
 
 
@@ -68,8 +67,8 @@ def test_organization_hard_delete(
     make_alert_group,
     make_alert_group_log_record,
     make_user_notification_policy_log_record,
-    make_sms,
-    make_phone_call,
+    make_sms_record,
+    make_phone_call_record,
     make_token_for_organization,
     make_public_api_token,
     make_invitation,
@@ -92,7 +91,10 @@ def test_organization_hard_delete(
     team = make_team(organization=organization)
     team.users.add(user_1)
 
-    schedule = make_schedule(organization=organization, schedule_class=OnCallScheduleCalendar)
+    # Creating different types of schedules to check that deletion works well with PolymorphicModel
+    schedule_web = make_schedule(organization=organization, schedule_class=OnCallScheduleWeb)
+    schedule_ical = make_schedule(organization=organization, schedule_class=OnCallScheduleICal)
+
     custom_action = make_custom_action(organization=organization)
 
     escalation_chain = make_escalation_chain(organization=organization)
@@ -127,12 +129,10 @@ def test_organization_hard_delete(
         alert_group=alert_group,
     )
 
-    sms = make_sms(
-        receiver=user_1, status=TwilioMessageStatuses.SENT, represents_alert=alert, represents_alert_group=alert_group
-    )
+    sms_record = make_sms_record(receiver=user_1, represents_alert=alert, represents_alert_group=alert_group)
 
-    phone_call = make_phone_call(
-        receiver=user_1, status=TwilioCallStatuses.COMPLETED, represents_alert=alert, represents_alert_group=alert_group
+    phone_call_record = make_phone_call_record(
+        receiver=user_1, represents_alert=alert, represents_alert_group=alert_group
     )
 
     telegram_user_connector = make_telegram_user_connector(user=user_1)
@@ -167,7 +167,8 @@ def test_organization_hard_delete(
         user_2,
         team,
         user_notification_policy,
-        schedule,
+        schedule_web,
+        schedule_ical,
         custom_action,
         escalation_chain,
         escalation_policy,
@@ -177,8 +178,8 @@ def test_organization_hard_delete(
         alert,
         alert_group_log_record,
         user_notification_policy_log_record,
-        phone_call,
-        sms,
+        phone_call_record,
+        sms_record,
         telegram_message,
         telegram_user_connector,
         telegram_channel,

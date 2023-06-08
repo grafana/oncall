@@ -1,5 +1,8 @@
 from migrator import oncall_api_client
-from migrator.config import PAGERDUTY_TO_ONCALL_VENDOR_MAP
+from migrator.config import (
+    PAGERDUTY_TO_ONCALL_VENDOR_MAP,
+    UNSUPPORTED_INTEGRATION_TO_WEBHOOKS,
+)
 from migrator.utils import find_by_id
 
 
@@ -20,9 +23,19 @@ def match_integration(integration: dict, oncall_integrations: list[dict]) -> Non
 def match_integration_type(integration: dict, vendors: list[dict]) -> None:
     vendors_map = {vendor["id"]: vendor for vendor in vendors}
 
+    if integration["type"] == "generic_email_inbound_integration":
+        # ignore vendor name for generic email inbound integrations
+        integration["vendor_name"] = None
+        integration["oncall_type"] = "inbound_email"
+        return
+
     if integration["vendor"] is None:
         integration["vendor_name"] = None
-        integration["oncall_type"] = None
+        if UNSUPPORTED_INTEGRATION_TO_WEBHOOKS:
+            integration["oncall_type"] = "webhook"
+            integration["converted_to_webhook"] = True
+        else:
+            integration["oncall_type"] = None
         return
 
     vendor_id = integration["vendor"]["id"]
@@ -30,6 +43,9 @@ def match_integration_type(integration: dict, vendors: list[dict]) -> None:
 
     integration["vendor_name"] = vendor_name
     integration["oncall_type"] = PAGERDUTY_TO_ONCALL_VENDOR_MAP.get(vendor_name)
+    if UNSUPPORTED_INTEGRATION_TO_WEBHOOKS and integration["oncall_type"] is None:
+        integration["oncall_type"] = "webhook"
+        integration["converted_to_webhook"] = True
 
 
 def migrate_integration(integration: dict, escalation_policies: list[dict]) -> None:

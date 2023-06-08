@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import Optional
 
@@ -5,19 +6,16 @@ import pytz
 from celery import uuid as celery_uuid
 from dateutil.parser import parse
 from django.apps import apps
-from django.utils import timezone
 from django.utils.functional import cached_property
 from rest_framework.exceptions import ValidationError
 
-from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.escalation_snapshot.snapshot_classes import (
     ChannelFilterSnapshot,
     EscalationChainSnapshot,
     EscalationPolicySnapshot,
     EscalationSnapshot,
 )
-from apps.alerts.escalation_snapshot.utils import eta_for_escalation_step_notify_if_time
-from apps.alerts.tasks import calculate_escalation_finish_time, escalate_alert_group
+from apps.alerts.tasks import escalate_alert_group
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +88,7 @@ class EscalationSnapshotMixin:
             'next_step_eta': '2021-10-18T10:28:28.890369Z
         }
         """
-
-        escalation_snapshot = None
+        data = {}
 
         if self.escalation_chain_exists:
             channel_filter = self.channel_filter
@@ -104,53 +101,7 @@ class EscalationSnapshotMixin:
                 "escalation_policies_snapshots": escalation_policies,
                 "slack_channel_id": self.slack_channel_id,
             }
-            escalation_snapshot = EscalationSnapshot.serializer(data).data
-        return escalation_snapshot
-
-    def calculate_eta_for_finish_escalation(self, escalation_started=False, start_time=None):
-        if not self.escalation_snapshot:
-            return
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-        TOLERANCE_SECONDS = 1
-        TOLERANCE_TIME = timezone.timedelta(seconds=NEXT_ESCALATION_DELAY + TOLERANCE_SECONDS)
-        start_time = start_time or timezone.now()  # start time may be different for silenced incidents
-        wait_summ = timezone.timedelta()
-        # Get next_active_escalation_policy_order using flag `escalation_started` because this calculation can be
-        # started in parallel with escalation task where next_active_escalation_policy_order can be changed.
-        # That's why we are using `escalation_started` flag here, which means, that we want count eta from the first
-        # step.
-        next_escalation_policy_order = (
-            self.escalation_snapshot.next_active_escalation_policy_order if escalation_started else 0
-        )
-        escalation_policies = self.escalation_snapshot.escalation_policies_snapshots[next_escalation_policy_order:]
-        for escalation_policy in escalation_policies:
-            if escalation_policy.step == EscalationPolicy.STEP_WAIT:
-                if escalation_policy.wait_delay is not None:
-                    wait_summ += escalation_policy.wait_delay
-                else:
-                    wait_summ += EscalationPolicy.DEFAULT_WAIT_DELAY  # Default wait in case it's not selected yet
-            elif escalation_policy.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
-                if escalation_policy.from_time and escalation_policy.to_time:
-                    estimate_start_time = start_time + wait_summ
-                    STEP_TOLERANCE = timezone.timedelta(minutes=1)
-                    next_step_estimate_start_time = eta_for_escalation_step_notify_if_time(
-                        escalation_policy.from_time,
-                        escalation_policy.to_time,
-                        estimate_start_time + STEP_TOLERANCE,
-                    )
-                    wait_summ += next_step_estimate_start_time - estimate_start_time
-            elif escalation_policy.step == EscalationPolicy.STEP_REPEAT_ESCALATION_N_TIMES:
-                # the part of escalation with repeat step will be passed six times: the first time plus five repeats
-                wait_summ *= EscalationPolicy.MAX_TIMES_REPEAT + 1
-            elif escalation_policy.step == EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
-                # In this case we cannot calculate finish time, so we return None
-                return
-            elif escalation_policy.step == EscalationPolicy.STEP_FINAL_RESOLVE:
-                break
-            wait_summ += TOLERANCE_TIME
-
-        escalation_finish_time = start_time + wait_summ
-        return escalation_finish_time
+        return EscalationSnapshot.serializer(data).data
 
     @property
     def channel_filter_with_respect_to_escalation_snapshot(self):
@@ -166,38 +117,52 @@ class EscalationSnapshotMixin:
 
     @cached_property
     def channel_filter_snapshot(self) -> Optional[ChannelFilterSnapshot]:
-        # in some cases we need only channel filter and don't want to serialize whole escalation
-        channel_filter_snapshot_object = None
+        """
+        in some cases we need only channel filter and don't want to serialize whole escalation
+        """
         escalation_snapshot = self.raw_escalation_snapshot
-        if escalation_snapshot is not None:
-            channel_filter_snapshot = ChannelFilterSnapshot.serializer().to_internal_value(
-                escalation_snapshot["channel_filter_snapshot"]
-            )
-            channel_filter_snapshot_object = ChannelFilterSnapshot(**channel_filter_snapshot)
-        return channel_filter_snapshot_object
+        if not escalation_snapshot:
+            return None
+
+        channel_filter_snapshot = escalation_snapshot["channel_filter_snapshot"]
+        if not channel_filter_snapshot:
+            return None
+
+        channel_filter_snapshot = ChannelFilterSnapshot.serializer().to_internal_value(channel_filter_snapshot)
+        return ChannelFilterSnapshot(**channel_filter_snapshot)
 
     @cached_property
     def escalation_chain_snapshot(self) -> Optional[EscalationChainSnapshot]:
-        # in some cases we need only escalation chain and don't want to serialize whole escalation
+        """
+        in some cases we need only escalation chain and don't want to serialize whole escalation
         escalation_chain_snapshot_object = None
+        """
         escalation_snapshot = self.raw_escalation_snapshot
-        if escalation_snapshot is not None:
-            escalation_chain_snapshot = EscalationChainSnapshot.serializer().to_internal_value(
-                escalation_snapshot["escalation_chain_snapshot"]
-            )
-            escalation_chain_snapshot_object = EscalationChainSnapshot(**escalation_chain_snapshot)
-        return escalation_chain_snapshot_object
+        if not escalation_snapshot:
+            return None
+
+        escalation_chain_snapshot = escalation_snapshot["escalation_chain_snapshot"]
+        if not escalation_chain_snapshot:
+            return None
+
+        escalation_chain_snapshot = EscalationChainSnapshot.serializer().to_internal_value(escalation_chain_snapshot)
+        return EscalationChainSnapshot(**escalation_chain_snapshot)
 
     @cached_property
     def escalation_snapshot(self) -> Optional[EscalationSnapshot]:
-        escalation_snapshot_object = None
         raw_escalation_snapshot = self.raw_escalation_snapshot
-        if raw_escalation_snapshot is not None:
+        if raw_escalation_snapshot:
             try:
-                escalation_snapshot_object = self._deserialize_escalation_snapshot(raw_escalation_snapshot)
+                return self._deserialize_escalation_snapshot(raw_escalation_snapshot)
             except ValidationError as e:
                 logger.error(f"Error trying to deserialize raw escalation snapshot: {e}")
-        return escalation_snapshot_object
+        return None
+
+    @cached_property
+    def has_escalation_policies_snapshots(self) -> bool:
+        if not self.raw_escalation_snapshot:
+            return False
+        return len(self.raw_escalation_snapshot["escalation_policies_snapshots"]) > 0
 
     def _deserialize_escalation_snapshot(self, raw_escalation_snapshot) -> EscalationSnapshot:
         """
@@ -225,20 +190,34 @@ class EscalationSnapshotMixin:
         return escalation_snapshot_object
 
     @property
-    def escalation_chain_exists(self):
-        return not self.pause_escalation and self.channel_filter and self.channel_filter.escalation_chain
+    def escalation_chain_exists(self) -> bool:
+        if self.pause_escalation:
+            return False
+        elif not self.channel_filter:
+            return False
+        return self.channel_filter.escalation_chain is not None
 
     @property
-    def pause_escalation(self):
-        # get pause_escalation field directly to avoid serialization overhead
-        return self.raw_escalation_snapshot is not None and self.raw_escalation_snapshot.get("pause_escalation", False)
+    def pause_escalation(self) -> bool:
+        """
+        get pause_escalation field directly to avoid serialization overhead
+        """
+        if not self.raw_escalation_snapshot:
+            return False
+        return self.raw_escalation_snapshot.get("pause_escalation", False)
 
     @property
-    def next_step_eta(self):
-        # get next_step_eta field directly to avoid serialization overhead
-        raw_next_step_eta = (
-            self.raw_escalation_snapshot.get("next_step_eta") if self.raw_escalation_snapshot is not None else None
-        )
+    def next_step_eta(self) -> Optional[datetime.datetime]:
+        """
+        get next_step_eta field directly to avoid serialization overhead
+        """
+        if not self.raw_escalation_snapshot:
+            return None
+
+        raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
+        if not raw_next_step_eta:
+            return None
+
         if raw_next_step_eta:
             return parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
 
@@ -251,12 +230,20 @@ class EscalationSnapshotMixin:
         is_on_maintenace_or_debug_mode = (
             self.channel.maintenance_mode is not None or self.channel.organization.maintenance_mode is not None
         )
-        if is_on_maintenace_or_debug_mode:
-            return
-        if self.pause_escalation:
-            return
 
-        if not self.escalation_chain_exists:
+        if (
+            self.is_restricted
+            or is_on_maintenace_or_debug_mode
+            or self.pause_escalation
+            or not self.escalation_chain_exists
+        ):
+            logger.debug(
+                f"Not escalating alert group w/ pk: {self.pk}\n"
+                f"is_restricted: {self.is_restricted}\n"
+                f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
+                f"pause_escalation: {self.pause_escalation}\n"
+                f"escalation_chain_exists: {self.escalation_chain_exists}"
+            )
             return
 
         logger.debug(f"Start escalation for alert group with pk: {self.pk}")
@@ -272,13 +259,10 @@ class EscalationSnapshotMixin:
             is_escalation_finished=False,
             raw_escalation_snapshot=raw_escalation_snapshot,
         )
-        if not self.pause_escalation:
-            calculate_escalation_finish_time.apply_async((self.pk,), immutable=True)
         escalate_alert_group.apply_async((self.pk,), countdown=countdown, immutable=True, eta=eta, task_id=task_id)
 
     def stop_escalation(self):
         self.is_escalation_finished = True
-        self.estimate_escalation_finish_time = None
         # change active_escalation_id to prevent alert escalation
         self.active_escalation_id = "intentionally_stopped"
-        self.save(update_fields=["is_escalation_finished", "estimate_escalation_finish_time", "active_escalation_id"])
+        self.save(update_fields=["is_escalation_finished", "active_escalation_id"])

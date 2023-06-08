@@ -104,7 +104,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               </div>
               {disabled ? (
                 isTypeReadOnly ? (
-                  <Tooltip content="Ical and API/Terraform schedules are read-only" placement="top">
+                  <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">
                     <div>
                       <Button variant="primary" icon="plus" disabled>
                         Add rotation

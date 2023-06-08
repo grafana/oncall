@@ -220,10 +220,22 @@ class CustomOnCallShift(models.Model):
         if self.schedule:
             schedules_to_update.append(self.schedule)
 
+        force = kwargs.pop("force", False)
         # do soft delete for started shifts that were created for web schedule
-        if self.schedule and self.event_is_started:
-            self.until = timezone.now().replace(microsecond=0)
-            self.save(update_fields=["until"])
+        if self.schedule and self.event_is_started and not force:
+            updated_until = timezone.now().replace(microsecond=0)
+            if self.until is not None and updated_until >= self.until:
+                # event is already finished
+                return
+            self.until = updated_until
+            update_fields = ["until"]
+            if self.type == self.TYPE_OVERRIDE:
+                # since it is a single-time event, update override duration
+                delta = self.until - self.start
+                if delta < self.duration:
+                    self.duration = delta
+                    update_fields += ["duration"]
+            self.save(update_fields=update_fields)
         else:
             super().delete(*args, **kwargs)
 
@@ -572,8 +584,8 @@ class CustomOnCallShift(models.Model):
             if self.week_start is not None:
                 rules["wkst"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[self.week_start]
             if self.until is not None:
-                time_zone = self.time_zone if self.time_zone is not None else "UTC"
-                rules["until"] = self.convert_dt_to_schedule_timezone(self.until, time_zone)
+                # RRULE UNTIL values must be specified in UTC when DTSTART is timezone-aware
+                rules["until"] = self.convert_dt_to_schedule_timezone(self.until, "UTC")
         return rules
 
     @cached_property

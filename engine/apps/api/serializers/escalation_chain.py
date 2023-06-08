@@ -29,3 +29,12 @@ class EscalationChainListSerializer(EscalationChainSerializer):
     def get_number_of_routes(self, obj):
         # num_routes param added in queryset via annotate. Check EscalationChainViewSet.get_queryset
         return getattr(obj, "num_routes")
+
+
+class FilterEscalationChainSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source="public_primary_key")
+    display_name = serializers.CharField(source="name")
+
+    class Meta:
+        model = EscalationChain
+        fields = ["value", "display_name"]

@@ -1,6 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -8,6 +8,7 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import CardButton from 'components/CardButton/CardButton';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
@@ -17,9 +18,10 @@ import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
+import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -96,6 +98,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
+  async componentDidMount() {
+    await this.props.store.alertGroupStore.fetchIRMPlan();
+  }
+
   componentWillUnmount(): void {
     this.clearPollingInterval();
   }
@@ -103,6 +109,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   render() {
     const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
+    const {
+      store,
+      store: { alertGroupStore },
+    } = this.props;
+
+    if (!alertGroupStore.irmPlan && !store.isOpenSource()) {
+      return <LoadingPlaceholder text={'Loading...'} />;
+    }
+
     return (
       <>
         <div className={cx('root')}>
@@ -111,7 +126,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               <Text.Title level={3}>Alert Groups</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                 <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
-                  Manual alert group
+                  New alert group
                 </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
@@ -125,7 +140,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               this.setState({ showAddAlertGroupForm: false });
             }}
             onCreate={(id: Alert['pk']) => {
-              history.push(`${PLUGIN_ROOT}/incidents/${id}`);
+              history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
           />
         )}
@@ -133,12 +148,136 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderIncidentFilters() {
-    const { query } = this.props;
+  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange) {
+    const { store } = this.props;
+
+    const { values } = filtersState;
+
+    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
+
+    const { count: newIncidentsCount } = newIncidents;
+    const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;
+    const { count: resolvedIncidentsCount } = resolvedIncidents;
+    const { count: silencedIncidentsCount } = silencedIncidents;
+
+    const status = values.status || [];
 
     return (
+      <div className={cx('cards', 'row')}>
+        <div key="new" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="bell" size="xxxl" />}
+            description="Firing"
+            title={newIncidentsCount}
+            selected={status.includes(IncidentStatus.Firing)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Firing,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="acknowledged" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="eye" size="xxxl" />}
+            description="Acknowledged"
+            title={acknowledgedIncidentsCount}
+            selected={status.includes(IncidentStatus.Acknowledged)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Acknowledged,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="resolved" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="check" size="xxxl" />}
+            description="Resolved"
+            title={resolvedIncidentsCount}
+            selected={status.includes(IncidentStatus.Resolved)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Resolved,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="silenced" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="bell-slash" size="xxxl" />}
+            description="Silenced"
+            title={silencedIncidentsCount}
+            selected={status.includes(IncidentStatus.Silenced)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Silenced,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  getStatusButtonClickHandler = (
+    status: IncidentStatus,
+    filtersState,
+    filtersSetState,
+    filtersOnFiltersValueChange
+  ) => {
+    return (selected: boolean) => {
+      const { values } = filtersState;
+
+      const { status: statusFilter = [] } = values;
+
+      let newStatuses = [...statusFilter];
+
+      if (selected) {
+        newStatuses.push(status);
+      } else {
+        newStatuses = newStatuses.filter((s: IncidentStatus) => s !== Number(status));
+      }
+
+      const statusFilterOption = filtersState.filterOptions.find((filterOption) => filterOption.name === 'status');
+      const statusFilterExist = filtersState.filters.some((statusFilter) => statusFilter.name === 'status');
+
+      if (statusFilterExist) {
+        filtersOnFiltersValueChange('status', newStatuses);
+      } else {
+        filtersSetState(
+          {
+            hadInteraction: false,
+            filters: [...filtersState.filters, statusFilterOption],
+          },
+          () => {
+            filtersOnFiltersValueChange('status', newStatuses);
+          }
+        );
+      }
+    };
+  };
+
+  renderIncidentFilters() {
+    const { query, store } = this.props;
+    return (
       <div className={cx('filters')}>
-        <IncidentsFilters query={query} onChange={this.handleFiltersChange} />
+        <RemoteFilters
+          query={query}
+          page="incidents"
+          onChange={this.handleFiltersChange}
+          extraFilters={this.renderCards.bind(this)}
+          grafanaTeamStore={store.grafanaTeamStore}
+          defaultFilters={{
+            team: [],
+            status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+            mine: false,
+          }}
+        />
       </div>
     );
   }
@@ -347,14 +486,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         render: withSkeleton(this.renderTitle),
       },
       {
-        width: '10%',
+        width: '5%',
         title: 'Alerts',
         key: 'alerts',
         render: withSkeleton(this.renderAlertsCounter),
       },
       {
         width: '15%',
-        title: 'Integrations',
+        title: 'Integration',
         key: 'source',
         render: withSkeleton(this.renderSource),
       },
@@ -363,6 +502,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Created',
         key: 'created',
         render: withSkeleton(this.renderStartedAt),
+      },
+      {
+        width: '10%',
+        title: 'Team',
+        key: 'team',
+        render: withSkeleton((item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items)),
       },
       {
         width: '15%',
@@ -379,7 +524,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
           loading={alertGroupsLoading}
           className={cx('incidents-table')}
-          rowSelection={{ selectedRowKeys: selectedIncidentIds, onChange: this.handleSelectedIncidentIdsChange }}
+          rowSelection={{
+            selectedRowKeys: selectedIncidentIds,
+            onChange: this.handleSelectedIncidentIdsChange,
+          }}
           rowKey="pk"
           data={results}
           columns={columns}
@@ -425,7 +573,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <VerticalGroup spacing="none" justify="center">
         <div className={'table__wrap-column'}>
           <PluginLink
-            query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+            query={{
+              page: 'alert-groups',
+              id: record.pk,
+              cursor: incidentsCursor,
+              perpage: incidentsItemsPerPage,
+              start,
+            }}
           >
             <Tooltip placement="top" content={record.render_for_web.title}>
               <span>{record.render_for_web.title}</span>
@@ -478,6 +632,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <Text type="secondary">{m.format('hh:mm A')}</Text>
       </VerticalGroup>
     );
+  }
+
+  renderTeam(record: AlertType, teams: any) {
+    return <TeamName team={teams[record.team]} />;
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {

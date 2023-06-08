@@ -45,7 +45,8 @@ class AlertGroupLogRecord(models.Model):
         TYPE_ROUTE_ASSIGNED,
         TYPE_DIRECT_PAGING,
         TYPE_UNPAGE_USER,
-    ) = range(25)
+        TYPE_RESTRICTED,
+    ) = range(26)
 
     TYPES_FOR_LICENCE_CALCULATION = (
         TYPE_ACK,
@@ -89,6 +90,7 @@ class AlertGroupLogRecord(models.Model):
         (TYPE_ROUTE_ASSIGNED, "A route is assigned to the incident"),
         (TYPE_DIRECT_PAGING, "Trigger direct paging escalation"),
         (TYPE_UNPAGE_USER, "Unpage a user"),
+        (TYPE_RESTRICTED, "Restricted"),
     )
 
     # Handlers should be named like functions.
@@ -135,7 +137,8 @@ class AlertGroupLogRecord(models.Model):
         ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_NOTIFY_IN_SLACK,
         ERROR_ESCALATION_NOTIFY_IF_NUM_ALERTS_IN_WINDOW_STEP_IS_NOT_CONFIGURED,
-    ) = range(17)
+        ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR,
+    ) = range(18)
 
     type = models.IntegerField(choices=TYPE_CHOICES)
 
@@ -246,17 +249,19 @@ class AlertGroupLogRecord(models.Model):
             if substitute_author_with_tag:
                 author_name = "{{author}}"
             elif for_slack:
-                author_name = self.author.get_user_verbal_for_team_for_slack()
+                author_name = self.author.get_username_with_slack_verbal()
             else:
                 author_name = self.author.username
         if self.invitation is not None:
             if for_slack:
-                invitee_name = self.invitation.invitee.get_user_verbal_for_team_for_slack()
+                invitee_name = self.invitation.invitee.get_username_with_slack_verbal()
             else:
                 invitee_name = self.invitation.invitee.username
 
         if self.type == AlertGroupLogRecord.TYPE_REGISTERED:
             result += "alert group registered"
+        elif self.type == AlertGroupLogRecord.TYPE_RESTRICTED:
+            result += self.reason
         elif self.type == AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED:
             channel_filter = self.alert_group.channel_filter_with_respect_to_escalation_snapshot
             escalation_chain = self.alert_group.escalation_chain_with_respect_to_escalation_snapshot
@@ -436,18 +441,18 @@ class AlertGroupLogRecord(models.Model):
                         f"{f' by {author_name}' if author_name else ''}"
                     )
         elif self.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED:
+            webhook_name = ""
+            trigger = None
             if step_specific_info is not None:
-                custom_button_name = step_specific_info.get("custom_button_name")
-                custom_button_name = f"`{custom_button_name}`" or ""
+                webhook_name = step_specific_info.get("webhook_name") or step_specific_info.get("custom_button_name")
+                trigger = step_specific_info.get("trigger")
             elif self.custom_button is not None:
-                custom_button_name = f"`{self.custom_button.name}`"
+                webhook_name = f"`{self.custom_button.name}`"
+            if trigger is None and self.author:
+                trigger = f"{author_name}"
             else:
-                custom_button_name = ""
-            result += f"outgoing webhook {custom_button_name} triggered by "
-            if self.author:
-                result += f"{author_name}"
-            else:
-                result += "escalation chain"
+                trigger = trigger or "escalation chain"
+            result += f"outgoing webhook `{webhook_name}` triggered by {trigger}"
         elif self.type == AlertGroupLogRecord.TYPE_FAILED_ATTACHMENT:
             if self.alert_group.slack_message is not None:
                 result += (
@@ -491,6 +496,14 @@ class AlertGroupLogRecord(models.Model):
                 == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED
             ):
                 result += 'skipped escalation step "Trigger Outgoing Webhook" because it is not configured'
+            elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR:
+                webhook_name = trigger = ""
+                if step_specific_info is not None:
+                    webhook_name = step_specific_info.get("webhook_name", "")
+                    trigger = step_specific_info.get("trigger", "")
+                result += f"skipped {trigger} outgoing webhook `{webhook_name}`"
+                if self.reason:
+                    result += f": {self.reason}"
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_IF_TIME_IS_NOT_CONFIGURED:
                 result += 'skipped escalation step "Continue escalation if time" because it is not configured'
             elif (

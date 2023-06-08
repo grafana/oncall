@@ -72,7 +72,14 @@ class PluginAuthentication(BaseAuthentication):
         if not context_string:
             raise exceptions.AuthenticationFailed("No instance context provided.")
 
-        context = json.loads(context_string)
+        try:
+            context = dict(json.loads(context_string))
+        except (ValueError, TypeError):
+            raise exceptions.AuthenticationFailed("Instance context must be JSON dict.")
+
+        if "stack_id" not in context or "org_id" not in context:
+            raise exceptions.AuthenticationFailed("Invalid instance context.")
+
         try:
             auth_token = check_token(token_string, context=context)
             if not auth_token.organization:
@@ -85,11 +92,19 @@ class PluginAuthentication(BaseAuthentication):
 
     @staticmethod
     def _get_user(request: Request, organization: Organization) -> User:
-        context = json.loads(request.headers.get("X-Grafana-Context"))
+        try:
+            context = dict(json.loads(request.headers.get("X-Grafana-Context")))
+        except (ValueError, TypeError):
+            raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
+
+        if "UserId" not in context and "UserID" not in context:
+            raise exceptions.AuthenticationFailed("Invalid Grafana context.")
+
         try:
             user_id = context["UserId"]
         except KeyError:
             user_id = context["UserID"]
+
         try:
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:

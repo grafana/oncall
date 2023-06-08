@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class ChatOpsEvent(enum.Enum):
-    WORKSPACE_CONNECTED = "started"
-    WORKSPACE_DISCONNECTED = "finished"
+    WORKSPACE_CONNECTED = "workspace_connected"
+    WORKSPACE_DISCONNECTED = "workspace_disconnected"
     CHANNEL_CONNECTED = "channel_connected"
     CHANNEL_DISCONNECTED = "channel_disconnected"
     USER_LINKED = "user_linked"
@@ -18,16 +18,13 @@ class ChatOpsEvent(enum.Enum):
     DEFAULT_CHANNEL_CHANGED = "default_channel_changed"
 
 
-class ChatOpsType(enum.Enum):
-    # Keep in sync with messaging backends' id.
-    # In perfect world backend_ids should be used intead of this enums
-    # It can be achieved when we move refactor slack and telegram to use the messaging_backend system.
-    SLACK = "SLACK"
-    MSTEAMS = "MSTEAMS"
-    TELEGRAM = "TELEGRAM"
+class ChatOpsTypePlug(enum.Enum):
+    # ChatOpsTypePlug provides backend_id string for chatops integration not supporting messaging_backends.
+    SLACK = "slack"
+    TELEGRAM = "telegram"
 
 
-def write_chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: ChatOpsType, **kwargs):
+def write_chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: str, **kwargs):
     try:
         organization = author.organization
 
@@ -36,7 +33,7 @@ def write_chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: Ch
             user_id = author.public_primary_key
             username = json.dumps(author.username)
 
-            log_line = f"tenant_id={tenant_id} author_id={user_id} author={username} action_type=chat_ops action_name={event_name.value} chat_ops_type={chatops_type.value}"  # noqa
+            log_line = f"tenant_id={tenant_id} author_id={user_id} author={username} action_type=chat_ops action_name={event_name.value} chat_ops_type={chatops_type.lower()}"  # noqa
             for k, v in kwargs.items():
                 log_line += f" {k}={json.dumps(v)}"
 

@@ -12,6 +12,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChainSteps.module.css';
@@ -20,12 +21,13 @@ const cx = cn.bind(styles);
 
 interface EscalationChainStepsProps {
   id: EscalationChain['id'];
+  isDisabled?: boolean;
   addonBefore?: ReactElement;
   offset?: number;
 }
 
 const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
-  const { id, offset = 0, addonBefore } = props;
+  const { id, offset = 0, isDisabled = false, addonBefore } = props;
 
   const store = useStore();
 
@@ -74,42 +76,49 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
 
           return (
             <EscalationPolicy
+              index={index} // This in here is a MUST for the SortableElement
               key={`item-${escalationPolicy.id}`}
-              index={index}
-              // @ts-ignore
               data={escalationPolicy}
               number={index + offset + 1}
-              color={STEP_COLORS[index] || COLOR_RED}
+              backgroundColor={isDisabled ? getVar('--tag-background-success') : STEP_COLORS[index] || COLOR_RED}
               escalationChoices={escalationPolicyStore.webEscalationChoices}
               waitDelays={get(escalationPolicyStore.escalationChoices, 'wait_delay.choices', [])}
               numMinutesInWindowOptions={escalationPolicyStore.numMinutesInWindowOptions}
               onChange={escalationPolicyStore.saveEscalationPolicy.bind(escalationPolicyStore)}
               onDelete={escalationPolicyStore.deleteEscalationPolicy.bind(escalationPolicyStore)}
               isSlackInstalled={isSlackInstalled}
+              teamStore={store.grafanaTeamStore}
+              scheduleStore={store.scheduleStore}
+              outgoingWebhookStore={store.outgoingWebhookStore}
+              outgoingWebhook2Store={store.outgoingWebhook2Store}
+              isDisabled={isDisabled}
             />
           );
         })
       ) : (
         <LoadingPlaceholder text="Loading..." />
       )}
-      <Timeline.Item
-        number={(escalationPolicyIds?.length || 0) + offset + 1}
-        color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}
-      >
-        <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
-          <Select
-            isSearchable
-            menuShouldPortal
-            placeholder="Add escalation step..."
-            onChange={handleCreateEscalationStep}
-            options={escalationPolicyStore.webEscalationChoices.map((choice: EscalationPolicyOption) => ({
-              value: choice.value,
-              label: choice.create_display_name,
-            }))}
-            value={null}
-          />
-        </WithPermissionControlTooltip>
-      </Timeline.Item>
+      {!isDisabled && (
+        <Timeline.Item
+          number={(escalationPolicyIds?.length || 0) + offset + 1}
+          backgroundColor={isDisabled ? getVar('--tag-background-success') : getVar('--tag-secondary')}
+          textColor={isDisabled ? getVar('--tag-text-success') : undefined}
+        >
+          <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
+            <Select
+              isSearchable
+              menuShouldPortal
+              placeholder="Add escalation step..."
+              onChange={handleCreateEscalationStep}
+              options={escalationPolicyStore.webEscalationChoices.map((choice: EscalationPolicyOption) => ({
+                value: choice.value,
+                label: choice.create_display_name,
+              }))}
+              value={null}
+            />
+          </WithPermissionControlTooltip>
+        </Timeline.Item>
+      )}
     </SortableList>
   );
 });

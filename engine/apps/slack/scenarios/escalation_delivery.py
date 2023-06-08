@@ -13,8 +13,8 @@ class EscalationDeliveryStep(scenario_step.ScenarioStep):
         UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
         notification_channel = notification_policy.notify_by
         notification_step = notification_policy.step
-        user_verbal = user.get_user_verbal_for_team_for_slack()
-        user_verbal_with_mention = user.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal = user.get_username_with_slack_verbal()
+        user_verbal_with_mention = user.get_username_with_slack_verbal(mention=True)
 
         if (
             notification_channel == UserNotificationPolicy.NotificationChannel.SLACK
@@ -33,4 +33,4 @@ class EscalationDeliveryStep(scenario_step.ScenarioStep):
             # Don't mention if asked to notify somehow else but drop a note for colleagues
             user_mention_as = user_verbal
             notify_by = " by {}".format(UserNotificationPolicy.NotificationChannel(notification_channel).label)
-        return "Inviting {}{} to look at incident.".format(user_mention_as, notify_by)
+        return "Inviting {}{} to look at the alert group.".format(user_mention_as, notify_by)

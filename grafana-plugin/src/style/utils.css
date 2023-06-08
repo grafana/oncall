@@ -1,3 +1,7 @@
+.link {
+  text-decoration: none !important;
+}
+
 .u-position-relative {
   position: relative;
 }
@@ -52,4 +56,15 @@
   opacity: var(--opacity);
   cursor: not-allowed !important;
   pointer-events: none;
+}
+
+.u-cursor-default {
+  cursor: default;
+}
+
+.thin-line-break {
+  width: 100%;
+  border-top: 1px solid var(--always-gray);
+  margin-top: 8px;
+  opacity: 15%;
 }

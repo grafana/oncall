@@ -9,7 +9,7 @@ import { omit } from 'lodash-es';
 import { templatesToRender, Template } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { getLabelFromTemplateName } from 'components/AlertTemplates/AlertTemplatesForm.helper';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
@@ -18,7 +18,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
 import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { UserActions, isUserActionAllowed } from 'utils/authorization';
 
 import styles from './AlertTemplatesForm.module.css';
 
@@ -216,7 +216,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     </Button>
                   </Text>
                 )}
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={tempValues[activeTemplate.name] ?? (templates[activeTemplate.name] || '')}
                   disabled={false}
                   data={templates}
@@ -254,29 +254,29 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
         <Block className={cx('templates', 'borderRightBottom')}>
           <VerticalGroup>
             {templates?.payload_example ? (
-              <VerticalGroup>
-                <VerticalGroup>
-                  <Label>{`${capitalCase(activeGroup)} Preview`}</Label>
-                  <VerticalGroup style={{ width: '100%' }}>
-                    {groups[activeGroup].map((template) => (
-                      <TemplatePreview
-                        active={template.name === activeTemplate?.name}
-                        key={template.name}
-                        templateName={template.name}
-                        templateBody={tempValues[template.name] ?? templates[template.name]}
-                        onEditClick={getTemplatePreviewEditClickHandler(template.name)}
-                        alertReceiveChannelId={alertReceiveChannelId}
-                        alertGroupId={alertGroupId}
-                      />
-                    ))}
-                  </VerticalGroup>
-                </VerticalGroup>
-                <div className={cx('payloadExample')}>
+              <VerticalGroup spacing="md">
+                {isUserActionAllowed(UserActions.IntegrationsTest) && (
                   <VerticalGroup>
-                    <Label>Payload Example</Label>
-                    <SourceCode>{JSON.stringify(templates?.payload_example, null, 4)}</SourceCode>
+                    <Label>{`${capitalCase(activeGroup)} Preview`}</Label>
+                    <VerticalGroup style={{ width: '100%' }}>
+                      {groups[activeGroup].map((template) => (
+                        <TemplatePreview
+                          active={template.name === activeTemplate?.name}
+                          key={template.name}
+                          templateName={template.name}
+                          templateBody={tempValues[template.name] ?? templates[template.name]}
+                          onEditClick={getTemplatePreviewEditClickHandler(template.name)}
+                          alertReceiveChannelId={alertReceiveChannelId}
+                          alertGroupId={alertGroupId}
+                        />
+                      ))}
+                    </VerticalGroup>
                   </VerticalGroup>
-                </div>
+                )}
+                <VerticalGroup>
+                  <Label>Payload Example</Label>
+                  <SourceCode>{JSON.stringify(templates?.payload_example, null, 4)}</SourceCode>
+                </VerticalGroup>
               </VerticalGroup>
             ) : (
               sendDemoAlertBlock

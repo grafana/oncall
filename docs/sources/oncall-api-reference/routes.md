@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/routes/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/routes/
 title: Routes HTTP API
 weight: 1100
@@ -49,10 +47,11 @@ Routes allow you to direct different alerts to different messenger channels and 
 <!-- markdownlint-disable MD013 -->
 
 | Parameter             | Unique | Required | Description                                                                                                                                                                                                                                                                                 |
-| --------------------- | :----: | :------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|-----------------------| :----: |:--------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `integration_id`      |   No   |   Yes    | Each route is assigned to a specific integration.                                                                                                                                                                                                                                           |
-| `escalation_chain_id` |   No   |   Yes    | Each route is assigned a specific escalation chain.                                                                                                                                                                                                                                         |
-| `routing_regex`       |  Yes   |   Yes    | Python Regex query (use <https://regex101.com/> for debugging). OnCall chooses the route for an alert in case there is a match inside the whole alert payload.                                                                                                                              |
+| `escalation_chain_id` |   No   |   Yes    | Each route is assigned a specific escalation chain. Explicitly pass `null` to create a route without an escalation chain assigned.                                                                                                                                                          |
+| `routing_type`        |  Yes   |    No    | Routing type that can be either `jinja2` or `regex`(default value)                                                                                                                                                                                                                          |
+| `routing_regex`       |  Yes   |   Yes    | Jinja2 template or Python Regex query (use <https://regex101.com/> for debugging). OnCall chooses the route for an alert in case there is a match inside the whole alert payload.                                                                                                           |
 | `position`            |  Yes   | Optional | Route matching is performed one after another starting from position=`0`. Position=`-1` will put the route to the end of the list before `is_the_last_route`. A new route created with a position of an existing route will move the old route (and all following routes) down in the list. |
 | `slack`               |  Yes   | Optional | Dictionary with Slack-specific settings for a route.                                                                                                                                                                                                                                        |
 

@@ -1,13 +1,15 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
-import { EmptySearchResult, HorizontalGroup, Input, Modal, VerticalGroup, Tag } from '@grafana/ui';
+import { EmptySearchResult, HorizontalGroup, Input, Modal, VerticalGroup, Tag, Field } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
+import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 
 import styles from './CreateAlertReceiveChannelContainer.module.css';
@@ -16,22 +18,25 @@ const cx = cn.bind(styles);
 
 interface CreateAlertReceiveChannelContainerProps {
   onHide: () => void;
-  onCreate: (option: AlertReceiveChannelOption) => void;
+  onCreate: (option: AlertReceiveChannelOption, team: GrafanaTeam['id']) => void;
 }
 
 const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveChannelContainerProps) => {
   const { onHide, onCreate } = props;
 
-  const { alertReceiveChannelStore } = useStore();
+  const { alertReceiveChannelStore, userStore } = useStore();
+  const user = userStore.currentUser;
 
   const [filterValue, setFilterValue] = useState('');
 
-  const handleCreateNewIntegrationClickCallback = useCallback(
+  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(user.current_team);
+
+  const handleNewIntegrationOptionSelectCallback = useCallback(
     (option: AlertReceiveChannelOption) => {
       onHide();
-      onCreate(option);
+      onCreate(option, selectedTeam);
     },
-    [onCreate, onHide]
+    [onCreate, onHide, selectedTeam]
   );
 
   const handleChangeFilter = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -58,10 +63,19 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
       onDismiss={onHide}
       className={cx('modal')}
     >
+      <div className={cx('select-team')}>
+        <Field
+          label="Assign to team"
+          description="OnCall teams allow you to organize integrations so you can filter and set up access. "
+        >
+          <GrafanaTeamSelect withoutModal onSelect={setSelectedTeam} />
+        </Field>
+      </div>
+      <hr />
       <div className={cx('search-integration')}>
         <Input autoFocus value={filterValue} placeholder="Search integrations ..." onChange={handleChangeFilter} />
       </div>
-      <div className={cx('cards', { cards_centered: !options.length })}>
+      <div className={cx('cards', { cards_centered: !options.length })} data-testid="create-integration-modal">
         {options.length ? (
           options.map((alertReceiveChannelChoice) => {
             return (
@@ -69,7 +83,7 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
                 bordered
                 shadowed
                 onClick={() => {
-                  handleCreateNewIntegrationClickCallback(alertReceiveChannelChoice);
+                  handleNewIntegrationOptionSelectCallback(alertReceiveChannelChoice);
                 }}
                 key={alertReceiveChannelChoice.value}
                 className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
@@ -79,7 +93,9 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
                 </div>
                 <div className={cx('title')}>
                   <VerticalGroup spacing="none">
-                    <Text strong>{alertReceiveChannelChoice.display_name}</Text>
+                    <Text strong data-testid="integration-display-name">
+                      {alertReceiveChannelChoice.display_name}
+                    </Text>
                     <Text type="secondary" size="small">
                       {alertReceiveChannelChoice.short_description}
                     </Text>

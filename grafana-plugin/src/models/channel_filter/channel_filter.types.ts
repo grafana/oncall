@@ -3,6 +3,11 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 
+export enum FilteringTermType {
+  regex,
+  jinja2,
+}
+
 export interface ChannelFilter {
   id: string;
   order: number;
@@ -12,6 +17,8 @@ export interface ChannelFilter {
   telegram_channel?: TelegramChannel['id'];
   created_at: string;
   filtering_term: string;
+  filtering_term_as_jinja2: string;
+  filtering_term_type: FilteringTermType;
   is_default: boolean;
   notify_in_slack: boolean;
   notify_in_telegram: boolean;

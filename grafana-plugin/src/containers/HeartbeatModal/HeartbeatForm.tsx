@@ -85,11 +85,11 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       <br />
       <br />
       <p>
-        A heartbeat acts as a healthcheck for incident monitoring. You can configure OnCall to regularly send alerts to
-        the heartbeat endpoint. If you don't receive one of these alerts, OnCall will issue an incident.
+        A heartbeat acts as a healthcheck for alert group monitoring. You can configure OnCall to regularly send alerts
+        to the heartbeat endpoint. If you don't receive one of these alerts, OnCall will issue an alert group.
       </p>
       <p>
-        <span>OnCall will issue an incident if no alert is received every</span>
+        <span>OnCall will issue an alert group if no alert is received every</span>
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Select
             className={cx('select', 'timeout')}
@@ -105,12 +105,10 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       </p>
       {heartbeat && (
         <p>
-          <Text>
-            Use the following unique Grafana link to send GET and POST requests:{' '}
-            <a href={heartbeat?.link} target="_blank" rel="noreferrer">
-              {heartbeat?.link}
-            </a>
-          </Text>
+          <Text>Use the following unique Grafana link to send GET and POST requests:</Text>
+          <pre>
+            <code>{heartbeat?.link}</code>
+          </pre>
         </p>
       )}
       {heartbeat && (

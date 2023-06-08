@@ -17,6 +17,7 @@ import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
 
@@ -49,7 +50,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   handleOpenSlackInstructions = () => {
     const { store } = this.props;
-    store.slackStore.installSlackIntegration();
+    store.slackStore.installSlackIntegration().catch(showApiError);
   };
 
   update = () => {
@@ -108,7 +109,10 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>
                 </div>
               </Field>
-              <Field label="Default channel for Slack notifications">
+              <Field
+                label="Default channel for Slack notifications"
+                description="The selected channel will be used as a fallback in the event that a schedule or integration does not have a configured channel"
+              >
                 <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
                   <GSelect
                     showSearch
@@ -213,9 +217,12 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   removeSlackIntegration = () => {
     const { store } = this.props;
-    store.slackStore.removeSlackIntegration().then(() => {
-      store.teamStore.loadCurrentTeam();
-    });
+    store.slackStore
+      .removeSlackIntegration()
+      .then(() => {
+        store.teamStore.loadCurrentTeam();
+      })
+      .catch(showApiError);
   };
 
   getSlackSettingsChangeHandler = (field: string) => {

@@ -1,5 +1,7 @@
 .root {
-  border-radius: 4px;
-  padding: 1px 7px 4px 7px;
+  border-radius: 2px;
+  line-height: 100%;
+  padding: 5px 8px;
   color: white;
+  white-space: nowrap;
 }

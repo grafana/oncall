@@ -1,19 +1,9 @@
 apiVersion: v2
 name: oncall
 description: Developer-friendly incident response with brilliant Slack integration
-
 type: application
-
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including the app version.
-# Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 1.1.2
-
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-# It is recommended to use it with quotes.
-appVersion: "v1.1.5"
+version: 1.2.36
+appVersion: v1.2.36
 dependencies:
   - name: cert-manager
     version: v1.8.0
@@ -28,11 +18,11 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
   - name: rabbitmq
-    version: 10.1.1
+    version: 10.3.9
     repository: https://charts.bitnami.com/bitnami
     condition: rabbitmq.enabled
   - name: redis
-    version: 16.10.1
+    version: 16.13.2
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
   - name: grafana

@@ -12,7 +12,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
         user = log_record.author
         alert_group = log_record.alert_group
 
-        user_verbal_with_mention = user.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal_with_mention = user.get_username_with_slack_verbal(mention=True)
 
         # move message generation to UserNotificationPolicyLogRecord
         if log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED:

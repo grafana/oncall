@@ -13,6 +13,8 @@ import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notifi
 import { NotifyBy } from 'models/notify_by';
 import { User } from 'models/user/user.types';
 import { WaitDelay } from 'models/wait_delay';
+import { RootStore } from 'state';
+import { AppFeature } from 'state/features';
 import { UserAction } from 'utils/authorization';
 
 import DragHandle from './DragHandle';
@@ -41,6 +43,7 @@ export interface NotificationPolicyProps {
   color: string;
   number: number;
   userAction: UserAction;
+  store: RootStore;
 }
 
 export class NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
@@ -49,7 +52,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { id, step } = data;
 
     return (
-      <Timeline.Item className={cx('root')} number={number} color={color}>
+      <Timeline.Item className={cx('root')} number={number} backgroundColor={color}>
         <div className={cx('step')}>
           <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
             <DragHandle />
@@ -149,7 +152,11 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
   }
 
   _renderTelegramNote() {
-    const { telegramVerified } = this.props;
+    const { telegramVerified, store } = this.props;
+
+    if (!store.hasFeature(AppFeature.Telegram)) {
+      return null;
+    }
 
     return telegramVerified ? (
       <PolicyNote type="success">Telegram is connected</PolicyNote>

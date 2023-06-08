@@ -23,6 +23,10 @@
     color: var(--primary-text-link);
   }
 
+  &--danger {
+    color: var(--error-text-color);
+  }
+
   &--success {
     color: var(--green-5);
   }

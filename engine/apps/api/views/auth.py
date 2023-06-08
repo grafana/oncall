@@ -1,6 +1,7 @@
 import logging
 from urllib.parse import urljoin
 
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
@@ -25,6 +26,11 @@ def overridden_login_slack_auth(request, backend):
     # We can't just redirect frontend here because we need to make a API call and pass tokens to this view from JS.
     # So frontend can't follow our redirect.
     # So wrapping and returning URL to redirect as a string.
+    if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
+        return Response(
+            "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+            status=400,
+        )
     url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
 
     return Response(url_to_redirect_to, 200)

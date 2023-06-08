@@ -55,7 +55,7 @@ class TelegramKeyboardRenderer:
         rows.append([self.resolve_button])
 
         # Silence/Unsilence buttons
-        if not self.alert_group.acknowledged and not self.alert_group.resolved:
+        if not self.alert_group.resolved:
             if not self.alert_group.silenced:
                 rows.append(self.silence_buttons)
             else:

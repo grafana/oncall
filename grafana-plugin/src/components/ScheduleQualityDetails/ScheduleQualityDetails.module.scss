@@ -1,0 +1,54 @@
+$padding: 8px;
+$width: 340px;
+
+.root {
+  width: $width;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  width: 100%;
+
+  &--withTopPadding {
+    padding-top: $padding;
+  }
+
+  &--withLateralPadding {
+    padding-left: $padding;
+    padding-right: $padding;
+  }
+}
+
+.header {
+  padding-bottom: calc($padding / 2);
+}
+.header__subText {
+  font-weight: 500;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+  margin-bottom: 4px;
+}
+
+.metholodogy {
+  padding: 4px 0px;
+}
+
+.text {
+  word-wrap: break-word;
+  padding-left: 24px;
+}
+
+.username {
+  max-width: calc($width - $padding);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

@@ -6,6 +6,7 @@ import uuid
 from importlib import import_module, reload
 
 import pytest
+from celery import Task
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
 from pytest_factoryboy import register
@@ -55,6 +56,10 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
+from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
+from apps.phone_notifications.phone_backend import PhoneBackend
+from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
+from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
@@ -77,9 +82,9 @@ from apps.telegram.tests.factories import (
     TelegramToUserConnectorFactory,
     TelegramVerificationCodeFactory,
 )
-from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
+from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -112,8 +117,8 @@ register(TelegramMessageFactory)
 
 register(ResolutionNoteSlackMessageFactory)
 
-register(PhoneCallFactory)
-register(SMSFactory)
+register(PhoneCallRecordFactory)
+register(SMSRecordFactory)
 register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
@@ -148,6 +153,22 @@ def mock_telegram_bot_username(monkeypatch):
     monkeypatch.setattr(Bot, "username", mock_username)
 
 
+@pytest.fixture(autouse=True)
+def mock_phone_provider(monkeypatch):
+    def mock_get_provider(*args, **kwargs):
+        return MockPhoneProvider()
+
+    monkeypatch.setattr(PhoneBackend, "_get_phone_provider", mock_get_provider)
+
+
+@pytest.fixture(autouse=True)
+def mock_apply_async(monkeypatch):
+    def mock_apply_async(*args, **kwargs):
+        return uuid.uuid4()
+
+    monkeypatch.setattr(Task, "apply_async", mock_apply_async)
+
+
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
@@ -173,6 +194,22 @@ def make_token_for_organization():
         return PluginAuthToken.create_auth_token(organization)
 
     return _make_token_for_organization
+
+
+@pytest.fixture
+def make_mobile_app_verification_token_for_user():
+    def _make_mobile_app_verification_token_for_user(user, organization):
+        return MobileAppVerificationToken.create_auth_token(user, organization)
+
+    return _make_mobile_app_verification_token_for_user
+
+
+@pytest.fixture
+def make_mobile_app_auth_token_for_user():
+    def _make_mobile_app_auth_token_for_user(user, organization):
+        return MobileAppAuthToken.create_auth_token(user, organization)
+
+    return _make_mobile_app_auth_token_for_user
 
 
 @pytest.fixture
@@ -274,10 +311,11 @@ ROLE_PERMISSION_MAPPING = get_user_permission_role_mapping_from_frontend_plugin_
 def make_user():
     def _make_user(role: typing.Optional[LegacyAccessControlRole] = None, **kwargs):
         role = LegacyAccessControlRole.ADMIN if role is None else role
-        permissions = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
-        return UserFactory(
-            role=role, permissions=[GrafanaAPIPermission(action=perm.value) for perm in permissions], **kwargs
-        )
+        permissions = kwargs.pop("permissions", None)
+        if permissions is None:
+            permissions_to_grant = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
+            permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions_to_grant]
+        return UserFactory(role=role, permissions=permissions, **kwargs)
 
     return _make_user
 
@@ -397,6 +435,17 @@ def make_alert_receive_channel():
         post_save.disconnect(listen_for_alertreceivechannel_model_save, sender=AlertReceiveChannel)
         alert_receive_channel = AlertReceiveChannelFactory(organization=organization, **kwargs)
         post_save.connect(listen_for_alertreceivechannel_model_save, sender=AlertReceiveChannel)
+        return alert_receive_channel
+
+    return _make_alert_receive_channel
+
+
+@pytest.fixture
+def make_alert_receive_channel_with_post_save_signal():
+    def _make_alert_receive_channel(organization, **kwargs):
+        if "integration" not in kwargs:
+            kwargs["integration"] = AlertReceiveChannel.INTEGRATION_GRAFANA
+        alert_receive_channel = AlertReceiveChannelFactory(organization=organization, **kwargs)
         return alert_receive_channel
 
     return _make_alert_receive_channel
@@ -608,6 +657,24 @@ def make_custom_action():
 
 
 @pytest.fixture
+def make_custom_webhook():
+    def _make_custom_webhook(organization, **kwargs):
+        custom_webhook = CustomWebhookFactory(organization=organization, **kwargs)
+        return custom_webhook
+
+    return _make_custom_webhook
+
+
+@pytest.fixture
+def make_webhook_response():
+    def _make_webhook_response(**kwargs):
+        webhook_response = WebhookResponseFactory(**kwargs)
+        return webhook_response
+
+    return _make_webhook_response
+
+
+@pytest.fixture
 def make_slack_user_group():
     def _make_slack_user_group(slack_team_identity, **kwargs):
         slack_user_group = SlackUserGroupFactory(slack_team_identity=slack_team_identity, **kwargs)
@@ -641,6 +708,34 @@ def make_organization_and_user_with_plugin_token(make_organization_and_user, mak
         return organization, user, token
 
     return _make_organization_and_user_with_plugin_token
+
+
+@pytest.fixture()
+def make_organization_and_user_with_mobile_app_verification_token(
+    make_organization_and_user, make_mobile_app_verification_token_for_user
+):
+    def _make_organization_and_user_with_mobile_app_verification_token(
+        role: typing.Optional[LegacyAccessControlRole] = None,
+    ):
+        organization, user = make_organization_and_user(role)
+        _, token = make_mobile_app_verification_token_for_user(user, organization)
+        return organization, user, token
+
+    return _make_organization_and_user_with_mobile_app_verification_token
+
+
+@pytest.fixture()
+def make_organization_and_user_with_mobile_app_auth_token(
+    make_organization_and_user, make_mobile_app_auth_token_for_user
+):
+    def _make_organization_and_user_with_mobile_app_auth_token(
+        role: typing.Optional[LegacyAccessControlRole] = None,
+    ):
+        organization, user = make_organization_and_user(role)
+        _, token = make_mobile_app_auth_token_for_user(user, organization)
+        return organization, user, token
+
+    return _make_organization_and_user_with_mobile_app_auth_token
 
 
 @pytest.fixture()
@@ -692,19 +787,19 @@ def make_telegram_message():
 
 
 @pytest.fixture()
-def make_phone_call():
-    def _make_phone_call(receiver, status, **kwargs):
-        return PhoneCallFactory(receiver=receiver, status=status, **kwargs)
+def make_phone_call_record():
+    def _make_phone_call_record(receiver, **kwargs):
+        return PhoneCallRecordFactory(receiver=receiver, **kwargs)
 
-    return _make_phone_call
+    return _make_phone_call_record
 
 
 @pytest.fixture()
-def make_sms():
-    def _make_sms(receiver, status, **kwargs):
-        return SMSFactory(receiver=receiver, status=status, **kwargs)
+def make_sms_record():
+    def _make_sms_record(receiver, **kwargs):
+        return SMSRecordFactory(receiver=receiver, **kwargs)
 
-    return _make_sms
+    return _make_sms_record
 
 
 @pytest.fixture()
@@ -736,29 +831,27 @@ def make_integration_heartbeat():
     return _make_integration_heartbeat
 
 
+@pytest.fixture
 def reload_urls(settings):
     """
     Reloads Django URLs, especially useful when testing conditionally registered URLs
     """
 
-    clear_url_caches()
-    urlconf = settings.ROOT_URLCONF
-    if urlconf in sys.modules:
-        reload(sys.modules[urlconf])
-    else:
-        import_module(urlconf)
+    def _reload_urls():
+        clear_url_caches()
+        urlconf = settings.ROOT_URLCONF
+        if urlconf in sys.modules:
+            reload(sys.modules[urlconf])
+        else:
+            import_module(urlconf)
+
+    return _reload_urls
 
 
 @pytest.fixture()
-def load_slack_urls(settings):
+def load_slack_urls(settings, reload_urls):
     settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
-    reload_urls(settings)
-
-
-@pytest.fixture()
-def load_mobile_app_urls(settings):
-    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
-    reload_urls(settings)
+    reload_urls()
 
 
 @pytest.fixture
