@@ -16,6 +16,8 @@ import { useStore } from 'state/useStore';
 import styles from './TemplatesAlertGroupsList.module.css';
 
 const cx = cn.bind(styles);
+const HEADER_OF_CONTAINER_HEIGHT = 59;
+const BADGE_WITH_PADDINGS_HEIGHT = 42;
 
 interface TemplatesAlertGroupsListProps {
   templates: AlertTemplatesDTO[];
@@ -40,13 +42,13 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
 
   const getCodeEditorHeight = () => {
     const mainDiv = document.getElementById('content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - 59;
+    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT;
     return `${height}px`;
   };
 
   const getCodeEditorHeightWithBadge = () => {
     const mainDiv = document.getElementById('content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - 59 - 42;
+    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT - BADGE_WITH_PADDINGS_HEIGHT;
     return `${height}px`;
   };
 
