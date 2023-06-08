@@ -83,12 +83,16 @@ const IntegrationHelper = {
     const channels: Array<{ name: string; icon: IconName }> = [];
     const telegram = Object.keys(store.telegramChannelStore.items).map((k) => store.telegramChannelStore.items[k]);
 
-    if (
-      store.hasFeature(AppFeature.Slack) &&
-      channelFilter.notify_in_slack &&
-      channelFilter.slack_channel?.display_name
-    ) {
-      channels.push({ name: channelFilter.slack_channel.display_name, icon: 'slack' });
+    if (store.hasFeature(AppFeature.Slack) && channelFilter.notify_in_slack) {
+      const matchingSlackChannel = store.teamStore.currentTeam?.slack_channel?.id
+        ? store.slackChannelStore.items[store.teamStore.currentTeam.slack_channel?.id]
+        : undefined;
+      if (channelFilter.slack_channel?.display_name || matchingSlackChannel?.display_name) {
+        channels.push({
+          name: channelFilter.slack_channel?.display_name || matchingSlackChannel?.display_name,
+          icon: 'slack',
+        });
+      }
     }
 
     const matchingTelegram = telegram.find((t) => t.id === channelFilter.telegram_channel);
