@@ -208,6 +208,17 @@ notifications using Twilio, complete the following steps:
 1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
 1. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`.
 
+## Zvonok.com Setup
+
+Grafana OnCall supports Zvonok.com phone call notifications delivery. To configure phone call notifications using
+Zvonok.com, complete the following steps:
+
+1. Change `PHONE_PROVIDER` value to `zvonok`.
+1. Create API public key on [Profile->Settings] (https://zvonok.com/manager/users/profile-settings/) page and assign it's 
+   value to `ZVONOK_API_KEY`.
+1. Create [Calls by API] (https://zvonok.com/manager/phones/all/?sup_type=api) campaign and assign it's ID value to
+   `ZVONOK_CALL_CAMPAIGN_ID`.
+
 ## Email Setup
 
 Grafana OnCall is capable of sending emails using SMTP as a user notification step. To setup email notifications, populate
