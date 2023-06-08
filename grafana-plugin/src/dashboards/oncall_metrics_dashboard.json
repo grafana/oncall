@@ -133,7 +133,20 @@
           },
           "unit": "none"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Total alert groups"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 7,
@@ -165,7 +178,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])",
+          "expr": "max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:])",
           "format": "time_series",
           "fullMetaSearch": false,
           "instant": false,
@@ -331,7 +344,20 @@
           },
           "unit": "none"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "New alert groups"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 7,
@@ -363,7 +389,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:])[$__range:])",
+          "expr": "increase(max_over_time(sum(avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:])[$__range:])",
           "format": "time_series",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -405,7 +431,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "sum(oncall_alert_groups_response_time_seconds_sum{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"}) / sum(oncall_alert_groups_response_time_seconds_count{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"})"
+              "options": "Value"
             },
             "properties": [
               {
@@ -490,7 +516,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "avg(sum(oncall_alert_groups_response_time_seconds_sum{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"}) / sum(oncall_alert_groups_response_time_seconds_count{slug=~\"ops\", team=~\"(OnCall Squad Production|Loki)\", integration=~\"(Alert Prod EU Healthcheck|Alert Prod Healthcheck|Amixr Prod AlertManager|Direct paging \\\\(OnCall Squad team\\\\)|Formatted Webhook ❤️👻🍺|Grafana ❤️🍎👻|GrafanaOnCall dev alerts|Loki Critical Webhook|Loki-Prod|Manual incidents \\\\(IRM team\\\\)|Support Escalations|Twilio Price Alerts|\\\\[DON\\\\'T DELETE\\\\] Alert Group Escalation Auditor Heartbeat)\"}))"
+              "options": "Value"
             },
             "properties": [
               {
@@ -626,7 +652,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[1h:]) != 0",
+          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[1h:]) > 0",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -842,7 +868,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[$__range:]))",
+          "expr": "sort_desc(max_over_time(sum by(integration) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1092,7 +1118,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sort_desc(sum by(team) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))",
+          "expr": "sort_desc(max_over_time(sum by(team) (avg without(pod, instance)($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1d:]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1441,6 +1467,6 @@
   },
   "timezone": "browser",
   "title": "OnCall metrics",
-  "version": 1,
+  "version": 0,
   "weekStart": ""
 }
