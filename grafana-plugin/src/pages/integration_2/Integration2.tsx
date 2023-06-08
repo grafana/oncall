@@ -603,8 +603,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 }) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
-  const stringifiedJson = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
-  const initialDemoJSON = stringifiedJson.substring(1, stringifiedJson.length - 1);
+  const initialDemoJSON = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
   const [demoPayload, setDemoPayload] = useState<string>(alertReceiveChannel.demo_alert_payload);
   let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
