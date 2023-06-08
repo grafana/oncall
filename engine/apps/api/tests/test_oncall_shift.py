@@ -420,19 +420,19 @@ def test_update_started_on_call_shift_force_update(
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
     )
     data_to_update = {
-        "title": title,
+        "name": name,
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
