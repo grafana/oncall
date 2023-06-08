@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add helm chart support for redis and mysql existing secrets [#2156](https://github.com/grafana/oncall/pull/2156)
+- Add `locale` column to mobile app user settings table by @joeyorlando [#2131](https://github.com/grafana/oncall/pull/2131)
+- Update notification text for "You're going on call" push notifications to include information about the shift start
+  and end times by @joeyorlando ([#2131](https://github.com/grafana/oncall/pull/2131))
 
 ### Changed
 

@@ -53,3 +53,4 @@ requests==2.31.0
 urllib3==1.26.15
 prometheus_client==0.16.0
 lxml==4.9.2
+babel==2.12.1

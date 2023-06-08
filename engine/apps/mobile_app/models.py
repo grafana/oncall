@@ -141,3 +141,5 @@ class MobileAppUserSettings(models.Model):
     going_oncall_notification_timing = models.IntegerField(
         choices=NOTIFICATION_TIMING_CHOICES, default=TWELVE_HOURS_IN_SECONDS
     )
+
+    locale = models.CharField(max_length=50, null=True)
