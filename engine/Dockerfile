@@ -47,6 +47,9 @@ RUN mkdir -p /tmp/prometheus_django_metrics;
 RUN chown -R ${APP_USER}:${APP_USER} /tmp/prometheus_django_metrics
 ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
 
+# Change to a non-root user (number is required by Kubernetes runAsNonRoot check)
+USER 1000
+
 FROM base AS dev
 RUN apt-get install -y sqlite3 default-mysql-client postgresql-client
 
@@ -54,8 +57,5 @@ FROM dev AS dev-enterprise
 RUN pip install -r requirements-enterprise-docker.txt
 
 FROM base AS prod
-
-# Change to a non-root user (number is required by Kubernetes runAsNonRoot check)
-USER 1000
 
 CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
