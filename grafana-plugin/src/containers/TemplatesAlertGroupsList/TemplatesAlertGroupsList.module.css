@@ -37,12 +37,20 @@
 }
 
 .alert-groups-editor {
-  width: 100%;
+  width: calc(100% + 16px);
+  margin-left: -16px;
 }
 
 .alert-groups-editor div[aria-label='Code editor container'] {
   border-bottom: none;
   border-right: none;
+}
+
+.alert-groups-editor-withBadge div[aria-label='Code editor container'] {
+  background-color: rgba(10, 10, 10, 0.4);
+  border-bottom: none;
+  border-right: none;
+  padding-top: 42px;
 }
 
 .no-alert-groups-badge {
@@ -53,4 +61,27 @@
 
 .no-alert-groups-badge > div {
   margin-right: 8px;
+}
+
+.alert-groups-last-payload-badge {
+  position: fixed;
+  z-index: 1;
+  margin: 16px;
+}
+
+.selected-alert-name {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.selected-alert-name-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title-action-icons {
+  display: flex;
+  align-items: center;
 }
