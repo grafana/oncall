@@ -44,6 +44,33 @@ def alert_group_internal_api_setup(
 
 
 @pytest.mark.django_db
+def test_get_filter_by_integration(
+    alert_group_internal_api_setup, make_alert_receive_channel, make_alert_group, make_user_auth_headers
+):
+    user, token, alert_groups = alert_group_internal_api_setup
+
+    ag = alert_groups[0]
+    # channel filter could be None, but the alert group still belongs to the original integration
+    ag.channel_filter = None
+    ag.save()
+
+    # make an alert group in other integration
+    alert_receive_channel = make_alert_receive_channel(user.organization)
+    make_alert_group(alert_receive_channel)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(
+        url + f"?integration={ag.channel.public_primary_key}",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 4
+
+
+@pytest.mark.django_db
 def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_headers):
     user, token, _ = alert_group_internal_api_setup
     client = APIClient()

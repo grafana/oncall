@@ -66,9 +66,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   )}
                   tooltipContent={undefined}
                 />
-                {routeWording === 'Default' && (
-                  <Text type="primary">All unrouted routes will be served to the default route</Text>
-                )}
+                {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
                 {routeWording !== 'Default' && channelFilter.filtering_term && (
                   <Text type="primary" className={cx('heading-container__text')}>
                     {channelFilter.filtering_term}
