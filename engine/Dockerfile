@@ -2,7 +2,7 @@ FROM python:3.11.3-slim-buster AS base
 
 # Create a group and user to run an app
 ENV APP_USER=appuser
-RUN groupadd --system --gid 1000 ${APP_USER} && \
+RUN groupadd --system --gid 2000 ${APP_USER} && \
     useradd --no-log-init --system --uid 1000 --gid ${APP_USER} ${APP_USER}
 
 RUN apt-get update && apt-get install -y \
