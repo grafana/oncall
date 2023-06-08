@@ -60,6 +60,8 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
         "DANGEROUS_WEBHOOKS_ENABLED",
         "PHONE_PROVIDER",
+        "ZVONOK_API_KEY",
+        "ZVONOK_CALL_CAMPAIGN_ID",
     )
 
     DESCRIPTIONS = {
@@ -148,6 +150,8 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
         "DANGEROUS_WEBHOOKS_ENABLED": "Enable outgoing webhooks to private networks",
         "PHONE_PROVIDER": f"Phone provider name. Available options: {','.join(list(settings.PHONE_PROVIDERS.keys()))}",
+        "ZVONOK_API_KEY": "API public key. You can get it in Profile->Settings section.",
+        "ZVONOK_CALL_CAMPAIGN_ID": "Calls by API campaign ID. You can get it after campaign creation.",
     }
 
     SECRET_SETTING_NAMES = (
@@ -163,6 +167,7 @@ class LiveSetting(models.Model):
         "SLACK_SIGNING_SECRET",
         "TELEGRAM_TOKEN",
         "GRAFANA_CLOUD_ONCALL_TOKEN",
+        "ZVONOK_API_KEY",
     )
 
     def __str__(self):
