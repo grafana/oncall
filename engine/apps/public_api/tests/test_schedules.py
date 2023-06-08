@@ -2,6 +2,7 @@ import collections
 from unittest.mock import patch
 
 import pytest
+import pytz
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -102,7 +103,7 @@ def test_create_calendar_schedule_with_shifts(make_organization_and_user_with_to
     team.users.add(user)
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "team": team,
         "start": start_date,
@@ -348,7 +349,7 @@ def test_update_calendar_schedule_with_custom_event(
         schedule_class=OnCallScheduleCalendar,
         channel=slack_channel_id,
     )
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -402,7 +403,7 @@ def test_update_calendar_schedule_invalid_override(
         organization,
         schedule_class=OnCallScheduleCalendar,
     )
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -428,7 +429,7 @@ def test_update_schedule_invalid_timezone(make_organization_and_user_with_token,
     client = APIClient()
 
     schedule = make_schedule(organization, schedule_class=ScheduleClass)
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -451,14 +452,14 @@ def test_update_web_schedule_with_override(
     make_on_call_shift,
 ):
 
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleWeb,
     )
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -867,7 +868,7 @@ def test_oncall_shifts_export(
     user2_public_primary_key = user2.public_primary_key
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
-    start_date = timezone.datetime(2023, 1, 1, 9, 0, 0)
+    start_date = timezone.datetime(2023, 1, 1, 9, 0, 0, tzinfo=pytz.UTC)
     make_on_call_shift(
         organization=organization,
         schedule=schedule,

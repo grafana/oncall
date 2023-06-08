@@ -13,8 +13,10 @@ x-oncall-build: &oncall-build-args
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app
+  # see all the fun answers/comments here on why we need to do this
+  # tldr; using /dev/null as a default leads to a lot of fun problems
   # https://stackoverflow.com/a/60456034
-  - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
+  - ${ENTERPRISE_ENGINE:-/dev/null}:${ENTERPRISE_ENGINE_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
   - ${SQLITE_DB_FILE:-/dev/null}:/var/lib/oncall/oncall.db
   # this is mounted for testing purposes. Some of the authorization tests
   # reference this file

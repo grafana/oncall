@@ -8,6 +8,8 @@ import dayjs from 'dayjs';
 
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { RootStore } from 'state';
+import { AppFeature } from 'state/features';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
 
@@ -70,14 +72,31 @@ const IntegrationHelper = {
     return totalDiffString;
   },
 
-  getChatOpsChannels(channelFilter: ChannelFilter): Array<{ name: string; icon: IconName }> {
+  getChatOpsChannels(
+    channelFilter: ChannelFilter,
+    telegramInfo: Array<{ id: string; channel_name: string }>,
+    store: RootStore
+  ): Array<{ name: string; icon: IconName }> {
     const channels: Array<{ name: string; icon: IconName }> = [];
 
-    if (channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
+    if (
+      store.hasFeature(AppFeature.Slack) &&
+      channelFilter.notify_in_slack &&
+      channelFilter.notify_in_slack &&
+      channelFilter.slack_channel?.display_name
+    ) {
       channels.push({ name: channelFilter.slack_channel.display_name, icon: 'slack' });
     }
-    if (channelFilter.telegram_channel) {
-      channels.push({ name: channelFilter.telegram_channel, icon: 'telegram-alt' });
+
+    const matchingTelegram = telegramInfo?.find((t) => t.id === channelFilter.telegram_channel);
+
+    if (
+      store.hasFeature(AppFeature.Telegram) &&
+      channelFilter.telegram_channel &&
+      channelFilter.notify_in_telegram &&
+      matchingTelegram?.channel_name
+    ) {
+      channels.push({ name: matchingTelegram.channel_name, icon: 'telegram-alt' });
     }
 
     return channels;

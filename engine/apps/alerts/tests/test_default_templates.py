@@ -15,6 +15,9 @@ from config_integrations import grafana
 
 
 @pytest.mark.django_db
+@pytest.mark.filterwarnings(
+    "ignore:The input looks more like a filename than markup. You may want to open this file and pass the filehandle into Beautiful Soup."
+)
 @pytest.mark.parametrize(
     "integration, template_module",
     # Test only the integrations that have "tests" field in configuration

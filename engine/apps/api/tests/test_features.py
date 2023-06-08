@@ -1,4 +1,5 @@
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -65,6 +66,7 @@ def test_core_features_switch(
 
 
 @pytest.mark.django_db
+@override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=True)
 def test_oss_features_enabled_in_oss_installation_by_default(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
