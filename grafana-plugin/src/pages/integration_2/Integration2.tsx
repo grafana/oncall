@@ -179,6 +179,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   content={
                     <IntegrationTemplateList
                       alertReceiveChannelId={alertReceiveChannel.id}
+                      alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
+                      alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
                       openEditTemplateModal={this.openEditTemplateModal}
                       templates={templates}
                     />
