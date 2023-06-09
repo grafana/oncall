@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -26,8 +26,17 @@ interface CollapsedIntegrationRouteDisplayProps {
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
   ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
-    const { escalationChainStore, alertReceiveChannelStore } = useStore();
+    const store = useStore();
+    const { escalationChainStore, alertReceiveChannelStore, telegramChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
+    const [telegramInfo, setTelegramInfo] = useState<Array<{ id: string; channel_name: string }>>([]);
+
+    useEffect(() => {
+      (async function () {
+        const telegram = await telegramChannelStore.getAll();
+        setTelegramInfo(telegram);
+      })();
+    }, [channelFilterId]);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
     if (!channelFilter) {
@@ -61,9 +70,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   )}
                   tooltipContent={undefined}
                 />
-                {routeWording === 'Default' && (
-                  <Text type="primary">All unrouted routes will be served to the default route</Text>
-                )}
+                {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
                 {routeWording !== 'Default' && channelFilter.filtering_term && (
                   <Text type="primary" className={cx('heading-container__text')}>
                     {channelFilter.filtering_term}
@@ -84,15 +91,17 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           content={
             <div className={cx('spacing')}>
               <VerticalGroup>
-                {IntegrationHelper.getChatOpsChannels(channelFilter).map((chatOpsChannel, key) => (
-                  <HorizontalGroup key={key}>
-                    <Text type="secondary">Publish to ChatOps</Text>
-                    <Icon name={chatOpsChannel.icon} />
-                    <Text type="primary" strong>
-                      {chatOpsChannel.name}
-                    </Text>
-                  </HorizontalGroup>
-                ))}
+                {IntegrationHelper.getChatOpsChannels(channelFilter, telegramInfo, store)
+                  .filter((it) => it)
+                  .map((chatOpsChannel, key) => (
+                    <HorizontalGroup key={key}>
+                      <Text type="secondary">Publish to ChatOps</Text>
+                      <Icon name={chatOpsChannel.icon} />
+                      <Text type="primary" strong>
+                        {chatOpsChannel.name}
+                      </Text>
+                    </HorizontalGroup>
+                  ))}
 
                 <HorizontalGroup>
                   <Icon name="list-ui-alt" />

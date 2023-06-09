@@ -93,7 +93,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
         }
@@ -114,7 +114,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": None,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
             "shift": {"pk": override.public_primary_key},
             "source": "api",
         }
@@ -179,7 +179,7 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
         },
@@ -688,7 +688,9 @@ def test_preview_shift(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": new_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "users": [
+                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            ],
             "shift": {"pk": new_shift.public_primary_key},
             "source": "api",
         }
@@ -846,7 +848,9 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
             "is_gap": False,
             "priority_level": None,
             "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "users": [
+                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            ],
             "shift": {"pk": new_shift.public_primary_key},
             "source": "api",
         }

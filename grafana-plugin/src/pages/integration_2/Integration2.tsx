@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   Button,
@@ -23,6 +23,7 @@ import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 import { debounce } from 'throttle-debounce';
 
 import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
@@ -83,7 +84,7 @@ interface Integration2State extends PageBaseState {
   isAddingRoute: boolean;
 }
 
-const ACTIONS_LIST_WIDTH = 160;
+const ACTIONS_LIST_WIDTH = 200;
 const ACTIONS_LIST_BORDER = 2;
 const NEW_ROUTE_DEFAULT = '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
 
@@ -135,6 +136,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.state;
     const {
       store: { alertReceiveChannelStore },
+      query: { p },
       match: {
         params: { id },
       },
@@ -164,7 +166,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           <div className={cx('root')}>
             {isTemplateSettingsOpen && (
               <Drawer
-                width="640px"
+                width="75%"
                 scrollableContent
                 title="Template Settings"
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
@@ -186,7 +188,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations_2' }}>
+              <PluginLink query={{ page: 'integrations_2', p }}>
                 <IconButton name="arrow-left" size="xxl" />
               </PluginLink>
               <h1 className={cx('integration__name')}>
@@ -344,7 +346,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   this.setState({
                     isEditTemplateModalOpen: undefined,
                   });
-                  this.setState({ isTemplateSettingsOpen: true });
+                  if (selectedTemplate?.name !== 'route_template') {
+                    this.setState({ isTemplateSettingsOpen: true });
+                  }
                   LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
                 }}
                 channelFilterId={channelFilterIdForEdit}
@@ -586,27 +590,6 @@ const DemoNotification: React.FC = () => {
   );
 };
 
-const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }> = ({ openMenu }) => {
-  const ref = useRef<HTMLDivElement>();
-
-  return (
-    <div
-      ref={ref}
-      className={cx('hamburger-menu')}
-      onClick={() => {
-        const boundingRect = ref.current.getBoundingClientRect();
-
-        openMenu({
-          pageX: boundingRect.right - ACTIONS_LIST_WIDTH + ACTIONS_LIST_BORDER * 2,
-          pageY: boundingRect.top + boundingRect.height,
-        } as any);
-      }}
-    >
-      <Icon size="sm" name="ellipsis-v" />
-    </div>
-  );
-};
-
 interface IntegrationSendDemoPayloadModalProps {
   isOpen: boolean;
   alertReceiveChannel: AlertReceiveChannel;
@@ -620,9 +603,9 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 }) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
-  const [demoPayload, setDemoPayload] = useState<string>(
-    JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')
-  );
+  const stringifiedJson = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
+  const initialDemoJSON = stringifiedJson.substring(1, stringifiedJson.length - 1);
+  const [demoPayload, setDemoPayload] = useState<string>(alertReceiveChannel.demo_alert_payload);
   let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
   return (
@@ -631,7 +614,14 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
       closeOnEscape
       isOpen={isOpen}
       onDismiss={onHideOrCancel}
-      title={`Send demo alert to ${alertReceiveChannel.verbal_name}`}
+      title={
+        <HorizontalGroup>
+          <Text.Title level={4}>
+            Send demo alert to {''}
+            <Emoji text={alertReceiveChannel.verbal_name} />
+          </Text.Title>
+        </HorizontalGroup>
+      }
     >
       <VerticalGroup>
         <HorizontalGroup spacing={'xs'}>
@@ -650,7 +640,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
         <div className={cx('integration__payloadInput')}>
           <MonacoEditor
-            value={JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')}
+            value={initialDemoJSON}
             disabled={true}
             height={`200px`}
             useAutoCompleteList={false}
@@ -839,6 +829,19 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                 </WithPermissionControlTooltip>
               )}
 
+              <CopyToClipboard
+                text={alertReceiveChannel.id}
+                onCopy={() => openNotification('Integration ID is copied')}
+              >
+                <div className={cx('integration__actionItem')}>
+                  <HorizontalGroup spacing={'xs'}>
+                    <Icon name="copy" />
+
+                    <Text type="primary">UID: {alertReceiveChannel.id}</Text>
+                  </HorizontalGroup>
+                </div>
+              </CopyToClipboard>
+
               <div className="thin-line-break" />
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
@@ -859,6 +862,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                         confirmText: 'Delete',
                       });
                     }}
+                    style={{ width: '100%' }}
                   >
                     <Text type="danger">
                       <HorizontalGroup spacing={'xs'}>
@@ -872,7 +876,14 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
             </div>
           )}
         >
-          {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
+          {({ openMenu }) => (
+            <HamburgerMenu
+              openMenu={openMenu}
+              listBorder={ACTIONS_LIST_BORDER}
+              listWidth={ACTIONS_LIST_WIDTH}
+              withBackground
+            />
+          )}
         </WithContextMenu>
       </div>
     </>
@@ -1042,7 +1053,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       </div>
       <div className={cx('headerTop__item')}>
         <Text type="secondary">Team:</Text>
-        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
       </div>
       <div className={cx('headerTop__item')}>
         <Text type="secondary">Created by:</Text>

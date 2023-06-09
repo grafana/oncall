@@ -170,7 +170,7 @@ def test_resolve_by_phone(mock_has_permission, mock_get_gather_url, make_twilio_
     )
 
     content = response.content.decode("utf-8")
-    content = BeautifulSoup(content, features="html.parser").findAll(text=True)
+    content = BeautifulSoup(content, features="xml").findAll(string=True)
 
     assert response.status_code == 200
     assert "You have pressed digit 2" in content
@@ -236,7 +236,7 @@ def test_wrong_pressed_digit(mock_has_permission, mock_get_gather_url, make_twil
     )
 
     content = response.content.decode("utf-8")
-    content = BeautifulSoup(content, features="html.parser").findAll(text=True)
+    content = BeautifulSoup(content, features="xml").findAll(string=True)
 
     assert response.status_code == 200
     assert "Wrong digit" in content

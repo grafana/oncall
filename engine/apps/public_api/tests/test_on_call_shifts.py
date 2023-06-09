@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 from django.urls import reverse
 from django.utils import timezone
@@ -13,7 +11,7 @@ invalid_field_data_1 = {
 }
 
 invalid_field_data_2 = {
-    "start": datetime.datetime.now(),
+    "start": timezone.now(),
 }
 
 invalid_field_data_3 = {
@@ -55,7 +53,7 @@ def test_get_on_call_shift(make_organization_and_user_with_token, make_on_call_s
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -96,11 +94,11 @@ def test_get_override_on_call_shift(make_organization_and_user_with_token, make_
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
         "schedule": schedule,
     }
     on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
@@ -133,8 +131,8 @@ def test_create_on_call_shift(make_organization_and_user_with_token):
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now()
-    until = start + datetime.timedelta(days=30)
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
     data = {
         "team_id": None,
         "name": "test name",
@@ -185,8 +183,8 @@ def test_create_on_call_shift_using_default_interval(make_organization_and_user_
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now()
-    until = start + datetime.timedelta(days=30)
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
     data = {
         "team_id": None,
         "name": "test name",
@@ -236,8 +234,8 @@ def test_create_on_call_shift_using_none_interval_fails(make_organization_and_us
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now()
-    until = start + datetime.timedelta(days=30)
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
     data = {
         "team_id": None,
         "name": "test name",
@@ -267,7 +265,7 @@ def test_create_override_on_call_shift(make_organization_and_user_with_token):
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now()
+    start = timezone.now()
     data = {
         "team_id": None,
         "name": "test name",
@@ -304,8 +302,8 @@ def test_create_on_call_shift_invalid_time_zone(make_organization_and_user_with_
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now()
-    until = start + datetime.timedelta(days=30)
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
     data = {
         "team_id": None,
         "name": "test name",
@@ -334,11 +332,11 @@ def test_update_on_call_shift(make_organization_and_user_with_token, make_on_cal
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
         "interval": 2,
         "by_day": ["MO", "FR"],
@@ -413,11 +411,11 @@ def test_update_on_call_shift_invalid_field(make_organization_and_user_with_toke
     organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
         "interval": 2,
         "by_day": ["MO", "FR"],
@@ -439,11 +437,11 @@ def test_delete_on_call_shift(make_organization_and_user_with_token, make_on_cal
     organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
     }
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_SINGLE_EVENT, **data
@@ -466,13 +464,14 @@ def test_create_web_override(make_organization_and_user_with_token, make_on_call
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+    start = timezone.now().replace(microsecond=0)
+    start_str = start.strftime("%Y-%m-%dT%H:%M:%S")
     data = {
         "team_id": None,
         "name": "test web override",
         "type": "override",
         "source": 0,
-        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "start": start_str,
         "duration": 3600,
         "users": [user.public_primary_key],
         "time_zone": "UTC",
@@ -485,8 +484,8 @@ def test_create_web_override(make_organization_and_user_with_token, make_on_call
         "team_id": None,
         "name": "test web override",
         "type": "override",
-        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
-        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "start": start_str,
+        "rotation_start": start_str,
         "duration": 3600,
         "users": [user.public_primary_key],
         "time_zone": "UTC",

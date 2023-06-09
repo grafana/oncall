@@ -76,6 +76,7 @@ class QualityReport(TypedDict):
 class ScheduleEventUser(TypedDict):
     display_name: str
     pk: str
+    email: str
 
 
 class ScheduleEventShift(TypedDict):
@@ -97,8 +98,17 @@ class ScheduleEvent(TypedDict):
     shift: ScheduleEventShift
 
 
+class ScheduleFinalShift(TypedDict):
+    user_pk: str
+    user_email: str
+    user_username: str
+    shift_start: str
+    shift_end: str
+
+
 ScheduleEvents = List[ScheduleEvent]
 ScheduleEventIntervals = List[List[datetime.datetime]]
+ScheduleFinalShifts = List[ScheduleFinalShift]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():
@@ -323,6 +333,7 @@ class OnCallSchedule(PolymorphicModel):
                 "users": [
                     {
                         "display_name": user.username,
+                        "email": user.email,
                         "pk": user.public_primary_key,
                     }
                     for user in shift["users"]

@@ -43,6 +43,7 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.mobile_app.demo_push import send_test_push
 from apps.mobile_app.exceptions import DeviceNotSet
 from apps.phone_notifications.exceptions import (
+    BaseFailed,
     FailedToFinishVerification,
     FailedToMakeCall,
     FailedToStartVerification,
@@ -340,8 +341,8 @@ class UserView(
             phone_backend.send_verification_sms(user)
         except NumberAlreadyVerified:
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
-        except FailedToStartVerification:
-            return Response("Something went wrong while sending code", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except FailedToStartVerification as e:
+            return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
             return Response(
                 "Phone provider not supports sms verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -367,8 +368,8 @@ class UserView(
             phone_backend.make_verification_call(user)
         except NumberAlreadyVerified:
             return Response("Phone number already verified", status=status.HTTP_400_BAD_REQUEST)
-        except FailedToStartVerification:
-            return Response("Something went wrong while calling", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except FailedToStartVerification as e:
+            return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
             return Response(
                 "Phone provider not supports call verification", status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -390,8 +391,8 @@ class UserView(
         phone_backend = PhoneBackend()
         try:
             verified = phone_backend.verify_phone_number(target_user, code)
-        except FailedToFinishVerification:
-            return Response("Something went wrong while verifying code", status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except FailedToFinishVerification as e:
+            return handle_phone_notificator_failed(e)
         if verified:
             new_state = target_user.insight_logs_serialized
             write_resource_insight_log(
@@ -432,10 +433,8 @@ class UserView(
             phone_backend.make_test_call(user)
         except NumberNotVerified:
             return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
-        except FailedToMakeCall:
-            return Response(
-                "Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        except FailedToMakeCall as e:
+            return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
             return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -449,10 +448,8 @@ class UserView(
             phone_backend.send_test_sms(user)
         except NumberNotVerified:
             return Response("Phone number is not verified", status=status.HTTP_400_BAD_REQUEST)
-        except FailedToMakeCall:
-            return Response(
-                "Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        except FailedToMakeCall as e:
+            return handle_phone_notificator_failed(e)
         except ProviderNotSupports:
             return Response("Phone provider not supports phone calls", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -479,12 +476,13 @@ class UserView(
 
     @action(detail=True, methods=["get"])
     def get_backend_verification_code(self, request, pk):
+        user = self.get_object()
+
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        user = self.get_object()
         code = backend.generate_user_verification_code(user)
         return Response(code)
 
@@ -547,12 +545,13 @@ class UserView(
     @action(detail=True, methods=["post"])
     def unlink_backend(self, request, pk):
         # TODO: insight logs support
+        user = self.get_object()
+
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        user = self.get_object()
         try:
             backend.unlink_user(user)
             write_chatops_insight_log(
@@ -650,3 +649,10 @@ class UserView(
         user = self.get_object()
         warnings = check_user_availability(user=user, team=request.user.current_team)
         return Response(data={"warnings": warnings}, status=status.HTTP_200_OK)
+
+
+def handle_phone_notificator_failed(exc: BaseFailed) -> Response:
+    if exc.graceful_msg:
+        return Response(exc.graceful_msg, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response("Something went wrong", status=status.HTTP_503_SERVICE_UNAVAILABLE)

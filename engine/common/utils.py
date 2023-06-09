@@ -150,7 +150,7 @@ def str_or_backup(string, backup):
 
 
 def clean_html(text):
-    text = "".join(BeautifulSoup(text, features="html.parser").find_all(text=True))
+    text = "".join(BeautifulSoup(text, features="html.parser").find_all(string=True))
     return text
 
 
@@ -202,7 +202,7 @@ def urlize_with_respect_to_a(html):
     Wrap links into <a> tag if not already
     """
     soup = BeautifulSoup(html, features="html.parser")
-    textNodes = soup.find_all(text=True)
+    textNodes = soup.find_all(string=True)
     for textNode in textNodes:
         if textNode.parent and getattr(textNode.parent, "name") == "a":
             continue
