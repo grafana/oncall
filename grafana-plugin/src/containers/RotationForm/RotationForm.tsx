@@ -52,6 +52,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import {
   getDateTime,
+  getSelectedDays,
   getStartOfWeek,
   getUTCByDay,
   getUTCString,
@@ -365,7 +366,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
-      setSelectedDays(shift.by_day || []);
+      setSelectedDays(getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, shiftStart));
+      //setSelectedDays(shift.by_day);
 
       setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
 

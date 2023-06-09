@@ -46,27 +46,29 @@ export const getDateTime = (date: string) => {
 };
 
 export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
-  if (by_day.length && moment.day() !== moment.utc().day()) {
-    // when converting to UTC, shift starts on a different day,
-    // so we need to update the by_day list
-    // depending on the UTC side, move one day before or after
-    let offset = moment.utcOffset();
-    let UTCDays = [];
-    let byDayOptions = [];
-    dayOptions.forEach(({ value }) => byDayOptions.push(value));
-    by_day.forEach((element) => {
-      let index = byDayOptions.indexOf(element);
-      if (offset < 0) {
-        // move one day after
-        UTCDays.push(byDayOptions[(index + 1) % 7]);
-      } else {
-        // move one day before
-        UTCDays.push(byDayOptions[(((index - 1) % 7) + 7) % 7]);
-      }
-    });
-    return UTCDays;
+  if (moment.day() === moment.utc().day()) {
+    return by_day;
   }
-  return by_day;
+  // when converting to UTC, shift starts on a different day,
+  // so we need to update the by_day list
+  // depending on the UTC side, move one day before or after
+  let offset = moment.utcOffset();
+  let UTCDays = [];
+  let byDayOptions = [];
+  dayOptions.forEach(({ value }) => byDayOptions.push(value));
+  by_day.forEach((element) => {
+    let index = byDayOptions.indexOf(element);
+    if (offset < 0) {
+      // move one day after
+      UTCDays.push(byDayOptions[(index + 1) % 7]);
+    } else {
+      // move one day before
+      UTCDays.push(byDayOptions[(((index - 1) % 7) + 7) % 7]);
+    }
+  });
+
+  console.log('FROM FE', by_day, 'TO BE', UTCDays);
+  return UTCDays;
 };
 
 export const getUTCWeekStart = (dayOptions: SelectOption[], moment: dayjs.Dayjs) => {
@@ -87,6 +89,32 @@ export const getUTCWeekStart = (dayOptions: SelectOption[], moment: dayjs.Dayjs)
     }
   }
   return byDayOptions[week_start_index];
+};
+
+export const getSelectedDays = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
+  let offset = moment.utcOffset();
+
+  if (moment.day() === moment.utc().day()) {
+    return by_day;
+  }
+
+  const byDayOptions = dayOptions.map(({ value }) => value);
+
+  let selectedTimezoneDays = [];
+  by_day.forEach((element) => {
+    let index = byDayOptions.indexOf(element);
+    if (offset > 0) {
+      // move one day after
+      selectedTimezoneDays.push(byDayOptions[(index + 1) % 7]);
+    } else {
+      // move one day before
+      selectedTimezoneDays.push(byDayOptions[(((index - 1) % 7) + 7) % 7]);
+    }
+  });
+
+  console.log('FROM BE', by_day, 'TO FE', selectedTimezoneDays);
+
+  return selectedTimezoneDays;
 };
 
 export const getColorSchemeMappingForUsers = (

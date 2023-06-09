@@ -55,6 +55,13 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
             label: 'GMT',
             description: '',
           },
+          {
+            value: -240,
+            utcOffset: -240,
+            timezone: 'America/Recife',
+            label: '-4',
+            description: '',
+          },
         ]
       )
       .sort((a, b) => {
