@@ -33,12 +33,16 @@
 }
 
 .template-block-list,
+.template-block-codeeditor {
+  overflow-y: hidden;
+}
+
+.template-block-list,
 .template-block-codeeditor,
 .template-block-result,
 .result {
   height: 100%;
   max-height: 100%;
-  overflow-y: hidden;
 }
 
 .template-block-list {
@@ -49,6 +53,7 @@
 }
 .template-block-result {
   width: 30%;
+  overflow-y: scroll !important;
 }
 .result {
   padding-left: 16px;
