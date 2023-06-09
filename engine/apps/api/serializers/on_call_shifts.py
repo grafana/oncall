@@ -191,8 +191,15 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
         return validated_data
 
+    def _require_users(self, validated_data):
+        users = validated_data.get("rolling_users")
+        if not users:
+            raise serializers.ValidationError({"rolling_users": ["User(s) are required"]})
+
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
+        # before creation, require users set
+        self._require_users(validated_data)
         instance = super().create(validated_data)
 
         instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
@@ -224,6 +231,9 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
 
             elif instance.event_is_finished:
                 raise serializers.ValidationError(["This event cannot be updated"])
+
+        # before update, require users set
+        self._require_users(validated_data)
 
         if not force_update and create_or_update_last_shift:
             result = instance.create_or_update_last_shift(validated_data)
