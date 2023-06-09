@@ -55,6 +55,7 @@ import {
   getStartOfWeek,
   getUTCByDay,
   getUTCString,
+  getUTCWeekStart,
   getWeekStartString,
 } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
@@ -209,7 +210,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
       by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart),
-
+      week_start: getUTCWeekStart(store.scheduleStore.byDayOptions, shiftStart),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       title: rotationTitle,
     }),
