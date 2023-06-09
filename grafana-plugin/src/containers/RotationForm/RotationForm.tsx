@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { config } from '@grafana/runtime';
 import {
   Button,
   Field,
@@ -51,7 +50,13 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getDateTime, getStartOfWeek, getUTCByDay, getUTCString } from 'pages/schedule/Schedule.helpers';
+import {
+  getDateTime,
+  getStartOfWeek,
+  getUTCByDay,
+  getUTCString,
+  getWeekStartString,
+} from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
@@ -534,7 +539,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                             options={store.scheduleStore.byDayOptions}
                             value={selectedDays}
                             onChange={setSelectedDays}
-                            weekStart={config.bootData.user.weekStart}
+                            weekStart={getWeekStartString()}
                             disabled={disabled}
                           />
                         )}
