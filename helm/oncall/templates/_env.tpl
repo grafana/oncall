@@ -257,7 +257,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
 {{- required "externalMysql.db_name is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
-"oncall"
+{{- .Values.mariadb.auth.database | default "oncall" | quote -}}
 {{- end -}}
 {{- end -}}
 
@@ -265,7 +265,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.user -}}
 {{- .Values.externalMysql.user | quote }}
 {{- else -}}
-"root"
+{{- .Values.mariadb.auth.username | default "root" | quote -}}
 {{- end -}}
 {{- end -}}
 
