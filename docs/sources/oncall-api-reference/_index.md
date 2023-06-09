@@ -53,7 +53,7 @@ Rate limited response HTTP status: 429
 | Scope                        | Amount | Time Frame |
 | ---------------------------- | :----: | :--------: |
 | Alerts from each integration |  300   | 5 minutes  |
-| Alerts from the whole team   |  500   | 5 minutes  |
+| Alerts from the whole organization   |  500   | 5 minutes  |
 
 ## API rate limits
 

@@ -67,6 +67,9 @@ celery:
     initialDelaySeconds: 30
     periodSeconds: 300
     timeoutSeconds: 10
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
   resources: {}
     # limits:
     #   cpu: 100m
@@ -161,6 +164,9 @@ oncall:
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
   # use a helm hook to manage the migration job
