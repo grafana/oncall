@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Helm chart: Upgrade helm dependecies, improve local setup [#2144](https://github.com/grafana/oncall/pull/2144)
+
 ### Fixed
 
 - Fix receive channel filter in alert groups API [#2140](https://github.com/grafana/oncall/pull/2140)

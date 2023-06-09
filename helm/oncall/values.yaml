@@ -327,6 +327,9 @@ grafana:
       serve_from_sub_path: true
   persistence:
     enabled: true
+  # Disable psp as PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
+  rbac:
+    pspEnabled: false
   plugins:
     - grafana-oncall-app
 
