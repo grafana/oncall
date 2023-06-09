@@ -38,7 +38,7 @@ const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
         <InlineSwitch
           transparent
           showLabel
-          label="Delete all shifts"
+          label="Delete past shifts"
           value={isForceDelete}
           onChange={handleIsForceDeleteChange}
         />

@@ -118,7 +118,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       },
       {
         width: '25%',
-        title: 'Oncall',
+        title: 'On-call now',
         key: 'users',
         render: this.renderOncallNow,
       },

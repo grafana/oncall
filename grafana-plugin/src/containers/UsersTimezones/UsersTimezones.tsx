@@ -117,7 +117,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
           ) : (
             <HorizontalGroup justify="center">
               <Icon className={cx('icon')} name="users-alt" />
-              <Text type="secondary">Add rotation to the schedule to see users</Text>
+              <Text type="secondary">Add rotation to see users</Text>
             </HorizontalGroup>
           )}
         </div>
