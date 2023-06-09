@@ -36,7 +36,6 @@ class SlackUserIdentityManager(models.Manager):
 
 
 class SlackUserIdentity(models.Model):
-
     objects = SlackUserIdentityManager()
     all_objects = AllSlackUserIdentityManager()
 

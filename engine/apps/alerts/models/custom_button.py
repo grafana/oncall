@@ -46,7 +46,6 @@ class CustomButtonManager(models.Manager):
 
 
 class CustomButton(models.Model):
-
     objects = CustomButtonManager()
     objects_with_deleted = models.Manager()
 

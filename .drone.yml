@@ -66,7 +66,7 @@ steps:
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements.txt)
+      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
@@ -80,7 +80,7 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements.txt
+      - pip install -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test

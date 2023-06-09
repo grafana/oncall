@@ -64,7 +64,6 @@ class OrganizationManager(models.Manager):
 
 
 class Organization(MaintainableObject):
-
     objects = OrganizationManager()
     objects_with_deleted = models.Manager()
 

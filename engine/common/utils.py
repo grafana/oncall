@@ -107,10 +107,9 @@ def getenv_integer(variable_name: str, default: int) -> int:
     if value is None:
         return default
     try:
-        value = int(value)
+        return int(value)
     except ValueError:
         return default
-    return value
 
 
 def batch_queryset(qs, batch_size=1000):

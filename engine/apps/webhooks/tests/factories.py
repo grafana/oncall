@@ -6,7 +6,6 @@ from common.utils import UniqueFaker
 
 
 class CustomWebhookFactory(factory.DjangoModelFactory):
-
     url = factory.Faker("url")
     name = UniqueFaker("word")
 

@@ -169,7 +169,7 @@ def direct_paging(
     users = [(u, important, None) for u, important in users]
 
     # get on call users, add log entry for each schedule
-    for (s, important) in schedules:
+    for s, important in schedules:
         oncall_users = list_users_to_notify_from_ical(s)
         users += [(u, important, s) for u in oncall_users]
         alert_group.log_records.create(
@@ -179,7 +179,7 @@ def direct_paging(
             step_specific_info={"schedule": s.public_primary_key},
         )
 
-    for (u, important, schedule) in users:
+    for u, important, schedule in users:
         reason = f"{from_user.username} paged user {u.username}"
         if schedule:
             reason += f" (from schedule {schedule.name})"
