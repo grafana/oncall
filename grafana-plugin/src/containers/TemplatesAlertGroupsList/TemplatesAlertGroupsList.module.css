@@ -7,6 +7,8 @@
 .template-block-list {
   width: 30%;
   height: 100%;
+  max-width: 100%;
+  overflow-y: hidden;
 }
 
 .alert-group-payload-view {
