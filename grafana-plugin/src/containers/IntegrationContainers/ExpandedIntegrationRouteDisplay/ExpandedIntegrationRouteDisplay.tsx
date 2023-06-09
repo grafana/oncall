@@ -41,6 +41,9 @@ import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
+const ACTIONS_LIST_WIDTH = 200;
+const ACTIONS_LIST_BORDER = 2;
+
 interface ExpandedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   channelFilterId: ChannelFilter['id'];
@@ -367,8 +370,8 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           {({ openMenu }) => (
             <HamburgerMenu
               openMenu={openMenu}
-              listBorder={2}
-              listWidth={200}
+              listBorder={ACTIONS_LIST_BORDER}
+              listWidth={ACTIONS_LIST_WIDTH}
               className={'hamburgerMenu--small'}
               stopPropagation={true}
             />
