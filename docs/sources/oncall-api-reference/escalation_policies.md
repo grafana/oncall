@@ -30,8 +30,6 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-<!-- markdownlint-disable MD013 -->
-
 | Parameter                          |                 Required                 | Description                                                                                                                                                                                                                                                                                 |
 | ---------------------------------- | :--------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `escalation_chain_id`              |                   Yes                    | Each escalation policy is assigned to a specific escalation chain.                                                                                                                                                                                                                          |
@@ -46,8 +44,6 @@ The above command returns JSON structured in the following way:
 | `notify_on_call _from_schedule`    | If type = `notify_on_call_from_schedule` | ID of a Schedule.                                                                                                                                                                                                                                                                           |
 | `notify_if_time_from`              |    If type = `notify_if_time_from_to`    | UTC time represents the beginning of the time period, for example `09:00:00Z`.                                                                                                                                                                                                              |
 | `notify_if_time_to`                |    If type = `notify_if_time_from_to`    | UTC time represents the end of the time period, for example `18:00:00Z`.                                                                                                                                                                                                                    |
-
-<!-- markdownlint-enable MD013 -->
 
 **HTTP request**
 

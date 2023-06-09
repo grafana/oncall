@@ -15,9 +15,16 @@ class ProviderFlags:
     """
     ProviderFlags is set of feature flags enabled for concrete provider.
     It is needed to show correct buttons in UI.
+
+    Attributes:
+       configured: Indicates if provider LiveSettings are valid. If LiveSettings cannot be validated, return True.
+       test_sms: Indicates if provider allows to send test_sms
+       test_call: Indicates if provider allows to make test_call
+       verification_call: Indicates if provider allows to validate number via call
+       verification_sms: Indicates if provider allows to validate number via sms
     """
 
-    configured: bool  # indicates if provider live settings are present and valid
+    configured: bool
     test_sms: bool
     test_call: bool
     verification_call: bool
@@ -29,7 +36,10 @@ class PhoneProvider(ABC):
     PhoneProvider is an interface to all phone providers.
     It is needed to hide details of external phone providers from core code.
 
-    New PhoneProviders should be added to settings.PHONE_PROVIDERS dict.
+    To implement custom phone provider:
+        1. Implement your ConcretePhoneProvider inherited from PhoneProvider.
+        2. Add needed env variables to django settings and to LiveSettings.
+        3. Add your PhoneProvider to settings.PHONE_PROVIDERS dict.
 
     For reference, you can check:
         SimplePhoneProvider as example of tiny, but working provider.

@@ -86,7 +86,7 @@ spec:
             httpGet:
               path: /startupprobe/
               port: http
-            periodSeconds: 60
+            periodSeconds: 10
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}

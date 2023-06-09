@@ -2,6 +2,7 @@ apiVersion: v2
 name: oncall
 description: Developer-friendly incident response with brilliant Slack integration
 type: application
+# version and appVersion are handled by CI, no need to change them manually
 version: 1.2.36
 appVersion: v1.2.36
 dependencies:
@@ -10,7 +11,7 @@ dependencies:
     repository: https://charts.jetstack.io
     condition: cert-manager.enabled
   - name: mariadb
-    version: 11.0.10
+    version: 12.2.5
     repository: https://charts.bitnami.com/bitnami
     condition: mariadb.enabled
   - name: postgresql
@@ -18,7 +19,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
   - name: rabbitmq
-    version: 10.3.9
+    version: 12.0.0
     repository: https://charts.bitnami.com/bitnami
     condition: rabbitmq.enabled
   - name: redis
@@ -26,7 +27,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
   - name: grafana
-    version: 6.29.6
+    version: 6.57.1
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
   - name: ingress-nginx
