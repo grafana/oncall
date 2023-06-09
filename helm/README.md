@@ -20,10 +20,7 @@
    ```bash
       helm install helm-testing \
       --wait \
-      --timeout 30m \
-      --wait-for-jobs \
       --values ./simple.yml \
-      --values ./values-arm64.yml \
       ./oncall
    ```
 
