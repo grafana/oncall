@@ -72,7 +72,7 @@ export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment
 };
 
 export const getUTCWeekStart = (dayOptions: SelectOption[], moment: dayjs.Dayjs) => {
-  let week_start_index = 0;
+  let week_start_index = mondayDayOffset[getWeekStartString()];
   let byDayOptions = [];
   dayOptions.forEach(({ value }) => byDayOptions.push(value));
   if (moment.day() !== moment.utc().day()) {
@@ -85,8 +85,11 @@ export const getUTCWeekStart = (dayOptions: SelectOption[], moment: dayjs.Dayjs)
       week_start_index = (week_start_index + 1) % 7;
     } else {
       // move one day before
-      week_start_index = (((week_start_index - 1) % 7) + 7) % 7;
+      week_start_index = week_start_index - 1;
     }
+  }
+  if (week_start_index < 0) {
+    week_start_index = ((week_start_index % 7) + 7) % 7;
   }
   return byDayOptions[week_start_index];
 };
