@@ -363,16 +363,17 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     store.filtersStore.updateValuesForPage(page, values);
 
     if (!isOnMount) {
+      // Skip updating local storage for mounting, this way URL won't overwrite local storage but subsequent actions WILL do
       Object.keys({ ...store.filtersStore.globalValues }).forEach((key) => {
         if (!(key in values)) {
           delete store.filtersStore.globalValues[key];
         }
       });
-  
+
       const newGlobalValues = pickBy(values, (_, key) =>
         filterOptions.some((option) => option.name === key && option.global)
       );
-  
+
       store.filtersStore.globalValues = newGlobalValues;
     }
 
