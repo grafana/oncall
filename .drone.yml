@@ -80,7 +80,7 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements-dev.txt
+      - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
@@ -419,5 +419,3 @@ name: drone_token
 ---
 kind: signature
 hmac: c78525d6b4a98e934260c0b071f30432816b640ebdc22ba6f66c0ddeb6a6368a
-
-...
