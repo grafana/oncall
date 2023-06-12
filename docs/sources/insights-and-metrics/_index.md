@@ -12,6 +12,92 @@ weight: 1400
 
 # Insight Logs and Metrics
 
+## Metrics
+
+Grafana OnCall Metrics represents certain parameters, such as:
+
+- A total count of alert groups for each integration in every state (firing, acknowledged, resolved, silenced).
+It is a gauge, and its name has the suffix `alert_groups_total`
+- Response time on alert groups for each integration (mean time between the start and first action of all alert groups
+for the last 7 days in selected period). It is a histogram, and its name has the suffix `alert_groups_response_time`
+with the histogram suffixes such as `_bucket`, `_sum` and `_count`
+
+More information about metrics types you can find in the [Prometheus documentation](https://prometheus.io/docs/concepts/metric_types).
+
+To retrieve Prometheus metrics use PromQL. If you are not familiar with PromQL, check this [documentation](https://prometheus.io/docs/prometheus/latest/querying/basics/).
+
+### For Grafana Cloud customers
+
+OnCall application metrics are collected in preinstalled `grafanacloud_usage` datasource and are available for every
+cloud instance.
+
+Metrics have prefix `grafanacloud_oncall_instance`, e.g. `grafanacloud_oncall_instance_alert_groups_total` and
+`grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket`.
+
+### For open source customers
+
+To collect OnCall application metrics you need to set up Prometheus and add it to your Grafana instance as a datasource.
+You can find more information about Prometheus setup in the [OSS documentation](https://github.com/grafana/oncall#readme)
+
+Metrics have prefix `oncall`, e.g. `oncall_alert_groups_total` and `oncall_alert_groups_response_time_seconds_bucket`.
+
+Your metrics also may have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
+
+### Metric Alert groups total
+
+This metric has the following labels:
+
+| Label Name    |                                 Description                                   |
+|---------------|:-----------------------------------------------------------------------------:|
+| `id`          | ID of Grafana instance (stack)                                                |
+| `slug`        | Slug of Grafana instance (stack)                                              |
+| `org_id`      | ID of Grafana organization                                                    |
+| `team`        | Team name                                                                     |
+| `integration` | OnCall Integration name                                                       |
+| `state`       | Alert groups state. May be `firing`, `acknowledged`, `resolved` and `silenced`|
+
+**Query example:**
+
+Get the number of alert groups in "firing" state in integration "Grafana Alerting" in Grafana stack "test_stack":
+
+```promql
+grafanacloud_oncall_instance_alert_groups_total{slug="test_stack", integration="Grafana Alerting", state="firing"}
+```
+
+### Metric Alert groups response time
+
+This metric has the following labels:
+
+| Label Name    |                                 Description                                    |
+|---------------|:------------------------------------------------------------------------------:|
+| `id`          | ID of Grafana instance (stack)                                                 |
+| `slug`        | Slug of Grafana instance (stack)                                               |
+| `org_id`      | ID of Grafana organization                                                     |
+| `team`        | Team name                                                                      |
+| `integration` | OnCall Integration name                                                        |
+| `le`          | Histogram bucket value in seconds. May be `60`, `300`, `600`, `3600` and `+Inf`|
+
+**Query example:**
+
+Get the number of alert groups with response time more than 10 minutes (600 seconds) in integration "Grafana Alerting"
+in Grafana stack "test_stack":
+
+```promql
+grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket{slug="test_stack", integration="Grafana Alerting", le="600"}
+```
+
+### Dashboard
+
+To import OnCall metrics dashboard go to `Administration` -> `Plugins` page, find OnCall in the plugins list, open
+`Dashboards` tab at the OnCall plugin settings page and click "Import" near "OnCall metrics". After that you can find
+the "OnCall metrics" dashboard in your dashboards list. In the datasource dropdown select your Prometheus datasource
+(for Cloud customers it's `grafanacluod_usage`). You can filter data by your Grafana instances, teams and integrations.
+
+To update the dashboard to the newest version go to `Dashboards` tab at the OnCall plugin settings page and click
+“Re-import”.
+Be aware: if you have made changes to the dashboard, they will be deleted after re-importing. To save your changes go
+to the dashboard settings, click "Save as" and save a copy of the dashboard.
+
 ## Insight Logs
 
 > **Note:** Grafana OnCall insight logs are available in Grafana Cloud only.
@@ -167,89 +253,3 @@ Actions performed with slack chatops integration:
 ```logql
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops` and chat_ops_type=`slack`
 ```
-
-## Metrics
-
-Grafana OnCall Metrics represents certain parameters, such as:
-
-- A total count of alert groups for each integration in every state (firing, acknowledged, resolved, silenced).
-It is a gauge, and its name has the suffix `alert_groups_total`
-- Response time on alert groups for each integration (mean time between the start and first action of all alert groups
-for the last 7 days in selected period). It is a histogram, and its name has the suffix `alert_groups_response_time`
-with the histogram suffixes such as `_bucket`, `_sum` and `_count`
-
-More information about metrics types you can find in the [Prometheus documentation](https://prometheus.io/docs/concepts/metric_types).
-
-To retrieve Prometheus metrics use PromQL. If you are not familiar with PromQL, check this [documentation](https://prometheus.io/docs/prometheus/latest/querying/basics/).
-
-### For Grafana Cloud customers
-
-OnCall application metrics are collected in preinstalled `grafanacloud_usage` datasource and are available for every
-cloud instance.
-
-Metrics have prefix `grafanacloud_oncall_instance`, e.g. `grafanacloud_oncall_instance_alert_groups_total` and
-`grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket`.
-
-### For open source customers
-
-To collect OnCall application metrics you need to set up Prometheus and add it to your Grafana instance as a datasource.
-You can find more information about Prometheus setup in the [OSS documentation](https://github.com/grafana/oncall#readme)
-
-Metrics have prefix `oncall`, e.g. `oncall_alert_groups_total` and `oncall_alert_groups_response_time_seconds_bucket`.
-
-Your metrics also may have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
-
-### Metric Alert groups total
-
-This metric has the following labels:
-
-| Label Name    |                                 Description                                   |
-|---------------|:-----------------------------------------------------------------------------:|
-| `id`          | ID of Grafana instance (stack)                                                |
-| `slug`        | Slug of Grafana instance (stack)                                              |
-| `org_id`      | ID of Grafana organization                                                    |
-| `team`        | Team name                                                                     |
-| `integration` | OnCall Integration name                                                       |
-| `state`       | Alert groups state. May be `firing`, `acknowledged`, `resolved` and `silenced`|
-
-**Query example:**
-
-Get the number of alert groups in "firing" state in integration "Grafana Alerting" in Grafana stack "test_stack":
-
-```promql
-grafanacloud_oncall_instance_alert_groups_total{slug="test_stack", integration="Grafana Alerting", state="firing"}
-```
-
-### Metric Alert groups response time
-
-This metric has the following labels:
-
-| Label Name    |                                 Description                                    |
-|---------------|:------------------------------------------------------------------------------:|
-| `id`          | ID of Grafana instance (stack)                                                 |
-| `slug`        | Slug of Grafana instance (stack)                                               |
-| `org_id`      | ID of Grafana organization                                                     |
-| `team`        | Team name                                                                      |
-| `integration` | OnCall Integration name                                                        |
-| `le`          | Histogram bucket value in seconds. May be `60`, `300`, `600`, `3600` and `+Inf`|
-
-**Query example:**
-
-Get the number of alert groups with response time more than 10 minutes (600 seconds) in integration "Grafana Alerting"
-in Grafana stack "test_stack":
-
-```promql
-grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket{slug="test_stack", integration="Grafana Alerting", le="600"}
-```
-
-### Dashboard
-
-To import OnCall metrics dashboard go to `Administration` -> `Plugins` page, find OnCall in the plugins list, open
-`Dashboards` tab at the OnCall plugin settings page and click "Import" near "OnCall metrics". After that you can find
-the "OnCall metrics" dashboard in your dashboards list. In the datasource dropdown select your Prometheus datasource
-(for Cloud customers it's `grafanacluod_usage`). You can filter data by your Grafana instances, teams and integrations.
-
-To update the dashboard to the newest version go to `Dashboards` tab at the OnCall plugin settings page and click
-“Re-import”.
-Be aware: if you have made changes to the dashboard, they will be deleted after re-importing. To save your changes go
-to the dashboard settings, click "Save as" and save a copy of the dashboard.
