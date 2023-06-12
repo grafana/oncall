@@ -1,4 +1,5 @@
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient
 
@@ -12,6 +13,7 @@ from rest_framework.test import APIClient
         ("secret", "secret", 200),
     ],
 )
+@override_settings(FEATURE_PROMETHEUS_EXPORTER_ENABLED=True)
 def test_metrics_exporter_auth(settings, token, auth, expected):
     settings.PROMETHEUS_EXPORTER_SECRET = token
 
