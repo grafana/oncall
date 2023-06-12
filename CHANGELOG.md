@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Helm chart: Upgrade helm dependecies, improve local setup [#2144](https://github.com/grafana/oncall/pull/2144)
+
 ### Fixed
 
 - Fix receive channel filter in alert groups API [#2140](https://github.com/grafana/oncall/pull/2140)
+- Helm chart: Fix usage of `env` settings as map;
+  Fix usage of `mariadb.auth.database` and `mariadb.auth.username` for MYSQL env variables by @alexintech [#2146](https://github.com/grafana/oncall/pull/2146)
 
 ## v1.2.41 (2023-06-08)
 

@@ -41,6 +41,9 @@ import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
+const ACTIONS_LIST_WIDTH = 200;
+const ACTIONS_LIST_BORDER = 2;
+
 interface ExpandedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   channelFilterId: ChannelFilter['id'];
@@ -83,7 +86,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     useEffect(() => {
       setIsLoading(true);
-      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
+      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateItems()]).then(() =>
         setIsLoading(false)
       );
     }, []);
@@ -168,12 +171,14 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 </IntegrationBlockItem>
               )}
 
-              <IntegrationBlockItem>
-                <VerticalGroup spacing="md">
-                  <Text type="primary">Publish to ChatOps</Text>
-                  <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
-                </VerticalGroup>
-              </IntegrationBlockItem>
+              {IntegrationHelper.hasChatopsInstalled(store) && (
+                <IntegrationBlockItem>
+                  <VerticalGroup spacing="md">
+                    <Text type="primary">Publish to ChatOps</Text>
+                    <ChatOpsConnectors channelFilterId={channelFilterId} showLineNumber={false} />
+                  </VerticalGroup>
+                </IntegrationBlockItem>
+              )}
 
               <IntegrationBlockItem>
                 <VerticalGroup>
@@ -363,15 +368,20 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           )}
         >
           {({ openMenu }) => (
-            <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} className={cx('hamburgerMenu-small')} />
+            <HamburgerMenu
+              openMenu={openMenu}
+              listBorder={ACTIONS_LIST_BORDER}
+              listWidth={ACTIONS_LIST_WIDTH}
+              className={'hamburgerMenu--small'}
+              stopPropagation={true}
+            />
           )}
         </WithContextMenu>
       )}
     </HorizontalGroup>
   );
 
-  function onDelete(e: React.SyntheticEvent) {
-    e.stopPropagation();
+  function onDelete() {
     setRouteIdForDeletion();
   }
 

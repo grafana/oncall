@@ -1,0 +1,33 @@
+suite: test image and imagePullPolicy for deployments
+templates:
+  - celery/deployment-celery.yaml
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+release:
+  name: oncall
+chart:
+  appVersion: 1.2.36
+tests:
+  - it: image={} -> should use default image tag
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: grafana/oncall:1.2.36
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  - it: image.repository and image.tag -> should use custom image
+    set:
+      image:
+        repository: custom-oncall
+        tag: 1.2.36-custom
+        pullPolicy: IfNotPresent
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: custom-oncall:1.2.36-custom
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+
