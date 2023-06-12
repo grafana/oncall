@@ -9,14 +9,13 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.response import Response
 
-from apps.alerts.incident_appearance.templaters import (
-    AlertPhoneCallTemplater,
-    AlertSlackTemplater,
-    AlertSmsTemplater,
-    AlertTelegramTemplater,
-    AlertWebTemplater,
-    TemplateLoader,
-)
+from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
+from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
+from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSmsRenderer
+from apps.alerts.incident_appearance.renderers.telegram_renderer import AlertGroupTelegramRenderer
+from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
+from apps.alerts.models.alert import Alert
+from apps.alerts.models.alert_group import AlertGroup
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.exceptions import BadRequest
@@ -269,19 +268,19 @@ GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
 ROUTE = "route"
 
-NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
-    SLACK: AlertSlackTemplater,
-    WEB: AlertWebTemplater,
-    PHONE_CALL: AlertPhoneCallTemplater,
-    SMS: AlertSmsTemplater,
-    TELEGRAM: AlertTelegramTemplater,
+NOTIFICATION_CHANNEL_TO_RENDERER_MAP = {
+    SLACK: AlertGroupSlackRenderer,
+    WEB: AlertGroupWebRenderer,
+    PHONE_CALL: AlertGroupPhoneCallRenderer,
+    SMS: AlertGroupSmsRenderer,
+    TELEGRAM: AlertGroupTelegramRenderer,
 }
 
 # add additionally supported messaging backends
 for backend_id, backend in get_messaging_backends():
     if backend.templater is not None:
         NOTIFICATION_CHANNEL_OPTIONS.append(backend.slug)
-        NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[backend.slug] = backend.get_templater_class()
+        NOTIFICATION_CHANNEL_TO_RENDERER_MAP[backend.slug] = backend.get_renderer_class()
 
 APPEARANCE_TEMPLATE_NAMES = [TITLE, MESSAGE, IMAGE_URL]
 BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
@@ -301,7 +300,7 @@ class PreviewTemplateMixin:
         payload = request.data.get("payload", None)
 
         try:
-            alert_to_template = self.get_alert_to_template(payload=payload)
+            alert_group_to_template, alert_to_template = self.get_alert_group_and_alert_to_template(payload=payload)
             if alert_to_template is None:
                 raise BadRequest(detail="Alert to preview does not exist")
         except PreviewTemplateException as e:
@@ -323,23 +322,9 @@ class PreviewTemplateMixin:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
-
-            class PreviewTemplateLoader(TemplateLoader):
-                def get_attr_template(self, attr, alert_receive_channel, render_for=None):
-                    if attr == attr_name and render_for == notification_channel:
-                        return template_body
-                    else:
-                        return super().get_attr_template(attr, alert_receive_channel, render_for)
-
-            templater_cls = NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[notification_channel]
-            templater = templater_cls(alert_to_template)
-            templater.template_manager = PreviewTemplateLoader()
-            try:
-                templated_alert = templater.render()
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
-
-            templated_attr = getattr(templated_alert, attr_name)
+            renderer_cls = NOTIFICATION_CHANNEL_TO_RENDERER_MAP[notification_channel]
+            renderer = renderer_cls(alert_group_to_template, alert_to_template)
+            templated_attr = renderer.render()
 
         elif attr_name in BEHAVIOUR_TEMPLATE_NAMES:
             try:
@@ -356,7 +341,7 @@ class PreviewTemplateMixin:
         response = {"preview": templated_attr}
         return Response(response, status=status.HTTP_200_OK)
 
-    def get_alert_to_template(self, payload=None):
+    def get_alert_group_and_alert_to_template(self, payload=None) -> tuple[AlertGroup, Alert] | tuple[None, None]:
         raise NotImplementedError
 
     @staticmethod

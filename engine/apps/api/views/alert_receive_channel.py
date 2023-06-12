@@ -246,7 +246,7 @@ class AlertReceiveChannelView(
         return Response(response)
 
     # This method is required for PreviewTemplateMixin
-    def get_alert_to_template(self, payload=None):
+    def get_alert_group_and_alert_to_template(self, payload=None) -> tuple[AlertGroup, Alert] | tuple[None, None]:
         channel = self.get_object()
 
         try:
@@ -257,9 +257,10 @@ class AlertReceiveChannelView(
                     raise PreviewTemplateException("Payload must be a valid json object")
                 # Build Alert and AlertGroup objects to pass to templater without saving them to db
                 alert_group_to_template = AlertGroup(channel=channel)
-                return Alert(raw_request_data=payload, group=alert_group_to_template)
+                alert_to_template = Alert(raw_request_data=payload, group=alert_group_to_template)
+                return alert_group_to_template, alert_to_template
         except AttributeError:
-            return None
+            return None, None
 
     @action(methods=["get"], detail=False)
     def filters(self, request):

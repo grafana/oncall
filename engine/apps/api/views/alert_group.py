@@ -717,5 +717,5 @@ class AlertGroupView(
         )
 
     # This method is required for PreviewTemplateMixin
-    def get_alert_to_template(self, payload=None):
-        return self.get_object().alerts.first()
+    def get_alert_group_and_alert_to_template(self, payload=None) -> tuple[AlertGroup, Alert] | tuple[None, None]:
+        return self.get_object(), self.get_object().alerts.last()
