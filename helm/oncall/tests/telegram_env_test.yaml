@@ -1,0 +1,55 @@
+suite: test telegram envs for deployments
+templates:
+  - engine/deployment.yaml
+  - celery/deployment-celery.yaml
+release:
+  name: oncall
+tests:
+  - it: oncall.telegram.enabled=false -> Telegram integration disabled (default)
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+            value: "False"
+
+  - it: oncall.telegram.enabled=true -> should enable Telegram integration
+    set:
+      oncall.telegram:
+        enabled: true
+        webhookUrl: https://example.com
+        token: "abcd:123"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+            value: "True"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TELEGRAM_WEBHOOK_HOST
+            value: "https://example.com"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TELEGRAM_TOKEN
+            value: "abcd:123"
+
+  - it: oncall.telegram.existingSecret=some-secret -> should prefer existing secret over oncall.telegram.token
+    set:
+      oncall.telegram:
+        enabled: true
+        token: "abcd:123"
+        existingSecret: some-secret
+        tokenKey: token
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TELEGRAM_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: some-secret
+                key: token
+
