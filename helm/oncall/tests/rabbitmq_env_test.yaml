@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/helm-unittest/helm-unittest/main/schema/helm-testsuite.json 
-
 suite: test Rabbitmq configs for deployments
 templates:
   - engine/deployment.yaml
