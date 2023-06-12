@@ -66,7 +66,7 @@ import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { DATASOURCE_GRAFANA, PLUGIN_ROOT } from 'utils/consts';
+import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
 const cx = cn.bind(styles);
@@ -86,7 +86,7 @@ interface Integration2State extends PageBaseState {
 
 const ACTIONS_LIST_WIDTH = 200;
 const ACTIONS_LIST_BORDER = 2;
-const NEW_ROUTE_DEFAULT = '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
+const NEW_ROUTE_DEFAULT = '{# (payload.severity == "foo" and "bar" in payload.region) or True #}';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -603,9 +603,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 }) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
-  const stringifiedJson = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
-  const initialDemoJSON = stringifiedJson.substring(1, stringifiedJson.length - 1);
-  const [demoPayload, setDemoPayload] = useState<string>(alertReceiveChannel.demo_alert_payload);
+  const initialDemoJSON = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
+  const [demoPayload, setDemoPayload] = useState<string>(initialDemoJSON);
   let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
   return (
@@ -916,8 +915,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
 const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-  const alertReceiveChannel = alertReceiveChannelStore.items[id];
-  const isGrafanaDatasource = alertReceiveChannel.integration === DATASOURCE_GRAFANA;
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
   return (
@@ -949,7 +946,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           </a>
         </div>
       }
-      content={isGrafanaDatasource || !hasAlerts ? renderContent() : null}
+      content={hasAlerts ? null : renderContent()}
     />
   );
 
@@ -961,20 +958,6 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             <HorizontalGroup spacing={'xs'}>
               <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
               <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
-            </HorizontalGroup>
-          )}
-
-          {isGrafanaDatasource && (
-            <HorizontalGroup spacing={'xs'}>
-              <Icon name="list-ui-alt" size="md" />
-              <a href={`/alerting/notifications?alertmanager=grafana`} target="_blank" rel="noreferrer">
-                <Text type={'link'}>Contact Point</Text>
-              </a>
-              <Text type={'secondary'}>and</Text>
-              <a href="/alerting/routes?alertmanager=grafana" target="_blank">
-                <Text type={'link'}>Notification Policy</Text>
-              </a>
-              <Text type={'secondary'}>created in Grafana Alerting</Text>
             </HorizontalGroup>
           )}
         </VerticalGroup>
