@@ -1,4 +1,4 @@
-suite: test PostgreSQL envs for deployments
+suite: test MySQL envs for deployments
 templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
@@ -6,42 +6,40 @@ templates:
 release:
   name: oncall
 tests:
-  - it: postgresql.enabled=false -> external PostgreSQL default settings
+  - it: mariadb.enabled=false -> external MySQL default settings
     set:
-      database.type: postgresql
-      postgresql.enabled: false
+      mariadb.enabled: false
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: DATABASE_TYPE
-            value: postgresql
+        not: true
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_NAME
+            name: MYSQL_DB_NAME
             value: oncall
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_PORT
-            value: "5432"
+            name: MYSQL_PORT
+            value: "3306"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_USER
-            value: postgres
+            name: MYSQL_USER
+            value: root
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_HOST
-            value: oncall-postgresql
+            name: MYSQL_HOST
+            value: oncall-mariadb
 
-  - it: externalPostgresql -> should use external PostgreSQL custom settings
+  - it: externalMysql -> use external MySQL custom settings
     set:
-      database.type: postgresql
-      postgresql.enabled: false
-      externalPostgresql:
+      mariadb.enabled: false
+      externalMysql:
         host: test-host
         port: 5555
         db_name: grafana_oncall
@@ -50,65 +48,50 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_TYPE
-            value: postgresql
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: DATABASE_NAME
+            name: MYSQL_DB_NAME
             value: grafana_oncall
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_PORT
+            name: MYSQL_PORT
             value: "5555"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_USER
+            name: MYSQL_USER
             value: test_user
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_HOST
+            name: MYSQL_HOST
             value: test-host
 
-  - it: postgresql.enabled=true -> internal PostgreSQL default settings
-    set:
-      database.type: postgresql
-      postgresql.enabled: true
+  - it: mariadb.enabled=true -> internal MySQL default settings
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_TYPE
-            value: postgresql
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: DATABASE_NAME
+            name: MYSQL_DB_NAME
             value: oncall
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_PORT
-            value: "5432"
+            name: MYSQL_PORT
+            value: "3306"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_USER
-            value: postgres
+            name: MYSQL_USER
+            value: root
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_HOST
-            value: oncall-postgresql
+            name: MYSQL_HOST
+            value: oncall-mariadb
 
-  - it: postgresql.auth -> should use internal PostgreSQL custom settings
+  - it: mariadb.auth -> internal MySQL custom settings
     set:
-      database.type: postgresql
-      postgresql:
-        enabled: true
+      mariadb:
         auth:
           database: grafana_oncall
           username: grafana_oncall
@@ -116,25 +99,20 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_TYPE
-            value: postgresql
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: DATABASE_NAME
+            name: MYSQL_DB_NAME
             value: grafana_oncall
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_PORT
-            value: "5432"
+            name: MYSQL_PORT
+            value: "3306"
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_USER
+            name: MYSQL_USER
             value: grafana_oncall
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: DATABASE_HOST
-            value: oncall-postgresql
+            name: MYSQL_HOST
+            value: oncall-mariadb

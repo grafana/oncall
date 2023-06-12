@@ -6,7 +6,7 @@ templates:
 release:
   name: oncall
 tests:
-  - it: uwsgi.listen should overwrite UWSGI_LISTEN env
+  - it: uwsgi.listen -> should overwrite UWSGI_LISTEN env
     set:
       uwsgi.listen: 128
     asserts:
@@ -15,7 +15,7 @@ tests:
           content:
             name: UWSGI_LISTEN
             value: "128"
-  - it: uwsgi.envs should set multiple UWSGI_* envs
+  - it: uwsgi=map[] -> should set multiple UWSGI_* envs
     set:
       uwsgi:
         processes: 3
@@ -36,7 +36,8 @@ tests:
           content:
             name: UWSGI_MAX_REQUESTS
             value: "1000"
-  - it: uwsgi.null should not set any UWSGI_* variable
+
+  - it: uwsgi=null -> should not set any UWSGI_* variable
     set:
       uwsgi: null
     asserts:

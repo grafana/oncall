@@ -3,12 +3,13 @@ import React, { useRef } from 'react';
 import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from './HamburgerMenu.module.css';
+import styles from './HamburgerMenu.module.scss';
 
 interface HamburgerMenuProps {
   openMenu: React.MouseEventHandler<HTMLElement>;
   listWidth: number;
   listBorder: number;
+  stopPropagation?: boolean;
   withBackground?: boolean;
   className?: string;
 }
@@ -17,12 +18,16 @@ const cx = cn.bind(styles);
 
 const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
   const ref = useRef<HTMLDivElement>();
-  const { openMenu, listBorder, listWidth, withBackground, className } = props;
+  const { openMenu, listBorder, listWidth, withBackground, className, stopPropagation = false } = props;
   return (
     <div
       ref={ref}
-      className={withBackground ? cx('hamburger-menu-withBackground') : cx('hamburger-menu', className)}
-      onClick={() => {
+      className={withBackground ? cx('hamburgerMenu--withBackground') : cx('hamburgerMenu', className)}
+      onClick={(e) => {
+        if (stopPropagation) {
+          e.stopPropagation();
+        }
+
         const boundingRect = ref.current.getBoundingClientRect();
 
         openMenu({
