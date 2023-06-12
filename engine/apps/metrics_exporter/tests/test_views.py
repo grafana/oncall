@@ -14,7 +14,9 @@ from rest_framework.test import APIClient
     ],
 )
 @override_settings(FEATURE_PROMETHEUS_EXPORTER_ENABLED=True)
-def test_metrics_exporter_auth(settings, token, auth, expected):
+def test_metrics_exporter_auth(settings, reload_urls, token, auth, expected):
+    reload_urls()
+
     settings.PROMETHEUS_EXPORTER_SECRET = token
 
     client = APIClient()
