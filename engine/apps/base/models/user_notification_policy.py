@@ -1,3 +1,4 @@
+import datetime
 from enum import unique
 from typing import Tuple
 
@@ -6,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, QuerySet
-from django.utils import timezone
 from ordered_model.models import OrderedModel
 
 from apps.base.messaging import get_messaging_backends
@@ -77,7 +77,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
                 notify_by=NotificationChannelOptions.DEFAULT_NOTIFICATION_CHANNEL,
                 order=0,
             ),
-            model(user=user, step=model.Step.WAIT, wait_delay=timezone.timedelta(minutes=15), order=1),
+            model(user=user, step=model.Step.WAIT, wait_delay=datetime.timedelta(minutes=15), order=1),
             model(user=user, step=model.Step.NOTIFY, notify_by=model.NotificationChannel.PHONE_CALL, order=2),
         )
 
@@ -125,11 +125,11 @@ class UserNotificationPolicy(OrderedModel):
     NotificationChannel = _notification_channels
     notify_by = models.PositiveSmallIntegerField(default=0, validators=[validate_channel_choice])
 
-    ONE_MINUTE = timezone.timedelta(minutes=1)
-    FIVE_MINUTES = timezone.timedelta(minutes=5)
-    FIFTEEN_MINUTES = timezone.timedelta(minutes=15)
-    THIRTY_MINUTES = timezone.timedelta(minutes=30)
-    HOUR = timezone.timedelta(minutes=60)
+    ONE_MINUTE = datetime.timedelta(minutes=1)
+    FIVE_MINUTES = datetime.timedelta(minutes=5)
+    FIFTEEN_MINUTES = datetime.timedelta(minutes=15)
+    THIRTY_MINUTES = datetime.timedelta(minutes=30)
+    HOUR = datetime.timedelta(minutes=60)
 
     DURATION_CHOICES = (
         (ONE_MINUTE, "1 min"),

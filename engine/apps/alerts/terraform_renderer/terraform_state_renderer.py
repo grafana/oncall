@@ -4,7 +4,6 @@ from apps.schedules.models import OnCallScheduleCalendar
 
 
 class TerraformStateRenderer:
-
     STATE_INTEGRATION_TEMPLATE = "terraform import amixr_integration.{} {}\n"
     STATE_ROUTE_TEMPLATE = "terraform import amixr_route.{} {}\n"
     STATE_ESCALATION_CHAIN_TEMPLATE = "terraform import amixr_escalation_chain.{} {}\n"

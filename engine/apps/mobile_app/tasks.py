@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import math
@@ -322,7 +323,7 @@ def _shift_starts_within_range(
 
 
 def should_we_send_going_oncall_push_notification(
-    now: timezone.datetime, user_settings: "MobileAppUserSettings", schedule_event: ScheduleEvent
+    now: datetime.datetime, user_settings: "MobileAppUserSettings", schedule_event: ScheduleEvent
 ) -> typing.Optional[int]:
     """
     If the user should be set a "you're going oncall" push notification, return the number of seconds

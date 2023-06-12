@@ -1,5 +1,5 @@
+import typing
 from enum import Enum
-from typing import List, Optional, Union
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -40,7 +40,7 @@ class TelegramKeyboardRenderer:
         self.alert_group = alert_group
 
     # Inline keyboard with controls for alert group message
-    def render_actions_keyboard(self) -> Optional[InlineKeyboardMarkup]:
+    def render_actions_keyboard(self) -> typing.Optional[InlineKeyboardMarkup]:
         if self.alert_group.root_alert_group is not None:
             # No keyboard for attached alert group
             return None
@@ -79,7 +79,7 @@ class TelegramKeyboardRenderer:
         return self._render_button(text=action.value.capitalize(), action=action)
 
     @property
-    def silence_buttons(self) -> List[InlineKeyboardButton]:
+    def silence_buttons(self) -> typing.List[InlineKeyboardButton]:
         silence_forever_button = self._render_button(text="🔕 forever", action=Action.SILENCE)
 
         silence_delay_one_hour = 3600  # one hour
@@ -98,9 +98,9 @@ class TelegramKeyboardRenderer:
     def unsilence_button(self) -> InlineKeyboardButton:
         return self._render_button(text=Action.UNSILENCE.value.capitalize(), action=Action.UNSILENCE)
 
-    def _render_button(self, text: str, action: Action, action_data: Optional[Union[int, str]] = None):
+    def _render_button(self, text: str, action: Action, action_data: typing.Optional[typing.Union[int, str]] = None):
         action_code = ACTION_TO_CODE_MAP[action.value]
-        callback_data_args = [self.alert_group.pk, action_code]
+        callback_data_args: typing.List[typing.Union[int, str]] = [self.alert_group.pk, action_code]
         if action_data is not None:
             callback_data_args.append(action_data)
         # Add org id with 'oncall' prefix to callback data.
