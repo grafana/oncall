@@ -69,18 +69,13 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     const filterOptions = await filtersStore.updateOptionsForPage(page);
 
-    let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions);
+    let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
     if (isEmpty(values)) {
-      let newQuery = defaultFilters || { team: [] };
-      /*  if (filtersStore.values[page]) {
-        newQuery = { ...filtersStore.values[page] };
-      } else {
-        newQuery = defaultFilters || { team: [] };
-      } */
-
-      ({ filters, values } = parseFilters(newQuery, filterOptions));
+      ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
     }
+
+    console.log('Called already parseFilters')
 
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
   }
@@ -369,17 +364,19 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     store.filtersStore.updateValuesForPage(page, values);
 
-    Object.keys({ ...store.filtersStore.globalValues }).forEach((key) => {
-      if (!(key in values)) {
-        delete store.filtersStore.globalValues[key];
-      }
-    });
-
-    const newGlobalValues = pickBy(values, (_, key) =>
-      filterOptions.some((option) => option.name === key && option.global)
-    );
-
-    store.filtersStore.globalValues = newGlobalValues;
+    if (!isOnMount) {
+      Object.keys({ ...store.filtersStore.globalValues }).forEach((key) => {
+        if (!(key in values)) {
+          delete store.filtersStore.globalValues[key];
+        }
+      });
+  
+      const newGlobalValues = pickBy(values, (_, key) =>
+        filterOptions.some((option) => option.name === key && option.global)
+      );
+  
+      store.filtersStore.globalValues = newGlobalValues;
+    }
 
     LocationHelper.update({ ...values }, 'partial');
     onChange(values, isOnMount);
