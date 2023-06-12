@@ -13,12 +13,8 @@ const normalize = (value: any) => {
 export function parseFilters(data: { [key: string]: any }, filterOptions: FilterOption[], query: { [key: string]: any}) {
   const filters = filterOptions.filter((filterOption: FilterOption) => filterOption.name in data);
 
-  console.log({ filterOptions, filters })
-
   const values = filters.reduce((memo: any, filterOption: FilterOption) => {
-    const rawValue = query[filterOption.name] || data[filterOption.name]; // query takes priority over localstorage
-
-    console.log({ rawValue, name: filterOption.name })
+    const rawValue = query[filterOption.name] || data[filterOption.name]; // query takes priority over local storage
 
     let value: any = rawValue;
     

@@ -75,8 +75,6 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
     }
 
-    console.log('Called already parseFilters')
-
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
   }
 
