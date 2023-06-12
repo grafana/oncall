@@ -177,6 +177,10 @@ settings:
 
 ## Telegram Setup
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/YMDFZP7Dxns" title="YouTube video player"
+frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;
+web-share" allowfullscreen></iframe>
+
 The Telegram integration for Grafana OnCall is designed for collaborative team work and improved incident response.
 Refer to the following steps to configure the Telegram integration:
 
