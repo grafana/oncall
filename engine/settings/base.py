@@ -92,6 +92,9 @@ ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
 
+# Prometheus exporter metrics endpoint auth
+PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
+
 
 # Database
 class DatabaseTypes:
