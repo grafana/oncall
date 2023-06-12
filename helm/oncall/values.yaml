@@ -273,9 +273,9 @@ externalMysql:
   # use an existing secret for the mysql password
   existingSecret: ""
   # the key in the secret containing the mysql username
-  usernameKey: username
+  usernameKey:
   # the key in the secret containing the mysql password
-  passwordKey: password
+  passwordKey:
 
 # PostgreSQL is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -332,7 +332,7 @@ externalRedis:
   # use an existing secret for the redis password
   existingSecret: ""
   # the key in the secret containing the redis password
-  passwordKey: password
+  passwordKey:
 
 # Grafana is included into this release for the convenience.
 # It is recommended to host it separately from this release
