@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add helm chart support for redis and mysql existing secrets ([#2156](https://github.com/grafana/oncall/pull/2156))
+
 ### Changed
 
 - Helm chart: Upgrade helm dependecies, improve local setup [#2144](https://github.com/grafana/oncall/pull/2144)
