@@ -3,11 +3,13 @@ templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
   - celery/deployment-celery.yaml
+  - telegram-polling/deployment.yaml
 release:
   name: oncall
 tests:
   - it: postgresql.enabled=false -> external PostgreSQL default settings
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql.enabled: false
       externalPostgresql.host: custom-postgres-host
@@ -40,6 +42,7 @@ tests:
 
   - it: externalPostgresql -> should use external PostgreSQL custom settings
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql.enabled: false
       externalPostgresql:
@@ -76,6 +79,7 @@ tests:
 
   - it: postgresql.enabled=true -> internal PostgreSQL default settings
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql.enabled: true
     asserts:
@@ -107,6 +111,7 @@ tests:
 
   - it: postgresql.auth -> should use internal PostgreSQL custom settings
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql:
         enabled: true

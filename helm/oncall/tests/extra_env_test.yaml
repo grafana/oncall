@@ -3,11 +3,13 @@ templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
   - celery/deployment-celery.yaml
+  - telegram-polling/deployment.yaml
 release:
   name: oncall
 tests:
   - it: env=[] -> should support old syntax
     set:
+      telegramPolling.enabled: true
       env:
         - name: SOME_VAR
           value: some_value
@@ -20,6 +22,7 @@ tests:
 
   - it: env=map[] -> should set multiple envs
     set:
+      telegramPolling.enabled: true
       env:
         SOME_VAR: some_value
         another_var: "another_value"
@@ -39,7 +42,9 @@ tests:
     templates:
       - engine/deployment.yaml
       - celery/deployment-celery.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       env:
         - name: SOME_VAR
           value: some_value
@@ -54,7 +59,9 @@ tests:
     templates:
       - engine/deployment.yaml
       - celery/deployment-celery.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       env:
         SOME_VAR: some_value
         another_var: "another_value"
@@ -74,7 +81,9 @@ tests:
     templates:
       - engine/deployment.yaml
       - celery/deployment-celery.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql.enabled: true
       env:
@@ -96,7 +105,9 @@ tests:
     templates:
       - engine/deployment.yaml
       - celery/deployment-celery.yaml
+      - telegram-polling/deployment.yaml
     set:
+      telegramPolling.enabled: true
       database.type: postgresql
       postgresql.enabled: true
       env:

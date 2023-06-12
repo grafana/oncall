@@ -2,10 +2,14 @@ suite: test telegram envs for deployments
 templates:
   - engine/deployment.yaml
   - celery/deployment-celery.yaml
+  - telegram-polling/deployment.yaml
 release:
   name: oncall
 tests:
   - it: oncall.telegram.enabled=false -> Telegram integration disabled (default)
+    templates:
+      - engine/deployment.yaml
+      - celery/deployment-celery.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
@@ -14,6 +18,9 @@ tests:
             value: "False"
 
   - it: oncall.telegram.enabled=true -> should enable Telegram integration
+    templates:
+      - engine/deployment.yaml
+      - celery/deployment-celery.yaml
     set:
       oncall.telegram:
         enabled: true
@@ -37,6 +44,9 @@ tests:
             value: "abcd:123"
 
   - it: oncall.telegram.existingSecret=some-secret -> should prefer existing secret over oncall.telegram.token
+    templates:
+      - engine/deployment.yaml
+      - celery/deployment-celery.yaml
     set:
       oncall.telegram:
         enabled: true
@@ -53,3 +63,17 @@ tests:
                 name: some-secret
                 key: token
 
+  - it: telegramPolling.enabled=true -> should enable oncall.telegram.enabled too
+    set:
+      telegramPolling.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+            value: "True"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TELEGRAM_LONG_POLLING_ENABLED
+            value: "True"
