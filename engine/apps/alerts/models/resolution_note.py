@@ -100,7 +100,6 @@ class ResolutionNoteQueryset(models.QuerySet):
 
 
 class ResolutionNote(models.Model):
-
     objects = ResolutionNoteQueryset.as_manager()
     objects_with_deleted = models.Manager()
 

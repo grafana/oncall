@@ -1,6 +1,6 @@
+import datetime
 import json
 import textwrap
-from datetime import datetime
 from unittest.mock import Mock, patch
 
 import icalendar
@@ -99,8 +99,8 @@ def test_next_shift_notification_long_shifts(
         cached_ical_file_overrides=None,
     )
 
-    with patch.object(timezone, "datetime", Mock(wraps=timezone.datetime)) as mock_tz_datetime:
-        mock_tz_datetime.now.return_value = datetime(2021, 9, 29, 12, 0, tzinfo=pytz.UTC)
+    with patch("apps.alerts.tasks.notify_ical_schedule_shift.datetime", Mock(wraps=datetime)) as mock_datetime:
+        mock_datetime.datetime.now.return_value = datetime.datetime(2021, 9, 29, 12, 0, tzinfo=pytz.UTC)
         with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
             notify_ical_schedule_shift(ical_schedule.oncallschedule_ptr_id)
 
@@ -280,11 +280,11 @@ def test_current_shift_changes_trigger_notification(
     )
 
     now = timezone.now().replace(microsecond=0)
-    start_date = now - timezone.timedelta(days=7)
+    start_date = now - datetime.timedelta(days=7)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": timezone.timedelta(seconds=3600 * 24),
+        "duration": datetime.timedelta(seconds=3600 * 24),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
     }

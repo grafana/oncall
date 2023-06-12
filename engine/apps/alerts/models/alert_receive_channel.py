@@ -244,7 +244,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         super(AlertReceiveChannel, self).delete()
 
     def change_team(self, team_id, user):
-
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 

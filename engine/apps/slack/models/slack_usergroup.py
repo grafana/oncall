@@ -31,7 +31,6 @@ def generate_public_primary_key_for_slack_user_group():
 
 
 class SlackUserGroup(models.Model):
-
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],

@@ -26,7 +26,6 @@ class TwilioLogRecordStatus(object):
 
 # Deprecated model. Kept here for backward compatibility, should be removed after phone notificator release
 class TwilioLogRecord(models.Model):
-
     user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
 
     phone_number = models.CharField(max_length=16)

@@ -7,7 +7,6 @@ from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal
 
 
 class TerraformFileRenderer:
-
     AMIXR_USER_DATA_TEMPLATE = '\ndata "amixr_user" "{}" {{\n    username = "{}"\n}}\n'
 
     TEAM_DATA_TEMPLATE = '\ndata "amixr_team" "{}" {{\n    name = "{}"\n}}\n'
