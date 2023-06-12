@@ -262,7 +262,7 @@ jobs:
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat
-          pip install -r requirements.txt -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           pytest -x
 
   unit-test-pd-migrator:
