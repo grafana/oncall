@@ -10,4 +10,5 @@ export interface FilterOption {
   options?: SelectOption[];
   default?: { value: string };
   global?: boolean;
+  description?: string;
 }

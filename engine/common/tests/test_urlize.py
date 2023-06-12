@@ -1,3 +1,5 @@
+import pytest
+
 from common.utils import urlize_with_respect_to_a
 
 
@@ -13,6 +15,10 @@ def test_urlize_will_not_mutate_text_with_link_in_a():
     assert urlize_with_respect_to_a(original) == expected
 
 
+@pytest.mark.filterwarnings(
+    "ignore:The input looks more like a URL than markup. You may want to use an HTTP client like requests to get the "
+    "document behind the URL, and feed that document to Beautiful Soup."
+)
 def test_urlize_will_wrap_link():
     original = "https://amixr.io/"
     expected = '<a href="https://amixr.io/">https://amixr.io/</a>'

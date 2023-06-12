@@ -23,10 +23,10 @@ class CurrentOrganizationDefault:
     Example: organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     """
 
-    def set_context(self, serializer_field):
-        self.organization = serializer_field.context["request"].auth.organization
+    requires_context = True
 
-    def __call__(self):
+    def __call__(self, serializer_field):
+        self.organization = serializer_field.context["request"].auth.organization
         return self.organization
 
     def __repr__(self):
@@ -38,10 +38,10 @@ class CurrentTeamDefault:
     Utility class to get the current team right from the serializer field.
     """
 
-    def set_context(self, serializer_field):
-        self.team = serializer_field.context["request"].user.current_team
+    requires_context = True
 
-    def __call__(self):
+    def __call__(self, serializer_field):
+        self.team = serializer_field.context["request"].user.current_team
         return self.team
 
     def __repr__(self):
@@ -81,10 +81,10 @@ class CurrentUserDefault:
     Utility class to get the current user right from the serializer field.
     """
 
-    def set_context(self, serializer_field):
-        self.user = serializer_field.context["request"].user
+    requires_context = True
 
-    def __call__(self):
+    def __call__(self, serializer_field):
+        self.user = serializer_field.context["request"].user
         return self.user
 
     def __repr__(self):
@@ -155,3 +155,7 @@ def get_date_range_from_request(request):
         raise BadRequest(detail="Invalid days format")
 
     return user_tz, starting_date, days
+
+
+def check_phone_number_is_valid(phone_number):
+    return re.match(r"^\+\d{8,15}$", phone_number) is not None

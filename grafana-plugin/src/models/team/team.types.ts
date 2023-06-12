@@ -66,5 +66,12 @@ export interface Team {
   env_status: {
     twilio_configured: boolean;
     telegram_configured: boolean;
+    phone_provider: {
+      configured: boolean;
+      test_call: boolean;
+      test_sms: boolean;
+      verification_call: boolean;
+      verification_sms: boolean;
+    };
   };
 }

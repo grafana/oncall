@@ -8,7 +8,7 @@ import { KeyValuePair } from 'utils';
 
 export const WebhookTriggerType = {
   EscalationStep: new KeyValuePair('0', 'Escalation Step'),
-  Firing: new KeyValuePair('1', 'Firing'),
+  AlertGroupCreated: new KeyValuePair('1', 'Alert Group Created'),
   Acknowledged: new KeyValuePair('2', 'Acknowledged'),
   Resolved: new KeyValuePair('3', 'Resolved'),
   Silenced: new KeyValuePair('4', 'Silenced'),
@@ -56,8 +56,8 @@ export const form: { name: string; fields: FormItem[] } = {
             label: WebhookTriggerType.EscalationStep.value,
           },
           {
-            value: WebhookTriggerType.Firing.key,
-            label: WebhookTriggerType.Firing.value,
+            value: WebhookTriggerType.AlertGroupCreated.key,
+            label: WebhookTriggerType.AlertGroupCreated.value,
           },
           {
             value: WebhookTriggerType.Acknowledged.key,
@@ -161,7 +161,7 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'authorization_header',
-      type: FormItemType.Input,
+      type: FormItemType.Password,
     },
     {
       name: 'trigger_template',
@@ -173,19 +173,19 @@ export const form: { name: string; fields: FormItem[] } = {
       },
     },
     {
+      name: 'forward_all',
+      normalize: (value) => Boolean(value),
+      type: FormItemType.Switch,
+      description: "Forwards whole payload of the alert to the webhook's url as POST/PUT data",
+    },
+    {
       name: 'data',
-      getDisabled: (form_data) => Boolean(form_data?.forward_whole_payload),
+      getDisabled: (data) => Boolean(data?.forward_all),
       type: FormItemType.TextArea,
       description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}',
       extra: {
         rows: 9,
       },
-    },
-    {
-      name: 'forward_all',
-      normalize: (value) => Boolean(value),
-      type: FormItemType.Switch,
-      description: "Forwards whole payload of the alert to the webhook's url as POST/PUT data",
     },
   ],
 };

@@ -1,10 +1,31 @@
 from django.db import models
 
-from apps.twilioapp.constants import TwilioLogRecordStatus, TwilioLogRecordType
+
+class TwilioLogRecordType(object):
+    VERIFICATION_START = 10
+    VERIFICATION_CHECK = 20
+
+    CHOICES = ((VERIFICATION_START, "verification start"), (VERIFICATION_CHECK, "verification check"))
 
 
+class TwilioLogRecordStatus(object):
+    # For verification and check it has used the same statuses
+    # https://www.twilio.com/docs/verify/api/verification#verification-response-properties
+    # https://www.twilio.com/docs/verify/api/verification-check
+
+    PENDING = 10
+    APPROVED = 20
+    DENIED = 30
+    # Our customized status for TwilioException
+    ERROR = 40
+
+    CHOICES = ((PENDING, "pending"), (APPROVED, "approved"), (DENIED, "denied"), (ERROR, "error"))
+
+    DETERMINANT = {"pending": PENDING, "approved": APPROVED, "denied": DENIED, "error": ERROR}
+
+
+# Deprecated model. Kept here for backward compatibility, should be removed after phone notificator release
 class TwilioLogRecord(models.Model):
-
     user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
 
     phone_number = models.CharField(max_length=16)

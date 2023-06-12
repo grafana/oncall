@@ -82,6 +82,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
       }
       width={expanded ? '100%' : '70%'}
       onClose={onHide}
+      closeOnMaskClick={false}
     >
       <TabsBar>
         <Tab

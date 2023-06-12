@@ -2,8 +2,9 @@
 
 - [Running the project](#running-the-project)
   - [`COMPOSE_PROFILES`](#compose_profiles)
-  - [`GRAFANA_VERSION`](#grafana_version)
+  - [`GRAFANA_IMAGE`](#grafana_image)
   - [Configuring Grafana](#configuring-grafana)
+  - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
 - [UI Integration Tests](#ui-integration-tests)
@@ -67,6 +68,7 @@ make start COMPOSE_PROFILES=postgres,engine,grafana,rabbitmq
 The possible profiles values are:
 
 - `grafana`
+- `prometheus`
 - `engine`
 - `oncall_ui`
 - `redis`
@@ -80,11 +82,11 @@ The default is `engine,oncall_ui,redis,grafana`. This runs:
 - Redis as the Celery message broker/cache
 - a Grafana container
 
-### `GRAFANA_VERSION`
+### `GRAFANA_IMAGE`
 
-If you would like to change the version of Grafana being run, simply pass in a `GRAFANA_VERSION` environment variable
-to `make start` (or alternatively set it in your `.env.dev` file). The value of this environment variable should be a
-valid `grafana/grafana` published Docker [image tag](https://hub.docker.com/r/grafana/grafana/tags).
+If you would like to change the image or version of Grafana being run, simply pass in a `GRAFANA_IMAGE` environment variable
+to `make start` (or alternatively set it in your root `.env` file). The value of this environment variable should be a
+valid `grafana` image/tag combination (ex. `grafana:main` or `grafana-enterprise:latest`).
 
 ### Configuring Grafana
 
@@ -99,8 +101,50 @@ touch ./dev/grafana.dev.ini
 touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana.dev.ini .env
 ```
 
+For example, if you would like to enable the `topnav` feature toggle, you can modify your `./dev/grafana.dev.ini` as
+such:
+
+```ini
+[feature_toggles]
+enable = top_nav
+```
+
 The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana.dev.ini`
 volume mounted inside the container.
+
+### Enabling RBAC for OnCall for local development
+
+To run the project locally w/ RBAC for OnCall enabled, you will first need to run a `grafana-enterprise` container,
+instead of a `grafana` container. See the instructions [here](#grafana_image) on how to do so.
+
+Next, you will need to follow the steps [here](https://grafana.com/docs/grafana/latest/administration/enterprise-licensing/)
+on setting up/downloading a Grafana Enterprise license.
+
+Lastly, you will need to modify the instance's configuration. Follow the instructions [here](#configuring-grafana) on
+how to do so. You can modify your configuration file (`./dev/grafana.dev.ini`) as such:
+
+```ini
+[rbac]
+enabled = true
+
+[feature_toggles]
+enable = accessControlOnCall
+
+[server]
+root_url = https://<your-stack-slug>.grafana.net/
+
+[enterprise]
+license_text = <content-of-the-license-jwt-that-you-downloaded>
+```
+
+(_Note_: you may need to restart your `grafana` container after modifying its configuration)
+
+### Enabling OnCall prometheus exporter for local development
+
+Add `prometheus` to your `COMPOSE_PROFILES` and set `FEATURE_PROMETHEUS_EXPORTER_ENABLED=True` in your
+`dev/.env.dev` file. You may need to restart your `grafana` container to make sure the new datasource
+is added (or add it manually using the UI; Prometheus will be running in `host.docker.internal:9090`
+by default, using default settings).
 
 ### Django Silk Profiling
 
@@ -119,8 +163,8 @@ See the `django-silk` documentation [here](https://github.com/jazzband/django-si
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
 (for integrating w/ PyCharm for example), follow these instructions:
 
-1. Create a Python 3.9 virtual environment using a method of your choosing (ex.
-   [venv](https://docs.python.org/3.9/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
+1. Create a Python 3.11 virtual environment using a method of your choosing (ex.
+   [venv](https://docs.python.org/3.11/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)).
    Make sure the virtualenv is "activated".
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2`
    ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit
@@ -156,7 +200,6 @@ yarn test:integration
 
 ## Useful `make` commands
 
-See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
 > 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
 ## Setting environment variables
@@ -226,25 +269,17 @@ ERROR: Failed building wheel for cryptography
 
 **Solution:**
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 LDFLAGS="-L$(brew --prefix openssl@1.1)/lib" CFLAGS="-I$(brew --prefix openssl@1.1)/include" pip install `cat engine/requirements.txt | grep cryptography`
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 ### django.db.utils.OperationalError: (1366, "Incorrect string value")
 
 **Problem:**
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 django.db.utils.OperationalError: (1366, "Incorrect string value: '\\xF0\\x9F\\x98\\x8A\\xF0\\x9F...' for column 'cached_name' at row 1")
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 
@@ -278,14 +313,10 @@ $ CDPATH="" make init
 
 When running `make init start`:
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 Error response from daemon: open /var/lib/docker/overlay2/ac57b871108ee1b98ff4455e36d2175eae90cbc7d4c9a54608c0b45cfb7c6da5/committed: is a directory
 make: *** [start] Error 1
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 clear everything in docker by resetting or:
@@ -333,8 +364,6 @@ See solution for "Encountered error while trying to install package - grpcio" [h
 This problem seems to occur when running the Celery process, outside of `docker-compose`
 (via `make run-backend-celery`), and using a `conda` virtual environment.
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 conda create --name oncall-dev python=3.9.13
 conda activate oncall-dev
@@ -352,8 +381,6 @@ File "~/oncall/engine/engine/__init__.py", line 5, in <module>
     from grpc._cython import cygrpc
 ImportError: dlopen(/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/_cython/cygrpc.cpython-39-darwin.so, 0x0002): symbol not found in flat namespace '_EVP_DigestSignUpdate'
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 

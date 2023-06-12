@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -30,6 +31,22 @@ from common.api_helpers.mixins import (
 )
 from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
+
+
+class AlertReceiveChannelPagination(PageNumberPagination):
+    page_size = 15
+    page_query_param = "page"
+    page_size_query_param = "perpage"
+    max_page_size = 50
+
+    def paginate_queryset(self, queryset, request, view=None):
+        """Override to apply pagination only if ?page= is present in query params
+        Required for backwards compatibility with older versions
+        """
+        page_number = request.query_params.get(self.page_query_param, None)
+        if not page_number:
+            return None
+        return super().paginate_queryset(queryset, request, view)
 
 
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
@@ -81,6 +98,7 @@ class AlertReceiveChannelView(
     search_fields = ("verbal_name",)
 
     filterset_class = AlertReceiveChannelFilter
+    pagination_class = AlertReceiveChannelPagination
 
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
@@ -153,21 +171,17 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
-        alert_receive_channel = AlertReceiveChannel.objects.get(public_primary_key=pk)
-        demo_alert_payload = request.data.get("demo_alert_payload", None)
+        instance = self.get_object()
+        payload = request.data.get("demo_alert_payload", None)
 
-        if not demo_alert_payload:
-            # If no payload provided, use the demo payload for backword compatibility
-            payload = alert_receive_channel.config.example_payload
-        else:
-            if type(demo_alert_payload) != dict:
-                raise BadRequest(detail="Payload for demo alert must be a valid json object")
-            payload = demo_alert_payload
+        if payload is not None and not isinstance(payload, dict):
+            raise BadRequest(detail="Payload for demo alert must be a valid json object")
 
         try:
-            alert_receive_channel.send_demo_alert(payload=payload)
+            instance.send_demo_alert(payload=payload)
         except UnableToSendDemoAlert as e:
             raise BadRequest(detail=str(e))
+
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
@@ -180,6 +194,9 @@ class AlertReceiveChannelView(
                     "display_name": integration_title,
                     "short_description": AlertReceiveChannel.INTEGRATION_SHORT_DESCRIPTION[integration_id],
                     "featured": integration_id in AlertReceiveChannel.INTEGRATION_FEATURED,
+                    "featured_tag_name": AlertReceiveChannel.INTEGRATION_FEATURED_TAG_NAME[integration_id]
+                    if integration_id in AlertReceiveChannel.INTEGRATION_FEATURED_TAG_NAME
+                    else None,
                 }
                 # if integration is featured we show it in the beginning
                 if choice["featured"]:
@@ -190,14 +207,14 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["put"])
     def change_team(self, request, pk):
+        instance = self.get_object()
+
         if "team_id" not in request.query_params:
             raise BadRequest(detail="team_id must be specified")
 
         team_id = request.query_params["team_id"]
         if team_id == "null":
             team_id = None
-
-        instance = self.get_object()
 
         try:
             instance.change_team(team_id=team_id, user=self.request.user)
@@ -230,14 +247,16 @@ class AlertReceiveChannelView(
 
     # This method is required for PreviewTemplateMixin
     def get_alert_to_template(self, payload=None):
+        channel = self.get_object()
+
         try:
             if payload is None:
-                return self.get_object().alert_groups.last().alerts.first()
+                return channel.alert_groups.last().alerts.first()
             else:
                 if type(payload) != dict:
                     raise PreviewTemplateException("Payload must be a valid json object")
                 # Build Alert and AlertGroup objects to pass to templater without saving them to db
-                alert_group_to_template = AlertGroup(channel=self.get_object())
+                alert_group_to_template = AlertGroup(channel=channel)
                 return Alert(raw_request_data=payload, group=alert_group_to_template)
         except AttributeError:
             return None
@@ -263,7 +282,7 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"])
     def start_maintenance(self, request, pk):
-        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+        instance = self.get_object()
 
         mode = request.data.get("mode", None)
         duration = request.data.get("duration", None)
@@ -293,7 +312,7 @@ class AlertReceiveChannelView(
 
     @action(detail=True, methods=["post"])
     def stop_maintenance(self, request, pk):
-        instance = self.get_queryset(eager=False).get(public_primary_key=pk)
+        instance = self.get_object()
         user = request.user
         instance.force_disable_maintenance(user)
         return Response(status=status.HTTP_200_OK)

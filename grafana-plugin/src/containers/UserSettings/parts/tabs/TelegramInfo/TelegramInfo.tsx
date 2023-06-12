@@ -40,7 +40,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
 
   return (
     <WithPermissionControlDisplay
-      userAction={UserActions.OtherSettingsWrite}
+      userAction={UserActions.UserSettingsWrite}
       message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
     >
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (

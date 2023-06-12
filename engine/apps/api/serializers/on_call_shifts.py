@@ -118,8 +118,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"frequency": ["Cannot set 'frequency' for shifts with type 'override'"]}
                 )
-            if frequency not in (CustomOnCallShift.FREQUENCY_WEEKLY, CustomOnCallShift.FREQUENCY_DAILY) and by_day:
-                raise serializers.ValidationError({"by_day": ["Cannot set days value for this frequency type"]})
             if interval is None:
                 raise serializers.ValidationError(
                     {"interval": ["If frequency is set, interval must be a positive integer"]}
@@ -197,6 +195,7 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
         validated_data = self._correct_validated_data(instance.type, validated_data)
         change_only_title = True
         create_or_update_last_shift = False
+        force_update = validated_data.pop("force_update", True)
 
         for field in validated_data:
             if field != "title" and validated_data[field] != getattr(instance, field):
@@ -211,7 +210,7 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
             elif instance.event_is_finished:
                 raise serializers.ValidationError(["This event cannot be updated"])
 
-        if create_or_update_last_shift:
+        if not force_update and create_or_update_last_shift:
             result = instance.create_or_update_last_shift(validated_data)
         else:
             result = super().update(instance, validated_data)

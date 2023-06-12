@@ -91,23 +91,13 @@ Create the name of the service account to use
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
   securityContext:
-  {{ toYaml .Values.init.securityContext| nindent 4}}
+  {{ toYaml .Values.init.securityContext | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
     {{- include "snippet.mysql.env" . | nindent 4 }}
     {{- include "snippet.rabbitmq.env" . | nindent 4 }}
     {{- include "snippet.redis.env" . | nindent 4 }}
-    {{- if .Values.env }}
-      {{- if (kindIs "map" .Values.env) }}
-        {{- range $key, $value := .Values.env }}
-    - name: {{ $key }}
-      value: {{ $value }}
-        {{- end -}}
-      {{/* support previous schema */}}
-      {{- else }}
-    {{- toYaml .Values.env | nindent 4 }}
-      {{- end }}
-    {{- end }}
+    {{- include "oncall.extraEnvs" . | nindent 4 }}
 {{- end }}
 
 {{- define "oncall.postgresql.wait-for-db" }}
@@ -116,13 +106,25 @@ Create the name of the service account to use
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
   securityContext:
-  {{ toYaml .Values.init.securityContext| nindent 4}}
+  {{ toYaml .Values.init.securityContext | nindent 4 }}
   env:
-    {{- include "snippet.oncall.env" . | nindent 12 }}
-    {{- include "snippet.postgresql.env" . | nindent 12 }}
-    {{- include "snippet.rabbitmq.env" . | nindent 12 }}
-    {{- include "snippet.redis.env" . | nindent 12 }}
-    {{- if .Values.env }}
-      {{- toYaml .Values.env | nindent 12 }}
-    {{- end }}
+    {{- include "snippet.oncall.env" . | nindent 4 }}
+    {{- include "snippet.postgresql.env" . | nindent 4 }}
+    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
+    {{- include "snippet.redis.env" . | nindent 4 }}
+    {{- include "oncall.extraEnvs" . | nindent 4 }}
+{{- end }}
+
+{{- define "oncall.extraEnvs" -}}
+{{- if .Values.env }}
+  {{- if (kindIs "map" .Values.env) }}
+    {{- range $key, $value := .Values.env }}
+- name: {{ $key }}
+  value: {{ $value }}
+    {{- end -}}
+  {{/* support previous schema */}}
+  {{- else }}
+{{- toYaml .Values.env }}
+  {{- end }}
+{{- end }}
 {{- end }}

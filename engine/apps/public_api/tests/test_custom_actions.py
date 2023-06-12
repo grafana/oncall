@@ -11,7 +11,6 @@ def test_get_custom_actions(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -49,7 +48,6 @@ def test_get_custom_actions_filter_by_name(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -87,7 +85,6 @@ def test_get_custom_actions_filter_by_name_empty_result(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -108,7 +105,6 @@ def test_get_custom_action(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -136,7 +132,6 @@ def test_get_custom_action(
 
 @pytest.mark.django_db
 def test_create_custom_action(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -169,7 +164,6 @@ def test_create_custom_action(make_organization_and_user_with_token):
 
 @pytest.mark.django_db
 def test_create_custom_action_nested_data(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -207,7 +201,6 @@ def test_create_custom_action_nested_data(make_organization_and_user_with_token)
 
 @pytest.mark.django_db
 def test_create_custom_action_valid_after_render(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -245,7 +238,6 @@ def test_create_custom_action_valid_after_render(make_organization_and_user_with
 
 @pytest.mark.django_db
 def test_create_custom_action_valid_after_render_use_all_data(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -285,7 +277,6 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
 def test_create_custom_action_invalid_data(
     make_organization_and_user_with_token,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -348,7 +339,6 @@ def test_update_custom_action(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -387,7 +377,6 @@ def test_delete_custom_action(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 

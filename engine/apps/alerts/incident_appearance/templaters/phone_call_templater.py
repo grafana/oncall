@@ -1,5 +1,5 @@
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
-from common.utils import clean_markup, escape_for_twilio_phone_call
+from common.utils import clean_markup
 
 
 class AlertPhoneCallTemplater(AlertTemplater):
@@ -14,7 +14,7 @@ class AlertPhoneCallTemplater(AlertTemplater):
         return templated_alert
 
     def _postformat_pipeline(self, text):
-        return self._escape(clean_markup(self._slack_format_for_phone_call(text))) if text is not None else text
+        return clean_markup(self._slack_format_for_phone_call(text)).replace('"', "") if text is not None else text
 
     def _slack_format_for_phone_call(self, data):
         sf = self.slack_formatter
@@ -22,6 +22,3 @@ class AlertPhoneCallTemplater(AlertTemplater):
         sf.channel_mention_format = "#{}"
         sf.hyperlink_mention_format = "{title}"
         return sf.format(data)
-
-    def _escape(self, data):
-        return escape_for_twilio_phone_call(data)

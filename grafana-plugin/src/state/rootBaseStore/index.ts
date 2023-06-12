@@ -57,6 +57,9 @@ export class RootBaseStore {
   initializationError = null;
 
   @observable
+  currentlyUndergoingMaintenance = false;
+
+  @observable
   isMobile = false;
 
   initialQuery = qs.parse(window.location.search);
@@ -159,6 +162,12 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
+    const isInMaintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode();
+    if (isInMaintenanceMode !== null) {
+      this.currentlyUndergoingMaintenance = true;
+      return this.setupPluginError(`🚧 ${isInMaintenanceMode} 🚧`);
+    }
+
     // at this point we know the plugin is provionsed
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
@@ -166,6 +175,7 @@ export class RootBaseStore {
     }
 
     const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
+
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'

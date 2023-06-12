@@ -23,9 +23,11 @@ from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleSerializer,
     PolymorphicScheduleUpdateSerializer,
 )
+from apps.api.serializers.user import ScheduleUserSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
@@ -71,7 +73,10 @@ class ScheduleView(
     ModelViewSet,
     mixins.ListModelMixin,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
@@ -80,6 +85,7 @@ class ScheduleView(
         "events": [RBACPermission.Permissions.SCHEDULES_READ],
         "filter_events": [RBACPermission.Permissions.SCHEDULES_READ],
         "next_shifts_per_user": [RBACPermission.Permissions.SCHEDULES_READ],
+        "related_users": [RBACPermission.Permissions.SCHEDULES_READ],
         "quality": [RBACPermission.Permissions.SCHEDULES_READ],
         "notify_empty_oncall_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "notify_oncall_shift_freq_options": [RBACPermission.Permissions.SCHEDULES_READ],
@@ -336,13 +342,20 @@ class ScheduleView(
         schedule = self.get_object()
         events = schedule.final_events(user_tz, starting_date, days=30)
 
-        users = {u: None for u in schedule.related_users()}
+        users = {u.public_primary_key: None for u in schedule.related_users()}
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
             if user is not None and users.get(user) is None and e["end"] > now:
                 users[user] = e
 
         result = {"users": users}
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def related_users(self, request, pk):
+        schedule = self.get_object()
+        serializer = ScheduleUserSerializer(schedule.related_users(), many=True)
+        result = {"users": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])

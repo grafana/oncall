@@ -27,7 +27,6 @@ def create_message_blocks(text):
         blocks = []
 
         for splitted_text in splitted_text_list:
-
             if len(splitted_text) > 2996:
                 # too long text case
                 text_list = wrap(

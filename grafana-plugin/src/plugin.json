@@ -40,7 +40,7 @@
     },
     {
       "type": "page",
-      "name": "Alert Groups",
+      "name": "Alert groups",
       "path": "/a/grafana-oncall-app/alert-groups",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
@@ -64,7 +64,7 @@
     },
     {
       "type": "page",
-      "name": "Escalation Chains",
+      "name": "Escalation chains",
       "path": "/a/grafana-oncall-app/escalations",
       "role": "Viewer",
       "action": "grafana-oncall-app.escalation-chains:read",
@@ -80,7 +80,7 @@
     },
     {
       "type": "page",
-      "name": "Outgoing Webhooks",
+      "name": "Outgoing webhooks",
       "path": "/a/grafana-oncall-app/outgoing_webhooks",
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
@@ -302,6 +302,18 @@
         ]
       },
       "grants": ["Viewer"]
+    },
+    {
+      "role": {
+        "name": "Notifications Receiver",
+        "description": "Grants the ability to receive OnCall alert notifications. By virtue, also grants the user the ability to edit their own OnCall settings.",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.notifications:read" },
+          { "action": "grafana-oncall-app.user-settings:write" }
+        ]
+      },
+      "grants": []
     },
     {
       "role": {
@@ -600,8 +612,7 @@
     }
   ],
   "dependencies": {
-    "grafanaDependency": ">=8.3.2",
-    "grafanaVersion": "8.3",
+    "grafanaDependency": ">=9.2.0",
     "plugins": []
   }
 }

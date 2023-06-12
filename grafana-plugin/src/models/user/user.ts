@@ -246,6 +246,14 @@ export class UserStore extends BaseStore {
   }
 
   @action
+  async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
+    await makeRequest(`/users/${userPk}/get_verification_call/`, {
+      method: 'GET',
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
+    }).catch(throttlingError);
+  }
+
+  @action
   async verifyPhone(userPk: User['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
@@ -348,6 +356,16 @@ export class UserStore extends BaseStore {
   }
 
   @action
+  async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
+    return await makeRequest(`/users/${userId}/send_test_push`, {
+      method: 'POST',
+      params: {
+        critical: isCritical,
+      },
+    });
+  }
+
+  @action
   async updateNotifyByOptions() {
     const response = await makeRequest('/notification_policies/notify_by_options/', {});
 
@@ -358,6 +376,18 @@ export class UserStore extends BaseStore {
     this.isTestCallInProgress = true;
 
     return await makeRequest(`/users/${userPk}/make_test_call/`, {
+      method: 'POST',
+    })
+      .catch(this.onApiError)
+      .finally(() => {
+        this.isTestCallInProgress = false;
+      });
+  }
+
+  async sendTestSms(userPk: User['pk']) {
+    this.isTestCallInProgress = true;
+
+    return await makeRequest(`/users/${userPk}/send_test_sms/`, {
       method: 'POST',
     })
       .catch(this.onApiError)
