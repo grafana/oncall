@@ -5,11 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.42 (2023-06-12)
 
 ### Changed
 
-- Run containers as a non-root user by @alexintech [#2053](https://github.com/grafana/oncall/pull/2053)
+- Helm chart: Upgrade helm dependecies, improve local setup [#2144](https://github.com/grafana/oncall/pull/2144)
+
+### Fixed
+
+- Fixed bug on Filters where team param from URL was discarded [#6237](https://github.com/grafana/support-escalations/issues/6237)
+- Fix receive channel filter in alert groups API [#2140](https://github.com/grafana/oncall/pull/2140)
+- Helm chart: Fix usage of `env` settings as map;
+  Fix usage of `mariadb.auth.database` and `mariadb.auth.username` for MYSQL env variables by @alexintech [#2146](https://github.com/grafana/oncall/pull/2146)
 
 ## v1.2.41 (2023-06-08)
 
@@ -17,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Twilio Provider improvements by @Konstantinov-Innokentii, @mderynck and @joeyorlando
   [#2074](https://github.com/grafana/oncall/pull/2074) [#2034](https://github.com/grafana/oncall/pull/2034)
+- Run containers as a non-root user by @alexintech [#2053](https://github.com/grafana/oncall/pull/2053)
 
 ## v1.2.40 (2023-06-07)
 

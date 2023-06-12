@@ -257,7 +257,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
 {{- required "externalMysql.db_name is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
-"oncall"
+{{- .Values.mariadb.auth.database | default "oncall" | quote -}}
 {{- end -}}
 {{- end -}}
 
@@ -265,7 +265,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.user -}}
 {{- .Values.externalMysql.user | quote }}
 {{- else -}}
-"root"
+{{- .Values.mariadb.auth.username | default "root" | quote -}}
 {{- end -}}
 {{- end -}}
 
@@ -478,5 +478,21 @@ rabbitmq-password
 {{- else -}}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED
   value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
+{{- end -}}
+{{- end }}
+
+{{- define "snippet.oncall.exporter.env" -}}
+{{- if .Values.oncall.exporter.enabled -}}
+- name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+  value: {{ .Values.oncall.exporter.enabled | toString | title | quote }}
+- name: PROMETHEUS_EXPORTER_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "oncall.fullname" . }}-exporter
+      key: exporter-secret
+      optional: true
+{{- else -}}
+- name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+  value: {{ .Values.oncall.exporter.enabled | toString | title | quote }}
 {{- end -}}
 {{- end }}

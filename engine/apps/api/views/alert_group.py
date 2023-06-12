@@ -104,7 +104,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
     integration = filters.ModelMultipleChoiceFilter(
-        field_name="channel_filter__alert_receive_channel",
+        field_name="channel",
         queryset=None,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,

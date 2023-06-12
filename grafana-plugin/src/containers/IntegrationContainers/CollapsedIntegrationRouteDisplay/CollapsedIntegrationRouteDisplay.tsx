@@ -29,13 +29,9 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     const store = useStore();
     const { escalationChainStore, alertReceiveChannelStore, telegramChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
-    const [telegramInfo, setTelegramInfo] = useState<Array<{ id: string; channel_name: string }>>([]);
 
     useEffect(() => {
-      (async function () {
-        const telegram = await telegramChannelStore.getAll();
-        setTelegramInfo(telegram);
-      })();
+      telegramChannelStore.updateItems();
     }, [channelFilterId]);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -70,9 +66,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   )}
                   tooltipContent={undefined}
                 />
-                {routeWording === 'Default' && (
-                  <Text type="primary">All unrouted routes will be served to the default route</Text>
-                )}
+                {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
                 {routeWording !== 'Default' && channelFilter.filtering_term && (
                   <Text type="primary" className={cx('heading-container__text')}>
                     {channelFilter.filtering_term}
@@ -93,7 +87,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           content={
             <div className={cx('spacing')}>
               <VerticalGroup>
-                {IntegrationHelper.getChatOpsChannels(channelFilter, telegramInfo, store)
+                {IntegrationHelper.getChatOpsChannels(channelFilter, store)
                   .filter((it) => it)
                   .map((chatOpsChannel, key) => (
                     <HorizontalGroup key={key}>

@@ -6,6 +6,7 @@ import { debounce } from 'lodash-es';
 
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -15,6 +16,8 @@ import { useStore } from 'state/useStore';
 import styles from './TemplatesAlertGroupsList.module.css';
 
 const cx = cn.bind(styles);
+const HEADER_OF_CONTAINER_HEIGHT = 59;
+const BADGE_WITH_PADDINGS_HEIGHT = 42;
 
 interface TemplatesAlertGroupsListProps {
   templates: AlertTemplatesDTO[];
@@ -38,8 +41,14 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   }, []);
 
   const getCodeEditorHeight = () => {
-    const mainDiv = document.getElementById('content-container-id');
-    const height = mainDiv?.getBoundingClientRect().height - 59;
+    const mainDiv = document.getElementById('alerts-content-container-id');
+    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT;
+    return `${height}px`;
+  };
+
+  const getCodeEditorHeightWithBadge = () => {
+    const mainDiv = document.getElementById('alerts-content-container-id');
+    const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT - BADGE_WITH_PADDINGS_HEIGHT;
     return `${height}px`;
   };
 
@@ -71,14 +80,14 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   };
 
   return (
-    <div className={cx('template-block-list')} id="content-container-id">
+    <div className={cx('template-block-list')} id="alerts-content-container-id">
       {selectedAlertPayload ? (
         <>
           {isEditMode ? (
             <>
               <div className={cx('template-block-title')}>
                 <HorizontalGroup justify="space-between">
-                  <Text>Edit {selectedAlertName}</Text>
+                  <Text>Edit custom payload</Text>
 
                   <HorizontalGroup>
                     <IconButton name="times" onClick={() => returnToListView()} />
@@ -101,24 +110,31 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
           ) : (
             <>
               <div className={cx('template-block-title')}>
-                <HorizontalGroup justify="space-between">
-                  <Text>{selectedAlertName}</Text>
-
-                  <HorizontalGroup>
+                <div className={cx('selected-alert-name-container')}>
+                  <div className={cx('selected-alert-name')}>
+                    <Text>{selectedAlertName}</Text>
+                  </div>
+                  <div className={cx('title-action-icons')}>
                     <IconButton name="edit" onClick={() => setIsEditMode(true)} />
                     <IconButton name="times" onClick={() => returnToListView()} />
-                  </HorizontalGroup>
-                </HorizontalGroup>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className={cx('alert-groups-editor')}>
+              <div className={cx('alert-groups-editor')}>
+                <TooltipBadge
+                  borderType="primary"
+                  text="Last alert payload"
+                  tooltipTitle=""
+                  tooltipContent=""
+                  className={cx('alert-groups-last-payload-badge')}
+                />
+                <div className={cx('alert-groups-editor-withBadge')}>
                   <MonacoEditor
                     value={JSON.stringify(selectedAlertPayload, null, 4)}
                     data={undefined}
                     disabled
-                    height={getCodeEditorHeight()}
+                    height={getCodeEditorHeightWithBadge()}
                     onChange={getChangeHandler()}
-                    showLineNumbers
                     useAutoCompleteList={false}
                     language={MONACO_LANGUAGE.json}
                     monacoOptions={{

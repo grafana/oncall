@@ -20,23 +20,16 @@
    ```bash
       helm install helm-testing \
       --wait \
-      --timeout 30m \
-      --wait-for-jobs \
       --values ./simple.yml \
-      --values ./values-arm64.yml \
       ./oncall
    ```
 
 5. Get credentials
 
-   <!-- markdownlint-disable MD013 -->
-
    ```bash
    echo "\n\nOpen Grafana on localhost:30002 with credentials - user: admin, password: $(kubectl get secret --namespace default helm-testing-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
    echo "Open Plugins -> Grafana OnCall -> fill form: backend url: http://host.docker.internal:30001"
    ```
-
-   <!-- markdownlint-enable MD013 -->
 
 6. Clean up
 

@@ -388,7 +388,6 @@ jobs:
             --set grafana.env.GF_FEATURE_TOGGLES_ENABLE=topnav \
             --set grafana.env.GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=grafana-oncall-app \
             --set-json "grafana.plugins=[]" \
-            --set-json 'grafana.securityContext={"runAsUser": 0, "runAsGroup": 0, "fsGroup": 0}' \
             --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
 
