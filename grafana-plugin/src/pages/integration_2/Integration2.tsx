@@ -804,26 +804,25 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
 
               {alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div className={cx('integration__actionItem')}>
-                    <div
-                      onClick={() => {
-                        setConfirmModal({
-                          isOpen: true,
-                          confirmText: 'Stop',
-                          dismissText: 'Cancel',
-                          onConfirm: onStopMaintenance,
-                          title: 'Stop Maintenance',
-                          body: (
-                            <Text type="primary">
-                              Are you sure you want to stop the maintenance for{' '}
-                              <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                            </Text>
-                          ),
-                        });
-                      }}
-                    >
-                      <Text type="primary">Stop Maintenance</Text>
-                    </div>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={() => {
+                      setConfirmModal({
+                        isOpen: true,
+                        confirmText: 'Stop',
+                        dismissText: 'Cancel',
+                        onConfirm: onStopMaintenance,
+                        title: 'Stop Maintenance',
+                        body: (
+                          <Text type="primary">
+                            Are you sure you want to stop the maintenance for{' '}
+                            <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                          </Text>
+                        ),
+                      });
+                    }}
+                  >
+                    <Text type="primary">Stop Maintenance</Text>
                   </div>
                 </WithPermissionControlTooltip>
               )}
@@ -908,6 +907,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
     maintenanceStore
       .stopMaintenanceMode(MaintenanceType.alert_receive_channel, id)
       .then(() => maintenanceStore.updateMaintenances())
+      .then(() => openNotification('Maintenance has been stopped'))
       .then(() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id));
   }
 };
@@ -989,8 +989,8 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         >
           <TooltipBadge
             borderType="primary"
-            tooltipTitle={undefined}
-            tooltipContent={getAlertReceiveChannelCounterTooltip()}
+            tooltipTitle={getAlertReceiveChannelCounterTooltip()}
+            tooltipContent={undefined}
             text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
           />
         </PluginLink>
@@ -1000,8 +1000,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         borderType="success"
         icon="link"
         text={`${alertReceiveChannel.connected_escalations_chains_count}/${alertReceiveChannel.routes_count}`}
-        tooltipTitle=""
-        tooltipContent={
+        tooltipTitle={
           alertReceiveChannel.connected_escalations_chains_count +
           ' connected escalation chain' +
           (alertReceiveChannel.connected_escalations_chains_count === 1 ? '' : 's') +
@@ -1010,6 +1009,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
           ' route' +
           (alertReceiveChannel.routes_count === 1 ? '' : 's')
         }
+        tooltipContent={undefined}
       />
 
       {alertReceiveChannel.maintenance_till && (
