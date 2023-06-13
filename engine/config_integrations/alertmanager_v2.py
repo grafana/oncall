@@ -207,3 +207,75 @@ Annotations:
 """
 
 telegram_image_url = None
+
+
+example_payload = {
+    "alerts": [
+        {
+            "endsAt": "0001-01-01T00:00:00Z",
+            "labels": {
+                "job": "node",
+                "group": "production",
+                "instance": "localhost:8081",
+                "severity": "critical",
+                "alertname": "InstanceDown",
+            },
+            "status": "firing",
+            "startsAt": "2023-06-12T08:24:38.326Z",
+            "annotations": {
+                "title": "Instance localhost:8081 down",
+                "description": "localhost:8081 of job node has been down for more than 1 minute.",
+            },
+            "fingerprint": "f404ecabc8dd5cd7",
+            "generatorURL": "",
+        },
+        {
+            "endsAt": "0001-01-01T00:00:00Z",
+            "labels": {
+                "job": "node",
+                "group": "canary",
+                "instance": "localhost:8082",
+                "severity": "critical",
+                "alertname": "InstanceDown",
+            },
+            "status": "firing",
+            "startsAt": "2023-06-12T08:24:38.326Z",
+            "annotations": {
+                "title": "Instance localhost:8082 down",
+                "description": "localhost:8082 of job node has been down for more than 1 minute.",
+            },
+            "fingerprint": "f8f08d4e32c61a9d",
+            "generatorURL": "",
+        },
+        {
+            "endsAt": "0001-01-01T00:00:00Z",
+            "labels": {
+                "job": "node",
+                "group": "production",
+                "instance": "localhost:8083",
+                "severity": "critical",
+                "alertname": "InstanceDown",
+            },
+            "status": "firing",
+            "startsAt": "2023-06-12T08:24:38.326Z",
+            "annotations": {
+                "title": "Instance localhost:8083 down",
+                "description": "localhost:8083 of job node has been down for more than 1 minute.",
+            },
+            "fingerprint": "39f38c0611ee7abd",
+            "generatorURL": "",
+        },
+    ],
+    "status": "firing",
+    "version": "4",
+    "groupKey": '{}:{alertname="InstanceDown"}',
+    "receiver": "combo",
+    "numFiring": 3,
+    "externalURL": "",
+    "groupLabels": {"alertname": "InstanceDown"},
+    "numResolved": 0,
+    "commonLabels": {"job": "node", "severity": "critical", "alertname": "InstanceDown"},
+    "truncatedBytes": 0,
+    "truncatedAlerts": 0,
+    "commonAnnotations": {},
+}
