@@ -8,7 +8,6 @@ from common.constants.alert_group_restrictions import IS_RESTRICTED_TITLE
 
 
 class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
-
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_id = serializers.CharField(source="channel.public_primary_key")
     route_id = serializers.SerializerMethodField()

@@ -46,7 +46,6 @@ class TwilioCallStatuses:
 
 
 class TwilioPhoneCall(ProviderPhoneCall, models.Model):
-
     status = models.PositiveSmallIntegerField(
         blank=True,
         null=True,

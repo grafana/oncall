@@ -221,7 +221,6 @@ class InviteOtherPersonToIncident(
     AlertGroupActionsMixin,
     scenario_step.ScenarioStep,
 ):
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -261,7 +260,6 @@ class SilenceGroupStep(
     AlertGroupActionsMixin,
     scenario_step.ScenarioStep,
 ):
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -487,7 +485,6 @@ class AttachGroupStep(
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-
         # submit selection in modal window
         if payload["type"] == scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION:
             alert_group_pk = json.loads(payload["view"]["private_metadata"])["alert_group_pk"]
@@ -644,7 +641,6 @@ class ResolveGroupStep(
         else:
             # TODO: refactor that check, it should be in alert core, not in slack.
             if self.organization.is_resolution_note_required and not alert_group.has_resolution_notes:
-
                 resolution_note_data = {
                     "resolution_note_window_action": "edit",
                     "alert_group_pk": alert_group.pk,

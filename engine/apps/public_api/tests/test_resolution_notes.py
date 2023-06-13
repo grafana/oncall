@@ -13,7 +13,6 @@ def test_get_resolution_note(
     make_alert_group,
     make_resolution_note,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -45,7 +44,6 @@ def test_get_resolution_note(
 
 @pytest.mark.django_db
 def test_create_resolution_note(make_organization_and_user_with_token, make_alert_receive_channel, make_alert_group):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -82,7 +80,6 @@ def test_create_resolution_note_invalid_text(
     make_alert_receive_channel,
     make_alert_group,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -109,7 +106,6 @@ def test_update_resolution_note(
     make_alert_group,
     make_resolution_note,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -154,7 +150,6 @@ def test_update_resolution_note_invalid_source(
     make_alert_group,
     make_resolution_note,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -190,7 +185,6 @@ def test_delete_resolution_note(
     make_alert_group,
     make_resolution_note,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 

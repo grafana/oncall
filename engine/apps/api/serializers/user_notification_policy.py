@@ -113,7 +113,6 @@ class UserNotificationPolicySerializer(UserNotificationPolicyBaseSerializer):
 
 
 class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerializer):
-
     user = OrganizationFilteredPrimaryKeyRelatedField(
         many=False,
         read_only=True,

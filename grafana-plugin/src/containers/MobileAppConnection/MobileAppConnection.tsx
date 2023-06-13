@@ -208,14 +208,14 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
                 onClick={() => onSendTestNotification()}
                 disabled={isAttemptingTestNotification}
               >
-                Send Test Push notification
+                Send Test Push
               </Button>
               <Button
-                variant="destructive"
+                variant="secondary"
                 onClick={() => onSendTestNotification(true)}
                 disabled={isAttemptingTestNotification}
               >
-                Send Important Test Push notification
+                Send Test Push Important
               </Button>
             </HorizontalGroup>
           </div>
@@ -229,7 +229,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
     try {
       await userStore.sendTestPushNotification(userPk, isCritical);
-      openNotification('Notification was sent');
+      openNotification(isCritical ? 'Push Important Notification has been sent' : 'Push Notification has been sent');
     } catch (ex) {
       if (ex.response?.status === 429) {
         openWarningNotification('Too much attempts, try again later');

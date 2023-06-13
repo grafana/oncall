@@ -108,7 +108,6 @@ def test_organization_not_found_scenario_doesnt_break_slash_commands(
     make_slack_user_identity,
     slack_team_identity,
 ):
-
     make_organization(slack_team_identity=slack_team_identity)
     make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
 

@@ -716,7 +716,6 @@ def test_start_maintenance_integration(
     make_escalation_chain,
     make_alert_receive_channel,
 ):
-
     organization, user, token = make_organization_and_user_with_plugin_token()
     make_escalation_chain(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
