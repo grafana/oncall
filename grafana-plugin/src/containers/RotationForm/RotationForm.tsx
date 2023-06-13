@@ -388,6 +388,14 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     }
   }, [shift]);
 
+  useEffect(() => {
+    if (shift) {
+      setSelectedDays(
+        getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, rotationStart.tz(currentTimezone))
+      );
+    }
+  }, [currentTimezone]);
+
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
   const disabled = Boolean(shift && shift.updated_shift);

@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import qs from 'query-string';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -63,11 +64,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
-      page: 1,
+      page: !isNaN(Number(props.query.p)) ? Number(props.query.p) : 1,
     };
   }
 
-  async componentDidMount() {
+  /* async componentDidMount() {
     const {
       store,
       query: { p },
@@ -78,17 +79,15 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     await store.scheduleStore.updateItems(filters, page, () => filters === this.state.filters);
 
     this.setState({ page: p ? Number(p) : 1 }, this.updateSchedules);
-  }
+  } */
 
-  updateSchedules = async () => {
+  /* updateSchedules = async () => {
     const { store } = this.props;
     const { filters, page } = this.state;
 
-    LocationHelper.update({ p: page }, 'partial');
-
     await store.scheduleStore.updateItems(filters, page);
   };
-
+ */
   render() {
     const { store, query } = this.props;
 
@@ -232,10 +231,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleCreateSchedule = (data: Schedule) => {
-    const { history } = this.props;
+    const { history, query } = this.props;
 
     if (data.type === ScheduleType.API) {
-      history.push(`${PLUGIN_ROOT}/schedules/${data.id}`);
+      history.push(`${PLUGIN_ROOT}/schedules/${data.id}?${qs.stringify(query)}`);
     }
   };
 
@@ -284,9 +283,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    const { history } = this.props;
+    const { history, query } = this.props;
 
-    return () => history.push(`${PLUGIN_ROOT}/schedules/${scheduleId}`);
+    return () => history.push(`${PLUGIN_ROOT}/schedules/${scheduleId}?${qs.stringify(query)}`);
   };
 
   renderType = (value: number) => {
@@ -356,7 +355,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderName = (item: Schedule) => {
-    return <PluginLink query={{ page: 'schedules', id: item.id }}>{item.name}</PluginLink>;
+    const { query } = this.props;
+
+    return <PluginLink query={{ page: 'schedules', id: item.id, ...query }}>{item.name}</PluginLink>;
   };
 
   renderOncallNow = (item: Schedule, _index: number) => {
@@ -426,42 +427,39 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { scheduleStore } = store;
 
     return () => {
-      scheduleStore.delete(id).then(() => this.update(true));
+      scheduleStore.delete(id).then(() => this.update());
     };
   };
 
-  handleSchedulesFiltersChange = (filters: RemoteFiltersType) => {
-    this.setState({ filters }, () => this.debouncedUpdateSchedules(filters));
+  handleSchedulesFiltersChange = (filters: RemoteFiltersType, isOnMount) => {
+    this.setState({ filters, page: isOnMount ? this.state.page : 1 }, this.debouncedUpdateSchedules);
   };
 
-  applyFilters = (filters: RemoteFiltersType) => {
+  applyFilters = () => {
     const { scheduleStore } = this.props.store;
-    const shouldUpdateFn = () => this.state.filters === filters;
-    scheduleStore.updateItems(filters, 1, shouldUpdateFn).then(() => {
-      if (shouldUpdateFn) {
-        this.setState({ page: 1 });
-      }
-    });
+    const { page, filters } = this.state;
+
+    LocationHelper.update({ p: page }, 'partial');
+
+    scheduleStore.updateItems(filters, page);
   };
 
   debouncedUpdateSchedules = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 
   handlePageChange = (page: number) => {
-    this.setState({ page }, this.updateSchedules);
-    this.setState({ expandedRowKeys: [] });
+    this.setState({ page, expandedRowKeys: [] }, this.applyFilters);
   };
 
-  update = (isRemoval = false) => {
+  update = () => {
     const { store } = this.props;
-    const { filters, page } = this.state;
-    const { scheduleStore } = store;
+    const { page } = this.state;
 
     // For removal we need to check if count is 1
     // which means we should change the page to the previous one
     const { results } = store.scheduleStore.getSearchResult();
     const newPage = results.length === 1 ? Math.max(page - 1, 1) : page;
 
-    return scheduleStore.updateItems(filters, isRemoval ? newPage : page);
+    this.handlePageChange(newPage);
   };
 
   getUpdateRelatedEscalationChainsHandler = (scheduleId: Schedule['id']) => {

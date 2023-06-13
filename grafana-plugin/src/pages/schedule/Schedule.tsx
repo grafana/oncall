@@ -103,6 +103,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   render() {
     const {
       store,
+      query,
       match: {
         params: { id: scheduleId },
       },
@@ -131,12 +132,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const disabledRotationForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
-      !!shiftIdToShowRotationForm;
+      !!shiftIdToShowRotationForm ||
+      shiftIdToShowOverridesForm;
 
     const disabledOverrideForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       !schedule?.enable_web_overrides ||
-      !!shiftIdToShowOverridesForm;
+      !!shiftIdToShowOverridesForm ||
+      shiftIdToShowRotationForm;
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
@@ -148,7 +151,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <VerticalGroup spacing="lg" align="center">
                     <Text.Title level={1}>404</Text.Title>
                     <Text.Title level={4}>Schedule not found</Text.Title>
-                    <PluginLink query={{ page: 'schedules' }}>
+                    <PluginLink query={{ page: 'schedules', ...query }}>
                       <Button variant="secondary" icon="arrow-left" size="md">
                         Go to Schedules page
                       </Button>
@@ -160,7 +163,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <div className={cx('header')}>
                     <HorizontalGroup justify="space-between">
                       <div className={cx('title')}>
-                        <PluginLink query={{ page: 'schedules' }}>
+                        <PluginLink query={{ page: 'schedules', ...query }}>
                           <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title

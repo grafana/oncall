@@ -22,6 +22,8 @@ interface WorkingHoursProps {
 
 const cx = cn.bind(styles);
 
+const WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
+
 const WorkingHours: FC<WorkingHoursProps> = (props) => {
   const {
     timezone,
@@ -44,6 +46,11 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     () => getNonWorkingMoments(startMoment, endMoment, workingMoments),
     [startMoment, endMoment, workingMoments]
   );
+
+  if (duration > WEEK_IN_SECONDS) {
+    // hide if period more then a week
+    return null;
+  }
 
   return (
     <svg
