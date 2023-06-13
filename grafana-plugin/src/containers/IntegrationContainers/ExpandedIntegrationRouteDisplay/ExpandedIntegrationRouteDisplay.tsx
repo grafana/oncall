@@ -104,6 +104,9 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
     const isDefault = IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
+    const channelFilterTemplate = channelFilter.filtering_term
+      ? IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)
+      : '{# Add Routing Template, e.g. {{ payload.severity == "critical" }} #}';
 
     if (isLoading) {
       return <LoadingPlaceholder text="Loading..." />;
@@ -153,7 +156,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                     <InlineLabel width={20}>Routing Template</InlineLabel>
                     <div className={cx('input', 'input--short')}>
                       <MonacoEditor
-                        value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
+                        value={channelFilterTemplate}
                         disabled={true}
                         height={MONACO_INPUT_HEIGHT_SMALL}
                         data={templates}

@@ -86,7 +86,7 @@ interface Integration2State extends PageBaseState {
 
 const ACTIONS_LIST_WIDTH = 200;
 const ACTIONS_LIST_BORDER = 2;
-const NEW_ROUTE_DEFAULT = '{# (payload.severity == "foo" and "bar" in payload.region) or True #}';
+const NEW_ROUTE_DEFAULT = '';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
