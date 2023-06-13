@@ -196,6 +196,9 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
+        validated_data["name"] = CustomOnCallShift.generate_name(
+            validated_data["schedule"], validated_data["priority_level"], validated_data["type"]
+        )
         # before creation, require users set
         self._require_users(validated_data)
         instance = super().create(validated_data)
