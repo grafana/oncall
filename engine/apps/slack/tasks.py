@@ -300,7 +300,6 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def populate_slack_user_identities(organization_pk):
-
     SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
 
     Organization = apps.get_model("user_management", "Organization")
@@ -313,7 +312,6 @@ def populate_slack_user_identities(organization_pk):
     slack_user_identities_to_update = []
 
     for member in slack_team_identity.members:
-
         profile = member.get("profile")
         email = profile.get("email", None)
 

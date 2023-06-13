@@ -32,7 +32,6 @@ live_settings = LiveSettingProxy()
 
 
 class LiveSettingValidator:
-
     EMPTY_VALID_NAMES = (
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",

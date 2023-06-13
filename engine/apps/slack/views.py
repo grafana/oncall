@@ -582,7 +582,6 @@ class SlackEventApiEndpointView(APIView):
 
 
 class ResetSlackView(APIView):
-
     permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = [PluginAuthentication]
 

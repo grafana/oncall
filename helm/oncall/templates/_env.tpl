@@ -220,20 +220,38 @@ http://{{ include "oncall.grafana.fullname" . }}
   value: {{ include "snippet.mysql.port" . }}
 - name: MYSQL_DB_NAME
   value: {{ include "snippet.mysql.db" . }}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.existingSecret .Values.externalMysql.usernameKey (not .Values.externalMysql.user) }}
+- name: MYSQL_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.mysql.password.secret.name" . }}
+      key: {{ .Values.externalMysql.usernameKey }}
+{{- else }}
 - name: MYSQL_USER
   value: {{ include "snippet.mysql.user" . }}
+{{- end }}
 - name: MYSQL_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.mysql.password.secret.name" . }}
-      key: mariadb-root-password
+      key: {{ include "snippet.mysql.password.secret.key" . }}
 {{- end }}
 
 {{- define "snippet.mysql.password.secret.name" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.password -}}
 {{ include "oncall.fullname" . }}-mysql-external
+{{- else if and (not .Values.mariadb.enabled) .Values.externalMysql.existingSecret -}}
+{{ .Values.externalMysql.existingSecret }}
 {{- else -}}
 {{ include "oncall.mariadb.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.mysql.password.secret.key" -}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.passwordKey -}}
+{{ .Values.externalMysql.passwordKey }}
+{{- else -}}
+mariadb-root-password
 {{- end -}}
 {{- end -}}
 
@@ -257,7 +275,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
 {{- required "externalMysql.db_name is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
-"oncall"
+{{- .Values.mariadb.auth.database | default "oncall" | quote -}}
 {{- end -}}
 {{- end -}}
 
@@ -265,7 +283,7 @@ http://{{ include "oncall.grafana.fullname" . }}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.user -}}
 {{- .Values.externalMysql.user | quote }}
 {{- else -}}
-"root"
+{{- .Values.mariadb.auth.username | default "root" | quote -}}
 {{- end -}}
 {{- end -}}
 
@@ -436,8 +454,18 @@ rabbitmq-password
 {{- define "snippet.redis.password.secret.name" -}}
 {{- if and (not .Values.redis.enabled) .Values.externalRedis.password -}}
 {{ include "oncall.fullname" . }}-redis-external
+{{- else if and (not .Values.redis.enabled) .Values.externalRedis.existingSecret -}}
+{{ .Values.externalRedis.existingSecret }}
 {{- else -}}
 {{ include "oncall.redis.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.redis.password.secret.key" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.passwordKey -}}
+{{ .Values.externalRedis.passwordKey }}
+{{- else -}}
+redis-password
 {{- end -}}
 {{- end -}}
 
@@ -449,8 +477,8 @@ rabbitmq-password
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ template "snippet.redis.password.secret.name" . }}
-      key: redis-password
+      name: {{ include "snippet.redis.password.secret.name" . }}
+      key: {{ include "snippet.redis.password.secret.key" . }}
 {{- end }}
 
 {{- define "snippet.oncall.smtp.env" -}}
@@ -478,5 +506,21 @@ rabbitmq-password
 {{- else -}}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED
   value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
+{{- end -}}
+{{- end }}
+
+{{- define "snippet.oncall.exporter.env" -}}
+{{- if .Values.oncall.exporter.enabled -}}
+- name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+  value: {{ .Values.oncall.exporter.enabled | toString | title | quote }}
+- name: PROMETHEUS_EXPORTER_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "oncall.fullname" . }}-exporter
+      key: exporter-secret
+      optional: true
+{{- else -}}
+- name: FEATURE_PROMETHEUS_EXPORTER_ENABLED
+  value: {{ .Values.oncall.exporter.enabled | toString | title | quote }}
 {{- end -}}
 {{- end }}

@@ -36,15 +36,11 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-<!-- markdownlint-disable MD013 -->
-
 | Parameter | Unique | Description                                                                                           |
 | --------- | :----: | :---------------------------------------------------------------------------------------------------- |
 | `id`      |  Yes   | User Group ID                                                                                         |
 | `type`    |   No   | [Slack-defined user groups](https://slack.com/intl/en-ru/help/articles/212906697-Create-a-user-group) |
 | `slack`   |   No   | Metadata retrieved from Slack.                                                                        |
-
-<!-- markdownlint-enable MD013 -->
 
 **HTTP request**
 

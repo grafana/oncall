@@ -1,3 +1,4 @@
+import datetime
 import logging
 import typing
 
@@ -43,7 +44,7 @@ class EscalationSnapshot:
         escalation_policies_snapshots: typing.List["EscalationPolicySnapshot"],
         slack_channel_id: str,
         pause_escalation: bool,
-        next_step_eta: typing.Optional[str],
+        next_step_eta: typing.Optional[datetime.datetime],
     ):
         self.alert_group = alert_group
         self.channel_filter_snapshot = channel_filter_snapshot
@@ -52,7 +53,7 @@ class EscalationSnapshot:
         self.escalation_policies_snapshots = escalation_policies_snapshots
         self.slack_channel_id = slack_channel_id
         self.pause_escalation = pause_escalation
-        self.next_step_eta = next_step_eta
+        self.next_step_eta: typing.Optional[datetime.datetime] = next_step_eta
         self.stop_escalation = False
 
     @property
@@ -102,7 +103,7 @@ class EscalationSnapshot:
         """
         if self.next_step_eta is None:
             return None
-        return self.next_step_eta > (timezone.now() - timezone.timedelta(minutes=5))
+        return self.next_step_eta > (timezone.now() - datetime.timedelta(minutes=5))
 
     def save_to_alert_group(self) -> None:
         self.alert_group.raw_escalation_snapshot = self.convert_to_dict()

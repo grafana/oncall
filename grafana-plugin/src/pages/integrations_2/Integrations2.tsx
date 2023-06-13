@@ -414,36 +414,34 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             <div className="thin-line-break" />
 
             <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
-              <>
-                <div className={cx('integrations-actionItem')}>
-                  <div
-                    onClick={() => {
-                      this.setState({
-                        confirmationModal: {
-                          isOpen: true,
-                          confirmText: 'Delete',
-                          dismissText: 'Cancel',
-                          onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
-                          title: 'Delete integration',
-                          body: (
-                            <Text type="primary">
-                              Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
-                            </Text>
-                          ),
-                        },
-                      });
-                    }}
-                    style={{ width: '100%' }}
-                  >
-                    <Text type="danger">
-                      <HorizontalGroup spacing={'xs'}>
-                        <Icon name="trash-alt" />
-                        <span>Delete Integration</span>
-                      </HorizontalGroup>
-                    </Text>
-                  </div>
+              <div className={cx('integrations-actionItem')}>
+                <div
+                  onClick={() => {
+                    this.setState({
+                      confirmationModal: {
+                        isOpen: true,
+                        confirmText: 'Delete',
+                        dismissText: 'Cancel',
+                        onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
+                        title: 'Delete integration',
+                        body: (
+                          <Text type="primary">
+                            Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
+                          </Text>
+                        ),
+                      },
+                    });
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  <Text type="danger">
+                    <HorizontalGroup spacing={'xs'}>
+                      <Icon name="trash-alt" />
+                      <span>Delete Integration</span>
+                    </HorizontalGroup>
+                  </Text>
                 </div>
-              </>
+              </div>
             </WithPermissionControlTooltip>
           </div>
         )}
@@ -475,9 +473,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters, page } = this.state;
+    const { integrationsFilters } = this.state;
 
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters).then(() => {
+      this.setState({ page: 1 });
+      LocationHelper.update({ p: 1 }, 'partial');
+    });
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
