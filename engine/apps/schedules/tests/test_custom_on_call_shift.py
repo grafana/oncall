@@ -1589,6 +1589,52 @@ def test_delete_shift(make_organization_and_user, make_schedule, make_on_call_sh
 
 
 @pytest.mark.django_db
+def test_delete_shift_updates_linked_shift(
+    make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization, user_1 = make_organization_and_user()
+    other_user = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = (timezone.now() - timezone.timedelta(days=7)).replace(microsecond=0)
+
+    updated_shifts = (
+        (start_date, 3600, user_1),
+        (start_date, 3600 * 2, user_1),
+        (start_date, 3600, other_user),
+    )
+
+    shifts = []
+    previous_shift = None
+    for start_date, duration, user in reversed(updated_shifts):
+        data = {
+            "priority_level": 1,
+            "start": start_date,
+            "rotation_start": start_date,
+            "duration": timezone.timedelta(seconds=duration),
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+            "updated_shift": previous_shift,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+        previous_shift = on_call_shift
+        shifts.append(on_call_shift)
+
+    last_shift, intermediate_shift, first_shift = shifts
+    intermediate_shift.delete(force=True)
+
+    # deleted shift does not exist
+    with pytest.raises(CustomOnCallShift.DoesNotExist):
+        intermediate_shift.refresh_from_db()
+
+    # first shift now is linked to the following one
+    first_shift.refresh_from_db()
+    assert first_shift.updated_shift == last_shift
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "starting_day,duration,deleted",
     [

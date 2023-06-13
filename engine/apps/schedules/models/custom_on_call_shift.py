@@ -237,6 +237,13 @@ class CustomOnCallShift(models.Model):
                     self.duration = delta
                     update_fields += ["duration"]
             self.save(update_fields=update_fields)
+        elif self.schedule:
+            # for web schedule shifts to be hard-deleted, update the rotation updated_shift links
+            previous_shift = self.schedule.custom_shifts.filter(updated_shift=self).first()
+            super().delete(*args, **kwargs)
+            if previous_shift:
+                previous_shift.updated_shift = self.updated_shift
+                previous_shift.save(update_fields=["updated_shift"])
         else:
             super().delete(*args, **kwargs)
 
