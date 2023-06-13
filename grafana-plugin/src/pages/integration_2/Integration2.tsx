@@ -934,11 +934,18 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
               HTTP Endpoint
             </Text>
           </Tag>
-          {alertReceiveChannelStore.items[id]?.integration_url && <IntegrationInputField
-            value={alertReceiveChannelStore.items[id].integration_url}
-            className={cx('integration__input-field')}
-          />}
-          <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer" className={cx('u-pull-right')}>
+          {alertReceiveChannelStore.items[id]?.integration_url && (
+            <IntegrationInputField
+              value={alertReceiveChannelStore.items[id].integration_url}
+              className={cx('integration__input-field')}
+            />
+          )}
+          <a
+            href="https://grafana.com/docs/oncall/latest/integrations/"
+            target="_blank"
+            rel="noreferrer"
+            className={cx('u-pull-right')}
+          >
             <Text type="link" size="small">
               <HorizontalGroup>
                 How to connect
