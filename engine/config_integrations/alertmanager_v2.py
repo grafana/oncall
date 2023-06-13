@@ -40,7 +40,7 @@ Severity: {{ severity }} {{ severity_emoji }}
 {%- set status = payload.status | default("Unknown") %}
 {%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
 Status: {{ status }} {{ status_emoji }} (on the source)
-{% if status == "firing" and payload.truncated_alerts == 0 %}
+{% if status == "firing" %}
 Firing alerts – {{ payload.numFiring }}
 Resolved alerts – {{ payload.numResolved }}
 {% endif %}
@@ -109,7 +109,7 @@ Severity: {{ severity }} {{ severity_emoji }}
 {%- set status = payload.status | default("Unknown") %}
 {%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
 Status: {{ status }} {{ status_emoji }} (on the source)
-{% if status == "firing" and payload.truncated_alerts == 0 %}
+{% if status == "firing" %}
 Firing alerts – {{ payload.numFiring }}
 Resolved alerts – {{ payload.numResolved }}
 {% endif %}
@@ -169,7 +169,7 @@ Severity: {{ severity }} {{ severity_emoji }}
 {%- set status = payload.status | default("Unknown") %}
 {%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
 Status: {{ status }} {{ status_emoji }} (on the source)
-{% if status == "firing" and payload.truncated_alerts == 0 %}
+{% if status == "firing" %}
 Firing alerts – {{ payload.numFiring }}
 Resolved alerts – {{ payload.numResolved }}
 {% endif %}
