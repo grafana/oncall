@@ -409,7 +409,7 @@ class AlertManagerV2View(BrowsableInstructionMixin, AlertChannelDefiningMixin, I
 
         data = request.data
         if "numFiring" not in request.data:
-            # Count firing and resolved alerts manually to keep backward-compatibility with older AM.
+            # Count firing and resolved alerts manually if not present in payload
             num_firing = len(list(filter(lambda a: a["status"] == "firing", alerts)))
             num_resolved = len(list(filter(lambda a: a["status"] == "resolved", alerts)))
             data = {**request.data, "numFiring": num_firing, "numResolved": num_resolved}
