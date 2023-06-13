@@ -36,3 +36,17 @@ jobs:
           issue-number: ${{ github.event.issue.number }}
           body: |
             The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it in the PR description. Thank you :smile:!
+
+  verify-that-atleast-one-label-is-added:
+    name: Verify that atleast one label is added to issue
+    if: "join(github.event.issue.labels.*.name, '') == ''"
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add comment to remind about adding labels
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thank you for opening this issue! We noticed that there are currently no labels assigned to the issue :eyes:. Please be sure to add one or more that most accurately describe the issue. In the event that no labels are added, this issue will be closed.
