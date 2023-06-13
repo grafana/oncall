@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed `SlackActionRecord` model and database table by @joeyorlando [#2201](https://github.com/grafana/oncall/pull/2201)
 
+### Fixed
+
+- Fix schedule shift preview to not breaking rotation shifts when there is overlap [#2218](https://github.com/grafana/oncall/pull/2218)
+- Fix schedule list filter by type to allow considering multiple values [#2218](https://github.com/grafana/oncall/pull/2218)
+
 ## v1.2.43 (2023-06-12)
 
 ### Changed
