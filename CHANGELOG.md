@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change .Values.externalRabbitmq.passwordKey from `password` to `""` (default value `rabbitmq-password`) [864](https://github.com/grafana/oncall/pull/864)
 
+### Added
+
+- Add helm chart support for redis and mysql existing secrets [#2156](https://github.com/grafana/oncall/pull/2156)
+
 ## v1.2.43 (2023-06-12)
 
 ### Changed

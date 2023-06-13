@@ -220,20 +220,38 @@ http://{{ include "oncall.grafana.fullname" . }}
   value: {{ include "snippet.mysql.port" . }}
 - name: MYSQL_DB_NAME
   value: {{ include "snippet.mysql.db" . }}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.existingSecret .Values.externalMysql.usernameKey (not .Values.externalMysql.user) }}
+- name: MYSQL_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.mysql.password.secret.name" . }}
+      key: {{ .Values.externalMysql.usernameKey }}
+{{- else }}
 - name: MYSQL_USER
   value: {{ include "snippet.mysql.user" . }}
+{{- end }}
 - name: MYSQL_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.mysql.password.secret.name" . }}
-      key: mariadb-root-password
+      key: {{ include "snippet.mysql.password.secret.key" . }}
 {{- end }}
 
 {{- define "snippet.mysql.password.secret.name" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.password -}}
 {{ include "oncall.fullname" . }}-mysql-external
+{{- else if and (not .Values.mariadb.enabled) .Values.externalMysql.existingSecret -}}
+{{ .Values.externalMysql.existingSecret }}
 {{- else -}}
 {{ include "oncall.mariadb.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.mysql.password.secret.key" -}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.passwordKey -}}
+{{ .Values.externalMysql.passwordKey }}
+{{- else -}}
+mariadb-root-password
 {{- end -}}
 {{- end -}}
 
@@ -436,8 +454,18 @@ rabbitmq-password
 {{- define "snippet.redis.password.secret.name" -}}
 {{- if and (not .Values.redis.enabled) .Values.externalRedis.password -}}
 {{ include "oncall.fullname" . }}-redis-external
+{{- else if and (not .Values.redis.enabled) .Values.externalRedis.existingSecret -}}
+{{ .Values.externalRedis.existingSecret }}
 {{- else -}}
 {{ include "oncall.redis.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.redis.password.secret.key" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.passwordKey -}}
+{{ .Values.externalRedis.passwordKey }}
+{{- else -}}
+redis-password
 {{- end -}}
 {{- end -}}
 
@@ -449,8 +477,8 @@ rabbitmq-password
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ template "snippet.redis.password.secret.name" . }}
-      key: redis-password
+      name: {{ include "snippet.redis.password.secret.name" . }}
+      key: {{ include "snippet.redis.password.secret.key" . }}
 {{- end }}
 
 {{- define "snippet.oncall.smtp.env" -}}
