@@ -66,7 +66,6 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
-
         step = instance.step
         result = super().to_representation(instance)
 

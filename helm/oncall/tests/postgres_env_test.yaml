@@ -1,4 +1,4 @@
-suite: test postgresql deployment environments
+suite: test PostgreSQL envs for deployments
 templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
@@ -6,7 +6,7 @@ templates:
 release:
   name: oncall
 tests:
-  - it: external Postgresql default settings
+  - it: postgresql.enabled=false -> external PostgreSQL default settings
     set:
       database.type: postgresql
       postgresql.enabled: false
@@ -37,7 +37,7 @@ tests:
             name: DATABASE_HOST
             value: oncall-postgresql
 
-  - it: external Postgresql custom settings
+  - it: externalPostgresql -> should use external PostgreSQL custom settings
     set:
       database.type: postgresql
       postgresql.enabled: false
@@ -73,7 +73,7 @@ tests:
             name: DATABASE_HOST
             value: test-host
 
-  - it: internal Postgresql default settings
+  - it: postgresql.enabled=true -> internal PostgreSQL default settings
     set:
       database.type: postgresql
       postgresql.enabled: true
@@ -104,7 +104,7 @@ tests:
             name: DATABASE_HOST
             value: oncall-postgresql
 
-  - it: internal Postgresql custom settings
+  - it: postgresql.auth -> should use internal PostgreSQL custom settings
     set:
       database.type: postgresql
       postgresql:

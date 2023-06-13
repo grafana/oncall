@@ -1,5 +1,5 @@
+import datetime
 from dataclasses import asdict
-from datetime import timedelta
 
 import humanize
 import pytz
@@ -18,7 +18,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 class CustomDateField(fields.TimeField):
     def to_internal_value(self, data):
         try:
-            archive_datetime = timezone.datetime.fromisoformat(data).astimezone(pytz.UTC)
+            archive_datetime = datetime.datetime.fromisoformat(data).astimezone(pytz.UTC)
         except (TypeError, ValueError):
             raise serializers.ValidationError({"archive_alerts_from": ["Invalid date format"]})
         if archive_datetime.date() >= timezone.now().date():
@@ -128,7 +128,9 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
 
     def get_stats(self, obj):
         if isinstance(obj.cached_seconds_saved_by_amixr, int):
-            verbal_time_saved_by_amixr = humanize.naturaldelta(timedelta(seconds=obj.cached_seconds_saved_by_amixr))
+            verbal_time_saved_by_amixr = humanize.naturaldelta(
+                datetime.timedelta(seconds=obj.cached_seconds_saved_by_amixr)
+            )
         else:
             verbal_time_saved_by_amixr = None
 

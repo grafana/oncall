@@ -66,7 +66,7 @@ steps:
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements.txt)
+      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
@@ -80,7 +80,7 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements.txt
+      - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
@@ -418,4 +418,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 3ef960dd2f2a121d795f7fe0b5447f7695bf6cd8f6fe552cd4dbab15d0acc9ee
+hmac: 59ad498428731001484be9ac6b9d10685b2cd49f30eb3d97ed7dc99f031dca22
+
+...
