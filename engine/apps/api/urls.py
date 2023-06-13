@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
@@ -8,7 +7,6 @@ from .views.alert_group import AlertGroupView
 from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
-from .views.apns_device import APNSDeviceAuthorizedViewSet
 from .views.channel_filter import ChannelFilterView
 from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
@@ -25,6 +23,7 @@ from .views.organization import (
     GetTelegramVerificationCode,
     SetGeneralChannel,
 )
+from .views.paging import DirectPagingAPIView
 from .views.preview_template_options import PreviewTemplateOptionsView
 from .views.public_api_tokens import PublicApiTokenView
 from .views.resolution_note import ResolutionNoteView
@@ -39,9 +38,9 @@ from .views.slack_team_settings import (
 from .views.subscription import SubscriptionView
 from .views.team import TeamViewSet
 from .views.telegram_channels import TelegramChannelViewSet
-from .views.test_insight_logs import TestInsightLogsAPIView
 from .views.user import CurrentUserView, UserView
 from .views.user_group import UserGroupViewSet
+from .views.webhooks import WebhooksView
 
 app_name = "api-internal"
 
@@ -59,6 +58,7 @@ router.register(
 router.register(r"channel_filters", ChannelFilterView, basename="channel_filter")
 router.register(r"schedules", ScheduleView, basename="schedule")
 router.register(r"custom_buttons", CustomButtonView, basename="custom_button")
+router.register(r"webhooks", WebhooksView, basename="webhooks")
 router.register(r"resolution_notes", ResolutionNoteView, basename="resolution_note")
 router.register(r"telegram_channels", TelegramChannelViewSet, basename="telegram_channel")
 router.register(r"slack_channels", SlackChannelView, basename="slack_channel")
@@ -67,9 +67,6 @@ router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_h
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
-
-if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
-    router.register(r"device/apns", APNSDeviceAuthorizedViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
@@ -108,8 +105,8 @@ urlpatterns = [
         "preview_template_options", PreviewTemplateOptionsView.as_view(), name="preview_template_options"
     ),
     optional_slash_path("route_regex_debugger", RouteRegexDebuggerView.as_view(), name="route_regex_debugger"),
-    optional_slash_path("insight_logs_test", TestInsightLogsAPIView.as_view(), name="insight-logs-test"),
     re_path(r"^alerts/(?P<id>\w+)/?$", AlertDetailView.as_view(), name="alerts-detail"),
+    optional_slash_path("direct_paging", DirectPagingAPIView.as_view(), name="direct_paging"),
 ]
 
 urlpatterns += [

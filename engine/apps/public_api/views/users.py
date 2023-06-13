@@ -5,16 +5,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.auth import ApiTokenAuthentication, UserScheduleExportAuthentication
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import FastUserSerializer, UserSerializer
+from apps.public_api.tf_sync import is_request_from_terraform, sync_users_on_tf_request
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import user_ical_export
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import User
 from common.api_helpers.mixins import RateLimitHeadersMixin, ShortSerializerMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
-from common.constants.role import Role
 
 
 class UserFilter(filters.FilterSet):
@@ -23,7 +24,9 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="iexact")
-    roles = filters.MultipleChoiceFilter(field_name="role", choices=Role.choices())
+    roles = filters.MultipleChoiceFilter(
+        field_name="role", choices=LegacyAccessControlRole.choices()
+    )  # LEGACY, should be removed eventually
     username = filters.CharFilter(field_name="username", lookup_expr="iexact")
 
     class Meta:
@@ -45,7 +48,12 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
 
     throttle_classes = [UserThrottle]
 
+    # self.get_object() is not used in export action because UserScheduleExportAuthentication is used
+    extra_actions_ignore_no_get_object = ["schedule_export"]
+
     def get_queryset(self):
+        if is_request_from_terraform(self.request):
+            sync_users_on_tf_request(self.request.auth.organization)
         is_short_request = self.request.query_params.get("short", "false") == "true"
         queryset = self.request.auth.organization.users.all()
         if not is_short_request:

@@ -44,14 +44,14 @@ class AlertGroupTelegramRenderer(AlertGroupBaseRenderer):
         elif self.alert_group.silenced:
             status_emoji = "⚪️"  # white circle
 
-        status_verbose = "Alerting"
+        status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
         if self.alert_group.resolved:
             status_verbose = self.alert_group.get_resolve_text()
         elif self.alert_group.acknowledged:
             status_verbose = self.alert_group.get_acknowledge_text()
         # First line in the invisible link with id of organization.
         # It is needed to add info about organization to the telegram message for the oncall-gateway.
-        text = f"<a href='{self.alert_group.channel.organization.web_link_with_id}'>&#8205;</a>"
+        text = f"<a href='{self.alert_group.channel.organization.web_link_with_uuid}'>&#8205;</a>"
         text += f"{status_emoji} #{self.alert_group.inside_organization_number}, {title}\n"
         text += f"{status_verbose}, alerts: {alerts_count_str}\n"
         text += f"Source: {self.alert_group.channel.short_name}\n"
@@ -63,4 +63,4 @@ class AlertGroupTelegramRenderer(AlertGroupBaseRenderer):
         if image_url is not None:
             text = f"<a href='{image_url}'>&#8205;</a>" + text
 
-        return emojize(text, use_aliases=True)
+        return emojize(text, language="alias")

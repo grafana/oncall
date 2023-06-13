@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.conf import settings
 from django.utils import timezone
 
 from apps.email.models import EmailMessage
@@ -12,9 +13,6 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
     This subscription is responsible only for limiting calls, sms and emails. Notifications limited per user per day.
     User management and limitations happens on grafana side.
     """
-
-    PHONE_NOTIFICATIONS_LIMIT = 200
-    EMAILS_LIMIT = 200
 
     def phone_calls_left(self, user):
         return self._calculate_phone_notifications_left(user)
@@ -57,18 +55,16 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
         Count sms and calls together and they have common limit.
         For FreePublicBetaSubscriptionStrategy notifications are counted per day
         """
-        PhoneCall = apps.get_model("twilioapp", "PhoneCall")
-        SMSMessage = apps.get_model("twilioapp", "SMSMessage")
+        PhoneCallRecord = apps.get_model("phone_notifications", "PhoneCallRecord")
+        SMSMessage = apps.get_model("phone_notifications", "SMSRecord")
         now = timezone.now()
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        calls_today = PhoneCall.objects.filter(
+        calls_today = PhoneCallRecord.objects.filter(
             created_at__gte=day_start,
-            represents_alert_group__channel__organization=self.organization,
             receiver=user,
         ).count()
         sms_today = SMSMessage.objects.filter(
             created_at__gte=day_start,
-            represents_alert_group__channel__organization=self.organization,
             receiver=user,
         ).count()
 
@@ -76,8 +72,8 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
 
     @property
     def _phone_notifications_limit(self):
-        return self.PHONE_NOTIFICATIONS_LIMIT
+        return settings.PHONE_NOTIFICATIONS_LIMIT
 
     @property
     def _emails_limit(self):
-        return self.EMAILS_LIMIT
+        return settings.EMAIL_NOTIFICATIONS_LIMIT

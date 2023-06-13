@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 
 # Testing permissions, not view itself. So mock is ok here
@@ -14,13 +14,16 @@ from common.constants.role import Role
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_set_general_log_channel_permissions(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers, role, expected_status
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
     _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()

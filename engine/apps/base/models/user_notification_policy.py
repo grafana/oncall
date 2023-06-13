@@ -1,3 +1,4 @@
+import datetime
 from enum import unique
 from typing import Tuple
 
@@ -6,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, QuerySet
-from django.utils import timezone
 from ordered_model.models import OrderedModel
 
 from apps.base.messaging import get_messaging_backends
@@ -35,8 +35,6 @@ BUILT_IN_BACKENDS = (
     ("SMS", 1),
     ("PHONE_CALL", 2),
     ("TELEGRAM", 3),
-    ("MOBILE_PUSH_GENERAL", 5),
-    ("MOBILE_PUSH_CRITICAL", 6),
 )
 
 
@@ -79,7 +77,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
                 notify_by=NotificationChannelOptions.DEFAULT_NOTIFICATION_CHANNEL,
                 order=0,
             ),
-            model(user=user, step=model.Step.WAIT, wait_delay=timezone.timedelta(minutes=15), order=1),
+            model(user=user, step=model.Step.WAIT, wait_delay=datetime.timedelta(minutes=15), order=1),
             model(user=user, step=model.Step.NOTIFY, notify_by=model.NotificationChannel.PHONE_CALL, order=2),
         )
 
@@ -127,11 +125,11 @@ class UserNotificationPolicy(OrderedModel):
     NotificationChannel = _notification_channels
     notify_by = models.PositiveSmallIntegerField(default=0, validators=[validate_channel_choice])
 
-    ONE_MINUTE = timezone.timedelta(minutes=1)
-    FIVE_MINUTES = timezone.timedelta(minutes=5)
-    FIFTEEN_MINUTES = timezone.timedelta(minutes=15)
-    THIRTY_MINUTES = timezone.timedelta(minutes=30)
-    HOUR = timezone.timedelta(minutes=60)
+    ONE_MINUTE = datetime.timedelta(minutes=1)
+    FIVE_MINUTES = datetime.timedelta(minutes=5)
+    FIFTEEN_MINUTES = datetime.timedelta(minutes=15)
+    THIRTY_MINUTES = datetime.timedelta(minutes=30)
+    HOUR = datetime.timedelta(minutes=60)
 
     DURATION_CHOICES = (
         (ONE_MINUTE, "1 min"),
@@ -201,8 +199,6 @@ class NotificationChannelOptions:
         UserNotificationPolicy.NotificationChannel.SMS,
         UserNotificationPolicy.NotificationChannel.PHONE_CALL,
         UserNotificationPolicy.NotificationChannel.TELEGRAM,
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL,
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL,
     ] + [
         getattr(UserNotificationPolicy.NotificationChannel, backend_id)
         for backend_id, b in get_messaging_backends()
@@ -213,10 +209,6 @@ class NotificationChannelOptions:
 
     SLACK_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [UserNotificationPolicy.NotificationChannel.SLACK]
     TELEGRAM_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [UserNotificationPolicy.NotificationChannel.TELEGRAM]
-    MOBILE_APP_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL,
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL,
-    ]
 
 
 class NotificationChannelAPIOptions(NotificationChannelOptions):
@@ -225,8 +217,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "SMS \U00002709\U0001F4F2",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "Phone call \U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram \U0001F916",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "Mobile App",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "Mobile App Critical",
     }
     LABELS.update(
         {
@@ -240,8 +230,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "SMS",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "\U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "Mobile App",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "Mobile App Critical",
     }
     SHORT_LABELS.update(
         {
@@ -257,12 +245,10 @@ class NotificationChannelPublicAPIOptions(NotificationChannelAPIOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "notify_by_sms",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "notify_by_phone_call",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "notify_by_telegram",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "notify_by_mobile_app",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "notify_by_mobile_app_critical",
     }
     LABELS.update(
         {
-            getattr(UserNotificationPolicy.NotificationChannel, backend_id): "notify_by_{}".format(b.backend_id.lower())
+            getattr(UserNotificationPolicy.NotificationChannel, backend_id): "notify_by_{}".format(b.slug)
             for backend_id, b in get_messaging_backends()
         }
     )

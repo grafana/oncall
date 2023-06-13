@@ -69,7 +69,6 @@ class SlackClientWithErrorHandling(SlackClient):
         response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
 
         if not response["ok"]:
-
             exception_text = "Slack API Call Error: {} \nArgs: {} \nKwargs: {} \nResponse: {}".format(
                 response["error"], args, kwargs, response
             )
@@ -77,7 +76,12 @@ class SlackClientWithErrorHandling(SlackClient):
             if response["error"] == "is_archived":
                 raise SlackAPIChannelArchivedException(exception_text, response=response)
 
-            if response["error"] == "rate_limited" or response["error"] == "ratelimited":
+            if (
+                response["error"] == "rate_limited"
+                or response["error"] == "ratelimited"
+                or response["error"] == "message_limit_exceeded"
+                # "message_limit_exceeded" is related to the limit on post messages for free Slack workspace
+            ):
                 if "headers" in response and response["headers"].get("Retry-After") is not None:
                     delay = int(response["headers"]["Retry-After"])
                 else:

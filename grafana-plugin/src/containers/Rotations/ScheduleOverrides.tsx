@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -10,13 +10,14 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { getStartOfDay } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
@@ -70,6 +71,10 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
+    const schedule = store.scheduleStore.items[scheduleId];
+
+    const isTypeReadOnly = !schedule?.enable_web_overrides;
+
     return (
       <>
         <div id="overrides-list" className={cx('root')}>
@@ -80,11 +85,21 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   Overrides
                 </Text.Title>
               </div>
-              <WithPermissionControl userAction={UserAction.UpdateSchedules}>
-                <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
-                  Add override
-                </Button>
-              </WithPermissionControl>
+              {isTypeReadOnly ? (
+                <Tooltip content="You can set an override using the override calendar" placement="top">
+                  <div>
+                    <Button variant="primary" icon="plus" disabled>
+                      Add override
+                    </Button>
+                  </div>
+                </Tooltip>
+              ) : (
+                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                  <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
+                    Add override
+                  </Button>
+                </WithPermissionControlTooltip>
+              )}
             </HorizontalGroup>
           </div>
           <div className={cx('header-plus-content')}>
@@ -171,11 +186,14 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   handleAddOverride = () => {
-    const { startMoment, disabled } = this.props;
+    const { store, disabled } = this.props;
 
     if (disabled) {
       return;
     }
+
+    // use start of current day as default start time for override
+    const startMoment = getStartOfDay(store.currentTimezone);
 
     this.setState({ shiftMomentToShowOverrideForm: startMoment }, () => {
       this.onShowRotationForm('new');

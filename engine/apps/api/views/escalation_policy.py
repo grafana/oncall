@@ -7,29 +7,41 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationPolicy
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_policy import (
     EscalationPolicyCreateSerializer,
     EscalationPolicySerializer,
     EscalationPolicyUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
+from apps.webhooks.utils import is_webhooks_enabled_for_organization
+from common.api_helpers.mixins import (
+    CreateSerializerMixin,
+    PublicPrimaryKeyMixin,
+    TeamFilteringMixin,
+    UpdateSerializerMixin,
+)
+from common.api_helpers.serializers import get_move_to_position_param
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
+class EscalationPolicyView(
+    TeamFilteringMixin, PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "move_to_position"),
-        AnyRole: (
-            *READ_ACTIONS,
-            "escalation_options",
-            "delay_options",
-            "num_minutes_in_window_options",
-        ),
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "list": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "retrieve": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "escalation_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "delay_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "num_minutes_in_window_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "partial_update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "destroy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "move_to_position": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
     }
 
     model = EscalationPolicy
@@ -37,7 +49,9 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
     update_serializer_class = EscalationPolicyUpdateSerializer
     create_serializer_class = EscalationPolicyCreateSerializer
 
-    def get_queryset(self):
+    TEAM_LOOKUP = "escalation_chain__team"
+
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         escalation_chain_id = self.request.query_params.get("escalation_chain")
         user_id = self.request.query_params.get("user")
         slack_channel_id = self.request.query_params.get("slack_channel")
@@ -56,10 +70,12 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
         queryset = EscalationPolicy.objects.filter(
             Q(**lookup_kwargs),
             Q(escalation_chain__organization=self.request.auth.organization),
-            Q(escalation_chain__team=self.request.user.current_team),
             Q(escalation_chain__channel_filters__alert_receive_channel__deleted_at=None),
             Q(step__in=EscalationPolicy.INTERNAL_DB_STEPS) | Q(step__isnull=True),
         ).distinct()
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
@@ -95,36 +111,31 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
 
     @action(detail=True, methods=["put"])
     def move_to_position(self, request, pk):
-        position = request.query_params.get("position", None)
-        if position is not None:
-            try:
-                instance = EscalationPolicy.objects.get(public_primary_key=pk)
-            except EscalationPolicy.DoesNotExist:
-                raise BadRequest(detail="Step does not exist")
-            try:
-                prev_state = instance.insight_logs_serialized
-                position = int(position)
-                instance.to(position)
-                new_state = instance.insight_logs_serialized
+        instance = self.get_object()
+        position = get_move_to_position_param(request)
 
-                write_resource_insight_log(
-                    instance=instance,
-                    author=self.request.user,
-                    event=EntityEvent.UPDATED,
-                    prev_state=prev_state,
-                    new_state=new_state,
-                )
-                return Response(status=status.HTTP_200_OK)
-            except ValueError as e:
-                raise BadRequest(detail=f"{e}")
+        prev_state = instance.insight_logs_serialized
+        instance.to(position)
+        new_state = instance.insight_logs_serialized
 
-        else:
-            raise BadRequest(detail="Position was not provided")
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
+        )
+
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
+            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK and not is_webhooks_enabled_for_organization(
+                self.request.auth.organization.pk
+            ):
+                continue
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
             can_change_importance = (
                 step in EscalationPolicy.IMPORTANT_STEPS_SET or step in EscalationPolicy.DEFAULT_STEPS_SET

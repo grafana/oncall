@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.utils import handle_timezone
 
@@ -69,6 +70,22 @@ class ByTeamModelFieldFilterMixin:
         queryset = queryset.filter(**lookup_kwargs)
         return queryset
 
+    def filter_model_field_with_multiple_values(self, queryset, name, values):
+        if not values:
+            return queryset
+        filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
+        null_team_lookup = None
+        for value in values:
+            if filter.null_value == value:
+                null_team_lookup = Q(**{f"{name}__isnull": True})
+                values.remove(value)
+        teams_lookup = Q(**{f"{name}__in": values})
+        if null_team_lookup is not None:
+            teams_lookup = teams_lookup | null_team_lookup
+
+        queryset = queryset.filter(teams_lookup)
+        return queryset
+
 
 def get_team_queryset(request):
     if request is None:
@@ -86,3 +103,23 @@ class ByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         null_value="null",
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_single_value.__name__,
     )
+
+
+class TeamModelMultipleChoiceFilter(filters.ModelMultipleChoiceFilter):
+    def __init__(
+        self,
+        field_name="team",
+        queryset=get_team_queryset,
+        to_field_name="public_primary_key",
+        null_label="noteam",
+        null_value="null",
+        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
+    ):
+        super().__init__(
+            field_name=field_name,
+            queryset=queryset,
+            to_field_name=to_field_name,
+            null_label=null_label,
+            null_value=null_value,
+            method=method,
+        )

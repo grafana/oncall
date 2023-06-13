@@ -1,0 +1,24 @@
+.icon {
+  width: 25px;
+  height: auto;
+  margin-right: 12px;
+}
+
+.icon-text,
+.icon {
+  cursor: default;
+}
+
+.icon-block {
+  display: flex;
+  align-items: center;
+  min-height: 80px;
+  column-gap: 12px;
+}
+
+.icon-tag {
+  border-radius: 12px;
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: default;
+}

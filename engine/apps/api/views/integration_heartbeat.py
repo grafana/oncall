@@ -3,15 +3,16 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.integration_heartbeat import IntegrationHeartBeatSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.heartbeat.models import IntegrationHeartBeat
-from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class IntegrationHeartBeatView(
+    TeamFilteringMixin,
     PublicPrimaryKeyMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
@@ -20,25 +21,35 @@ class IntegrationHeartBeatView(
     viewsets.GenericViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "activate", "deactivate"),
-        AnyRole: (*READ_ACTIONS, "timeout_options"),
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "list": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "retrieve": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "timeout_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "activate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "deactivate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     model = IntegrationHeartBeat
     serializer_class = IntegrationHeartBeatSerializer
 
-    def get_queryset(self):
+    TEAM_LOOKUP = "alert_receive_channel__team"
+
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         alert_receive_channel_id = self.request.query_params.get("alert_receive_channel", None)
         lookup_kwargs = {}
         if alert_receive_channel_id:
             lookup_kwargs = {"alert_receive_channel__public_primary_key": alert_receive_channel_id}
         queryset = IntegrationHeartBeat.objects.filter(
-            **lookup_kwargs,
             alert_receive_channel__organization=self.request.auth.organization,
-            alert_receive_channel__team=self.request.user.current_team,
+            **lookup_kwargs,
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 

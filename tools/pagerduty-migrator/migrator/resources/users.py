@@ -4,7 +4,7 @@ from migrator.utils import find_by_id
 def match_user(user: dict, oncall_users: list[dict]) -> None:
     oncall_user = None
     for candidate_user in oncall_users:
-        if user["email"] == candidate_user["email"]:
+        if user["email"].lower() == candidate_user["email"].lower():
             oncall_user = candidate_user
             break
 
@@ -53,7 +53,7 @@ def match_users_and_schedules_for_escalation_policy(
                 if not schedule:
                     continue
 
-                if schedule["unmatched_users"]:
+                if schedule["unmatched_users"] or schedule["migration_errors"]:
                     flawed_schedule_ids.add(target_id)
 
     policy["unmatched_users"] = [

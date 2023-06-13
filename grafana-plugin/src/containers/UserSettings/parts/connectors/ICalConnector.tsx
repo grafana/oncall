@@ -5,11 +5,11 @@ import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 
 import styles from './index.module.css';
 
@@ -57,7 +57,11 @@ const ICalConnector = (props: ICalConnectorProps) => {
   return (
     <div className={cx('user-item')}>
       <Label>iCal link:</Label>
-      <Text type="secondary">Secret iCal export link to add your assigned on call shifts to your calendar.</Text>
+      <Text type="secondary">
+        Secret iCal export link to add your assigned on call shifts to your calendar.
+        <br />
+        NOTE: We do not have control over when a client refreshes an imported calendar.
+      </Text>
       <div className={cx('iCal-settings')}>
         {iCalLoading ? (
           <LoadingPlaceholder text="Loading..." />
@@ -88,7 +92,7 @@ const ICalConnector = (props: ICalConnectorProps) => {
                     <Text type="secondary">
                       In case you lost your iCal link you can revoke it and generate a new one.
                     </Text>
-                    <WithPermissionControl userAction={UserAction.UpdateOtherUsersSettings}>
+                    <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                       <Button
                         icon="trash-alt"
                         onClick={handleRevokeiCalLink}
@@ -98,16 +102,16 @@ const ICalConnector = (props: ICalConnectorProps) => {
                       >
                         Revoke iCal link
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                   </>
                 )}
               </>
             ) : (
-              <WithPermissionControl userAction={UserAction.UpdateOtherUsersSettings}>
+              <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
                 <Button icon="plus" onClick={handleCreateiCalLink} className={cx('iCal-button')} variant="secondary">
                   Create iCal link
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
           </>
         )}

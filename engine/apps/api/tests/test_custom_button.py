@@ -8,9 +8,11 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import CustomButton
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 TEST_URL = "https://amixr.io"
+URL_WITH_TLD = "http://www.google.com"
+URL_WITHOUT_TLD = "http://container:8080"
 
 
 @pytest.fixture()
@@ -236,23 +238,7 @@ def test_create_invalid_data_custom_button(custom_button_internal_api_setup, mak
     data = {
         "name": "amixr_button_invalid_data",
         "webhook": TEST_URL,
-        "data": "invalid_json",
-    }
-    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-@pytest.mark.django_db
-def test_create_invalid_templated_data_custom_button(custom_button_internal_api_setup, make_user_auth_headers):
-    user, token, custom_button = custom_button_internal_api_setup
-    client = APIClient()
-    url = reverse("api-internal:custom_button-list")
-
-    data = {
-        "name": "amixr_button_invalid_data",
-        "webhook": TEST_URL,
-        # This would need a `| tojson` or some double quotes around it to pass validation.
-        "data": "{{ alert_payload.name }}",
+        "data": "{{%",
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -291,14 +277,13 @@ def test_delete_custom_button(custom_button_internal_api_setup, make_user_auth_h
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_custom_button_create_permissions(
     make_organization_and_user_with_plugin_token,
-    make_custom_action,
     make_user_auth_headers,
     role,
     expected_status,
@@ -323,9 +308,9 @@ def test_custom_button_create_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_custom_button_update_permissions(
@@ -359,7 +344,11 @@ def test_custom_button_update_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_custom_button_list_permissions(
     make_organization_and_user_with_plugin_token,
@@ -388,7 +377,11 @@ def test_custom_button_list_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_custom_button_retrieve_permissions(
     make_organization_and_user_with_plugin_token,
@@ -418,9 +411,9 @@ def test_custom_button_retrieve_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_custom_button_delete_permissions(
@@ -469,20 +462,33 @@ def test_get_custom_button_from_other_team_with_flag(
 
 
 @pytest.mark.django_db
-def test_custom_button_from_other_team_without_flag(
-    make_organization_and_user_with_plugin_token,
-    make_team,
+@pytest.mark.parametrize(
+    "dangerous_webhooks,webhook_url,expected_status",
+    [
+        (True, URL_WITH_TLD, status.HTTP_201_CREATED),
+        (True, URL_WITHOUT_TLD, status.HTTP_201_CREATED),
+        (False, URL_WITH_TLD, status.HTTP_201_CREATED),
+        (False, URL_WITHOUT_TLD, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+def test_url_without_tld_custom_button(
+    custom_button_internal_api_setup,
     make_user_auth_headers,
-    make_custom_action,
+    settings,
+    dangerous_webhooks,
+    webhook_url,
+    expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    settings.DANGEROUS_WEBHOOKS_ENABLED = dangerous_webhooks
 
-    team = make_team(organization)
-
-    custom_button = make_custom_action(organization=organization, team=team)
+    user, token, _ = custom_button_internal_api_setup
     client = APIClient()
+    url = reverse("api-internal:custom_button-list")
 
-    url = reverse("api-internal:custom_button-detail", kwargs={"pk": custom_button.public_primary_key})
-
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    data = {
+        "name": "amixr_button",
+        "webhook": webhook_url,
+        "team": None,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == expected_status

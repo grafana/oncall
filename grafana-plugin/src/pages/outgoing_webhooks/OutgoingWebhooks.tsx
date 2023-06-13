@@ -1,12 +1,10 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -18,20 +16,22 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import TeamName from 'containers/TeamName/TeamName';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ActionDTO } from 'models/action';
+import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.css';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhooksProps extends WithStoreProps, AppRootProps {}
+interface OutgoingWebhooksProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
@@ -43,14 +43,8 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     errorData: initErrorDataState(),
   };
 
-  private outgoingWebhookId: string;
-
-  async componentDidMount() {
-    this.update().then(this.parseQueryParams);
-  }
-
-  componentDidUpdate() {
-    if (this.outgoingWebhookId !== getQueryParams()['id']) {
+  componentDidUpdate(prevProps: OutgoingWebhooksProps) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
     }
   }
@@ -61,10 +55,12 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       outgoingWebhookIdToEdit: undefined,
     })); // reset state on query parse
 
-    const { store } = this.props;
-    const { id } = getQueryParams();
-
-    this.outgoingWebhookId = id;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
 
     if (!id) {
       return;
@@ -98,32 +94,38 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
     const columns = [
       {
-        width: '40%',
+        width: '35%',
         title: 'Name',
         dataIndex: 'name',
       },
       {
-        width: '40%',
+        width: '35%',
         title: 'Url',
         dataIndex: 'webhook',
       },
       {
-        width: '20%',
+        width: '15%',
+        title: 'Team',
+        render: (item: OutgoingWebhook) => this.renderTeam(item, store.grafanaTeamStore.items),
+      },
+      {
+        width: '15%',
         key: 'action',
         render: this.renderActionButtons,
       },
     ];
 
     return (
-      <PluginPage pageNav={pages['outgoing_webhooks'].getPageNav()}>
-        <PageErrorHandlingWrapper
-          errorData={errorData}
-          objectName="outgoing webhook"
-          pageName="outgoing_webhooks"
-          itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
-        >
+      <PageErrorHandlingWrapper
+        errorData={errorData}
+        objectName="outgoing webhook"
+        pageName="outgoing_webhooks"
+        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+      >
+        {() => (
           <>
             <div className={cx('root')}>
+              {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
@@ -133,15 +135,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                     </LegacyNavHeading>
                     <div className="u-pull-right">
                       <PluginLink
-                        partial
-                        query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                        query={{ page: 'outgoing_webhooks', id: 'new' }}
+                        disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                       >
-                        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                        <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                           <Button variant="primary" icon="plus">
-                            Create
+                            New outgoing webhook
                           </Button>
-                        </WithPermissionControl>
+                        </WithPermissionControlTooltip>
                       </PluginLink>
                     </div>
                   </div>
@@ -159,26 +160,56 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               />
             )}
           </>
-        </PageErrorHandlingWrapper>
-      </PluginPage>
+        )}
+      </PageErrorHandlingWrapper>
     );
+  }
+
+  renderOutgoingWebhooksFilters() {
+    const { query, store } = this.props;
+    return (
+      <div className={cx('filters')}>
+        <RemoteFilters
+          query={query}
+          page="outgoing_webhooks"
+          grafanaTeamStore={store.grafanaTeamStore}
+          onChange={this.handleFiltersChange}
+        />
+      </div>
+    );
+  }
+
+  handleFiltersChange = (filters: FiltersValues, isOnMount) => {
+    const { store } = this.props;
+
+    const { outgoingWebhookStore } = store;
+
+    outgoingWebhookStore.updateItems(filters).then(() => {
+      if (isOnMount) {
+        this.parseQueryParams();
+      }
+    });
+  };
+
+  renderTeam(record: OutgoingWebhook, teams: any) {
+    return <TeamName team={teams[record.team]} />;
   }
 
   renderActionButtons = (record: ActionDTO) => {
     return (
       <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key={'edit_action'} userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <Button onClick={this.getEditClickHandler(record.id)} fill="text">
             Edit
           </Button>
-        </WithPermissionControl>
-        <WithPermissionControl key={'delete_action'} userAction={UserAction.UpdateCustomActions}>
+        </WithPermissionControlTooltip>
+        <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <WithConfirm>
             <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
               Delete
             </Button>
           </WithConfirm>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </HorizontalGroup>
     );
   };
@@ -191,20 +222,23 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   getEditClickHandler = (id: OutgoingWebhook['id']) => {
+    const { history } = this.props;
+
     return () => {
       this.setState({ outgoingWebhookIdToEdit: id });
 
-      getLocationSrv().update({ partial: true, query: { id } });
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/${id}`);
     };
   };
 
   handleOutgoingWebhookFormHide = () => {
+    const { history } = this.props;
     this.setState({ outgoingWebhookIdToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
   };
 }
 
 export { OutgoingWebhooks };
 
-export default withMobXProviderContext(OutgoingWebhooks);
+export default withRouter(withMobXProviderContext(OutgoingWebhooks));

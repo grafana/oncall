@@ -20,7 +20,7 @@ class GcomToken:
         self.organization = organization
 
 
-def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
+def check_gcom_permission(token_string: str, context) -> GcomToken:
     """
     Verify that request from plugin is valid. Check it and synchronize the organization details
     with gcom every GCOM_TOKEN_CHECK_PERIOD.
@@ -40,7 +40,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
 
     logger.debug(f"Start authenticate by making request to gcom api for org={org_id}, stack_id={stack_id}")
     client = GcomAPIClient(token_string)
-    instance_info, status = client.get_instance_info(stack_id)
+    instance_info = client.get_instance_info(stack_id)
     if not instance_info or str(instance_info["orgId"]) != org_id:
         raise InvalidToken
 
@@ -58,6 +58,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 org_slug=instance_info["orgSlug"],
                 org_title=instance_info["orgName"],
                 region_slug=instance_info["regionSlug"],
+                cluster_slug=instance_info["clusterSlug"],
                 gcom_token=token_string,
                 gcom_token_org_last_time_synced=timezone.now(),
             )
@@ -67,6 +68,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
         organization.org_title = instance_info["orgName"]
         organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
+        organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token = token_string
         organization.gcom_token_org_last_time_synced = timezone.now()
         organization.save(
@@ -78,13 +80,14 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 "grafana_url",
                 "gcom_token",
                 "gcom_token_org_last_time_synced",
+                "cluster_slug",
             ]
         )
     logger.debug(f"Finish authenticate by making request to gcom api for org={org_id}, stack_id={stack_id}")
     return GcomToken(organization)
 
 
-def check_token(token_string: str, context: dict):
+def check_token(token_string: str, context: dict) -> GcomToken | PluginAuthToken:
     token_parts = token_string.split(":")
     if len(token_parts) > 1 and token_parts[0] == "gcom":
         return check_gcom_permission(token_parts[1], context)

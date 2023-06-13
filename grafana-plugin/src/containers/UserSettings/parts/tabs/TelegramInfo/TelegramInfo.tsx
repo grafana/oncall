@@ -8,10 +8,13 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { TelegramColorIcon } from 'icons';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
+import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
 
 import styles from './TelegramInfo.module.css';
 
@@ -36,16 +39,12 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
   }, []);
 
   return (
-    <>
+    <WithPermissionControlDisplay
+      userAction={UserActions.UserSettingsWrite}
+      message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
+    >
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
         <VerticalGroup>
-          <Text.Title level={5}>Connect personal Telegram</Text.Title>
-          <Block bordered withBackground className={cx('automatic-connect-telegram-block')}>
-            <Text type="secondary">Connect Telegram automatically</Text>
-            <a href={`${botLink}/?start=${verificationCode}`} target="_blank" rel="noreferrer">
-              <Button size="sm">Connect account</Button>
-            </a>
-          </Block>
           <Text.Title level={5}>Manual connection</Text.Title>
 
           <Text type="secondary">
@@ -79,7 +78,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
       ) : (
         <VerticalGroup spacing="lg">
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
-          <Block bordered withBackground className={cx('telegram-infoblock')}>
+          <Block bordered withBackground className={cx('telegram-infoblock', 'u-width-100')}>
             <VerticalGroup align="center" spacing="lg">
               <TelegramColorIcon />
               <Text>You can manage alert groups in your team Telegram channel or from personal direct messages. </Text>
@@ -89,7 +88,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
               </Text>
               <Text type="secondary">
                 More details in{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                <a href={DOCS_TELEGRAM_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
@@ -102,7 +101,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
           )}
         </VerticalGroup>
       )}
-    </>
+    </WithPermissionControlDisplay>
   );
 });
 

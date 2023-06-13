@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import AnyRole, IsAdmin, MethodPermission
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.organization import CurrentOrganizationSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
@@ -16,9 +16,12 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class CurrentOrganizationView(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, MethodPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    method_permissions = {IsAdmin: ("PUT",), AnyRole: ("GET",)}
+    rbac_permissions = {
+        "get": [],
+        "put": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+    }
 
     def get(self, request):
         organization = request.auth.organization
@@ -46,7 +49,11 @@ class CurrentOrganizationView(APIView):
 
 class GetTelegramVerificationCode(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+    }
 
     def get(self, request):
         organization = request.auth.organization
@@ -60,13 +67,17 @@ class GetTelegramVerificationCode(APIView):
         bot_username = telegram_client.api_client.username
         bot_link = f"https://t.me/{bot_username}"
         return Response(
-            {"telegram_code": str(new_code.uuid_with_org_id), "bot_link": bot_link}, status=status.HTTP_200_OK
+            {"telegram_code": str(new_code.uuid_with_org_uuid), "bot_link": bot_link}, status=status.HTTP_200_OK
         )
 
 
 class GetChannelVerificationCode(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+    }
 
     def get(self, request):
         organization = request.auth.organization
@@ -81,7 +92,11 @@ class GetChannelVerificationCode(APIView):
 
 class SetGeneralChannel(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+    }
 
     def post(self, request):
         SlackChannel = apps.get_model("slack", "SlackChannel")

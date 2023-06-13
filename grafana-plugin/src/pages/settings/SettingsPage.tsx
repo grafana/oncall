@@ -1,21 +1,21 @@
 import React from 'react';
 
 import { Tab, TabsBar } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import { pages } from 'pages';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import MainSettings from 'pages/settings/tabs/MainSettings/MainSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { SettingsPageTab } from './SettingsPage.types';
 import CloudPage from './tabs/Cloud/CloudPage';
 import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
+import TeamsSettings from './tabs/TeamsSettings/TeamsSettings';
 
 import styles from './SettingsPage.module.css';
 
@@ -35,11 +35,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   };
 
   render() {
-    return (
-      <PluginPage pageNav={this.getMatchingPageNav()}>
-        <div className={cx('root')}>{this.renderContent()}</div>
-      </PluginPage>
-    );
+    return <div className={cx('root')}>{this.renderContent()}</div>;
   }
 
   renderContent() {
@@ -50,13 +46,10 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
       this.setState({ activeTab: tab });
     };
 
-    const grafanaUser = window.grafanaBootData.user;
     const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
     const hasCloudPage = store.hasFeature(AppFeature.CloudConnection);
-    const showCloudPage =
-      hasCloudPage && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
-    const showLiveSettings =
-      hasLiveSettings && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
+    const showCloudPage = hasCloudPage && isUserActionAllowed(UserActions.OtherSettingsWrite);
+    const showLiveSettings = hasLiveSettings && isUserActionAllowed(UserActions.OtherSettingsRead);
 
     if (isTopNavbar()) {
       return (
@@ -73,6 +66,12 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
               onChangeTab={() => onTabChange(SettingsPageTab.ChatOps.key)}
               active={activeTab === SettingsPageTab.ChatOps.key}
               label={SettingsPageTab.ChatOps.value}
+            />
+            <Tab
+              key={SettingsPageTab.TeamsSettings.key}
+              onChangeTab={() => onTabChange(SettingsPageTab.TeamsSettings.key)}
+              active={activeTab === SettingsPageTab.TeamsSettings.key}
+              label={SettingsPageTab.TeamsSettings.value}
             />
             {showLiveSettings && (
               <Tab
@@ -134,6 +133,11 @@ const TabsContent = (props: TabsContentProps) => {
       {activeTab === SettingsPageTab.MainSettings.key && (
         <div className={cx('tab__page')}>
           <MainSettings />
+        </div>
+      )}
+      {activeTab === SettingsPageTab.TeamsSettings.key && (
+        <div className={cx('tab__page')}>
+          <TeamsSettings />
         </div>
       )}
       {activeTab === SettingsPageTab.ChatOps.key && (

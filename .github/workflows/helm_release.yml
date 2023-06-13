@@ -1,4 +1,4 @@
-name: helm-release
+name: Helm Release
 
 on:
   push:
@@ -13,6 +13,4 @@ jobs:
       cr_configfile: helm/cr.yaml
       ct_configfile: helm/ct.yaml
     secrets:
-      helm_repo_token: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
-      # See https://github.com/grafana/helm-charts/blob/main/INTERNAL.md about this key
-      gpg_key_base64: ${{ secrets.HELM_SIGN_KEY_BASE64 }}
+      helm_repo_token: ${{ secrets.GH_HELM_RELEASE }}

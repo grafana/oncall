@@ -5,6 +5,8 @@ x-environment: &oncall-environment
   BROKER_TYPE: redis
   BASE_URL: $DOMAIN
   SECRET_KEY: $SECRET_KEY
+  FEATURE_PROMETHEUS_EXPORTER_ENABLED: $FEATURE_PROMETHEUS_EXPORTER_ENABLED
+  PROMETHEUS_EXPORTER_SECRET: $PROMETHEUS_EXPORTER_SECRET
   REDIS_URI: redis://redis:6379/0
   DJANGO_SETTINGS_MODULE: settings.hobby
   CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
@@ -12,6 +14,7 @@ x-environment: &oncall-environment
   CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
   CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
   CELERY_WORKER_BEAT_ENABLED: "True"
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   engine:
@@ -71,8 +74,20 @@ services:
       interval: 5s
       retries: 10
 
+  prometheus:
+    image: prom/prometheus
+    hostname: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    profiles:
+      - with_prometheus
+
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/${GRAFANA_IMAGE:-grafana:latest}"
     restart: always
     ports:
       - "3000:3000"
@@ -93,5 +108,6 @@ services:
 
 volumes:
   grafana_data:
+  prometheus_data:
   oncall_data:
   redis_data:

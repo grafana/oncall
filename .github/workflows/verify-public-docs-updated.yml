@@ -1,0 +1,20 @@
+name: Verify public documentation updated
+
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - main
+      - dev
+
+jobs:
+  verify-public-docs-updated:
+    name: Verify public documentation updated
+    # Don't run this job if the "no public docs" label is applied to the PR
+    # https://github.com/orgs/community/discussions/26712#discussioncomment-3253012
+    if: "!contains(github.event.pull_request.labels.*.name, 'pr:no public docs')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Public documentation checker
+        run: ./.github/verify-public-docs-updated.sh

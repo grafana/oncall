@@ -20,6 +20,7 @@ x-environment: &oncall-environment
   CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
   CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
   CELERY_WORKER_BEAT_ENABLED: "True"
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   engine:
@@ -66,8 +67,7 @@ services:
         condition: service_healthy
 
   mysql:
-    image: mysql:5.7
-    platform: linux/x86_64
+    image: mysql:8.0.32
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     expose:
@@ -80,7 +80,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 500m
+          memory: 1000m
           cpus: "0.5"
     healthcheck:
       test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
@@ -120,8 +120,7 @@ services:
       retries: 3
 
   mysql_to_create_grafana_db:
-    image: mysql:5.7
-    platform: linux/x86_64
+    image: mysql:8.0.32
     command: bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err} -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
@@ -130,7 +129,7 @@ services:
       - with_grafana
 
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/${GRAFANA_IMAGE:-grafana:latest}"
     restart: always
     ports:
       - "3000:3000"

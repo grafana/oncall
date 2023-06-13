@@ -2,7 +2,7 @@ from rest_framework import views
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import AnyRole, IsAdmin, MethodPermission
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.organization_slack_settings import OrganizationSlackSettingsSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.models import Organization
@@ -11,11 +11,11 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class SlackTeamSettingsAPIView(views.APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, MethodPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    method_permissions = {
-        IsAdmin: ("PUT",),
-        AnyRole: ("GET",),
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.CHATOPS_READ],
+        "put": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
     }
 
     serializer_class = OrganizationSlackSettingsSerializer

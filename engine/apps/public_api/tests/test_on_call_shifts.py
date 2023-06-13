@@ -1,5 +1,3 @@
-import datetime
-
 import pytest
 from django.urls import reverse
 from django.utils import timezone
@@ -13,7 +11,7 @@ invalid_field_data_1 = {
 }
 
 invalid_field_data_2 = {
-    "start": datetime.datetime.now(),
+    "start": timezone.now(),
 }
 
 invalid_field_data_3 = {
@@ -45,13 +43,17 @@ invalid_field_data_9 = {
     "interval": 5,
 }
 
+invalid_field_data_10 = {
+    "time_zone": "asdfasdfasdf",
+}
+
 
 @pytest.mark.django_db
 def test_get_on_call_shift(make_organization_and_user_with_token, make_on_call_shift, make_schedule):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -92,11 +94,11 @@ def test_get_override_on_call_shift(make_organization_and_user_with_token, make_
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
         "schedule": schedule,
     }
     on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
@@ -124,14 +126,13 @@ def test_get_override_on_call_shift(make_organization_and_user_with_token, make_
 
 @pytest.mark.django_db
 def test_create_on_call_shift(make_organization_and_user_with_token):
-
-    organization, user, token = make_organization_and_user_with_token()
+    _, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now()
-    until = start + datetime.timedelta(days=30)
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
     data = {
         "team_id": None,
         "name": "test name",
@@ -176,14 +177,95 @@ def test_create_on_call_shift(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
-def test_create_override_on_call_shift(make_organization_and_user_with_token):
-
-    organization, user, token = make_organization_and_user_with_token()
+def test_create_on_call_shift_using_default_interval(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:on_call_shifts-list")
 
-    start = datetime.datetime.now()
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
+    data = {
+        "team_id": None,
+        "name": "test name",
+        "type": "recurrent_event",
+        "level": 1,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 10800,
+        "users": [user.public_primary_key],
+        "week_start": "MO",
+        "frequency": "weekly",
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
+        "by_day": ["MO", "WE", "FR"],
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    on_call_shift = CustomOnCallShift.objects.get(public_primary_key=response.data["id"])
+
+    expected = {
+        "id": on_call_shift.public_primary_key,
+        "team_id": None,
+        "name": data["name"],
+        "type": "recurrent_event",
+        "time_zone": None,
+        "level": data["level"],
+        "start": data["start"],
+        "rotation_start": data["rotation_start"],
+        "duration": data["duration"],
+        "frequency": data["frequency"],
+        "interval": 1,
+        "until": data["until"],
+        "week_start": data["week_start"],
+        "by_day": data["by_day"],
+        "users": [user.public_primary_key],
+        "by_month": None,
+        "by_monthday": None,
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data == expected
+
+
+@pytest.mark.django_db
+def test_create_on_call_shift_using_none_interval_fails(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
+    data = {
+        "team_id": None,
+        "name": "test name",
+        "type": "recurrent_event",
+        "level": 1,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 10800,
+        "users": [user.public_primary_key],
+        "week_start": "MO",
+        "frequency": "weekly",
+        "interval": None,
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
+        "by_day": ["MO", "WE", "FR"],
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Field 'interval' must be a positive integer"}
+
+
+@pytest.mark.django_db
+def test_create_override_on_call_shift(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = timezone.now()
     data = {
         "team_id": None,
         "name": "test name",
@@ -214,15 +296,47 @@ def test_create_override_on_call_shift(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
+def test_create_on_call_shift_invalid_time_zone(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = timezone.now()
+    until = start + timezone.timedelta(days=30)
+    data = {
+        "team_id": None,
+        "name": "test name",
+        "type": "recurrent_event",
+        "level": 1,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 10800,
+        "users": [user.public_primary_key],
+        "week_start": "MO",
+        "frequency": "weekly",
+        "interval": 2,
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
+        "by_day": ["MO", "WE", "FR"],
+        "time_zone": "asdfasdfasdf",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"time_zone": ["Invalid timezone"]}
+
+
+@pytest.mark.django_db
 def test_update_on_call_shift(make_organization_and_user_with_token, make_on_call_shift, make_schedule):
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
         "interval": 2,
         "by_day": ["MO", "FR"],
@@ -290,17 +404,18 @@ def test_update_on_call_shift(make_organization_and_user_with_token, make_on_cal
         invalid_field_data_7,
         invalid_field_data_8,
         invalid_field_data_9,
+        invalid_field_data_10,
     ],
 )
 def test_update_on_call_shift_invalid_field(make_organization_and_user_with_token, make_on_call_shift, data_to_update):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
         "interval": 2,
         "by_day": ["MO", "FR"],
@@ -319,15 +434,14 @@ def test_update_on_call_shift_invalid_field(make_organization_and_user_with_toke
 
 @pytest.mark.django_db
 def test_delete_on_call_shift(make_organization_and_user_with_token, make_on_call_shift):
-
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=7200),
+        "duration": timezone.timedelta(seconds=7200),
     }
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_SINGLE_EVENT, **data
@@ -341,3 +455,46 @@ def test_delete_on_call_shift(make_organization_and_user_with_token, make_on_cal
 
     with pytest.raises(CustomOnCallShift.DoesNotExist):
         on_call_shift.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_create_web_override(make_organization_and_user_with_token, make_on_call_shift):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = timezone.now().replace(microsecond=0)
+    start_str = start.strftime("%Y-%m-%dT%H:%M:%S")
+    data = {
+        "team_id": None,
+        "name": "test web override",
+        "type": "override",
+        "source": 0,
+        "start": start_str,
+        "duration": 3600,
+        "users": [user.public_primary_key],
+        "time_zone": "UTC",
+    }
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    shift = CustomOnCallShift.objects.get(name="test web override")
+    expected_response = {
+        "id": shift.public_primary_key,
+        "team_id": None,
+        "name": "test web override",
+        "type": "override",
+        "start": start_str,
+        "rotation_start": start_str,
+        "duration": 3600,
+        "users": [user.public_primary_key],
+        "time_zone": "UTC",
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+    assert shift.rolling_users == [{str(user.pk): user.public_primary_key}]
+    assert shift.priority_level == 99
+    assert shift.start == start
+    assert shift.rotation_start == start

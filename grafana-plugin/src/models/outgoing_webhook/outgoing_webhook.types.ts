@@ -1,3 +1,5 @@
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+
 export interface OutgoingWebhook {
   authorization_header: string;
   data: string;
@@ -5,7 +7,7 @@ export interface OutgoingWebhook {
   id: string;
   name: string;
   password: string;
-  team: null;
+  team: GrafanaTeam['id'];
   user: null;
   webhook: string;
 }

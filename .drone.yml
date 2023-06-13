@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -27,6 +27,7 @@ steps:
       - apt-get install zip
       - cd grafana-plugin
       - yarn sign
+      - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
       - yarn ci-build:finish
       - yarn ci-package
       - cd ci/dist
@@ -61,25 +62,26 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.9
+    image: python:3.11.3
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements.txt)
+      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.9
+    image: python:3.11.3
     environment:
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements.txt
-      - ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test
+      - pip install -r requirements.txt -r requirements-dev.txt
+      - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
 
@@ -148,7 +150,7 @@ services:
       RABBITMQ_DEFAULT_PASS: rabbitmq
 
   - name: mysql_test
-    image: mysql:5.7.25
+    image: mysql:8.0.32
     environment:
       MYSQL_DATABASE: oncall_local_dev
       MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -172,7 +174,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -183,7 +185,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -194,6 +196,7 @@ steps:
       - apt-get install zip
       - cd grafana-plugin
       - yarn sign
+      - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
       - yarn ci-build:finish
       - yarn ci-package
       - cd ci/dist
@@ -372,7 +375,7 @@ name: gh_token
 # Slack webhook
 get:
   name: slack-plugin
-  path: secret/data/common/oncall/drone
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: slack_webhook
 
@@ -380,15 +383,15 @@ name: slack_webhook
 # GCOM plugin publisher
 get:
   name: gcom-plugin-publisher
-  path: secret/data/common/oncall/drone
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: gcom_plugin_publisher_api_key
 
 ---
 # GCS bucket
 get:
-  name: credentials.json
-  path: secret/data/common/oncall/gcs-oncall-drone-publisher
+  name: gcs-oncall-drone-publisher
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: gcs_oncall_publisher_key
 
@@ -415,6 +418,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: f77d17560f910f1a99ab8230674dc25c226d2b3c73cb90e63e53fb8ba760d57a
+hmac: 59ad498428731001484be9ac6b9d10685b2cd49f30eb3d97ed7dc99f031dca22
 
 ...

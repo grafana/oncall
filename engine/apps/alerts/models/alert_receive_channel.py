@@ -8,7 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -20,8 +20,14 @@ from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.metrics_exporter.helpers import (
+    metrics_add_integration_to_cache,
+    metrics_remove_deleted_integration_from_cache,
+    metrics_update_integration_cache,
+)
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
@@ -144,11 +150,14 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     smile_code = models.TextField(default=":slightly_smiling_face:")
 
     verbal_name = models.CharField(max_length=150, null=True, default=None)
+    description_short = models.CharField(max_length=250, null=True, default=None)
 
     integration_slack_channel_id = models.CharField(max_length=150, null=True, default=None)
 
     is_finished_alerting_setup = models.BooleanField(default=False)
 
+    # *_*_template fields are legacy way of storing templates
+    # messaging_backends_templates for new integrations' templates
     slack_title_template = models.TextField(null=True, default=None)
     slack_message_template = models.TextField(null=True, default=None)
     slack_image_url_template = models.TextField(null=True, default=None)
@@ -160,6 +169,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     web_title_template = models.TextField(null=True, default=None)
     web_message_template = models.TextField(null=True, default=None)
     web_image_url_template = models.TextField(null=True, default=None)
+    web_templates_modified_at = models.DateTimeField(blank=True, null=True)
 
     # email related fields are deprecated in favour of messaging backend based templates
     # these templates are stored in the messaging_backends_templates field
@@ -175,39 +185,14 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     resolve_condition_template = models.TextField(null=True, default=None)
     acknowledge_condition_template = models.TextField(null=True, default=None)
 
-    PUBLIC_TEMPLATES_FIELDS = {
-        "grouping_key": "grouping_id_template",
-        "resolve_signal": "resolve_condition_template",
-        "acknowledge_signal": "acknowledge_condition_template",
-        "slack": {
-            "title": "slack_title_template",
-            "message": "slack_message_template",
-            "image_url": "slack_image_url_template",
-        },
-        "web": {
-            "title": "web_title_template",
-            "message": "web_message_template",
-            "image_url": "web_image_url_template",
-        },
-        "sms": {
-            "title": "sms_title_template",
-        },
-        "phone_call": {
-            "title": "phone_call_title_template",
-        },
-        "telegram": {
-            "title": "telegram_title_template",
-            "message": "telegram_message_template",
-            "image_url": "telegram_image_url_template",
-        },
-    }
-
     # additional messaging backends templates
     # e.g. {'<BACKEND-ID>': {'title': 'title template', 'message': 'message template', 'image_url': 'url template'}}
     messaging_backends_templates = models.JSONField(null=True, default=None)
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
+
+    restricted_at = models.DateTimeField(null=True, default=None)
 
     class Meta:
         constraints = [
@@ -218,7 +203,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         ]
 
     def __str__(self):
-        short_name_with_emojis = emojize(self.short_name, use_aliases=True)
+        short_name_with_emojis = emojize(self.short_name, language="alias")
         return f"{self.pk}: {short_name_with_emojis}"
 
     def get_template_attribute(self, render_for, attr_name):
@@ -259,55 +244,15 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         super(AlertReceiveChannel, self).delete()
 
     def change_team(self, team_id, user):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
         if team_id is not None:
-            new_team = user.teams.filter(public_primary_key=team_id).first()
+            new_team = user.available_teams.filter(public_primary_key=team_id).first()
             if not new_team:
                 raise TeamCanNotBeChangedError("User is not a member of the selected team")
         else:
             new_team = None  # means General team
-
-        escalation_chains_pks = self.channel_filters.all().values_list("escalation_chain", flat=True)
-        escalation_chains = self.organization.escalation_chains.filter(pk__in=escalation_chains_pks).annotate(
-            num_integrations=Count(
-                "channel_filters__alert_receive_channel",
-                distinct=True,
-                filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
-            ),
-        )
-        if escalation_chains:
-            # check if escalation chains are connected to routes of other integrations
-            shared_escalation_chains = []
-            for escalation_chain in escalation_chains:
-                if escalation_chain.num_integrations > 1:
-                    shared_escalation_chains.append(escalation_chain)
-            if shared_escalation_chains:
-                shared_escalation_chains_verbal = ", ".join([ec.name for ec in shared_escalation_chains])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more escalation chain of integration routes "
-                    f"is connected to other integration: {shared_escalation_chains_verbal}"
-                )
-
-            escalation_policies = EscalationPolicy.objects.filter(escalation_chain__in=escalation_chains)
-
-            users_in_escalation = self.organization.users.filter(escalationpolicy__in=escalation_policies)
-            if new_team:
-                team_members = new_team.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            else:
-                team_members = self.organization.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            not_team_members = set(users_in_escalation) - set(team_members)
-            if not_team_members:
-                not_team_members_verbal = ", ".join([user.username for user in not_team_members])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more user from escalation chain(s) is not a member "
-                    f"of the selected team: {not_team_members_verbal}"
-                )
-
-            escalation_chains.update(team=new_team)
         self.team = new_team
         self.save(update_fields=["team"])
 
@@ -315,9 +260,17 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def grafana_alerting_sync_manager(self):
         return GrafanaAlertingSyncManager(self)
 
-    @property
+    @cached_property
+    def team_name(self):
+        return self.team.name if self.team else "No team"
+
+    @cached_property
+    def team_id_or_no_team(self):
+        return self.team_id if self.team else "no_team"
+
+    @cached_property
     def emojized_verbal_name(self):
-        return emoji.emojize(self.verbal_name, use_aliases=True)
+        return emoji.emojize(self.verbal_name, language="alias")
 
     @property
     def new_incidents_web_link(self):
@@ -429,7 +382,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def web_link(self):
-        return urljoin(self.organization.web_link, "?page=settings")
+        return urljoin(self.organization.web_link, f"integrations/{self.public_primary_key}")
 
     @property
     def integration_url(self):
@@ -444,8 +397,10 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
-        # todo: implement inbound emails
-        pass
+        if self.integration != AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
+            return None
+
+        return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
     def default_channel_filter(self):
@@ -458,6 +413,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             "grouping_key": self.grouping_id_template,
             "resolve_signal": self.resolve_condition_template,
             "acknowledge_signal": self.acknowledge_condition_template,
+            "source_link": self.source_link_template,
             "slack": {
                 "title": self.slack_title_template,
                 "message": self.slack_message_template,
@@ -509,6 +465,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         disable_maintenance(alert_receive_channel_id=self.pk, force=True, user_id=user.pk)
 
     def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
+        # TODO: this method should be refactored.
+        # It's binded to slack and sending maintenance notification only there.
         channel_ids = list(
             self.channel_filters.filter(slack_channel_id__isnull=False, notify_in_slack=False).values_list(
                 "slack_channel_id", flat=True
@@ -561,37 +519,37 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(heartbeat, self.INTEGRATIONS_TO_REVERSE_URL_MAP[self.integration], None)
 
     # Demo alerts
-    def send_demo_alert(self, force_route_id=None):
+    def send_demo_alert(self, force_route_id=None, payload=None):
         logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
-        if self.is_demo_alert_enabled:
-            if self.has_alertmanager_payload_structure:
-                for alert in self.config.example_payload.get("alerts", []):
-                    create_alertmanager_alerts.apply_async(
-                        [],
-                        {
-                            "alert_receive_channel_pk": self.pk,
-                            "alert": alert,
-                            "is_demo": True,
-                            "force_route_id": force_route_id,
-                        },
-                    )
-            else:
-                create_alert.apply_async(
-                    [],
-                    {
-                        "title": "Demo alert",
-                        "message": "Demo alert",
-                        "image_url": None,
-                        "link_to_upstream_details": None,
-                        "alert_receive_channel_pk": self.pk,
-                        "integration_unique_data": None,
-                        "raw_request_data": self.config.example_payload,
-                        "is_demo": True,
-                        "force_route_id": force_route_id,
-                    },
+
+        if not self.is_demo_alert_enabled:
+            raise UnableToSendDemoAlert("Unable to send demo alert for this integration.")
+
+        if payload is None:
+            payload = self.config.example_payload
+
+        if self.has_alertmanager_payload_structure:
+            alerts = payload.get("alerts", None)
+            if not isinstance(alerts, list) or not len(alerts):
+                raise UnableToSendDemoAlert(
+                    "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
+                )
+            for alert in alerts:
+                create_alertmanager_alerts.delay(
+                    alert_receive_channel_pk=self.pk, alert=alert, is_demo=True, force_route_id=force_route_id
                 )
         else:
-            raise UnableToSendDemoAlert("Unable to send demo alert for this integration")
+            create_alert.delay(
+                title="Demo alert",
+                message="Demo alert",
+                image_url=None,
+                link_to_upstream_details=None,
+                alert_receive_channel_pk=self.pk,
+                integration_unique_data=None,
+                raw_request_data=payload,
+                is_demo=True,
+                force_route_id=force_route_id,
+            )
 
     @property
     def has_alertmanager_payload_structure(self):
@@ -664,6 +622,13 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
         if instance.is_available_for_integration_heartbeat:
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
+
+        metrics_add_integration_to_cache(instance)
+
+    elif instance.deleted_at:
+        metrics_remove_deleted_integration_from_cache(instance)
+    else:
+        metrics_update_integration_cache(instance)
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
         if created:

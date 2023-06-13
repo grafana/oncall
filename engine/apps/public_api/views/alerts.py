@@ -1,5 +1,6 @@
 from django.db.models import CharField
 from django.db.models.functions import Cast
+from django_filters import rest_framework as filters
 from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
@@ -12,6 +13,10 @@ from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
+class AlertFilter(filters.FilterSet):
+    id = filters.CharFilter(field_name="public_primary_key")
+
+
 class AlertView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -21,6 +26,9 @@ class AlertView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
     model = Alert
     serializer_class = AlertSerializer
     pagination_class = FiftyPageSizePaginator
+
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = AlertFilter
 
     def get_queryset(self):
         alert_group_id = self.request.query_params.get("alert_group_id", None)
@@ -38,4 +46,4 @@ class AlertView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
 
-        return queryset
+        return queryset.order_by("id")

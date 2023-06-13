@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, Tuple
 from uuid import uuid4
 
@@ -6,7 +7,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.telegram.models import TelegramToOrganizationConnector
-from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
 
 class TelegramChannelVerificationCode(models.Model):
@@ -21,11 +22,11 @@ class TelegramChannelVerificationCode(models.Model):
 
     @property
     def is_active(self) -> bool:
-        return self.datetime + timezone.timedelta(days=1) < timezone.now()
+        return self.datetime + datetime.timedelta(days=1) < timezone.now()
 
     @property
-    def uuid_with_org_id(self) -> str:
-        return f"{self.organization.public_primary_key}_{self.uuid}"
+    def uuid_with_org_uuid(self) -> str:
+        return f"{self.organization.uuid}_{self.uuid}"
 
     @classmethod
     def uuid_without_org_id(cls, verification_code: str) -> str:
@@ -66,14 +67,14 @@ class TelegramChannelVerificationCode(models.Model):
             write_chatops_insight_log(
                 author=code_instance.author,
                 event_name=ChatOpsEvent.CHANNEL_CONNECTED,
-                chatops_type=ChatOpsType.TELEGRAM,
+                chatops_type=ChatOpsTypePlug.TELEGRAM.value,
                 channel_name=channel_name,
             )
             if not connector_exists:
                 write_chatops_insight_log(
                     author=code_instance.author,
                     event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
-                    chatops_type=ChatOpsType.TELEGRAM,
+                    chatops_type=ChatOpsTypePlug.TELEGRAM.value,
                     prev_channel=None,
                     new_channel=channel_name,
                 )

@@ -40,3 +40,5 @@ resolve_condition = None
 acknowledge_condition = None
 
 source_link = '{{ payload.get("amixr_mixin", {}).get("permalink", "")}}'
+
+example_payload = None

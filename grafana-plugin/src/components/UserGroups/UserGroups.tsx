@@ -8,6 +8,7 @@ import { SortableContainer, SortableElement, SortableHandle } from 'react-sortab
 import Text from 'components/Text/Text';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { User } from 'models/user/user.types';
+import { UserActions } from 'utils/authorization';
 
 import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
 import { Item } from './UserGroups.types';
@@ -109,11 +110,12 @@ const UserGroups = (props: UserGroupsProps) => {
           key={items.length}
           showSearch
           placeholder="Add user"
-          href="/users/?filters=true&roles=0&roles=1"
+          href={`/users/?permission=${UserActions.NotificationsRead.permission}&filters=true`}
           value={null}
           onChange={handleUserAdd}
           showError={showError}
           maxMenuHeight={150}
+          requiredUserAction={UserActions.UserSettingsWrite}
         />
         <SortableList
           renderItem={renderItem}

@@ -1,16 +1,49 @@
 import pytest
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
 from django.utils import timezone
+from rest_framework.test import APIClient
 
-from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
+from apps.alerts.models import AlertGroupLogRecord, AlertReceiveChannel, EscalationPolicy
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
-from apps.schedules.models import OnCallScheduleCalendar
+from apps.schedules.models import OnCallScheduleICal, OnCallScheduleWeb
 from apps.telegram.models import TelegramMessage
-from apps.twilioapp.constants import TwilioCallStatuses, TwilioMessageStatuses
+from apps.user_management.models import Organization
 
 
 @pytest.mark.django_db
-def test_organization_delete(
+def test_organization_soft_delete(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(
+        organization=organization, integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    )
+
+    org_id = organization.id
+    organization.delete()
+
+    deleted_organization = Organization.objects_with_deleted.get(id=org_id)
+    # check if org soft-deleted
+    assert deleted_organization.deleted_at is not None
+
+    # check if public api responds with 404
+    client = APIClient()
+    url = reverse("api-public:integrations-list")
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == 404
+
+    # check if alert receiver view responds with 403
+    url = reverse("integrations:alertmanager", kwargs={"alert_channel_key": alert_receive_channel.token})
+    data = {"a": "b"}
+    response = client.post(url, data, format="json")
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_organization_hard_delete(
     make_organization,
     make_user,
     make_team,
@@ -34,8 +67,8 @@ def test_organization_delete(
     make_alert_group,
     make_alert_group_log_record,
     make_user_notification_policy_log_record,
-    make_sms,
-    make_phone_call,
+    make_sms_record,
+    make_phone_call_record,
     make_token_for_organization,
     make_public_api_token,
     make_invitation,
@@ -58,7 +91,10 @@ def test_organization_delete(
     team = make_team(organization=organization)
     team.users.add(user_1)
 
-    schedule = make_schedule(organization=organization, schedule_class=OnCallScheduleCalendar)
+    # Creating different types of schedules to check that deletion works well with PolymorphicModel
+    schedule_web = make_schedule(organization=organization, schedule_class=OnCallScheduleWeb)
+    schedule_ical = make_schedule(organization=organization, schedule_class=OnCallScheduleICal)
+
     custom_action = make_custom_action(organization=organization)
 
     escalation_chain = make_escalation_chain(organization=organization)
@@ -93,12 +129,10 @@ def test_organization_delete(
         alert_group=alert_group,
     )
 
-    sms = make_sms(
-        receiver=user_1, status=TwilioMessageStatuses.SENT, represents_alert=alert, represents_alert_group=alert_group
-    )
+    sms_record = make_sms_record(receiver=user_1, represents_alert=alert, represents_alert_group=alert_group)
 
-    phone_call = make_phone_call(
-        receiver=user_1, status=TwilioCallStatuses.COMPLETED, represents_alert=alert, represents_alert_group=alert_group
+    phone_call_record = make_phone_call_record(
+        receiver=user_1, represents_alert=alert, represents_alert_group=alert_group
     )
 
     telegram_user_connector = make_telegram_user_connector(user=user_1)
@@ -133,7 +167,8 @@ def test_organization_delete(
         user_2,
         team,
         user_notification_policy,
-        schedule,
+        schedule_web,
+        schedule_ical,
         custom_action,
         escalation_chain,
         escalation_policy,
@@ -143,8 +178,8 @@ def test_organization_delete(
         alert,
         alert_group_log_record,
         user_notification_policy_log_record,
-        phone_call,
-        sms,
+        phone_call_record,
+        sms_record,
         telegram_message,
         telegram_user_connector,
         telegram_channel,
@@ -159,7 +194,7 @@ def test_organization_delete(
         resolution_note_slack_message,
     ]
 
-    organization.delete()
+    organization.hard_delete()
     for obj in cascading_objects:
         with pytest.raises(ObjectDoesNotExist):
             obj.refresh_from_db()

@@ -15,6 +15,7 @@ import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types'
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
 
 import styles from './TelegramSettings.module.css';
 
@@ -63,7 +64,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
               </Text>
               <Text type="secondary" className={cx('infoblock-text')}>
                 More details in{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                <a href={DOCS_TELEGRAM_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
@@ -94,7 +95,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
               </Text>
               <Text type="secondary" className={cx('infoblock-text')}>
                 More details in{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                <a href={DOCS_TELEGRAM_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>

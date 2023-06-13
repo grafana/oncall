@@ -6,7 +6,7 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from telegram import error
 
-from apps.api.permissions import IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.live_setting import LiveSettingSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models import LiveSetting
@@ -21,7 +21,14 @@ from common.api_helpers.mixins import PublicPrimaryKeyMixin
 class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
     serializer_class = LiveSettingSerializer
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "list": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
+        "retrieve": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
+        "create": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "update": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "destroy": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+    }
 
     def dispatch(self, request, *args, **kwargs):
         if not settings.FEATURE_LIVE_SETTINGS_ENABLED:
@@ -61,9 +68,6 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
     def _post_update_hook(self, name, old_value):
         if name == "TELEGRAM_TOKEN":
             self._reset_telegram_integration(old_token=old_value)
-            register_telegram_webhook.delay()
-
-        if name == "TELEGRAM_WEBHOOK_HOST":
             register_telegram_webhook.delay()
 
         if name in ["SLACK_CLIENT_OAUTH_ID", "SLACK_CLIENT_OAUTH_SECRET"]:

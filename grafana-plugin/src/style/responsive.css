@@ -1,0 +1,23 @@
+/* 
+   Make sure if you chage max-width here
+   You also change it in consts.ts 
+*/
+@media screen and (max-width: 1500px) {
+  .table__email-column {
+    max-width: 175px;
+  }
+
+  .table__email-content {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .incident__title-column {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+}
+
+.table__wrap-column {
+  word-break: break-word;
+}

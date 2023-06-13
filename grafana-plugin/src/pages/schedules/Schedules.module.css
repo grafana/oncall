@@ -10,3 +10,26 @@
 .root .buttons {
   padding-right: 10px;
 }
+
+.schedules__filters-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  row-gap: 4px;
+  column-gap: 8px;
+  width: 100%;
+}
+
+.schedules__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-grow: 1;
+  gap: 8px;
+  padding-top: 19px;
+}
+
+.schedules__user-on-call {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+}

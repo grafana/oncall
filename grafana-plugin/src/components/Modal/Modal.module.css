@@ -7,7 +7,7 @@
   margin-left: auto;
   margin-right: auto;
   top: 10%;
-  max-height: 80%;
+  max-height: 90%;
   display: flex;
   flex-direction: column;
   border-image: initial;
@@ -18,6 +18,7 @@
   box-shadow: var(--shadows-z3);
   border-radius: 2px;
   z-index: 10;
+  overflow: scroll;
 }
 
 /*

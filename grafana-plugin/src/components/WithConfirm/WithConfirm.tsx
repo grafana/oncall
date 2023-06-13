@@ -1,18 +1,21 @@
 import React, { ReactElement, useCallback, useState } from 'react';
 
-import { ConfirmModal } from '@grafana/ui';
+import { ConfirmModal, ConfirmModalProps } from '@grafana/ui';
 
-interface WithConfirmProps {
+type WithConfirmProps = Partial<ConfirmModalProps> & {
   children: ReactElement;
-  title?: string;
-  body?: React.ReactNode;
-  confirmText?: string;
   disabled?: boolean;
-}
+};
 
-const WithConfirm = (props: WithConfirmProps) => {
-  const { children, title = 'Are you sure to delete?', body, confirmText = 'Delete', disabled } = props;
-
+const WithConfirm: React.FC<WithConfirmProps> = ({
+  title = 'Are you sure to delete?',
+  confirmText = 'Delete',
+  body,
+  description,
+  confirmationText,
+  children,
+  disabled,
+}) => {
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
   const onClickCallback = useCallback((event) => {
@@ -39,6 +42,8 @@ const WithConfirm = (props: WithConfirmProps) => {
           dismissText="Cancel"
           onConfirm={onConfirmCallback}
           body={body}
+          description={description}
+          confirmationText={confirmationText}
           onDismiss={() => {
             setShowConfirmation(false);
           }}

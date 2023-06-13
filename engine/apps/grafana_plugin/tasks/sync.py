@@ -5,10 +5,11 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.grafana_plugin.helpers import GcomAPIClient
+from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids, get_stack_regions
 from apps.user_management.models import Organization
 from apps.user_management.models.region import sync_regions
-from apps.user_management.sync import cleanup_organization, sync_organization
+from apps.user_management.sync import cleanup_organization, sync_organization, sync_team_members
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
@@ -20,7 +21,7 @@ SYNC_PERIOD = timezone.timedelta(minutes=25)
 INACTIVE_PERIOD = timezone.timedelta(minutes=55)
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def start_sync_organizations():
     sync_threshold = timezone.now() - SYNC_PERIOD
 
@@ -68,8 +69,8 @@ def run_organization_sync(organization_pk, force_sync):
             return
         if settings.GRAFANA_COM_API_TOKEN and settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
-            instance_info, status = client.get_instance_info(organization.stack_id)
-            if not instance_info or instance_info["status"] != "active":
+            instance_info = client.get_instance_info(organization.stack_id)
+            if not instance_info or instance_info["status"] != client.STACK_STATUS_ACTIVE:
                 logger.debug(f"Canceling sync for Organization {organization_pk}, as it is no longer active.")
                 return
 
@@ -117,3 +118,15 @@ def start_sync_regions():
         return
 
     sync_regions(regions)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def sync_team_members_for_organization_async(organization_pk):
+    try:
+        organization = Organization.objects.get(pk=organization_pk)
+    except Organization.DoesNotExist:
+        logger.info(f"Organization {organization_pk} was not found")
+        return
+
+    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+    sync_team_members(grafana_api_client, organization)

@@ -3,17 +3,23 @@
 This Grafana OnCall Chart is the best way to operate Grafana OnCall on Kubernetes.
 It will deploy Grafana OnCall engine and celery workers, along with RabbitMQ cluster, Redis Cluster, and MySQL 5.7 database.
 It will also deploy cert manager and nginx ingress controller, as Grafana OnCall backend might need to be externally available
-to receive alerts from other monitoring systems. Grafana OnCall engine acts as a backend and can be connected to the Grafana frontend plugin named Grafana OnCall.
+to receive alerts from other monitoring systems. Grafana OnCall engine acts as a backend and can be connected to the
+Grafana frontend plugin named Grafana OnCall.
 Architecture diagram can be found [here](https://raw.githubusercontent.com/grafana/oncall/dev/docs/img/architecture_diagram.png)
 
 ## Production usage
 
-**Default helm chart configuration is not intended for production.** The helm chart includes all the services into a single release, which is not recommended for production usage. It is recommended to run stateful services such as MySQL and RabbitMQ separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them. Here are the instructions on how to set up your own [ingress](#set-up-external-access), [MySQL](#connect-external-mysql), [RabbitMQ](#connect-external-rabbitmq), [Redis](#connect-external-redis)
+**Default helm chart configuration is not intended for production.**
+The helm chart includes all the services into a single release, which is not recommended for production usage.
+It is recommended to run stateful services such as MySQL and RabbitMQ separately from this release or use managed
+PaaS solutions. It will significantly reduce the overhead of managing them.
+Here are the instructions on how to set up your own [ingress](#set-up-external-access), [MySQL](#connect-external-mysql),
+[RabbitMQ](#connect-external-rabbitmq), [Redis](#connect-external-redis)
 
 ### Cluster requirements
 
-* ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
-* kubernetes version 1.25+ is not supported, if cert-manager is enabled
+- ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
+- kubernetes version 1.25+ is not supported, if cert-manager is enabled
 
 ## Install
 
@@ -59,18 +65,9 @@ Follow the `helm install` output to finish setting up Grafana OnCall backend and
 
   🔗 Connect Grafana OnCall Plugin to Grafana OnCall backend:
 
-     Issue the one-time token to connect Grafana OnCall backend and Grafana OnCall plugin by running these commands:
-
-        export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=release-oncall,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-        kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
-
      Fill the Grafana OnCall Backend URL:
 
           http://release-oncall-engine:8080
-
-     Fill the Grafana URL:
-
-          http://release-oncall-grafana
 
 🎉🎉🎉  Done! 🎉🎉🎉
 ```
@@ -97,15 +94,19 @@ You can set up Slack connection via following variables:
 oncall:
   slack:
     enabled: true
-    command: ~
+    commandName: oncall
     clientId: ~
     clientSecret: ~
-    apiToken: ~
-    apiTokenCommon: ~
+    signingSecret: ~
+    existingSecret: ""
+    clientIdKey: ""
+    clientSecretKey: ""
+    signingSecretKey: ""
+    redirectHost: ~
 ```
 
-`oncall.slack.command` is used for changing default bot slash command,
-`oncall`. In slack, it could be called via `/<oncall.slack.command>`.
+`oncall.slack.commandName` is used for changing default bot slash command,
+`oncall`. In slack, it could be called via `/<oncall.slack.commandName>`.
 
 To set up Telegram tokem and webhook url use:
 
@@ -121,9 +122,12 @@ oncall:
 
 Grafana OnCall can be connected to the external monitoring systems or grafana deployed to the other cluster.
 Nginx Ingress Controller and Cert Manager charts are included in the helm chart with the default configuration.
-If you set the DNS A Record pointing to the external IP address of the installation with the Hostname matching base_url parameter, https will be automatically set up. If grafana is enabled in the chart values, it will also be available on `https://<base_url>/grafana/`. See the details in `helm install` output.
+If you set the DNS A Record pointing to the external IP address of the installation with the Hostname matching
+base_url parameter, https will be automatically set up. If grafana is enabled in the chart values, it will also be
+available on `https://<base_url>/grafana/`. See the details in `helm install` output.
 
-To use a different ingress controller or tls certificate management system, set the following values to false and edit ingress settings
+To use a different ingress controller or tls certificate management system, set the following values to
+false and edit ingress settings
 
 ```yaml
 ingress-nginx:
@@ -131,7 +135,7 @@ ingress-nginx:
 
 cert-manager:
   enabled: false
- 
+
 ingress:
   enabled: true
   annotations:
@@ -178,7 +182,7 @@ externalMysql:
   db_name:
   user:
   password:
-  ```
+```
 
 ### Connect external PostgreSQL
 
@@ -197,7 +201,7 @@ database:
   type: postgresql
 
 # Make sure to create the database with the following parameters:
-# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# CREATE DATABASE oncall WITH ENCODING UTF8;
 externalPostgresql:
   host:
   port:
@@ -206,7 +210,7 @@ externalPostgresql:
   password:
   existingSecret: ""
   passwordKey: password
-  ```
+```
 
 ### Connect external RabbitMQ
 
@@ -217,8 +221,8 @@ To use an external RabbitMQ instance set rabbitmq.enabled to `false` and configu
 
 ```yaml
 rabbitmq:
-  enabled: false  # Disable the RabbitMQ dependency from the release
- 
+  enabled: false # Disable the RabbitMQ dependency from the release
+
 externalRabbitmq:
   host:
   port:
@@ -237,8 +241,8 @@ To use an external Redis instance set redis.enabled to `false` and configure the
 
 ```yaml
 redis:
-  enabled: false  # Disable the Redis dependency from the release
- 
+  enabled: false # Disable the Redis dependency from the release
+
 externalRedis:
   host:
   password:
@@ -261,7 +265,9 @@ helm upgrade \
     grafana/oncall
 ```
 
-After re-deploying, please also update the Grafana OnCall plugin on the plugin version page. See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin-management/#update-a-plugin) for more info on updating Grafana plugins.
+After re-deploying, please also update the Grafana OnCall plugin on the plugin version page.
+See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin-management/#update-a-plugin) for
+more info on updating Grafana plugins.
 
 ## Uninstall
 
@@ -284,3 +290,11 @@ redis-data-release-oncall-redis-replicas-1 redis-data-release-oncall-redis-repli
 ```bash
 kubectl delete secrets certificate-tls release-oncall-cert-manager-webhook-ca release-oncall-ingress-nginx-admission
 ```
+
+## Troubleshooting
+
+### Issues during initial configuration
+
+In the event that you run into issues during initial configuration, it is possible that mismatching versions between
+your OnCall backend and UI is the culprit. Ensure that the versions match, and if not,
+consider updating your `helm` deployment.

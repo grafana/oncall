@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, Tuple
 from uuid import uuid4
 
@@ -6,7 +7,7 @@ from django.db import IntegrityError, models
 from django.utils import timezone
 
 from apps.telegram.models import TelegramToUserConnector
-from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
 
 class TelegramVerificationCode(models.Model):
@@ -19,11 +20,11 @@ class TelegramVerificationCode(models.Model):
 
     @property
     def is_active(self) -> bool:
-        return self.datetime + timezone.timedelta(days=1) < timezone.now()
+        return self.datetime + datetime.timedelta(days=1) < timezone.now()
 
     @property
-    def uuid_with_org_id(self) -> str:
-        return f"{self.user.organization.public_primary_key}_{self.uuid}"
+    def uuid_with_org_uuid(self) -> str:
+        return f"{self.user.organization.uuid}_{self.uuid}"
 
     @classmethod
     def uuid_without_org_id(cls, verification_code: str) -> str:
@@ -48,7 +49,7 @@ class TelegramVerificationCode(models.Model):
             write_chatops_insight_log(
                 author=user,
                 event_name=ChatOpsEvent.USER_LINKED,
-                chatops_type=ChatOpsType.TELEGRAM,
+                chatops_type=ChatOpsTypePlug.TELEGRAM.value,
                 linked_user=user.username,
                 linked_user_id=user.public_primary_key,
             )

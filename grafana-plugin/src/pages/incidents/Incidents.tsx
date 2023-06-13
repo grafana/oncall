@@ -1,39 +1,37 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
-import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import CardButton from 'components/CardButton/CardButton';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
-import { User } from 'models/user/user.types';
-import { pages } from 'pages';
-import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { move } from 'state/helpers';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import TeamName from 'containers/TeamName/TeamName';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
-import SilenceDropdown from './parts/SilenceDropdown';
-
-import styles from './Incidents.module.css';
+import styles from './Incidents.module.scss';
+import { IncidentDropdown } from './parts/IncidentDropdown';
+import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
 
 const cx = cn.bind(styles);
 
@@ -54,13 +52,14 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return WithSkeleton;
 }
 
-interface IncidentsPageProps extends WithStoreProps, AppRootProps {}
+interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
   pagination: Pagination;
+  showAddAlertGroupForm: boolean;
 }
 
 const ITEMS_PER_PAGE = 25;
@@ -71,8 +70,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   constructor(props: IncidentsPageProps) {
     super(props);
 
-    const { store } = props;
-    const { cursor: cursorQuery, start: startQuery, perpage: perpageQuery } = getQueryParams();
+    const {
+      store,
+      query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
+    } = props;
 
     const cursor = cursorQuery || undefined;
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
@@ -84,6 +85,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
+      showAddAlertGroupForm: false,
       pagination: {
         start,
         end: start + itemsPerPage - 1,
@@ -96,32 +98,193 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
+  async componentDidMount() {
+    await this.props.store.alertGroupStore.fetchIRMPlan();
+  }
+
   componentWillUnmount(): void {
     this.clearPollingInterval();
   }
 
   render() {
+    const { history } = this.props;
+    const { showAddAlertGroupForm } = this.state;
+    const {
+      store,
+      store: { alertGroupStore },
+    } = this.props;
+
+    if (!alertGroupStore.irmPlan && !store.isOpenSource()) {
+      return <LoadingPlaceholder text={'Loading...'} />;
+    }
+
     return (
-      <PluginPage pageNav={pages['incidents'].getPageNav()}>
-        <PageErrorHandlingWrapper pageName="incidents">
-          <div className={cx('root')}>
-            {this.renderIncidentFilters()}
-            {this.renderTable()}
+      <>
+        <div className={cx('root')}>
+          <div className={cx('title')}>
+            <HorizontalGroup justify="space-between">
+              <Text.Title level={3}>Alert Groups</Text.Title>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+                <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                  New alert group
+                </Button>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
           </div>
-        </PageErrorHandlingWrapper>
-      </PluginPage>
+          {this.renderIncidentFilters()}
+          {this.renderTable()}
+        </div>
+        {showAddAlertGroupForm && (
+          <ManualAlertGroup
+            onHide={() => {
+              this.setState({ showAddAlertGroupForm: false });
+            }}
+            onCreate={(id: Alert['pk']) => {
+              history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
+            }}
+          />
+        )}
+      </>
     );
   }
 
-  renderIncidentFilters() {
-    const { query } = this.props;
+  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange) {
+    const { store } = this.props;
+
+    const { values } = filtersState;
+
+    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
+
+    const { count: newIncidentsCount } = newIncidents;
+    const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;
+    const { count: resolvedIncidentsCount } = resolvedIncidents;
+    const { count: silencedIncidentsCount } = silencedIncidents;
+
+    const status = values.status || [];
 
     return (
-      <div className={cx('filters')}>
-        <IncidentsFilters query={query} onChange={this.handleFiltersChange} />
+      <div className={cx('cards', 'row')}>
+        <div key="new" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="bell" size="xxxl" />}
+            description="Firing"
+            title={newIncidentsCount}
+            selected={status.includes(IncidentStatus.Firing)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Firing,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="acknowledged" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="eye" size="xxxl" />}
+            description="Acknowledged"
+            title={acknowledgedIncidentsCount}
+            selected={status.includes(IncidentStatus.Acknowledged)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Acknowledged,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="resolved" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="check" size="xxxl" />}
+            description="Resolved"
+            title={resolvedIncidentsCount}
+            selected={status.includes(IncidentStatus.Resolved)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Resolved,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="silenced" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="bell-slash" size="xxxl" />}
+            description="Silenced"
+            title={silencedIncidentsCount}
+            selected={status.includes(IncidentStatus.Silenced)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Silenced,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
       </div>
     );
   }
+
+  getStatusButtonClickHandler = (
+    status: IncidentStatus,
+    filtersState,
+    filtersSetState,
+    filtersOnFiltersValueChange
+  ) => {
+    return (selected: boolean) => {
+      const { values } = filtersState;
+
+      const { status: statusFilter = [] } = values;
+
+      let newStatuses = [...statusFilter];
+
+      if (selected) {
+        newStatuses.push(status);
+      } else {
+        newStatuses = newStatuses.filter((s: IncidentStatus) => s !== Number(status));
+      }
+
+      const statusFilterOption = filtersState.filterOptions.find((filterOption) => filterOption.name === 'status');
+      const statusFilterExist = filtersState.filters.some((statusFilter) => statusFilter.name === 'status');
+
+      if (statusFilterExist) {
+        filtersOnFiltersValueChange('status', newStatuses);
+      } else {
+        filtersSetState(
+          {
+            hadInteraction: false,
+            filters: [...filtersState.filters, statusFilterOption],
+          },
+          () => {
+            filtersOnFiltersValueChange('status', newStatuses);
+          }
+        );
+      }
+    };
+  };
+
+  renderIncidentFilters() {
+    const { query, store } = this.props;
+    return (
+      <div className={cx('filters')}>
+        <RemoteFilters
+          query={query}
+          page="incidents"
+          onChange={this.handleFiltersChange}
+          extraFilters={this.renderCards.bind(this)}
+          grafanaTeamStore={store.grafanaTeamStore}
+          defaultFilters={{
+            team: [],
+            status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+            mine: false,
+          }}
+        />
+      </div>
+    );
+  }
+
+  handleOnClickEscalateTo = () => {
+    this.setState({ showAddAlertGroupForm: true });
+  };
 
   handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
@@ -148,22 +311,31 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { store } = this.props;
 
-    store.alertGroupStore.setIncidentsCursor(cursor);
+    store.alertGroupStore.updateIncidentsCursor(cursor);
 
-    this.setState({
-      selectedIncidentIds: [],
-      pagination: {
-        start:
-          this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-        end: this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+    this.setState(
+      {
+        selectedIncidentIds: [],
+        pagination: {
+          start:
+            this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+          end:
+            this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        },
       },
-    });
+      () => {
+        LocationHelper.update(
+          { start: this.state.pagination.start, perpage: store.alertGroupStore.incidentsItemsPerPage },
+          'partial'
+        );
+      }
+    );
   };
 
   handleChangeItemsPerPage = (value: number) => {
@@ -200,7 +372,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('bulk-actions')}>
           <HorizontalGroup>
             {'resolve' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="primary"
@@ -208,10 +380,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 >
                   Resolve
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             {'acknowledge' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -219,10 +391,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 >
                   Acknowledge
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             {'silence' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="restart" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControlTooltip key="restart" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -230,20 +402,20 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 >
                   Restart
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
-                <SilenceDropdown
+              <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
+                <SilenceButtonCascader
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
                 />
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             <Text type="secondary">
               {hasSelected
-                ? `${selectedIncidentIds.length} alert group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
-                : 'No alert groups selected'}
+                ? `${selectedIncidentIds.length} Alert Group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
+                : 'No Alert Groups selected'}
             </Text>
           </HorizontalGroup>
         </div>
@@ -307,22 +479,21 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         key: 'id',
         render: withSkeleton(this.renderId),
       },
-
       {
-        width: '20%',
+        width: '35%',
         title: 'Title',
         key: 'title',
         render: withSkeleton(this.renderTitle),
       },
       {
-        width: '10%',
+        width: '5%',
         title: 'Alerts',
         key: 'alerts',
         render: withSkeleton(this.renderAlertsCounter),
       },
       {
         width: '15%',
-        title: 'Integrations',
+        title: 'Integration',
         key: 'source',
         render: withSkeleton(this.renderSource),
       },
@@ -333,15 +504,16 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         render: withSkeleton(this.renderStartedAt),
       },
       {
+        width: '10%',
+        title: 'Team',
+        key: 'team',
+        render: withSkeleton((item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items)),
+      },
+      {
         width: '15%',
         title: 'Users',
         key: 'users',
         render: withSkeleton(renderRelatedUsers),
-      },
-      {
-        width: '15%',
-        key: 'action',
-        render: withSkeleton(this.renderActionButtons),
       },
     ];
 
@@ -352,7 +524,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
           loading={alertGroupsLoading}
           className={cx('incidents-table')}
-          rowSelection={{ selectedRowKeys: selectedIncidentIds, onChange: this.handleSelectedIncidentIdsChange }}
+          rowSelection={{
+            selectedRowKeys: selectedIncidentIds,
+            onChange: this.handleSelectedIncidentIdsChange,
+          }}
           rowKey="pk"
           data={results}
           columns={columns}
@@ -396,12 +571,22 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     return (
       <VerticalGroup spacing="none" justify="center">
-        <PluginLink
-          query={{ page: 'incident', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
-        >
-          {record.render_for_web.title}
-        </PluginLink>
-        {Boolean(record.dependent_alert_groups.length) && `+ ${record.dependent_alert_groups.length} attached`}
+        <div className={'table__wrap-column'}>
+          <PluginLink
+            query={{
+              page: 'alert-groups',
+              id: record.pk,
+              cursor: incidentsCursor,
+              perpage: incidentsItemsPerPage,
+              start,
+            }}
+          >
+            <Tooltip placement="top" content={record.render_for_web.title}>
+              <span>{record.render_for_web.title}</span>
+            </Tooltip>
+          </PluginLink>
+          {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
+        </div>
       </VerticalGroup>
     );
   };
@@ -424,9 +609,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStatus(record: AlertType) {
-    return getIncidentStatusTag(record);
-  }
+  renderStatus = (alert: AlertType) => {
+    return (
+      <IncidentDropdown
+        alert={alert}
+        onResolve={this.getOnActionButtonClick(alert.pk, AlertAction.Resolve)}
+        onUnacknowledge={this.getOnActionButtonClick(alert.pk, AlertAction.unAcknowledge)}
+        onUnresolve={this.getOnActionButtonClick(alert.pk, AlertAction.unResolve)}
+        onAcknowledge={this.getOnActionButtonClick(alert.pk, AlertAction.Acknowledge)}
+        onSilence={this.getSilenceClickHandler(alert)}
+        onUnsilence={this.getUnsilenceClickHandler(alert)}
+      />
+    );
+  };
 
   renderStartedAt(alert: AlertType) {
     const m = moment(alert.started_at);
@@ -439,97 +634,37 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderRelatedUsers = (record: AlertType) => {
-    const { related_users } = record;
-    let users = [...related_users];
+  renderTeam(record: AlertType, teams: any) {
+    return <TeamName team={teams[record.team]} />;
+  }
 
-    function renderUser(user: User, index: number) {
-      let badge = undefined;
-      if (record.resolved_by_user && user.pk === record.resolved_by_user.pk) {
-        badge = <Icon name="check-circle" style={{ color: '#52c41a' }} />;
-      } else if (record.acknowledged_by_user && user.pk === record.acknowledged_by_user.pk) {
-        badge = <Icon name="eye" style={{ color: '#f2c94c' }} />;
-      }
-
-      return (
-        <PluginLink query={{ page: 'users', id: user.pk }}>
-          <Text type="secondary">
-            {index ? ', ' : ''}
-            {user.username} {badge}
-          </Text>
-        </PluginLink>
-      );
-    }
-
-    if (record.resolved_by_user) {
-      const index = users.findIndex((user) => user.pk === record.resolved_by_user.pk);
-      if (index > -1) {
-        users = move(users, index, 0);
-      }
-    }
-
-    if (record.acknowledged_by_user) {
-      const index = users.findIndex((user) => user.pk === record.acknowledged_by_user.pk);
-      if (index > -1) {
-        users = move(users, index, 0);
-      }
-    }
-
-    const visibleUsers = users.slice(0, 2);
-    const otherUsers = users.slice(2);
-
-    return (
-      <>
-        {visibleUsers.map(renderUser)}
-        {Boolean(otherUsers.length) && (
-          <Tooltip placement="top" content={<>{otherUsers.map(renderUser)}</>}>
-            <span className={cx('other-users')}>
-              , <span style={{ textDecoration: 'underline' }}>+{otherUsers.length} users</span>{' '}
-            </span>
-          </Tooltip>
-        )}
-      </>
-    );
-  };
-
-  renderActionButtons = (incident: AlertType) => {
-    return getActionButtons(incident, cx, {
-      onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
-      onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
-      onUnresolve: this.getOnActionButtonClick(incident.pk, AlertAction.unResolve),
-      onAcknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge),
-      onSilence: this.getSilenceClickHandler(incident),
-      onUnsilence: this.getUnsilenceClickHandler(incident),
-    });
-  };
-
-  getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
+  getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {
     const { store } = this.props;
 
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
     };
   };
 
-  getSilenceClickHandler = (alert: AlertType) => {
+  getSilenceClickHandler = (alert: AlertType): ((value: number) => Promise<void>) => {
     const { store } = this.props;
 
     return (value: number) => {
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
         delay: value,
       });
     };
   };
 
-  getUnsilenceClickHandler = (alert: AlertType) => {
+  getUnsilenceClickHandler = (alert: AlertType): ((event: any) => Promise<void>) => {
     const { store } = this.props;
 
-    return (event: any) => {
+    return (event: React.SyntheticEvent) => {
       event.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
     };
   };
 
@@ -577,8 +712,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
-    this.pollingIntervalId = setInterval(() => this.fetchIncidentData(filters, isOnMount), POLLING_NUM_SECONDS * 1000);
+    this.pollingIntervalId = setInterval(() => {
+      this.fetchIncidentData(filters, isOnMount);
+    }, POLLING_NUM_SECONDS * 1000);
   }
 }
 
-export default withMobXProviderContext(Incidents);
+export default withRouter(withMobXProviderContext(Incidents));

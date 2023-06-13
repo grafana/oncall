@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 title: Outgoing webhooks HTTP API
 weight: 700

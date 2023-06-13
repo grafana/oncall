@@ -1,5 +1,4 @@
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
-import { UserRole } from 'models/user/user.types';
 
 export enum SubscriptionStatus {
   OK,
@@ -63,10 +62,16 @@ export interface Team {
   // ex team settings
   archive_alerts_from: string;
   is_resolution_note_required: boolean;
-  user_role_by_default: UserRole;
 
   env_status: {
     twilio_configured: boolean;
     telegram_configured: boolean;
+    phone_provider: {
+      configured: boolean;
+      test_call: boolean;
+      test_sms: boolean;
+      verification_call: boolean;
+      verification_sms: boolean;
+    };
   };
 }

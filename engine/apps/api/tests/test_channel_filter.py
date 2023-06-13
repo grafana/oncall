@@ -6,21 +6,20 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_create_permissions(
     make_organization_and_user_with_plugin_token,
-    make_alert_receive_channel,
     make_user_auth_headers,
     role,
     expected_status,
@@ -45,9 +44,9 @@ def test_channel_filter_create_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_update_permissions(
@@ -83,7 +82,11 @@ def test_channel_filter_update_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_channel_filter_list_permissions(
     make_organization_and_user_with_plugin_token,
@@ -114,7 +117,11 @@ def test_channel_filter_list_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_channel_filter_retrieve_permissions(
     make_organization_and_user_with_plugin_token,
@@ -146,9 +153,9 @@ def test_channel_filter_retrieve_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_delete_permissions(
@@ -181,9 +188,9 @@ def test_channel_filter_delete_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_move_to_position_permissions(
@@ -216,9 +223,9 @@ def test_channel_filter_move_to_position_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_send_demo_alert_permissions(
@@ -305,6 +312,57 @@ def test_channel_filter_create_without_order(
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["order"] == 1
     assert channel_filter.order == 0
+
+
+@pytest.mark.django_db
+def test_move_to_position(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    # create default channel filter
+    make_channel_filter(alert_receive_channel, is_default=True, order=0)
+    first_channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False, order=1)
+    second_channel_filter = make_channel_filter(alert_receive_channel, filtering_term="b", is_default=False, order=2)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:channel_filter-move-to-position", kwargs={"pk": first_channel_filter.public_primary_key}
+    )
+    url += f"?position=2"
+    response = client.put(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    first_channel_filter.refresh_from_db()
+    second_channel_filter.refresh_from_db()
+    assert first_channel_filter.order == 2
+    assert second_channel_filter.order == 1
+
+
+@pytest.mark.django_db
+def test_move_to_position_cant_move_default(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    # create default channel filter
+    default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True, order=0)
+    make_channel_filter(alert_receive_channel, filtering_term="b", is_default=False, order=1)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:channel_filter-move-to-position", kwargs={"pk": default_channel_filter.public_primary_key}
+    )
+    url += f"?position=1"
+    response = client.put(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -495,3 +553,67 @@ def test_channel_filter_update_invalid_notification_backends(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"notification_backends": ["Invalid messaging backend"]}
     assert channel_filter.notification_backends is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_channel_filter_convert_from_regex_to_jinja2(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    make_channel_filter(alert_receive_channel, is_default=True)
+
+    # r"..." used to keep this string as raw string
+    regex_filtering_term = r"\".*\": \"This alert was sent by user for demonstration purposes\""
+    final_filtering_term = r'{{ payload | json_dumps | regex_search("\".*\": \"This alert was sent by user for demonstration purposes\"") }}'
+    payload = {"description": "This alert was sent by user for demonstration purposes"}
+
+    regex_channel_filter = make_channel_filter(
+        alert_receive_channel,
+        filtering_term=regex_filtering_term,
+        is_default=False,
+    )
+    # Check if the filtering term is a regex
+    assert regex_channel_filter.filtering_term_type == regex_channel_filter.FILTERING_TERM_TYPE_REGEX
+    # Check if the alert is matched to the channel filter (route) regex
+    assert bool(regex_channel_filter.is_satisfying(payload)) is True
+
+    client = APIClient()
+    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": regex_channel_filter.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    # Check if preview of the filtering term migration is correct
+    assert response.json()["filtering_term_as_jinja2"] == final_filtering_term
+
+    url = reverse(
+        "api-internal:channel_filter-convert-from-regex-to-jinja2",
+        kwargs={"pk": regex_channel_filter.public_primary_key},
+    )
+    response = client.post(url, **make_user_auth_headers(user, token))
+    # Only admins can convert from regex to jinja2
+    assert response.status_code == expected_status
+    if expected_status == status.HTTP_200_OK:
+        regex_channel_filter.refresh_from_db()
+        # Regex is now converted to jinja2
+        jinja2_channel_filter = regex_channel_filter
+        # Check if the filtering term is a jinja2, and if it is correct
+        assert jinja2_channel_filter.filtering_term_type == jinja2_channel_filter.FILTERING_TERM_TYPE_JINJA2
+        assert jinja2_channel_filter.filtering_term == final_filtering_term
+        # Check if the same alert is matched to the channel filter (route) new jinja2
+        assert bool(jinja2_channel_filter.is_satisfying(payload)) is True

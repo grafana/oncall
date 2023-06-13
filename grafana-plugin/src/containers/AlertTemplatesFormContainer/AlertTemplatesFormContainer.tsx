@@ -3,10 +3,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 
 import AlertTemplatesForm from 'components/AlertTemplates/AlertTemplatesForm';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
+import { openErrorNotification, openNotification } from 'utils';
 
 interface TeamEditContainerProps {
   onHide: () => void;
@@ -24,7 +24,6 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
   const store = useStore();
 
   const [templatesRefreshing, setTemplatesRefreshing] = useState<boolean>(false);
-  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
@@ -41,8 +40,12 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
             onUpdateTemplates();
           }
         })
-        .catch((data) => {
-          setErrors(data.response.data);
+        .catch((err) => {
+          if (err.response?.data?.length > 0) {
+            openErrorNotification(err.response.data);
+          } else {
+            openErrorNotification(err.message);
+          }
         });
     },
     [alertReceiveChannelId, onUpdateTemplates, store.alertReceiveChannelStore]
@@ -64,7 +67,6 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
     <AlertTemplatesForm
       alertReceiveChannelId={alertReceiveChannelId}
       alertGroupId={alertGroupId}
-      errors={errors}
       templates={templates}
       onUpdateTemplates={onUpdateTemplatesCallback}
       demoAlertEnabled={alertReceiveChannel?.demo_alert_enabled}

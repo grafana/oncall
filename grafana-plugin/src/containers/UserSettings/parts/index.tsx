@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
-import MobileAppVerification from 'containers/MobileAppVerification/MobileAppVerification';
+import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
 import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
@@ -25,21 +25,19 @@ interface TabsProps {
   activeTab: UserSettingsTab;
   onTabChange: (tab: UserSettingsTab) => void;
   showNotificationSettingsTab: boolean;
-  showMobileAppVerificationTab: boolean;
+  showMobileAppConnectionTab: boolean;
   showSlackConnectionTab: boolean;
   showTelegramConnectionTab: boolean;
 }
 
-export const Tabs = (props: TabsProps) => {
-  const {
-    activeTab,
-    onTabChange,
-    showNotificationSettingsTab,
-    showMobileAppVerificationTab,
-    showSlackConnectionTab,
-    showTelegramConnectionTab,
-  } = props;
-
+export const Tabs = ({
+  activeTab,
+  onTabChange,
+  showNotificationSettingsTab,
+  showMobileAppConnectionTab,
+  showSlackConnectionTab,
+  showTelegramConnectionTab,
+}: TabsProps) => {
   const getTabClickHandler = useCallback(
     (tab: UserSettingsTab) => {
       return () => {
@@ -71,12 +69,12 @@ export const Tabs = (props: TabsProps) => {
         key={UserSettingsTab.PhoneVerification}
         onChangeTab={getTabClickHandler(UserSettingsTab.PhoneVerification)}
       />
-      {showMobileAppVerificationTab && (
+      {showMobileAppConnectionTab && (
         <Tab
-          active={activeTab === UserSettingsTab.MobileAppVerification}
-          label="Mobile App Verification"
-          key={UserSettingsTab.MobileAppVerification}
-          onChangeTab={getTabClickHandler(UserSettingsTab.MobileAppVerification)}
+          active={activeTab === UserSettingsTab.MobileAppConnection}
+          label="Mobile App Connection"
+          key={UserSettingsTab.MobileAppConnection}
+          onChangeTab={getTabClickHandler(UserSettingsTab.MobileAppConnection)}
         />
       )}
       {showSlackConnectionTab && (
@@ -106,16 +104,12 @@ interface TabsContentProps {
   isDesktopOrLaptop: boolean;
 }
 
-export const TabsContent = observer((props: TabsContentProps) => {
-  const { id, activeTab, onTabChange, isDesktopOrLaptop } = props;
+export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLaptop }: TabsContentProps) => {
+  const store = useStore();
+
   useEffect(() => {
     store.updateFeatures();
   }, []);
-
-  const store = useStore();
-  const { userStore } = store;
-
-  const storeUser = userStore.items[id];
 
   return (
     <TabContent className={cx('content')}>
@@ -139,9 +133,7 @@ export const TabsContent = observer((props: TabsContentProps) => {
         ) : (
           <PhoneVerification userPk={id} />
         ))}
-      {activeTab === UserSettingsTab.MobileAppVerification && (
-        <MobileAppVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
-      )}
+      {activeTab === UserSettingsTab.MobileAppConnection && <MobileAppConnection userPk={id} />}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
     </TabContent>

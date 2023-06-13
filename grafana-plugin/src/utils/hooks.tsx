@@ -7,6 +7,24 @@ export function useForceUpdate() {
   return () => setValue((value) => value + 1);
 }
 
+export function useOnClickOutside(ref, handler) {
+  useEffect(() => {
+    const listener = (event) => {
+      if (!ref.current || ref.current.contains(event.target)) {
+        return;
+      }
+
+      handler(event);
+    };
+    document.addEventListener('mousedown', listener);
+    document.addEventListener('touchstart', listener);
+    return () => {
+      document.removeEventListener('mousedown', listener);
+      document.removeEventListener('touchstart', listener);
+    };
+  }, [ref, handler]);
+}
+
 export function usePrevious(value: any) {
   const ref = useRef();
   useEffect(() => {
@@ -15,13 +33,13 @@ export function usePrevious(value: any) {
   return ref.current;
 }
 
-export function useQueryParams() {
+export function useQueryParams(): URLSearchParams {
   const { search } = useLocation();
 
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-export function useQueryPath() {
+export function useQueryPath(): string {
   const location = useLocation();
   return React.useMemo(() => location.pathname, [location]);
 }

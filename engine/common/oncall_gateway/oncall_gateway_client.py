@@ -22,6 +22,7 @@ class SlackConnector:
     SlackConnector represents connection between slack team with installed oncall app and oncall-gateway
     """
 
+    oncall_org_id: str
     slack_team_id: str
     backend: str
 
@@ -52,48 +53,37 @@ class OnCallGatewayAPIClient:
     def delete_oncall_connector(self, oncall_org_id: str) -> requests.models.Response:
         url = urljoin(f"{self._oncall_connectors_url}/", oncall_org_id)
         response = self._delete(url=url)
-        response_data = response.json()
-        return (
-            OnCallConnector(
-                response_data["oncall_org_id"],
-                response_data["backend"],
-            ),
-            response,
-        )
+        return response
 
     # Slack Connector
     @property
     def _slack_connectors_url(self) -> str:
         return urljoin(self.api_base_url, "slack_team_connectors")
 
-    def post_slack_connector(self, slack_id: str, backend: str) -> tuple[SlackConnector, requests.models.Response]:
-        d = {"slack_team_id": slack_id, "backend": backend}
+    def post_slack_connector(
+        self, oncall_org_id: str, slack_id: str, backend: str
+    ) -> tuple[SlackConnector, requests.models.Response]:
+        d = {"oncall_org_id": oncall_org_id, "slack_team_id": slack_id, "backend": backend}
         response = self._post(url=self._slack_connectors_url, json=d)
         response_data = response.json()
         return (
-            OnCallConnector(
-                response_data["oncall_org_id"],
-                response_data["backend"],
-            ),
-            response,
-        )
-
-    def get_slack_connector(self, slack_id: str) -> tuple[SlackConnector, requests.models.Response]:
-        url = urljoin(f"{self._slack_connectors_url}/", slack_id)
-        response = self._get(url=url)
-        response_data = response.json()
-        return (
             SlackConnector(
+                response_data["oncall_org_id"],
                 response_data["slack_team_id"],
                 response_data["backend"],
             ),
             response,
         )
 
-    def delete_slack_connector(self, slack_id: str) -> requests.models.Response:
-        url = urljoin(f"{self._slack_connectors_url}/", slack_id)
+    def delete_slack_connector(self, oncall_org_id: str) -> requests.models.Response:
+        url = urljoin(f"{self._slack_connectors_url}/", oncall_org_id)
         response = self._delete(url=url)
         return response
+
+    def check_slack_installation_possible(self, oncall_org_id, backend, slack_id: str) -> requests.models.Response:
+        url = urljoin(f"{self._slack_connectors_url}/", "check_installation_possible")
+        url += f"?slack_team_id={slack_id}&oncall_org_id={oncall_org_id}&backend={backend}"
+        return self._get(url=url)
 
     def _get(self, url, params=None, **kwargs) -> requests.models.Response:
         kwargs["params"] = params
@@ -129,13 +119,9 @@ class OnCallGatewayAPIClient:
         if response.status_code not in [200, 201, 202, 204]:
             err_msg = cls._get_error_msg_from_response(response)
             if 400 <= response.status_code < 500:
-                print(1)
                 err_msg = "%s Client Error: %s for url: %s" % (response.status_code, err_msg, response.url)
-
             elif 500 <= response.status_code < 600:
-                print(2)
                 err_msg = "%s Server Error: %s for url: %s" % (response.status_code, err_msg, response.url)
-            print(err_msg)
             raise requests.exceptions.HTTPError(err_msg, response=response)
 
     @classmethod

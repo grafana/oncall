@@ -8,10 +8,10 @@ import moment from 'moment-timezone';
 
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './AttachIncidentForm.module.css';
 
@@ -63,17 +63,17 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
       title={
         <HorizontalGroup>
           <Icon size="lg" name="link" />
-          <Text.Title level={4}>Attach to another incident</Text.Title>
+          <Text.Title level={4}>Attach to another alert group</Text.Title>
         </HorizontalGroup>
       }
       className={cx('root')}
       onDismiss={onHide}
     >
       <Field
-        label="Incident to be attached with"
-        description="Linking incidents together can help the team investigate the underlying issue."
+        label="Alert group to be attached with"
+        description="Linking alert groups together can help the team investigate the underlying issue."
       >
-        <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+        <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
           <GSelect
             showSearch
             modelName="alertGroupStore"
@@ -87,7 +87,7 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
             getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm A')}
             getOptionLabel={(item: SelectableValue) => <GroupedAlertNumber value={item.value} />}
           />
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </Field>
       <HorizontalGroup>
         <Button onClick={onHide} variant="secondary">

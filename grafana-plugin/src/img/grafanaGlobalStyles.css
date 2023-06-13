@@ -1,26 +1,24 @@
 /* Navigation/Layout */
 
+.drawer-content,
+.rc-drawer-content {
+  overflow: auto !important; /* fix https://github.com/grafana/oncall/issues/415 */
+}
+
 .page-body {
   max-width: unset !important;
 }
 
-.oncall-header {
-  padding-top: 0;
-  padding-bottom: 36px;
+[class$='-page-header'] {
+  display: none; /* hide header that comes from Grafana (topnavbar) and instead use ours */
 }
 
-.scrollbar-view [class*='-page-header'] {
-  margin-bottom: 0 !important;
-}
-
-.page-container.page-body {
-  flex-grow: 1 !important;
+[class$='-page-container'] {
+  min-width: 0; /* top navbar container overflows for a few screens */
 }
 
 .page-container {
   max-width: unset !important;
-  flex-grow: unset !important;
-  flex-basis: unset !important;
 }
 
 .page-scrollbar-content > div:first-child {
@@ -29,35 +27,8 @@
 
 .page-header__title {
   padding-top: 0 !important;
+  font-size: 2rem !important;
   margin-right: 8px;
-}
-
-/* This is for Grafana 8, remove later */
-@media (max-width: 1540px) {
-  .page-header__tabs > ul > li > a > div {
-    display: none;
-  }
-}
-
-@media (max-width: 1540px) {
-  .page-header__tabs > div > div > a > div {
-    display: none;
-  }
-}
-
-@media (max-width: 1300px) {
-  .sidemenu {
-    position: fixed !important;
-    height: 100%;
-  }
-
-  .main-view {
-    padding-left: 50px;
-  }
-
-  .page-header__tabs li a {
-    white-space: nowrap;
-  }
 }
 
 .page-header__info-block {

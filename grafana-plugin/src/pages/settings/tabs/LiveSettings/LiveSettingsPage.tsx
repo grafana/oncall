@@ -9,11 +9,11 @@ import { Lambda } from 'mobx/lib/internal';
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GlobalSetting } from 'models/global_setting/global_setting.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
@@ -119,7 +119,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
                 <Text.Title level={3}>Env Variables</Text.Title>
               </HorizontalGroup>
               <HorizontalGroup justify="flex-end">
-                <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+                <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
                   <Button
                     variant="primary"
                     icon={hideValues ? 'eye' : 'eye-slash'}
@@ -127,7 +127,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
                   >
                     {hideValues ? 'Show values' : 'Hide values'}
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </HorizontalGroup>
             </div>
           )}
@@ -145,7 +145,6 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 
   renderValue = (item: GlobalSetting) => {
-    const { store } = this.props;
     const { hideValues } = this.state;
 
     if (item.value === true || item.value === false) {
@@ -165,9 +164,9 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         <Text
           copyable={!item.is_secret && Boolean(item.value)}
           onTextChange={this.getEditValueChangeHandler(item)}
-          editable={store.isUserActionAllowed(UserAction.UpdateGlobalSettings)}
+          editable={isUserActionAllowed(UserActions.OtherSettingsWrite)}
           clearBeforeEdit={item.is_secret}
-          hidden={hideValues}
+          hidden={hideValues && item.is_secret}
         >
           {normalizeValue(item.value)}
         </Text>
@@ -209,7 +208,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
 
     return (
       <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
-        <Text>{hideValues ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
+        <Text>{hideValues && item.is_secret ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
       </div>
     );
   };

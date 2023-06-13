@@ -32,10 +32,6 @@ sms_title = web_title
 
 phone_call_title = sms_title
 
-email_title = web_title
-
-email_message = web_message
-
 telegram_title = sms_title
 
 telegram_message = slack_message
@@ -58,5 +54,5 @@ example_payload = {
     "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg",
     "state": "alerting",
     "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime",
-    "message": "This alert was sent by user for the demonstration purposes\nSmth happened. Oh no!",
+    "message": "This alert was sent by user for demonstration purposes\nSmth happened. Oh no!",
 }

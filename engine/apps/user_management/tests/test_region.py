@@ -11,7 +11,7 @@ from apps.auth_token.auth import ApiTokenAuthentication, ScheduleExportAuthentic
 from apps.auth_token.models import ScheduleExportAuthToken, UserScheduleExportAuthToken
 from apps.integrations.views import AlertManagerAPIView
 from apps.schedules.models import OnCallScheduleWeb
-from apps.user_management.models.region import OrganizationMovedException
+from apps.user_management.exceptions import OrganizationMovedException
 
 
 @pytest.mark.django_db

@@ -54,3 +54,5 @@ grouping_id = """{{ payload }}"""
 resolve_condition = None
 
 acknowledge_condition = None
+
+example_payload = None

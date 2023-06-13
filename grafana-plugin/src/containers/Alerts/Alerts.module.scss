@@ -1,0 +1,29 @@
+.alerts-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  gap: 10px;
+
+  &--legacy {
+    // legacy navbar requires different padding-top
+    padding-top: 10px;
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+.alert {
+  margin: 0;
+}
+
+.instructions-link {
+  color: var(--primary-text-link);
+}
+
+@media (max-width: 768px) {
+  .alerts-container--legacy {
+    padding-top: 50px;
+  }
+}

@@ -1,10 +1,9 @@
-import React, { useCallback, FC } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 
-import { locationService } from '@grafana/runtime';
 import cn from 'classnames/bind';
-import qs from 'query-string';
+import { Link } from 'react-router-dom';
 
-import { PLUGIN_URL_PATH } from 'pages';
+import { getPathFromQueryParams } from 'utils/url';
 
 import styles from './PluginLink.module.css';
 
@@ -13,48 +12,37 @@ interface PluginLinkProps {
   className?: string;
   wrap?: boolean;
   children: any;
-  partial?: boolean;
-  path?: string;
   query?: Record<string, any>;
+  target?: string;
 }
 
 const cx = cn.bind(styles);
 
 const PluginLink: FC<PluginLinkProps> = (props) => {
-  const { children, partial = false, path = PLUGIN_URL_PATH, query, disabled, className, wrap = true } = props;
+  const { children, query, disabled, className, wrap = true, target } = props;
 
-  const href = `${path}/?${qs.stringify(query)}`;
+  const newPath = useMemo(() => getPathFromQueryParams(query), [query]);
 
-  const onClickCallback = useCallback(
+  const handleClick = useCallback(
     (event) => {
-      event.preventDefault();
-
-      // @ts-ignore
-      if (children.props?.disabled) {
-        return;
-      }
+      event.stopPropagation();
 
       if (disabled) {
-        return;
-      }
-
-      if (partial) {
-        locationService.partial(query);
-      } else {
-        locationService.push(href);
+        event.preventDefault();
       }
     },
-    [children]
+    [disabled]
   );
 
   return (
-    <a
-      href={href}
-      onClick={onClickCallback}
-      className={cx('root', className, { root_disabled: disabled, 'no-wrap': !wrap })}
+    <Link
+      target={target}
+      onClick={handleClick}
+      className={cx('root', className, { 'no-wrap': !wrap, root_disabled: disabled })}
+      to={newPath}
     >
       {children}
-    </a>
+    </Link>
   );
 };
 

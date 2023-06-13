@@ -67,10 +67,15 @@ class TeamPrimaryKeyRelatedField(RelatedField):
         request = self.context.get("request", None)
         if not request:
             return None
-        return request.user.teams.all()
+        return request.user.available_teams.all()
 
     def display_value(self, instance):
         return self.display_func(instance)
+
+    def validate_empty_values(self, data):
+        if data == "null":
+            data = None
+        return super().validate_empty_values(data)
 
 
 class UsersFilteredByOrganizationField(serializers.Field):
@@ -94,35 +99,6 @@ class UsersFilteredByOrganizationField(serializers.Field):
             return None
 
         return queryset.filter(organization=request.user.organization, public_primary_key__in=data).distinct()
-
-
-class WritableSerializerMethodField(serializers.SerializerMethodField):
-    """
-    Please, NEVER use this field.
-    It was a mistake to create this one due to necessity to dig deep in drf to fix bugs there.
-    This field is a workaround to allow to write into SerializerMethodField.
-    """
-
-    def __init__(self, method_name=None, **kwargs):
-        self.method_name = method_name
-        self.setter_method_name = kwargs.pop("setter_method_name", None)
-        self.deserializer_field = kwargs.pop("deserializer_field")
-
-        kwargs["source"] = "*"
-        super(serializers.SerializerMethodField, self).__init__(**kwargs)
-
-    def bind(self, field_name, parent):
-        retval = super().bind(field_name, parent)
-        if not self.setter_method_name:
-            self.setter_method_name = f"set_{field_name}"
-
-        return retval
-
-    def to_internal_value(self, data):
-        value = self.deserializer_field.to_internal_value(data)
-        method = getattr(self.parent, self.setter_method_name)
-        method(value)
-        return {self.method_name: value}
 
 
 class CustomTimeField(fields.TimeField):

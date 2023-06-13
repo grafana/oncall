@@ -1,16 +1,8 @@
 .root {
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-
-  .alerts_horizontal {
-    display: flex;
-    gap: 10px;
-  }
-
-  .alert {
-    margin: 24px 0;
-  }
 }
 
 /* --- GRAFANA UI TUNINGS --- */
@@ -19,8 +11,4 @@
   white-space: break-spaces;
   line-height: 20px;
   height: auto;
-}
-
-.instructions-link {
-  color: var(--primary-text-link);
 }

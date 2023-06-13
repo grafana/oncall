@@ -1,4 +1,4 @@
-const esModules = ['react-colorful', 'uuid', 'ol'].join('|');
+const esModules = ['@grafana', 'uplot', 'ol', 'd3', 'react-colorful', 'uuid'].join('|');
 
 module.exports = {
   testEnvironment: 'jsdom',
@@ -7,6 +7,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js'],
 
   transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
+  
 
   moduleNameMapper: {
     'grafana/app/(.*)': '<rootDir>/src/jest/grafanaMock.ts',
@@ -15,6 +16,12 @@ module.exports = {
     '^jest$': '<rootDir>/src/jest',
     '^.+\\.(css|scss)$': '<rootDir>/src/jest/styleMock.ts',
     '^lodash-es$': 'lodash',
-    "^.+\\.svg$": "<rootDir>/src/jest/svgTransform.ts" 
+    '^.+\\.svg$': '<rootDir>/src/jest/svgTransform.ts',
+    '^.+\\.png$': '<rootDir>/src/jest/grafanaMock.ts',
   },
+
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+
+  testTimeout: 10000,
+  testPathIgnorePatterns: ['/node_modules/', '/integration-tests/'],
 };

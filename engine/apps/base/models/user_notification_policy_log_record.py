@@ -20,7 +20,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class UserNotificationPolicyLogRecord(models.Model):
-
     (
         TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         TYPE_PERSONAL_NOTIFICATION_FINISHED,
@@ -68,7 +67,7 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_IN_SLACK_CHANNEL_IS_ARCHIVED,
         ERROR_NOTIFICATION_IN_SLACK_RATELIMIT,
         ERROR_NOTIFICATION_MESSAGING_BACKEND_ERROR,
-        ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+        ERROR_NOTIFICATION_FORBIDDEN,
         ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED,
     ) = range(27)
 
@@ -162,7 +161,7 @@ class UserNotificationPolicyLogRecord(models.Model):
         if substitute_author_with_tag:
             user_verbal = "{{author}}"
         elif for_slack:
-            user_verbal = self.author.get_user_verbal_for_team_for_slack()
+            user_verbal = self.author.get_username_with_slack_verbal()
         else:
             user_verbal = self.author.username
 
@@ -258,10 +257,8 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"failed to notify {user_verbal} in Slack, because channel is archived"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_RATELIMIT:
                 result += f"failed to notify {user_verbal} in Slack due to Slack rate limit"
-            elif (
-                self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE
-            ):
-                result += f"failed to notify {user_verbal}, not allowed role"
+            elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN:
+                result += f"failed to notify {user_verbal}, not allowed"
             elif (
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_TELEGRAM_USER_IS_DEACTIVATED
@@ -287,10 +284,6 @@ class UserNotificationPolicyLogRecord(models.Model):
                     result += f"called {user_verbal} by phone"
                 elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
                     result += f"sent telegram message to {user_verbal}"
-                elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL:
-                    result += f"sent push notifications to {user_verbal}"
-                elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL:
-                    result += f"sent push critical notifications to {user_verbal}"
                 elif notification_channel is None:
                     result += f"invited {user_verbal} but notification channel is unspecified"
                 else:

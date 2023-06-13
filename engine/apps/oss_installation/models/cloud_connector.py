@@ -8,7 +8,6 @@ from apps.base.utils import live_settings
 from apps.oss_installation.models.cloud_user_identity import CloudUserIdentity
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
-from common.constants.role import Role
 from settings.base import GRAFANA_CLOUD_ONCALL_API_URL
 
 logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ class CloudConnector(models.Model):
             logger.warning("Unable to sync with cloud. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
 
-        existing_emails = list(User.objects.filter(role__in=(Role.ADMIN, Role.EDITOR)).values_list("email", flat=True))
+        existing_emails = [user.email for user in User.objects.all() if user.is_notification_allowed]
         matching_users = []
         users_url = create_engine_url("api/v1/users", override_base=GRAFANA_CLOUD_ONCALL_API_URL)
 

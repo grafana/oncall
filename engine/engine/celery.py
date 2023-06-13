@@ -1,14 +1,24 @@
+import logging
 import os
+import time
 
 import celery
 from celery.app.log import TaskFormatter
+from celery.utils.debug import memdump, sample_mem
+from celery.utils.log import get_task_logger
+from django.conf import settings
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.celery import CeleryInstrumentor
+from opentelemetry.instrumentation.pymysql import PyMySQLInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-# set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 
-from django.db import connection  # noqa: E402
+logger = get_task_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
-connection.cursor()
 from celery import Celery  # noqa: E402
 
 app = Celery("proj")
@@ -38,6 +48,53 @@ def on_after_setup_logger(logger, **kwargs):
     for handler in logger.handlers:
         handler.setFormatter(
             TaskFormatter(
-                "%(asctime)s source=engine:celery task_id=%(task_id)s task_name=%(task_name)s name=%(name)s level=%(levelname)s %(message)s"
+                "%(asctime)s source=engine:celery worker=%(processName)s task_id=%(task_id)s task_name=%(task_name)s name=%(name)s level=%(levelname)s %(message)s"
             )
+        )
+
+
+@celery.signals.worker_ready.connect
+def on_worker_ready(*args, **kwargs):
+    from apps.telegram.tasks import register_telegram_webhook
+
+    register_telegram_webhook.delay()
+
+
+if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
+
+    @celery.signals.worker_process_init.connect(weak=False)
+    def init_celery_tracing(*args, **kwargs):
+        trace.set_tracer_provider(TracerProvider())
+        span_processor = BatchSpanProcessor(OTLPSpanExporter())
+        trace.get_tracer_provider().add_span_processor(span_processor)
+        PyMySQLInstrumentor().instrument()
+        CeleryInstrumentor().instrument()
+
+
+if settings.DEBUG_CELERY_TASKS_PROFILING:
+
+    @celery.signals.task_prerun.connect
+    def start_task_timer(task_id=None, task=None, *a, **kw):
+        logger.info("started: {} of {} with cpu={} at {}".format(task_id, task.name, time.perf_counter(), time.time()))
+        sample_mem()
+
+    @celery.signals.task_postrun.connect
+    def finish_task_timer(task_id=None, task=None, *a, **kw):
+        logger.info("ended: {} of {} with cpu={} at {}".format(task_id, task.name, time.perf_counter(), time.time()))
+        sample_mem()
+        memdump()
+
+
+if settings.PYROSCOPE_PROFILER_ENABLED:
+
+    @celery.signals.worker_process_init.connect(weak=False)
+    def init_pyroscope(*args, **kwargs):
+        import pyroscope
+
+        pyroscope.configure(
+            application_name=settings.PYROSCOPE_APPLICATION_NAME,
+            server_address=settings.PYROSCOPE_SERVER_ADDRESS,
+            auth_token=settings.PYROSCOPE_AUTH_TOKEN,
+            detect_subprocesses=True,  # detect subprocesses started by the main process; default is False
+            tags={"type": "celery", "celery_worker": os.environ.get("CELERY_WORKER_QUEUE", "no_queue_specified")},
         )

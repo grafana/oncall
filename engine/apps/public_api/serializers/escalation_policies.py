@@ -136,6 +136,8 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             instance = super().create(validated_data)
             self._change_position(order, instance)
         else:
+            # validate will raise if there is a duplicated order
+            self._validate_manual_order(None, validated_data)
             instance = super().create(validated_data)
 
         return instance
@@ -208,6 +210,18 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
         for field in fields_to_remove:
             result.pop(field, None)
         return result
+
+    def _validate_manual_order(self, instance, validated_data):
+        order = validated_data.get("order")
+        if order is None:
+            return
+
+        policies_with_order = self.escalation_chain.escalation_policies.filter(order=order)
+        if instance and instance.id:
+            policies_with_order = policies_with_order.exclude(id=instance.id)
+
+        if policies_with_order.exists():
+            raise BadRequest(detail="Steps cannot have duplicated positions")
 
     def _correct_validated_data(self, validated_data):
         validated_data_fields_to_remove = [
@@ -302,5 +316,8 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
             order = validated_data.pop("order", None)
             self._validate_order(order, {"escalation_chain_id": instance.escalation_chain_id})
             self._change_position(order, instance)
+        else:
+            # validate will raise if there is a duplicated order
+            self._validate_manual_order(instance, validated_data)
 
         return super().update(instance, validated_data)

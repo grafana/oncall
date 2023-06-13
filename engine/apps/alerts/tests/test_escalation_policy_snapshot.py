@@ -8,9 +8,9 @@ from apps.alerts.escalation_snapshot.serializers.escalation_policy_snapshot impo
 from apps.alerts.escalation_snapshot.snapshot_classes import EscalationPolicySnapshot
 from apps.alerts.escalation_snapshot.utils import eta_for_escalation_step_notify_if_time
 from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
-from common.constants.role import Role
 
 
 def get_escalation_policy_snapshot_from_model(escalation_policy):
@@ -134,7 +134,7 @@ def test_escalation_step_notify_multiple_users(
     escalation_step_test_setup,
     make_escalation_policy,
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     notify_users_step = make_escalation_policy(
         escalation_chain=channel_filter.escalation_chain,
@@ -170,7 +170,7 @@ def test_escalation_step_notify_on_call_schedule(
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     # create on_call_shift with user to notify
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -213,12 +213,12 @@ def test_escalation_step_notify_on_call_schedule_viewer_user(
     make_schedule,
     make_on_call_shift,
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
-    viewer = make_user_for_organization(organization=organization, role=Role.VIEWER)
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    viewer = make_user_for_organization(organization=organization, role=LegacyAccessControlRole.VIEWER)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     # create on_call_shift with user to notify
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -263,7 +263,7 @@ def test_escalation_step_notify_user_group(
     make_slack_user_group,
     make_escalation_policy,
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
     slack_team_identity = make_slack_team_identity()
     organization.slack_team_identity = slack_team_identity
     organization.save()
@@ -295,7 +295,7 @@ def test_escalation_step_notify_if_time(
     escalation_step_test_setup,
     make_escalation_policy,
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     # current time is not between from_time and to_time, step returns eta
     now = timezone.now()
@@ -358,7 +358,7 @@ def test_escalation_step_notify_if_time(
 def test_escalation_step_notify_if_num_alerts_in_window(
     mocked_execute_tasks, escalation_step_test_setup, make_escalation_policy, make_alert
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     make_alert(alert_group=alert_group, raw_request_data={})
     make_alert(alert_group=alert_group, raw_request_data={})
@@ -386,7 +386,7 @@ def test_escalation_step_notify_if_num_alerts_in_window(
     ).exists()
     assert not mocked_execute_tasks.called
 
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     make_alert(alert_group=alert_group, raw_request_data={})
 
@@ -419,7 +419,7 @@ def test_escalation_step_trigger_custom_button(
     make_custom_action,
     make_escalation_policy,
 ):
-    organization, _, alert_receive_channel, channel_filter, alert_group, reason = escalation_step_test_setup
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     custom_button = make_custom_action(organization=organization)
 
@@ -429,6 +429,37 @@ def test_escalation_step_trigger_custom_button(
         custom_button_trigger=custom_button,
     )
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(trigger_custom_button_step)
+    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    result = escalation_policy_snapshot.execute(alert_group, reason)
+    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+        eta=result.eta,
+        stop_escalation=False,
+        pause_escalation=False,
+        start_from_beginning=False,
+    )
+    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
+    assert result == expected_result
+    assert mocked_execute_tasks.called
+
+
+@patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
+@pytest.mark.django_db
+def test_escalation_step_trigger_custom_webhook(
+    mocked_execute_tasks,
+    escalation_step_test_setup,
+    make_custom_webhook,
+    make_escalation_policy,
+):
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+
+    custom_webhook = make_custom_webhook(organization=organization)
+
+    trigger_custom_webhook_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+        custom_webhook=custom_webhook,
+    )
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(trigger_custom_webhook_step)
     expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
     result = escalation_policy_snapshot.execute(alert_group, reason)
     expected_result = EscalationPolicySnapshot.StepExecutionResultData(

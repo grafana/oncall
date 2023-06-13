@@ -9,8 +9,8 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.alerts.tasks.compare_escalations import compare_escalations
+from apps.slack.alert_group_slack_service import AlertGroupSlackService
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
-from apps.slack.scenarios.escalation_delivery import EscalationDeliveryStep
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
@@ -55,7 +55,7 @@ def update_incident_slack_message(slack_team_identity_pk, alert_group_pk):
         return "Skip message update in Slack due to rate limit"
     if alert_group.slack_message is None:
         return "Skip message update in Slack due to absence of slack message"
-    ScenarioStep(slack_team_identity, alert_group.channel.organization)._update_slack_message(alert_group)
+    AlertGroupSlackService(slack_team_identity).update_alert_group_slack_message(alert_group)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
@@ -98,9 +98,7 @@ def check_slack_message_exists_before_post_message_to_thread(
     slack_message = alert_group.get_slack_message()
 
     if slack_message is not None:
-        EscalationDeliveryStep(slack_team_identity, alert_group.channel.organization).publish_message_to_thread(
-            alert_group, text=text
-        )
+        AlertGroupSlackService(slack_team_identity).publish_message_to_alert_group_thread(alert_group, text=text)
 
     # check how much time has passed since alert group was created
     # to prevent eternal loop of restarting check_slack_message_before_post_message_to_thread
@@ -240,7 +238,7 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     members = slack_team_identity.get_conversation_members(sc, channel_id)
     if bot_user_id not in members:
         text = f"Please invite <@{bot_user_id}> to this channel to make all features " f"available :wink:"
-        ScenarioStep(slack_team_identity).publish_message_to_thread(alert_group, text=text)
+        AlertGroupSlackService(slack_team_identity, sc).publish_message_to_alert_group_thread(alert_group, text=text)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=1)
@@ -302,7 +300,6 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def populate_slack_user_identities(organization_pk):
-
     SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
 
     Organization = apps.get_model("user_management", "Organization")
@@ -315,7 +312,6 @@ def populate_slack_user_identities(organization_pk):
     slack_user_identities_to_update = []
 
     for member in slack_team_identity.members:
-
         profile = member.get("profile")
         email = profile.get("email", None)
 
@@ -467,7 +463,13 @@ def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_p
 )
 def post_slack_rate_limit_message(integration_id):
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    integration = AlertReceiveChannel.objects.get(pk=integration_id)
+
+    try:
+        integration = AlertReceiveChannel.objects.get(pk=integration_id)
+    except AlertReceiveChannel.DoesNotExist:
+        logger.warning(f"AlertReceiveChannel {integration_id} doesn't exist")
+        return
+
     if not compare_escalations(post_slack_rate_limit_message.request.id, integration.rate_limit_message_task_id):
         logger.info(
             f"post_slack_rate_limit_message. integration {integration_id}. ID mismatch. "
@@ -478,10 +480,10 @@ def post_slack_rate_limit_message(integration_id):
     slack_channel = default_route.slack_channel_id_or_general_log_id
     if slack_channel:
         text = (
-            f"Delivering and updating incidents of integration {integration.verbal_name} in Slack is "
-            f"temporarily stopped due to rate limit. You could find new incidents at "
+            f"Delivering and updating alert groups of integration {integration.verbal_name} in Slack is "
+            f"temporarily stopped due to rate limit. You could find new alert groups at "
             f"<{integration.new_incidents_web_link}|web page "
-            '"Incidents">'
+            '"Alert Groups">'
         )
         post_message_to_channel(integration.organization, slack_channel, text)
 

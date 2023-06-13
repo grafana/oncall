@@ -68,12 +68,8 @@ class SlackMessage(models.Model):
                     f"It is strange!"
                 )
                 return None
-            # Re-take object to switch connection from readonly db to master.
             self._slack_team_identity = self.organization.slack_team_identity
-
-            _self = SlackMessage.objects.get(pk=self.pk)
-            _self._slack_team_identity = _self.organization.slack_team_identity
-            _self.save()
+            self.save()
         return self._slack_team_identity
 
     def get_alert_group(self):
@@ -84,7 +80,8 @@ class SlackMessage(models.Model):
                 self.alert_group.slack_message = self
                 self.alert_group.save(update_fields=["slack_message"])
                 return self.alert_group
-            return self.alert.group
+            else:
+                raise
 
     @property
     def permalink(self):
@@ -116,11 +113,11 @@ class SlackMessage(models.Model):
     def send_slack_notification(self, user, alert_group, notification_policy):
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
         slack_message = alert_group.get_slack_message()
-        user_verbal = user.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal = user.get_username_with_slack_verbal(mention=True)
 
         slack_user_identity = user.slack_user_identity
         if slack_user_identity is None:
-            text = "{}\nTried to invite {} to look at incident. Unfortunately {} is not in slack.".format(
+            text = "{}\nTried to invite {} to look at the alert group. Unfortunately {} is not in slack.".format(
                 alert_group.long_verbose_name, user_verbal, user_verbal
             )
 
@@ -135,7 +132,7 @@ class SlackMessage(models.Model):
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_SLACK,
             ).save()
         else:
-            text = "{}\nInviting {} to look at incident.".format(alert_group.long_verbose_name, user_verbal)
+            text = "{}\nInviting {} to look at the alert group.".format(alert_group.long_verbose_name, user_verbal)
 
         blocks = [
             {
@@ -212,29 +209,7 @@ class SlackMessage(models.Model):
 
                 if slack_user_identity.slack_id not in channel_members:
                     time.sleep(5)  # 2 messages in the same moment are ratelimited by Slack. Dirty hack.
-                    result = sc.api_call(
-                        "chat.postMessage",
-                        channel=channel_id,
-                        text=f":warning: Tried to ask {user_verbal} to look at incident. "
-                        f"Unfortunately {user_verbal} is not in this channel. Please, invite.",
-                    )
-                    SlackMessage(
-                        slack_id=result["ts"],
-                        organization=self.organization,
-                        _slack_team_identity=self.slack_team_identity,
-                        channel_id=channel_id,
-                        alert_group=alert_group,
-                    ).save()
-                    UserNotificationPolicyLogRecord(
-                        author=user,
-                        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                        notification_policy=notification_policy,
-                        alert_group=alert_group,
-                        reason="User is not in Slack channel",
-                        notification_step=notification_policy.step,
-                        notification_channel=notification_policy.notify_by,
-                        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_CHANNEL,
-                    ).save()
+                    slack_user_identity.send_link_to_slack_message(slack_message)
         except SlackAPITokenException as e:
             print(e)
         except SlackAPIException as e:

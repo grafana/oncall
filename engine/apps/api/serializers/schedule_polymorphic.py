@@ -12,7 +12,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 
 
 class PolymorphicScheduleSerializer(EagerLoadingMixin, PolymorphicSerializer):
-    SELECT_RELATED = ["organization"]
+    SELECT_RELATED = ["organization", "user_group"]
 
     resource_type_field_name = "type"
 
@@ -29,7 +29,6 @@ class PolymorphicScheduleSerializer(EagerLoadingMixin, PolymorphicSerializer):
 
 
 class PolymorphicScheduleCreateSerializer(PolymorphicScheduleSerializer):
-
     model_serializer_mapping = {
         OnCallScheduleICal: ScheduleICalCreateSerializer,
         OnCallScheduleCalendar: ScheduleCalendarCreateSerializer,

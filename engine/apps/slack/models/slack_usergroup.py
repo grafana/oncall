@@ -7,9 +7,10 @@ from django.db import models
 from django.db.models import JSONField
 from django.utils import timezone
 
+from apps.api.permissions import RBACPermission
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException
-from common.constants.role import Role
+from apps.user_management.models.user import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,6 @@ def generate_public_primary_key_for_slack_user_group():
 
 
 class SlackUserGroup(models.Model):
-
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
@@ -68,7 +68,7 @@ class SlackUserGroup(models.Model):
 
     @property
     def oncall_slack_user_identities(self):
-        users = self.oncall_schedules.get_oncall_users()
+        users = set(user for schedule in self.oncall_schedules.get_oncall_users().values() for user in schedule)
         slack_user_identities = [user.slack_user_identity for user in users if user.slack_user_identity is not None]
         return slack_user_identities
 
@@ -105,7 +105,8 @@ class SlackUserGroup(models.Model):
 
     def get_users_from_members_for_organization(self, organization):
         return organization.users.filter(
-            slack_user_identity__slack_id__in=self.members, role__in=[Role.ADMIN, Role.EDITOR]
+            slack_user_identity__slack_id__in=self.members,
+            **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
     @classmethod

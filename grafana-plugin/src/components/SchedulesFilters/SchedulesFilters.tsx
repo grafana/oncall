@@ -1,60 +1,120 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 
-import { DatePickerWithInput, Field, HorizontalGroup, RadioButtonGroup } from '@grafana/ui';
+import { Field, Icon, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import moment from 'moment-timezone';
 
-import { dateStringToOption, optionToDateString } from './SchedulesFilters.helpers';
+import { ScheduleType } from 'models/schedule/schedule.types';
+
+import styles from './SchedulesFilters.module.scss';
 import { SchedulesFiltersType } from './SchedulesFilters.types';
-
-import styles from './SchedulesFilters.module.css';
 
 const cx = cn.bind(styles);
 
 interface SchedulesFiltersProps {
   value: SchedulesFiltersType;
   onChange: (filters: SchedulesFiltersType) => void;
-  className?: string;
 }
 
-const SchedulesFilters = ({ value, onChange, className }: SchedulesFiltersProps) => {
-  const handleDateChange = useCallback(
-    (date: Date) => {
-      onChange({ selectedDate: moment(date).format('YYYY-MM-DD') });
+const SchedulesFilters = (props: SchedulesFiltersProps) => {
+  const { value, onChange } = props;
+
+  const onSearchTermChangeCallback = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      onChange({ ...value, searchTerm: e.currentTarget.value });
     },
-    [onChange]
+    [value]
   );
 
-  const option = useMemo(() => dateStringToOption(value.selectedDate), [value]);
-
-  const handleOptionChange = useCallback(
-    (option: string) => {
-      onChange({ ...value, selectedDate: optionToDateString(option) });
+  const handleMineChange = useCallback(
+    (mine) => {
+      onChange({ ...value, mine });
     },
-    [onChange, value]
+    [value]
   );
 
-  const datePickerValue = useMemo(() => moment(value.selectedDate).toDate(), [value]);
+  const handleStatusChange = useCallback(
+    (used) => {
+      onChange({ ...value, used });
+    },
+    [value]
+  );
+
+  const handleTypeChange = useCallback(
+    (type) => {
+      onChange({ ...value, type });
+    },
+    [value]
+  );
 
   return (
-    <div className={cx('root', className)}>
-      <HorizontalGroup>
-        <Field label="Filter events">
-          <RadioButtonGroup
-            options={[
-              { value: 'today', label: 'Today' },
-              { value: 'tomorrow', label: 'Tomorrow' },
-              { value: 'custom', label: 'Custom' },
-            ]}
-            value={option}
-            onChange={handleOptionChange}
+    <>
+      <div className={cx('left')}>
+        <Field label="Search by name">
+          <Input
+            autoFocus
+            className={cx('search')}
+            prefix={<Icon name="search" />}
+            placeholder="Search..."
+            value={value.searchTerm}
+            onChange={onSearchTermChangeCallback}
           />
         </Field>
-        <Field label="Date">
-          <DatePickerWithInput closeOnSelect width={40} value={datePickerValue} onChange={handleDateChange} />
+      </div>
+      <div className={cx('right')}>
+        <Field label="Mine">
+          <RadioButtonGroup
+            options={[
+              { label: 'All', value: undefined },
+              {
+                label: 'Mine',
+                value: true,
+              },
+              {
+                label: 'Not mine',
+                value: false,
+              },
+            ]}
+            value={value.mine}
+            onChange={handleMineChange}
+          />
         </Field>
-      </HorizontalGroup>
-    </div>
+        <Field label="Status">
+          <RadioButtonGroup
+            options={[
+              { label: 'All', value: undefined },
+              {
+                label: 'Used in escalations',
+                value: true,
+              },
+              { label: 'Unused', value: false },
+            ]}
+            value={value.used}
+            onChange={handleStatusChange}
+          />
+        </Field>
+        <Field label="Type">
+          <RadioButtonGroup
+            options={[
+              { label: 'All', value: undefined },
+              {
+                label: 'Web',
+                value: ScheduleType.API,
+              },
+              {
+                label: 'ICal',
+                value: ScheduleType.Ical,
+              },
+              {
+                label: 'API',
+                value: ScheduleType.Calendar,
+              },
+            ]}
+            value={value?.type}
+            onChange={handleTypeChange}
+          />
+        </Field>
+      </div>
+    </>
   );
 };
 

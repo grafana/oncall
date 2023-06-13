@@ -25,7 +25,7 @@ def test_restricted_action_error(
 
     with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
         mock_slack_api_call.side_effect = SlackAPIException(response={"error": "restricted_action"})
-        step.publish_slack_messages(slack_team_identity, alert_group, alert, None, "channel-id", [])
+        step._post_alert_group_to_slack(slack_team_identity, alert_group, alert, None, "channel-id", [])
 
     alert_group.refresh_from_db()
     alert.refresh_from_db()

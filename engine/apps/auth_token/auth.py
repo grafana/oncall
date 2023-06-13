@@ -8,17 +8,15 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
+from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
+from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
-from apps.user_management.models.region import OrganizationMovedException
-from common.constants.role import Role
 
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
-from .models.mobile_app_auth_token import MobileAppAuthToken
-from .models.mobile_app_verification_token import MobileAppVerificationToken
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -31,7 +29,7 @@ class ApiTokenAuthentication(BaseAuthentication):
         auth = get_authorization_header(request).decode("utf-8")
         user, auth_token = self.authenticate_credentials(auth)
 
-        if user.role != Role.ADMIN:
+        if not user_is_authorized(user, [RBACPermission.Permissions.API_KEYS_WRITE]):
             raise exceptions.AuthenticationFailed(
                 "Only users with Admin permissions are allowed to perform this action."
             )
@@ -50,6 +48,8 @@ class ApiTokenAuthentication(BaseAuthentication):
 
         if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
 
         return auth_token.user, auth_token
 
@@ -72,7 +72,14 @@ class PluginAuthentication(BaseAuthentication):
         if not context_string:
             raise exceptions.AuthenticationFailed("No instance context provided.")
 
-        context = json.loads(context_string)
+        try:
+            context = dict(json.loads(context_string))
+        except (ValueError, TypeError):
+            raise exceptions.AuthenticationFailed("Instance context must be JSON dict.")
+
+        if "stack_id" not in context or "org_id" not in context:
+            raise exceptions.AuthenticationFailed("Invalid instance context.")
+
         try:
             auth_token = check_token(token_string, context=context)
             if not auth_token.organization:
@@ -85,16 +92,32 @@ class PluginAuthentication(BaseAuthentication):
 
     @staticmethod
     def _get_user(request: Request, organization: Organization) -> User:
-        context = json.loads(request.headers.get("X-Grafana-Context"))
+        try:
+            context = dict(json.loads(request.headers.get("X-Grafana-Context")))
+        except (ValueError, TypeError):
+            raise exceptions.AuthenticationFailed("Grafana context must be JSON dict.")
+
+        if "UserId" not in context and "UserID" not in context:
+            raise exceptions.AuthenticationFailed("Invalid Grafana context.")
+
         try:
             user_id = context["UserId"]
         except KeyError:
             user_id = context["UserID"]
+
         try:
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+
+    @classmethod
+    def is_user_from_request_present_in_organization(cls, request: Request, organization: Organization) -> User:
+        try:
+            cls._get_user(request, organization)
+            return True
+        except exceptions.AuthenticationFailed:
+            return False
 
 
 class GrafanaIncidentUser(AnonymousUser):
@@ -174,6 +197,8 @@ class ScheduleExportAuthentication(BaseAuthentication):
 
         if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
 
         if auth_token.schedule.public_primary_key != public_primary_key:
             raise exceptions.AuthenticationFailed("Invalid schedule export token for schedule")
@@ -207,47 +232,13 @@ class UserScheduleExportAuthentication(BaseAuthentication):
 
         if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
 
         if auth_token.user.public_primary_key != public_primary_key:
             raise exceptions.AuthenticationFailed("Invalid schedule export token for user")
 
         if not auth_token.active:
             raise exceptions.AuthenticationFailed("Export token is deactivated")
-
-        return auth_token.user, auth_token
-
-
-class MobileAppVerificationTokenAuthentication(BaseAuthentication):
-    model = MobileAppVerificationToken
-
-    def authenticate(self, request) -> Tuple[User, MobileAppVerificationToken]:
-        auth = get_authorization_header(request).decode("utf-8")
-        user, auth_token = self.authenticate_credentials(auth)
-        return user, auth_token
-
-    def authenticate_credentials(self, token_string: str) -> Tuple[User, MobileAppVerificationToken]:
-        try:
-            auth_token = self.model.validate_token_string(token_string)
-        except InvalidToken:
-            raise exceptions.AuthenticationFailed("Invalid token")
-
-        return auth_token.user, auth_token
-
-
-class MobileAppAuthTokenAuthentication(BaseAuthentication):
-    model = MobileAppAuthToken
-
-    def authenticate(self, request) -> Tuple[User, MobileAppAuthToken]:
-        auth = get_authorization_header(request).decode("utf-8")
-        user, auth_token = self.authenticate_credentials(auth)
-        if user is None:
-            return None
-        return user, auth_token
-
-    def authenticate_credentials(self, token_string: str) -> Tuple[User, MobileAppAuthToken]:
-        try:
-            auth_token = self.model.validate_token_string(token_string)
-        except InvalidToken:
-            return None, None
 
         return auth_token.user, auth_token

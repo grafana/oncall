@@ -1,0 +1,70 @@
+.container {
+  display: flex;
+  flex-direction: row;
+
+  &__box {
+    flex-basis: 50%;
+  }
+
+  &__box:first-child {
+    margin-right: 8px;
+  }
+  &__box:last-child {
+    margin-left: 8px;
+  }
+}
+
+.notification-buttons {
+  width: 100%;
+  padding-top: 12px;
+}
+
+.icon {
+  margin-top: -6px;
+  margin-left: 4px;
+  fill: var(--green-6);
+}
+
+.disconnect__container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.disconnect__qrCode {
+  width: 240px;
+  height: auto;
+  filter: blur(6px);
+  opacity: 0.6;
+}
+
+.blurry {
+  filter: blur(4px);
+  opacity: 0.2;
+}
+
+.qr-code {
+  background-color: #fff;
+  margin-bottom: 12px;
+}
+
+.qr-loader {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+
+  &__text {
+    text-align: center;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  i { // Overwrite Grafana's loading icon
+    font-size: 32px;
+  }
+
+}

@@ -57,6 +57,8 @@ CELERY_TASK_ROUTES = {
     "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
     "apps.heartbeat.tasks.restore_heartbeat_tasks": {"queue": "default"},
+    "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
+    "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_file": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
@@ -105,6 +107,7 @@ CELERY_TASK_ROUTES = {
     "apps.integrations.tasks.create_alert": {"queue": "critical"},
     "apps.integrations.tasks.create_alertmanager_alerts": {"queue": "critical"},
     "apps.integrations.tasks.start_notify_about_integration_ratelimit": {"queue": "critical"},
+    "apps.mobile_app.tasks.notify_user_async": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
     # LONG
@@ -115,6 +118,7 @@ CELERY_TASK_ROUTES = {
     "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
+    "apps.metrics_exporter.tasks.calculate_and_cache_metrics": {"queue": "long"},
     # SLACK
     "apps.integrations.tasks.notify_about_integration_ratelimit_in_slack": {"queue": "slack"},
     "apps.slack.helpers.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},
@@ -142,10 +146,11 @@ CELERY_TASK_ROUTES = {
     "apps.telegram.tasks.edit_message": {"queue": "telegram"},
     "apps.telegram.tasks.on_create_alert_telegram_representative_async": {"queue": "telegram"},
     "apps.telegram.tasks.register_telegram_webhook": {"queue": "telegram"},
-    "apps.telegram.tasks.send_link_to_channel_message_or_fallback_to_full_incident": {"queue": "telegram"},
+    "apps.telegram.tasks.send_link_to_channel_message_or_fallback_to_full_alert_group": {"queue": "telegram"},
     "apps.telegram.tasks.send_log_and_actions_message": {"queue": "telegram"},
     # WEBHOOK
     "apps.alerts.tasks.custom_button_result.custom_button_result": {"queue": "webhook"},
+    "apps.mobile_app.fcm_relay.fcm_relay_async": {"queue": "webhook"},
 }
 
 REST_FRAMEWORK = {

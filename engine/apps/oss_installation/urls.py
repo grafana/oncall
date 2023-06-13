@@ -4,6 +4,8 @@ from common.api_helpers.optional_slash_router import OptionalSlashRouter, option
 
 from .views import CloudConnectionView, CloudHeartbeatView, CloudUsersView, CloudUserView
 
+app_name = "oss_installation"
+
 router = OptionalSlashRouter()
 router.register("cloud_users", CloudUserView, basename="cloud-users")
 

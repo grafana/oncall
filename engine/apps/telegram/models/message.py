@@ -20,7 +20,7 @@ class TelegramMessage(models.Model):
         (ACTIONS_MESSAGE, "Actions message"),
         (LOG_MESSAGE, "Log message"),
         (FORMATTING_ERROR, "Alert can not be rendered"),
-        (PERSONAL_MESSAGE, "Alert group message with action buttons and incident log"),
+        (PERSONAL_MESSAGE, "Alert group message with action buttons and alert group log"),
         (LINK_TO_CHANNEL_MESSAGE, "Link to channel message"),
         (LINK_TO_CHANNEL_MESSAGE_WITHOUT_TITLE, "Link to channel message without title"),
     )
@@ -47,12 +47,7 @@ class TelegramMessage(models.Model):
         return f"https://t.me/c/{chat_slug}/{self.message_id}?thread={self.message_id}"
 
     @staticmethod
-    def create_from_message(
-        message: telegram.Message,
-        message_type: int,
-        alert_group: AlertGroup,
-    ) -> "TelegramMessage":
-        message = TelegramMessage.objects.create(
+    def create_from_message(message: telegram.Message, message_type: int, alert_group: AlertGroup) -> "TelegramMessage":
+        return TelegramMessage.objects.create(
             message_id=message.message_id, chat_id=message.chat.id, message_type=message_type, alert_group=alert_group
         )
-        return message

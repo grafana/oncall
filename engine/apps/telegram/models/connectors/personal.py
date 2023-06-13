@@ -5,11 +5,13 @@ from apps.alerts.models import AlertGroup
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramMessage, TelegramToOrganizationConnector
-from apps.telegram.tasks import send_link_to_channel_message_or_fallback_to_full_incident
+from apps.telegram.tasks import send_link_to_channel_message_or_fallback_to_full_alert_group
 from apps.user_management.models import User
 
 ONE_MORE_NOTIFICATION = "One more notification about this ☝"
-ALERT_CANT_BE_RENDERED = "You have a new incident, but Telegram can't render its content! Please check it out: {link}"
+ALERT_CANT_BE_RENDERED = (
+    "You have a new alert group, but Telegram can't render its content! Please check it out: {link}"
+)
 
 
 class TelegramToUserConnector(models.Model):
@@ -39,13 +41,13 @@ class TelegramToUserConnector(models.Model):
         telegram_channel = TelegramToOrganizationConnector.get_channel_for_alert_group(alert_group)
 
         if telegram_channel is not None:
-            send_link_to_channel_message_or_fallback_to_full_incident.delay(
+            send_link_to_channel_message_or_fallback_to_full_alert_group.delay(
                 alert_group_pk=alert_group.pk,
                 notification_policy_pk=notification_policy.pk,
                 user_connector_pk=self.pk,
             )
         else:
-            self.send_full_incident(alert_group=alert_group, notification_policy=notification_policy)
+            self.send_full_alert_group(alert_group=alert_group, notification_policy=notification_policy)
 
     @staticmethod
     def create_telegram_notification_error(
@@ -62,8 +64,8 @@ class TelegramToUserConnector(models.Model):
         )
         log_record.save()
 
-    # send the actual incident and incident log to user's DM
-    def send_full_incident(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy) -> None:
+    # send the actual alert group and log to user's DM
+    def send_full_alert_group(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy) -> None:
         try:
             telegram_client = TelegramClient()
         except error.InvalidToken:

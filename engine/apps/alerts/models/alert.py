@@ -13,6 +13,7 @@ from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
 from apps.alerts.tasks import distribute_alert, send_alert_group_signal
 from common.jinja_templater import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ class Alert(models.Model):
         raw_request_data,
         enable_autoresolve=True,
         is_demo=False,
+        channel_filter=None,
         force_route_id=None,
     ):
         ChannelFilter = apps.get_model("alerts", "ChannelFilter")
@@ -86,9 +88,8 @@ class Alert(models.Model):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
-        channel_filter = ChannelFilter.select_filter(
-            alert_receive_channel, raw_request_data, title, message, force_route_id
-        )
+        if channel_filter is None:
+            channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
 
         group, group_created = AlertGroup.all_objects.get_or_create_grouping(
             channel=alert_receive_channel,
@@ -124,29 +125,31 @@ class Alert(models.Model):
 
         alert.save()
 
-        maintenance_uuid = None
-        if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
+        if group_created:
+            # all code below related to maintenance mode
+            maintenance_uuid = None
+            if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+                maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
 
-        elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.maintenance_uuid
+            elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+                maintenance_uuid = alert_receive_channel.maintenance_uuid
 
-        if maintenance_uuid is not None:
-            try:
-                maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
-                group.root_alert_group = maintenance_incident
-                group.save(update_fields=["root_alert_group"])
-                log_record_for_root_incident = maintenance_incident.log_records.create(
-                    type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
-                )
-                logger.debug(
-                    f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
-                    f"log record {log_record_for_root_incident.pk} with type "
-                    f"'{log_record_for_root_incident.get_type_display()}'"
-                )
-                send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
-            except AlertGroup.DoesNotExist:
-                pass
+            if maintenance_uuid is not None:
+                try:
+                    maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
+                    group.root_alert_group = maintenance_incident
+                    group.save(update_fields=["root_alert_group"])
+                    log_record_for_root_incident = maintenance_incident.log_records.create(
+                        type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
+                    )
+                    logger.debug(
+                        f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
+                        f"log record {log_record_for_root_incident.pk} with type "
+                        f"'{log_record_for_root_incident.get_type_display()}'"
+                    )
+                    send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
+                except AlertGroup.DoesNotExist:
+                    pass
 
         return alert
 
@@ -189,12 +192,23 @@ class Alert(models.Model):
         # set web_title_cache to web title to allow alert group searching based on web_title_cache
         web_title_template = template_manager.get_attr_template("title", alert_receive_channel, render_for="web")
         if web_title_template:
-            web_title_cache = apply_jinja_template(web_title_template, raw_request_data)[0] or None
+            try:
+                web_title_cache = apply_jinja_template(web_title_template, raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                web_title_cache = e.fallback_message
+                logger.warning(
+                    f"web_title_cache error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
+                )
         else:
             web_title_cache = None
 
         if grouping_id_template is not None:
-            group_distinction, _ = apply_jinja_template(grouping_id_template, raw_request_data)
+            try:
+                group_distinction = apply_jinja_template(grouping_id_template, raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                logger.warning(
+                    f"grouping_id_template error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
+                )
 
         # Insert random uuid to prevent grouping of demo alerts or alerts with group_distinction=None
         if is_demo or not group_distinction:
@@ -204,13 +218,25 @@ class Alert(models.Model):
             group_distinction = hashlib.md5(str(group_distinction).encode()).hexdigest()
 
         if resolve_condition_template is not None:
-            is_resolve_signal, _ = apply_jinja_template(resolve_condition_template, payload=raw_request_data)
+            try:
+                is_resolve_signal = apply_jinja_template(resolve_condition_template, payload=raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                logger.warning(
+                    f"resolve_condition_template error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
+                )
+
             if isinstance(is_resolve_signal, str):
                 is_resolve_signal = is_resolve_signal.strip().lower() in ["1", "true", "ok"]
             else:
                 is_resolve_signal = False
         if acknowledge_condition_template is not None:
-            is_acknowledge_signal, _ = apply_jinja_template(acknowledge_condition_template, payload=raw_request_data)
+            try:
+                is_acknowledge_signal = apply_jinja_template(acknowledge_condition_template, payload=raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                logger.warning(
+                    f"acknowledge_condition_template error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
+                )
+
             if isinstance(is_acknowledge_signal, str):
                 is_acknowledge_signal = is_acknowledge_signal.strip().lower() in ["1", "true", "ok"]
             else:
@@ -238,7 +264,7 @@ def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
     """
     Here we invoke AlertShootingStep by model saving action.
     """
-    if created and instance.group.maintenance_uuid is None:
+    if created:
         # RFCT - why additinal save ?
         instance.save()
 

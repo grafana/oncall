@@ -112,9 +112,7 @@ def test_get_acknowledge_text(
 
     alert_group.acknowledge(acknowledged_by=source, acknowledged_by_user=user)
 
-    assert alert_group.get_acknowledge_text() == expected_text.format(
-        username=user.get_user_verbal_for_team_for_slack()
-    )
+    assert alert_group.get_acknowledge_text() == expected_text.format(username=user.get_username_with_slack_verbal())
 
 
 @pytest.mark.django_db
@@ -142,4 +140,4 @@ def test_get_resolved_text(
 
     alert_group.resolve(resolved_by=source, resolved_by_user=user)
 
-    assert alert_group.get_resolve_text() == expected_text.format(username=user.get_user_verbal_for_team_for_slack())
+    assert alert_group.get_resolve_text() == expected_text.format(username=user.get_username_with_slack_verbal())

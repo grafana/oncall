@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/alerts/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/alerts/
 title: Alerts HTTP API
 weight: 100
@@ -104,6 +102,7 @@ The above command returns JSON structured in the following way:
 
 The following available filter parameters should be provided as `GET` arguments:
 
+- `id`
 - `alert_group_id`
 - `search`—string-based inclusion search by alert payload
 

@@ -3,13 +3,7 @@ from apps.slack.scenarios import scenario_step
 
 
 class ProfileUpdateStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Any update in Slack Profile.
         Dangerous because it's often triggered by internal client's company systems.
@@ -47,9 +41,16 @@ class ProfileUpdateStep(scenario_step.ScenarioStep):
 
 
 STEPS_ROUTING = [
+    # Slack event "user_change" is deprecated in favor of "user_profile_changed".
+    # Handler for "user_change" is kept for backward compatibility.
     {
         "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_USER_CHANGE,
+        "step": ProfileUpdateStep,
+    },
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "event_type": scenario_step.EVENT_TYPE_USER_PROFILE_CHANGED,
         "step": ProfileUpdateStep,
     },
 ]

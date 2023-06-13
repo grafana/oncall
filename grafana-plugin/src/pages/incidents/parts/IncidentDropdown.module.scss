@@ -1,0 +1,49 @@
+.incident__tag {
+  padding: 5px 8px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.incident__icon {
+  margin-right: -4px;
+  margin-left: 2px;
+}
+
+.incident__options {
+  display: flex;
+  flex-direction: column;
+}
+
+.incident__option-item {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  min-width: 84px;
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+
+  &:hover {
+    background: var(--gray-9);
+  }
+
+  &--acknowledge {
+    color: var(--tag-warning);
+  }
+  &--firing {
+    color: var(--error-text-color);
+  }
+  &--resolve {
+    color: var(--success-text-color);
+  }
+}
+
+.incident__option-span > div {
+  margin: 0;
+}

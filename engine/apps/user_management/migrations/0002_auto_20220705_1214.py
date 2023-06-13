@@ -2,6 +2,7 @@
 
 import apps.user_management.models.user
 from django.db import migrations, models
+import django_migration_linter as linter
 
 
 class Migration(migrations.Migration):
@@ -11,6 +12,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.AddField(
             model_name='user',
             name='_timezone',

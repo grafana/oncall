@@ -6,11 +6,11 @@ import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 import qs from 'query-string';
 
-export class KeyValuePair {
-  key: string;
+export class KeyValuePair<T = string | number> {
+  key: T;
   value: string;
 
-  constructor(key: string, value: string) {
+  constructor(key: T, value: string) {
     this.key = key;
     this.value = value;
   }
@@ -45,6 +45,25 @@ export function refreshPageError(error: AxiosError) {
   }
 
   throw error;
+}
+
+export function throttlingError(error: AxiosError) {
+  if (error.response?.status === 429) {
+    const seconds = Number(error.response?.headers['retry-after']);
+    const minutes = Math.floor(seconds / 60);
+    const text =
+      'Too many requests, please try again in ' +
+      (minutes > 0 ? `${Math.floor(seconds / 60)} minutes.` : `${seconds} seconds.`);
+    openErrorNotification(text);
+  } else {
+    if (error.response?.data === '') {
+      openErrorNotification(
+        'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
+      );
+    } else {
+      openErrorNotification(error.response?.data);
+    }
+  }
 }
 
 export function openNotification(message: React.ReactNode) {

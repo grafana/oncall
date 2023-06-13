@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button } from '@grafana/ui';
+import { Alert, Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -10,14 +10,16 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SlackNewIcon } from 'icons';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { showApiError } from 'utils';
+import { UserActions } from 'utils/authorization';
+import { DOCS_SLACK_SETUP } from 'utils/consts';
 
 import styles from './SlackSettings.module.css';
 
@@ -48,7 +50,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   handleOpenSlackInstructions = () => {
     const { store } = this.props;
-    store.slackStore.installSlackIntegration();
+    store.slackStore.installSlackIntegration().catch(showApiError);
   };
 
   update = () => {
@@ -107,8 +109,11 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>
                 </div>
               </Field>
-              <Field label="Default channel for Slack notifications">
-                <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <Field
+                label="Default channel for Slack notifications"
+                description="The selected channel will be used as a fallback in the event that a schedule or integration does not have a configured channel"
+              >
+                <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
                   <GSelect
                     showSearch
                     className={cx('select', 'control')}
@@ -120,16 +125,38 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                     onChange={this.handleSlackChannelChange}
                     nullItemName={PRIVATE_CHANNEL_NAME}
                   />
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </Field>
             </HorizontalGroup>
-            <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
-              <WithConfirm title="Are you sure to delete this Slack Integration?">
+            <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
+              <WithConfirm
+                title="Remove Slack Integration for all of OnCall"
+                description={
+                  <Alert severity="error" title="WARNING">
+                    <p>Are you sure to delete this Slack Integration?</p>
+                    <p>
+                      Removing the integration will also irreverisbly remove the following data for your OnCall plugin:
+                    </p>
+                    <ul style={{ marginLeft: '20px' }}>
+                      <li>default organization Slack channel</li>
+                      <li>default Slack channels for OnCall Integrations</li>
+                      <li>Slack channels & Slack user groups for OnCall Schedules</li>
+                      <li>linked Slack usernames for OnCall Users</li>
+                    </ul>
+                    <br />
+                    <p>
+                      If you would like to instead remove your linked Slack username, please head{' '}
+                      <PluginLink query={{ page: 'users/me' }}>here</PluginLink>.
+                    </p>
+                  </Alert>
+                }
+                confirmationText="DELETE"
+              >
                 <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
                   Disconnect
                 </Button>
               </WithConfirm>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         </div>
         <div className={cx('slack-settings')}>
@@ -138,7 +165,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           </Text.Title>
           <Field label="Timeout for acknowledged alerts">
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   showSearch={false}
@@ -146,8 +173,8 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   value={slackStore.slackSettings?.acknowledge_remind_timeout}
                   onChange={this.getSlackSettingsChangeHandler('acknowledge_remind_timeout')}
                 />
-              </WithPermissionControl>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   disabled={slackStore.slackSettings?.acknowledge_remind_timeout === 0}
@@ -156,7 +183,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   value={slackStore.slackSettings?.unacknowledge_timeout}
                   onChange={this.getSlackSettingsChangeHandler('unacknowledge_timeout')}
                 />
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </Field>
         </div>
@@ -172,7 +199,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   renderSlackChannels = () => {
     const { store } = this.props;
     return (
-      <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+      <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
         <GSelect
           showSearch
           className={cx('select', 'control')}
@@ -184,25 +211,18 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           onChange={this.handleSlackChannelChange}
           nullItemName={PRIVATE_CHANNEL_NAME}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
-  };
-
-  renderActionButtons = () => {
-    <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
-      <WithConfirm title="Are you sure to delete this Slack Integration?">
-        <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
-          Disconnect
-        </Button>
-      </WithConfirm>
-    </WithPermissionControl>;
   };
 
   removeSlackIntegration = () => {
     const { store } = this.props;
-    store.slackStore.removeSlackIntegration().then(() => {
-      store.teamStore.loadCurrentTeam();
-    });
+    store.slackStore
+      .removeSlackIntegration()
+      .then(() => {
+        store.teamStore.loadCurrentTeam();
+      })
+      .catch(showApiError);
   };
 
   getSlackSettingsChangeHandler = (field: string) => {
@@ -246,7 +266,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             {isLiveSettingAvailable && (
               <Text type="secondary" className={cx('infoblock-text')}>
                 For bot creating instructions and additional information please read{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+                <a href={DOCS_SLACK_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>

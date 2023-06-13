@@ -28,6 +28,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
     expandIcon?: (props: { expanded: boolean; record: any }) => React.ReactNode;
     onExpand?: (expanded: boolean, item: any) => void;
   };
+  showHeader?: boolean;
 }
 
 const GTable: FC<Props> = (props) => {
@@ -40,6 +41,7 @@ const GTable: FC<Props> = (props) => {
     rowSelection,
     rowKey,
     expandable,
+    showHeader = true,
     ...restProps
   } = props;
 
@@ -143,6 +145,7 @@ const GTable: FC<Props> = (props) => {
         className={cx('filter-table', className)}
         columns={columns}
         data={data}
+        showHeader={showHeader}
         {...restProps}
       />
       {pagination && (

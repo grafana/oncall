@@ -44,11 +44,15 @@ const SlackConnector = (props: SlackConnectorProps) => {
       {storeUser.slack_user_identity ? (
         <div>
           <Text type="secondary"> Slack account is connected</Text>
-          <WithConfirm title="Are you sure to disconnect Slack account?" confirmText="Disconnect">
-            <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkSlackAccount}>
-              Unlink Slack account
-            </Button>
-          </WithConfirm>
+          {storeUser.pk === userStore.currentUserPk ? (
+            <WithConfirm title="Are you sure to disconnect your Slack account?" confirmText="Disconnect">
+              <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkSlackAccount}>
+                Unlink Slack account
+              </Button>
+            </WithConfirm>
+          ) : (
+            ''
+          )}
         </div>
       ) : teamStore.currentTeam?.slack_team_identity ? (
         <div>

@@ -89,7 +89,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
   return (
     <div className={cx('root')}>
-      <Select value={value} onChange={handleChange} width={100} placeholder={propValue} options={options} />
+      <Select value={value} onChange={handleChange} width={30} placeholder={propValue} options={options} />
     </div>
   );
 };

@@ -1,9 +1,8 @@
+import datetime
+import typing
 from collections import defaultdict
-from datetime import datetime
-from typing import List, Tuple
 
 from django.apps import apps
-from django.utils import timezone
 from icalendar import Calendar, Event
 from recurring_ical_events import UnfoldableCalendar, compare_greater, is_event, time_span_contains_event
 
@@ -54,7 +53,7 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
             same_events = events_by_id[event.get("UID", default_uid)]
             recurrence_id = event.get("RECURRENCE-ID", event["DTSTART"]).dt
             # Start of code from 0.1.20b0
-            if isinstance(recurrence_id, datetime):
+            if isinstance(recurrence_id, datetime.datetime):
                 recurrence_id = recurrence_id.date()
             other = same_events.get(recurrence_id, None)
             if other:
@@ -80,7 +79,8 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
                 continue
             repetitions = self.RepeatedEvent(event, span_start)
             for repetition in repetitions:
-                if compare_greater(repetition.start, span_stop):
+                if compare_greater(repetition.start, span_stop) or compare_greater(repetition.start, repetition.stop):
+                    # future repetitions could produce invalid events (because of the until rrule)
                     break
                 if repetition.is_in_span(span_start, span_stop):
                     add_event(repetition.as_vevent())
@@ -88,7 +88,9 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
 
 
 class AmixrRecurringIcalEventsAdapter(IcalService):
-    def get_events_from_ical_between(self, calendar: Calendar, start_date: datetime, end_date: datetime) -> List[Event]:
+    def get_events_from_ical_between(
+        self, calendar: Calendar, start_date: datetime.datetime, end_date: datetime.datetime
+    ) -> typing.List[Event]:
         """
         EXTRA_LOOKUP_DAYS introduced to solve bug when swapping two recurrent events with each other lead
         to their duplicates in case end_date - start_date < recurrent_event duration.
@@ -100,8 +102,8 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
         EXTRA_LOOKUP_DAYS is empirical.
         """
         events = AmixrUnfoldableCalendar(calendar).between(
-            start_date - timezone.timedelta(days=EXTRA_LOOKUP_DAYS),
-            end_date + timezone.timedelta(days=EXTRA_LOOKUP_DAYS),
+            start_date - datetime.timedelta(days=EXTRA_LOOKUP_DAYS),
+            end_date + datetime.timedelta(days=EXTRA_LOOKUP_DAYS),
         )
 
         def filter_extra_days(event):
@@ -112,7 +114,9 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
 
         return list(filter(filter_extra_days, events))
 
-    def get_start_and_end_with_respect_to_event_type(self, event: Event) -> Tuple[timezone.datetime, timezone.datetime]:
+    def get_start_and_end_with_respect_to_event_type(
+        self, event: Event
+    ) -> typing.Tuple[datetime.datetime, datetime.datetime]:
         """
         Calculate start and end datetime
         """

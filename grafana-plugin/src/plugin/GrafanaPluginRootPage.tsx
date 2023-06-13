@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { locationService } from '@grafana/runtime';
-import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -12,18 +11,38 @@ import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
-import 'interceptors';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
+import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
+import { AppRootProps } from 'types';
 
+import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import logo from 'img/logo.svg';
-import { pages } from 'pages';
-import { routes } from 'pages/routes';
+import { getMatchedPage, getRoutesForPage, pages } from 'pages';
+import NoMatch from 'pages/NoMatch';
+import EscalationChains from 'pages/escalation-chains/EscalationChains';
+import Incident from 'pages/incident/Incident';
+import Incidents from 'pages/incidents/Incidents';
+import Integration2 from 'pages/integration_2/Integration2';
+import Integrations from 'pages/integrations/Integrations';
+import Integrations2 from 'pages/integrations_2/Integrations2';
+import Maintenance from 'pages/maintenance/Maintenance';
+import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
+import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
+import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
+import Schedule from 'pages/schedule/Schedule';
+import Schedules from 'pages/schedules/Schedules';
+import SettingsPage from 'pages/settings/SettingsPage';
+import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
+import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
+import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
+import Users from 'pages/users/Users';
+import 'interceptors';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
-import { useQueryParams, useQueryPath } from 'utils/hooks';
+import { isUserActionAllowed } from 'utils/authorization';
+import loadJs from 'utils/loadJs';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -32,81 +51,29 @@ dayjs.extend(localeData);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
+dayjs.extend(isBetween);
+dayjs.extend(customParseFormat);
 
 import 'style/vars.css';
 import 'style/global.css';
 import 'style/utils.css';
+import 'style/responsive.css';
 
-import { isTopNavbar } from './GrafanaPluginRootPage.helpers';
+import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
+import PluginSetup from './PluginSetup';
 
-export const GrafanaPluginRootPage = (props: AppRootProps) => (
-  <Provider store={rootStore}>
-    <RootWithLoader {...props} />
-  </Provider>
-);
+import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
 
-const RootWithLoader = observer((props: AppRootProps) => {
-  const store = useStore();
-
-  useEffect(() => {
-    store.setupPlugin(props.meta);
-  }, []);
-
-  if (store.appLoading) {
-    let text = 'Initializing plugin...';
-
-    if (!store.pluginIsInitialized) {
-      text = '🚫 Plugin has not been initialized';
-    } else if (!store.correctProvisioningForInstallation) {
-      text = '🚫 Plugin could not be initialized due to provisioning error';
-    } else if (!store.correctRoleForInstallation) {
-      text = '🚫 Admin must sign on to setup OnCall before a Viewer can use it';
-    } else if (!store.signupAllowedForPlugin) {
-      text = '🚫 OnCall has temporarily disabled signup of new users. Please try again later.';
-    } else if (store.initializationError) {
-      text = `🚫 Error during initialization: ${store.initializationError}`;
-    } else if (store.isUserAnonymous) {
-      text = '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.';
-    } else if (store.retrySync) {
-      text = `🚫 OnCall took too many tries to synchronize... Are background workers up and running?`;
-    }
-
-    return (
-      <div className="spin">
-        <img alt="Grafana OnCall Logo" src={logo} />
-        <div className="spin-text">{text}</div>
-        {!store.pluginIsInitialized ||
-        !store.correctProvisioningForInstallation ||
-        store.initializationError ||
-        store.retrySync ? (
-          <div className="configure-plugin">
-            <HorizontalGroup>
-              <Button variant="primary" onClick={() => store.setupPlugin(props.meta)} size="sm">
-                Retry
-              </Button>
-              <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
-                Configure Plugin
-              </LinkButton>
-            </HorizontalGroup>
-          </div>
-        ) : (
-          <></>
-        )}
-      </div>
-    );
-  }
-
-  return <Root {...props} />;
-});
+export const GrafanaPluginRootPage = (props: AppRootProps) => {
+  return (
+    <Provider store={rootStore}>
+      <PluginSetup InitializedComponent={Root} {...props} />
+    </Provider>
+  );
+};
 
 export const Root = observer((props: AppRootProps) => {
   const [didFinishLoading, setDidFinishLoading] = useState(false);
-  const queryParams = useQueryParams();
-  const page = queryParams.get('page');
-  const path = useQueryPath();
-
-  // Required to support grafana instances that use a custom `root_url`.
-  const pathWithoutLeadingSlash = path.replace(/^\//, '');
 
   const store = useStore();
 
@@ -118,57 +85,148 @@ export const Root = observer((props: AppRootProps) => {
     let link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';
-    link.href = '/public/plugins/grafana-oncall-app/img/grafanaGlobalStyles.css';
+
+    // create a style element
+    const styleEl = document.createElement('style');
+    const head = document.head || document.getElementsByTagName('head')[0];
+    styleEl.appendChild(document.createTextNode(grafanaGlobalStyle));
+
+    // append grafana overriding styles to head
+    head.appendChild(styleEl);
 
     document.head.appendChild(link);
 
     return () => {
-      document.head.removeChild(link);
+      head.removeChild(styleEl); // remove on unmount
     };
+  }, []);
+
+  useEffect(() => {
+    loadJs(`https://www.google.com/recaptcha/api.js?render=${rootStore.recaptchaSiteKey}`);
   }, []);
 
   const updateBasicData = async () => {
     await store.updateBasicData();
+    await store.alertGroupStore.fetchIRMPlan();
     setDidFinishLoading(true);
   };
-
-  const Page = useMemo(() => getPageMatchingComponent(page), [page]);
 
   if (!didFinishLoading) {
     return null;
   }
 
+  const location = useLocation();
+
+  const page = getMatchedPage(location.pathname);
+
+  const pagePermissionAction = pages[page]?.action;
+  const userHasAccess = pagePermissionAction ? isUserActionAllowed(pagePermissionAction) : true;
+
+  const query = getQueryParams();
+
   return (
-    <DefaultPageLayout {...props}>
+    <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
-          <Header page={page} backendLicense={store.backendLicense} />
-          <nav className="page-container">
-            <LegacyNavTabsBar currentPage={page} />
-          </nav>
+          <Header />
+          <LegacyNavTabsBar currentPage={page} />
         </>
       )}
 
       <div
-        className={classnames(
-          { 'page-container': !isTopNavbar() },
-          { 'page-body': !isTopNavbar() },
-          'u-position-relative'
-        )}
+        className={classnames('u-position-relative', 'u-flex-grow-1', {
+          'u-overflow-x-auto': !isTopNavbar(),
+          'page-body': !isTopNavbar(),
+        })}
       >
-        <Page {...props} path={pathWithoutLeadingSlash} store={store} />
+        {userHasAccess ? (
+          <Switch>
+            <Route path={getRoutesForPage('alert-groups')} exact>
+              <Incidents query={query} />
+            </Route>
+            <Route path={getRoutesForPage('alert-group')} exact>
+              <Incident query={query} />
+            </Route>
+            <Route path={getRoutesForPage('users')} exact>
+              <Users query={query} />
+            </Route>
+            <Route path={getRoutesForPage('integrations')} exact>
+              <Integrations query={query} />
+            </Route>
+            <Route path={getRoutesForPage('integrations_2')} exact>
+              <Integrations2 query={query} />
+            </Route>
+            <Route path={getRoutesForPage('integration_2')} exact>
+              <Integration2 query={query} />
+            </Route>
+            <Route path={getRoutesForPage('escalations')} exact>
+              <EscalationChains query={query} />
+            </Route>
+            <Route path={getRoutesForPage('schedules')} exact>
+              <Schedules query={query} />
+            </Route>
+            <Route path={getRoutesForPage('schedule')} exact>
+              <Schedule />
+            </Route>
+            <Route path={getRoutesForPage('outgoing_webhooks')} exact>
+              <OutgoingWebhooks query={query} />
+            </Route>
+            <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
+              <OutgoingWebhooks2 query={query} />
+            </Route>
+            <Route path={getRoutesForPage('maintenance')} exact>
+              <Maintenance query={query} />
+            </Route>
+            <Route path={getRoutesForPage('settings')} exact>
+              <SettingsPage />
+            </Route>
+            <Route path={getRoutesForPage('organization-logs')} exact>
+              <OrganizationLogPage />
+            </Route>
+            <Route path={getRoutesForPage('chat-ops')} exact>
+              <ChatOps query={query} />
+            </Route>
+            <Route path={getRoutesForPage('live-settings')} exact>
+              <LiveSettings />
+            </Route>
+            <Route path={getRoutesForPage('cloud')} exact>
+              <CloudPage />
+            </Route>
+
+            {/* Backwards compatibility redirect routes */}
+            <Route
+              path={getRoutesForPage('incident')}
+              exact
+              render={({ location }) => (
+                <Redirect
+                  to={{
+                    ...location,
+                    pathname: location.pathname.replace(/incident/, 'alert-group'),
+                  }}
+                ></Redirect>
+              )}
+            ></Route>
+            <Route
+              path={getRoutesForPage('incidents')}
+              exact
+              render={({ location }) => (
+                <Redirect
+                  to={{
+                    ...location,
+                    pathname: location.pathname.replace(/incidents/, 'alert-groups'),
+                  }}
+                ></Redirect>
+              )}
+            ></Route>
+
+            <Route path="*">
+              <NoMatch />
+            </Route>
+          </Switch>
+        ) : (
+          <Unauthorized requiredUserAction={pagePermissionAction} />
+        )}
       </div>
     </DefaultPageLayout>
   );
 });
-
-function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
-  let matchingPage = routes[pageId];
-  if (!matchingPage) {
-    const defaultPageId = pages['incidents'].id;
-    matchingPage = routes[defaultPageId];
-    locationService.replace(pages[defaultPageId].path);
-  }
-
-  return matchingPage.component;
-}

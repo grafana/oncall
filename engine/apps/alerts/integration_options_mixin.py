@@ -49,6 +49,11 @@ class IntegrationOptionsMixin:
         integration_config.slug: integration_config.short_description for integration_config in _config
     }
     INTEGRATION_FEATURED = [integration_config.slug for integration_config in _config if integration_config.is_featured]
+    INTEGRATION_FEATURED_TAG_NAME = {
+        integration_config.slug: integration_config.featured_tag_name
+        for integration_config in _config
+        if hasattr(integration_config, "featured_tag_name")
+    }
 
     # The following attributes dynamically generated and used by apps.alerts.incident_appearance.renderers, templaters
     # e.g. INTEGRATION_TO_DEFAULT_SLACK_TITLE_TEMPLATE, INTEGRATION_TO_DEFAULT_SLACK_MESSAGE_TEMPLATE, etc...

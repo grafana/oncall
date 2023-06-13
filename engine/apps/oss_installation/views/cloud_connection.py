@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
@@ -13,7 +13,11 @@ from apps.oss_installation.models import CloudConnector, CloudHeartbeat
 
 class CloudConnectionView(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.OTHER_SETTINGS_READ],
+        "delete": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+    }
 
     def get(self, request):
         connector = CloudConnector.objects.first()

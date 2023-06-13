@@ -1,20 +1,15 @@
-# from unittest.mock import Mock, patch
-
 import pytest
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.user_management.models import User
-from common.constants.role import Role
 
 
 @pytest.mark.django_db
-def test_self_or_admin(
-    make_organization,
-    make_user_for_organization,
-):
+def test_self_or_admin(make_organization, make_user_for_organization):
     organization = make_organization()
     admin = make_user_for_organization(organization)
     second_admin = make_user_for_organization(organization)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
 
     another_organization = make_organization()
     admin_from_another_organization = make_user_for_organization(another_organization)
@@ -26,10 +21,7 @@ def test_self_or_admin(
 
 
 @pytest.mark.django_db
-def test_lower_email_filter(
-    make_organization,
-    make_user_for_organization,
-):
+def test_lower_email_filter(make_organization, make_user_for_organization):
     organization = make_organization()
     user = make_user_for_organization(organization, email="TestingUser@test.com")
     make_user_for_organization(organization, email="testing_user@test.com")

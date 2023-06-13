@@ -2,17 +2,53 @@
   margin-right: 4px;
 }
 
+.header-topnavbar {
+  padding-top: 0;
+  padding-bottom: 36px;
+}
+
 .navbar-heading {
   padding: 4px;
-  margin: 0 0 0 8px;
   border: 1px solid var(--gray-9);
   width: initial;
   font-size: 12px;
   padding-top: 0;
+  margin-bottom: 0;
 }
 
 .navbar-link {
   display: flex;
   align-items: center;
   padding-top: 6px;
+}
+
+.navbar-left {
+  display: flex;
+  flex-basis: 100%;
+}
+
+.navbar-heading-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-direction: row;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+
+.irm-icon {
+  font-size: 12px;
+  padding: 2px 4px;
+  border: 1px solid #ffb375;
+  color: #ffb375;
+}
+
+.banners {
+  padding-top: 12px;
+  margin-bottom: 24px;
+
+  &:empty {
+    padding-top: 0;
+    margin-bottom: 0;
+  }
 }

@@ -5,13 +5,11 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from kombu import uuid as celery_uuid
-from push_notifications.models import APNSDevice
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
-from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.base.utils import live_settings
+from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -55,13 +53,13 @@ def notify_user_task(
         organization = alert_group.channel.organization
 
         if not user.is_notification_allowed:
-            task_logger.info(f"notify_user_task: user {user.pk} notification is not allowed for role {user.role}")
+            task_logger.info(f"notify_user_task: user {user.pk} notification is not allowed")
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                reason=f"notification is not allowed for user with role {user.role}",
+                reason=f"notification is not allowed for user",
                 alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
             ).save()
             return
 
@@ -226,8 +224,6 @@ def notify_user_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def perform_notification(log_record_pk):
-    SMSMessage = apps.get_model("twilioapp", "SMSMessage")
-    PhoneCall = apps.get_model("twilioapp", "PhoneCall")
     UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
     TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
@@ -254,27 +250,19 @@ def perform_notification(log_record_pk):
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            reason=f"notification is not allowed for user with role {user.role}",
+            reason=f"notification is not allowed for user",
             alert_group=alert_group,
-            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
         ).save()
         return
 
     if notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-        SMSMessage.send_sms(
-            user,
-            alert_group,
-            notification_policy,
-            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
-        )
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_sms(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
-        PhoneCall.make_call(
-            user,
-            alert_group,
-            notification_policy,
-            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
-        )
+        phone_backend = PhoneBackend()
+        phone_backend.notify_by_call(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
         TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
@@ -348,47 +336,6 @@ def perform_notification(log_record_pk):
                     notification_channel=notification_channel,
                     notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK,
                 ).save()
-
-    elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL:
-        message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
-        thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-        devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
-        devices_to_notify.send_message(
-            message,
-            thread_id=thread_id,
-            category="USER_NEW_INCIDENT",
-            extra={
-                "orgId": f"{alert_group.channel.organization.public_primary_key}",
-                "orgName": f"{alert_group.channel.organization.stack_slug}",
-                "incidentId": f"{alert_group.public_primary_key}",
-                "status": f"{alert_group.status}",
-                "aps": {
-                    "alert": f"{message}",
-                    "sound": "bingbong.aiff",
-                },
-            },
-        )
-
-    elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL:
-        message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
-        thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-        devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
-        devices_to_notify.send_message(
-            message,
-            thread_id=thread_id,
-            category="USER_NEW_INCIDENT",
-            extra={
-                "orgId": f"{alert_group.channel.organization.public_primary_key}",
-                "orgName": f"{alert_group.channel.organization.stack_slug}",
-                "incidentId": f"{alert_group.public_primary_key}",
-                "status": f"{alert_group.status}",
-                "aps": {
-                    "alert": f"Critical page: {message}",
-                    "interruption-level": "critical",
-                    "sound": "ambulance.aiff",
-                },
-            },
-        )
     else:
         try:
             backend_id = UserNotificationPolicy.NotificationChannel(notification_policy.notify_by).name

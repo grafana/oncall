@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/
 title: Grafana OnCall HTTP API reference
 weight: 1500
@@ -27,7 +25,8 @@ curl "api_endpoint_here" --header "Authorization: "api_key_here""
 
 Grafana OnCall uses API keys to allow access to the API. You can request a new OnCall API key in OnCall -> Settings page.
 
-An API key is specific to a user and a Grafana stack. If you want to switch to a different stack configuration, request a different API key.
+An API key is specific to a user and a Grafana stack. If you want to switch to a different stack configuration,
+request a different API key.
 
 ## Pagination
 
@@ -44,7 +43,8 @@ The OnCall API returns them in pages. Note that the page size may vary.
 
 ## Rate Limits
 
-Grafana OnCall provides rate limits to ensure alert group notifications will be delivered to your Slack workspace even when some integrations produce a large number of alerts.
+Grafana OnCall provides rate limits to ensure alert group notifications will be delivered to your Slack workspace even
+when some integrations produce a large number of alerts.
 
 ### Monitoring integrations Rate Limits
 
@@ -53,7 +53,7 @@ Rate limited response HTTP status: 429
 | Scope                        | Amount | Time Frame |
 | ---------------------------- | :----: | :--------: |
 | Alerts from each integration |  300   | 5 minutes  |
-| Alerts from the whole team   |  500   | 5 minutes  |
+| Alerts from the whole organization   |  500   | 5 minutes  |
 
 ## API rate limits
 

@@ -29,11 +29,17 @@ const GList = <T extends WithId>(props: GListProps<T>) => {
     };
   }, []);
 
-  const selectedRef = useRef<HTMLDivElement>();
+  const itemsRef = useRef(null);
 
   useEffect(() => {
-    if (autoScroll && selectedRef.current) {
-      const selectedElement = selectedRef.current;
+    if (autoScroll && selectedId) {
+      const map = getMap();
+      const selectedElement = map.get(selectedId);
+
+      if (!selectedElement) {
+        return;
+      }
+
       const divToScroll = selectedElement.parentElement.parentElement;
 
       const maxScroll = Math.max(0, selectedElement.parentElement.offsetHeight - divToScroll.offsetHeight);
@@ -49,7 +55,14 @@ const GList = <T extends WithId>(props: GListProps<T>) => {
         behavior: 'smooth',
       });
     }
-  }, [autoScroll, selectedRef.current]);
+  }, [selectedId, autoScroll]);
+
+  function getMap() {
+    if (!itemsRef.current) {
+      itemsRef.current = new Map();
+    }
+    return itemsRef.current;
+  }
 
   return (
     <div className={cx('root')}>
@@ -57,8 +70,11 @@ const GList = <T extends WithId>(props: GListProps<T>) => {
         items.map((item) => (
           <div
             ref={(node) => {
-              if (item.id === selectedId) {
-                selectedRef.current = node;
+              const map = getMap();
+              if (node) {
+                map.set(item.id, node);
+              } else {
+                map.delete(item.id);
               }
             }}
             key={item.id}

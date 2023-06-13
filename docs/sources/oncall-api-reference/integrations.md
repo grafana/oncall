@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/integrations/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/integrations/
 title: Integrations HTTP API
 weight: 500
@@ -26,6 +24,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -34,9 +33,11 @@ The above command returns JSON structured in the following way:
       "channel_id": "CH23212D"
     }
   },
-  "templates": {
+    "templates": {
     "grouping_key": null,
     "resolve_signal": null,
+    "acknowledge_signal": null,
+    "source_link": null,
     "slack": {
       "title": null,
       "message": null,
@@ -46,10 +47,6 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
-    },
-    "email": {
-      "title": null,
-      "message": null
     },
     "sms": {
       "title": null
@@ -61,13 +58,23 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "msteams": {
+      "title": null,
+      "message": null,
+      "image_url": null
     }
   }
 }
 ```
 
 Integrations are sources of alerts and alert groups for Grafana OnCall.
-For example, to learn how to integrate Grafana OnCall with Alertmanager see [Alertmanager]({{< relref "../integrations/available-integrations/configure-alertmanager/" >}}).
+For example, to learn how to integrate Grafana OnCall with Alertmanager see
+[Alertmanager]({{< relref "../integrations/alertmanager" >}}).
 
 **HTTP request**
 
@@ -90,6 +97,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -101,6 +109,8 @@ The above command returns JSON structured in the following way:
   "templates": {
     "grouping_key": null,
     "resolve_signal": null,
+    "acknowledge_signal": null,
+    "source_link": null,
     "slack": {
       "title": null,
       "message": null,
@@ -111,10 +121,6 @@ The above command returns JSON structured in the following way:
       "message": null,
       "image_url": null
     },
-    "email": {
-      "title": null,
-      "message": null
-    },
     "sms": {
       "title": null
     },
@@ -122,6 +128,15 @@ The above command returns JSON structured in the following way:
       "title": null
     },
     "telegram": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "msteams": {
       "title": null,
       "message": null,
       "image_url": null
@@ -158,6 +173,7 @@ The above command returns JSON structured in the following way:
       "name": "Grafana :blush:",
       "team_id": null,
       "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+      "inbound_email": null,
       "type": "grafana",
       "default_route": {
         "id": "RVBE4RKQSCGJ2",
@@ -169,6 +185,8 @@ The above command returns JSON structured in the following way:
       "templates": {
         "grouping_key": null,
         "resolve_signal": null,
+        "acknowledge_signal": null,
+        "source_link": null,
         "slack": {
           "title": null,
           "message": null,
@@ -179,10 +197,6 @@ The above command returns JSON structured in the following way:
           "message": null,
           "image_url": null
         },
-        "email": {
-          "title": null,
-          "message": null
-        },
         "sms": {
           "title": null
         },
@@ -190,6 +204,15 @@ The above command returns JSON structured in the following way:
           "title": null
         },
         "telegram": {
+          "title": null,
+          "message": null,
+          "image_url": null
+        },
+        "email": {
+          "title": null,
+          "message": null
+        },
+        "msteams": {
           "title": null,
           "message": null,
           "image_url": null
@@ -232,6 +255,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -278,7 +302,8 @@ The above command returns JSON structured in the following way:
 
 # Delete integration
 
-Deleted integrations will stop recording new alerts from monitoring. Integration removal won't trigger removal of related alert groups or alerts.
+Deleted integrations will stop recording new alerts from monitoring. Integration removal won't trigger removal of
+related alert groups or alerts.
 
 ```shell
 curl "{{API_URL}}/api/v1/integrations/CFRPV98RPR1U8/" \

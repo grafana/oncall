@@ -42,6 +42,7 @@ def construct_expected_response_from_incidents(incidents):
                 "permalinks": {
                     "slack": None,
                     "telegram": None,
+                    "web": incident.web_link,
                 },
             }
         )
@@ -116,6 +117,83 @@ def test_get_incidents_filter_by_integration(
 
 
 @pytest.mark.django_db
+def test_get_incidents_filter_by_state_new(
+    incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_new_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url + f"?state=new", format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_acknowledged(
+    incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_acknowledged_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url + f"?state=acknowledged", format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_silenced(
+    incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_silenced_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url + f"?state=silenced", format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_resolved(
+    incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_resolved_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url + f"?state=resolved", format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_unknown(
+    incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url + f"?state=unknown", format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_get_incidents_filter_by_integration_no_result(
     incident_public_api_setup,
 ):
@@ -162,7 +240,7 @@ def test_get_incidents_filter_by_route_no_result(
     assert response.json()["results"] == []
 
 
-@mock.patch("apps.alerts.tasks.delete_alert_group.apply_async", return_value=None)
+@mock.patch("apps.public_api.views.incidents.delete_alert_group", return_value=None)
 @pytest.mark.django_db
 def test_delete_incident_success_response(mocked_task, incident_public_api_setup):
     token, incidents, _, _ = incident_public_api_setup
@@ -173,7 +251,7 @@ def test_delete_incident_success_response(mocked_task, incident_public_api_setup
     data = {"mode": "delete"}
     response = client.delete(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert mocked_task.call_count == 1
+    assert mocked_task.apply_async.call_count == 1
 
 
 @pytest.mark.django_db

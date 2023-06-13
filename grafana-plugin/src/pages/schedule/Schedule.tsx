@@ -1,17 +1,18 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
+import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
@@ -21,13 +22,13 @@ import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
@@ -35,9 +36,9 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends AppRootProps, WithStoreProps {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
 
-interface SchedulePageState {
+interface SchedulePageState extends PageBaseState {
   startMoment: dayjs.Dayjs;
   schedulePeriodType: string;
   renderType: string;
@@ -46,6 +47,7 @@ interface SchedulePageState {
   isLoading: boolean;
   showEditForm: boolean;
   showScheduleICalSettings: boolean;
+  lastUpdated: number;
 }
 
 @observer
@@ -63,12 +65,18 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       isLoading: true,
       showEditForm: false,
       showScheduleICalSettings: false,
+      errorData: initErrorDataState(),
+      lastUpdated: 0,
     };
   }
 
   async componentDidMount() {
-    const { store } = this.props;
-    const { id } = getQueryParams();
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
 
     store.userStore.updateItems();
 
@@ -87,8 +95,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   render() {
-    const { store } = this.props;
-    const { id: scheduleId } = getQueryParams();
+    const {
+      store,
+      match: {
+        params: { id: scheduleId },
+      },
+    } = this.props;
 
     const {
       startMoment,
@@ -97,172 +109,206 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowOverridesForm,
       showEditForm,
       showScheduleICalSettings,
+      errorData,
     } = this.state;
+
+    const { isNotFoundError } = errorData;
 
     const { scheduleStore, currentTimezone } = store;
 
     const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
 
-    const disabled =
-      !store.isUserActionAllowed(UserAction.UpdateSchedules) ||
+    const disabledRotationForm =
+      !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
-      shiftIdToShowRotationForm ||
-      shiftIdToShowOverridesForm;
+      !!shiftIdToShowRotationForm;
+
+    const disabledOverrideForm =
+      !isUserActionAllowed(UserActions.SchedulesWrite) ||
+      !schedule?.enable_web_overrides ||
+      !!shiftIdToShowOverridesForm;
 
     return (
-      <PluginPage pageNav={pages['schedule'].getPageNav()}>
-        <PageErrorHandlingWrapper pageName="schedules">
-          <div className={cx('root')}>
-            <VerticalGroup spacing="lg">
-              <div className={cx('header')}>
-                <HorizontalGroup justify="space-between">
-                  <HorizontalGroup>
+      <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
+        {() => (
+          <>
+            <div className={cx('root')}>
+              {isNotFoundError ? (
+                <div className={cx('not-found')}>
+                  <VerticalGroup spacing="lg" align="center">
+                    <Text.Title level={1}>404</Text.Title>
+                    <Text.Title level={4}>Schedule not found</Text.Title>
                     <PluginLink query={{ page: 'schedules' }}>
-                      <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
-                    </PluginLink>
-                    <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
-                      {schedule?.name}
-                    </Text.Title>
-                    {schedule && <ScheduleWarning item={schedule} />}
-                  </HorizontalGroup>
-                  <HorizontalGroup spacing="lg">
-                    {users && (
-                      <HorizontalGroup>
-                        <Text type="secondary">Current timezone:</Text>
-                        <UserTimezoneSelect
-                          value={currentTimezone}
-                          users={users}
-                          onChange={this.handleTimezoneChange}
-                        />
-                      </HorizontalGroup>
-                    )}
-                    <HorizontalGroup>
-                      {schedule?.type === ScheduleType.Ical && (
-                        <HorizontalGroup>
-                          <Button variant="secondary" onClick={this.handleExportClick()}>
-                            Export
-                          </Button>
-                          <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
-                            Reload
-                          </Button>
-                        </HorizontalGroup>
-                      )}
-                      <ToolbarButton
-                        icon="cog"
-                        tooltip="Settings"
-                        onClick={() => {
-                          this.setState({ showEditForm: true });
-                        }}
-                      />
-                      <WithConfirm>
-                        <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
-                      </WithConfirm>
-                    </HorizontalGroup>
-                  </HorizontalGroup>
-                </HorizontalGroup>
-              </div>
-              {schedule?.type !== ScheduleType.API && (
-                <Text className={cx('desc')} type="secondary">
-                  Ical and API/Terraform schedules are read-only
-                </Text>
-              )}
-              <div className={cx('users-timezones')}>
-                <UsersTimezones
-                  scheduleId={scheduleId}
-                  startMoment={startMoment}
-                  onCallNow={schedule?.on_call_now || []}
-                  userIds={
-                    scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
-                  }
-                  tz={currentTimezone}
-                  onTzChange={this.handleTimezoneChange}
-                />
-              </div>
-
-              <div className={cx('rotations')}>
-                <div className={cx('controls')}>
-                  <HorizontalGroup justify="space-between">
-                    <HorizontalGroup>
-                      <Button variant="secondary" onClick={this.handleTodayClick}>
-                        Today
+                      <Button variant="secondary" icon="arrow-left" size="md">
+                        Go to Schedules page
                       </Button>
-                      <HorizontalGroup spacing="xs">
-                        <Button variant="secondary" onClick={this.handleLeftClick}>
-                          <Icon name="angle-left" />
-                        </Button>
-                        <Button variant="secondary" onClick={this.handleRightClick}>
-                          <Icon name="angle-right" />
-                        </Button>
-                      </HorizontalGroup>
-                      <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
-                        {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
-                      </Text.Title>
-                    </HorizontalGroup>
-                  </HorizontalGroup>
+                    </PluginLink>
+                  </VerticalGroup>
                 </div>
-                <ScheduleFinal
-                  scheduleId={scheduleId}
-                  currentTimezone={currentTimezone}
-                  startMoment={startMoment}
-                  onClick={this.handleShowForm}
-                  disabled={disabled}
-                />
-                <Rotations
-                  scheduleId={scheduleId}
-                  currentTimezone={currentTimezone}
-                  startMoment={startMoment}
-                  onCreate={this.handleCreateRotation}
-                  onUpdate={this.handleUpdateRotation}
-                  onDelete={this.handleDeleteRotation}
-                  shiftIdToShowRotationForm={shiftIdToShowRotationForm}
-                  onShowRotationForm={this.handleShowRotationForm}
-                  disabled={disabled}
-                />
-                <ScheduleOverrides
-                  scheduleId={scheduleId}
-                  currentTimezone={currentTimezone}
-                  startMoment={startMoment}
-                  onCreate={this.handleCreateOverride}
-                  onUpdate={this.handleUpdateOverride}
-                  onDelete={this.handleDeleteOverride}
-                  shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
-                  onShowRotationForm={this.handleShowOverridesForm}
-                  disabled={disabled}
-                />
-              </div>
-            </VerticalGroup>
-          </div>
-          {showEditForm && (
-            <ScheduleForm
-              id={schedule.id}
-              onUpdate={this.update}
-              onHide={() => {
-                this.setState({ showEditForm: false });
-              }}
-            />
-          )}
-          {showScheduleICalSettings && (
-            <Modal
-              isOpen
-              title="Schedule export"
-              closeOnEscape
-              onDismiss={() => this.setState({ showScheduleICalSettings: false })}
-            >
-              <ScheduleICalSettings id={scheduleId} />
-            </Modal>
-          )}
-        </PageErrorHandlingWrapper>
-      </PluginPage>
+              ) : (
+                <VerticalGroup spacing="lg">
+                  <div className={cx('header')}>
+                    <HorizontalGroup justify="space-between">
+                      <div className={cx('title')}>
+                        <PluginLink query={{ page: 'schedules' }}>
+                          <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
+                        </PluginLink>
+                        <Text.Title
+                          editable={false}
+                          editModalTitle="Schedule name"
+                          level={2}
+                          onTextChange={this.handleNameChange}
+                        >
+                          {schedule?.name}
+                        </Text.Title>
+                        {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
+                      </div>
+                      <HorizontalGroup spacing="lg">
+                        {users && (
+                          <HorizontalGroup>
+                            <Text type="secondary">Current timezone:</Text>
+                            <UserTimezoneSelect
+                              value={currentTimezone}
+                              users={users}
+                              onChange={this.handleTimezoneChange}
+                            />
+                          </HorizontalGroup>
+                        )}
+                        <HorizontalGroup>
+                          <HorizontalGroup>
+                            <HorizontalGroup>
+                              <Button variant="secondary" onClick={this.handleExportClick()}>
+                                Export
+                              </Button>
+                            </HorizontalGroup>
+
+                            {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
+                              <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                                <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
+                                  Reload
+                                </Button>
+                              </WithPermissionControlTooltip>
+                            )}
+                          </HorizontalGroup>
+                          <ToolbarButton
+                            icon="cog"
+                            tooltip="Settings"
+                            onClick={() => {
+                              this.setState({ showEditForm: true });
+                            }}
+                          />
+                          <WithConfirm>
+                            <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
+                          </WithConfirm>
+                        </HorizontalGroup>
+                      </HorizontalGroup>
+                    </HorizontalGroup>
+                  </div>
+                  <div className={cx('users-timezones')}>
+                    <UsersTimezones
+                      scheduleId={scheduleId}
+                      startMoment={startMoment}
+                      onCallNow={schedule?.on_call_now || []}
+                      userIds={
+                        scheduleStore.relatedUsers[scheduleId]
+                          ? Object.keys(scheduleStore.relatedUsers[scheduleId])
+                          : []
+                      }
+                      tz={currentTimezone}
+                      onTzChange={this.handleTimezoneChange}
+                    />
+                  </div>
+
+                  <div className={cx('rotations')}>
+                    <div className={cx('controls')}>
+                      <HorizontalGroup justify="space-between">
+                        <HorizontalGroup>
+                          <Button variant="secondary" onClick={this.handleTodayClick}>
+                            Today
+                          </Button>
+                          <HorizontalGroup spacing="xs">
+                            <Button variant="secondary" onClick={this.handleLeftClick}>
+                              <Icon name="angle-left" />
+                            </Button>
+                            <Button variant="secondary" onClick={this.handleRightClick}>
+                              <Icon name="angle-right" />
+                            </Button>
+                          </HorizontalGroup>
+                          <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
+                            {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
+                          </Text.Title>
+                        </HorizontalGroup>
+                      </HorizontalGroup>
+                    </div>
+                    <ScheduleFinal
+                      scheduleId={scheduleId}
+                      currentTimezone={currentTimezone}
+                      startMoment={startMoment}
+                      onClick={this.handleShowForm}
+                      disabled={disabledRotationForm}
+                    />
+                    <Rotations
+                      scheduleId={scheduleId}
+                      currentTimezone={currentTimezone}
+                      startMoment={startMoment}
+                      onCreate={this.handleCreateRotation}
+                      onUpdate={this.handleUpdateRotation}
+                      onDelete={this.handleDeleteRotation}
+                      shiftIdToShowRotationForm={shiftIdToShowRotationForm}
+                      onShowRotationForm={this.handleShowRotationForm}
+                      disabled={disabledRotationForm}
+                    />
+                    <ScheduleOverrides
+                      scheduleId={scheduleId}
+                      currentTimezone={currentTimezone}
+                      startMoment={startMoment}
+                      onCreate={this.handleCreateOverride}
+                      onUpdate={this.handleUpdateOverride}
+                      onDelete={this.handleDeleteOverride}
+                      shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
+                      onShowRotationForm={this.handleShowOverridesForm}
+                      disabled={disabledOverrideForm}
+                    />
+                  </div>
+                </VerticalGroup>
+              )}
+            </div>
+            {showEditForm && schedule && (
+              <ScheduleForm
+                id={scheduleId}
+                onUpdate={this.update}
+                onHide={() => {
+                  this.setState({ showEditForm: false });
+                }}
+              />
+            )}
+            {showScheduleICalSettings && (
+              <Modal
+                isOpen
+                title="Schedule export"
+                closeOnEscape
+                onDismiss={() => this.setState({ showScheduleICalSettings: false })}
+              >
+                <ScheduleICalSettings id={scheduleId} />
+              </Modal>
+            )}
+          </>
+        )}
+      </PageErrorHandlingWrapper>
     );
   }
 
   update = () => {
-    const { store, query } = this.props;
-    const { id: scheduleId } = query;
+    const {
+      store,
+      match: {
+        params: { id: scheduleId },
+      },
+    } = this.props;
     const { scheduleStore } = store;
 
-    return scheduleStore.updateItem(scheduleId);
+    return scheduleStore.loadItem(scheduleId);
   };
 
   handleShowForm = async (shiftId: Shift['id'] | 'new') => {
@@ -288,23 +334,38 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleNameChange = (value: string) => {
-    const { store, query } = this.props;
-    const { id: scheduleId } = query;
+    const {
+      store,
+      match: {
+        params: { id: scheduleId },
+      },
+    } = this.props;
 
     const schedule = store.scheduleStore.items[scheduleId];
 
     store.scheduleStore
       .update(scheduleId, { type: schedule.type, name: value })
-      .then(() => store.scheduleStore.updateItem(scheduleId));
+      .then(() => store.scheduleStore.loadItem(scheduleId));
   };
 
   updateEvents = () => {
-    const { store } = this.props;
-    const { id: scheduleId } = getQueryParams();
+    const {
+      store,
+      match: {
+        params: { id: scheduleId },
+      },
+    } = this.props;
 
     const { startMoment } = this.state;
 
-    store.scheduleStore.updateItem(scheduleId); // to refresh current oncall users
+    this.setState((prevState) => ({
+      // this will update schedule score
+      lastUpdated: prevState.lastUpdated + 1,
+    }));
+
+    store.scheduleStore
+      .loadItem(scheduleId) // to refresh current oncall users
+      .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 
     return Promise.all([
@@ -418,39 +479,22 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     return async () => {
       await scheduleStore.reloadIcal(scheduleId);
 
-      scheduleStore.updateItem(scheduleId);
-      this.updateEventsFor(scheduleId);
+      store.scheduleStore.updateOncallShifts(scheduleId);
+      this.updateEvents();
     };
   };
 
-  updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
-    const { store } = this.props;
-    const { id } = getQueryParams();
-
-    const { scheduleStore } = store;
-
-    store.scheduleStore.scheduleToScheduleEvents = omit(store.scheduleStore.scheduleToScheduleEvents, [scheduleId]);
-
-    await scheduleStore.updateScheduleEvents(
-      scheduleId,
-      withEmpty,
-      with_gap,
-      dayjs().format('YYYY-MM-DD').toString(),
-      dayjs.tz.guess()
-    );
-
-    await store.scheduleStore.updateOncallShifts(id);
-    await this.updateEvents();
-  };
-
   handleDelete = () => {
-    const { store } = this.props;
-    const { id: scheduleId } = getQueryParams();
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+      history,
+    } = this.props;
 
-    store.scheduleStore.delete(scheduleId).then(() => {
-      getLocationSrv().update({ query: { page: 'schedules' } });
-    });
+    store.scheduleStore.delete(id).then(() => history.replace(`${PLUGIN_ROOT}/schedules`));
   };
 }
 
-export default withMobXProviderContext(SchedulePage);
+export default withRouter(withMobXProviderContext(SchedulePage));

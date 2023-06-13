@@ -279,7 +279,15 @@ const AvatarGroup = (props: AvatarGroupProps) => {
             placement="top"
             interactive
             key={index}
-            content={<ScheduleUserDetails currentMoment={currentMoment} user={user} />}
+            content={
+              <ScheduleUserDetails
+                currentMoment={currentMoment}
+                user={user}
+                isOncall={isOncall}
+                scheduleId={scheduleId}
+                startMoment={startMoment}
+              />
+            }
           >
             <div
               className={cx('avatar')}

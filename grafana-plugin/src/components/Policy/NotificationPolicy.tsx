@@ -7,13 +7,15 @@ import { SortableElement } from 'react-sortable-hoc';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Timeline from 'components/Timeline/Timeline';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Channel } from 'models/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy';
 import { NotifyBy } from 'models/notify_by';
 import { User } from 'models/user/user.types';
 import { WaitDelay } from 'models/wait_delay';
-import { UserAction } from 'state/userAction';
+import { RootStore } from 'state';
+import { AppFeature } from 'state/features';
+import { UserAction } from 'utils/authorization';
 
 import DragHandle from './DragHandle';
 import PolicyNote from './PolicyNote';
@@ -36,9 +38,12 @@ export interface NotificationPolicyProps {
   notifyByOptions?: NotifyBy[];
   telegramVerified: boolean;
   phoneStatus: number;
+  isMobileAppConnected: boolean;
+  showCloudConnectionWarning: boolean;
   color: string;
   number: number;
   userAction: UserAction;
+  store: RootStore;
 }
 
 export class NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
@@ -47,28 +52,28 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { id, step } = data;
 
     return (
-      <Timeline.Item className={cx('root')} number={number} color={color}>
+      <Timeline.Item className={cx('root')} number={number} backgroundColor={color}>
         <div className={cx('step')}>
-          <WithPermissionControl disableByPaywall userAction={userAction}>
+          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
             <DragHandle />
-          </WithPermissionControl>
-          <WithPermissionControl disableByPaywall userAction={userAction}>
+          </WithPermissionControlTooltip>
+          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
             <Select
               className={cx('select', 'control')}
               onChange={this._getOnChangeHandler('step')}
               value={step}
               options={notificationChoices.map((option: any) => ({ label: option.display_name, value: option.value }))}
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
           {this._renderControls()}
-          <WithPermissionControl userAction={userAction}>
+          <WithPermissionControlTooltip userAction={userAction}>
             <IconButton
               className={cx('control')}
               name="trash-alt"
               onClick={this._getDeleteClickHandler(id)}
               variant="secondary"
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
           {this._renderNote()}
         </div>
       </Timeline.Item>
@@ -132,8 +137,26 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     }
   }
 
+  _renderMobileAppNote() {
+    const { isMobileAppConnected, showCloudConnectionWarning } = this.props;
+
+    if (showCloudConnectionWarning) {
+      return <PolicyNote type="danger">Cloud is not connected</PolicyNote>;
+    }
+
+    if (!isMobileAppConnected) {
+      return <PolicyNote type="danger">Mobile app is not connected</PolicyNote>;
+    }
+
+    return <PolicyNote type="success">Mobile app is connected</PolicyNote>;
+  }
+
   _renderTelegramNote() {
-    const { telegramVerified } = this.props;
+    const { telegramVerified, store } = this.props;
+
+    if (!store.hasFeature(AppFeature.Telegram)) {
+      return null;
+    }
 
     return telegramVerified ? (
       <PolicyNote type="success">Telegram is connected</PolicyNote>
@@ -147,7 +170,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { wait_delay } = data;
 
     return (
-      <WithPermissionControl userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
         <Select
           key="wait-delay"
           placeholder="Wait Delay"
@@ -160,7 +183,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             value: waitDelay.value,
           }))}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -169,7 +192,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { notify_by } = data;
 
     return (
-      <WithPermissionControl userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
         <Select
           key="notify_by"
           placeholder="Notify by"
@@ -182,7 +205,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             value: notifyByOption.value,
           }))}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -202,6 +225,12 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
 
       case 3:
         return <>{this._renderTelegramNote()}</>;
+
+      case 5:
+        return <>{this._renderMobileAppNote()}</>;
+
+      case 6:
+        return <>{this._renderMobileAppNote()}</>;
 
       default:
         return null;

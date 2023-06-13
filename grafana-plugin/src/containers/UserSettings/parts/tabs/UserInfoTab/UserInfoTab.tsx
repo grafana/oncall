@@ -6,7 +6,6 @@ import cn from 'classnames/bind';
 import Text from 'components/Text/Text';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { Connectors } from 'containers/UserSettings/parts/connectors';
-import { getRole } from 'models/user/user.helpers';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -31,7 +30,7 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
     <>
       <div className={cx('user-item')}>
         <Text type="secondary">
-          To edit user details such as Username, email, and role, please visit{' '}
+          To edit user details such as Username, email, and roles, please visit{' '}
           <a href="/org/users"> Grafana User settings</a>.
         </Text>
       </div>
@@ -42,10 +41,6 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
       <div className={cx('user-item')}>
         <Label>Email:</Label>
         <span className={cx('user-value')}>{storeUser.email || '—'}</span>
-      </div>
-      <div className={cx('user-item')}>
-        <Label>Role:</Label>
-        <span className={cx('user-value')}>{getRole(storeUser.role)}</span>
       </div>
       <Connectors {...props} />
     </>

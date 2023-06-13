@@ -1,15 +1,14 @@
 import React, { useCallback } from 'react';
 
-import { Button, Drawer } from '@grafana/ui';
+import { Button, Drawer, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
-import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import { form } from './OutgoingWebhookForm.config';
 
@@ -28,9 +27,10 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
 
   const store = useStore();
 
-  const { outgoingWebhookStore } = store;
+  const { outgoingWebhookStore, userStore } = store;
+  const user = userStore.currentUser;
 
-  const data = id === 'new' ? {} : outgoingWebhookStore.items[id];
+  const data = id === 'new' ? { team: user.current_team } : outgoingWebhookStore.items[id];
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook>) => {
@@ -46,21 +46,22 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
   return (
     <Drawer
       scrollableContent
-      title={
-        <Text.Title className={cx('title')} level={4}>
-          {id === 'new' ? 'Create' : 'Edit'} Outgoing Webhook
-        </Text.Title>
-      }
+      title={id === 'new' ? 'Create Outgoing Webhook' : 'Edit Outgoing Webhook'}
       onClose={onHide}
-      closeOnMaskClick
+      closeOnMaskClick={false}
     >
       <div className={cx('content')} data-testid="test__outgoingWebhookEditForm">
         <GForm form={form} data={data} onSubmit={handleSubmit} />
-        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-          <Button form={form.name} type="submit">
-            {id === 'new' ? 'Create' : 'Update'} Webhook
+        <HorizontalGroup justify="flex-end">
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
           </Button>
-        </WithPermissionControl>
+          <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+            <Button form={form.name} type="submit">
+              {id === 'new' ? 'Create' : 'Update'} Webhook
+            </Button>
+          </WithPermissionControlTooltip>
+        </HorizontalGroup>
       </div>
     </Drawer>
   );

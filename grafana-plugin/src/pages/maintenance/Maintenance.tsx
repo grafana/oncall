@@ -1,8 +1,6 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { Button, VerticalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -13,25 +11,25 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
-import { pages } from 'pages';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Maintenance.module.css';
 
 const cx = cn.bind(styles);
 
-interface MaintenancePageProps extends AppRootProps, WithStoreProps {}
+interface MaintenancePageProps extends PageProps, WithStoreProps {}
 
 interface MaintenancePageState {
   maintenanceData?: {
     type?: MaintenanceType;
     alert_receive_channel_id?: AlertReceiveChannel['id'];
+    disabled?: boolean;
   };
 }
 
@@ -118,7 +116,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <PluginPage pageNav={pages['maintenance'].getPageNav()}>
+      <>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
@@ -134,7 +132,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     </Text>
                   </VerticalGroup>
                 </div>
-                <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+                <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
                   <Button
                     onClick={() => {
                       this.setState({ maintenanceData: {} });
@@ -142,9 +140,9 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     variant="primary"
                     icon="plus"
                   >
-                    Create
+                    New maintenance
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </div>
             )}
             rowKey="id"
@@ -161,7 +159,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
             }}
           />
         )}
-      </PluginPage>
+      </>
     );
   }
 
@@ -188,13 +186,13 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderActionButtons = (maintenance: Maintenance) => {
     return (
       <div className={cx('buttons')}>
-        <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+        <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
           <WithConfirm title="Are you sure to stop?" confirmText="Stop">
             <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
               Stop
             </Button>
           </WithConfirm>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </div>
     );
   };

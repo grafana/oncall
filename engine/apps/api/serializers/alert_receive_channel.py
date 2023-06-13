@@ -1,26 +1,25 @@
 from collections import OrderedDict
-from collections.abc import Mapping
 
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import URLValidator
 from django.template.loader import render_to_string
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, SkipField, get_error_detail, set_value
-from rest_framework.settings import api_settings
+from rest_framework.fields import SerializerMethodField, set_value
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, WritableSerializerMethodField
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import IMAGE_URL, TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL, EagerLoadingMixin
+from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
-from common.jinja_templater import jinja_template_env
+from common.jinja_templater import apply_jinja_template, jinja_template_env
+from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
 
@@ -28,9 +27,10 @@ from .integration_heartbeat import IntegrationHeartBeatSerializer
 def valid_jinja_template_for_serializer_method_field(template):
     for _, val in template.items():
         try:
-            jinja_template_env.from_string(val)
-        except TemplateSyntaxError:
-            raise serializers.ValidationError("invalid template")
+            apply_jinja_template(val, payload={})
+        except JinjaTemplateWarning:
+            # Suppress warnings, template may be valid with payload
+            pass
 
 
 class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializer):
@@ -48,6 +48,10 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
+    description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
+    demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
+    routes_count = serializers.SerializerMethodField()
+    connected_escalations_chains_count = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -60,6 +64,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         fields = [
             "id",
             "description",
+            "description_short",
             "integration",
             "smile_code",
             "verbal_name",
@@ -80,6 +85,9 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "heartbeat",
             "is_available_for_integration_heartbeat",
             "allow_delete",
+            "demo_alert_payload",
+            "routes_count",
+            "connected_escalations_chains_count",
         ]
         read_only_fields = [
             "created_at",
@@ -90,6 +98,9 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "instructions",
             "demo_alert_enabled",
             "maintenance_mode",
+            "demo_alert_payload",
+            "routes_count",
+            "connected_escalations_chains_count",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
@@ -151,6 +162,14 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     def get_alert_groups_count(self, obj):
         return 0
 
+    def get_routes_count(self, obj) -> int:
+        return obj.channel_filters.count()
+
+    def get_connected_escalations_chains_count(self, obj) -> int:
+        return len(
+            set(ChannelFilter.objects.filter(alert_receive_channel=obj).values_list("escalation_chain", flat=True))
+        )
+
 
 class AlertReceiveChannelUpdateSerializer(AlertReceiveChannelSerializer):
     class Meta(AlertReceiveChannelSerializer.Meta):
@@ -167,7 +186,8 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         fields = ["id", "integration", "verbal_name", "deleted"]
 
     def get_deleted(self, obj):
-        return obj.deleted_at is not None
+        # Treat direct paging integrations as deleted, so integration settings are disabled on the frontend
+        return obj.deleted_at is not None or obj.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
 
 class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
@@ -188,301 +208,19 @@ class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
 
 class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
-    slack_title_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    slack_message_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    slack_image_url_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    web_title_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    web_message_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    web_image_url_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    sms_title_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    phone_call_title_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    telegram_title_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    telegram_message_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    telegram_image_url_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    source_link_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    grouping_id_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    acknowledge_condition_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    resolve_condition_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
 
     payload_example = SerializerMethodField()
+    is_based_on_alertmanager = SerializerMethodField()
 
     class Meta:
         model = AlertReceiveChannel
         fields = [
             "id",
             "verbal_name",
-            "slack_title_template",
-            "slack_message_template",
-            "slack_image_url_template",
-            "sms_title_template",
-            "phone_call_title_template",
-            "web_title_template",
-            "web_message_template",
-            "web_image_url_template",
-            "telegram_title_template",
-            "telegram_message_template",
-            "telegram_image_url_template",
-            "source_link_template",
-            "grouping_id_template",
-            "resolve_condition_template",
             "payload_example",
-            "acknowledge_condition_template",
+            "is_based_on_alertmanager",
         ]
         extra_kwargs = {"integration": {"required": True}}
-
-    # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
-
-    def get_slack_title_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SLACK_TITLE_TEMPLATE[obj.integration]
-        return obj.slack_title_template or default_template
-
-    def set_slack_title_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SLACK_TITLE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.slack_title_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.slack_title_template = None
-
-    def get_slack_message_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SLACK_MESSAGE_TEMPLATE[obj.integration]
-        return obj.slack_message_template or default_template
-
-    def set_slack_message_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SLACK_MESSAGE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.slack_message_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.slack_message_template = None
-
-    def get_slack_image_url_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SLACK_IMAGE_URL_TEMPLATE[obj.integration]
-        return obj.slack_image_url_template or default_template
-
-    def set_slack_image_url_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SLACK_IMAGE_URL_TEMPLATE[
-            self.instance.integration
-        ]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.slack_image_url_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.slack_image_url_template = None
-
-    def get_sms_title_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SMS_TITLE_TEMPLATE[obj.integration]
-        return obj.sms_title_template or default_template
-
-    def set_sms_title_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SMS_TITLE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.sms_title_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.sms_title_template = None
-
-    def get_phone_call_title_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_PHONE_CALL_TITLE_TEMPLATE[obj.integration]
-        return obj.phone_call_title_template or default_template
-
-    def set_phone_call_title_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_PHONE_CALL_TITLE_TEMPLATE[
-            self.instance.integration
-        ]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.phone_call_title_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.phone_call_title_template = None
-
-    def get_web_title_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_TITLE_TEMPLATE[obj.integration]
-        return obj.web_title_template or default_template
-
-    def set_web_title_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_TITLE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.web_title_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.web_title_template = None
-
-    def get_web_message_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_MESSAGE_TEMPLATE[obj.integration]
-        return obj.web_message_template or default_template
-
-    def set_web_message_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_MESSAGE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.web_message_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.web_message_template = None
-
-    def get_web_image_url_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_IMAGE_URL_TEMPLATE[obj.integration]
-        return obj.web_image_url_template or default_template
-
-    def set_web_image_url_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_IMAGE_URL_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.web_image_url_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.web_image_url_template = None
-
-    def get_telegram_title_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_TITLE_TEMPLATE[obj.integration]
-        return obj.telegram_title_template or default_template
-
-    def set_telegram_title_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_TITLE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.telegram_title_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.telegram_title_template = None
-
-    def get_telegram_message_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_MESSAGE_TEMPLATE[obj.integration]
-        return obj.telegram_message_template or default_template
-
-    def set_telegram_message_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_MESSAGE_TEMPLATE[
-            self.instance.integration
-        ]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.telegram_message_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.telegram_message_template = None
-
-    def get_telegram_image_url_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_IMAGE_URL_TEMPLATE[obj.integration]
-        return obj.telegram_image_url_template or default_template
-
-    def set_telegram_image_url_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_IMAGE_URL_TEMPLATE[
-            self.instance.integration
-        ]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.telegram_image_url_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.telegram_image_url_template = None
-
-    def get_source_link_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SOURCE_LINK_TEMPLATE[obj.integration]
-        return obj.source_link_template or default_template
-
-    def set_source_link_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SOURCE_LINK_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.source_link = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.source_link = None
-
-    def get_grouping_id_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_GROUPING_ID_TEMPLATE[obj.integration]
-        return obj.grouping_id_template or default_template
-
-    def set_grouping_id_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_GROUPING_ID_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.grouping_id_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.grouping_id_template = None
-
-    def get_acknowledge_condition_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_ACKNOWLEDGE_CONDITION_TEMPLATE[obj.integration]
-        return obj.acknowledge_condition_template or default_template
-
-    def set_acknowledge_condition_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_ACKNOWLEDGE_CONDITION_TEMPLATE[
-            self.instance.integration
-        ]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.acknowledge_condition_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.acknowledge_condition_template = None
-
-    def get_resolve_condition_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_RESOLVE_CONDITION_TEMPLATE[obj.integration]
-        return obj.resolve_condition_template or default_template
-
-    def set_resolve_condition_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_RESOLVE_CONDITION_TEMPLATE[
-            self.instance.integration
-        ]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.resolve_condition_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.resolve_condition_template = None
 
     def get_payload_example(self, obj):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
@@ -500,38 +238,23 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             except AttributeError:
                 return None
 
+    def get_is_based_on_alertmanager(self, obj):
+        return obj.has_alertmanager_payload_structure
+
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
     def to_internal_value(self, data):
         """
         Dict of native values <- Dict of primitive datatypes.
         """
-        if not isinstance(data, Mapping):
-            message = self.error_messages["invalid"].format(datatype=type(data).__name__)
-            raise ValidationError({api_settings.NON_FIELD_ERRORS_KEY: [message]}, code="invalid")
+        # First validate and save data from serializer fields
+        ret = super().to_internal_value(data)
 
-        ret = OrderedDict()
+        # Separately validate and save template fields we generate dynamically
         errors = OrderedDict()
-        fields = self._writable_fields
 
-        for field in fields:
-            validate_method = getattr(self, "validate_" + field.field_name, None)
-            primitive_value = field.get_value(data)
-            try:
-                validated_value = field.run_validation(primitive_value)
-                if validate_method is not None:
-                    validated_value = validate_method(validated_value)
-            except ValidationError as exc:
-                errors[field.field_name] = exc.detail
-            except DjangoValidationError as exc:
-                errors[field.field_name] = get_error_detail(exc)
-            except SkipField:
-                pass
-            else:
-                # Line because of which method is overriden
-                if validated_value is None and isinstance(field, WritableSerializerMethodField):
-                    set_value(ret, [field.field_name], validated_value)
-                else:
-                    set_value(ret, field.source_attrs, validated_value)
+        # handle updates for core templates
+        core_template_errors = self._handle_core_template_updates(data, ret)
+        errors.update(core_template_errors)
 
         # handle updates for messaging backend templates
         messaging_backend_errors = self._handle_messaging_backend_updates(data, ret)
@@ -539,23 +262,24 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
         if errors:
             raise ValidationError(errors)
-
         return ret
 
     def _handle_messaging_backend_updates(self, data, ret):
         """Update additional messaging backend templates if needed."""
         errors = {}
-        for backend_id, _ in get_messaging_backends():
+        for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             # fetch existing templates if any
             backend_templates = {}
             if self.instance.messaging_backends_templates is not None:
                 backend_templates = self.instance.messaging_backends_templates.get(backend_id, {})
             # validate updated templates if any
             backend_updates = {}
-            for field in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
-                field_name = f"{backend_id.lower()}_{field}_template"
+            for field in APPEARANCE_TEMPLATE_NAMES:
+                field_name = f"{backend.slug}_{field}_template"
                 value = data.get(field_name)
-                validator = jinja_template_env.from_string if field != IMAGE_URL else URLValidator()
+                validator = jinja_template_env.from_string
                 if value is not None:
                     try:
                         if value:
@@ -572,9 +296,29 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
         return errors
 
+    def _handle_core_template_updates(self, data, ret):
+        """Update core templates if needed."""
+        errors = {}
+
+        for field_name in self.core_templates_names:
+            value = data.get(field_name)
+            validator = jinja_template_env.from_string
+            if value is not None:
+                try:
+                    if value:
+                        validator(value)
+                except TemplateSyntaxError:
+                    errors[field_name] = "invalid template"
+                except DjangoValidationError:
+                    errors[field_name] = "invalid URL"
+                set_value(ret, [field_name], value)
+        return errors
+
     def to_representation(self, obj):
         ret = super().to_representation(obj)
-        ret = self._get_templates_to_show(ret)
+
+        core_templates = self._get_core_templates(obj)
+        ret.update(core_templates)
 
         # include messaging backend templates
         additional_templates = self._get_messaging_backend_templates(obj)
@@ -582,10 +326,55 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
 
         return ret
 
-    def _get_templates_to_show(self, response_data):
+    def _get_messaging_backend_templates(self, obj):
+        """Return additional messaging backend templates if any."""
+        templates = {}
+        for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
+            for field in backend.template_fields:
+                value = None
+                is_default = False
+                if obj.messaging_backends_templates:
+                    value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
+                if not value:
+                    value = obj.get_default_template_attribute(backend_id, field)
+                    is_default = True
+                field_name = f"{backend.slug}_{field}_template"
+                templates[field_name] = value
+                templates[f"{field_name}_is_default"] = is_default
+        return templates
+
+    def _get_core_templates(self, obj):
+        core_templates = {}
+
+        for template_name in self.core_templates_names:
+            template_value = getattr(obj, template_name)
+            defaults = getattr(obj, f"INTEGRATION_TO_DEFAULT_{template_name.upper()}", {})
+            default_template_value = defaults.get(obj.integration)
+            core_templates[template_name] = template_value or default_template_value
+            core_templates[f"{template_name}_is_default"] = not bool(template_value)
+
+        return core_templates
+
+    @property
+    def core_templates_names(self):
         """
-        For On-prem installations with disabled features it is needed to disable corresponding templates
+        core_templates_names returns names of templates introduced before messaging backends system with respect to
+        enabled integrations.
         """
+        core_templates = [
+            "web_title_template",
+            "web_message_template",
+            "web_image_url_template",
+            "sms_title_template",
+            "phone_call_title_template",
+            "source_link_template",
+            "grouping_id_template",
+            "resolve_condition_template",
+            "acknowledge_condition_template",
+        ]
+
         slack_integration_required_templates = [
             "slack_title_template",
             "slack_message_template",
@@ -596,25 +385,11 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "telegram_message_template",
             "telegram_image_url_template",
         ]
-        if not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
-            for st in slack_integration_required_templates:
-                response_data.pop(st)
-        if not settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-            for tt in telegram_integration_required_templates:
-                response_data.pop(tt)
 
-        return response_data
+        apppend = []
 
-    def _get_messaging_backend_templates(self, obj):
-        """Return additional messaging backend templates if any."""
-        templates = {}
-        for backend_id, backend in get_messaging_backends():
-            for field in backend.template_fields:
-                value = None
-                if obj.messaging_backends_templates:
-                    value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if value is None:
-                    value = obj.get_default_template_attribute(backend_id, field)
-                field_name = f"{backend_id.lower()}_{field}_template"
-                templates[field_name] = value
-        return templates
+        if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
+            core_templates += slack_integration_required_templates
+        if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
+            core_templates += telegram_integration_required_templates
+        return apppend + core_templates

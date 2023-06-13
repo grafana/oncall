@@ -4,7 +4,6 @@ from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertG
 from apps.alerts.models import AlertGroup
 from apps.alerts.tasks.delete_alert_group import delete_alert_group
 from apps.slack.models import SlackMessage
-from common.constants.role import Role
 
 
 @pytest.mark.django_db
@@ -14,7 +13,7 @@ def test_render_for_phone_call(
     make_alert_group,
     make_alert,
 ):
-    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    organization, _ = make_organization_with_slack_team_identity()
     alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
 
     alert_group = make_alert_group(alert_receive_channel)
@@ -39,7 +38,7 @@ def test_render_for_phone_call(
     )
 
     expected_verbose_name = (
-        f"You are invited to check an incident from Grafana OnCall. "
+        f"to check an incident from Grafana OnCall. "
         f"Alert via {alert_receive_channel.verbal_name} - Grafana with title TestAlert triggered 1 times"
     )
     rendered_text = AlertGroupPhoneCallRenderer(alert_group).render()
@@ -59,7 +58,7 @@ def test_delete(
 
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     slack_channel = make_slack_channel(slack_team_identity, name="general", slack_id="CWER1ASD")
-    user = make_user(organization=organization, role=Role.ADMIN)
+    user = make_user(organization=organization)
 
     alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
 

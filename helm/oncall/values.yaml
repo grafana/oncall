@@ -4,11 +4,19 @@
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
 
+## Optionally specify an array of imagePullSecrets.
+## Secrets must be manually created in the namespace.
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+## e.g:
+## imagePullSecrets:
+##   - name: myRegistryKeySecretName
+imagePullSecrets: []
+
 image:
   # Grafana OnCall docker image repository
   repository: grafana/oncall
   tag:
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 # Whether to create additional service for external connections
 # ClusterIP service is always created
@@ -28,6 +36,14 @@ engine:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+
+  ## Deployment update strategy
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
 
   ## Affinity for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
@@ -59,6 +75,9 @@ celery:
     initialDelaySeconds: 30
     periodSeconds: 300
     timeoutSeconds: 10
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
   resources: {}
     # limits:
     #   cpu: 100m
@@ -83,8 +102,8 @@ oncall:
   slack:
     # enabled enable the Slack ChatOps integration for the Oncall Engine.
     enabled: false
-    # command sets the Slack bot slash-command
-    command: oncall
+    # commandName sets the Slack bot slash-command
+    commandName: oncall
     # clientId configures the Slack app OAuth2 client ID.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client ID
     clientId: ~
@@ -122,6 +141,9 @@ oncall:
     password: ~
     tls: ~
     fromEmail: ~
+  exporter:
+    enabled: false
+    authToken: ~
   twilio:
     # Twilio account SID/username to allow OnCall to send SMSes and make phone calls
     accountSid: ""
@@ -136,10 +158,36 @@ oncall:
     apiKeySid: ""
     # Twilio API key secret/password to allow OnCall to send SMSes and make phone calls
     apiKeySecret: ""
+    # Use existing secret for authToken, phoneNumber, verifySid, apiKeySid and apiKeySecret.
+    existingSecret: ""
+    # Twilio password to allow OnCall to send SMSes and make calls
+    # the key in the secret containing the auth token
+    authTokenKey: ""
+    # the key in the secret containing the phone number
+    phoneNumberKey: ""
+    # the key in the secret containing verify service sid
+    verifySidKey: ""
+    # the key in the secret containing api key sid
+    apiKeySidKey: ""
+    # the key in the secret containing the api key secret
+    apiKeySecretKey: ""
 
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+  # TTL can be unset by setting ttlSecondsAfterFinished: ""
+  ttlSecondsAfterFinished: 20
+  # use a helm hook to manage the migration job
+  useHook: false
+
+# Sets environment variables with name capitalized and prefixed with UWSGI_, and dashes are substituted with underscores.
+# see more: https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#environment-variables
+# Set null to disable all UWSGI environment variables
+uwsgi:
+  listen: 1024
 
 # Additional env variables to add to deployments
 env: {}
@@ -147,7 +195,7 @@ env: {}
 # Enable ingress object for external access to the resources
 ingress:
   enabled: true
-#  className: ""
+  #  className: ""
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/issuer: "letsencrypt-prod"
@@ -155,8 +203,8 @@ ingress:
     - hosts:
         - "{{ .Values.base_url }}"
       secretName: certificate-tls
-  # Extra paths to prepend to the host configuration. If using something 
-  # like an ALB ingress controller, you may want to configure SSL redirects 
+  # Extra paths to prepend to the host configuration. If using something
+  # like an ALB ingress controller, you may want to configure SSL redirects
   extraPaths: []
   # - path: /*
   #   backend:
@@ -206,16 +254,16 @@ mariadb:
     database: oncall
   primary:
     extraEnvVars:
-    - name: MARIADB_COLLATE
-      value: utf8mb4_unicode_ci
-    - name: MARIADB_CHARACTER_SET
-      value: utf8mb4
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
   secondary:
     extraEnvVars:
-    - name: MARIADB_COLLATE
-      value: utf8mb4_unicode_ci
-    - name: MARIADB_CHARACTER_SET
-      value: utf8mb4
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
 
 # Make sure to create the database with the following parameters:
 # CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -235,7 +283,7 @@ postgresql:
     database: oncall
 
 # Make sure to create the database with the following parameters:
-# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# CREATE DATABASE oncall WITH ENCODING UTF8;
 externalPostgresql:
   host:
   port:
@@ -290,8 +338,14 @@ grafana:
       serve_from_sub_path: true
   persistence:
     enabled: true
+  # Disable psp as PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
+  rbac:
+    pspEnabled: false
   plugins:
     - grafana-oncall-app
+
+externalGrafana:
+  url:
 
 nameOverride: ""
 fullnameOverride: ""

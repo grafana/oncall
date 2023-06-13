@@ -7,10 +7,10 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 
 import styles from './TelegramIntegrationButton.module.css';
 
@@ -43,11 +43,11 @@ const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => 
 
   return (
     <>
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
         <Button size={size} variant="primary" icon="plus" disabled={disabled} onClick={onInstallModalCallback}>
           Add Telegram channel
         </Button>
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
       {showModal && <TelegramModal onHide={onInstallModalHideCallback} onUpdate={onModalUpdateCallback} />}
     </>
   );
@@ -103,15 +103,20 @@ const TelegramModal = (props: TelegramModalProps) => {
           <Text type="primary">Sign Messages</Text> in settings.
         </Text>
         <Text type="secondary">
-          2. Create a new <Text type="primary">Discussion group</Text>. This group handles alert actions and comments.{' '}
+          2. Create a new <Text type="primary">Discussion group</Text>. This group handles alert actions, comments and
+          must be unique for each OnCall telegram channel.{' '}
         </Text>
         <Text type="secondary">
           3. Connect the discussion group with the channel. In <Text type="primary">Manage Channel</Text>, click{' '}
-          <Text type="primary">Discussion</Text> to find and add your group.{' '}
+          <Text type="primary">Discussion</Text> to find and add the freshly created group.{' '}
         </Text>
         <Text type="secondary">
-          4. Go to <Text type="link">{botLink}</Text> to add the OnCall bot to your contacts. Then add the bot to your
-          channel as an <Text type="primary">Admin</Text> and allow it to <Text type="primary">Post Messages</Text>.
+          4. Go to{' '}
+          <a href={botLink} target="_blank" rel="noreferrer">
+            <Text type="link">{botLink}</Text>
+          </a>{' '}
+          to add the OnCall bot to your contacts. Then add the bot to your channel as an{' '}
+          <Text type="primary">Admin</Text> and allow it to <Text type="primary">Post Messages</Text>.
         </Text>
         <Text type="secondary">5. Add the bot to the discussion group.</Text>
         <Text type="secondary">

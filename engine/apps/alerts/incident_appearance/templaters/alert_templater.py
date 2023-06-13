@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from django.conf import settings
+
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.slack.slack_formatter import SlackFormatter
 from common.jinja_templater import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 class TemplateLoader:
@@ -73,7 +76,7 @@ class AlertTemplater(ABC):
         self.alert = alert
         self.slack_formatter = SlackFormatter(alert.group.channel.organization)
         self.template_manager = TemplateLoader()
-        self.incident_id = self.alert.group.inside_organization_number
+        self.alert_group_id = self.alert.group.inside_organization_number
         self.link = self.alert.group.web_link
 
     def render(self):
@@ -165,16 +168,46 @@ class AlertTemplater(ABC):
         attr_template = self.template_manager.get_attr_template(attr, channel, self._render_for())
         if attr_template is not None:
             context = {
-                "grafana_oncall_incident_id": self.incident_id,
-                "grafana_oncall_link": self.link,
                 "integration_name": channel.verbal_name,
                 "source_link": templated_alert.source_link,
-                "amixr_incident_id": self.incident_id,  # TODO: decide on variable names
-                "amixr_link": self.link,  # TODO: decide on variable names
+                "grafana_oncall_alert_group_id": self.alert_group_id,
+                "grafana_oncall_incident_id": self.alert_group_id,  # Keep for backward compatibility
+                "amixr_incident_id": self.alert_group_id,  # Keep for backward compatibility
+                "grafana_oncall_link": self.link,
+                "amixr_link": self.link,  # Keep for backward compatibility
             }
-            templated_attr, success = apply_jinja_template(attr_template, data, **context)
-            if success:
-                return templated_attr
+            # Hardcoding, as AlertWebTemplater.RENDER_FOR_WEB cause circular import
+            render_for_web = "web"
+            # Propagate rendered web templates to the other templates
+            added_context = {}
+            if self._render_for() != render_for_web:
+                for attr in ["title", "message", "image_url"]:
+                    added_attr_template = self.template_manager.get_attr_template(attr, channel, render_for_web)
+                    if added_attr_template is not None:
+                        result_length_limit = (
+                            settings.JINJA_RESULT_TITLE_MAX_LENGTH
+                            if attr == "title"
+                            else settings.JINJA_RESULT_MAX_LENGTH
+                        )
+                        try:
+                            added_context[f"web_{attr}"] = apply_jinja_template(
+                                added_attr_template, data, result_length_limit=result_length_limit, **context
+                            )
+                        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                            added_context[f"web_{attr}"] = e.fallback_message
+                    else:
+                        added_context[f"web_{attr}"] = f"web_{attr} is not set"
+                context = {**context, **added_context}
+
+            try:
+                if attr == "title":
+                    return apply_jinja_template(
+                        attr_template, data, result_length_limit=settings.JINJA_RESULT_TITLE_MAX_LENGTH, **context
+                    )
+                else:
+                    return apply_jinja_template(attr_template, data, **context)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return e.fallback_message
 
         return None
 

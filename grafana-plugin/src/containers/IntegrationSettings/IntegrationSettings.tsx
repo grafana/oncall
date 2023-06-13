@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Drawer, Tab, TabContent, TabsBar, Button, VerticalGroup, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -15,6 +14,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { IntegrationSettingsTab } from './IntegrationSettings.types';
 import Autoresolve from './parts/Autoresolve';
@@ -46,7 +46,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
     return () => {
       setActiveTab(tab);
-      getLocationSrv().update({ partial: true, query: { tab: tab } });
+      LocationHelper.update({ tab }, 'partial');
     };
   }, []);
 
@@ -54,16 +54,12 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
     alertReceiveChannelStore.updateItem(id);
   }, []);
 
-  useEffect(() => {
-    setActiveTab(startTab || IntegrationSettingsTab.Templates);
-    getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
-  }, [startTab]);
-
   const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
 
   const [expanded, _setExpanded] = useState(false);
 
   const handleSwitchToTemplate = (templateName: string) => {
+    setActiveTab(IntegrationSettingsTab.Templates);
     setSelectedTemplate(templateName);
   };
 
@@ -86,6 +82,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
       }
       width={expanded ? '100%' : '70%'}
       onClose={onHide}
+      closeOnMaskClick={false}
     >
       <TabsBar>
         <Tab
@@ -141,22 +138,26 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
         {activeTab === IntegrationSettingsTab.HowToConnect && (
           <div className="container">
             <VerticalGroup>
-              <h4>This is the unique webhook URL for the integration:</h4>
-              <div style={{ width: '70%' }}>
-                <Input
-                  value={alertReceiveChannel.integration_url}
-                  addonAfter={
-                    <CopyToClipboard
-                      text={alertReceiveChannel.integration_url}
-                      onCopy={() => {
-                        openNotification('Unique webhook URL copied');
-                      }}
-                    >
-                      <Button icon="copy" variant="primary" />
-                    </CopyToClipboard>
-                  }
-                />
-              </div>
+              {alertReceiveChannel.integration_url && (
+                <div>
+                  <h4>This is the unique webhook URL for the integration:</h4>
+                  <div style={{ width: '70%' }}>
+                    <Input
+                      value={alertReceiveChannel.integration_url}
+                      addonAfter={
+                        <CopyToClipboard
+                          text={alertReceiveChannel.integration_url}
+                          onCopy={() => {
+                            openNotification('Unique webhook URL copied');
+                          }}
+                        >
+                          <Button icon="copy" variant="primary" />
+                        </CopyToClipboard>
+                      }
+                    />
+                  </div>
+                </div>
+              )}
               <div dangerouslySetInnerHTML={{ __html: alertReceiveChannel?.instructions }} />
               <Button variant="primary" onClick={onHide}>
                 Open Escalations Settings

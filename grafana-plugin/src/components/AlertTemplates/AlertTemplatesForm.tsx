@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Label, Button, HorizontalGroup, VerticalGroup, Select, LoadingPlaceholder } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -10,15 +9,16 @@ import { omit } from 'lodash-es';
 import { templatesToRender, Template } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { getLabelFromTemplateName } from 'components/AlertTemplates/AlertTemplatesForm.helper';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
-import { UserAction } from 'state/userAction';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions, isUserActionAllowed } from 'utils/authorization';
 
 import styles from './AlertTemplatesForm.module.css';
 
@@ -27,7 +27,6 @@ const cx = cn.bind(styles);
 interface AlertTemplatesFormProps {
   templates: any;
   onUpdateTemplates: (values: any) => void;
-  errors: any;
   alertReceiveChannelId: AlertReceiveChannel['id'];
   alertGroupId?: Alert['pk'];
   demoAlertEnabled: boolean;
@@ -154,17 +153,15 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     <HorizontalGroup>
       <Text type="secondary">There are no alerts from this monitoring yet.</Text>
       {demoAlertEnabled ? (
-        <WithPermissionControl userAction={UserAction.SendDemoAlert}>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button className={cx('button')} variant="primary" onClick={handleSendDemoAlertClick} size="sm">
             Send demo alert
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       ) : null}
     </HorizontalGroup>
   );
-  const handleGoToTemplateSettingsCllick = () => {
-    getLocationSrv().update({ partial: true, query: { tab: 'Autoresolve' } });
-  };
+  const handleGoToTemplateSettingsCllick = () => LocationHelper.update({ tab: 'Autoresolve' }, 'partial');
 
   return (
     <div className={cx('root')}>
@@ -219,7 +216,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     </Button>
                   </Text>
                 )}
-                <MonacoJinja2Editor
+                <MonacoEditor
                   value={tempValues[activeTemplate.name] ?? (templates[activeTemplate.name] || '')}
                   disabled={false}
                   data={templates}
@@ -234,7 +231,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     <div className={cx('web-title-message')}>
                       <Text type="secondary" size="small">
                         Please note that after changing the web title template new alert groups will be searchable by
-                        new title. Alert groups created before the template was changed will be still searchable by old
+                        new title. Alert Groups created before the template was changed will be still searchable by old
                         title only.
                       </Text>
                     </div>
@@ -243,11 +240,11 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
               </div>
             ))}
             <HorizontalGroup spacing="sm">
-              <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button variant="primary" onClick={handleSubmit}>
                   Save Templates
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
               <Button variant="destructive" onClick={handleReset}>
                 Reset Template
               </Button>
@@ -257,29 +254,29 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
         <Block className={cx('templates', 'borderRightBottom')}>
           <VerticalGroup>
             {templates?.payload_example ? (
-              <VerticalGroup>
-                <VerticalGroup>
-                  <Label>{`${capitalCase(activeGroup)} Preview`}</Label>
-                  <VerticalGroup style={{ width: '100%' }}>
-                    {groups[activeGroup].map((template) => (
-                      <TemplatePreview
-                        active={template.name === activeTemplate?.name}
-                        key={template.name}
-                        templateName={template.name}
-                        templateBody={tempValues[template.name] ?? templates[template.name]}
-                        onEditClick={getTemplatePreviewEditClickHandler(template.name)}
-                        alertReceiveChannelId={alertReceiveChannelId}
-                        alertGroupId={alertGroupId}
-                      />
-                    ))}
-                  </VerticalGroup>
-                </VerticalGroup>
-                <div className={cx('payloadExample')}>
+              <VerticalGroup spacing="md">
+                {isUserActionAllowed(UserActions.IntegrationsTest) && (
                   <VerticalGroup>
-                    <Label>Payload Example</Label>
-                    <SourceCode>{JSON.stringify(templates?.payload_example, null, 4)}</SourceCode>
+                    <Label>{`${capitalCase(activeGroup)} Preview`}</Label>
+                    <VerticalGroup style={{ width: '100%' }}>
+                      {groups[activeGroup].map((template) => (
+                        <TemplatePreview
+                          active={template.name === activeTemplate?.name}
+                          key={template.name}
+                          templateName={template.name}
+                          templateBody={tempValues[template.name] ?? templates[template.name]}
+                          onEditClick={getTemplatePreviewEditClickHandler(template.name)}
+                          alertReceiveChannelId={alertReceiveChannelId}
+                          alertGroupId={alertGroupId}
+                        />
+                      ))}
+                    </VerticalGroup>
                   </VerticalGroup>
-                </div>
+                )}
+                <VerticalGroup>
+                  <Label>Payload Example</Label>
+                  <SourceCode>{JSON.stringify(templates?.payload_example, null, 4)}</SourceCode>
+                </VerticalGroup>
               </VerticalGroup>
             ) : (
               sendDemoAlertBlock

@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.fixture()
@@ -20,7 +20,7 @@ def user_public_api_setup(
 def test_get_user(
     user_public_api_setup,
 ):
-    organization, user, token, slack_team_identity, slack_user_identity = user_public_api_setup
+    _, user, token, slack_team_identity, slack_user_identity = user_public_api_setup
 
     client = APIClient()
 
@@ -93,7 +93,7 @@ def test_get_users_list_short(
     user_public_api_setup,
     make_user_for_organization,
 ):
-    organization, user_1, token, slack_team_identity, slack_user_identity = user_public_api_setup
+    organization, user_1, token, _, _ = user_public_api_setup
     user_2 = make_user_for_organization(organization)
 
     client = APIClient()
@@ -145,13 +145,10 @@ def test_forbidden_access(
 
 
 @pytest.mark.django_db
-def test_get_users_list_all_role_users(
-    user_public_api_setup,
-    make_user_for_organization,
-):
+def test_get_users_list_all_role_users(user_public_api_setup, make_user_for_organization):
     organization, admin, token, _, _ = user_public_api_setup
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
-    viewer = make_user_for_organization(organization, role=Role.VIEWER)
+    editor = make_user_for_organization(organization, role=LegacyAccessControlRole.EDITOR)
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     client = APIClient()
 

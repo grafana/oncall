@@ -1,6 +1,3 @@
-import pytz
-from rest_framework import serializers
-
 from apps.public_api.serializers.schedules_base import ScheduleBaseSerializer
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.schedules.tasks import (
@@ -10,10 +7,12 @@ from apps.schedules.tasks import (
 )
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UsersFilteredByOrganizationField
 from common.api_helpers.exceptions import BadRequest
+from common.timezones import TimeZoneField
 
 
 class ScheduleWebSerializer(ScheduleBaseSerializer):
-    time_zone = serializers.CharField(required=True)
+    team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
+    time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,
         required=False,
@@ -31,13 +30,6 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
             "on_call_now",
             "shifts",
         ]
-
-    def validate_time_zone(self, tz):
-        try:
-            pytz.timezone(tz)
-        except pytz.exceptions.UnknownTimeZoneError:
-            raise BadRequest(detail="Invalid time zone")
-        return tz
 
     def validate_shifts(self, shifts):
         # Get team_id from instance, if it exists, otherwise get it from initial data.
@@ -57,8 +49,7 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
 
 
 class ScheduleWebUpdateSerializer(ScheduleWebSerializer):
-    time_zone = serializers.CharField(required=False)
-    team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
+    time_zone = TimeZoneField(required=False)
 
     class Meta:
         model = OnCallScheduleWeb

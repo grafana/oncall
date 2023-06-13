@@ -2,7 +2,6 @@ from apps.alerts.escalation_snapshot.serializers import EscalationChainSnapshotS
 
 
 class EscalationChainSnapshot:
-
     __slots__ = ("id", "name")
 
     serializer = EscalationChainSnapshotSerializer
