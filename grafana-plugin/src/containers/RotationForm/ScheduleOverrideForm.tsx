@@ -10,7 +10,7 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { getFromString, getShiftTitle } from 'models/schedule/schedule.helpers';
+import { getFromString, getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -59,7 +59,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const store = useStore();
 
-  const [rotationTitle, setRotationTitle] = useState<string>(shiftId === 'new' ? 'Override' : 'Update override');
+  const [rotationName, setRotationName] = useState<string>(shiftId === 'new' ? 'Override' : 'Update override');
 
   const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
   const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || propsShiftStart.add(24, 'hours'));
@@ -114,14 +114,14 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       shift_end: getUTCString(shiftEnd),
       rolling_users: userGroups,
       frequency: null,
-      title: rotationTitle,
+      name: rotationName,
     }),
-    [currentTimezone, shiftStart, shiftEnd, userGroups, rotationTitle]
+    [currentTimezone, shiftStart, shiftEnd, userGroups, rotationName]
   );
 
   useEffect(() => {
     if (shift) {
-      setRotationTitle(getShiftTitle(shift));
+      setRotationName(getShiftName(shift));
       setShiftStart(getDateTime(shift.shift_start));
       setShiftEnd(getDateTime(shift.shift_end));
 
@@ -129,13 +129,13 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     }
   }, [shift]);
 
-  const handleRotationTitleChange = useCallback(
-    (title: string) => {
-      setRotationTitle(title);
+  const handleRotationNameChange = useCallback(
+    (name: string) => {
+      setRotationName(name);
       if (shiftId !== 'new') {
-        store.scheduleStore.updateRotation(shiftId, { ...params, title }).catch((error) => {
-          if (error.response?.data?.title) {
-            setRotationTitle(getShiftTitle(shift));
+        store.scheduleStore.updateRotation(shiftId, { ...params, name }).catch((error) => {
+          if (error.response?.data?.name) {
+            setRotationName(getShiftName(shift));
           }
         });
       }
@@ -211,8 +211,8 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         <HorizontalGroup justify="space-between">
           <HorizontalGroup spacing="sm">
             {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
-            <Text.Title onTextChange={handleRotationTitleChange} level={5} editable>
-              {rotationTitle}
+            <Text.Title onTextChange={handleRotationNameChange} level={5} editable>
+              {rotationName}
             </Text.Title>
           </HorizontalGroup>
           <HorizontalGroup>

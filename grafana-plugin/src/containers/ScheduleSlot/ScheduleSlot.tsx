@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { getShiftTitle } from 'models/schedule/schedule.helpers';
+import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Event, Schedule } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -153,7 +153,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             <div className={cx('badge')} style={{ backgroundColor: color }} />
           </div>
           <Text type="primary" maxWidth="222px">
-            {getShiftTitle(shift)}
+            {getShiftName(shift)}
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">

@@ -45,7 +45,7 @@ import DaysSelector from 'containers/RotationForm/parts/DaysSelector';
 import DeletionModal from 'containers/RotationForm/parts/DeletionModal';
 import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
 import UserItem from 'containers/RotationForm/parts/UserItem';
-import { getFromString, getShiftTitle } from 'models/schedule/schedule.helpers';
+import { getFromString, getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -106,7 +106,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const [errors, setErrors] = useState<{ [key: string]: string[] }>({});
 
-  const [rotationTitle, setRotationTitle] = useState<string>(`[L${layerPriority}] Rotation`);
+  const [rotationName, setRotationName] = useState<string>(`[L${layerPriority}] Rotation`);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
@@ -213,7 +213,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, rotationStart.tz(currentTimezone)),
       week_start: getUTCWeekStart(store.scheduleStore.byDayOptions, rotationStart.tz(currentTimezone)),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
-      title: rotationTitle,
+      name: rotationName,
     }),
     [
       rotationStart,
@@ -229,7 +229,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       layerPriority,
       shift,
       endLess,
-      rotationTitle,
+      rotationName,
     ]
   );
 
@@ -237,7 +237,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const create = useCallback(() => {
     store.scheduleStore
-      .createRotation(scheduleId, false, { ...params, title: rotationTitle })
+      .createRotation(scheduleId, false, { ...params, name: rotationName })
       .then(() => {
         onCreate();
       })
@@ -317,13 +317,13 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     [shiftStart]
   );
 
-  const handleRotationTitleChange = useCallback(
-    (title: string) => {
-      setRotationTitle(title);
+  const handleRotationNameChange = useCallback(
+    (name: string) => {
+      setRotationName(name);
       if (shiftId !== 'new') {
-        store.scheduleStore.updateRotation(shiftId, { ...params, title }).catch((error) => {
-          if (error.response?.data?.title) {
-            setRotationTitle(getShiftTitle(shift));
+        store.scheduleStore.updateRotation(shiftId, { ...params, name }).catch((error) => {
+          if (error.response?.data?.name) {
+            setRotationName(getShiftName(shift));
           }
         });
       }
@@ -355,7 +355,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   useEffect(() => {
     if (shift) {
-      setRotationTitle(getShiftTitle(shift));
+      setRotationName(getShiftName(shift));
       const rotationStart = getDateTime(shift.rotation_start);
       setRotationStart(rotationStart);
       setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
@@ -419,8 +419,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
             <HorizontalGroup justify="space-between">
               <HorizontalGroup spacing="sm">
                 {shiftId === 'new' && <Tag color={shiftColor}>New</Tag>}
-                <Text.Title editModalTitle="Rotation name" onTextChange={handleRotationTitleChange} level={5} editable>
-                  {rotationTitle}
+                <Text.Title editModalTitle="Rotation name" onTextChange={handleRotationNameChange} level={5} editable>
+                  {rotationName}
                 </Text.Title>
               </HorizontalGroup>
               <HorizontalGroup>

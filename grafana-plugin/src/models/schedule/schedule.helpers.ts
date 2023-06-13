@@ -218,13 +218,13 @@ export const getOverrideColor = (rotationIndex: number) => {
   return OVERRIDE_COLORS[normalizedRotationIndex];
 };
 
-export const getShiftTitle = (shift: Shift) => {
+export const getShiftName = (shift: Shift) => {
   if (!shift) {
     return '';
   }
 
-  if (shift.title) {
-    return shift.title;
+  if (shift.name) {
+    return shift.name;
   }
 
   if (shift.type === 3) {
