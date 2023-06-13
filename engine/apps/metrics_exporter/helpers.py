@@ -23,10 +23,10 @@ from apps.metrics_exporter.constants import (
 
 def get_organization_ids():
     """Try getting organizations ids from cache, otherwise get from db and save values in cache"""
-    Organization = apps.get_model("user_management", "Organization")
+    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
     organizations_ids = cache.get(METRICS_ORGANIZATIONS_IDS, [])
     if not organizations_ids:
-        organizations_ids = Organization.objects.all().values_list("id", flat=True)
+        organizations_ids = AlertReceiveChannel.objects.all().values_list("organization_id", flat=True).distinct()
         organizations_ids = list(organizations_ids)
         cache.set(organizations_ids, METRICS_ORGANIZATIONS_IDS, METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT)
     return organizations_ids

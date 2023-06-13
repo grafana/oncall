@@ -21,7 +21,6 @@ from apps.metrics_exporter.helpers import (
     get_metrics_recalculation_timeout,
     get_response_time_period,
 )
-from apps.user_management.models import Organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
@@ -30,7 +29,9 @@ from common.database import get_random_readonly_database_key_if_present_otherwis
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def save_organizations_ids_in_cache():
-    organizations_ids = Organization.objects.all().values_list("id", flat=True)
+    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    # save only organizations with integrations
+    organizations_ids = AlertReceiveChannel.objects.all().values_list("organization_id", flat=True).distinct()
     organizations_ids = list(organizations_ids)
     cache.set(organizations_ids, METRICS_ORGANIZATIONS_IDS, METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT)
 
