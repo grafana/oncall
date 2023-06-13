@@ -393,19 +393,27 @@ class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBea
         )
 
 
-class AlertManagerV2(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
+class AlertManagerV2View(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
+    """
+    AlertManagerV2View consumes alerts from AlertManager. It expects data to be in format of AM webhook receiver.
+    """
+
     def post(self, request, *args, **kwargs):
         alert_receive_channel = self.request.alert_receive_channel
-        # if not alert_receive_channel.config.slug == kwargs["integration_type"]:
-        #     return HttpResponseBadRequest(
-        #         f"This url is for integration with {alert_receive_channel.config.title}."
-        #         f"Key is for {alert_receive_channel.get_integration_display()}"
-        #     )
+        if not alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER_V2:
+            return HttpResponseBadRequest(
+                f"This url is for integration with {alert_receive_channel.config.title}."
+                f"Key is for {alert_receive_channel.get_integration_display()}"
+            )
         alerts = request.data.get("alerts", [])
-        num_firing = len(list(filter(lambda a: a["status"] == "firing", alerts)))
-        num_resolved = len(list(filter(lambda a: a["status"] == "resolved", alerts)))
-        data = {**request.data, "num_firing": num_firing, "num_resolved": num_resolved}
-        # del data["alerts"]
+
+        data = request.data
+        if "numFiring" not in request.data:
+            # Count firing and resolved alerts manually to keep backward-compatibility with older AM.
+            num_firing = len(list(filter(lambda a: a["status"] == "firing", alerts)))
+            num_resolved = len(list(filter(lambda a: a["status"] == "resolved", alerts)))
+            data = {**request.data, "numFiring": num_firing, "numResolved": num_resolved}
+
         create_alert.apply_async(
             [],
             {
