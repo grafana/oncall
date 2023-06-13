@@ -16,6 +16,7 @@ ENGINE_PROFILE = engine
 UI_PROFILE = oncall_ui
 REDIS_PROFILE = redis
 RABBITMQ_PROFILE = rabbitmq
+PROMETHEUS_PROFILE = prometheus
 GRAFANA_PROFILE = grafana
 
 DEV_ENV_DIR = ./dev
@@ -68,6 +69,10 @@ define run_engine_docker_command
 	$(call run_docker_compose_command,run --rm oncall_engine_commands $(1))
 endef
 
+define run_ui_docker_command
+	$(call run_docker_compose_command,run --rm oncall_ui sh -c '$(1)')
+endef
+
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
 start:  ## start all of the docker containers
 ifeq ($(DB),$(SQLITE_PROFILE))
@@ -83,7 +88,7 @@ init:  ## build the frontend plugin code then run make start
 # this makes sure that it will be available when the grafana container starts up without the need to
 # restart the grafana container initially
 ifeq ($(findstring $(UI_PROFILE),$(COMPOSE_PROFILES)),$(UI_PROFILE))
-	cd grafana-plugin && yarn install && yarn build:dev
+	$(call run_ui_docker_command,yarn install && yarn build:dev)
 endif
 
 stop:  # stop all of the docker containers
@@ -102,7 +107,7 @@ cleanup: stop  ## this will remove all of the images, containers, volumes, and n
 install-pre-commit:
 	@if [ ! -x "$$(command -v pre-commit)" ]; then \
 		echo "installing pre-commit"; \
-		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements.txt); \
+		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements-dev.txt); \
 	else \
 		echo "pre-commit already installed"; \
 	fi
@@ -110,14 +115,15 @@ install-pre-commit:
 lint: install-pre-commit  ## run both frontend and backend linters
                           ## may need to run `yarn install` from within `grafana-plugin`
                           ## to install several `pre-commit` dependencies
-
 	pre-commit run --all-files
 
 install-precommit-hook: install-pre-commit
 	pre-commit install
 
 test:  ## run backend tests
-	$(call run_engine_docker_command,pytest)
+# always use settings.ci-test django settings file when running the tests
+# if we use settings.dev it's very possible that some fail just based on the settings alone
+	$(call run_engine_docker_command,pytest --ds=settings.ci-test)
 
 start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)
@@ -135,6 +141,19 @@ engine-manage:  ## run Django's `manage.py` script, inside of a docker container
                 ## e.g. `make engine-manage CMD="makemigrations"`
                 ## https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 	$(call run_engine_docker_command,python manage.py $(CMD))
+
+ui-test:  ## run the UI tests
+	$(call run_ui_docker_command,yarn test)
+
+ui-lint:  ## run the UI linter
+	$(call run_ui_docker_command,yarn lint)
+
+ui-build:  ## build the UI
+	$(call run_ui_docker_command,yarn build)
+
+ui-command:  ## run any command, inside of a UI docker container, passing `$CMD` as arguments.
+             ## e.g. `make ui-command CMD="yarn test"`
+	$(call run_ui_docker_command,$(CMD))
 
 exec-engine:  ## exec into engine container's bash
 	docker exec -it oncall_engine bash

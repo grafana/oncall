@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import math
@@ -18,7 +19,7 @@ from rest_framework import status
 
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
-from apps.mobile_app.alert_rendering import get_push_notification_message
+from apps.mobile_app.alert_rendering import get_push_notification_subtitle
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
@@ -62,7 +63,7 @@ def send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
 def _send_push_notification(
     device_to_notify: FCMDevice, message: Message, error_cb: typing.Optional[typing.Callable[..., None]] = None
 ) -> None:
-    logger.debug(f"Sending push notification with message: {message}")
+    logger.debug(f"Sending push notification to device type {device_to_notify.type} with message: {message}")
 
     def _error_cb():
         if error_cb:
@@ -153,24 +154,9 @@ def _get_alert_group_escalation_fcm_message(
     from apps.mobile_app.models import MobileAppUserSettings
 
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-    number_of_alerts = alert_group.alerts.count()
 
-    alert_title = "New Critical Alert" if critical else "New Alert"
-    alert_subtitle = get_push_notification_message(alert_group)
-
-    status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
-    if alert_group.resolved:
-        status_verbose = alert_group.get_resolve_text()
-    elif alert_group.acknowledged:
-        status_verbose = alert_group.get_acknowledge_text()
-
-    if number_of_alerts <= 10:
-        alerts_count_str = str(number_of_alerts)
-    else:
-        alert_count_rounded = (number_of_alerts // 10) * 10
-        alerts_count_str = f"{alert_count_rounded}+"
-
-    alert_body = f"Status: {status_verbose}, alerts: {alerts_count_str}"
+    alert_title = "New Important Alert" if critical else "New Alert"
+    alert_subtitle = get_push_notification_subtitle(alert_group)
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
@@ -189,7 +175,6 @@ def _get_alert_group_escalation_fcm_message(
     fcm_message_data: FCMMessageData = {
         "title": alert_title,
         "subtitle": alert_subtitle,
-        "body": alert_body,
         "orgId": alert_group.channel.organization.public_primary_key,
         "orgName": alert_group.channel.organization.stack_slug,
         "alertGroupId": alert_group.public_primary_key,
@@ -217,11 +202,12 @@ def _get_alert_group_escalation_fcm_message(
         "important_notification_override_dnd": json.dumps(mobile_app_user_settings.important_notification_override_dnd),
     }
 
+    number_of_alerts = alert_group.alerts.count()
     apns_payload = APNSPayload(
         aps=Aps(
             thread_id=thread_id,
             badge=number_of_alerts,
-            alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
+            alert=ApsAlert(title=alert_title, subtitle=alert_subtitle),
             sound=CriticalSound(
                 # The notification shouldn't be critical if the user has disabled "override DND" setting
                 critical=overrideDND,
@@ -242,6 +228,9 @@ def _get_alert_group_escalation_fcm_message(
 def _get_youre_going_oncall_fcm_message(
     user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
 ) -> Message:
+    # avoid circular import
+    from apps.mobile_app.models import MobileAppUserSettings
+
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
@@ -334,7 +323,7 @@ def _shift_starts_within_range(
 
 
 def should_we_send_going_oncall_push_notification(
-    now: timezone.datetime, user_settings: "MobileAppUserSettings", schedule_event: ScheduleEvent
+    now: datetime.datetime, user_settings: "MobileAppUserSettings", schedule_event: ScheduleEvent
 ) -> typing.Optional[int]:
     """
     If the user should be set a "you're going oncall" push notification, return the number of seconds
@@ -383,7 +372,9 @@ def should_we_send_going_oncall_push_notification(
         f"shift_starts_within_fifteen_minutes: {shift_starts_within_fifteen_minutes}"
     )
 
-    if shift_starts_within_users_notification_timing_preference or shift_starts_within_fifteen_minutes:
+    # Temporary remove `shift_starts_within_users_notification_timing_preference` from condition to send notification only 15 minutes before the shift starts
+    # TODO: Return it once mobile app ready and default value is changed (https://github.com/grafana/oncall/issues/1999)
+    if shift_starts_within_fifteen_minutes:
         logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
         return seconds_until_shift_starts
     logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
@@ -426,7 +417,6 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
         for user in users:
             user_pk = user["pk"]
-            logger.info(f"Evaluating if we should send push notification for schedule {schedule_pk} for user {user_pk}")
 
             user = user_cache.get(user_pk, None)
             if user is None:
@@ -442,7 +432,6 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
                 device_to_notify = FCMDevice.objects.filter(user=user).first()
 
                 if not device_to_notify:
-                    logger.info(f"User {user_pk} has no device set up")
                     continue
                 else:
                     device_cache[user_pk] = device_to_notify

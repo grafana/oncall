@@ -128,7 +128,7 @@ class GForm extends React.Component<GFormProps, {}> {
                 disabled={formItem.getDisabled ? formItem.getDisabled(getValues()) : false}
                 label={formItem.label || capitalCase(formItem.name)}
                 invalid={!!errors[formItem.name]}
-                error={`${capitalCase(formItem.name)} is required`}
+                error={formItem.label ? `${formItem.label} is required` : `${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
                 {renderFormControl(formItem, register, control, (field, value) => {

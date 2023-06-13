@@ -40,7 +40,7 @@
     },
     {
       "type": "page",
-      "name": "Alert Groups",
+      "name": "Alert groups",
       "path": "/a/grafana-oncall-app/alert-groups",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
@@ -64,7 +64,7 @@
     },
     {
       "type": "page",
-      "name": "Escalation Chains",
+      "name": "Escalation chains",
       "path": "/a/grafana-oncall-app/escalations",
       "role": "Viewer",
       "action": "grafana-oncall-app.escalation-chains:read",
@@ -80,7 +80,7 @@
     },
     {
       "type": "page",
-      "name": "Outgoing Webhooks",
+      "name": "Outgoing webhooks",
       "path": "/a/grafana-oncall-app/outgoing_webhooks",
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
@@ -88,7 +88,7 @@
     },
     {
       "type": "page",
-      "name": "Outgoing Webhooks 2",
+      "name": "Outgoing webhooks 2",
       "path": "/a/grafana-oncall-app/outgoing_webhooks_2",
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
@@ -620,8 +620,7 @@
     }
   ],
   "dependencies": {
-    "grafanaDependency": ">=8.3.2",
-    "grafanaVersion": "8.3",
+    "grafanaDependency": ">=9.2.0",
     "plugins": []
   }
 }

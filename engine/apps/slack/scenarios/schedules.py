@@ -1,7 +1,7 @@
+import datetime
 import json
 
 import pytz
-from django.utils import timezone
 
 from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
@@ -129,7 +129,6 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         ]
 
     def get_initial_option(self, schedule_id, select_name):
-
         schedule = OnCallSchedule.objects.get(pk=schedule_id)
 
         current_value = getattr(schedule, select_name)
@@ -209,21 +208,20 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
     @classmethod
     def get_report_blocks_manual(cls, current_shift, next_shift, schedule):
-
         current_piece, current_user = current_shift
 
-        start_day = timezone.datetime.now()
-        current_hour = timezone.datetime.today().hour
+        start_day = datetime.datetime.now()
+        current_hour = datetime.datetime.today().hour
         start_hour = current_piece.starts_at.hour
         if start_hour > current_hour:
-            start_day -= timezone.timedelta(days=1)
+            start_day -= datetime.timedelta(days=1)
 
         shift_start = start_day.replace(hour=start_hour, minute=0, second=0, microsecond=0)
-        shift_end = shift_start + timezone.timedelta(hours=12)
+        shift_end = shift_start + datetime.timedelta(hours=12)
         shift_start_timestamp = int(shift_start.astimezone(pytz.UTC).timestamp())
         shift_end_timestamp = int(shift_end.astimezone(pytz.UTC).timestamp())
 
-        next_shift_end = shift_end + timezone.timedelta(hours=12)
+        next_shift_end = shift_end + datetime.timedelta(hours=12)
         next_shift_end_timestamp = int(next_shift_end.astimezone(pytz.UTC).timestamp())
 
         now_text = "_*Now*_:\n"
@@ -284,7 +282,6 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
     @classmethod
     def get_ical_shift_notification_text(cls, shift, mention, users):
-
         if shift["all_day"]:
             notification = " ".join([f"{user.get_username_with_slack_verbal(mention=mention)}" for user in users])
             user_verbal = shift["users"][0].get_username_with_slack_verbal(

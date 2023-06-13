@@ -21,9 +21,11 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { openErrorNotification } from 'utils';
+import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 
-import styles from './IntegrationTemplate.module.css';
+import styles from './IntegrationTemplate.module.scss';
 
 const cx = cn.bind(styles);
 
@@ -46,6 +48,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
+  const [editorHeight, setEditorHeight] = useState<string>(undefined);
 
   useEffect(() => {
     const locationParams: any = { template: template.name };
@@ -53,6 +56,14 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       locationParams.routeId = channelFilterId;
     }
     LocationHelper.update(locationParams, 'partial');
+  }, []);
+
+  useEffect(() => {
+    waitForElement('#content-container-id').then(() => {
+      const mainDiv = document.getElementById('content-container-id');
+      const height = mainDiv?.getBoundingClientRect().height - 59;
+      setEditorHeight(`${height}px`);
+    });
   }, []);
 
   const onShowCheatSheet = useCallback(() => {
@@ -100,18 +111,24 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const onSaveAndFollowLink = useCallback(
     (link: string) => {
-      onHide();
+      onUpdateTemplates({ [template.name]: changedTemplateBody });
       window.open(link, '_blank');
     },
     [onUpdateTemplates, onUpdateRoute, changedTemplateBody]
   );
 
   const handleSubmit = useCallback(() => {
-    template.isRoute
-      ? onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId)
-      : onUpdateTemplates({ [template.name]: changedTemplateBody });
-
-    onHide();
+    if (template.isRoute) {
+      if (changedTemplateBody) {
+        onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId);
+        onHide();
+      } else {
+        openErrorNotification('Route template body can not be empty');
+      }
+    } else {
+      onUpdateTemplates({ [template.name]: changedTemplateBody });
+      onHide();
+    }
   }, [onUpdateTemplates, changedTemplateBody]);
 
   const getCheatSheet = (templateName) => {
@@ -166,7 +183,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       width={'95%'}
     >
       <div className={cx('container-wrapper')}>
-        <div className={cx('container')}>
+        <div className={cx('container')} id={'content-container-id'}>
           <TemplatesAlertGroupsList
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
@@ -174,12 +191,16 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             templates={templates}
           />
           {isCheatSheetVisible ? (
-            <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
+            <CheatSheet
+              cheatSheetName={template.displayName}
+              cheatSheetData={getCheatSheet(template.displayName)}
+              onClose={onCloseCheatSheet}
+            />
           ) : (
             <>
               <div className={cx('template-block-codeeditor')}>
                 <div className={cx('template-editor-block-title')}>
-                  <HorizontalGroup justify="space-between">
+                  <HorizontalGroup justify="space-between" wrap>
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
@@ -187,14 +208,15 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                     </Button>
                   </HorizontalGroup>
                 </div>
-
-                <MonacoEditor
-                  value={templateBody}
-                  data={templates}
-                  showLineNumbers={true}
-                  height={'85vh'}
-                  onChange={getChangeHandler()}
-                />
+                <div className={cx('template-editor-block-content')}>
+                  <MonacoEditor
+                    value={changedTemplateBody}
+                    data={templates}
+                    showLineNumbers={true}
+                    height={editorHeight}
+                    onChange={getChangeHandler()}
+                  />
+                </div>
               </div>
             </>
           )}

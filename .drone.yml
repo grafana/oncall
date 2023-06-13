@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -66,7 +66,7 @@ steps:
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements.txt)
+      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
@@ -80,7 +80,7 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements.txt
+      - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
@@ -174,7 +174,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -185,7 +185,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -418,4 +418,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 8f34bbbb5a2efe479b40d616b087a0c380390de2e440857bdffe8fd48d860e55
+hmac: 59ad498428731001484be9ac6b9d10685b2cd49f30eb3d97ed7dc99f031dca22
+
+...

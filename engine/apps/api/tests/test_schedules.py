@@ -337,6 +337,18 @@ def test_get_list_schedules_by_type(
         }
         assert response.json() == expected_payload
 
+    # request multiple types
+    url = reverse("api-internal:schedule-list") + "?type=0&type=1"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_payload = {
+        "count": 2,
+        "next": None,
+        "previous": None,
+        "results": [available_schedules[0], available_schedules[1]],
+    }
+    assert response.json() == expected_payload
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -812,7 +824,7 @@ def test_events_calendar(
                 "all_day": False,
                 "start": on_call_shift.start,
                 "end": on_call_shift.start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -878,7 +890,7 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": mon_start,
                 "end": mon_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -894,7 +906,7 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -977,7 +989,7 @@ def test_filter_events_range_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -1059,7 +1071,13 @@ def test_filter_events_overrides(
                 "all_day": False,
                 "start": override_start,
                 "end": override_start + override.duration,
-                "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+                "users": [
+                    {
+                        "display_name": other_user.username,
+                        "pk": other_user.public_primary_key,
+                        "email": other_user.email,
+                    }
+                ],
                 "missing_users": [],
                 "priority_level": None,
                 "source": "api",

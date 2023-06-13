@@ -107,10 +107,9 @@ def getenv_integer(variable_name: str, default: int) -> int:
     if value is None:
         return default
     try:
-        value = int(value)
+        return int(value)
     except ValueError:
         return default
-    return value
 
 
 def batch_queryset(qs, batch_size=1000):
@@ -150,7 +149,7 @@ def str_or_backup(string, backup):
 
 
 def clean_html(text):
-    text = "".join(BeautifulSoup(text, features="html.parser").find_all(text=True))
+    text = "".join(BeautifulSoup(text, features="html.parser").find_all(string=True))
     return text
 
 
@@ -193,14 +192,6 @@ def clean_markup(text):
     return cleaned
 
 
-def escape_for_twilio_phone_call(text):
-    # https://www.twilio.com/docs/api/errors/12100
-    text = text.replace("&", "&amp;")
-    text = text.replace(">", "&gt;")
-    text = text.replace("<", "&lt;")
-    return text
-
-
 def escape_html(text):
     return html.escape(text)
 
@@ -210,7 +201,7 @@ def urlize_with_respect_to_a(html):
     Wrap links into <a> tag if not already
     """
     soup = BeautifulSoup(html, features="html.parser")
-    textNodes = soup.find_all(text=True)
+    textNodes = soup.find_all(string=True)
     for textNode in textNodes:
         if textNode.parent and getattr(textNode.parent, "name") == "a":
             continue

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
+import { HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -26,13 +26,16 @@ interface TemplatePreviewProps {
   active?: boolean;
   onResult?: (result) => void;
 }
+interface ConditionalResult {
+  isResult?: boolean;
+  value?: string;
+}
 
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const { templateName, templateBody, payload, alertReceiveChannelId, alertGroupId } = props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
-  const [isCondition, setIsCondition] = useState(false);
-  // const [conditionalResult, setConditionalResult] = useState()
+  const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
   const { alertReceiveChannelStore, alertGroupStore } = store;
@@ -45,9 +48,11 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
       .then((data) => {
         setResult(data);
         if (data?.preview === 'True') {
-          setIsCondition(true);
+          setConditionalResult({ isResult: true, value: 'True' });
+        } else if (data?.preview === 'False') {
+          setConditionalResult({ isResult: true, value: 'False' });
         } else {
-          setIsCondition(false);
+          setConditionalResult({ isResult: false, value: undefined });
         }
       })
       .catch((err) => {
@@ -60,35 +65,65 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   }, 1000);
 
   useEffect(handleTemplateBodyChange, [templateBody, payload]);
-  // onResult(result);
+
+  const conditionalMessage = (success: boolean) => {
+    if (templateName.includes('route')) {
+      return (
+        <Text type="secondary">
+          Selected alert will {!success && <Text type="secondary">not</Text>} be matched with this route
+        </Text>
+      );
+    } else {
+      return (
+        <Text type="secondary">
+          Selected alert will {!success && <Text type="secondary">not</Text>}{' '}
+          {`${templateName.substring(0, templateName.indexOf('_'))} alert group`}
+        </Text>
+      );
+    }
+  };
 
   return result ? (
     <>
-      {templateName.includes('condition_template') ? (
-        <Text type={isCondition ? 'success' : 'danger'}>
-          {isCondition ? (
-            <>
-              <Icon name="check" size="lg" /> True
-            </>
+      {conditionalResult?.isResult ? (
+        <Text type={conditionalResult.value === 'True' ? 'success' : 'danger'}>
+          {conditionalResult.isResult ? (
+            <VerticalGroup>
+              <HorizontalGroup>
+                <Icon name="check" size="lg" /> {conditionalResult.value}
+              </HorizontalGroup>
+              {conditionalMessage(conditionalResult.value === 'True')}
+            </VerticalGroup>
           ) : (
-            <HorizontalGroup>
-              <Icon name="exclamation-triangle" size="lg" />
-              <div
-                className={cx('message')}
-                dangerouslySetInnerHTML={{
-                  __html: sanitize(result.preview || ''),
-                }}
-              />
-            </HorizontalGroup>
+            <VerticalGroup>
+              <HorizontalGroup>
+                <Icon name="times-circle" size="lg" />
+                <div
+                  className={cx('message')}
+                  dangerouslySetInnerHTML={{
+                    __html: sanitize(result.preview || ''),
+                  }}
+                />
+              </HorizontalGroup>
+              {conditionalMessage(conditionalResult.value === 'True')}
+            </VerticalGroup>
           )}
         </Text>
       ) : (
-        <div
-          className={cx('message')}
-          dangerouslySetInnerHTML={{
-            __html: sanitize(result.preview || ''),
-          }}
-        />
+        <>
+          {templateName.includes('image') ? (
+            <div className={cx('image-result')}>
+              <img src={result.preview} />
+            </div>
+          ) : (
+            <div
+              className={cx('message')}
+              dangerouslySetInnerHTML={{
+                __html: sanitize(result.preview?.replace(/\n/g, '<br />') || ''),
+              }}
+            />
+          )}
+        </>
       )}
     </>
   ) : (

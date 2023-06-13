@@ -1,8 +1,10 @@
+import base64
+import json
 import os
 from random import randrange
 
 from celery.schedules import crontab
-from firebase_admin import initialize_app
+from firebase_admin import credentials, initialize_app
 
 from common.utils import getenv_boolean, getenv_integer
 
@@ -60,6 +62,7 @@ FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_EN
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
+FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -88,6 +91,9 @@ WEBHOOK_RESPONSE_LIMIT = 50000
 ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+
+# Prometheus exporter metrics endpoint auth
+PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
 
 
 # Database
@@ -218,6 +224,7 @@ INSTALLED_APPS = [
     "apps.public_api",
     "apps.grafana_plugin",
     "apps.webhooks",
+    "apps.metrics_exporter",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -225,6 +232,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
+    "apps.phone_notifications",
 ]
 
 REST_FRAMEWORK = {
@@ -240,7 +248,6 @@ MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
     "engine.middlewares.RequestTimeLoggingMiddleware",
     "engine.middlewares.BanAlertConsumptionBasedOnSettingsMiddleware",
-    "engine.middlewares.RequestBodyReadingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
@@ -479,6 +486,10 @@ CELERY_BEAT_SCHEDULE = {
     "conditionally_send_going_oncall_push_notifications_for_all_schedules": {
         "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
         "schedule": 10 * 60,
+    },
+    "save_organizations_ids_in_cache": {
+        "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
+        "schedule": 60 * 30,
         "args": (),
     },
 }
@@ -587,13 +598,21 @@ EXTRA_MESSAGING_BACKENDS = [
     ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
 ]
 
-FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+# Firebase credentials can be passed as base64 encoded JSON string in GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64 env variable.
+# If it's not passed, firebase_admin will use a file located at GOOGLE_APPLICATION_CREDENTIALS env variable.
+credential = None
+GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64 = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64", None)
+if GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64:
+    credentials_json = json.loads(base64.b64decode(GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64))
+    credential = credentials.Certificate(credentials_json)
+
+# FCM_PROJECT_ID can be different from the project ID in the credentials file.
+FCM_PROJECT_ID = os.environ.get("FCM_PROJECT_ID", None)
 
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 FCM_DJANGO_SETTINGS = {
     # an instance of firebase_admin.App to be used as default for all fcm-django requests
-    # default: None (the default Firebase app)
-    "DEFAULT_FIREBASE_APP": None,
+    "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
     "DELETE_INACTIVE_DEVICES": False,
@@ -641,6 +660,7 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
+    "config_integrations.alertmanager_v2",
     "config_integrations.alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",
@@ -694,3 +714,11 @@ PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", defaul
 PYROSCOPE_APPLICATION_NAME = os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall")
 PYROSCOPE_SERVER_ADDRESS = os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040")
 PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
+
+# map of phone provider alias to importpath.
+# Used in get_phone_provider function to dynamically load current provider.
+PHONE_PROVIDERS = {
+    "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
+    # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+}
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")

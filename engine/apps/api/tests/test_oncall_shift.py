@@ -46,6 +46,7 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
         ],
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
     }
 
@@ -54,6 +55,38 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+def test_create_on_call_shift_rotation_missing_users(on_call_shift_internal_api_setup, make_user_auth_headers):
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:oncall_shifts-list")
+    start_date = timezone.now().replace(microsecond=0, tzinfo=None)
+
+    data = {
+        "name": "Test Shift",
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "schedule": schedule.public_primary_key,
+        "priority_level": 1,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": 1,
+        "interval": 1,
+        "by_day": [
+            CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
+            CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
+        ],
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
+        "rolling_users": [],
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["rolling_users"][0] == "User(s) are required"
 
 
 @pytest.mark.django_db
@@ -86,6 +119,7 @@ def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_us
         "id": response.data["id"],
         "updated_shift": None,
         "rolling_users": returned_rolling_users,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -130,6 +164,7 @@ def test_get_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
         "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
         "updated_shift": None,
     }
@@ -180,6 +215,7 @@ def test_list_on_call_shift(
                 "frequency": None,
                 "interval": None,
                 "by_day": None,
+                "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
                 "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
                 "updated_shift": None,
             }
@@ -237,6 +273,7 @@ def test_list_on_call_shift_filter_schedule_id(
                 "frequency": None,
                 "interval": None,
                 "by_day": None,
+                "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
                 "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
                 "updated_shift": None,
             }
@@ -318,6 +355,7 @@ def test_update_future_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key]],
         "updated_shift": None,
     }
@@ -327,6 +365,48 @@ def test_update_future_on_call_shift(
 
     on_call_shift.refresh_from_db()
     assert on_call_shift.priority_level == data_to_update["priority_level"]
+
+
+@pytest.mark.django_db
+def test_update_future_on_call_shift_removing_users(
+    on_call_shift_internal_api_setup,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+
+    client = APIClient()
+    start_date = (timezone.now() + timezone.timedelta(days=1)).replace(microsecond=0)
+
+    name = "Test Shift Rotation"
+    on_call_shift = make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        name=name,
+        start=start_date,
+        duration=timezone.timedelta(hours=1),
+        rotation_start=start_date,
+        rolling_users=[{user1.pk: user1.public_primary_key}],
+    )
+    data_to_update = {
+        "name": name,
+        "priority_level": 2,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": None,
+        "interval": None,
+        "by_day": None,
+        "rolling_users": [],
+    }
+
+    url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["rolling_users"][0] == "User(s) are required"
 
 
 @pytest.mark.django_db
@@ -385,6 +465,7 @@ def test_update_started_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key]],
         "updated_shift": None,
     }
@@ -400,6 +481,57 @@ def test_update_started_on_call_shift(
     # check if until date was changed
     assert on_call_shift.until is not None
     assert on_call_shift.until == on_call_shift.updated_shift.rotation_start
+
+
+@pytest.mark.django_db
+def test_update_started_on_call_shift_force_update(
+    on_call_shift_internal_api_setup,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+
+    client = APIClient()
+    start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
+
+    title = "Test Shift Rotation"
+    on_call_shift = make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        title=title,
+        start=start_date,
+        duration=timezone.timedelta(hours=3),
+        rotation_start=start_date,
+        rolling_users=[{user1.pk: user1.public_primary_key}],
+    )
+    data_to_update = {
+        "title": title,
+        "priority_level": 2,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": None,
+        "interval": None,
+        "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
+        "rolling_users": [[user1.public_primary_key]],
+    }
+
+    assert on_call_shift.priority_level != data_to_update["priority_level"]
+
+    url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key}) + "?force=true"
+
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    # check no shift was created
+    assert response.data["id"] == on_call_shift.public_primary_key
+    on_call_shift.refresh_from_db()
+    assert on_call_shift.priority_level == data_to_update["priority_level"]
+    assert on_call_shift.updated_shift is None
+    assert on_call_shift.until is None
 
 
 @pytest.mark.django_db
@@ -475,6 +607,7 @@ def test_update_old_on_call_shift_with_future_version(
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -529,6 +662,7 @@ def test_update_started_on_call_shift_title(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": "MO",
         "rolling_users": [[user1.public_primary_key]],
     }
 
@@ -543,6 +677,7 @@ def test_update_started_on_call_shift_title(
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -777,27 +912,6 @@ def test_create_on_call_shift_invalid_data_by_day(on_call_shift_internal_api_set
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["by_day"][0] == "Cannot set days value for non-recurrent shifts"
-
-    # by_day with non-weekly/non-daily frequency
-    data = {
-        "title": "Test Shift 2",
-        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
-        "schedule": schedule.public_primary_key,
-        "priority_level": 0,
-        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "until": None,
-        "frequency": CustomOnCallShift.FREQUENCY_MONTHLY,
-        "interval": None,
-        "by_day": [CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY]],
-        "rolling_users": [[user1.public_primary_key]],
-    }
-
-    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["by_day"][0] == "Cannot set days value for this frequency type"
 
 
 @pytest.mark.django_db
@@ -1060,7 +1174,6 @@ def test_on_call_shift_update_permissions(
             status=status.HTTP_200_OK,
         ),
     ):
-
         response = client.put(url, format="json", **make_user_auth_headers(user, token))
 
         assert response.status_code == expected_status
@@ -1384,7 +1497,9 @@ def test_on_call_shift_preview(
             "is_gap": False,
             "priority_level": 2,
             "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "users": [
+                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            ],
             "source": "web",
         }
     ]
@@ -1674,7 +1789,9 @@ def test_on_call_shift_preview_update(
         "is_gap": False,
         "priority_level": 1,
         "missing_users": [],
-        "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+        "users": [
+            {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+        ],
         "source": "web",
     }
     assert rotation_events[-1] == expected_shift_preview
@@ -1785,7 +1902,9 @@ def test_on_call_shift_preview_update_not_started_reuse_pk(
             "is_gap": False,
             "priority_level": 1,
             "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "users": [
+                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            ],
             "source": "web",
         },
     ]
