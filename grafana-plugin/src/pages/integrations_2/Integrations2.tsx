@@ -147,7 +147,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       },
       {
         width: '20%',
-        title: 'Datasource',
+        title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
