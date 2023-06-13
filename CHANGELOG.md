@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add helm chart support for redis and mysql existing secrets [#2156](https://github.com/grafana/oncall/pull/2156)
 
+### Changed
+
+- Removed `SlackActionRecord` model and database table by @joeyorlando [#2201](https://github.com/grafana/oncall/pull/2201)
+
 ## v1.2.43 (2023-06-12)
 
 ### Changed
@@ -29,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix receive channel filter in alert groups API [#2140](https://github.com/grafana/oncall/pull/2140)
 - Helm chart: Fix usage of `env` settings as map;
   Fix usage of `mariadb.auth.database` and `mariadb.auth.username` for MYSQL env variables by @alexintech [#2146](https://github.com/grafana/oncall/pull/2146)
-  
+
 ### Added
 
 - Helm chart: Add unittests for rabbitmq and redis [2165](https://github.com/grafana/oncall/pull/2165)
