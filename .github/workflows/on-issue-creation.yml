@@ -1,0 +1,35 @@
+name: On issue creation
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  add-to-project:
+    name: Add OSS issues to team's kanban board
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.4.1
+        with:
+          project-url: https://github.com/orgs/grafana/projects/119
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+
+  add-latest-version-comment:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-ecosystem/action-get-latest-tag@v1
+        id: get-latest-tag
+      - name: Add latest version comment
+        # GitHub recommends pinning actions to a commit SHA.
+        # To get a newer version, you will need to update the SHA.
+        # You can also reference a tag or branch, but the action may change without warning.
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it
+            in the PR description. Thank you :smile:!
