@@ -210,13 +210,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       ></Select>
                     </WithPermissionControlTooltip>
 
-                    <Tooltip placement={'top'} content={'Reaload escalation chains list'}>
-                      <Button
-                        variant={'secondary'}
-                        icon={'sync'}
-                        size={'md'}
-                        onClick={onEscalationChainsRefresh}
-                      />
+                    <Tooltip placement={'top'} content={'Reload list'}>
+                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
                     </Tooltip>
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>

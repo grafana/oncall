@@ -26,6 +26,8 @@ import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 
 import styles from './IntegrationTemplate.module.scss';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
@@ -168,12 +170,16 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             </VerticalGroup>
 
             <HorizontalGroup>
-              <Button variant="secondary" onClick={onHide}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handleSubmit}>
-                Save
-              </Button>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <Button variant="secondary" onClick={onHide}>
+                  Cancel
+                </Button>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <Button variant="primary" onClick={handleSubmit}>
+                  Save
+                </Button>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </HorizontalGroup>
         </div>

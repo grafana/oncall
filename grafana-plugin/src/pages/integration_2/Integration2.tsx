@@ -790,9 +790,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                 <Text type="primary">Integration Settings</Text>
               </div>
 
-              <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
-                Hearbeat Settings
-              </div>
+              <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
+                  Hearbeat Settings
+                </div>
+              </WithPermissionControlTooltip>
 
               {!alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
@@ -932,11 +934,11 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
               HTTP Endpoint
             </Text>
           </Tag>
-          <IntegrationInputField
+          {alertReceiveChannelStore.items[id]?.integration_url && <IntegrationInputField
             value={alertReceiveChannelStore.items[id].integration_url}
             className={cx('integration__input-field')}
-          />
-          <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer">
+          />}
+          <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer" className={cx('u-pull-right')}>
             <Text type="link" size="small">
               <HorizontalGroup>
                 How to connect

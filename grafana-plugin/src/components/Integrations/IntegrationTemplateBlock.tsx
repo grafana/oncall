@@ -4,6 +4,8 @@ import { Button, InlineLabel, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import styles from './IntegrationTemplateBlock.module.scss';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
@@ -39,12 +41,16 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
       </InlineLabel>
       <div className={cx('container__item')}>
         {renderInput()}
-        <Tooltip content={'Edit'}>
-          <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
-        </Tooltip>
-        <Tooltip content={'Reset Template to default'}>
-          <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
-        </Tooltip>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+          <Tooltip content={'Edit'}>
+            <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
+          </Tooltip>
+        </WithPermissionControlTooltip>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+          <Tooltip content={'Reset Template to default'}>
+            <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
+          </Tooltip>
+        </WithPermissionControlTooltip>
 
         {isLoading && <LoadingPlaceholder text="Loading..." />}
       </div>

@@ -34,7 +34,7 @@ import styles from './EscalationChains.module.css';
 
 const cx = cn.bind(styles);
 
-interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string,  }> {}
+interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface EscalationChainsPageState extends PageBaseState {
   modeToShowEscalationChainForm?: EscalationChainFormMode;
@@ -68,10 +68,10 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
     let selectedEscalationChain: EscalationChain['id'];
 
-    if (id === "new") {
+    if (id === 'new') {
       this.setState({
-        modeToShowEscalationChainForm: EscalationChainFormMode.Create
-      })
+        modeToShowEscalationChainForm: EscalationChainFormMode.Create,
+      });
     } else if (id) {
       let escalationChain = await escalationChainStore
         .loadItem(id, true)
