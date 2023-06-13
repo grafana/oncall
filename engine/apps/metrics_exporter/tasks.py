@@ -30,8 +30,12 @@ from common.database import get_random_readonly_database_key_if_present_otherwis
 )
 def save_organizations_ids_in_cache():
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    # save only organizations with integrations
-    organizations_ids = AlertReceiveChannel.objects.all().values_list("organization_id", flat=True).distinct()
+    # save only not deleted organizations that have integrations
+    organizations_ids = (
+        AlertReceiveChannel.objects.filter(organization__deleted_at__isnull=True)
+        .values_list("organization_id", flat=True)
+        .distinct()
+    )
     organizations_ids = list(organizations_ids)
     cache.set(organizations_ids, METRICS_ORGANIZATIONS_IDS, METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT)
 
@@ -81,11 +85,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
 
     integrations = (
         AlertReceiveChannel.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
-        .filter(
-            ~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE)
-            & Q(organization__deleted_at__isnull=True)
-            & Q(organization_id=organization_id)
-        )
+        .filter(~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE) & Q(organization_id=organization_id))
         .select_related("organization", "team")
         .prefetch_related("alert_groups")
     )
