@@ -39,6 +39,7 @@ jobs:
 
   verify-that-atleast-one-label-is-added:
     name: Verify that atleast one label is added to issue
+    # basically only run this job if the issue has no labels at the time of creation
     if: "join(github.event.issue.labels.*.name, '') == ''"
     runs-on: ubuntu-latest
     permissions:
@@ -49,4 +50,15 @@ jobs:
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            Thank you for opening this issue! We noticed that there are currently no labels assigned to the issue :eyes:. Please be sure to add one or more that most accurately describe the issue. In the event that no labels are added, this issue will be closed.
+            Thank you for opening this issue! We noticed that there are currently no labels assigned to the issue :eyes:. Please be sure to add one or more that most accurately describe the issue. In the event that no labels are added, this issue will be automatically closed in 7 days.
+      # https://docs.github.com/en/actions/managing-issues-and-pull-requests/adding-labels-to-issues#creating-the-workflow
+      - name: Add no-labels label to issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["no-labels"]
+            })
