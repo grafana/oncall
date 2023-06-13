@@ -8,17 +8,7 @@ is_featured = False
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
 
-description = """
-Alerts from Grafana Alertmanager are automatically routed to this integration.
-{% for dict_item in grafana_alerting_entities %}
-<br>Click <a href='{{dict_item.contact_point_url}}' target='_blank'>here</a>
- to open contact point, and
- <a href='{{dict_item.routes_url}}' target='_blank'>here</a>
- to open routes for {{dict_item.alertmanager_name}} Alertmanager.
-{% endfor %}
-{% if not is_finished_alerting_setup %}
-<br>Creating contact points and routes for other alertmanagers...
-{% endif %}"""
+description = None
 
 # Web
 web_title = """{{- payload.get("labels", {}).get("alertname", "No title (check Title Template)") -}}"""
