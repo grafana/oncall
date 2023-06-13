@@ -16,6 +16,7 @@ jobs:
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
 
   add-latest-version-comment:
+    name: Add latest version comment to issue
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -34,5 +35,4 @@ jobs:
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it
-            in the PR description. Thank you :smile:!
+            The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it in the PR description. Thank you :smile:!
