@@ -45,7 +45,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       .saveAlertReceiveChannel(alertReceiveChannelId, {
         allow_source_based_resolving: event.target.checked,
       })
-      .finally(() => {
+      .then(() => {
         openNotification('Autoresolve ' + (event.target.checked ? 'enabled' : 'disabled'));
       });
   }, []);
