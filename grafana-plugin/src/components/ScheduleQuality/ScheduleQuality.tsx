@@ -41,7 +41,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
       <div className={cx('root')} data-testid="schedule-quality">
         {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
           <TooltipBadge
-            borderType="link"
+            borderType="primary"
             addPadding
             text={schedule.number_of_escalation_chains}
             tooltipTitle="Used in escalations"

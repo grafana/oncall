@@ -120,7 +120,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
   const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.add(1, 'month'));
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
-  const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
+  const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<RepeatEveryPeriod>(RepeatEveryPeriod.DAYS);
 
   const [showActiveOnSelectedDays, setShowActiveOnSelectedDays] = useState<boolean>(false);
   const [showActiveOnSelectedPartOfDay, setShowActiveOnSelectedPartOfDay] = useState<boolean>(false);
@@ -569,8 +569,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                         <Text type="secondary">Limit each shift length</Text>
                         {showActiveOnSelectedPartOfDay && (
                           <ShiftPeriod
-                            repeatEveryPeriod={repeatEveryPeriod}
-                            repeatEveryValue={repeatEveryValue}
+                            repeatEveryPeriod={showActiveOnSelectedDays ? RepeatEveryPeriod.DAYS : repeatEveryPeriod}
+                            repeatEveryValue={showActiveOnSelectedDays ? 1 : repeatEveryValue}
                             defaultValue={shiftPeriodDefaultValue}
                             shiftStart={shiftStart}
                             onChange={handleActivePeriodChange}
@@ -578,6 +578,12 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                             disabled={disabled}
                             errors={errors}
                           />
+                        )}
+                        {showActiveOnSelectedPartOfDay && showActiveOnSelectedDays && (
+                          <Text type="secondary">
+                            Since masking by weekdays is enabled shift length is limited to 24h and shift will repeat
+                            every day
+                          </Text>
                         )}
                       </VerticalGroup>
                     </HorizontalGroup>
@@ -623,15 +629,17 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                     </Button>
                   </Tooltip>
                 )}
-                <Tooltip content="Update the current rotation, even events in the past">
-                  <Button
-                    variant="primary"
-                    onClick={shiftId === 'new' ? create : update}
-                    disabled={disabled || !isFormValid}
-                  >
-                    {shiftId === 'new' ? 'Create' : 'Update'}
+                {shiftId === 'new' ? (
+                  <Button variant="primary" onClick={create} disabled={disabled || !isFormValid}>
+                    Create
                   </Button>
-                </Tooltip>
+                ) : (
+                  <Tooltip content="Update the current rotation, even events in the past">
+                    <Button variant="primary" onClick={update} disabled={disabled || !isFormValid}>
+                      Update
+                    </Button>
+                  </Tooltip>
+                )}
               </HorizontalGroup>
             </HorizontalGroup>
           </div>

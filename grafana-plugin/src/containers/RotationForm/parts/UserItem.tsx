@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -21,6 +21,12 @@ interface UserItemProps {
 
 const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
   const { userStore } = useStore();
+
+  useEffect(() => {
+    if (!userStore.items[pk]) {
+      userStore.updateItem(pk);
+    }
+  }, []);
 
   const name = userStore.items[pk]?.username;
   const desc = userStore.items[pk]?.timezone;

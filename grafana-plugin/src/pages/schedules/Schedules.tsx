@@ -306,7 +306,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
           <TooltipBadge
-            borderType="link"
+            borderType="primary"
             icon="link"
             text={item.number_of_escalation_chains}
             tooltipTitle="Used in escalations"

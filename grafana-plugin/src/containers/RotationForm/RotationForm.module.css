@@ -94,3 +94,7 @@
 .updated-shift-info {
   margin-bottom: 10px;
 }
+
+.icon {
+  color: var(--secondary-text-color);
+}
