@@ -25,7 +25,7 @@ import { openErrorNotification } from 'utils';
 import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 
-import styles from './IntegrationTemplate.module.css';
+import styles from './IntegrationTemplate.module.scss';
 
 const cx = cn.bind(styles);
 

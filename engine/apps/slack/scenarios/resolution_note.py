@@ -1,9 +1,9 @@
+import datetime
 import json
 import logging
 
 from django.apps import apps
 from django.db.models import Q
-from django.utils import timezone
 
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
@@ -570,7 +570,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
             for resolution_note in other_resolution_notes:
                 resolution_note_slack_message = resolution_note.resolution_note_slack_message
                 user_verbal = resolution_note.author_verbal(mention=True)
-                message_timestamp = timezone.datetime.timestamp(resolution_note.created_at)
+                message_timestamp = datetime.datetime.timestamp(resolution_note.created_at)
                 blocks.append(
                     {
                         "type": "divider",

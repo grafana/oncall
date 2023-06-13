@@ -51,6 +51,7 @@ spec:
             {{- include "snippet.oncall.slack.env" . | nindent 12 }}
             {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
             {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
+            {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
             {{- if eq .Values.database.type "mysql" }}
             {{- include "snippet.mysql.env" . | nindent 12 }}
             {{- end }}
@@ -59,17 +60,7 @@ spec:
             {{- end }}
             {{- include "snippet.rabbitmq.env" . | nindent 12 }}
             {{- include "snippet.redis.env" . | nindent 12 }}
-            {{- if .Values.env }}
-              {{- if (kindIs "map" .Values.env) }}
-                {{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $value }}
-                {{- end -}}
-              {{/* support previous schema */}}
-              {{- else }}
-            {{- toYaml .Values.env | nindent 12 }}
-              {{- end }}
-            {{- end }}
+            {{- include "oncall.extraEnvs" . | nindent 12 }}
           {{- if .Values.celery.livenessProbe.enabled }}
           livenessProbe:
             exec:

@@ -22,7 +22,6 @@ def generate_public_primary_key_for_escalation_policy():
 
 
 class EscalationPolicy(OrderedModel):
-
     order_with_respect_to = "escalation_chain"
 
     MAX_TIMES_REPEAT = 5
