@@ -46,6 +46,7 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
         ],
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
     }
 
@@ -86,6 +87,7 @@ def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_us
         "id": response.data["id"],
         "updated_shift": None,
         "rolling_users": returned_rolling_users,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -130,6 +132,7 @@ def test_get_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
         "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
         "updated_shift": None,
     }
@@ -180,6 +183,7 @@ def test_list_on_call_shift(
                 "frequency": None,
                 "interval": None,
                 "by_day": None,
+                "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
                 "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
                 "updated_shift": None,
             }
@@ -237,6 +241,7 @@ def test_list_on_call_shift_filter_schedule_id(
                 "frequency": None,
                 "interval": None,
                 "by_day": None,
+                "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
                 "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
                 "updated_shift": None,
             }
@@ -318,6 +323,7 @@ def test_update_future_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key]],
         "updated_shift": None,
     }
@@ -385,6 +391,7 @@ def test_update_started_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key]],
         "updated_shift": None,
     }
@@ -434,6 +441,7 @@ def test_update_started_on_call_shift_force_update(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
         "rolling_users": [[user1.public_primary_key]],
     }
 
@@ -525,6 +533,7 @@ def test_update_old_on_call_shift_with_future_version(
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -579,6 +588,7 @@ def test_update_started_on_call_shift_title(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": "MO",
         "rolling_users": [[user1.public_primary_key]],
     }
 
@@ -593,6 +603,7 @@ def test_update_started_on_call_shift_title(
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_200_OK
