@@ -163,7 +163,7 @@ class UserNotificationPolicy(OrderedModel):
         return f"{self.pk}: {self.short_verbal}"
 
     @classmethod
-    def get_short_verbals_for_user(cls, user: User) -> Tuple[Tuple[str], Tuple[str]]:
+    def get_short_verbals_for_user(cls, user: User) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
         is_wait_step = Q(step=cls.Step.WAIT)
         is_wait_step_configured = Q(wait_delay__isnull=False)
 

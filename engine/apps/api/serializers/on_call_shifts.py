@@ -213,7 +213,7 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
     type = serializers.ReadOnlyField()
 
     class Meta(OnCallShiftSerializer.Meta):
-        read_only_fields = ("schedule", "type")
+        read_only_fields = ["schedule", "type"]
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(instance.type, validated_data)

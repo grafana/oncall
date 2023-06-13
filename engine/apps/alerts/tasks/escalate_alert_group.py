@@ -1,7 +1,7 @@
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
-from kombu import uuid as celery_uuid
+from kombu.utils.uuid import uuid as celery_uuid
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 

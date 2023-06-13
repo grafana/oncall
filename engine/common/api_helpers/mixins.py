@@ -1,5 +1,6 @@
 import json
 import math
+import typing
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
@@ -7,6 +8,7 @@ from django.utils.functional import cached_property
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.alerts.incident_appearance.templaters import (
@@ -377,11 +379,25 @@ class PreviewTemplateMixin:
         return destination, attr_name
 
 
+class GrafanaContext(typing.TypedDict):
+    IsAnonymous: bool
+
+
+class InstanceContext(typing.TypedDict):
+    stack_id: int
+    org_id: int
+    grafana_token: str
+
+
 class GrafanaHeadersMixin:
-    @cached_property
-    def grafana_context(self) -> dict:
-        return json.loads(self.request.headers.get("X-Grafana-Context"))
+    request: Request
 
     @cached_property
-    def instance_context(self) -> dict:
-        return json.loads(self.request.headers["X-Instance-Context"])
+    def grafana_context(self) -> GrafanaContext:
+        grafana_context: GrafanaContext = json.loads(self.request.headers["X-Grafana-Context"])
+        return grafana_context
+
+    @cached_property
+    def instance_context(self) -> InstanceContext:
+        instance_context: InstanceContext = json.loads(self.request.headers["X-Instance-Context"])
+        return instance_context
