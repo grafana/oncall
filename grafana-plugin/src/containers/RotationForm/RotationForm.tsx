@@ -290,6 +290,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setRepeatEveryValue(value);
 
       if (!showActiveOnSelectedPartOfDay) {
+        // @ts-ignore
         setShiftEnd(shiftStart.add(value, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
       }
     },
@@ -341,6 +342,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setShowActiveOnSelectedPartOfDay(value);
 
       if (!value) {
+        // @ts-ignore
         setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
       }
     },
