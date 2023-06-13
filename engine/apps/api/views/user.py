@@ -168,7 +168,7 @@ class UserView(
         "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "send_test_push": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "send_test_push": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "send_test_sms": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_READ],
