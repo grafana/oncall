@@ -21,17 +21,23 @@ from apps.metrics_exporter.constants import (
 )
 
 
-def get_organization_ids():
-    """Try getting organizations ids from cache, otherwise get from db and save values in cache"""
+def get_organization_ids_from_db():
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    # get only not deleted organizations that have integrations
+    organizations_ids = (
+        AlertReceiveChannel.objects.filter(organization__deleted_at__isnull=True)
+        .values_list("organization_id", flat=True)
+        .distinct()
+    )
+    organizations_ids = list(organizations_ids)
+    return organizations_ids
+
+
+def get_organization_ids():
+    """Try to get organizations ids from cache, otherwise get from db and save values in cache"""
     organizations_ids = cache.get(METRICS_ORGANIZATIONS_IDS, [])
     if not organizations_ids:
-        organizations_ids = (
-            AlertReceiveChannel.objects.filter(organization__deleted_at__isnull=True)
-            .values_list("organization_id", flat=True)
-            .distinct()
-        )
-        organizations_ids = list(organizations_ids)
+        organizations_ids = get_organization_ids_from_db()
         cache.set(organizations_ids, METRICS_ORGANIZATIONS_IDS, METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT)
     return organizations_ids
 
