@@ -113,7 +113,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
     PREFETCH_RELATED = ["notify_to_users_queue"]
 
     def validate(self, data):
-
         fields_to_check = [
             WAIT_DELAY,
             NOTIFY_SCHEDULE,

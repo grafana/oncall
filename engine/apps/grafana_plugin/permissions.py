@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class PluginTokenVerified(permissions.BasePermission):
-
     # The grafana plugin can either use a token from gcom or one generated internally by oncall
     # Tokens from gcom will be prefixed with gcom: otherwise they will be treated as local
     def has_permission(self, request: Request, view: View) -> bool:

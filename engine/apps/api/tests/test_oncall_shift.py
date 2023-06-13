@@ -1089,7 +1089,6 @@ def test_on_call_shift_update_permissions(
             status=status.HTTP_200_OK,
         ),
     ):
-
         response = client.put(url, format="json", **make_user_auth_headers(user, token))
 
         assert response.status_code == expected_status

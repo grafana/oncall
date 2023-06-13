@@ -60,7 +60,6 @@ def test_get_calendar_schedule(
 
 @pytest.mark.django_db
 def test_create_calendar_schedule(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -150,7 +149,6 @@ def test_update_calendar_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -236,7 +234,6 @@ def test_get_web_schedule(
 
 @pytest.mark.django_db
 def test_create_schedules_same_name(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -262,7 +259,6 @@ def test_update_web_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -294,7 +290,6 @@ def test_update_ical_url_overrides_calendar_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -338,7 +333,6 @@ def test_update_calendar_schedule_with_custom_event(
     make_schedule,
     make_on_call_shift,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -451,7 +445,6 @@ def test_update_web_schedule_with_override(
     make_schedule,
     make_on_call_shift,
 ):
-
     organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -483,7 +476,6 @@ def test_delete_calendar_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -540,7 +532,6 @@ def test_get_ical_schedule(
 
 @pytest.mark.django_db
 def test_create_ical_schedule(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -582,7 +573,6 @@ def test_update_ical_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -630,7 +620,6 @@ def test_delete_ical_schedule(
     make_organization_and_user_with_token,
     make_schedule,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 

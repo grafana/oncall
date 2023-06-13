@@ -24,15 +24,11 @@ slack-export-viewer==1.1.4
 beautifulsoup4==4.12.2
 social-auth-app-django==5.0.0
 cryptography==38.0.4 # version 39.0.0 introduced an issue - https://stackoverflow.com/a/75053968/3902555
-pytest==7.3.1
-pytest-django==4.5.2
-pytest_factoryboy==2.5.1
 factory-boy<3.0
 python-json-logger==2.0.1
 django-log-request-id==1.6.0
 django-polymorphic==3.0.0
 django-rest-polymorphic==0.1.9
-pre-commit==2.15.0
 https://github.com/grafana/fcm-django/archive/refs/tags/v1.0.12r1.tar.gz
 django-mirage-field==1.3.0
 django-mysql==4.6.0

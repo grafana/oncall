@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.43 (2023-06-12)
+
+### Changed
+
+- Propogate CI/CD changes
+
+## v1.2.42 (2023-06-12)
 
 ### Changed
 
@@ -13,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed bug on Filters where team param from URL was discarded [#6237](https://github.com/grafana/support-escalations/issues/6237)
 - Fix receive channel filter in alert groups API [#2140](https://github.com/grafana/oncall/pull/2140)
 - Helm chart: Fix usage of `env` settings as map;
   Fix usage of `mariadb.auth.database` and `mariadb.auth.username` for MYSQL env variables by @alexintech [#2146](https://github.com/grafana/oncall/pull/2146)

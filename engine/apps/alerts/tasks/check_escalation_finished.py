@@ -1,3 +1,4 @@
+import datetime
 import typing
 
 import pytz
@@ -95,7 +96,7 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     task_logger.info(f"{base_msg} passed the audit checks")
 
 
-def get_auditable_alert_groups_started_at_range() -> typing.Tuple[timezone.datetime, timezone.datetime]:
+def get_auditable_alert_groups_started_at_range() -> typing.Tuple[datetime.datetime, datetime.datetime]:
     """
     NOTE: this started_at__range is a bit of a hack..
     we wanted to avoid performing a migration on the alerts_alertgroup table to update
@@ -110,12 +111,12 @@ def get_auditable_alert_groups_started_at_range() -> typing.Tuple[timezone.datet
     alert groups, whose integration did not have an escalation chain at the time the alert group was created
     we would raise errors
     """
-    return (timezone.datetime(2023, 3, 25, tzinfo=pytz.UTC), timezone.now() - timezone.timedelta(days=2))
+    return (datetime.datetime(2023, 3, 25, tzinfo=pytz.UTC), timezone.now() - datetime.timedelta(days=2))
 
 
 # don't retry this task as the AlertGroup DB query is rather expensive
 @shared_task
-def check_escalation_finished_task():
+def check_escalation_finished_task() -> None:
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 

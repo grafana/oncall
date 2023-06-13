@@ -4,7 +4,7 @@ import pytest
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSetMixin
 
-from . import (
+from apps.api.permissions import (
     RBAC_PERMISSIONS_ATTR,
     GrafanaAPIPermission,
     HasRBACPermissions,

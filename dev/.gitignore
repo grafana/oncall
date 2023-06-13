@@ -9,3 +9,5 @@
 !add_env_var.sh
 !prometheus.yml
 !README.md
+!scripts/
+!scripts/*

@@ -473,9 +473,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters, page } = this.state;
+    const { integrationsFilters } = this.state;
 
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters).then(() => {
+      this.setState({ page: 1 });
+      LocationHelper.update({ p: 1 }, 'partial');
+    });
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

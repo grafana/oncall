@@ -141,6 +141,9 @@ oncall:
     password: ~
     tls: ~
     fromEmail: ~
+  exporter:
+    enabled: false
+    authToken: ~
   twilio:
     # Twilio account SID/username to allow OnCall to send SMSes and make phone calls
     accountSid: ""

@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from django.apps import apps
 from rest_framework import status
@@ -9,6 +9,9 @@ from apps.alerts.tasks import schedule_create_contact_points_for_datasource
 from apps.grafana_plugin.helpers import GrafanaAPIClient
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from apps.alerts.models import GrafanaAlertingContactPoint
 
 
 class GrafanaAlertingSyncManager:
@@ -55,7 +58,7 @@ class GrafanaAlertingSyncManager:
                 "Failed to create the integration with current Grafana Alerting. "
                 "Please reach out to our support team"
             )
-        return
+        return None
 
     def alerting_config_with_respect_to_grafana_version(
         self, is_grafana_datasource, datasource_id, datasource_uid, client_method, *args
@@ -134,9 +137,7 @@ class GrafanaAlertingSyncManager:
             self.alert_receive_channel.is_finished_alerting_setup = True
             self.alert_receive_channel.save(update_fields=["is_finished_alerting_setup"])
 
-    def create_contact_point(
-        self, datasource=None
-    ) -> Tuple[Optional["apps.alerts.models.GrafanaAlertingContactPoint"], dict]:
+    def create_contact_point(self, datasource=None) -> Tuple[Optional["GrafanaAlertingContactPoint"], dict]:
         """
         Update datasource config in Grafana Alerting and create OnCall contact point
         """
@@ -348,11 +349,7 @@ class GrafanaAlertingSyncManager:
             }
         return receiver
 
-    def _create_contact_point_from_payload(
-        self,
-        payload,
-        datasource,
-    ) -> "apps.alerts.models.GrafanaAlertingContactPoint":
+    def _create_contact_point_from_payload(self, payload, datasource) -> "GrafanaAlertingContactPoint":
         """Get receiver data from payload and create contact point"""
 
         is_grafana_datasource = datasource.get("id") is None
