@@ -21,8 +21,11 @@ jobs:
       issues: write
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-ecosystem/action-get-latest-tag@v1
+      - name: Get latest version tag
         id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        with:
+          semver_only: true
       - name: Add latest version comment
         # GitHub recommends pinning actions to a commit SHA.
         # To get a newer version, you will need to update the SHA.
