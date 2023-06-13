@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Removed `SlackActionRecord` model and database table by @joeyorlando [#2201](https://github.com/grafana/oncall/pull/2201)
+- Require users when creating a schedule rotation using the web UI [#2220](https://github.com/grafana/oncall/pull/2220)
 
 ### Fixed
 
