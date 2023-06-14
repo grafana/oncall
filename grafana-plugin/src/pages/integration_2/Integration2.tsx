@@ -54,6 +54,7 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
@@ -191,7 +192,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
             <div className={cx('integration__heading-container')}>
               <PluginLink query={{ page: 'integrations_2', p }}>
-                <IconButton name="arrow-left" size="xxl" />
+                <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               <h1 className={cx('integration__name')}>
                 <Emoji text={alertReceiveChannel.verbal_name} />
@@ -230,117 +231,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             </div>
 
             <IntegrationCollapsibleTreeView
-              configElements={[
-                !hideHTTPEndpoint && {
-                  isCollapsible: false,
-                  customIcon: 'plug',
-                  canHoverIcon: false,
-                  collapsedView: null,
-                  expandedView: () => <HowToConnectComponent id={id} />,
-                },
-                {
-                  customIcon: 'layer-group',
-                  isExpanded: false,
-                  isCollapsible: false,
-                  canHoverIcon: false,
-                  expandedView: () => (
-                    <IntegrationBlock
-                      hasCollapsedBorder
-                      heading={
-                        <div className={cx('templates__outer-container')}>
-                          <Tag
-                            color={getVar('--tag-secondary-transparent')}
-                            border={getVar('--border-weak')}
-                            className={cx('tag')}
-                          >
-                            <Text type="primary" size="small">
-                              Templates
-                            </Text>
-                          </Tag>
-
-                          <div className={cx('templates__content')}>
-                            <div className={cx('templates__container')}>
-                              <div
-                                className={cx('templates__item', 'templates__item--large')}
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              >
-                                <Text type="secondary" className={cx('templates__item-text')}>
-                                  Grouping:
-                                </Text>
-                                <Text type="primary">
-                                  {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
-                                </Text>
-                              </div>
-
-                              <div
-                                className={cx('templates__item', 'templates__item--large')}
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              >
-                                <Text type="secondary" className={cx('templates__item-text')}>
-                                  Autoresolve:
-                                </Text>
-                                <Text type="primary">
-                                  {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
-                                </Text>
-                              </div>
-
-                              <div
-                                className={cx('templates__item', 'templates__item--large')}
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              >
-                                <Text type="secondary" className={cx('templates__item-text')}>
-                                  Other:
-                                </Text>
-                                <Text type="primary">Click to see more</Text>
-                              </div>
-                            </div>
-
-                            <div className={cx('templates__edit')}>
-                              <Button
-                                variant={'secondary'}
-                                icon="edit"
-                                size={'sm'}
-                                tooltip="Edit"
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      }
-                      content={null}
-                    />
-                  ),
-                  collapsedView: undefined,
-                },
-                {
-                  customIcon: 'code-branch',
-                  isCollapsible: false,
-                  collapsedView: null,
-                  canHoverIcon: false,
-                  expandedView: () => (
-                    <div className={cx('routesSection')}>
-                      <VerticalGroup spacing="md">
-                        <Text type={'primary'} className={cx('routesSection__heading')}>
-                          Routes
-                        </Text>
-                        <HorizontalGroup>
-                          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                            <Button
-                              variant={'primary'}
-                              className={cx('routesSection__add')}
-                              onClick={this.handleAddNewRoute}
-                            >
-                              Add route
-                            </Button>
-                          </WithPermissionControlTooltip>
-                          {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
-                        </HorizontalGroup>
-                      </VerticalGroup>
-                    </div>
-                  ),
-                },
-                this.renderRoutesFn(),
-              ]}
+              configElements={this.getConfigForTreeComponent(hideHTTPEndpoint, id, templates)}
             />
 
             {isEditTemplateModalOpen && (
@@ -381,6 +272,121 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         )}
       </PageErrorHandlingWrapper>
     );
+  }
+
+  getConfigForTreeComponent(hideHTTPEndpoint: boolean, id: string, templates: AlertTemplatesDTO[]) {
+    const configElements = [];
+
+    if (!hideHTTPEndpoint) {
+      configElements.push({
+        isCollapsible: false,
+        customIcon: 'plug',
+        canHoverIcon: false,
+        collapsedView: null,
+        expandedView: () => <HowToConnectComponent id={id} />,
+      });
+    }
+
+    return configElements.concat([
+      {
+        customIcon: 'layer-group',
+        isExpanded: false,
+        isCollapsible: false,
+        canHoverIcon: false,
+        expandedView: () => (
+          <IntegrationBlock
+            hasCollapsedBorder
+            heading={
+              <div className={cx('templates__outer-container')}>
+                <Tag
+                  color={getVar('--tag-secondary-transparent')}
+                  border={getVar('--border-weak')}
+                  className={cx('tag')}
+                >
+                  <Text type="primary" size="small">
+                    Templates
+                  </Text>
+                </Tag>
+
+                <div className={cx('templates__content')}>
+                  <div className={cx('templates__container')}>
+                    <div
+                      className={cx('templates__item', 'templates__item--large')}
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    >
+                      <Text type="secondary" className={cx('templates__item-text')}>
+                        Grouping:
+                      </Text>
+                      <Text type="primary">
+                        {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
+                      </Text>
+                    </div>
+
+                    <div
+                      className={cx('templates__item', 'templates__item--large')}
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    >
+                      <Text type="secondary" className={cx('templates__item-text')}>
+                        Autoresolve:
+                      </Text>
+                      <Text type="primary">
+                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
+                      </Text>
+                    </div>
+
+                    <div
+                      className={cx('templates__item', 'templates__item--large')}
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    >
+                      <Text type="secondary" className={cx('templates__item-text')}>
+                        Other:
+                      </Text>
+                      <Text type="primary">Click to see more</Text>
+                    </div>
+                  </div>
+
+                  <div className={cx('templates__edit')}>
+                    <Button
+                      variant={'secondary'}
+                      icon="edit"
+                      size={'sm'}
+                      tooltip="Edit"
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+            content={null}
+          />
+        ),
+        collapsedView: undefined,
+      },
+      {
+        customIcon: 'code-branch',
+        isCollapsible: false,
+        collapsedView: null,
+        canHoverIcon: false,
+        expandedView: () => (
+          <div className={cx('routesSection')}>
+            <VerticalGroup spacing="md">
+              <Text type={'primary'} className={cx('routesSection__heading')}>
+                Routes
+              </Text>
+              <HorizontalGroup>
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <Button variant={'primary'} className={cx('routesSection__add')} onClick={this.handleAddNewRoute}>
+                    Add route
+                  </Button>
+                </WithPermissionControlTooltip>
+                {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
+              </HorizontalGroup>
+            </VerticalGroup>
+          </div>
+        ),
+      },
+      this.renderRoutesFn(),
+    ]);
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {

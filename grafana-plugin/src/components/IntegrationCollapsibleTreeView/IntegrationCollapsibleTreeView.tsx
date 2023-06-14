@@ -31,10 +31,12 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
     setExpandedList(getStartingExpandedState());
   }, [configElements]);
 
+  console.log({ props, expandedList, starting: getStartingExpandedState() });
+
   return (
     <div className={cx('integrationTree__container')}>
       {configElements
-        .filter(config => config) // filter out falsy values
+        .filter((config) => config) // filter out falsy values
         .map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
           if (isArray(item)) {
             return item.map((it, innerIdx) => (
@@ -60,7 +62,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   );
 
   function getStartingExpandedState(): Array<boolean | boolean[]> {
-    const expandedArrayValues = new Array<boolean | boolean[]>(configElements.filter(c => c).length); // filter out falsy values
+    const expandedArrayValues = new Array<boolean | boolean[]>(configElements.length);
     configElements.forEach((elem, index) => {
       if (Array.isArray(elem)) {
         expandedArrayValues[index] = elem.map((el) => !el.isCollapsible || el.isExpanded);
