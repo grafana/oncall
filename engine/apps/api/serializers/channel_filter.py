@@ -27,6 +27,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
     )
     order = serializers.IntegerField(required=False)
     filtering_term_as_jinja2 = serializers.SerializerMethodField()
+    filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     SELECT_RELATED = ["escalation_chain", "alert_receive_channel"]
 
@@ -49,7 +50,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "filtering_term_as_jinja2",
         ]
         read_only_fields = ["created_at", "is_default"]
-        extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
 
     def validate(self, data):
         filtering_term = data.get("filtering_term")
@@ -123,6 +123,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):
     alert_receive_channel = OrganizationFilteredPrimaryKeyRelatedField(queryset=AlertReceiveChannel.objects)
     slack_channel = serializers.CharField(allow_null=True, required=False, source="slack_channel_id")
+    filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = ChannelFilter
@@ -142,7 +143,6 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "notification_backends",
         ]
         read_only_fields = ["created_at", "is_default"]
-        extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
 
     def to_representation(self, obj):
         """add correct slack channel data to result after instance creation/update"""

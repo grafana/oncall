@@ -13,6 +13,7 @@ const cx = cn.bind(styles);
 interface IntegrationTemplateBlockProps {
   label: string;
   labelTooltip?: string;
+  isTemplateEditable: boolean;
   renderInput: () => React.ReactNode;
   showHelp?: boolean;
   isLoading?: boolean;
@@ -25,14 +26,16 @@ interface IntegrationTemplateBlockProps {
 const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   label,
   labelTooltip,
+  isTemplateEditable,
   renderInput,
   onEdit,
   onRemove,
   isLoading,
 }) => {
-  let inlineLabelProps = { labelTooltip };
-  if (!labelTooltip) {
-    delete inlineLabelProps.labelTooltip;
+  let tooltip = labelTooltip;
+  let inlineLabelProps = { tooltip };
+  if (!tooltip) {
+    delete inlineLabelProps.tooltip;
   }
 
   return (
@@ -42,6 +45,8 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
       </InlineLabel>
       <div className={cx('container__item')}>
         {renderInput()}
+        {isTemplateEditable && (
+        )}
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <Tooltip content={'Edit'}>
             <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
@@ -52,6 +57,8 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
             <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
           </Tooltip>
         </WithPermissionControlTooltip>
+          <>
+          </>
 
         {isLoading && <LoadingPlaceholder text="Loading..." />}
       </div>
