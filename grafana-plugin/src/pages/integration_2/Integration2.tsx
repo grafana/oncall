@@ -196,8 +196,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               <h1 className={cx('integration__name')}>
                 <Emoji text={alertReceiveChannel.verbal_name} />
               </h1>
-
-              <IntegrationActions alertReceiveChannel={alertReceiveChannel} />
+              <IntegrationActions
+                alertReceiveChannel={alertReceiveChannel}
+                changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
+              />
             </div>
 
             <div className={cx('integration__subheading-container')}>
@@ -283,13 +285,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                               </div>
 
                               <div
-                                className={cx('templates__item', 'templates__item--small')}
+                                className={cx('templates__item', 'templates__item--large')}
                                 onClick={() => this.setState({ isTemplateSettingsOpen: true })}
                               >
                                 <Text type="secondary" className={cx('templates__item-text')}>
-                                  Visualisation:
+                                  Other:
                                 </Text>
-                                <Text type="primary">Multiple</Text>
+                                <Text type="primary">Click to see more</Text>
                               </div>
                             </div>
 
@@ -695,9 +697,13 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
 interface IntegrationActionsProps {
   alertReceiveChannel: AlertReceiveChannel;
+  changeIsTemplateSettingsOpen: () => void;
 }
 
-const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveChannel }) => {
+const IntegrationActions: React.FC<IntegrationActionsProps> = ({
+  alertReceiveChannel,
+  changeIsTemplateSettingsOpen,
+}) => {
   const { maintenanceStore, alertReceiveChannelStore } = useStore();
 
   const history = useHistory();
@@ -803,6 +809,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                   </div>
                 </WithPermissionControlTooltip>
               )}
+
+              <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
+                <div className={cx('integration__actionItem')} onClick={changeIsTemplateSettingsOpen}>
+                  <Text type="primary">Edit Templates</Text>
+                </div>
+              </WithPermissionControlTooltip>
 
               {alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
