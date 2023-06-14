@@ -3,6 +3,9 @@ import React from 'react';
 import { Button, InlineLabel, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserActions } from 'utils/authorization';
+
 import styles from './IntegrationTemplateBlock.module.scss';
 
 const cx = cn.bind(styles);
@@ -44,12 +47,16 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
         {renderInput()}
         {isTemplateEditable && (
           <>
-            <Tooltip content={'Edit'}>
-              <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
-            </Tooltip>
-            <Tooltip content={'Reset Template to default'}>
-              <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
-            </Tooltip>
+            <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+              <Tooltip content={'Edit'}>
+                <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
+              </Tooltip>
+            </WithPermissionControlTooltip>
+            <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+              <Tooltip content={'Reset Template to default'}>
+                <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
+              </Tooltip>
+            </WithPermissionControlTooltip>
           </>
         )}
 

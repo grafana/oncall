@@ -45,6 +45,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
       alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
       routeIndex
     );
+    const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store);
 
     return (
       <>
@@ -98,17 +99,22 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           content={
             <div className={cx('spacing')}>
               <VerticalGroup>
-                {IntegrationHelper.getChatOpsChannels(channelFilter, store)
-                  .filter((it) => it)
-                  .map((chatOpsChannel, key) => (
-                    <HorizontalGroup key={key}>
-                      <Text type="secondary">Publish to ChatOps</Text>
-                      <Icon name={chatOpsChannel.icon} />
-                      <Text type="primary" strong>
-                        {chatOpsChannel.name}
-                      </Text>
-                    </HorizontalGroup>
-                  ))}
+                {chatOpsAvailableChannels.length > 0 && (
+                  <HorizontalGroup spacing="xs">
+                    <Text type="secondary">Publish to ChatOps</Text>
+
+                    {chatOpsAvailableChannels
+                      .filter((it) => it)
+                      .map((chatOpsChannel) => (
+                        <>
+                          <Icon name={chatOpsChannel.icon} />
+                          <Text type="primary" strong>
+                            {chatOpsChannel.name}
+                          </Text>
+                        </>
+                      ))}
+                  </HorizontalGroup>
+                )}
 
                 <HorizontalGroup>
                   <HorizontalGroup spacing={'xs'}>

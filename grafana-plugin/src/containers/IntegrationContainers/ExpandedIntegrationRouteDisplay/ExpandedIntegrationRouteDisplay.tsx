@@ -98,11 +98,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       return null;
     }
 
-    const escalationChainRedirectObj: any = { page: 'escalations' };
-    if (channelFilter.escalation_chain) {
-      escalationChainRedirectObj.id = channelFilter.escalation_chain;
-    }
-
+    const escalationChainRedirectObj: any = { page: 'escalations', id: channelFilter.escalation_chain || 'new' };
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
     const isDefault = CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
     const channelFilterTemplate = channelFilter.filtering_term
@@ -228,13 +224,9 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       ></Select>
                     </WithPermissionControlTooltip>
 
-                    <Button
-                      variant={'secondary'}
-                      tooltip={'Refresh Escalation Chains'}
-                      icon={'sync'}
-                      size={'md'}
-                      onClick={onEscalationChainsRefresh}
-                    />
+                    <Tooltip placement={'top'} content={'Reload list'}>
+                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    </Tooltip>
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
                       <Tooltip
