@@ -35,7 +35,6 @@ export enum Action {
   TEST = 'test',
   EXPORT = 'export',
   UPDATE_SETTINGS = 'update-settings',
-  INSTALL = 'install',
 }
 
 type Actions =
@@ -66,8 +65,7 @@ type Actions =
   | 'UserSettingsAdmin'
   | 'OtherSettingsRead'
   | 'OtherSettingsWrite'
-  | 'TeamsWrite'
-  | 'PluginsInstall';
+  | 'TeamsWrite';
 
 const roleMapping: Record<OrgRole, number> = {
   [OrgRole.Admin]: 0,
@@ -164,5 +162,4 @@ export const UserActions: { [action in Actions]: UserAction } = {
 
   // These are not oncall specific
   TeamsWrite: constructAction(Resource.TEAMS, Action.WRITE, OrgRole.Admin, false),
-  PluginsInstall: constructAction(Resource.PLUGINS, Action.INSTALL, OrgRole.Admin, false),
 };

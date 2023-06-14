@@ -1,7 +1,7 @@
 import { OnCallAppPluginMeta } from 'types';
 
 import PluginState from 'state/plugin';
-import { UserActions, isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization';
+import { isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization';
 
 import { RootBaseStore } from './';
 
@@ -9,8 +9,6 @@ jest.mock('state/plugin');
 jest.mock('utils/authorization');
 
 const isUserActionAllowed = isUserActionAllowedOriginal as jest.Mock<ReturnType<typeof isUserActionAllowedOriginal>>;
-
-const PluginInstallAction = UserActions.PluginsInstall;
 
 const generatePluginData = (
   onCallApiUrl: OnCallAppPluginMeta['jsonData']['onCallApiUrl'] = null
@@ -159,14 +157,13 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
-    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
+    // todo: add check for access
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(0);
 
     expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(
-      '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
+      '🚫 User with Admin permissions in your organization must sign on and setup OnCall before it can be used'
     );
   });
 
@@ -198,8 +195,7 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
-    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
+    // todo: add check for access
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
@@ -238,8 +234,7 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
-    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
+    // todo: add check for access
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();

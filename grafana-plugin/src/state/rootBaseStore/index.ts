@@ -1,3 +1,5 @@
+import { OrgRole } from '@grafana/data';
+import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
@@ -32,7 +34,6 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 // ------ Dashboard ------ //
@@ -184,22 +185,42 @@ export class RootBaseStore {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
-
-      if (!isUserActionAllowed(UserActions.PluginsInstall)) {
-        return this.setupPluginError(
-          '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
-        );
-      }
-
-      try {
-        /**
-         * this will install AND sync the necessary data
-         * the sync is done automatically by the /plugin/install OnCall API endpoint
-         * therefore there is no need to trigger an additional/separate sync, nor poll a status
-         */
-        await PluginState.installPlugin();
-      } catch (e) {
-        return this.setupPluginError(PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install'));
+      const fallback = contextSrv.user.orgRole === OrgRole.Admin && !contextSrv.accessControlEnabled();
+      const setupRequiredPermissions = [
+        'plugins:write',
+        'users:read',
+        'teams:read',
+        'apikeys:create',
+        'apikeys:delete',
+      ];
+      const missingPermissions = setupRequiredPermissions.filter(function (permission) {
+        return !contextSrv.hasAccess(permission, fallback);
+      });
+      if (missingPermissions.length === 0) {
+        try {
+          /**
+           * this will install AND sync the necessary data
+           * the sync is done automatically by the /plugin/install OnCall API endpoint
+           * therefore there is no need to trigger an additional/separate sync, nor poll a status
+           */
+          await PluginState.installPlugin();
+        } catch (e) {
+          return this.setupPluginError(
+            PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
+          );
+        }
+      } else {
+        if (contextSrv.accessControlEnabled()) {
+          return this.setupPluginError(
+            '🚫 User is missing permission(s) ' +
+              missingPermissions.join(', ') +
+              ' to setup OnCall before it can be used'
+          );
+        } else {
+          return this.setupPluginError(
+            '🚫 User with Admin permissions in your organization must sign on and setup OnCall before it can be used'
+          );
+        }
       }
     } else {
       const syncDataResponse = await PluginState.syncDataWithOnCall(this.onCallApiUrl);
