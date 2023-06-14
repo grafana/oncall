@@ -40,7 +40,11 @@ jobs:
   verify-that-atleast-one-label-is-added:
     name: Verify that atleast one label is added to issue
     # basically only run this job if the issue has no labels at the time of creation
-    if: "join(github.event.issue.labels.*.name, '') == ''"
+    # AND the person creating the issue is a member of the Grafana org
+    # https://docs.github.com/en/graphql/reference/enums#commentauthorassociation
+    # MEMBER - Author is a member of the organization that owns the repository.
+    # OWNER - Author is the owner of the repository.
+    if: join(github.event.issue.labels.*.name, '') == '' && contains(fromJSON('["MEMBER", "OWNER"]'), github.event.issue.author_association)
     runs-on: ubuntu-latest
     permissions:
       issues: write

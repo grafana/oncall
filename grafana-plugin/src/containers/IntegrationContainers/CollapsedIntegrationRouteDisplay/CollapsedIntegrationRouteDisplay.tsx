@@ -68,11 +68,21 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   tooltipContent={undefined}
                 />
                 {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
-                {routeWording !== 'Default' && channelFilter.filtering_term && (
-                  <Text type="primary" className={cx('heading-container__text')}>
-                    {channelFilter.filtering_term}
-                  </Text>
-                )}
+                {routeWording !== 'Default' &&
+                  (channelFilter.filtering_term ? (
+                    <Text type="primary" className={cx('heading-container__text')}>
+                      {channelFilter.filtering_term}
+                    </Text>
+                  ) : (
+                    <>
+                      <div className={cx('icon-exclamation')}>
+                        <Icon name="exclamation-triangle" />
+                      </div>
+                      <Text type="primary" className={cx('heading-container__text')}>
+                        Routing template not set
+                      </Text>
+                    </>
+                  ))}
               </div>
 
               <div className={cx('heading-container__item')}>
@@ -101,8 +111,10 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   ))}
 
                 <HorizontalGroup>
-                  <Icon name="list-ui-alt" />
-                  <Text type="secondary">Trigger escalation chain:</Text>
+                  <HorizontalGroup spacing={'xs'}>
+                    <Icon name="list-ui-alt" />
+                    <Text type="secondary">Trigger escalation chain</Text>
+                  </HorizontalGroup>
 
                   {escalationChain?.name && (
                     <PluginLink
@@ -110,9 +122,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                       target="_blank"
                       query={{ page: 'escalations', id: channelFilter.escalation_chain }}
                     >
-                      <Text type="primary" strong>
-                        {escalationChain?.name}
-                      </Text>
+                      <Text type="primary">{escalationChain?.name}</Text>
                     </PluginLink>
                   )}
 
@@ -121,7 +131,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                       <div className={cx('icon-exclamation')}>
                         <Icon name="exclamation-triangle" />
                       </div>
-                      <Text type="primary">No Escalation chain selected</Text>
+                      <Text type="primary">Not selected</Text>
                     </HorizontalGroup>
                   )}
                 </HorizontalGroup>
