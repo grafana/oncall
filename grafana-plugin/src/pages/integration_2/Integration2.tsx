@@ -616,8 +616,10 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
       title={
         <HorizontalGroup>
           <Text.Title level={4}>
-            Send demo alert to {''}
-            <Emoji text={alertReceiveChannel.verbal_name} />
+            Send demo alert to integration: {''}
+            <strong>
+              <Emoji text={alertReceiveChannel.verbal_name} />
+            </strong>
           </Text.Title>
         </HorizontalGroup>
       }
@@ -628,7 +630,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <Tooltip
             content={
               <>
-                A demo alert will be generated. You can find it on the <strong>Alert Groups</strong> page
+                Modify the provided payload to test integration routes, templates, and escalations. Enable Debug
+                maintenance on the integration to prevent real notifications.
               </>
             }
             placement={'top-start'}

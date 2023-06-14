@@ -52,7 +52,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
       <IntegrationBlockItem>
         <Text type="secondary">
-          Templates are used to interpret alert from monitoring. Reduce noise, customize visualization
+          Templates are used to interpret alert from monitoring. Reduce noise by grouping, set auto-resolution,
+          customize visualization and notifications by extracting data from alert.
         </Text>
       </IntegrationBlockItem>
 
@@ -67,6 +68,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 isLoading={isRestoringTemplate && templateRestoreName === contents.name}
                 onRemove={() => onShowConfirmModal(contents.name)}
                 label={contents.label}
+                labelTooltip={contents.labelTooltip}
                 renderInput={() => (
                   <div className={cx('input')}>
                     <MonacoEditor

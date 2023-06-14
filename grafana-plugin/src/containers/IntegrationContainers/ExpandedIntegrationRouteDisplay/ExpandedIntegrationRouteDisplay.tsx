@@ -140,8 +140,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 <IntegrationBlockItem>
                   <VerticalGroup>
                     <Text type="secondary">
-                      If the Routing Template is True, group the alerts using the Grouping Template, publish them to
-                      messengers, and trigger the escalation chain.
+                      If the Routing Template is True, group alerts with the Grouping Template, send them to messengers,
+                      and trigger the escalation chain.
                     </Text>
                   </VerticalGroup>
                 </IntegrationBlockItem>
@@ -150,7 +150,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               {!isDefault && (
                 <IntegrationBlockItem>
                   <HorizontalGroup spacing="xs">
-                    <InlineLabel width={20}>Routing Template</InlineLabel>
+                    <InlineLabel
+                      width={20}
+                      tooltip="Routing Template should be True for the alert to go to this route."
+                    >
+                      Routing Template
+                    </InlineLabel>
                     <div className={cx('input', 'input--short')}>
                       <MonacoEditor
                         value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
@@ -183,7 +188,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               <IntegrationBlockItem>
                 <VerticalGroup>
                   <HorizontalGroup spacing={'xs'}>
-                    <InlineLabel width={20}>Escalation chain</InlineLabel>
+                    <InlineLabel
+                      width={20}
+                      tooltip="The escalation chain determines who and when to notify when an alert group starts."
+                    >
+                      Escalation chain
+                    </InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
                         isSearchable

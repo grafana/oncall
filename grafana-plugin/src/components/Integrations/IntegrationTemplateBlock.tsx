@@ -27,9 +27,10 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
   onRemove,
   isLoading,
 }) => {
-  let inlineLabelProps = { labelTooltip };
-  if (!labelTooltip) {
-    delete inlineLabelProps.labelTooltip;
+  let tooltip = labelTooltip;
+  let inlineLabelProps = { tooltip };
+  if (!tooltip) {
+    delete inlineLabelProps.tooltip;
   }
 
   return (

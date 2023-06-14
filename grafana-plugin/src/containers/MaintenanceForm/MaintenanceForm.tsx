@@ -66,6 +66,8 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
     <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
       <div className={cx('content')}>
         <VerticalGroup>
+          Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
+          trigger false alarms.
           <GForm form={maintenanceForm} data={initialData} onSubmit={handleSubmit} />
           <HorizontalGroup justify="flex-end">
             <Button variant="secondary" onClick={onHide}>
