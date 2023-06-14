@@ -409,10 +409,17 @@ class AlertManagerV2View(BrowsableInstructionMixin, AlertChannelDefiningMixin, I
 
         data = request.data
         if "numFiring" not in request.data:
+            num_firing = 0
+            num_resolved = 0
+            for a in alerts:
+                if a["status"] == "firing":
+                    num_firing += 1
+                elif a["status"] == "resolved":
+                    num_resolved += 1
             # Count firing and resolved alerts manually if not present in payload
-            num_firing = len(list(filter(lambda a: a["status"] == "firing", alerts)))
-            num_resolved = len(list(filter(lambda a: a["status"] == "resolved", alerts)))
             data = {**request.data, "numFiring": num_firing, "numResolved": num_resolved}
+        else:
+            data = request.data
 
         create_alert.apply_async(
             [],
