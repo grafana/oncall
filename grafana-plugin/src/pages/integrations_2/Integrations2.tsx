@@ -147,7 +147,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       },
       {
         width: '20%',
-        title: 'Datasource',
+        title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
@@ -276,8 +276,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <Emoji
             className={cx('title')}
             text={
-              item.verbal_name.length > MAX_LINE_LENGTH
-                ? item.verbal_name.substring(0, MAX_LINE_LENGTH) + '...'
+              item.verbal_name?.length > MAX_LINE_LENGTH
+                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
                 : item.verbal_name
             }
           />

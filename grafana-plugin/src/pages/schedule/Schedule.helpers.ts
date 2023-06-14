@@ -52,6 +52,26 @@ export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment
   return by_day;
 };
 
+export const getUTCWeekStart = (dayOptions: SelectOption[], moment: dayjs.Dayjs) => {
+  let week_start_index = 0;
+  let byDayOptions = [];
+  dayOptions.forEach(({ value }) => byDayOptions.push(value));
+  if (moment.day() !== moment.utc().day()) {
+    // when converting to UTC, shift starts on a different day,
+    // so we may need to change when week starts based on the UTC start time
+    // depending on the UTC side, move one day before or after
+    let offset = moment.utcOffset();
+    if (offset < 0) {
+      // move one day after
+      week_start_index = (week_start_index + 1) % 7;
+    } else {
+      // move one day before
+      week_start_index = (((week_start_index - 1) % 7) + 7) % 7;
+    }
+  }
+  return byDayOptions[week_start_index];
+};
+
 export const getColorSchemeMappingForUsers = (
   store: RootStore,
   scheduleId: string,
