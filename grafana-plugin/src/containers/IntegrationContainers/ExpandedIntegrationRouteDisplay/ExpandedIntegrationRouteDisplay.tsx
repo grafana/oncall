@@ -105,7 +105,6 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
     const isDefault = CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
-    const isDefault = CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
     const channelFilterTemplate = channelFilter.filtering_term
       ? IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)
       : '{# Add Routing Template, e.g. {{ payload.severity == "critical" }} #}';
