@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update notification text for "You're going on call" push notifications to include information about the shift start
   and end times by @joeyorlando ([#2131](https://github.com/grafana/oncall/pull/2131))
 
+### Fixed
+
+- Handle non-UTC UNTIL datetime value when repeating ical events [#2241](https://github.com/grafana/oncall/pull/2241)
+
 ## v1.2.44 (2023-06-14)
 
 ### Added
