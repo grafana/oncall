@@ -12,6 +12,7 @@ import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDi
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
+import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { useStore } from 'state/useStore';
 
@@ -40,7 +41,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     }
 
     const escalationChain = escalationChainStore.items[channelFilter.escalation_chain];
-    const routeWording = IntegrationHelper.getRouteConditionWording(
+    const routeWording = CommonIntegrationHelper.getRouteConditionWording(
       alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
       routeIndex
     );
@@ -56,11 +57,11 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
               <div className={cx('heading-container__item', 'heading-container__item--large')}>
                 <TooltipBadge
                   borderType="success"
-                  text={IntegrationHelper.getRouteConditionWording(
+                  text={CommonIntegrationHelper.getRouteConditionWording(
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex
                   )}
-                  tooltipTitle={IntegrationHelper.getRouteConditionTooltipWording(
+                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex
                   )}
