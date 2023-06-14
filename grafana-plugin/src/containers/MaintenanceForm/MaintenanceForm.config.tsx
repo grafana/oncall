@@ -25,6 +25,8 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'mode',
       label: 'Mode',
+      description:
+        'Choose maintenance mode: Debug (test routing and escalations without real notifications) or Maintenance (group alerts into one during infrastructure work).',
       type: FormItemType.Select,
       validation: { required: true },
       normalize: (value) => value,
@@ -44,6 +46,7 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'duration',
       label: 'Duration',
+      description: 'Specify duration of the maintenance',
       type: FormItemType.Select,
       validation: { required: true },
       extra: {

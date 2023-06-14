@@ -147,7 +147,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       },
       {
         width: '20%',
-        title: 'Datasource',
+        title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
@@ -327,8 +327,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             borderType="success"
             icon="link"
             text={`${connectedEscalationsChainsCount}/${routesCounter}`}
-            tooltipTitle=""
-            tooltipContent={
+            tooltipContent={undefined}
+            tooltipTitle={
               connectedEscalationsChainsCount +
               ' connected escalation chain' +
               (connectedEscalationsChainsCount === 1 ? '' : 's') +

@@ -67,7 +67,12 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { escalationChainStore } = store;
 
     let selectedEscalationChain: EscalationChain['id'];
-    if (id) {
+
+    if (id === 'new') {
+      this.setState({
+        modeToShowEscalationChainForm: EscalationChainFormMode.Create,
+      });
+    } else if (id) {
       let escalationChain = await escalationChainStore
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));

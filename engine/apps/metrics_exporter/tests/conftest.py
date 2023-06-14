@@ -46,7 +46,11 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
         }
         return test_metrics.get(key)
 
+    def _mock_cache_get_many(keys, *args, **kwargs):
+        return {key: _mock_cache_get(key) for key in keys if _mock_cache_get(key)}
+
     monkeypatch.setattr(cache, "get", _mock_cache_get)
+    monkeypatch.setattr(cache, "get_many", _mock_cache_get_many)
 
 
 @pytest.fixture()
@@ -54,7 +58,11 @@ def mock_get_metrics_cache(monkeypatch):
     def _mock_cache_get(key, *args, **kwargs):
         return {}
 
+    def _mock_cache_get_many(keys, *args, **kwargs):
+        return {}
+
     monkeypatch.setattr(cache, "get", _mock_cache_get)
+    monkeypatch.setattr(cache, "get_many", _mock_cache_get_many)
 
 
 @pytest.fixture

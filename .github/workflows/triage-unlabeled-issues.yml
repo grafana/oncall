@@ -17,9 +17,10 @@ jobs:
           # don't worry about marking issues as "stale". There is a separate github action workflow which,
           # on issue creation, adds the no-labels label, if no labels were added to the issue when it was created.
           # if this label has been present on the issue for 7 days, this workflow will close it
-          days-before-issue-stale: -1
-          stale-issue-label: no-labels
+          days-before-issue-stale: 6
           days-before-issue-close: 7
+          only-labels: "no-labels"
 
+          stale-issue-message: "" # You can skip the comment sending by passing an empty string.
           close-issue-message: >
             This issue has been automatically closed because it has no labels. Please feel free to re-open and add the appropriate labels :smile:. Thank you for your contributions!
