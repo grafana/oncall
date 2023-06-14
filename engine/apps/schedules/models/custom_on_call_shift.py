@@ -2,8 +2,6 @@ import copy
 import datetime
 import itertools
 import logging
-import random
-import string
 from calendar import monthrange
 from uuid import uuid4
 
@@ -172,8 +170,7 @@ class CustomOnCallShift(models.Model):
         null=True,
         default=None,
     )
-    name = models.CharField(max_length=200)
-    title = models.CharField(max_length=200, null=True, default=None)
+    name = models.CharField(max_length=200, null=True, default=None)
     time_zone = models.CharField(max_length=100, null=True, default=None)
     source = models.IntegerField(choices=SOURCE_CHOICES, default=SOURCE_API)
     users = models.ManyToManyField("user_management.User")  # users in single and recurrent events
@@ -212,9 +209,6 @@ class CustomOnCallShift(models.Model):
         null=True,
         related_name="parent_shift",
     )
-
-    class Meta:
-        unique_together = ("name", "organization")
 
     def delete(self, *args, **kwargs):
         schedules_to_update = list(self.schedules.all())
@@ -687,7 +681,7 @@ class CustomOnCallShift(models.Model):
         # prepare dict with params of existing instance with last updates and remove unique and m2m fields from it
         shift_to_update = self.last_updated_shift or self
         instance_data = model_to_dict(shift_to_update)
-        fields_to_remove = ["id", "public_primary_key", "uuid", "users", "updated_shift", "name"]
+        fields_to_remove = ["id", "public_primary_key", "uuid", "users", "updated_shift"]
         for field in fields_to_remove:
             instance_data.pop(field)
 
@@ -705,9 +699,6 @@ class CustomOnCallShift(models.Model):
 
         if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
             # create new shift
-            instance_data["name"] = CustomOnCallShift.generate_name(
-                self.schedule, instance_data["priority_level"], instance_data["type"]
-            )
             with transaction.atomic():
                 shift = CustomOnCallShift(**instance_data)
                 shift.save()
@@ -721,13 +712,6 @@ class CustomOnCallShift(models.Model):
             shift.save(update_fields=list(instance_data))
 
         return shift
-
-    @staticmethod
-    def generate_name(schedule, priority_level, shift_type):
-        shift_type_name = "override" if shift_type == CustomOnCallShift.TYPE_OVERRIDE else "rotation"
-        name = f"{schedule.name}-{shift_type_name}-{priority_level}-"
-        name += "".join(random.choice(string.ascii_lowercase) for _ in range(5))
-        return name
 
     # Insight logs
     @property
