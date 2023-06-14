@@ -3,6 +3,7 @@ description: File a bug report
 title: "Product-Area-Here: short description of bug here"
 labels:
   - bug
+  - needs triage
 body:
   - type: markdown
     attributes:
