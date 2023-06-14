@@ -31,8 +31,6 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
     setExpandedList(getStartingExpandedState());
   }, [configElements]);
 
-  console.log({ props, expandedList, starting: getStartingExpandedState() });
-
   return (
     <div className={cx('integrationTree__container')}>
       {configElements
