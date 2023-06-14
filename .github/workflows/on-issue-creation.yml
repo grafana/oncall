@@ -1,0 +1,68 @@
+name: On issue creation
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  add-to-project:
+    name: Add OSS issues to team's kanban board
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.4.1
+        with:
+          project-url: https://github.com/orgs/grafana/projects/119
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+
+  add-latest-version-comment:
+    name: Add latest version comment to issue
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get latest version tag
+        id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        with:
+          semver_only: true
+      - name: Add latest version comment
+        # GitHub recommends pinning actions to a commit SHA.
+        # To get a newer version, you will need to update the SHA.
+        # You can also reference a tag or branch, but the action may change without warning.
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it in the PR description. Thank you :smile:!
+
+  verify-that-atleast-one-label-is-added:
+    name: Verify that atleast one label is added to issue
+    # basically only run this job if the issue has no labels at the time of creation
+    # AND the person creating the issue is a member of the Grafana org
+    # https://docs.github.com/en/graphql/reference/enums#commentauthorassociation
+    # MEMBER - Author is a member of the organization that owns the repository.
+    # OWNER - Author is the owner of the repository.
+    if: join(github.event.issue.labels.*.name, '') == '' && contains(fromJSON('["MEMBER", "OWNER"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Add comment to remind about adding labels
+        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Thank you for opening this issue! We noticed that there are currently no labels assigned to the issue :eyes:. Please be sure to add one or more that most accurately describe the issue. In the event that no labels are added, this issue will be automatically closed in 7 days.
+      # https://docs.github.com/en/actions/managing-issues-and-pull-requests/adding-labels-to-issues#creating-the-workflow
+      - name: Add no-labels label to issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["no-labels"]
+            })

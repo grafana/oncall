@@ -3,8 +3,7 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
-x-user: &oncall-user
-  "appuser"
+x-user: &oncall-user "appuser"
 
 x-oncall-build: &oncall-build-args
   context: ./engine
@@ -59,7 +58,8 @@ services:
       - ./grafana-plugin:/etc/app
       - node_modules_dev:/etc/app/node_modules
       # https://stackoverflow.com/a/60456034
-      - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
+      # see the explaination above that uses the $ENTERPRISE_ENGINE env var
+      - ${ENTERPRISE_FRONTEND:-/dev/null}:${ENTERPRISE_FRONTEND_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
     profiles:
       - oncall_ui
 

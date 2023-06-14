@@ -34,7 +34,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
   return (
     <div className={cx('integrationTree__container')}>
       {configElements
-        .filter((config) => config)
+        .filter((config) => config) // filter out falsy values
         .map((item: IntegrationCollapsibleItem | IntegrationCollapsibleItem[], idx) => {
           if (isArray(item)) {
             return item.map((it, innerIdx) => (
@@ -87,7 +87,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
 
     setExpandedList(
       expandedList.map((elem, index) => {
-        if (!isUndefined(j) && index === i) {
+        if (!isUndefined(j) && index === i && Array.isArray(elem)) {
           return (elem as boolean[]).map((innerElem: boolean, jIndex: number) =>
             jIndex === j ? !innerElem : innerElem
           );
