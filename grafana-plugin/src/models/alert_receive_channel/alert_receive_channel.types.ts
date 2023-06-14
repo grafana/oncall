@@ -35,6 +35,7 @@ export interface AlertReceiveChannel {
   integration_url: string;
   allow_source_based_resolving: boolean;
   is_able_to_autoresolve: boolean;
+  is_based_on_alertmanager: boolean;
   default_channel_filter: number;
   instructions: string;
   demo_alert_enabled: boolean;
