@@ -48,9 +48,9 @@ class ApplicationMetricsCollector:
         )
 
         org_ids = set(get_organization_ids())
-        processed_org_ids = set()
 
         # alert groups total metrics
+        processed_org_ids = set()
         alert_groups_total_keys = [get_metric_alert_groups_total_key(org_id) for org_id in org_ids]
         org_ag_states: typing.Dict[str, typing.Dict[int, AlertGroupsTotalMetricsDict]] = cache.get_many(
             alert_groups_total_keys
@@ -70,8 +70,11 @@ class ApplicationMetricsCollector:
                     alert_groups_total.add_metric(labels_values + [state.value], integration_data[state.value])
             org_id_from_key = RE_ALERT_GROUPS_TOTAL.match(org_key).groups()[0]
             processed_org_ids.add(int(org_id_from_key))
+        # get missing orgs
+        missing_org_ids_1 = org_ids - processed_org_ids
 
         # alert groups response time metrics
+        processed_org_ids = set()
         alert_groups_response_time_keys = [get_metric_alert_groups_response_time_key(org_id) for org_id in org_ids]
         org_ag_response_times: typing.Dict[str, typing.Dict[int, AlertGroupsResponseTimeMetricsDict]] = cache.get_many(
             alert_groups_response_time_keys
@@ -96,9 +99,11 @@ class ApplicationMetricsCollector:
                 alert_groups_response_time_seconds.add_metric(labels_values, buckets=buckets, sum_value=sum_value)
             org_id_from_key = RE_ALERT_GROUPS_RESPONSE_TIME.match(org_key).groups()[0]
             processed_org_ids.add(int(org_id_from_key))
+        # get missing orgs
+        missing_org_ids_2 = org_ids - processed_org_ids
 
-        # check for orgs missing metrics or needing a refresh
-        missing_org_ids = org_ids - processed_org_ids
+        # check for orgs missing any of the metrics or needing a refresh
+        missing_org_ids = missing_org_ids_1 | missing_org_ids_2
         cache_timer_for_org_keys = [get_metrics_cache_timer_key(org_id) for org_id in org_ids]
         cache_timers_for_org = cache.get_many(cache_timer_for_org_keys)
         recalculate_orgs: typing.List[RecalculateOrgMetricsDict] = []
