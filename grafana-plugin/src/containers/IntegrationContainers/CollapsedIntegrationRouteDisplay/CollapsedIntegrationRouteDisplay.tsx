@@ -98,17 +98,20 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           content={
             <div className={cx('spacing')}>
               <VerticalGroup>
-                {IntegrationHelper.getChatOpsChannels(channelFilter, store)
-                  .filter((it) => it)
-                  .map((chatOpsChannel, key) => (
-                    <HorizontalGroup key={key}>
-                      <Text type="secondary">Publish to ChatOps</Text>
-                      <Icon name={chatOpsChannel.icon} />
-                      <Text type="primary" strong>
-                        {chatOpsChannel.name}
-                      </Text>
-                    </HorizontalGroup>
-                  ))}
+                <HorizontalGroup>
+                  <Text type="secondary">Publish to ChatOps</Text>
+
+                  {IntegrationHelper.getChatOpsChannels(channelFilter, store)
+                    .filter((it) => it)
+                    .map((chatOpsChannel) => (
+                      <>
+                        <Icon name={chatOpsChannel.icon} />
+                        <Text type="primary" strong>
+                          {chatOpsChannel.name}
+                        </Text>
+                      </>
+                    ))}
+                </HorizontalGroup>
 
                 <HorizontalGroup>
                   <HorizontalGroup spacing={'xs'}>

@@ -46,19 +46,19 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
       <div className={cx('container__item')}>
         {renderInput()}
         {isTemplateEditable && (
-        )}
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Tooltip content={'Edit'}>
-            <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
-          </Tooltip>
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Tooltip content={'Reset Template to default'}>
-            <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
-          </Tooltip>
-        </WithPermissionControlTooltip>
           <>
+            <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+              <Tooltip content={'Edit'}>
+                <Button variant={'secondary'} icon={'edit'} tooltip="Edit" size={'md'} onClick={onEdit} />
+              </Tooltip>
+            </WithPermissionControlTooltip>
+            <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+              <Tooltip content={'Reset Template to default'}>
+                <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
+              </Tooltip>
+            </WithPermissionControlTooltip>
           </>
+        )}
 
         {isLoading && <LoadingPlaceholder text="Loading..." />}
       </div>
