@@ -187,6 +187,7 @@ class AlertReceiveChannelView(
     @action(detail=False, methods=["get"])
     def integration_options(self, request):
         choices = []
+        featured_choices = []
         for integration_id, integration_title in AlertReceiveChannel.INTEGRATION_CHOICES:
             if integration_id in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
                 choice = {
@@ -200,10 +201,10 @@ class AlertReceiveChannelView(
                 }
                 # if integration is featured we show it in the beginning
                 if choice["featured"]:
-                    choices = [choice] + choices
+                    featured_choices.append(choice)
                 else:
                     choices.append(choice)
-        return Response(choices)
+        return Response(featured_choices + choices)
 
     @action(detail=True, methods=["put"])
     def change_team(self, request, pk):

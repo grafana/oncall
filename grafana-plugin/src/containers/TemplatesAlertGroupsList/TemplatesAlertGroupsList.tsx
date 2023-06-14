@@ -180,7 +180,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 <HorizontalGroup justify="space-between" wrap>
                   <HorizontalGroup>
                     <Text>Recent Alert groups</Text>
-                    <Tooltip content="Here will be information about alert groups">
+                    <Tooltip content="Here will be information about alert groups" placement="top">
                       <Icon name="info-circle" />
                     </Tooltip>
                   </HorizontalGroup>

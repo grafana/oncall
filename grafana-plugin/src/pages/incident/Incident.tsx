@@ -273,7 +273,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
               <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
-                <IconButton name="arrow-left" size="xxl" />
+                <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
