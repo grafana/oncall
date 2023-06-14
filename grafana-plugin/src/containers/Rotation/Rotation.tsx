@@ -3,6 +3,7 @@ import React, { FC, useMemo, useState } from 'react';
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
@@ -97,7 +98,7 @@ const Rotation: FC<RotationProps> = (props) => {
                 return (
                   <ScheduleSlot
                     scheduleId={scheduleId}
-                    key={event.start}
+                    key={hash(event)}
                     event={event}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}

@@ -571,8 +571,14 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                         <Text type="secondary">Limit each shift length</Text>
                         {showActiveOnSelectedPartOfDay && (
                           <ShiftPeriod
-                            repeatEveryPeriod={showActiveOnSelectedDays ? RepeatEveryPeriod.DAYS : repeatEveryPeriod}
-                            repeatEveryValue={showActiveOnSelectedDays ? 1 : repeatEveryValue}
+                            repeatEveryPeriod={showActiveOnSelectedDays ? RepeatEveryPeriod.HOURS : repeatEveryPeriod}
+                            repeatEveryValue={
+                              showActiveOnSelectedDays
+                                ? repeatEveryPeriod === RepeatEveryPeriod.HOURS
+                                  ? Math.min(repeatEveryValue, 24)
+                                  : 24
+                                : repeatEveryValue
+                            }
                             defaultValue={shiftPeriodDefaultValue}
                             shiftStart={shiftStart}
                             onChange={handleActivePeriodChange}
