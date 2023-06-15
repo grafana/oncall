@@ -67,14 +67,25 @@ if settings.IS_OPEN_SOURCE:
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
     ]
 
+if settings.SILK_PROFILER_ENABLED:
+    urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
+
+if settings.DEBUG:
+    from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
+    urlpatterns += [
+        # YOUR PATTERNS
+        path("api/schema/", SpectacularAPIView.as_view(api_version="v1"), name="schema"),
+        # Optional UI:
+        path("api/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+        path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    ]
+
 if settings.DEBUG:
     import debug_toolbar
 
     urlpatterns = [
         path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns
-
-if settings.SILK_PROFILER_ENABLED:
-    urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
 
 admin.site.site_header = settings.ADMIN_SITE_HEADER

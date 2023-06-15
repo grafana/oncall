@@ -233,6 +233,7 @@ INSTALLED_APPS = [
     "fcm_django",
     "django_dbconn_retry",
     "apps.phone_notifications",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
@@ -242,6 +243,15 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Your Project API",
+    "DESCRIPTION": "Your project description",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # OTHER SETTINGS
 }
 
 MIDDLEWARE = [
@@ -260,7 +270,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
-    "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
+    # "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
     "apps.integrations.middlewares.IntegrationExceptionMiddleware",
     "apps.user_management.middlewares.OrganizationMovedMiddleware",
     "apps.user_management.middlewares.OrganizationDeletedMiddleware",

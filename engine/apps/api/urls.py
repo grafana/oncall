@@ -1,8 +1,9 @@
-from django.urls import include, path, re_path
+from django.urls import path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
 
-from .views import UserNotificationPolicyView, auth
+# from .views import UserNotificationPolicyView, auth
+from .views import auth
 from .views.alert_group import AlertGroupView
 from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
@@ -10,9 +11,11 @@ from .views.alerts import AlertDetailView
 from .views.channel_filter import ChannelFilterView
 from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
-from .views.escalation_policy import EscalationPolicyView
+
+# from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
-from .views.gitops import TerraformGitOpsView, TerraformStateView
+
+# from .views.gitops import TerraformGitOpsView, TerraformStateView
 from .views.integration_heartbeat import IntegrationHeartBeatView
 from .views.live_setting import LiveSettingViewSet
 from .views.maintenance import MaintenanceAPIView, MaintenanceStartAPIView, MaintenanceStopAPIView
@@ -48,8 +51,8 @@ router = OptionalSlashRouter()
 router.register(r"users", UserView, basename="user")
 router.register(r"teams", TeamViewSet, basename="team")
 router.register(r"alertgroups", AlertGroupView, basename="alertgroup")
-router.register(r"notification_policies", UserNotificationPolicyView, basename="notification_policy")
-router.register(r"escalation_policies", EscalationPolicyView, basename="escalation_policy")
+# router.register(r"notification_policies", UserNotificationPolicyView, basename="notification_policy")
+# router.register(r"escalation_policies", EscalationPolicyView, basename="escalation_policy")
 router.register(r"escalation_chains", EscalationChainViewSet, basename="escalation_chain")
 router.register(r"alert_receive_channels", AlertReceiveChannelView, basename="alert_receive_channel")
 router.register(
@@ -69,7 +72,7 @@ router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
 
 urlpatterns = [
-    path("", include(router.urls)),
+    # path("", include(router.urls)), # TODO: this can be removed
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
@@ -84,8 +87,8 @@ urlpatterns = [
         name="api-get-channel-verification-code",
     ),
     optional_slash_path("current_subscription", SubscriptionView.as_view(), name="subscription"),
-    optional_slash_path("terraform_file", TerraformGitOpsView.as_view(), name="terraform_file"),
-    optional_slash_path("terraform_imports", TerraformStateView.as_view(), name="terraform_imports"),
+    # optional_slash_path("terraform_file", TerraformGitOpsView.as_view(), name="terraform_file"),
+    # optional_slash_path("terraform_imports", TerraformStateView.as_view(), name="terraform_imports"),
     optional_slash_path("maintenance", MaintenanceAPIView.as_view(), name="maintenance"),
     optional_slash_path("start_maintenance", MaintenanceStartAPIView.as_view(), name="start_maintenance"),
     optional_slash_path("stop_maintenance", MaintenanceStopAPIView.as_view(), name="stop_maintenance"),
