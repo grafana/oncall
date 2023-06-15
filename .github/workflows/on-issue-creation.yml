@@ -57,7 +57,7 @@ jobs:
 
       - name: Map mobile app product area to appropriate assignees
         uses: actions-ecosystem/action-add-assignees@v1
-        if: contains(steps.issue-form-values.outputs.issueparser_product-area, 'Mobile App')
+        if: contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           assignees: |
@@ -70,11 +70,11 @@ jobs:
         # https://docs.github.com/en/actions/learn-github-actions/expressions#literals:~:text=GitHub%20offers%20ternary%20operator%20like%20behaviour%20that%20you%20can%20use%20in%20expressions
         with:
           labels: |
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Auth') && 'part:auth/teams' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Chatops') && 'part:chatops' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Helm') && 'part:deployment/helm' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Mobile App') && 'part:mobile' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Schedules') && 'part:schedules' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Terraform') && 'part:API/Terraform' || '' }}
-            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Other') && 'no info or need to discuss' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Auth') && 'part:auth/teams' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Chatops') && 'part:chatops' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Helm') && 'part:deployment/helm' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Mobile App') && 'part:mobile' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Schedules') && 'part:schedules' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform') && 'part:API/Terraform' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Other') && 'no info or need to discuss' || '' }}

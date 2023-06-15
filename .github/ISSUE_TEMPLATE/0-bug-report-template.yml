@@ -60,7 +60,8 @@ body:
   - type: dropdown
     id: product-area
     attributes:
-      label: Which Grafana OnCall product area(s) best relate to the issue you're facing?
+      label: Product Area
+      description: Which Grafana OnCall product area(s) best relate to the issue you're facing?
       multiple: true
       options:
         - Alert Flow & Configuration
