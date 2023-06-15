@@ -1,6 +1,7 @@
 import datetime
 import typing
 
+import pytz
 import requests
 from celery import shared_task
 from django.apps import apps
@@ -110,12 +111,12 @@ def get_auditable_alert_groups_started_at_range() -> typing.Tuple[datetime.datet
     alert groups, whose integration did not have an escalation chain at the time the alert group was created
     we would raise errors
     """
-    return (datetime.datetime(2023, 3, 25), timezone.now() - timezone.timedelta(days=2))
+    return (datetime.datetime(2023, 3, 25, tzinfo=pytz.UTC), timezone.now() - datetime.timedelta(days=2))
 
 
 # don't retry this task as the AlertGroup DB query is rather expensive
 @shared_task
-def check_escalation_finished_task():
+def check_escalation_finished_task() -> None:
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 

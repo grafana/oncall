@@ -47,6 +47,64 @@ def test_start_maintenance_integration(
 
 
 @pytest.mark.django_db
+def test_start_maintenance_integration_user_team(
+    maintenance_internal_api_setup, mock_start_disable_maintenance_task, make_user_auth_headers, make_team
+):
+    token, organization, user, alert_receive_channel = maintenance_internal_api_setup
+    another_team = make_team(organization)
+    user.current_team = another_team
+    user.save()
+
+    client = APIClient()
+
+    url = reverse("api-internal:start_maintenance")
+    data = {
+        "mode": AlertReceiveChannel.MAINTENANCE,
+        "duration": AlertReceiveChannel.DURATION_ONE_HOUR.total_seconds(),
+        "type": "alert_receive_channel",
+        "alert_receive_channel_id": alert_receive_channel.public_primary_key,
+    }
+    response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+
+    alert_receive_channel.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
+    assert alert_receive_channel.maintenance_duration == AlertReceiveChannel.DURATION_ONE_HOUR
+    assert alert_receive_channel.maintenance_uuid is not None
+    assert alert_receive_channel.maintenance_started_at is not None
+    assert alert_receive_channel.maintenance_author is not None
+
+
+@pytest.mark.django_db
+def test_start_maintenance_integration_different_team(
+    maintenance_internal_api_setup, mock_start_disable_maintenance_task, make_user_auth_headers, make_team
+):
+    token, organization, user, alert_receive_channel = maintenance_internal_api_setup
+    another_team = make_team(organization)
+    other_team = make_team(organization)
+    user.current_team = another_team
+    user.save()
+    # integration belongs to non-general team, != user current team
+    alert_receive_channel.team = other_team
+    alert_receive_channel.save()
+
+    client = APIClient()
+
+    url = reverse("api-internal:start_maintenance")
+    data = {
+        "mode": AlertReceiveChannel.MAINTENANCE,
+        "duration": AlertReceiveChannel.DURATION_ONE_HOUR.total_seconds(),
+        "type": "alert_receive_channel",
+        "alert_receive_channel_id": alert_receive_channel.public_primary_key,
+    }
+    response = client.post(url, data=data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.maintenance_mode is None
+
+
+@pytest.mark.django_db
 def test_stop_maintenance_integration(
     maintenance_internal_api_setup,
     mock_start_disable_maintenance_task,
@@ -146,6 +204,46 @@ def test_maintenances_list(
             "maintenance_till_timestamp": organization.till_maintenance_timestamp,
             "started_at_timestamp": organization.started_at_timestamp,
         },
+        {
+            "alert_receive_channel_id": alert_receive_channel.public_primary_key,
+            "type": "alert_receive_channel",
+            "maintenance_mode": 1,
+            "maintenance_till_timestamp": alert_receive_channel.till_maintenance_timestamp,
+            "started_at_timestamp": alert_receive_channel.started_at_timestamp,
+        },
+    ]
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+def test_maintenances_list_include_all_user_teams(
+    maintenance_internal_api_setup,
+    mock_start_disable_maintenance_task,
+    make_user_auth_headers,
+    make_team,
+):
+    token, organization, user, alert_receive_channel = maintenance_internal_api_setup
+    another_team = make_team(organization)
+    other_team = make_team(organization)
+    # setup user teams
+    user.teams.add(another_team)
+    user.teams.add(other_team)
+    user.current_team = other_team
+    user.save()
+    # integration belongs to non-general team, != user current team
+    alert_receive_channel.team = another_team
+    alert_receive_channel.save()
+
+    client = APIClient()
+    mode = AlertReceiveChannel.MAINTENANCE
+    duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds
+    alert_receive_channel.start_maintenance(mode, duration, user)
+    url = reverse("api-internal:maintenance")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    expected_payload = [
         {
             "alert_receive_channel_id": alert_receive_channel.public_primary_key,
             "type": "alert_receive_channel",

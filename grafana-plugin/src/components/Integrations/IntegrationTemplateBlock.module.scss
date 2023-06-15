@@ -1,0 +1,18 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+
+  &__item {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  label {
+    margin-right: 0px;
+  }
+}

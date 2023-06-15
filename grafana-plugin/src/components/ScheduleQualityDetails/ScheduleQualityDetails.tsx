@@ -29,7 +29,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
   const warningComments = comments.filter((c) => c.type === 'warning');
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} data-testid="schedule-quality-details">
       <div className={cx('container')}>
         <div className={cx('container', 'container--withLateralPadding')}>
           <Text type={cx('secondary', 'header')}>
@@ -96,7 +96,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           )}
         </div>
 
-        <div className={cx('line-break')} />
+        <div className="thin-line-break" />
 
         <div className={cx('container', 'container--withTopPadding', 'container--withLateralPadding')}>
           <HorizontalGroup justify="space-between">

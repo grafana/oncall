@@ -47,12 +47,7 @@ class TelegramMessage(models.Model):
         return f"https://t.me/c/{chat_slug}/{self.message_id}?thread={self.message_id}"
 
     @staticmethod
-    def create_from_message(
-        message: telegram.Message,
-        message_type: int,
-        alert_group: AlertGroup,
-    ) -> "TelegramMessage":
-        message = TelegramMessage.objects.create(
+    def create_from_message(message: telegram.Message, message_type: int, alert_group: AlertGroup) -> "TelegramMessage":
+        return TelegramMessage.objects.create(
             message_id=message.message_id, chat_id=message.chat.id, message_type=message_type, alert_group=alert_group
         )
-        return message

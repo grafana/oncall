@@ -63,4 +63,4 @@ class AlertGroupTelegramRenderer(AlertGroupBaseRenderer):
         if image_url is not None:
             text = f"<a href='{image_url}'>&#8205;</a>" + text
 
-        return emojize(text, use_aliases=True)
+        return emojize(text, language="alias")

@@ -29,7 +29,6 @@ class PolymorphicScheduleSerializer(EagerLoadingMixin, PolymorphicSerializer):
 
 
 class PolymorphicScheduleCreateSerializer(PolymorphicScheduleSerializer):
-
     model_serializer_mapping = {
         OnCallScheduleICal: ScheduleICalCreateSerializer,
         OnCallScheduleCalendar: ScheduleCalendarCreateSerializer,

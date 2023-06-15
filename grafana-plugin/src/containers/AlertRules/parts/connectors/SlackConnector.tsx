@@ -51,7 +51,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
             />
           </WithPermissionControlTooltip>
         </div>
-        Post to slack channel
+        Slack Channel
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <GSelect
             showSearch

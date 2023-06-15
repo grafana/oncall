@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/slack_channels/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/slack_channels/
 title: Slack Channels HTTP API
 weight: 1300

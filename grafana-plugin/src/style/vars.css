@@ -21,11 +21,19 @@
   --tag-warning: #c69b06;
   --tag-primary: #299c46;
   --tag-secondary: #464c54;
+  --tag-secondary-transparent: rgba(204, 204, 220, 0.07);
+  --tag-background-primary: rgba(56, 113, 220, 0.2);
+  --tag-border-primary: rgba(56, 113, 220, 0.2);
+  --tag-background-danger: rgba(242, 73, 92, 0.15);
+  --tag-text-primary: rgba(110, 159, 255, 1);
   --tag-border-danger: rgb(151, 11, 27);
   --tag-text-danger: rgb(247, 144, 156);
   --tag-border-warning: rgb(150, 75, 0);
+  --tag-background-warning: rgba(245, 183, 61, 0.18);
   --tag-text-warning: rgb(255, 190, 124);
   --tag-border-success: rgb(49, 100, 43);
+  --tag-border-link: rgba(56, 113, 220, 0.2);
+  --tag-background-success: rgba(27, 133, 94, 0.15);
   --tag-text-success: rgb(165, 214, 159);
 }
 

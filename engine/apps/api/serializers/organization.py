@@ -1,4 +1,5 @@
-from datetime import timedelta
+import datetime
+from dataclasses import asdict
 
 import humanize
 import pytz
@@ -7,6 +8,7 @@ from django.utils import timezone
 from rest_framework import fields, serializers
 
 from apps.base.models import LiveSetting
+from apps.phone_notifications.phone_provider import get_phone_provider
 from apps.slack.models import SlackTeamIdentity
 from apps.slack.tasks import resolve_archived_incidents_for_organization, unarchive_incidents_for_organization
 from apps.user_management.models import Organization
@@ -16,7 +18,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 class CustomDateField(fields.TimeField):
     def to_internal_value(self, data):
         try:
-            archive_datetime = timezone.datetime.fromisoformat(data).astimezone(pytz.UTC)
+            archive_datetime = datetime.datetime.fromisoformat(data).astimezone(pytz.UTC)
         except (TypeError, ValueError):
             raise serializers.ValidationError({"archive_alerts_from": ["Invalid date format"]})
         if archive_datetime.date() >= timezone.now().date():
@@ -112,19 +114,23 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         return obj.notifications_limit_web_report(user)
 
     def get_env_status(self, obj):
+        # deprecated in favour of ConfigAPIView.
+        # All new env statuses should be added there
         LiveSetting.populate_settings_if_needed()
 
         telegram_configured = not LiveSetting.objects.filter(name__startswith="TELEGRAM", error__isnull=False).exists()
-        twilio_configured = not LiveSetting.objects.filter(name__startswith="TWILIO", error__isnull=False).exists()
-
+        phone_provider_config = get_phone_provider().flags
         return {
             "telegram_configured": telegram_configured,
-            "twilio_configured": twilio_configured,
+            "twilio_configured": phone_provider_config.configured,  # keep for backward compatibility
+            "phone_provider": asdict(phone_provider_config),
         }
 
     def get_stats(self, obj):
         if isinstance(obj.cached_seconds_saved_by_amixr, int):
-            verbal_time_saved_by_amixr = humanize.naturaldelta(timedelta(seconds=obj.cached_seconds_saved_by_amixr))
+            verbal_time_saved_by_amixr = humanize.naturaldelta(
+                datetime.timedelta(seconds=obj.cached_seconds_saved_by_amixr)
+            )
         else:
             verbal_time_saved_by_amixr = None
 

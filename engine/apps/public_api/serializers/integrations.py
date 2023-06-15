@@ -76,11 +76,12 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     name = serializers.CharField(required=False, source="verbal_name")
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     link = serializers.ReadOnlyField(source="integration_url")
+    inbound_email = serializers.ReadOnlyField()
     type = IntegrationTypeField(source="integration")
     templates = serializers.DictField(required=False)
     default_route = serializers.DictField(required=False)
     heartbeat = serializers.SerializerMethodField()
-    description_short = serializers.CharField(max_length=250, required=False)
+    description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
 
     PREFETCH_RELATED = ["channel_filters"]
     SELECT_RELATED = ["organization", "integration_heartbeat"]
@@ -93,6 +94,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             "description_short",
             "team_id",
             "link",
+            "inbound_email",
             "type",
             "default_route",
             "templates",
@@ -115,6 +117,9 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         default_route_data = validated_data.pop("default_route", None)
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
+        # hack to block alertmanager_v2 integration, will be removed
+        if integration == "alertmanager_v2":
+            raise BadRequest
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:

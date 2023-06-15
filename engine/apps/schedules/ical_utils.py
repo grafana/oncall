@@ -16,10 +16,12 @@ from icalendar import Calendar
 
 from apps.api.permissions import RBACPermission
 from apps.schedules.constants import (
+    CALENDAR_TYPE_FINAL,
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
     ICAL_DATETIME_START,
     ICAL_DESCRIPTION,
+    ICAL_LOCATION,
     ICAL_SUMMARY,
     ICAL_UID,
     RE_EVENT_UID_V1,
@@ -107,6 +109,7 @@ def list_of_oncall_shifts_from_ical(
     with_gaps=False,
     days=1,
     filter_by=None,
+    from_cached_final=False,
 ):
     """
     Parse the ical file and return list of events with users
@@ -127,20 +130,26 @@ def list_of_oncall_shifts_from_ical(
 
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
-    calendars = schedule.get_icalendars()
+    if from_cached_final:
+        calendars = [Calendar.from_ical(schedule.cached_ical_final_schedule)]
+    else:
+        calendars = schedule.get_icalendars()
 
     # TODO: Review offset usage
-    user_timezone_offset = timezone.datetime.now().astimezone(pytz.timezone(user_timezone)).utcoffset()
-    datetime_min = timezone.datetime.combine(date, datetime.time.min) + timezone.timedelta(milliseconds=1)
+    pytz_tz = pytz.timezone(user_timezone)
+    user_timezone_offset = datetime.datetime.now().astimezone(pytz_tz).utcoffset()
+    datetime_min = datetime.datetime.combine(date, datetime.time.min) + datetime.timedelta(milliseconds=1)
     datetime_start = (datetime_min - user_timezone_offset).astimezone(pytz.UTC)
-    datetime_end = datetime_start + timezone.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
+    datetime_end = datetime_start + datetime.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
 
     result_datetime = []
     result_date = []
 
     for idx, calendar in enumerate(calendars):
         if calendar is not None:
-            if idx == 0:
+            if from_cached_final:
+                calendar_type = CALENDAR_TYPE_FINAL
+            elif idx == 0:
                 calendar_type = OnCallSchedule.PRIMARY
             else:
                 calendar_type = OnCallSchedule.OVERRIDES
@@ -171,7 +180,15 @@ def list_of_oncall_shifts_from_ical(
                     "shift_pk": None,
                 }
             )
-    result = sorted(result_datetime, key=lambda dt: dt["start"]) + result_date
+
+    def event_start_cmp_key(e):
+        return (
+            datetime.datetime.combine(e["start"], datetime.datetime.min.time(), tzinfo=pytz_tz)
+            if type(e["start"]) == datetime.date
+            else e["start"]
+        )
+
+    result = sorted(result_datetime + result_date, key=event_start_cmp_key)
     # if there is no events, return None
     return result or None
 
@@ -185,6 +202,13 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
         pk, source = parse_event_uid(event.get(ICAL_UID))
         users = get_users_from_ical_event(event, schedule.organization)
         missing_users = get_missing_users_from_ical_event(event, schedule.organization)
+        event_calendar_type = calendar_type
+        if calendar_type == CALENDAR_TYPE_FINAL:
+            event_calendar_type = (
+                schedule.OVERRIDES
+                if event.get(ICAL_LOCATION, "") == schedule.CALENDAR_TYPE_VERBAL[schedule.OVERRIDES]
+                else schedule.PRIMARY
+            )
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
@@ -198,7 +222,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         "missing_users": missing_users,
                         "priority": priority,
                         "source": source,
-                        "calendar_type": calendar_type,
+                        "calendar_type": event_calendar_type,
                         "shift_pk": pk,
                     }
                 )
@@ -213,7 +237,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                             "missing_users": missing_users,
                             "priority": priority,
                             "source": source,
-                            "calendar_type": calendar_type,
+                            "calendar_type": event_calendar_type,
                             "shift_pk": pk,
                         }
                     )
@@ -245,12 +269,12 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
 
             calendar_tz = get_icalendar_tz_or_utc(calendar)
 
-            schedule_timezone_offset = timezone.datetime.now().astimezone(calendar_tz).utcoffset()
-            start_datetime = timezone.datetime.combine(start_date, datetime.time.min) + timezone.timedelta(
+            schedule_timezone_offset = datetime.datetime.now().astimezone(calendar_tz).utcoffset()
+            start_datetime = datetime.datetime.combine(start_date, datetime.time.min) + datetime.timedelta(
                 milliseconds=1
             )
             start_datetime_with_offset = (start_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
-            end_datetime = timezone.datetime.combine(end_date, datetime.time.max)
+            end_datetime = datetime.datetime.combine(end_date, datetime.time.max)
             end_datetime_with_offset = (end_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
 
             events = ical_events.get_events_from_ical_between(
@@ -303,7 +327,7 @@ def list_users_to_notify_from_ical(
     """
     Retrieve on-call users for the current time
     """
-    events_datetime = events_datetime if events_datetime else timezone.datetime.now(timezone.utc)
+    events_datetime = events_datetime if events_datetime else datetime.datetime.now(timezone.utc)
     return list_users_to_notify_from_ical_for_period(
         schedule,
         events_datetime,
@@ -354,7 +378,7 @@ def get_oncall_users_for_multiple_schedules(
     from apps.user_management.models import User
 
     if events_datetime is None:
-        events_datetime = timezone.datetime.now(timezone.utc)
+        events_datetime = datetime.datetime.now(timezone.utc)
 
     # Exit early if there are no schedules
     if not schedules.exists():
@@ -509,21 +533,15 @@ def is_icals_equal(first, second):
         second_cal = Calendar.from_ical(second)
         first_subcomponents = first_cal.subcomponents
         second_subcomponents = second_cal.subcomponents
-        if len(first_subcomponents) != len(second_subcomponents):
-            return False
-        first_cal_events = {}
-        second_cal_events = {}
-        for cmp in first_cal.subcomponents:
-            first_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for cmp in second_cal.subcomponents:
-            second_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
-        for first_uid, first_seq in first_cal_events.items():
-            if first_uid not in second_cal_events:
-                return False
-            second_seq = second_cal_events.get(first_uid, None)
-            if first_seq != second_seq:
-                return False
-        return True
+        # only consider VEVENT components
+        first_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in first_subcomponents if cmp.name == "VEVENT"
+        }
+        second_cal_events = {
+            cmp.get("UID", None): cmp.get("SEQUENCE", None) for cmp in second_subcomponents if cmp.name == "VEVENT"
+        }
+        # check events and their respective sequences are equal
+        return first_cal_events == second_cal_events
 
 
 def ical_date_to_datetime(date, tz, start):
@@ -531,10 +549,10 @@ def ical_date_to_datetime(date, tz, start):
     all_day = False
     if type(date) == datetime.date:
         all_day = True
-        calendar_timezone_offset = timezone.datetime.now().astimezone(tz).utcoffset()
-        date = timezone.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
+        calendar_timezone_offset = datetime.datetime.now().astimezone(tz).utcoffset()
+        date = datetime.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
         if not start:
-            date -= timezone.timedelta(seconds=1)
+            date -= datetime.timedelta(seconds=1)
     return date, all_day
 
 
@@ -557,10 +575,7 @@ def calculate_shift_diff(first_shift, second_shift):
 
 
 def get_icalendar_tz_or_utc(icalendar):
-    try:
-        calendar_timezone = icalendar.walk("VTIMEZONE")[0]["TZID"]
-    except (IndexError, KeyError):
-        calendar_timezone = "UTC"
+    calendar_timezone = icalendar.get("X-WR-TIMEZONE", "UTC")
 
     if pytz_timezone := is_valid_timezone(calendar_timezone):
         return pytz_timezone
@@ -675,9 +690,9 @@ DatetimeInterval = namedtuple("DatetimeInterval", ["start", "end"])
 def list_of_gaps_in_schedule(schedule, start_date, end_date):
     calendars = schedule.get_icalendars()
     intervals = []
-    start_datetime = timezone.datetime.combine(start_date, datetime.time.min) + timezone.timedelta(milliseconds=1)
+    start_datetime = datetime.datetime.combine(start_date, datetime.time.min) + datetime.timedelta(milliseconds=1)
     start_datetime = start_datetime.astimezone(pytz.UTC)
-    end_datetime = timezone.datetime.combine(end_date, datetime.time.max).astimezone(pytz.UTC)
+    end_datetime = datetime.datetime.combine(end_date, datetime.time.max).astimezone(pytz.UTC)
 
     for idx, calendar in enumerate(calendars):
         if calendar is not None:

@@ -3,6 +3,8 @@ from django.apps import apps
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
+from .refresh_ical_files import refresh_ical_final_schedule
+
 task_logger = get_task_logger(__name__)
 
 
@@ -16,6 +18,9 @@ def drop_cached_ical_task(schedule_pk):
         schedule.drop_cached_ical()
     except OnCallSchedule.DoesNotExist:
         task_logger.info(f"Tried to drop_cached_ical_task for non-existing schedule {schedule_pk}")
+    else:
+        # queue a refresh for final schedule
+        refresh_ical_final_schedule.apply_async((schedule_pk,))
     task_logger.info(f"Finish drop_cached_ical_task for schedule {schedule_pk}")
 
 

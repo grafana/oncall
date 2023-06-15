@@ -11,6 +11,7 @@ from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
 from apps.user_management.models import User
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.utils import (
     InvalidWebhookData,
     InvalidWebhookHeaders,
@@ -42,7 +43,7 @@ TRIGGER_TYPE_TO_LABEL = {
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, alert_group_id, organization_id=None, team_id=None, user_id=None):
+def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
     webhooks_qs = Webhooks.objects.filter(
         trigger_type=trigger_type,
@@ -94,12 +95,18 @@ def _build_payload(webhook, alert_group, user):
     return data
 
 
+def mask_authorization_header(headers):
+    if "Authorization" in headers:
+        headers["Authorization"] = WEBHOOK_FIELD_PLACEHOLDER
+    return headers
+
+
 def make_request(webhook, alert_group, data):
     status = {
         "url": None,
         "request_trigger": None,
         "request_headers": None,
-        "request_data": data,
+        "request_data": None,
         "status_code": None,
         "content": None,
         "webhook": webhook,
@@ -115,21 +122,24 @@ def make_request(webhook, alert_group, data):
         if triggered:
             status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
+            headers = mask_authorization_header(request_kwargs.get("headers", {}))
+            status["request_headers"] = json.dumps(headers)
             if "json" in request_kwargs:
                 status["request_data"] = json.dumps(request_kwargs["json"])
             else:
                 status["request_data"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
             status["status_code"] = response.status_code
-            content_length = response.headers.get("Content-Length")
-            if content_length and int(content_length) < WEBHOOK_RESPONSE_LIMIT:
+            content_length = len(response.content)
+            if content_length <= WEBHOOK_RESPONSE_LIMIT:
                 try:
                     status["content"] = json.dumps(response.json())
                 except JSONDecodeError:
                     status["content"] = response.content.decode("utf-8")
             else:
-                status["content"] = f"Response content exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
+                status[
+                    "content"
+                ] = f"Response content {content_length} exceeds {WEBHOOK_RESPONSE_LIMIT} character limit"
 
         return triggered, status, None, None
     except InvalidWebhookUrl as e:

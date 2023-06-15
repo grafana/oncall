@@ -37,7 +37,7 @@ import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
 import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
-import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
+// import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
@@ -122,7 +122,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
     const { isNotFoundError, isWrongTeamError } = errorData;
-    const { alertReceiveChannelStore } = store;
+    // const { alertReceiveChannelStore } = store;
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
@@ -176,22 +176,45 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   </div>
                 </div>
                 {showIntegrationSettings && (
-                  <IntegrationSettings
-                    alertGroupId={incident.pk}
-                    onUpdate={() => {
-                      alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
-                    }}
-                    onUpdateTemplates={() => {
-                      store.alertGroupStore.getAlert(id);
-                    }}
-                    startTab={IntegrationSettingsTab.Templates}
-                    id={incident.alert_receive_channel.id}
-                    onHide={() =>
+                  // <IntegrationSettings
+                  //   alertGroupId={incident.pk}
+                  //   onUpdate={() => {
+                  //     alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
+                  //   }}
+                  //   onUpdateTemplates={() => {
+                  //     store.alertGroupStore.getAlert(id);
+                  //   }}
+                  //   startTab={IntegrationSettingsTab.Templates}
+                  //   id={incident.alert_receive_channel.id}
+                  //   onHide={() =>
+                  //     this.setState({
+                  //       showIntegrationSettings: undefined,
+                  //     })
+                  //   }
+                  // />
+                  <Modal
+                    isOpen
+                    title="Edit template"
+                    onDismiss={() =>
                       this.setState({
                         showIntegrationSettings: undefined,
                       })
                     }
-                  />
+                  >
+                    <Text>
+                      Please go to{' '}
+                      <PluginLink
+                        query={{
+                          page: 'integrations',
+                          id: incident.alert_receive_channel.id,
+                          tab: IntegrationSettingsTab.Templates,
+                        }}
+                      >
+                        Integrations
+                      </PluginLink>{' '}
+                      to edit this template
+                    </Text>
+                  </Modal>
                 )}
                 {showAttachIncidentForm && (
                   <AttachIncidentForm
@@ -245,12 +268,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
 
     return (
-      <Block withBackground className={cx('block')}>
+      <Block className={cx('block')}>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
               <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
-                <IconButton name="arrow-left" size="xxl" />
+                <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">

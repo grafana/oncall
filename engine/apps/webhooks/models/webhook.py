@@ -23,6 +23,8 @@ from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
+WEBHOOK_FIELD_PLACEHOLDER = "****************"
+
 
 def generate_public_primary_key_for_webhook():
     prefix = "WH"

@@ -1,7 +1,17 @@
 import React, { Component } from 'react';
 
 import { SelectableValue, TimeRange } from '@grafana/data';
-import { IconButton, InlineSwitch, MultiSelect, TimeRangeInput, Select, LoadingPlaceholder, Input } from '@grafana/ui';
+import {
+  IconButton,
+  InlineSwitch,
+  MultiSelect,
+  TimeRangeInput,
+  Select,
+  LoadingPlaceholder,
+  Input,
+  Icon,
+  Tooltip,
+} from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { debounce, isEmpty, isUndefined, omitBy, pickBy } from 'lodash-es';
@@ -59,17 +69,10 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     const filterOptions = await filtersStore.updateOptionsForPage(page);
 
-    let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions);
+    let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions, query);
 
     if (isEmpty(values)) {
-      let newQuery = defaultFilters || { team: [] };
-      /*  if (filtersStore.values[page]) {
-        newQuery = { ...filtersStore.values[page] };
-      } else {
-        newQuery = defaultFilters || { team: [] };
-      } */
-
-      ({ filters, values } = parseFilters(newQuery, filterOptions));
+      ({ filters, values } = parseFilters(defaultFilters || { team: [] }, filterOptions, query));
     }
 
     this.setState({ filterOptions, filters, values }, () => this.onChange(true));
@@ -114,8 +117,13 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       <div className={cx('filters')}>
         {filters.map((filterOption: FilterOption) => (
           <div key={filterOption.name} className={cx('filter')}>
-            <Text type="secondary">{filterOption.display_name || capitalCase(filterOption.name)}:</Text>{' '}
-            {this.renderFilterOption(filterOption)}
+            <Text type="secondary">{filterOption.display_name || capitalCase(filterOption.name)}</Text>
+            {filterOption.description && (
+              <Tooltip content={filterOption.description}>
+                <Icon name="info-circle" />
+              </Tooltip>
+            )}
+            <Text type="secondary">:</Text> {this.renderFilterOption(filterOption)}
             <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
           </div>
         ))}
@@ -354,17 +362,20 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     store.filtersStore.updateValuesForPage(page, values);
 
-    Object.keys({ ...store.filtersStore.globalValues }).forEach((key) => {
-      if (!(key in values)) {
-        delete store.filtersStore.globalValues[key];
-      }
-    });
+    if (!isOnMount) {
+      // Skip updating local storage for mounting, this way URL won't overwrite local storage but subsequent actions WILL do
+      Object.keys({ ...store.filtersStore.globalValues }).forEach((key) => {
+        if (!(key in values)) {
+          delete store.filtersStore.globalValues[key];
+        }
+      });
 
-    const newGlobalValues = pickBy(values, (_, key) =>
-      filterOptions.some((option) => option.name === key && option.global)
-    );
+      const newGlobalValues = pickBy(values, (_, key) =>
+        filterOptions.some((option) => option.name === key && option.global)
+      );
 
-    store.filtersStore.globalValues = newGlobalValues;
+      store.filtersStore.globalValues = newGlobalValues;
+    }
 
     LocationHelper.update({ ...values }, 'partial');
     onChange(values, isOnMount);

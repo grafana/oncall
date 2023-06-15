@@ -13,6 +13,7 @@ from apps.schedules.constants import (
     ICAL_DATETIME_END,
     ICAL_DATETIME_START,
     ICAL_LAST_MODIFIED,
+    ICAL_LOCATION,
     ICAL_STATUS,
     ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
@@ -92,7 +93,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
         }
@@ -113,7 +114,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": None,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
             "shift": {"pk": override.public_primary_key},
             "source": "api",
         }
@@ -178,7 +179,7 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
         },
@@ -687,7 +688,9 @@ def test_preview_shift(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": new_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "users": [
+                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            ],
             "shift": {"pk": new_shift.public_primary_key},
             "source": "api",
         }
@@ -724,6 +727,69 @@ def test_preview_shift(make_organization, make_user_for_organization, make_sched
 
     # final ical schedule didn't change
     assert schedule._ical_file_primary == schedule_primary_ical
+
+
+@pytest.mark.django_db
+def test_preview_shift_do_not_change_rotation_events(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=9),
+        "rotation_start": start_date + timezone.timedelta(hours=9),
+        "duration": timezone.timedelta(hours=9),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=12),
+        "rotation_start": start_date + timezone.timedelta(hours=12),
+        "duration": timezone.timedelta(seconds=3600),
+        "priority_level": 2,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    other_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    other_shift.add_rolling_users([[other_user]])
+
+    rotation_events, final_events = schedule.preview_shift(on_call_shift, "UTC", start_date, days=1)
+
+    # check rotation events
+    expected_rotation_events = [
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "start": on_call_shift.start,
+            "end": on_call_shift.start + on_call_shift.duration,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": False,
+            "is_gap": False,
+            "priority_level": on_call_shift.priority_level,
+            "missing_users": [],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+            "shift": {"pk": on_call_shift.public_primary_key},
+            "source": "api",
+        }
+    ]
+    assert rotation_events == expected_rotation_events
 
 
 @pytest.mark.django_db
@@ -845,7 +911,9 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
             "is_gap": False,
             "priority_level": None,
             "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "users": [
+                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            ],
             "shift": {"pk": new_shift.public_primary_key},
             "source": "api",
         }
@@ -1352,6 +1420,7 @@ def test_upcoming_shift_for_user(
         )
         on_call_shift.add_rolling_users([[user]])
     schedule.refresh_ical_file()
+    schedule.refresh_ical_final_schedule()
 
     current_shift, upcoming_shift = schedule.upcoming_shift_for_user(admin)
     assert current_shift is not None and current_shift["start"] == on_call_shift.start
@@ -1408,11 +1477,31 @@ def test_refresh_ical_final_schedule_ok(
     schedule.refresh_ical_file()
 
     expected_events = {
-        # user, start, end
-        (u1.username, today, today + timezone.timedelta(seconds=(12 * 60 * 60) - 1)),
-        (u2.username, today + timezone.timedelta(hours=12), today + timezone.timedelta(hours=22)),
-        (u1.username, today + timezone.timedelta(hours=22), today + timezone.timedelta(hours=23)),
-        (u2.username, today + timezone.timedelta(hours=23), today + timezone.timedelta(seconds=(24 * 60 * 60) - 1)),
+        # user, start, end, type
+        (
+            u1.username,
+            today,
+            today + timezone.timedelta(seconds=(12 * 60 * 60) - 1),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+        ),
+        (
+            u2.username,
+            today + timezone.timedelta(hours=12),
+            today + timezone.timedelta(hours=22),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+        ),
+        (
+            u1.username,
+            today + timezone.timedelta(hours=22),
+            today + timezone.timedelta(hours=23),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.OVERRIDES],
+        ),
+        (
+            u2.username,
+            today + timezone.timedelta(hours=23),
+            today + timezone.timedelta(seconds=(24 * 60 * 60) - 1),
+            OnCallSchedule.CALENDAR_TYPE_VERBAL[OnCallSchedule.PRIMARY],
+        ),
     }
 
     for i in range(2):
@@ -1425,7 +1514,12 @@ def test_refresh_ical_final_schedule_ok(
         calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
         for component in calendar.walk():
             if component.name == ICAL_COMPONENT_VEVENT:
-                event = (component[ICAL_SUMMARY], component[ICAL_DATETIME_START].dt, component[ICAL_DATETIME_END].dt)
+                event = (
+                    component[ICAL_SUMMARY],
+                    component[ICAL_DATETIME_START].dt,
+                    component[ICAL_DATETIME_END].dt,
+                    component[ICAL_LOCATION],
+                )
                 assert event in expected_events
 
 
@@ -1602,7 +1696,51 @@ def test_refresh_ical_final_schedule_event_in_the_past(
 
     schedule.refresh_ical_final_schedule()
 
-    # check old event is dropped, recent one is kept unchanged
+    # check old event is dropped
+    calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
+    events = [component for component in calendar.walk() if component.name == ICAL_COMPONENT_VEVENT]
+    assert len(events) == 0
+
+
+@pytest.mark.django_db
+def test_refresh_ical_final_schedule_all_day_date_event(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+):
+    organization = make_organization()
+    u1 = make_user_for_organization(organization)
+    cached_ical_final_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID://Grafana Labs//Grafana On-Call//
+        CALSCALE:GREGORIAN
+        X-WR-CALNAME:Cup cut.
+        X-WR-TIMEZONE:UTC
+        BEGIN:VEVENT
+        SUMMARY:{}
+        DTSTART;VALUE=DATE:20221203
+        DTEND;VALUE=DATE:20221205
+        DTSTAMP;VALUE=DATE-TIME:20220414T190951Z
+        UID:O231U3VXVIYRX-202304140000-U5FWIHEASEWS2
+        LAST-MODIFIED;VALUE=DATE-TIME:20220414T190951Z
+        END:VEVENT
+        END:VCALENDAR
+    """.format(
+            u1.username
+        )
+    )
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        cached_ical_final_schedule=cached_ical_final_schedule,
+    )
+
+    schedule.refresh_ical_final_schedule()
+
+    # check old event is dropped
     calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
     events = [component for component in calendar.walk() if component.name == ICAL_COMPONENT_VEVENT]
     assert len(events) == 0

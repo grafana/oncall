@@ -3,6 +3,8 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
+x-user: &oncall-user "appuser"
+
 x-oncall-build: &oncall-build-args
   context: ./engine
   target: ${ONCALL_IMAGE_TARGET:-dev}
@@ -10,8 +12,10 @@ x-oncall-build: &oncall-build-args
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app
+  # see all the fun answers/comments here on why we need to do this
+  # tldr; using /dev/null as a default leads to a lot of fun problems
   # https://stackoverflow.com/a/60456034
-  - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
+  - ${ENTERPRISE_ENGINE:-/dev/null}:${ENTERPRISE_ENGINE_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
   - ${SQLITE_DB_FILE:-/dev/null}:/var/lib/oncall/oncall.db
   # this is mounted for testing purposes. Some of the authorization tests
   # reference this file
@@ -52,9 +56,10 @@ services:
       MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
-      - /etc/app/node_modules
+      - node_modules_dev:/etc/app/node_modules
       # https://stackoverflow.com/a/60456034
-      - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
+      # see the explaination above that uses the $ENTERPRISE_ENGINE env var
+      - ${ENTERPRISE_FRONTEND:-/dev/null}:${ENTERPRISE_FRONTEND_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
     profiles:
       - oncall_ui
 
@@ -63,6 +68,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: sh -c "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -84,6 +90,7 @@ services:
     container_name: oncall_engine_commands
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     env_file: *oncall-env-files
     environment: *oncall-env-vars
     volumes: *oncall-volumes
@@ -97,6 +104,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: "python manage.py start_celery"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -127,6 +135,7 @@ services:
     container_name: oncall_db_migration
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     command: "python manage.py migrate --noinput"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -198,8 +207,7 @@ services:
   mysql:
     container_name: mysql
     labels: *oncall-labels
-    image: mysql:5.7
-    platform: linux/amd64
+    image: mysql:8.0.32
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     environment:
@@ -211,7 +219,7 @@ services:
       labels: *oncall-labels
       resources:
         limits:
-          memory: 500m
+          memory: 1000m
           cpus: "0.5"
     healthcheck:
       test: "mysql -uroot -pempty oncall_local_dev -e 'select 1'"
@@ -225,8 +233,7 @@ services:
   mysql_to_create_grafana_db:
     container_name: mysql_to_create_grafana_db
     labels: *oncall-labels
-    image: mysql:5.7
-    platform: linux/amd64
+    image: mysql:8.0.32
     command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
@@ -272,16 +279,26 @@ services:
     profiles:
       - postgres
 
+  prometheus:
+    container_name: prometheus
+    labels: *oncall-labels
+    image: prom/prometheus
+    volumes:
+      - ./dev/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    profiles:
+      - prometheus
+
   grafana:
     container_name: grafana
     labels: *oncall-labels
-    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
+    image: "grafana/${GRAFANA_IMAGE:-grafana:latest}"
     restart: always
     environment:
       GF_SECURITY_ADMIN_USER: oncall
       GF_SECURITY_ADMIN_PASSWORD: oncall
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
-      GF_FEATURE_TOGGLES_ENABLE: topnav
     env_file:
       - ./dev/.env.${DB}.dev
     ports:
@@ -297,6 +314,7 @@ services:
     volumes:
       - grafanadata_dev:/var/lib/grafana
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+      - ./provisioning:/etc/grafana/provisioning
       - ${GRAFANA_DEV_PROVISIONING:-/dev/null}:/etc/grafana/grafana.ini
     depends_on:
       postgres:
@@ -315,6 +333,8 @@ volumes:
   postgresdata_dev:
     labels: *oncall-labels
   mysqldata_dev:
+    labels: *oncall-labels
+  node_modules_dev:
     labels: *oncall-labels
 
 networks:
