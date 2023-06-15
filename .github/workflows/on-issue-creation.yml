@@ -37,3 +37,40 @@ jobs:
           issue-number: ${{ github.event.issue.number }}
           body: |
             The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it in the PR description. Thank you :smile:!
+
+  add-mobile-app-label-and-assignees-to-mobile-app-issues:
+    name: Add mobile app label and assignees to mobile app issues
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'bug')
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: stefanbuck/github-issue-parser@v3
+        id: issue-form-values
+        with:
+          template-path: .github/ISSUE_TEMPLATE/0-bug-report-template.yml
+      - name: Add mobile app labels
+        # check to see if they've input anything into the mobile app input field
+        if: ${{ steps.issue-form-values.outputs.mobile-app }} != ''
+        uses: actions/github-script@v6
+        with:
+          # docs on this
+          # https://github.com/actions/github-script/tree/v6/
+          script: |
+            const { owner, repo } = context.repo;
+            const restApiCallArgs = {
+              owner,
+              repo,
+              issue_number: context.issue.number,
+            };
+
+            await github.rest.issues.addLabels({
+              ...restApiCallArgs,
+              labels: ["part:mobile"]
+            });
+
+            await github.rest.issues.addAssignees({
+              ...restApiCallArgs,
+              assignees: ["dieterbe", "imtoori"]
+            });

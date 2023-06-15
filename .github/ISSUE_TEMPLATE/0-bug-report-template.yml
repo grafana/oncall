@@ -84,21 +84,11 @@ body:
     validations:
       required: false
   - type: input
-    id: user-os
+    id: mobile-app
     attributes:
-      label: User's OS?
-      description: What operating system are you running locally?
-      placeholder: "ex. MacOS Big Sur 11.7, or Ubuntu 20.04..."
-    validations:
-      required: false
-  - type: dropdown
-    id: regression
-    attributes:
-      label: Is this a regression?
-      description: A regression means that the feature was working, then you upgraded, and now it's broken.
-      options:
-        - "No"
-        - "Yes"
+      label: Grafana OnCall Mobile App
+      description: Is the issue you are facing related to the Grafana OnCall mobile app? If so, please mention which app version, and OS + version, you are running.
+      placeholder: "ex. v1.0.6 - build 1038 iOS 16.6"
     validations:
       required: false
   - type: textarea
