@@ -148,6 +148,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `locale` column to mobile app user settings table by @joeyorlando [#2131](https://github.com/grafana/oncall/pull/2131)
 - Update notification text for "You're going on call" push notifications to include information about the shift start
   and end times by @joeyorlando ([#2131](https://github.com/grafana/oncall/pull/2131))
+- Use Telegram polling protocol instead of a webhook if `TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
+  ([#2250](https://github.com/grafana/oncall/pull/2250))
 
 ### Fixed
 
@@ -208,7 +210,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow mobile app to consume "internal" schedules API endpoints by @joeyorlando ([#2109](https://github.com/grafana/oncall/pull/2109))
 - Add inbound email address in integration API by @vadimkerr ([#2113](https://github.com/grafana/oncall/pull/2113))
-- Use Telegram polling protocol instead of a webhook if `TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
 
 ### Changed
 

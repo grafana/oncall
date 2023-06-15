@@ -35,7 +35,7 @@ def error_handler(update, context):
     try:
         raise context.error
     except telegram.error.Conflict as e:
-        logger.warning(f"Tried to start telegram long polling, but conflict exists, got error: {e}")
+        logger.warning(f"Tried to getUpdates() using telegram long polling, but conflict exists, got error: {e}")
 
 
 def handle_message(update, context):

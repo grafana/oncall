@@ -48,7 +48,7 @@ class TelegramClient:
 
     def delete_webhook(self):
         webhook_info = self.api_client.get_webhook_info()
-        if webhook_info == "":
+        if webhook_info.url == "":
             return
 
         self.api_client.delete_webhook()
