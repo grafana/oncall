@@ -15,9 +15,10 @@ jobs:
           project-url: https://github.com/orgs/grafana/projects/119
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
 
-  add-latest-version-comment:
-    name: Add latest version comment to issue
+  add-latest-version-comment-to-feature-request-issues:
+    name: Add latest version comment to feature request issues
     runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'feature request')
     permissions:
       issues: write
     steps:
@@ -37,32 +38,39 @@ jobs:
           body: |
             The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it in the PR description. Thank you :smile:!
 
-  verify-that-atleast-one-label-is-added:
-    name: Verify that atleast one label is added to issue
-    # basically only run this job if the issue has no labels at the time of creation
-    # AND the person creating the issue is a member of the Grafana org
-    # https://docs.github.com/en/graphql/reference/enums#commentauthorassociation
-    # MEMBER - Author is a member of the organization that owns the repository.
-    # OWNER - Author is the owner of the repository.
-    if: join(github.event.issue.labels.*.name, '') == '' && contains(fromJSON('["MEMBER", "OWNER"]'), github.event.issue.author_association)
+  map-selected-product-areas-to-labels-and-assignees:
+    name: Map selected product areas to labels and assignees
     runs-on: ubuntu-latest
+    # try to avoid running this job for an issue that is created via a tasklist
+    # only run it for issues created via the bug or feature request issue templates
+    if: contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'feature request')
     permissions:
       issues: write
     steps:
-      - name: Add comment to remind about adding labels
-        uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
+      - uses: actions/checkout@v2
+      - id: issue-form-values
+        uses: stefanbuck/github-issue-parser@v3
+
+      - name: Map mobile app product area to appropriate assignees
+        uses: actions-ecosystem/action-add-assignees@v1
+        if: contains(steps.issue-form-values.outputs.issueparser_product-area, 'Alert Flow & Configuration')
         with:
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            Thank you for opening this issue! We noticed that there are currently no labels assigned to the issue :eyes:. Please be sure to add one or more that most accurately describe the issue. In the event that no labels are added, this issue will be automatically closed in 7 days.
-      # https://docs.github.com/en/actions/managing-issues-and-pull-requests/adding-labels-to-issues#creating-the-workflow
-      - name: Add no-labels label to issue
-        uses: actions/github-script@v6
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: |
+            imtoori
+            dieterbe
+
+      - name: Map selected product area(s) to issue labels
+        uses: actions-ecosystem/action-add-labels@v1
+        # github actions have a weird ternary operator, see below for more details
+        # https://docs.github.com/en/actions/learn-github-actions/expressions#literals:~:text=GitHub%20offers%20ternary%20operator%20like%20behaviour%20that%20you%20can%20use%20in%20expressions
         with:
-          script: |
-            github.rest.issues.addLabels({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: ["no-labels"]
-            })
+          labels: |
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Auth') && 'part:auth/teams' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Chatops') && 'part:chatops' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Helm') && 'part:deployment/helm' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Mobile App') && 'part:mobile' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Schedules') && 'part:schedules' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Terraform') && 'part:API/Terraform' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Other') && 'no info or need to discuss' || '' }}
