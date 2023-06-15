@@ -458,7 +458,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             this.setState({
               openRoutes: isChecked
                 ? newOpenRoutes.concat(channelFilterId)
-                : newOpenRoutes.filter((filterId) => filterId != channelFilterId),
+                : newOpenRoutes.filter((filterId) => filterId !== channelFilterId),
             });
           },
           collapsedView: (toggle) => (
