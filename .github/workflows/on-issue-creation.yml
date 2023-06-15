@@ -53,7 +53,7 @@ jobs:
 
       - run: echo $JSON_STRING
         env:
-          JSON_STRING: ${{ steps.issue-form-values.outputs }}
+          JSON_STRING: ${{ steps.issue-form-values.outputs.jsonString }}
 
       - name: Map mobile app product area to appropriate assignees
         uses: actions-ecosystem/action-add-assignees@v1
