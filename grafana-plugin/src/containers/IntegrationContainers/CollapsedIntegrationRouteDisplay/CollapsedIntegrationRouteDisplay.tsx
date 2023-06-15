@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -29,12 +29,8 @@ interface CollapsedIntegrationRouteDisplayProps {
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
   ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
     const store = useStore();
-    const { escalationChainStore, alertReceiveChannelStore, telegramChannelStore } = store;
+    const { escalationChainStore, alertReceiveChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
-
-    useEffect(() => {
-      telegramChannelStore.updateItems();
-    }, [channelFilterId]);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
     if (!channelFilter) {

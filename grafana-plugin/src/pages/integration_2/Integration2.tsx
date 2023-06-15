@@ -60,6 +60,7 @@ import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import styles from 'pages/integration_2/Integration2.module.scss';
+import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -116,8 +117,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.props;
 
     const {
-      store: { alertReceiveChannelStore },
+      store,
+      store: { alertReceiveChannelStore, telegramChannelStore },
     } = this.props;
+
+    if (store.hasFeature(AppFeature.Telegram)) {
+      // workaround until we get the whole telegram data in response
+      telegramChannelStore.updateItems();
+    }
 
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
