@@ -69,6 +69,7 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+import { AppFeature } from 'state/features';
 
 const cx = cn.bind(styles);
 
@@ -116,8 +117,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.props;
 
     const {
-      store: { alertReceiveChannelStore },
+      store,
+      store: { alertReceiveChannelStore, telegramChannelStore },
     } = this.props;
+
+    if (store.hasFeature(AppFeature.Telegram)) {
+      // workaround until we get the whole telegram data in response
+      telegramChannelStore.updateItems();
+    }
 
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
