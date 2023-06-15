@@ -15,6 +15,7 @@ import { ChannelFilter } from 'models/channel_filter';
 import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { useStore } from 'state/useStore';
+import { openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
@@ -162,6 +163,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     async function onRouteDeleteConfirm() {
       setRouteIdForDeletion(undefined);
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
+      openNotification('Route has been deleted');
     }
   }
 );
