@@ -38,39 +38,39 @@ jobs:
           body: |
             The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it in the PR description. Thank you :smile:!
 
-  add-mobile-app-label-and-assignees-to-mobile-app-issues:
-    name: Add mobile app label and assignees to mobile app issues
+  map-selected-product-areas-to-labels-and-assignees:
+    name: Map selected product areas to labels and assignees
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, 'bug')
+    # try to avoid running this job for an issue that is created via a tasklist
+    # only run it for issues created via the bug or feature request issue templates
+    if: contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'feature request')
     permissions:
       issues: write
     steps:
       - uses: actions/checkout@v2
-      - uses: stefanbuck/github-issue-parser@v3
-        id: issue-form-values
-        with:
-          template-path: .github/ISSUE_TEMPLATE/0-bug-report-template.yml
-      - name: Add mobile app labels
-        # check to see if they've input anything into the mobile app input field
-        if: ${{ steps.issue-form-values.outputs.mobile-app }} != ''
-        uses: actions/github-script@v6
-        with:
-          # docs on this
-          # https://github.com/actions/github-script/tree/v6/
-          script: |
-            const { owner, repo } = context.repo;
-            const restApiCallArgs = {
-              owner,
-              repo,
-              issue_number: context.issue.number,
-            };
+      - id: issue-form-values
+        uses: stefanbuck/github-issue-parser@v3
 
-            await github.rest.issues.addLabels({
-              ...restApiCallArgs,
-              labels: ["part:mobile"]
-            });
+      - name: Map mobile app product area to appropriate assignees
+        uses: actions-ecosystem/action-add-assignees@v1
+        if: contains(steps.issue-form-values.outputs.issueparser_product-area, 'Alert Flow & Configuration')
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: |
+            imtoori
+            dieterbe
 
-            await github.rest.issues.addAssignees({
-              ...restApiCallArgs,
-              assignees: ["dieterbe", "imtoori"]
-            });
+      - name: Map selected product area(s) to issue labels
+        uses: actions-ecosystem/action-add-labels@v1
+        # github actions have a weird ternary operator, see below for more details
+        # https://docs.github.com/en/actions/learn-github-actions/expressions#literals:~:text=GitHub%20offers%20ternary%20operator%20like%20behaviour%20that%20you%20can%20use%20in%20expressions
+        with:
+          labels: |
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Auth') && 'part:auth/teams' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Chatops') && 'part:chatops' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Helm') && 'part:deployment/helm' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Mobile App') && 'part:mobile' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Schedules') && 'part:schedules' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Terraform') && 'part:API/Terraform' || '' }}
+            ${{ contains(steps.issue-form-values.outputs.issueparser_product-area, 'Other') && 'no info or need to discuss' || '' }}

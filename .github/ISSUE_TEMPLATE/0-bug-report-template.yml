@@ -1,18 +1,16 @@
 name: New Bug Report
 description: File a bug report
-title: "Product-Area-Here: short description of bug here"
 labels:
   - bug
-  - needs triage
 body:
   - type: markdown
     attributes:
       value: |
         Hi 👋, thanks for taking the time to fill out this bug report!
 
-        Please try to give your issue a good title. Try using the product-area where you are having an issue and a brief description of the problem. Like this:
-        - `Schedules: I get an error message when I press on button X` or
-        - `Slack: notification Y contains a link to the wrong spot`
+        Please try to give your issue a good title. Try using a brief description of the problem. Like this:
+        - `When trying to create a schedule, I get an error message when I press on button X` or
+        - `In Slack, notification Y contains a link to the wrong spot`
   - type: markdown
     attributes:
       value: |
@@ -27,7 +25,7 @@ body:
         #
         Describe your bug. What happened? What did you expect to happen?
 
-        **Hot Tip:** Record your screen and add it here as a gif.
+        **Pro Tip**: Record your screen and add it here as a gif.
       value: |
         **What happened**:
           -
@@ -54,8 +52,25 @@ body:
   - type: input
     id: oncall-version
     attributes:
-      label: What Grafana OnCall version are you using?
-      placeholder: "ex: v1.1.12 or r170-v1.2.43"
+      label: Grafana OnCall Version
+      description: What Grafana OnCall version are you using? If this is related to the Grafana OnCall mobile app, please mention which app version, and OS (plus version), you are running.
+      placeholder: "ex: v1.1.12, r170-v1.2.43, or v1.0.6 - build 1038 iOS 16.6"
+    validations:
+      required: true
+  - type: dropdown
+    id: product-area
+    attributes:
+      label: Which Grafana OnCall product area(s) best relate to the issue you're facing?
+      multiple: true
+      options:
+        - Alert Flow & Configuration
+        - Auth
+        - Chatops
+        - Helm
+        - Mobile App
+        - Schedules
+        - Terraform
+        - Other
     validations:
       required: true
   - type: markdown
@@ -79,16 +94,8 @@ body:
     id: user-browser
     attributes:
       label: User's Browser?
-      description: Is the bug occuring in Grafana OnCall's user-interface? If so, what browsers are you seeing the problem on? You may choose more than one.
+      description: Is the bug occuring in the Grafana OnCall web plugin? If so, what browsers are you seeing the problem on? You may choose more than one.
       placeholder: "ex. Google Chrome Version 112.0.5615.137 (Official Build) (arm64)..."
-    validations:
-      required: false
-  - type: input
-    id: mobile-app
-    attributes:
-      label: Grafana OnCall Mobile App
-      description: Is the issue you are facing related to the Grafana OnCall mobile app? If so, please mention which app version, and OS + version, you are running.
-      placeholder: "ex. v1.0.6 - build 1038 iOS 16.6"
     validations:
       required: false
   - type: textarea

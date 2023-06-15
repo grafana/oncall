@@ -3,17 +3,15 @@ description: Request a new feature in Grafana OnCall!
 title: "Product-Area-Here: short description of requested feature here"
 labels:
   - feature request
-  - needs triage
 body:
   - type: markdown
     attributes:
       value: |
         Hi 👋, thanks for taking the time to request a new feature!
 
-        Please try to give your feature request a good title. Try using the product-area related to your feature request, and a
-        brief description of what you'd like to see. Like this:
-        - `Schedules: ability to easily swap an OnCall shift with one of my teammates` or
-        - `Slack: push a button and magically fix my alert`
+        Please try to give your feature request a good title. Try using a brief description of what you'd like to see. Like this:
+        - `Add the ability to easily swap an OnCall shift with one of my teammates` or
+        - `Within Slack, push a button and magically fix my alert`
   - type: markdown
     attributes:
       value: |
@@ -23,6 +21,22 @@ body:
     attributes:
       label: What would you like to see!
       description: Describe what pain-point(s) this new feature would solve. How would you envision it working?
+    validations:
+      required: true
+  - type: dropdown
+    id: product-area
+    attributes:
+      label: Which Grafana OnCall product area(s) best relate to the feature you're proposing?
+      multiple: true
+      options:
+        - Alert Flow & Configuration
+        - Auth
+        - Chatops
+        - Helm
+        - Mobile App
+        - Schedules
+        - Terraform
+        - Other
     validations:
       required: true
   - type: textarea
