@@ -53,7 +53,7 @@ jobs:
 
       - name: Map mobile app product area to appropriate assignees
         uses: actions-ecosystem/action-add-assignees@v1
-        if: contains(steps.issue-form-values.outputs.issueparser_product-area, 'Alert Flow & Configuration')
+        if: contains(steps.issue-form-values.outputs.issueparser_product-area, 'Mobile App')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           assignees: |

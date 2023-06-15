@@ -1,6 +1,5 @@
 name: Feature Request
 description: Request a new feature in Grafana OnCall!
-title: "Product-Area-Here: short description of requested feature here"
 labels:
   - feature request
 body:
