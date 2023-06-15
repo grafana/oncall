@@ -81,8 +81,8 @@ interface Integration2State extends PageBaseState {
   isEditRegexpRouteTemplateModalOpen: boolean;
   channelFilterIdForEdit: ChannelFilter['id'];
   isTemplateSettingsOpen: boolean;
-  newRoutes: string[];
   isAddingRoute: boolean;
+  openRoutes: string[];
 }
 
 const ACTIONS_LIST_WIDTH = 200;
@@ -102,8 +102,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isEditRegexpRouteTemplateModalOpen: false,
       channelFilterIdForEdit: undefined,
       isTemplateSettingsOpen: false,
-      newRoutes: [],
       isAddingRoute: false,
+      openRoutes: [],
     };
   }
 
@@ -416,7 +416,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             filtering_term_type: 1, // non-regex
           })
           .then(async (channelFilter: ChannelFilter) => {
-            this.setState({ isAddingRoute: false, newRoutes: this.state.newRoutes.concat(channelFilter.id) });
+            this.setState((prevState) => ({
+              isAddingRoute: false,
+              openRoutes: prevState.openRoutes.concat(channelFilter.id),
+            }));
             await alertReceiveChannelStore.updateChannelFilters(id, true);
             await escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
             openNotification('A new route has been added');
@@ -439,6 +442,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       },
     } = this.props;
 
+    const { openRoutes } = this.state;
+
     const templates = alertReceiveChannelStore.templates[id];
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
@@ -447,13 +452,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         ({
           canHoverIcon: true,
           isCollapsible: true,
-          // this will keep new routes expanded at the very first time
-          isExpanded: this.state.newRoutes.indexOf(channelFilterId) > -1 ? true : false,
-          onStateChange: () => {
-            if (this.state.newRoutes.indexOf(channelFilterId) > -1) {
-              // this will close them on user action
-              this.setState((prevState) => ({ newRoutes: prevState.newRoutes.filter((r) => r !== channelFilterId) }));
-            }
+          isExpanded: openRoutes.indexOf(channelFilterId) > -1,
+          onStateChange: (isChecked: boolean) => {
+            const newOpenRoutes = [...openRoutes];
+            this.setState({
+              openRoutes: isChecked
+                ? newOpenRoutes.concat(channelFilterId)
+                : newOpenRoutes.filter((filterId) => filterId != channelFilterId),
+            });
           },
           collapsedView: (toggle) => (
             <CollapsedIntegrationRouteDisplay
