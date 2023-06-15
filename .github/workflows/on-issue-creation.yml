@@ -51,6 +51,10 @@ jobs:
       - id: issue-form-values
         uses: stefanbuck/github-issue-parser@v3
 
+      - run: echo $JSON_STRING
+        env:
+          JSON_STRING: ${{ steps.issue-form-values.outputs }}
+
       - name: Map mobile app product area to appropriate assignees
         uses: actions-ecosystem/action-add-assignees@v1
         if: contains(steps.issue-form-values.outputs.issueparser_product-area, 'Mobile App')
