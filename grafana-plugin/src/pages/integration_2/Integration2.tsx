@@ -22,7 +22,8 @@ import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 import { debounce } from 'throttle-debounce';
 
-import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
@@ -60,6 +61,7 @@ import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import styles from 'pages/integration_2/Integration2.module.scss';
+import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -81,8 +83,8 @@ interface Integration2State extends PageBaseState {
   isEditRegexpRouteTemplateModalOpen: boolean;
   channelFilterIdForEdit: ChannelFilter['id'];
   isTemplateSettingsOpen: boolean;
-  newRoutes: string[];
   isAddingRoute: boolean;
+  openRoutes: string[];
 }
 
 const ACTIONS_LIST_WIDTH = 200;
@@ -102,8 +104,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isEditRegexpRouteTemplateModalOpen: false,
       channelFilterIdForEdit: undefined,
       isTemplateSettingsOpen: false,
-      newRoutes: [],
       isAddingRoute: false,
+      openRoutes: [],
     };
   }
 
@@ -116,8 +118,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.props;
 
     const {
-      store: { alertReceiveChannelStore },
+      store,
+      store: { alertReceiveChannelStore, telegramChannelStore },
     } = this.props;
+
+    if (store.hasFeature(AppFeature.Telegram)) {
+      // workaround until we get the whole telegram data in response
+      telegramChannelStore.updateItems();
+    }
 
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
@@ -416,7 +424,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             filtering_term_type: 1, // non-regex
           })
           .then(async (channelFilter: ChannelFilter) => {
-            this.setState({ isAddingRoute: false, newRoutes: this.state.newRoutes.concat(channelFilter.id) });
+            this.setState((prevState) => ({
+              isAddingRoute: false,
+              openRoutes: prevState.openRoutes.concat(channelFilter.id),
+            }));
             await alertReceiveChannelStore.updateChannelFilters(id, true);
             await escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
             openNotification('A new route has been added');
@@ -439,6 +450,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       },
     } = this.props;
 
+    const { openRoutes } = this.state;
+
     const templates = alertReceiveChannelStore.templates[id];
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
@@ -447,13 +460,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         ({
           canHoverIcon: true,
           isCollapsible: true,
-          // this will keep new routes expanded at the very first time
-          isExpanded: this.state.newRoutes.indexOf(channelFilterId) > -1 ? true : false,
-          onStateChange: () => {
-            if (this.state.newRoutes.indexOf(channelFilterId) > -1) {
-              // this will close them on user action
-              this.setState((prevState) => ({ newRoutes: prevState.newRoutes.filter((r) => r !== channelFilterId) }));
-            }
+          isExpanded: openRoutes.indexOf(channelFilterId) > -1,
+          onStateChange: (isChecked: boolean) => {
+            const newOpenRoutes = [...openRoutes];
+            this.setState({
+              openRoutes: isChecked
+                ? newOpenRoutes.concat(channelFilterId)
+                : newOpenRoutes.filter((filterId) => filterId !== channelFilterId),
+            });
           },
           collapsedView: (toggle) => (
             <CollapsedIntegrationRouteDisplay

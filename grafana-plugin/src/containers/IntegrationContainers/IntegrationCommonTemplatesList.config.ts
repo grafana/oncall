@@ -27,7 +27,7 @@ export const commonTemplatesToRender: TemplateBlock[] = [
         name: 'resolve_condition_template',
         label: 'Autoresolution',
         labelTooltip:
-          'If Autoresolution Template is True, the alert will resolve its group as "resolved by source". If the group is already resolved, the alert will be added to that group.',
+          'If Autoresolution Template is True, the alert will resolve its group as "resolved by source". If the group is already resolved, the alert will be added to that group',
         height: MONACO_INPUT_HEIGHT_SMALL,
       },
     ],

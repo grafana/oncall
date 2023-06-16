@@ -1,4 +1,5 @@
 import datetime
+import re
 import typing
 from collections import defaultdict
 
@@ -30,6 +31,8 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
     """
 
     class RepeatedEvent(UnfoldableCalendar.RepeatedEvent):
+        RE_DATETIME_VALUE = re.compile(r"\d+T\d+")
+
         class Repetition(UnfoldableCalendar.RepeatedEvent.Repetition):
             """
             A repetition of an event. Overridden version of
@@ -39,6 +42,26 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
             """
 
             ATTRIBUTES_TO_DELETE_ON_COPY = ["RDATE", "EXDATE"]
+
+        def create_rule_with_start(self, rule_string, start):
+            """Override to handle issue with non-UTC UNTIL value including time information."""
+            try:
+                return super().create_rule_with_start(rule_string, start)
+            except ValueError:
+                # string: FREQ=WEEKLY;UNTIL=20191023T100000;BYDAY=TH;WKST=SU
+                # ValueError: RRULE UNTIL values must be specified in UTC when DTSTART is timezone-aware
+                # https://stackoverflow.com/a/49991809
+                rule_list = rule_string.split(";UNTIL=")
+                assert len(rule_list) == 2
+                date_end_index = rule_list[1].find(";")
+                if date_end_index == -1:
+                    date_end_index = len(rule_list[1])
+                until_string = rule_list[1][:date_end_index]
+                if self.RE_DATETIME_VALUE.match(until_string):
+                    rule_string = rule_list[0] + rule_list[1][date_end_index:] + ";UNTIL=" + until_string + "Z"
+                    return super().create_rule_with_start(rule_string, self.start)
+                # otherwise, keep raising
+                raise
 
     def between(self, start, stop):
         """Return events at a time between start (inclusive) and end (inclusive)"""

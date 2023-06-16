@@ -144,19 +144,6 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             instance.start_drop_ical_and_check_schedule_tasks(schedule)
         return instance
 
-    def validate_name(self, name):
-        organization = self.context["request"].auth.organization
-        if name is None:
-            return name
-        try:
-            obj = CustomOnCallShift.objects.get(organization=organization, name=name)
-        except CustomOnCallShift.DoesNotExist:
-            return name
-        if self.instance and obj.id == self.instance.id:
-            return name
-        else:
-            raise BadRequest(detail="On-call shift with this name already exists")
-
     def validate_by_day(self, by_day):
         if by_day:
             for day in by_day:
