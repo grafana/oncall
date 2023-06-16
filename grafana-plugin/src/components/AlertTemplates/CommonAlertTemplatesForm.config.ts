@@ -108,7 +108,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description:
       'Reduce noise, minimize duplication with Alert Grouping, based on time, alert content, and even multiple features at the same time.  Check the cheasheet to customize your template.',
     additionalData: {
-      data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
+      data: 'Alerts with this Grouping ID are grouped together',
     },
   },
   acknowledge_condition_template: {
