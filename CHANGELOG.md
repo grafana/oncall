@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Change .Values.externalRabbitmq.passwordKey from `password` to `""` (default value `rabbitmq-password`) ([#864](https://github.com/grafana/oncall/pull/864))
+- Remove deprecated `permissions` string array from the internal API user serializer by @joeyorlando ([#2269](https://github.com/grafana/oncall/pull/2269))
+
+### Added
+
+- Add `locale` column to mobile app user settings table by @joeyorlando [#2131](https://github.com/grafana/oncall/pull/2131)
+- Update notification text for "You're going on call" push notifications to include information about the shift start
+  and end times by @joeyorlando ([#2131](https://github.com/grafana/oncall/pull/2131))
+
+### Fixed
+
+- Handle non-UTC UNTIL datetime value when repeating ical events [#2241](https://github.com/grafana/oncall/pull/2241)
+
+## v1.2.44 (2023-06-14)
+
 ### Added
 
 - Users with the Viewer basic role can now connect and use the mobile app ([#1892](https://github.com/grafana/oncall/pull/1892))

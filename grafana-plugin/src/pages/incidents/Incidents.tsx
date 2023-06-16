@@ -166,7 +166,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <div className={cx('cards', 'row')}>
         <div key="new" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell" size="xxxl" />}
+            icon={<Icon name="bell" size="xxl" />}
             description="Firing"
             title={newIncidentsCount}
             selected={status.includes(IncidentStatus.Firing)}
@@ -180,7 +180,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         </div>
         <div key="acknowledged" className={cx('col')}>
           <CardButton
-            icon={<Icon name="eye" size="xxxl" />}
+            icon={<Icon name="eye" size="xxl" />}
             description="Acknowledged"
             title={acknowledgedIncidentsCount}
             selected={status.includes(IncidentStatus.Acknowledged)}
@@ -194,7 +194,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         </div>
         <div key="resolved" className={cx('col')}>
           <CardButton
-            icon={<Icon name="check" size="xxxl" />}
+            icon={<Icon name="check" size="xxl" />}
             description="Resolved"
             title={resolvedIncidentsCount}
             selected={status.includes(IncidentStatus.Resolved)}
@@ -208,7 +208,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         </div>
         <div key="silenced" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell-slash" size="xxxl" />}
+            icon={<Icon name="bell-slash" size="xxl" />}
             description="Silenced"
             title={silencedIncidentsCount}
             selected={status.includes(IncidentStatus.Silenced)}

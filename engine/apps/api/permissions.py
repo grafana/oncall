@@ -298,30 +298,3 @@ class IsStaff(permissions.BasePermission):
 
 RBACPermissionsAttribute = typing.Dict[str, typing.List[LegacyAccessControlCompatiblePermission]]
 RBACObjectPermissionsAttribute = typing.Dict[permissions.BasePermission, typing.List[str]]
-
-
-# The below is legacy, it is only needed currently for backward compatibility w/ users running
-# older "pinned" version of Grafana in Grafana Cloud
-_DONT_USE_LEGACY_VIEWER_PERMISSIONS = []
-_DONT_USE_LEGACY_EDITOR_PERMISSIONS = ["update_incidents", "update_own_settings", "view_other_users"]
-_DONT_USE_LEGACY_ADMIN_PERMISSIONS = _DONT_USE_LEGACY_EDITOR_PERMISSIONS + [
-    "update_alert_receive_channels",
-    "update_escalation_policies",
-    "update_notification_policies",
-    "update_general_log_channel_id",
-    "update_other_users_settings",
-    "update_integrations",
-    "update_schedules",
-    "update_custom_actions",
-    "update_api_tokens",
-    "update_teams",
-    "update_maintenances",
-    "update_global_settings",
-    "send_demo_alert",
-]
-
-DONT_USE_LEGACY_PERMISSION_MAPPING: typing.Dict[LegacyAccessControlRole, typing.List[str]] = {
-    LegacyAccessControlRole.VIEWER: _DONT_USE_LEGACY_VIEWER_PERMISSIONS,
-    LegacyAccessControlRole.EDITOR: _DONT_USE_LEGACY_EDITOR_PERMISSIONS,
-    LegacyAccessControlRole.ADMIN: _DONT_USE_LEGACY_ADMIN_PERMISSIONS,
-}

@@ -10,7 +10,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { useStore } from 'state/useStore';
-import { showApiError } from 'utils';
+import { openNotification, showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import { form } from './MaintenanceForm.config';
@@ -47,8 +47,9 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
       )
       .then(() => {
         onHide();
-
         onUpdate();
+
+        openNotification('Maintenance has been started');
       })
       .catch(showApiError);
   }, []);

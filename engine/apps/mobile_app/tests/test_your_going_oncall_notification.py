@@ -1,3 +1,4 @@
+import json
 import typing
 from unittest import mock
 
@@ -25,9 +26,9 @@ def clear_cache():
 
 
 def _create_schedule_event(
-    start_time: timezone.datetime, shift_pk: str, users: typing.List[ScheduleEventUser]
+    start_time: timezone.datetime, end_time: timezone.datetime, shift_pk: str, users: typing.List[ScheduleEventUser]
 ) -> ScheduleEvent:
-    return {"start": start_time, "shift": {"pk": shift_pk}, "users": users}
+    return {"start": start_time, "end": end_time, "shift": {"pk": shift_pk}, "users": users}
 
 
 @pytest.mark.parametrize(
@@ -44,6 +45,171 @@ def test_shift_starts_within_range(timing_window_lower, timing_window_upper, sec
     assert (
         tasks._shift_starts_within_range(timing_window_lower, timing_window_upper, seconds_until_shift_starts)
         == expected
+    )
+
+
+@pytest.mark.django_db
+def test_get_youre_going_oncall_notification_title(make_organization_and_user, make_user, make_schedule):
+    schedule_name = "asdfasdfasdfasdf"
+
+    organization, user = make_organization_and_user()
+    user2 = make_user(organization=organization)
+    schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
+    shift_pk = "mncvmnvc"
+    user_pk = user.public_primary_key
+    user_locale = "fr_CA"
+    seconds_until_going_oncall = 600
+    humanized_time_until_going_oncall = "10 minutes"
+
+    same_day_shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
+    same_day_shift_end = timezone.datetime(2023, 7, 8, 17, 0, 0)
+
+    multiple_day_shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
+    multiple_day_shift_end = timezone.datetime(2023, 7, 12, 17, 0, 0)
+
+    same_day_shift = _create_schedule_event(
+        same_day_shift_start,
+        same_day_shift_end,
+        shift_pk,
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
+    multiple_day_shift = _create_schedule_event(
+        multiple_day_shift_start,
+        multiple_day_shift_end,
+        shift_pk,
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
+    maus = MobileAppUserSettings.objects.create(user=user, locale=user_locale)
+    maus_no_locale = MobileAppUserSettings.objects.create(user=user2)
+
+    ##################
+    # same day shift
+    ##################
+    same_day_shift_title = tasks._get_youre_going_oncall_notification_title(
+        schedule, seconds_until_going_oncall, same_day_shift, maus
+    )
+    same_day_shift_no_locale_title = tasks._get_youre_going_oncall_notification_title(
+        schedule, seconds_until_going_oncall, same_day_shift, maus_no_locale
+    )
+
+    assert (
+        same_day_shift_title
+        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 09 h 00 - 17 h 00"
+    )
+    assert (
+        same_day_shift_no_locale_title
+        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 9:00\u202fAM - 5:00\u202fPM"
+    )
+
+    ##################
+    # multiple day shift
+    ##################
+    multiple_day_shift_title = tasks._get_youre_going_oncall_notification_title(
+        schedule, seconds_until_going_oncall, multiple_day_shift, maus
+    )
+    multiple_day_shift_no_locale_title = tasks._get_youre_going_oncall_notification_title(
+        schedule, seconds_until_going_oncall, multiple_day_shift, maus_no_locale
+    )
+
+    assert (
+        multiple_day_shift_title
+        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 2023-07-08 09 h 00 - 2023-07-12 17 h 00"
+    )
+    assert (
+        multiple_day_shift_no_locale_title
+        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM"
+    )
+
+
+@mock.patch("apps.mobile_app.tasks._get_youre_going_oncall_notification_title")
+@mock.patch("apps.mobile_app.tasks._construct_fcm_message")
+@mock.patch("apps.mobile_app.tasks.APNSPayload")
+@mock.patch("apps.mobile_app.tasks.Aps")
+@mock.patch("apps.mobile_app.tasks.ApsAlert")
+@mock.patch("apps.mobile_app.tasks.CriticalSound")
+@pytest.mark.django_db
+def test_get_youre_going_oncall_fcm_message(
+    mock_critical_sound,
+    mock_aps_alert,
+    mock_aps,
+    mock_apns_payload,
+    mock_construct_fcm_message,
+    mock_get_youre_going_oncall_notification_title,
+    make_organization_and_user,
+    make_schedule,
+):
+    mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
+    mock_notification_title = "asdfasdf"
+    shift_pk = "mncvmnvc"
+    seconds_until_going_oncall = 600
+
+    mock_construct_fcm_message.return_value = mock_fcm_message
+    mock_get_youre_going_oncall_notification_title.return_value = mock_notification_title
+
+    organization, user = make_organization_and_user()
+    user_pk = user.public_primary_key
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
+
+    schedule_event = _create_schedule_event(
+        timezone.now(),
+        timezone.now(),
+        shift_pk,
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
+    device = FCMDevice.objects.create(user=user)
+    maus = MobileAppUserSettings.objects.create(user=user)
+
+    data = {
+        "title": mock_notification_title,
+        "info_notification_sound_name": (
+            maus.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        ),
+        "info_notification_volume_type": maus.info_notification_volume_type,
+        "info_notification_volume": str(maus.info_notification_volume),
+        "info_notification_volume_override": json.dumps(maus.info_notification_volume_override),
+    }
+
+    fcm_message = tasks._get_youre_going_oncall_fcm_message(
+        user, schedule, device, seconds_until_going_oncall, schedule_event
+    )
+
+    assert fcm_message == mock_fcm_message
+
+    mock_aps_alert.assert_called_once_with(title=mock_notification_title)
+    mock_critical_sound.assert_called_once_with(
+        critical=False, name=maus.info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION
+    )
+    mock_aps.assert_called_once_with(
+        thread_id=notification_thread_id,
+        alert=mock_aps_alert.return_value,
+        sound=mock_critical_sound.return_value,
+        custom_data={
+            "interruption-level": "time-sensitive",
+        },
+    )
+    mock_apns_payload.assert_called_once_with(aps=mock_aps.return_value)
+
+    mock_get_youre_going_oncall_notification_title.assert_called_once_with(
+        schedule, seconds_until_going_oncall, schedule_event, maus
+    )
+    mock_construct_fcm_message.assert_called_once_with(
+        tasks.MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
     )
 
 
@@ -162,7 +328,7 @@ def test_should_we_send_going_oncall_push_notification(
 
     assert (
         tasks.should_we_send_going_oncall_push_notification(
-            now, user_mobile_settings, _create_schedule_event(schedule_start, "12345", [])
+            now, user_mobile_settings, _create_schedule_event(schedule_start, schedule_start, "12345", [])
         )
         == expected
     )
@@ -205,17 +371,18 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
     shift_pk = "mncvmnvc"
     user_pk = user.public_primary_key
     mock_fcm_message = {"foo": "bar"}
-    final_events = [
-        _create_schedule_event(
-            timezone.now(),
-            shift_pk,
-            [
-                {
-                    "pk": user_pk,
-                },
-            ],
-        ),
-    ]
+
+    schedule_event = _create_schedule_event(
+        timezone.now(),
+        timezone.now(),
+        shift_pk,
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+    final_events = [schedule_event]
 
     seconds_until_shift_starts = 58989
     mock_get_youre_going_oncall_fcm_message.return_value = mock_fcm_message
@@ -237,7 +404,9 @@ def test_conditionally_send_going_oncall_push_notifications_for_schedule(
 
     tasks.conditionally_send_going_oncall_push_notifications_for_schedule(schedule.pk)
 
-    mock_get_youre_going_oncall_fcm_message.assert_called_once_with(user, schedule, device, seconds_until_shift_starts)
+    mock_get_youre_going_oncall_fcm_message.assert_called_once_with(
+        user, schedule, device, seconds_until_shift_starts, schedule_event
+    )
     mock_send_push_notification.assert_called_once_with(device, mock_fcm_message)
     assert cache.get(cache_key) is True
 

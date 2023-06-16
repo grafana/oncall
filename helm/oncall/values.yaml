@@ -320,7 +320,7 @@ externalRabbitmq:
   # use an existing secret for the rabbitmq password
   existingSecret: ""
   # the key in the secret containing the rabbitmq password
-  passwordKey: password
+  passwordKey: ""
   # the key in the secret containing the rabbitmq username
   usernameKey: username
 

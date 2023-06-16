@@ -764,22 +764,9 @@ class OnCallSchedule(PolymorphicModel):
 
         extra_shifts = [custom_shift]
         if updated_shift_pk is not None:
-            try:
-                update_shift = qs.get(public_primary_key=updated_shift_pk)
-            except CustomOnCallShift.DoesNotExist:
-                pass
-            else:
-                if update_shift.event_is_started:
-                    custom_shift.rotation_start = max(
-                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
-                    )
-                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
-                    update_shift.until = custom_shift.rotation_start
-                    extra_shifts.append(update_shift)
-                else:
-                    # only reuse PK for preview when updating a rotation that won't be started after the update
-                    custom_shift.public_primary_key = updated_shift_pk
-                qs = qs.exclude(public_primary_key=updated_shift_pk)
+            # only reuse PK for preview when updating a rotation that won't be started after the update
+            custom_shift.public_primary_key = updated_shift_pk
+            qs = qs.exclude(public_primary_key=updated_shift_pk)
 
         ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
 
