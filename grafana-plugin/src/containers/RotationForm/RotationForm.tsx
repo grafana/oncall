@@ -210,8 +210,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, rotationStart.tz(currentTimezone)),
-      week_start: getUTCWeekStart(store.scheduleStore.byDayOptions, rotationStart.tz(currentTimezone)),
+      by_day: getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart.tz(currentTimezone)),
+      week_start: getUTCWeekStart(store.scheduleStore.byDayOptions, shiftStart.tz(currentTimezone)),
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
       name: rotationName,
     }),
@@ -369,9 +369,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
-      setSelectedDays(
-        getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, rotationStart.tz(currentTimezone))
-      );
+      setSelectedDays(getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, shiftStart.tz(currentTimezone)));
 
       setShowActiveOnSelectedDays(Boolean(shift.by_day?.length));
 
@@ -392,9 +390,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   useEffect(() => {
     if (shift) {
-      setSelectedDays(
-        getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, rotationStart.tz(currentTimezone))
-      );
+      setSelectedDays(getSelectedDays(store.scheduleStore.byDayOptions, shift.by_day, shiftStart.tz(currentTimezone)));
     }
   }, [currentTimezone]);
 
