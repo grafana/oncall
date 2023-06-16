@@ -68,8 +68,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
       <IntegrationBlockItem>
         <Text type="secondary">
-          Templates are used to interpret alert from monitoring. Reduce noise by grouping, set auto-resolution,
-          customize visualization and notifications by extracting data from alert.
+          Set templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution,
+          customize visualizations and notifications by extracting data from alerts.
         </Text>
       </IntegrationBlockItem>
 

@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import CheatSheet from 'components/CheatSheet/CheatSheet';
 import {
   groupingTemplateCheatSheet,
