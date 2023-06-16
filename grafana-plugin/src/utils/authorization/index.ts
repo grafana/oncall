@@ -25,7 +25,6 @@ export enum Resource {
   OTHER_SETTINGS = 'other-settings',
 
   TEAMS = 'teams',
-  PLUGINS = 'plugins',
 }
 
 export enum Action {

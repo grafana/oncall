@@ -185,17 +185,7 @@ export class RootBaseStore {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
-      const fallback = contextSrv.user.orgRole === OrgRole.Admin && !contextSrv.accessControlEnabled();
-      const setupRequiredPermissions = [
-        'plugins:write',
-        'users:read',
-        'teams:read',
-        'apikeys:create',
-        'apikeys:delete',
-      ];
-      const missingPermissions = setupRequiredPermissions.filter(function (permission) {
-        return !contextSrv.hasAccess(permission, fallback);
-      });
+      const missingPermissions = this.checkMissingSetupPermissions();
       if (missingPermissions.length === 0) {
         try {
           /**
@@ -242,6 +232,14 @@ export class RootBaseStore {
     }
 
     this.appLoading = false;
+  }
+
+  checkMissingSetupPermissions() {
+    const fallback = contextSrv.user.orgRole === OrgRole.Admin && !contextSrv.accessControlEnabled();
+    const setupRequiredPermissions = ['plugins:write', 'users:read', 'teams:read', 'apikeys:create', 'apikeys:delete'];
+    return setupRequiredPermissions.filter(function (permission) {
+      return !contextSrv.hasAccess(permission, fallback);
+    });
   }
 
   hasFeature(feature: string | AppFeature) {
