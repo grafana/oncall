@@ -61,7 +61,7 @@ const getUTCDayIndex = (index: number, moment: dayjs.Dayjs, reverse: boolean) =>
     utc_index = ((utc_index % 7) + 7) % 7;
   }
   return utc_index;
-}
+};
 
 export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
   if (moment.day() === moment.utc().day()) {
