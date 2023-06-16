@@ -177,7 +177,7 @@ tests:
             name: RABBITMQ_PASSWORD
             valueFrom:
               secretKeyRef:
-                key: password
+                key: rabbitmq-password
                 name: oncall-rabbitmq-external
       - containsDocument:
           kind: Secret

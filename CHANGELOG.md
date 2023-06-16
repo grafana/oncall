@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Change .Values.externalRabbitmq.passwordKey from `password` to `""` (default value `rabbitmq-password`) [864](https://github.com/grafana/oncall/pull/864)
+
 ### Added
 
 - Add `locale` column to mobile app user settings table by @joeyorlando [#2131](https://github.com/grafana/oncall/pull/2131)
