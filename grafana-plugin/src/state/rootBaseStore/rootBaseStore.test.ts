@@ -314,8 +314,6 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    // todo: add check for access
-
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
 
