@@ -1,4 +1,4 @@
-const tzs: string[] = [
+export const tzs: string[] = [
   'Africa/Abidjan',
   'Africa/Accra',
   'Africa/Addis_Ababa',

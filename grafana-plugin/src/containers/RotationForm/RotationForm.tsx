@@ -45,7 +45,7 @@ import DaysSelector from 'containers/RotationForm/parts/DaysSelector';
 import DeletionModal from 'containers/RotationForm/parts/DeletionModal';
 import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
 import UserItem from 'containers/RotationForm/parts/UserItem';
-import { getFromString, getShiftName } from 'models/schedule/schedule.helpers';
+import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -188,7 +188,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
     setErrors({});
 
     store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
+      .updateRotationPreview(scheduleId, shiftId, startMoment, false, params)
       .catch(onError)
       .finally(() => {
         setIsOpen(true);
@@ -273,10 +273,14 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setRepeatEveryPeriod(value);
 
       if (!showActiveOnSelectedPartOfDay) {
-        setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[value]));
+        if (showActiveOnSelectedDays) {
+          setShiftEnd(shiftStart.add(24, 'hours'));
+        } else {
+          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[value]));
+        }
       }
     },
-    [showActiveOnSelectedPartOfDay, repeatEveryValue]
+    [showActiveOnSelectedPartOfDay, showActiveOnSelectedDays, repeatEveryValue]
   );
 
   const handleRepeatEveryValueChange = useCallback(
@@ -290,7 +294,6 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setRepeatEveryValue(value);
 
       if (!showActiveOnSelectedPartOfDay) {
-        // @ts-ignore
         setShiftEnd(shiftStart.add(value, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
       }
     },
@@ -321,20 +324,26 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
   const handleRotationNameChange = useCallback(
     (name: string) => {
       setRotationName(name);
-      if (shiftId !== 'new') {
-        store.scheduleStore.updateRotation(shiftId, { ...params, name }).catch((error) => {
-          if (error.response?.data?.name) {
-            setRotationName(getShiftName(shift));
-          }
-        });
-      }
     },
     [shiftId, params, shift]
   );
 
-  const handleShowActiveOnSelectedDaysToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setShowActiveOnSelectedDays(event.currentTarget.checked);
-  }, []);
+  const handleShowActiveOnSelectedDaysToggle = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.currentTarget.checked;
+
+      setShowActiveOnSelectedDays(value);
+
+      if (value) {
+        setShiftEnd(shiftStart.add(24, 'hours'));
+      } else {
+        if (!showActiveOnSelectedPartOfDay) {
+          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+        }
+      }
+    },
+    [showActiveOnSelectedPartOfDay, shiftStart, repeatEveryValue, repeatEveryPeriod]
+  );
 
   const handleShowActiveOnSelectedPartOfDayToggle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -342,11 +351,14 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
       setShowActiveOnSelectedPartOfDay(value);
 
       if (!value) {
-        // @ts-ignore
-        setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+        if (showActiveOnSelectedPartOfDay) {
+          setShiftEnd(shiftStart.add(24, 'hours'));
+        } else {
+          setShiftEnd(shiftStart.add(repeatEveryValue, repeatEveryPeriodToUnitName[repeatEveryPeriod]));
+        }
       }
     },
-    [shiftStart, repeatEveryPeriod, repeatEveryValue]
+    [shiftStart, repeatEveryPeriod, repeatEveryValue, showActiveOnSelectedPartOfDay]
   );
 
   useEffect(() => {
@@ -587,7 +599,7 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                             errors={errors}
                           />
                         )}
-                        {showActiveOnSelectedPartOfDay && showActiveOnSelectedDays && (
+                        {showActiveOnSelectedDays && (
                           <Text type="secondary">
                             Since masking by weekdays is enabled shift length is limited to 24h and shift will repeat
                             every day
@@ -804,7 +816,9 @@ const ShiftPeriod = ({
         </Button>
       )}
       <Text type="secondary">({duration || '0m'})</Text>
-      {errors.shift_end && <Text type="danger">Incorrect active period</Text>}
+      {errors.shift_end && (
+        <Text type="danger">Click plus to add {repeatEveryPeriodToUnitName[unitToCreate.unit]} segment</Text>
+      )}
     </VerticalGroup>
   );
 };

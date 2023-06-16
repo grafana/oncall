@@ -37,20 +37,20 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
 
   const endMoment = startMoment.add(duration, 'seconds');
 
-  const workingMoments = useMemo(
-    () => getWorkingMoments(startMoment, endMoment, workingHours, timezone),
-    [startMoment, endMoment, workingHours, timezone]
-  );
+  const workingMoments = useMemo(() => {
+    if (duration > WEEK_IN_SECONDS) {
+      // hide if period more then a week
+      return undefined;
+    }
+    return getWorkingMoments(startMoment, endMoment, workingHours, timezone);
+  }, [startMoment, endMoment, workingHours, timezone]);
 
-  const nonWorkingMoments = useMemo(
-    () => getNonWorkingMoments(startMoment, endMoment, workingMoments),
-    [startMoment, endMoment, workingMoments]
-  );
-
-  if (duration > WEEK_IN_SECONDS) {
-    // hide if period more then a week
-    return null;
-  }
+  const nonWorkingMoments = useMemo(() => {
+    if (!workingMoments) {
+      return undefined;
+    }
+    return getNonWorkingMoments(startMoment, endMoment, workingMoments);
+  }, [startMoment, endMoment, workingMoments]);
 
   return (
     <svg
@@ -69,21 +69,22 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
           <line x1="0" y="0" x2="0" y2="10" stroke="rgba(17, 18, 23, 0.2)" strokeWidth="10" />
         </pattern>
       </defs>
-      {nonWorkingMoments.map((moment, index) => {
-        const start = moment.start.diff(startMoment, 'seconds');
-        const diff = moment.end.diff(moment.start, 'seconds');
-        return (
-          <rect
-            className={cx('stripes')}
-            key={index}
-            x={`${(start * 100) / duration}%`}
-            y={0}
-            width={`${(diff * 100) / duration}%`}
-            height="100%"
-            fill={`${strong ? 'url(#stripes_strong)' : 'url(#stripes)'}`}
-          />
-        );
-      })}
+      {nonWorkingMoments &&
+        nonWorkingMoments.map((moment, index) => {
+          const start = moment.start.diff(startMoment, 'seconds');
+          const diff = moment.end.diff(moment.start, 'seconds');
+          return (
+            <rect
+              className={cx('stripes')}
+              key={index}
+              x={`${(start * 100) / duration}%`}
+              y={0}
+              width={`${(diff * 100) / duration}%`}
+              height="100%"
+              fill={`${strong ? 'url(#stripes_strong)' : 'url(#stripes)'}`}
+            />
+          );
+        })}
     </svg>
   );
 };

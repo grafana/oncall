@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import dayjs, { ManipulateType } from 'dayjs';
 
 import { Timezone } from 'models/timezone/timezone.types';
 
@@ -52,7 +52,7 @@ export const TIME_UNITS_ORDER = [
   RepeatEveryPeriod.MINUTES,
 ];
 
-export const repeatEveryPeriodToUnitName = {
+export const repeatEveryPeriodToUnitName: { [key: number]: ManipulateType } = {
   [RepeatEveryPeriod.DAYS]: 'days',
   [RepeatEveryPeriod.HOURS]: 'hours',
   [RepeatEveryPeriod.WEEKS]: 'weeks',

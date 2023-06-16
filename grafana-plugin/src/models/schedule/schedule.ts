@@ -241,14 +241,18 @@ export class ScheduleStore extends BaseStore {
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
-    fromString: string,
+    startMoment: dayjs.Dayjs,
     isOverride: boolean,
     params: Partial<Shift>
   ) {
     const type = isOverride ? 3 : 2;
 
+    const fromString = getFromString(startMoment);
+
+    const dayBefore = startMoment.subtract(1, 'day');
+
     const response = await makeRequest(`/oncall_shifts/preview/`, {
-      params: { date: fromString },
+      params: { date: getFromString(dayBefore) },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
     });

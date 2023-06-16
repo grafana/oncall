@@ -9,6 +9,7 @@
   padding: 4px;
   align-items: center;
   transition: opacity 0.2s ease;
+  cursor: pointer;
 }
 
 .working-hours {

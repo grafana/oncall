@@ -15,6 +15,7 @@ export function parseFilters(query: { [key: string]: any }, filterOptions: Filte
 
   const values = filters.reduce((memo: any, filterOption: FilterOption) => {
     const rawValue = query[filterOption.name];
+    console.log(filterOption, rawValue);
     let value: any = rawValue;
     if (filterOption.type === 'options' || filterOption.type === 'team_select') {
       if (!Array.isArray(rawValue)) {
@@ -23,7 +24,7 @@ export function parseFilters(query: { [key: string]: any }, filterOptions: Filte
       value = value.map(normalize);
     } else if (filterOption.type === 'daterange') {
       value = convertRelativeToAbsoluteDate(value);
-    } else if (rawValue === 'true') {
+    } else if ((filterOption.type === 'boolean' && rawValue === '') || rawValue === 'true') {
       value = true;
     } else if (rawValue === 'false') {
       value = false;

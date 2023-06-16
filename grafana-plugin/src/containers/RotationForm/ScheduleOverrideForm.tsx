@@ -10,7 +10,7 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { getFromString, getShiftName } from 'models/schedule/schedule.helpers';
+import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -132,13 +132,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const handleRotationNameChange = useCallback(
     (name: string) => {
       setRotationName(name);
-      if (shiftId !== 'new') {
-        store.scheduleStore.updateRotation(shiftId, { ...params, name }).catch((error) => {
-          if (error.response?.data?.name) {
-            setRotationName(getShiftName(shift));
-          }
-        });
-      }
     },
     [shiftId, params, shift]
   );
@@ -179,7 +172,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     setErrors({});
 
     store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params)
+      .updateRotationPreview(scheduleId, shiftId, startMoment, true, params)
       .catch(onError)
       .finally(() => {
         setIsOpen(true);
