@@ -33,6 +33,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { useStore } from 'state/useStore';
@@ -97,13 +98,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       return null;
     }
 
-    const escalationChainRedirectObj: any = { page: 'escalations' };
-    if (channelFilter.escalation_chain) {
-      escalationChainRedirectObj.id = channelFilter.escalation_chain;
-    }
-
+    const escalationChainRedirectObj: any = { page: 'escalations', id: channelFilter.escalation_chain || 'new' };
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
-    const isDefault = IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
+    const isDefault = CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
+    const channelFilterTemplate = channelFilter.filtering_term
+      ? IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)
+      : '{# Add Routing Template, e.g. {{ payload.severity == "critical" }} #}';
 
     if (isLoading) {
       return <LoadingPlaceholder text="Loading..." />;
@@ -119,8 +119,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               <HorizontalGroup spacing={'md'}>
                 <TooltipBadge
                   borderType="success"
-                  text={IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
-                  tooltipTitle={IntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
+                  text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
+                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
                   tooltipContent={undefined}
                 />
               </HorizontalGroup>
@@ -140,8 +140,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 <IntegrationBlockItem>
                   <VerticalGroup>
                     <Text type="secondary">
-                      If the Routing Template is True, group the alerts using the Grouping Template, publish them to
-                      messengers, and trigger the escalation chain.
+                      If the Routing Template is True, group alerts with the Grouping Template, send them to messengers,
+                      and trigger the escalation chain.
                     </Text>
                   </VerticalGroup>
                 </IntegrationBlockItem>
@@ -150,10 +150,15 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               {!isDefault && (
                 <IntegrationBlockItem>
                   <HorizontalGroup spacing="xs">
-                    <InlineLabel width={20}>Routing Template</InlineLabel>
+                    <InlineLabel
+                      width={20}
+                      tooltip="Routing Template should be True for the alert to go to this route."
+                    >
+                      Routing Template
+                    </InlineLabel>
                     <div className={cx('input', 'input--short')}>
                       <MonacoEditor
-                        value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
+                        value={channelFilterTemplate}
                         disabled={true}
                         height={MONACO_INPUT_HEIGHT_SMALL}
                         data={templates}
@@ -183,7 +188,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               <IntegrationBlockItem>
                 <VerticalGroup>
                   <HorizontalGroup spacing={'xs'}>
-                    <InlineLabel width={20}>Escalation chain</InlineLabel>
+                    <InlineLabel
+                      width={20}
+                      tooltip="The escalation chain determines who and when to notify when an alert group starts."
+                    >
+                      Escalation chain
+                    </InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
                         isSearchable
@@ -214,13 +224,9 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       ></Select>
                     </WithPermissionControlTooltip>
 
-                    <Button
-                      variant={'secondary'}
-                      tooltip={'Refresh Escalation Chains'}
-                      icon={'sync'}
-                      size={'md'}
-                      onClick={onEscalationChainsRefresh}
-                    />
+                    <Tooltip placement={'top'} content={'Reload list'}>
+                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    </Tooltip>
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
                       <Tooltip
@@ -270,6 +276,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     async function onRouteDeleteConfirm() {
       setState({ routeIdForDeletion: undefined });
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
+      openNotification('Route has been deleted');
     }
 
     function onEscalationChainChange({ value }) {

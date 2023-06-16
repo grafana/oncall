@@ -56,7 +56,7 @@ const IntegrationInputField: React.FC<IntegrationInputFieldProps> = ({
   }
 
   function onCopy() {
-    openNotification("Integration's HTTP Endpoint is copied!");
+    openNotification("Integration's HTTP Endpoint is copied");
   }
 
   function onOpen() {

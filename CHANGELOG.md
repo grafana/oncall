@@ -13,7 +13,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `locale` column to mobile app user settings table by @joeyorlando [#2131](https://github.com/grafana/oncall/pull/2131)
+- Update notification text for "You're going on call" push notifications to include information about the shift start
+  and end times by @joeyorlando ([#2131](https://github.com/grafana/oncall/pull/2131))
+
+### Fixed
+
+- Handle non-UTC UNTIL datetime value when repeating ical events [#2241](https://github.com/grafana/oncall/pull/2241)
+
+## v1.2.44 (2023-06-14)
+
+### Added
+
+- Users with the Viewer basic role can now connect and use the mobile app ([#1892](https://github.com/grafana/oncall/pull/1892))
 - Add helm chart support for redis and mysql existing secrets [#2156](https://github.com/grafana/oncall/pull/2156)
+
+### Changed
+
+- Removed `SlackActionRecord` model and database table by @joeyorlando [#2201](https://github.com/grafana/oncall/pull/2201)
+- Require users when creating a schedule rotation using the web UI [#2220](https://github.com/grafana/oncall/pull/2220)
+
+### Fixed
+
+- Fix schedule shift preview to not breaking rotation shifts when there is overlap [#2218](https://github.com/grafana/oncall/pull/2218)
+- Fix schedule list filter by type to allow considering multiple values [#2218](https://github.com/grafana/oncall/pull/2218)
 
 ## v1.2.43 (2023-06-12)
 
@@ -33,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix receive channel filter in alert groups API [#2140](https://github.com/grafana/oncall/pull/2140)
 - Helm chart: Fix usage of `env` settings as map;
   Fix usage of `mariadb.auth.database` and `mariadb.auth.username` for MYSQL env variables by @alexintech [#2146](https://github.com/grafana/oncall/pull/2146)
-  
+
 ### Added
 
 - Helm chart: Add unittests for rabbitmq and redis [2165](https://github.com/grafana/oncall/pull/2165)

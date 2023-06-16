@@ -32,7 +32,7 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
 
     data = {
-        "title": "Test Shift",
+        "name": "Test Shift",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 1,
@@ -46,6 +46,7 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
             CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
         ],
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
     }
 
@@ -57,6 +58,38 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
 
 
 @pytest.mark.django_db
+def test_create_on_call_shift_rotation_missing_users(on_call_shift_internal_api_setup, make_user_auth_headers):
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:oncall_shifts-list")
+    start_date = timezone.now().replace(microsecond=0, tzinfo=None)
+
+    data = {
+        "name": "Test Shift",
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "schedule": schedule.public_primary_key,
+        "priority_level": 1,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": 1,
+        "interval": 1,
+        "by_day": [
+            CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
+            CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.FRIDAY],
+        ],
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
+        "rolling_users": [],
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["rolling_users"][0] == "User(s) are required"
+
+
+@pytest.mark.django_db
 def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_user_auth_headers):
     token, user1, user2, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
@@ -64,7 +97,7 @@ def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_us
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
 
     data = {
-        "title": "Test Shift Override",
+        "name": "Test Shift Override",
         "type": CustomOnCallShift.TYPE_OVERRIDE,
         "schedule": schedule.public_primary_key,
         "priority_level": 99,
@@ -86,6 +119,7 @@ def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_us
         "id": response.data["id"],
         "updated_shift": None,
         "rolling_users": returned_rolling_users,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -103,12 +137,12 @@ def test_get_on_call_shift(
     client = APIClient()
     start_date = timezone.now().replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
@@ -119,7 +153,7 @@ def test_get_on_call_shift(
     response = client.get(url, format="json", **make_user_auth_headers(user1, token))
     expected_payload = {
         "id": response.data["id"],
-        "title": title,
+        "name": name,
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -130,6 +164,7 @@ def test_get_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
         "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
         "updated_shift": None,
     }
@@ -148,12 +183,12 @@ def test_list_on_call_shift(
 
     client = APIClient()
     start_date = timezone.now().replace(microsecond=0)
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
@@ -169,7 +204,7 @@ def test_list_on_call_shift(
         "results": [
             {
                 "id": on_call_shift.public_primary_key,
-                "title": title,
+                "name": name,
                 "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
                 "schedule": schedule.public_primary_key,
                 "priority_level": 0,
@@ -180,6 +215,7 @@ def test_list_on_call_shift(
                 "frequency": None,
                 "interval": None,
                 "by_day": None,
+                "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
                 "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
                 "updated_shift": None,
             }
@@ -203,12 +239,12 @@ def test_list_on_call_shift_filter_schedule_id(
     client = APIClient()
 
     start_date = timezone.now().replace(microsecond=0)
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
@@ -226,7 +262,7 @@ def test_list_on_call_shift_filter_schedule_id(
         "results": [
             {
                 "id": on_call_shift.public_primary_key,
-                "title": title,
+                "name": name,
                 "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
                 "schedule": schedule.public_primary_key,
                 "priority_level": 0,
@@ -237,6 +273,7 @@ def test_list_on_call_shift_filter_schedule_id(
                 "frequency": None,
                 "interval": None,
                 "by_day": None,
+                "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
                 "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
                 "updated_shift": None,
             }
@@ -275,19 +312,19 @@ def test_update_future_on_call_shift(
     client = APIClient()
     start_date = (timezone.now() + timezone.timedelta(days=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
     )
     data_to_update = {
-        "title": title,
+        "name": name,
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -307,7 +344,7 @@ def test_update_future_on_call_shift(
 
     expected_payload = {
         "id": on_call_shift.public_primary_key,
-        "title": title,
+        "name": name,
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 2,
@@ -318,6 +355,7 @@ def test_update_future_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key]],
         "updated_shift": None,
     }
@@ -327,6 +365,48 @@ def test_update_future_on_call_shift(
 
     on_call_shift.refresh_from_db()
     assert on_call_shift.priority_level == data_to_update["priority_level"]
+
+
+@pytest.mark.django_db
+def test_update_future_on_call_shift_removing_users(
+    on_call_shift_internal_api_setup,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+
+    client = APIClient()
+    start_date = (timezone.now() + timezone.timedelta(days=1)).replace(microsecond=0)
+
+    name = "Test Shift Rotation"
+    on_call_shift = make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        name=name,
+        start=start_date,
+        duration=timezone.timedelta(hours=1),
+        rotation_start=start_date,
+        rolling_users=[{user1.pk: user1.public_primary_key}],
+    )
+    data_to_update = {
+        "name": name,
+        "priority_level": 2,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": None,
+        "interval": None,
+        "by_day": None,
+        "rolling_users": [],
+    }
+
+    url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["rolling_users"][0] == "User(s) are required"
 
 
 @pytest.mark.django_db
@@ -342,19 +422,19 @@ def test_update_started_on_call_shift(
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
     )
     data_to_update = {
-        "title": title,
+        "name": name,
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -374,7 +454,7 @@ def test_update_started_on_call_shift(
 
     expected_payload = {
         "id": response.data["id"],
-        "title": title,
+        "name": name,
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 2,
@@ -385,6 +465,7 @@ def test_update_started_on_call_shift(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key]],
         "updated_shift": None,
     }
@@ -413,19 +494,19 @@ def test_update_started_on_call_shift_force_update(
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
     )
     data_to_update = {
-        "title": title,
+        "name": name,
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -434,6 +515,7 @@ def test_update_started_on_call_shift_force_update(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.SUNDAY],
         "rolling_users": [[user1.public_primary_key]],
     }
 
@@ -467,12 +549,12 @@ def test_update_old_on_call_shift_with_future_version(
     next_rotation_start_date = now + timezone.timedelta(days=1)
     updated_duration = timezone.timedelta(hours=4)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
     new_on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=next_rotation_start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=next_rotation_start_date,
@@ -483,7 +565,7 @@ def test_update_old_on_call_shift_with_future_version(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=start_date,
@@ -494,7 +576,7 @@ def test_update_old_on_call_shift_with_future_version(
     )
     # update shift_end and priority_level
     data_to_update = {
-        "title": title,
+        "name": name,
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + updated_duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -525,6 +607,7 @@ def test_update_old_on_call_shift_with_future_version(
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -541,26 +624,26 @@ def test_update_old_on_call_shift_with_future_version(
 
 
 @pytest.mark.django_db
-def test_update_started_on_call_shift_title(
+def test_update_started_on_call_shift_name(
     on_call_shift_internal_api_setup,
     make_on_call_shift,
     make_user_auth_headers,
 ):
-    """Test updating the title for the shift that has started (rotation_start < now)"""
+    """Test updating the name for the shift that has started (rotation_start < now)"""
 
     token, user1, _, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
-    new_title = "Test Shift Rotation RENAMED"
+    name = "Test Shift Rotation"
+    new_name = "Test Shift Rotation RENAMED"
 
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
@@ -568,9 +651,9 @@ def test_update_started_on_call_shift_title(
         source=CustomOnCallShift.SOURCE_WEB,
         week_start=CustomOnCallShift.MONDAY,
     )
-    # update only title
+    # update only name
     data_to_update = {
-        "title": new_title,
+        "name": new_name,
         "priority_level": 0,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -579,10 +662,11 @@ def test_update_started_on_call_shift_title(
         "frequency": None,
         "interval": None,
         "by_day": None,
+        "week_start": "MO",
         "rolling_users": [[user1.public_primary_key]],
     }
 
-    assert on_call_shift.title != new_title
+    assert on_call_shift.name != new_name
 
     url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
 
@@ -593,13 +677,14 @@ def test_update_started_on_call_shift_title(
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
+        "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
 
     on_call_shift.refresh_from_db()
-    assert on_call_shift.title == new_title
+    assert on_call_shift.name == new_name
 
 
 @pytest.mark.django_db
@@ -615,13 +700,13 @@ def test_delete_started_on_call_shift(
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
 
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
@@ -653,13 +738,13 @@ def test_force_delete_started_on_call_shift(
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
 
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
@@ -692,13 +777,13 @@ def test_delete_future_on_call_shift(
     client = APIClient()
     start_date = (timezone.now() + timezone.timedelta(days=1)).replace(microsecond=0)
 
-    title = "Test Shift Rotation"
+    name = "Test Shift Rotation"
 
     on_call_shift = make_on_call_shift(
         schedule.organization,
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
-        title=title,
+        name=name,
         start=start_date,
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
@@ -727,7 +812,7 @@ def test_create_on_call_shift_invalid_data_rotation_start(
 
     # rotation_start < shift_start
     data = {
-        "title": "Test Shift 1",
+        "name": "Test Shift 1",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -756,7 +841,7 @@ def test_create_on_call_shift_invalid_data_until(on_call_shift_internal_api_setu
 
     # until < rotation_start
     data = {
-        "title": "Test Shift",
+        "name": "Test Shift",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 1,
@@ -780,7 +865,7 @@ def test_create_on_call_shift_invalid_data_until(on_call_shift_internal_api_setu
 
     # until with non-recurrent shift
     data = {
-        "title": "Test Shift 2",
+        "name": "Test Shift 2",
         "type": CustomOnCallShift.TYPE_OVERRIDE,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -809,7 +894,7 @@ def test_create_on_call_shift_invalid_data_by_day(on_call_shift_internal_api_set
 
     # by_day with non-recurrent shift
     data = {
-        "title": "Test Shift 1",
+        "name": "Test Shift 1",
         "type": CustomOnCallShift.TYPE_OVERRIDE,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -838,7 +923,7 @@ def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_s
 
     # interval with non-recurrent shift
     data = {
-        "title": "Test Shift 2",
+        "name": "Test Shift 2",
         "type": CustomOnCallShift.TYPE_OVERRIDE,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -864,7 +949,7 @@ def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_s
     for interval, expected_error in invalid_intervals:
         # by_day, daily shift
         data = {
-            "title": "Test Shift 2",
+            "name": "Test Shift 2",
             "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
             "schedule": schedule.public_primary_key,
             "priority_level": 0,
@@ -894,7 +979,7 @@ def test_create_on_call_shift_invalid_data_shift_end(on_call_shift_internal_api_
 
     # shift_end is None
     data = {
-        "title": "Test Shift 1",
+        "name": "Test Shift 1",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -915,7 +1000,7 @@ def test_create_on_call_shift_invalid_data_shift_end(on_call_shift_internal_api_
 
     # shift_end < shift_start
     data = {
-        "title": "Test Shift 2",
+        "name": "Test Shift 2",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -946,7 +1031,7 @@ def test_create_on_call_shift_invalid_data_rolling_users(
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
 
     data = {
-        "title": "Test Shift 1",
+        "name": "Test Shift 1",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -975,7 +1060,7 @@ def test_create_on_call_shift_override_invalid_data(on_call_shift_internal_api_s
 
     # override shift with frequency
     data = {
-        "title": "Test Shift Override",
+        "name": "Test Shift Override",
         "type": CustomOnCallShift.TYPE_OVERRIDE,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -1003,7 +1088,7 @@ def test_create_on_call_shift_override_in_past(on_call_shift_internal_api_setup,
     start_date = timezone.now().replace(microsecond=0, tzinfo=None) - timezone.timedelta(hours=2)
 
     data = {
-        "title": "Test Shift Override",
+        "name": "Test Shift Override",
         "type": CustomOnCallShift.TYPE_OVERRIDE,
         "schedule": schedule.public_primary_key,
         "priority_level": 0,
@@ -1686,13 +1771,10 @@ def test_on_call_shift_preview_update(
 
     # check rotation events
     rotation_events = response.json()["rotation"]
-    assert len(rotation_events) == 4
-    # the final original rotation events are returned and the ID is kept
-    for shift in rotation_events[:3]:
-        assert shift["shift"]["pk"] == on_call_shift.public_primary_key
-    # previewing an update does not reuse shift PK if rotation already started
+    assert len(rotation_events) == 1
+    # previewing an update reuse shift PK if rotation already started
     new_shift_pk = rotation_events[-1]["shift"]["pk"]
-    assert new_shift_pk != on_call_shift.public_primary_key
+    assert new_shift_pk == on_call_shift.public_primary_key
     expected_shift_preview = {
         "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
         "shift": {"pk": new_shift_pk},
@@ -1715,9 +1797,6 @@ def test_on_call_shift_preview_update(
     final_events = response.json()["final"]
     expected = (
         # start (h), duration (H), user, priority
-        (0, 1, user.username, 1),  # 0-1 user
-        (4, 1, user.username, 1),  # 4-5 user
-        (8, 1, user.username, 1),  # 8-9 user
         (10, 8, other_user.username, 1),  # 10-18 other_user
     )
     expected_events = [

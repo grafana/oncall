@@ -1,4 +1,3 @@
-from .slack_action_record import SlackActionRecord  # noqa: F401
 from .slack_channel import SlackChannel  # noqa: F401
 from .slack_message import SlackMessage  # noqa: F401
 from .slack_team_identity import SlackTeamIdentity  # noqa: F401
