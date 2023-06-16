@@ -209,7 +209,7 @@ def test_ordered_model_swap():
 # Tests below are for checking that concurrent operations are performed correctly.
 # They are skipped by default because they might take a lot of time to run.
 # It could be useful to run them manually when making changes to the code, making sure
-# that the changes don't break parallel operations. To run the tests, set SKIP_CONCURRENT to False.
+# that the changes don't break concurrent operations. To run the tests, set SKIP_CONCURRENT to False.
 SKIP_CONCURRENT = True
 
 

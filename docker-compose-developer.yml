@@ -208,7 +208,7 @@ services:
     container_name: mysql
     labels: *oncall-labels
     image: mysql:8.0.32
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1024
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: empty
