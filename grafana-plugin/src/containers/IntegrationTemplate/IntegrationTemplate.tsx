@@ -10,7 +10,7 @@ import CheatSheet from 'components/CheatSheet/CheatSheet';
 import {
   groupingTemplateCheatSheet,
   slackMessageTemplateCheatSheet,
-  webTitleTemplateCheatSheet,
+  genericTemplateCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
@@ -136,7 +136,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       case 'Web title':
       case 'Web message':
       case 'Web image':
-        return webTitleTemplateCheatSheet;
+        return genericTemplateCheatSheet;
       case 'Auto acknowledge':
       case 'Source link':
       case 'Phone call':
@@ -151,7 +151,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       case 'Email message':
         return slackMessageTemplateCheatSheet;
       default:
-        return webTitleTemplateCheatSheet;
+        return genericTemplateCheatSheet;
     }
   };
   return (
@@ -300,7 +300,7 @@ const Result = (props: ResultProps) => {
         ) : (
           <div>
             <Block bordered fullWidth className={cx('block-style')}>
-              <Text>You do not have any input data to render result. Please select Alert group to see end result</Text>
+              <Text>← Select alert group or "Use custom payload"</Text>
             </Block>
           </div>
         )}
