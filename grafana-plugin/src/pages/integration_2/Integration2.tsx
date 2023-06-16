@@ -159,6 +159,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
     const hideHTTPEndpoint = alertReceiveChannel.integration === 'inbound_email';
+    console.log('DESCRIPTION', alertReceiveChannel.description);
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
