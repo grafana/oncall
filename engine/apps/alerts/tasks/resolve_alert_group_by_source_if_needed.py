@@ -22,9 +22,14 @@ def resolve_alert_group_by_source_if_needed(alert_group_pk):
             alert_group.active_resolve_calculation_id
         )
     else:
+        # is_more_than_max_alerts_in_group = alert_group.alerts.count() > AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE
+        is_more_than_max_alerts_in_group = (
+            len(alert_group.alerts[: AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE])
+            >= AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE
+        )
         if alert_group.resolved_by == alert_group.NOT_YET_STOP_AUTORESOLVE:
             return "alert_group is too big to auto-resolve"
-        if alert_group.alerts.count() > AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE:
+        if is_more_than_max_alerts_in_group:
             alert_group.resolved_by = alert_group.NOT_YET_STOP_AUTORESOLVE
             alert_group.save(update_fields=["resolved_by"])
         last_alert = AlertForAlertManager.objects.get(pk=alert_group.alerts.last().pk)
