@@ -10,12 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.api.permissions import (
-    DONT_USE_LEGACY_PERMISSION_MAPPING,
-    GrafanaAPIPermission,
-    LegacyAccessControlRole,
-    RBACPermission,
-)
+from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
@@ -96,7 +91,6 @@ def test_update_user_cant_change_email_and_username(
             }
         },
         "cloud_connection_status": None,
-        "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[admin.role],
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
@@ -147,7 +141,6 @@ def test_list_users(
                         "user": admin.username,
                     }
                 },
-                "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[admin.role],
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
@@ -173,7 +166,6 @@ def test_list_users(
                         "user": editor.username,
                     }
                 },
-                "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[editor.role],
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
