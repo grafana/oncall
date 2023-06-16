@@ -63,6 +63,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
         {schedule.warnings?.length > 0 && (
           <TooltipBadge
             borderType="warning"
+            icon="exclamation-triangle"
             addPadding
             text={schedule.warnings.length}
             tooltipTitle="Warnings"

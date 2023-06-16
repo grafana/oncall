@@ -189,6 +189,9 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
+  const ended = shift && shift.until && getDateTime(shift.until).isBefore(dayjs());
+  const disabled = ended;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -215,6 +218,12 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
               </WithConfirm>
             )}
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+            <IconButton
+              name="times"
+              variant="secondary"
+              tooltip={shiftId === 'new' ? 'Cancel' : 'Close'}
+              onClick={onHide}
+            />
           </HorizontalGroup>
         </HorizontalGroup>
         <div className={cx('override-form-content')} data-testid="override-inputs">
@@ -229,6 +238,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 }
               >
                 <DateTimePicker
+                  disabled={disabled}
                   value={shiftStart}
                   onChange={updateShiftStart}
                   timezone={currentTimezone}
@@ -244,6 +254,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                 }
               >
                 <DateTimePicker
+                  disabled={disabled}
                   value={shiftEnd}
                   onChange={setShiftEnd}
                   timezone={currentTimezone}
@@ -252,6 +263,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
               </Field>
             </HorizontalGroup>
             <UserGroups
+              disabled={disabled}
               value={userGroups}
               onChange={setUserGroups}
               isMultipleGroups={false}
@@ -263,12 +275,9 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           </VerticalGroup>
         </div>
         <HorizontalGroup justify="space-between">
-          <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+          <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>
-            <Button variant="secondary" onClick={onHide}>
-              {shiftId === 'new' ? 'Cancel' : 'Close'}
-            </Button>
-            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
+            <Button variant="primary" onClick={handleCreate} disabled={disabled || !isFormValid}>
               {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
           </HorizontalGroup>

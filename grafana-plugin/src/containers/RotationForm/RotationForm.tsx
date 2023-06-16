@@ -68,7 +68,7 @@ import styles from './RotationForm.module.css';
 
 const cx = cn.bind(styles);
 
-interface RotationForm2Props {
+interface RotationFormProps {
   layerPriority: number;
   onHide: () => void;
   startMoment: dayjs.Dayjs;
@@ -84,7 +84,7 @@ interface RotationForm2Props {
   onShowRotationForm: (shiftId: Shift['id']) => void;
 }
 
-const RotationForm2 = observer((props: RotationForm2Props) => {
+const RotationForm = observer((props: RotationFormProps) => {
   const {
     onHide,
     onCreate,
@@ -412,7 +412,10 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
 
   const isFormValid = useMemo(() => !Object.keys(errors).length, [errors]);
 
-  const disabled = Boolean(shift && shift.updated_shift);
+  const hasUpdatedShift = shift && shift.updated_shift;
+  const ended = shift && shift.until && getDateTime(shift.until).isBefore(dayjs());
+
+  const disabled = hasUpdatedShift || ended;
 
   return (
     <>
@@ -447,13 +450,19 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                   />
                 )}
                 <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
+                <IconButton
+                  name="times"
+                  variant="secondary"
+                  tooltip={shiftId === 'new' ? 'Cancel' : 'Close'}
+                  onClick={onHide}
+                />
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
           <div className={cx('body')}>
             <div className={cx('content')}>
               <VerticalGroup spacing="none">
-                {shift && shift.updated_shift && (
+                {hasUpdatedShift && (
                   <Block bordered className={cx('updated-shift-info')}>
                     <VerticalGroup>
                       <HorizontalGroup align="flex-start">
@@ -465,6 +474,16 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
                           </Text>{' '}
                           instead
                         </Text>
+                      </HorizontalGroup>
+                    </VerticalGroup>
+                  </Block>
+                )}
+                {!hasUpdatedShift && ended && (
+                  <Block bordered className={cx('updated-shift-info')}>
+                    <VerticalGroup>
+                      <HorizontalGroup align="flex-start">
+                        <Icon name="info-circle" size="md"></Icon>
+                        <Text>This rotation has ended</Text>
                       </HorizontalGroup>
                     </VerticalGroup>
                   </Block>
@@ -637,11 +656,8 @@ const RotationForm2 = observer((props: RotationForm2Props) => {
           </div>
           <div>
             <HorizontalGroup justify="space-between">
-              <Text type="secondary">Current TZ: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+              <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
               <HorizontalGroup>
-                <Button disabled={disabled} variant="secondary" onClick={onHide}>
-                  {shiftId === 'new' ? 'Cancel' : 'Close'}
-                </Button>
                 {shiftId !== 'new' && (
                   <Tooltip content="Stop the current rotation and start a new one">
                     <Button disabled={disabled} variant="secondary" onClick={updateAsNew}>
@@ -812,15 +828,13 @@ const ShiftPeriod = ({
       ))}
       {timeUnits.length === 0 && unitToCreate !== undefined && (
         <Button disabled={disabled} variant="secondary" icon="plus" size="sm" onClick={handleTimeUnitAdd}>
-          Add segment
+          Add time segment
         </Button>
       )}
       <Text type="secondary">({duration || '0m'})</Text>
-      {errors.shift_end && (
-        <Text type="danger">Click plus to add {repeatEveryPeriodToUnitName[unitToCreate.unit]} segment</Text>
-      )}
+      {errors.shift_end && <Text type="danger">Shift length must be greater than zero</Text>}
     </VerticalGroup>
   );
 };
 
-export default RotationForm2;
+export default RotationForm;
