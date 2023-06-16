@@ -89,13 +89,8 @@ class OrderedModel(models.Model):
 
     @_retry((IntegrityError, OperationalError))
     def _save_no_order_provided(self):
-        max_order = self._get_ordering_queryset().aggregate(models.Max("order"))["order__max"]
-
-        if max_order is None:
-            self.order = 0
-        else:
-            self.order = max_order + 1
-
+        max_order = self.max_order()
+        self.order = max_order + 1 if max_order is not None else 0
         super().save()
 
     @_retry((IntegrityError, OperationalError))
@@ -134,6 +129,9 @@ class OrderedModel(models.Model):
 
     def next(self):
         return self._get_ordering_queryset().filter(order__gt=self.order).first()
+
+    def max_order(self):
+        return self._get_ordering_queryset().aggregate(models.Max("order"))["order__max"]
 
     @property
     def _ordering_kwargs(self):

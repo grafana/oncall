@@ -43,14 +43,13 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         # that is why step key is used instead of type below
         if "wait_delay" in validated_data and validated_data["step"] != UserNotificationPolicy.Step.WAIT:
             raise exceptions.ValidationError({"duration": "Duration can't be set"})
-        user = validated_data.pop("user")
+
+        instance = UserNotificationPolicy.objects.create(**validated_data, user=validated_data.pop("user"))
+
         manual_order = validated_data.pop("manual_order")
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            instance = UserNotificationPolicy.objects.create(**validated_data, user=user)
-            self._change_position(order, instance)
-        else:
-            instance = UserNotificationPolicy.objects.create(**validated_data, user=user)
+        order = validated_data.pop("order", None)
+        if order is not None:
+            self._adjust_order(instance, manual_order, order)
 
         return instance
 
@@ -117,14 +116,18 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
 
         raise exceptions.ValidationError({"type": "Invalid type"})
 
-    def _change_position(self, order, instance):
-        if order is not None:
-            if order >= 0:
-                instance.to(order)
-            elif order == -1:
-                instance.bottom()
-            else:
-                raise BadRequest(detail="Invalid value for position field")
+    @staticmethod
+    def _adjust_order(instance, manual_order, order):
+        if order == -1:
+            order = instance.max_order() or 0
+
+        if order < 0:
+            raise BadRequest(detail="Invalid value for position field")
+
+        if manual_order:
+            instance.swap(order)
+        else:
+            instance.to(order)
 
 
 class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerializer):
@@ -146,9 +149,8 @@ class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerialize
                 raise exceptions.ValidationError({"duration": "Duration can't be set"})
 
         manual_order = validated_data.pop("manual_order")
-
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            self._change_position(order, instance)
+        order = validated_data.pop("order", None)
+        if order is not None:
+            self._adjust_order(instance, manual_order, order)
 
         return super().update(instance, validated_data)

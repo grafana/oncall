@@ -209,10 +209,11 @@ def test_ordered_model_swap():
 # Tests below are for checking that concurrent operations are performed correctly.
 # They are skipped by default because they might take a lot of time to run.
 # It could be useful to run them manually when making changes to the code, making sure
-# that the changes don't break parallel operations.
+# that the changes don't break parallel operations. To run the tests, set SKIP_CONCURRENT to False.
+SKIP_CONCURRENT = True
 
 
-@pytest.mark.skip(reason="OrderedModel concurrent tests are skipped to speed up tests")
+@pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
 @pytest.mark.django_db(transaction=True)
 def test_ordered_model_create_concurrent():
     LOOPS = 30
@@ -237,7 +238,7 @@ def test_ordered_model_create_concurrent():
     assert _orders_are_sequential()
 
 
-@pytest.mark.skip(reason="OrderedModel concurrent tests are skipped to speed up tests")
+@pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
 @pytest.mark.django_db(transaction=True)
 def test_ordered_model_to_concurrent():
     THREADS = 300
@@ -268,7 +269,7 @@ def test_ordered_model_to_concurrent():
     assert _orders_are_sequential()
 
 
-@pytest.mark.skip(reason="OrderedModel concurrent tests are skipped to speed up tests")
+@pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
 @pytest.mark.django_db(transaction=True)
 def test_ordered_model_swap_concurrent():
     THREADS = 300
@@ -302,7 +303,7 @@ def test_ordered_model_swap_concurrent():
     assert list(TestOrderedModel.objects.order_by("id").values_list("order", flat=True)) == unique_orders
 
 
-@pytest.mark.skip(reason="OrderedModel concurrent tests are skipped to speed up tests")
+@pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
 @pytest.mark.django_db(transaction=True)
 def test_ordered_model_swap_non_unique_orders_concurrent():
     THREADS = 300
@@ -334,7 +335,7 @@ def test_ordered_model_swap_non_unique_orders_concurrent():
     assert _orders_are_sequential()
 
 
-@pytest.mark.skip(reason="OrderedModel concurrent tests are skipped to speed up tests")
+@pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
 @pytest.mark.django_db(transaction=True)
 def test_ordered_model_create_swap_and_delete_concurrent():
     """Check that create+swap, swap and delete operations are performed correctly when run concurrently."""
