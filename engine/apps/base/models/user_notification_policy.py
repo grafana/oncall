@@ -7,9 +7,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Q, QuerySet
-from ordered_model.models import OrderedModel
 
 from apps.base.messaging import get_messaging_backends
+from apps.base.models.ordered_model import OrderedModel
 from apps.user_management.models import User
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -103,7 +103,7 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
 
 class UserNotificationPolicy(OrderedModel):
     objects = UserNotificationPolicyQuerySet.as_manager()
-    order_with_respect_to = ("user", "important")
+    order_with_respect_to = ("user_id", "important")
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -145,6 +145,11 @@ class UserNotificationPolicy(OrderedModel):
 
     class Meta:
         ordering = ("order",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_id", "important", "order"], name="unique_user_notification_policy_order"
+            )
+        ]
 
     def __str__(self):
         return f"{self.pk}: {self.short_verbal}"
