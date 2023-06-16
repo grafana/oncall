@@ -49,7 +49,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
         setResult(data);
         if (data?.preview === 'True') {
           setConditionalResult({ isResult: true, value: 'True' });
-        } else if (data?.preview.includes('False')) {
+        } else if (templateName.includes('route') || templateName.includes('condition')) {
           setConditionalResult({ isResult: true, value: 'False' });
         } else {
           setConditionalResult({ isResult: false, value: undefined });
@@ -101,16 +101,10 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
                 <div
                   className={cx('message')}
                   dangerouslySetInnerHTML={{
-                    __html: sanitize(result.preview?.substring(0, 5) || ''),
+                    __html: sanitize(result.preview),
                   }}
                 />
               </HorizontalGroup>
-              <div
-                className={cx('message')}
-                dangerouslySetInnerHTML={{
-                  __html: sanitize(result.preview?.substring(5, result.preview?.length) || ''),
-                }}
-              />
               {conditionalMessage(conditionalResult.value === 'True')}
             </VerticalGroup>
           )}
@@ -119,7 +113,13 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
         <>
           {templateName.includes('image') ? (
             <div className={cx('image-result')}>
-              <img src={result.preview} />
+              <img
+                src={result.preview}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.alt = result.preview || 'No image found';
+                }}
+              />
             </div>
           ) : (
             <div
