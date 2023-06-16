@@ -79,8 +79,6 @@ class OrderedModel(models.Model):
         if self.order is None:
             self._save_no_order_provided()
         else:
-            if self.order < 0:
-                raise ValueError("Order must be a positive integer.")
             super().save()
 
     @_retry(OperationalError)
