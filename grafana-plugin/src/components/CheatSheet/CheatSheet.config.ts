@@ -14,13 +14,13 @@ export interface CheatSheetInterface {
 
 export const groupingTemplateCheatSheet: CheatSheetInterface = {
   name: 'Grouping template cheatsheet',
-  description: 'Jinja2 is used for templating ( docs). ',
+  description:
+    'Template is powered by Jinja2 and Markdown.\n Grouping template is used to extract key from the alert payload and group alerts based on that key. The key can combine different variables based on content and time. See examples below. ',
   fields: [
     {
       name: 'Additional variables and functions',
       listItems: [
         { listItemName: 'time(), datetimeformat, iso8601_to_time' },
-        { listItemName: 'to_pretty_json' },
         { listItemName: 'regex_replace, regex_match' },
       ],
     },
@@ -28,20 +28,19 @@ export const groupingTemplateCheatSheet: CheatSheetInterface = {
       name: 'Examples',
       listItems: [
         { listItemName: 'group every hour', codeExample: '{{ time() | datetimeformat("%d-%m-%Y %H") }}' },
-        { listItemName: 'group every X hours', codeExample: '{{ every_hour(5) }}' },
         { listItemName: 'group alerts every microsecond (every 0.000001 second)', codeExample: '{{ time() }}' },
         { listItemName: 'group based on the specific field', codeExample: '{{ payload.uuid }}' },
-        { listItemName: 'group based on multiple fields', codeExample: '{{ payload.uuid }} \n {{ payload.region }}' },
+        { listItemName: 'group based on multiple fields', codeExample: '{{ payload.uuid }}-{{ payload.region }}' },
         {
           listItemName: 'group alerts with the same uuid, create new group every hour',
-          codeExample: '{{ payload.uuid }} \n {{ time() | datetimeformat("%d-%m-%Y %H") }}',
+          codeExample: '{{ payload.uuid }}-{{ time() | datetimeformat("%d-%m-%Y %H") }}',
         },
       ],
     },
   ],
 };
 
-export const webTitleTemplateCheatSheet: CheatSheetInterface = {
+export const genericTemplateCheatSheet: CheatSheetInterface = {
   name: 'Web title template cheatsheet',
   description: 'Jinja2 is used for templating (docs). \n Markdown is used for markup',
   fields: [
