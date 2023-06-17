@@ -50,11 +50,13 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
         "rolling_users": [[user1.public_primary_key], [user2.public_primary_key]],
     }
 
-    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
-    expected_payload = data | {"id": response.data["id"], "updated_shift": None}
+    with patch("apps.schedules.models.CustomOnCallShift.refresh_schedule") as mock_refresh_schedule:
+        response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
 
+    expected_payload = data | {"id": response.data["id"], "updated_shift": None}
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_payload
+    assert mock_refresh_schedule.called
 
 
 @pytest.mark.django_db
@@ -440,8 +442,8 @@ def test_update_started_on_call_shift(
         "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": None,
-        "frequency": None,
-        "interval": None,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
         "by_day": None,
         "rolling_users": [[user1.public_primary_key]],
     }
@@ -450,7 +452,8 @@ def test_update_started_on_call_shift(
 
     url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
 
-    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+    with patch("apps.schedules.models.CustomOnCallShift.refresh_schedule") as mock_refresh_schedule:
+        response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
 
     expected_payload = {
         "id": response.data["id"],
@@ -462,8 +465,8 @@ def test_update_started_on_call_shift(
         "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rotation_start": response.data["rotation_start"],
         "until": None,
-        "frequency": None,
-        "interval": None,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
         "by_day": None,
         "week_start": CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY],
         "rolling_users": [[user1.public_primary_key]],
@@ -481,6 +484,7 @@ def test_update_started_on_call_shift(
     # check if until date was changed
     assert on_call_shift.until is not None
     assert on_call_shift.until == on_call_shift.updated_shift.rotation_start
+    assert mock_refresh_schedule.called
 
 
 @pytest.mark.django_db
