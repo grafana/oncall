@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change .Values.externalRabbitmq.passwordKey from `password` to `""` (default value `rabbitmq-password`) ([#864](https://github.com/grafana/oncall/pull/864))
 - Remove deprecated `permissions` string array from the internal API user serializer by @joeyorlando ([#2269](https://github.com/grafana/oncall/pull/2269))
+- Make web schedule updates to trigger sync refresh of its ical representation ([#2279](https://github.com/grafana/oncall/pull/2279))
 
 ### Added
 
