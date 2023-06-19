@@ -44,10 +44,13 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         if "wait_delay" in validated_data and validated_data["step"] != UserNotificationPolicy.Step.WAIT:
             raise exceptions.ValidationError({"duration": "Duration can't be set"})
 
-        instance = UserNotificationPolicy.objects.create(**validated_data, user=validated_data.pop("user"))
-
+        # Remove "manual_order" and "order" fields from validated_data, so they are not passed to create method.
+        # Policies are always created at the end of the list, and then moved to the desired position by _adjust_order.
         manual_order = validated_data.pop("manual_order")
         order = validated_data.pop("order", None)
+
+        instance = UserNotificationPolicy.objects.create(**validated_data)
+
         if order is not None:
             self._adjust_order(instance, manual_order, order)
 
@@ -118,12 +121,20 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
 
     @staticmethod
     def _adjust_order(instance, manual_order, order):
+        # Passing order=-1 means that the policy should be moved to the end of the list.
         if order == -1:
             order = instance.max_order() or 0
 
+        # Negative order is not allowed.
         if order < 0:
             raise BadRequest(detail="Invalid value for position field")
 
+        # manual_order=True is intended for use by Terraform provider only, and is not a documented feature.
+        # Orders are swapped instead of moved when using Terraform, because Terraform may issue concurrent requests
+        # to create / update / delete multiple policies. "Move to" operation is not deterministic in this case, and
+        # final order of policies may be different depending on the order in which requests are processed. On the other
+        # hand, the result of concurrent "swap" operations is deterministic and does not depend on the order in
+        # which requests are processed.
         if manual_order:
             instance.swap(order)
         else:
@@ -148,6 +159,7 @@ class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerialize
             if "wait_delay" in validated_data and instance.step != UserNotificationPolicy.Step.WAIT:
                 raise exceptions.ValidationError({"duration": "Duration can't be set"})
 
+        # Remove "manual_order" and "order" fields from validated_data, so they are not passed to update method.
         manual_order = validated_data.pop("manual_order")
         order = validated_data.pop("order", None)
         if order is not None:
