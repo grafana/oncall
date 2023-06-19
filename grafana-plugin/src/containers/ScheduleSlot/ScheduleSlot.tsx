@@ -24,7 +24,7 @@ interface ScheduleSlotProps {
   scheduleId: Schedule['id'];
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
-  handleAddOverride: (event: React.SyntheticEvent) => void;
+  handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
   color?: string;
   simplified?: boolean;
   filters?: ScheduleFiltersType;

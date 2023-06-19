@@ -51,7 +51,7 @@ const Rotation: FC<RotationProps> = (props) => {
 
   const [animate, _setAnimate] = useState<boolean>(true);
 
-  const handleRotationClick = (event) => {
+  const handleRotationClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left; //x position within the element.
     const width = event.currentTarget.offsetWidth;
@@ -64,8 +64,8 @@ const Rotation: FC<RotationProps> = (props) => {
     onClick(shiftStart, shiftEnd);
   };
 
-  const getAddOverrideClickHandler = (scheduleEvent) => {
-    return (event) => {
+  const getAddOverrideClickHandler = (scheduleEvent: Event) => {
+    return (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
 
       handleAddOverride(dayjs(scheduleEvent.start), dayjs(scheduleEvent.end));
