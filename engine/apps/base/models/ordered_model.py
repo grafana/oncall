@@ -1,13 +1,9 @@
-import logging
 import random
 import time
 import typing
 from functools import wraps
 
 from django.db import IntegrityError, OperationalError, connection, models, transaction
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 # Update object's order to NULL and shift other objects' orders accordingly in a single SQL query.
 SQL_TO = """
@@ -42,11 +38,9 @@ def _retry(exc: typing.Type[Exception] | tuple[typing.Type[Exception], ...], max
                 try:
                     return f(*args, **kwargs)
                 except exc:
-                    logger.debug(f"IntegrityError occurred in {f.__qualname__}. Retrying...")
                     if attempts == max_attempts - 1:
                         raise
                     attempts += 1
-                    # double the sleep time each time and add some jitter
                     time.sleep(random.random())
 
         return wrapper
