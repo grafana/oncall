@@ -1870,6 +1870,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         return stop_escalation_log
 
+    def alerts_count_gt(self, max_alerts) -> bool:
+        """
+        alerts_count_gt checks if there are more than max_alerts alerts in given alert group.
+        It's optimized for alert groups with big number of alerts and relatively small max_alerts.
+        """
+        count = self.alerts.all()[: max_alerts + 1].count()
+        return count > max_alerts
+
 
 @receiver(post_save, sender=AlertGroup)
 def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs):
