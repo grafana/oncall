@@ -94,3 +94,26 @@ def test_delete(
 
     with pytest.raises(AlertGroup.DoesNotExist):
         alert_group.refresh_from_db()
+
+
+@pytest.mark.django_db
+def test_alerts_count_gt(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    # Check case when there is no alerts
+    assert alert_group.alerts_count_gt(1) is False
+
+    make_alert(alert_group, raw_request_data={})
+    make_alert(alert_group, raw_request_data={})
+
+    assert alert_group.alerts_count_gt(1) is True
+    assert alert_group.alerts_count_gt(2) is False
+    assert alert_group.alerts_count_gt(3) is False

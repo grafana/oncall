@@ -2,7 +2,7 @@ import datetime
 import logging
 import urllib
 from collections import namedtuple
-from typing import Optional, Tuple, TypedDict
+from typing import Optional, TypedDict
 from urllib.parse import urljoin
 from uuid import uuid1
 
@@ -1870,16 +1870,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         return stop_escalation_log
 
-    def alerts_count_gt(self, max_alerts) -> Tuple[bool, int]:
+    def alerts_count_gt(self, max_alerts) -> bool:
         """
         alerts_count_gt checks if there are more than max_alerts alerts in given alert group.
         It's optimized for alert groups with big number of alerts and relatively small N.
-
-        Returns:
-            Result of check and alerts count NOT greater than value of max_alerts
         """
         count = self.alerts.all()[: max_alerts + 1].count()
-        return count > max_alerts, count
+        return count > max_alerts
 
 
 @receiver(post_save, sender=AlertGroup)
