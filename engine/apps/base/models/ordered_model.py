@@ -9,7 +9,7 @@ from django.db import IntegrityError, OperationalError, connection, models, tran
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# TODO: comments
+# Update object's order to NULL and shift other objects' orders accordingly in a single SQL query.
 SQL_TO = """
 UPDATE `{db_table}` `t1`
 JOIN `{db_table}` `t2` ON `t2`.`{pk_name}` = %(pk)s
@@ -21,6 +21,7 @@ AND `t1`.`order` <= IF(`t2`.`order` > %(order)s, `t2`.`order`, %(order)s)
 ORDER BY IF(`t1`.`order` <= `t2`.`order`, `t1`.`order`, null) DESC, IF(`t1`.`order` >= `t2`.`order`, `t1`.`order`, null) ASC
 """
 
+# Update object's order to NULL and set the other object's order to specified value in a single SQL query.
 SQL_SWAP = """
 UPDATE `{db_table}` `t1`
 JOIN `{db_table}` `t2` ON `t2`.`{pk_name}` = %(pk)s
@@ -60,6 +61,12 @@ class OrderedModel(models.Model):
     The key difference of this implementation is that it allows orders to be unique at the database level and
     is designed to work correctly under concurrent load.
 
+    Notable differences compared to django-ordered-model:
+        - order can be unique at the database level;
+        - order can temporarily be set to NULL while performing moving operations;
+        - instance.delete() only deletes the instance, and doesn't shift other instances' orders;
+        - some methods are not implemented because they're not used in the codebase;
+
     Example usage:
         class Step(OrderedModel):
             user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -68,6 +75,8 @@ class OrderedModel(models.Model):
             class Meta:
                 ordering = ["order"]  # to make queryset ordering correct and consistent
                 unique_together = ["user_id", "order"]  # orders are unique per user at the database level
+
+    It's possible for orders to be non-sequential, e.g. order sequence [100, 150, 400] is totally possible and valid.
     """
 
     order = models.PositiveIntegerField(editable=False, db_index=True, null=True)
@@ -92,20 +101,12 @@ class OrderedModel(models.Model):
 
     @_retry((IntegrityError, OperationalError))
     def _save_no_order_provided(self) -> None:
-        """
-        TODO: how this works and why it's needed
-        """
-
         max_order = self.max_order()
         self.order = max_order + 1 if max_order is not None else 0
         super().save()
 
     @_retry((IntegrityError, OperationalError))
     def to(self, order: int) -> None:
-        """
-        TODO: how this works and why it's needed
-        """
-
         if order is None or order < 0:
             raise ValueError("Order must be a positive integer.")
 
@@ -122,18 +123,11 @@ class OrderedModel(models.Model):
         self.refresh_from_db(fields=["order"])
 
     def to_index(self, index: int) -> None:
-        """
-        Might be prone to race conditions.
-        """
         order = self._get_ordering_queryset().values_list("order", flat=True)[index]
         self.to(order)
 
     @_retry((IntegrityError, OperationalError))
     def swap(self, order: int) -> None:
-        """
-        TODO: how this works and why it's needed
-        """
-
         if order is None or order < 0:
             raise ValueError("Order must be a positive integer.")
 
