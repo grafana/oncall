@@ -61,7 +61,6 @@ import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import styles from 'pages/integration_2/Integration2.module.scss';
-import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -118,14 +117,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.props;
 
     const {
-      store,
-      store: { alertReceiveChannelStore, telegramChannelStore },
+      store: { alertReceiveChannelStore },
     } = this.props;
-
-    if (store.hasFeature(AppFeature.Telegram)) {
-      // workaround until we get the whole telegram data in response
-      telegramChannelStore.updateItems();
-    }
 
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
@@ -311,7 +304,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   border={getVar('--border-weak')}
                   className={cx('tag')}
                 >
-                  <Text type="primary" size="small">
+                  <Text type="primary" size="small" className={cx('radius')}>
                     Templates
                   </Text>
                 </Tag>
@@ -967,7 +960,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             border={getVar('--border-weak')}
             className={cx('how-to-connect__tag')}
           >
-            <Text type="primary" size="small">
+            <Text type="primary" size="small" className={cx('radius')}>
               HTTP Endpoint
             </Text>
           </Tag>
@@ -1073,20 +1066,22 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {renderHearbeat(alertReceiveChannel)}
 
-      <div className={cx('headerTop__item')}>
-        <Text type="secondary">Type:</Text>
-        <HorizontalGroup spacing="xs">
-          <IntegrationLogo scale={0.08} integration={integration} />
-          <Text type="primary">{integration?.display_name}</Text>
-        </HorizontalGroup>
-      </div>
-      <div className={cx('headerTop__item')}>
-        <Text type="secondary">Team:</Text>
-        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
-      </div>
-      <div className={cx('headerTop__item')}>
-        <Text type="secondary">Created by:</Text>
-        <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', marginLeft: '8px' }}>
+        <div className={cx('headerTop__item')}>
+          <Text type="secondary">Type:</Text>
+          <HorizontalGroup spacing="xs">
+            <IntegrationLogo scale={0.08} integration={integration} />
+            <Text type="primary">{integration?.display_name}</Text>
+          </HorizontalGroup>
+        </div>
+        <div className={cx('headerTop__item')}>
+          <Text type="secondary">Team:</Text>
+          <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
+        </div>
+        <div className={cx('headerTop__item')}>
+          <Text type="secondary">Created by:</Text>
+          <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
+        </div>
       </div>
     </div>
   );

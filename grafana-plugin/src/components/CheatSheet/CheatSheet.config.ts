@@ -47,7 +47,10 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
     {
       name: 'Markdown refresher',
       listItems: [
-        { codeExample: '**bold**, _italic_, >quote, `code`, ```multiline code```, [``](url), - bullet list' },
+        { codeExample: `**bold**, _italic_, >quote, \`code\`,
+\`\`\`multiline code\`\`\`
+<slug|url>
+- bullet list` },
       ],
     },
     {
@@ -56,10 +59,14 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
         { listItemName: ' {{ payload.labels.foo }} - extract field value' },
         {
           listItemName: 'Conditions',
-          codeExample: '{%- if "status" in payload %} \n {{ payload.status }} \n {% endif -%}',
+          codeExample: `{%- if "status" in payload %}
+  {{ payload.status }}
+{% endif -%}`,
         },
-        { listItemName: 'Booleans', codeExample: '{{ payload.status == “resolved” }}' },
-        { listItemName: 'Loops', codeExample: '{% for label in labels %} \n {{ label.title }} \n {% endfor %}' },
+        { listItemName: 'Booleans', codeExample: '{{ payload.status == "resolved" }}' },
+        { listItemName: 'Loops', codeExample: `{% for label in labels %}
+  {{ label.title }}
+{% endfor %}` },
       ],
     },
     {
@@ -132,11 +139,17 @@ export const slackMessageTemplateCheatSheet: CheatSheetInterface = {
       listItems: [
         {
           listItemName: 'Examples Convert Web template in Classic Markdown to Slack markdown',
-          codeExample: '{{ web_message \n| replace("**", "*") \n| regex_replace("/((.*))[(.*)]/", "<$2|$1>") }}',
+          codeExample: `{{
+    web_message
+    | replace("**", "*")
+    | regex_replace("/((.*))[(.*)]/", "<$2|$1>")
+}}`,
         },
         {
           listItemName: 'Show status if exists',
-          codeExample: '{%- if "status" in payload %} \n **Status**: {{ payload.status }} \n {% endif -%}',
+          codeExample: `{%- if "status" in payload %}
+**Status**: {{ payload.status }}
+{% endif -%}`,
         },
         {
           listItemName: 'Show field value or “N/A” is not exist',
@@ -145,7 +158,10 @@ export const slackMessageTemplateCheatSheet: CheatSheetInterface = {
         {
           listItemName: 'Iterate over labels dictionary',
           codeExample:
-            '**Labels:** \n {% for k, v in payload["labels"].items() %} \n *{{ k }}*: {{ v }} \n {% endfor %} ',
+            `**Labels:**
+{% for k, v in payload["labels"].items() %}
+*{{ k }}*: {{ v }}
+{% endfor %}`,
         },
       ],
     },

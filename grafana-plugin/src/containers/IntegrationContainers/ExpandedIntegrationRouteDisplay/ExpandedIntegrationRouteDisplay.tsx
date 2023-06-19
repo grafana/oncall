@@ -122,6 +122,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
                   tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
                   tooltipContent={undefined}
+                  className={cx('u-margin-right-xs')}
                 />
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
@@ -329,26 +330,26 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 
   return (
     <HorizontalGroup spacing={'xs'}>
-      {routeIndex > 0 && !channelFilter.is_default && (
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Tooltip placement="top" content={'Move Up'}>
-            <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'sm'} />
-          </Tooltip>
-        </WithPermissionControlTooltip>
-      )}
-
-      {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Tooltip placement="top" content={'Move Down'}>
-            <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'sm'} />
-          </Tooltip>
-        </WithPermissionControlTooltip>
-      )}
-
       {!channelFilter.is_default && (
         <WithContextMenu
           renderMenuItems={() => (
             <div className={cx('integrations-actionsList')}>
+                {routeIndex > 0 && !channelFilter.is_default && (
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <div className={cx('integrations-actionItem')}>
+                      <Text type="primary" onClick={onRouteMoveUp}>Move Up</Text>
+                    </div>
+                  </WithPermissionControlTooltip>
+                )}
+
+                {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <div className={cx('integrations-actionItem')}>
+                      <Text type="primary" onClick={onRouteMoveDown}>Move Down</Text>
+                    </div>
+                  </WithPermissionControlTooltip>
+                )}
+
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>
                   <HorizontalGroup spacing={'xs'}>

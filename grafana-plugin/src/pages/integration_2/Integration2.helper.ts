@@ -63,7 +63,6 @@ const IntegrationHelper = {
 
   getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): Array<{ name: string; icon: IconName }> {
     const channels: Array<{ name: string; icon: IconName }> = [];
-    const telegram = Object.keys(store.telegramChannelStore.items).map((k) => store.telegramChannelStore.items[k]);
 
     if (store.hasFeature(AppFeature.Slack) && channelFilter.notify_in_slack) {
       const matchingSlackChannel = store.teamStore.currentTeam?.slack_channel?.id
@@ -77,15 +76,12 @@ const IntegrationHelper = {
       }
     }
 
-    const matchingTelegram = telegram.find((t) => t.id === channelFilter.telegram_channel);
-
     if (
       store.hasFeature(AppFeature.Telegram) &&
-      channelFilter.telegram_channel &&
-      channelFilter.notify_in_telegram &&
-      matchingTelegram?.channel_name
+      channelFilter.telegram_channel_details &&
+      channelFilter.notify_in_telegram
     ) {
-      channels.push({ name: matchingTelegram.channel_name, icon: 'telegram-alt' });
+      channels.push({ name: channelFilter.telegram_channel_details.display_name, icon: 'telegram-alt' });
     }
 
     return channels;

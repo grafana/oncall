@@ -22,6 +22,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { TemplateOptions } from 'pages/integration_2/Integration2.config';
 import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
@@ -126,27 +127,27 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     }
   }, [onUpdateTemplates, changedTemplateBody]);
 
-  const getCheatSheet = (templateName) => {
-    switch (templateName) {
-      case 'Grouping':
-      case 'Autoresolve':
+  const getCheatSheet = (templateKey: string) => {
+    switch (templateKey) {
+      case TemplateOptions.Grouping.key:
+      case TemplateOptions.Resolve.key:
         return groupingTemplateCheatSheet;
-      case 'Web title':
-      case 'Web message':
-      case 'Web image':
-        return genericTemplateCheatSheet;
-      case 'Auto acknowledge':
-      case 'Source link':
-      case 'Phone call':
-      case 'SMS':
-      case 'Slack title':
-      case 'Slack message':
-      case 'Slack image':
-      case 'Telegram title':
-      case 'Telegram message':
-      case 'Telegram image':
-      case 'Email title':
-      case 'Email message':
+      case TemplateOptions.WebTitle.key:
+      case TemplateOptions.WebMessage.key:
+      case TemplateOptions.WebImage.key:
+        return webTitleTemplateCheatSheet;
+      case TemplateOptions.Autoacknowledge.key:
+      case TemplateOptions.SourceLink.key:
+      case TemplateOptions.Phone.key:
+      case TemplateOptions.SMS.key:
+      case TemplateOptions.SlackTitle.key:
+      case TemplateOptions.SlackMessage.key:
+      case TemplateOptions.SlackImage.key:
+      case TemplateOptions.TelegramTitle.key:
+      case TemplateOptions.TelegramMessage.key:
+      case TemplateOptions.TelegramImage.key:
+      case TemplateOptions.EmailTitle.key:
+      case TemplateOptions.EmailMessage.key:
         return slackMessageTemplateCheatSheet;
       default:
         return genericTemplateCheatSheet;
@@ -192,7 +193,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
           {isCheatSheetVisible ? (
             <CheatSheet
               cheatSheetName={template.displayName}
-              cheatSheetData={getCheatSheet(template.displayName)}
+              cheatSheetData={getCheatSheet(template.name)}
               onClose={onCloseCheatSheet}
             />
           ) : (

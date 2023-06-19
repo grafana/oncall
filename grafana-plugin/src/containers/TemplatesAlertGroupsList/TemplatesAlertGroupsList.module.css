@@ -17,10 +17,6 @@
   padding-left: 0;
 }
 
-.alert-groups-list > div {
-  border-right: none;
-}
-
 .alert-groups-list {
   padding-right: 16px;
 }

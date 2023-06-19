@@ -37,7 +37,14 @@ export const MONACO_PAYLOAD_OPTIONS = {
 export const MONACO_INPUT_HEIGHT_SMALL = '32px';
 export const MONACO_INPUT_HEIGHT_TALL = '120px';
 
-const TemplateOptions = {
+export const TemplateOptions = {
+  WebTitle: new KeyValuePair('web_title_template', 'Web Title'),
+  WebMessage: new KeyValuePair('web_message_template', 'Web Message'),
+  WebImage: new KeyValuePair('web_image_url_template', 'Web Image'),
+  Grouping: new KeyValuePair('grouping_id_template', 'Grouping'),
+  Resolve: new KeyValuePair('resolve_condition_template', 'Resolve condition'),
+  Routing: new KeyValuePair('route_template', 'Routing'),
+
   SourceLink: new KeyValuePair('source_link_template', 'Source Link'),
   Autoacknowledge: new KeyValuePair('acknowledge_condition_template', 'Autoacknowledge'),
   Phone: new KeyValuePair('phone_call_title_template', 'Phone'),
