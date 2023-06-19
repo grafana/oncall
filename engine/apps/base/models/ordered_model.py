@@ -7,25 +7,25 @@ from django.db import IntegrityError, OperationalError, connection, models, tran
 
 # Update object's order to NULL and shift other objects' orders accordingly in a single SQL query.
 SQL_TO = """
-UPDATE `{db_table}` `t1`
-JOIN `{db_table}` `t2` ON `t2`.`{pk_name}` = %(pk)s
-SET `t1`.`order` = IF(`t1`.`{pk_name}` = `t2`.`{pk_name}`, null, IF(`t1`.`order` < `t2`.`order`, `t1`.`order` + 1, `t1`.`order` - 1))
+UPDATE {db_table} {t1}
+JOIN {db_table} {t2} ON {t2}.{pk_name} = %(pk)s
+SET {t1}.{order} = IF({t1}.{pk_name} = {t2}.{pk_name}, null, IF({t1}.{order} < {t2}.{order}, {t1}.{order} + 1, {t1}.{order} - 1))
 WHERE {ordering_condition}
-AND `t2`.`order` != %(order)s
-AND `t1`.`order` >= IF(`t2`.`order` > %(order)s, %(order)s, `t2`.`order`)
-AND `t1`.`order` <= IF(`t2`.`order` > %(order)s, `t2`.`order`, %(order)s)
-ORDER BY IF(`t1`.`order` <= `t2`.`order`, `t1`.`order`, null) DESC, IF(`t1`.`order` >= `t2`.`order`, `t1`.`order`, null) ASC
+AND {t2}.{order} != %(order)s
+AND {t1}.{order} >= IF({t2}.{order} > %(order)s, %(order)s, {t2}.{order})
+AND {t1}.{order} <= IF({t2}.{order} > %(order)s, {t2}.{order}, %(order)s)
+ORDER BY IF({t1}.{order} <= {t2}.{order}, {t1}.{order}, null) DESC, IF({t1}.{order} >= {t2}.{order}, {t1}.{order}, null) ASC
 """
 
 # Update object's order to NULL and set the other object's order to specified value in a single SQL query.
 SQL_SWAP = """
-UPDATE `{db_table}` `t1`
-JOIN `{db_table}` `t2` ON `t2`.`{pk_name}` = %(pk)s
-SET `t1`.`order` = IF(`t1`.`{pk_name}` = `t2`.`{pk_name}`, null, `t2`.`order`)
+UPDATE {db_table} {t1}
+JOIN {db_table} {t2} ON {t2}.{pk_name} = %(pk)s
+SET {t1}.{order} = IF({t1}.{pk_name} = {t2}.{pk_name}, null, {t2}.{order})
 WHERE {ordering_condition}
-AND `t2`.`order` != %(order)s
-AND (`t1`.`{pk_name}` = `t2`.`{pk_name}` OR `t1`.`order` = %(order)s)
-ORDER BY IF(`t1`.`{pk_name}` = `t2`.`{pk_name}`, 0, 1) ASC
+AND {t2}.{order} != %(order)s
+AND ({t1}.{pk_name} = {t2}.{pk_name} OR {t1}.{order} = %(order)s)
+ORDER BY IF({t1}.{pk_name} = {t2}.{pk_name}, 0, 1) ASC
 """
 
 
@@ -104,9 +104,7 @@ class OrderedModel(models.Model):
         if order is None or order < 0:
             raise ValueError("Order must be a positive integer.")
 
-        sql = SQL_TO.format(
-            db_table=self._meta.db_table, pk_name=self._meta.pk.name, ordering_condition=self._ordering_condition_sql
-        )
+        sql = self._format_sql(SQL_TO)
         params = {"pk": self.pk, "order": order, **self._ordering_params}
 
         with transaction.atomic():
@@ -125,9 +123,7 @@ class OrderedModel(models.Model):
         if order is None or order < 0:
             raise ValueError("Order must be a positive integer.")
 
-        sql = SQL_SWAP.format(
-            db_table=self._meta.db_table, pk_name=self._meta.pk.name, ordering_condition=self._ordering_condition_sql
-        )
+        sql = self._format_sql(SQL_SWAP)
         params = {"pk": self.pk, "order": order, **self._ordering_params}
 
         with transaction.atomic():
@@ -150,8 +146,18 @@ class OrderedModel(models.Model):
     def _ordering_params(self) -> dict[str, typing.Any]:
         return {field: getattr(self, field) for field in self.order_with_respect_to}
 
-    @property
-    def _ordering_condition_sql(self) -> str:
-        # This doesn't insert actual values into the query, but rather uses placeholders to avoid SQL injections.
-        ordering_parts = ["`t1`.`{0}` = %({0})s".format(field) for field in self.order_with_respect_to]
-        return " AND ".join(ordering_parts)
+    def _format_sql(self, sql):
+        ordering_parts = [
+            "{t1}.{field} = %({field})s".format(t1=connection.ops.quote_name("t1"), field=field)
+            for field in self.order_with_respect_to
+        ]
+        ordering_condition = " AND ".join(ordering_parts)
+
+        return sql.format(
+            t1=connection.ops.quote_name("t1"),
+            t2=connection.ops.quote_name("t2"),
+            order=connection.ops.quote_name("order"),
+            db_table=connection.ops.quote_name(self._meta.db_table),
+            pk_name=connection.ops.quote_name(self._meta.pk.name),
+            ordering_condition=ordering_condition,
+        )
