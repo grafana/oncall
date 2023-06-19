@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Handle non-UTC UNTIL datetime value when repeating ical events [#2241](https://github.com/grafana/oncall/pull/2241)
+- Optimize AlertManager auto-resolve mechanism
 
 ## v1.2.44 (2023-06-14)
 
