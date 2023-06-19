@@ -163,13 +163,15 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    const isInMaintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode();
-    if (isInMaintenanceMode !== null) {
+    const maintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode(this.onCallApiUrl);
+    if (typeof maintenanceMode === 'string') {
+      return this.setupPluginError(maintenanceMode);
+    } else if (maintenanceMode.currently_undergoing_maintenance_message) {
       this.currentlyUndergoingMaintenance = true;
-      return this.setupPluginError(`🚧 ${isInMaintenanceMode} 🚧`);
+      return this.setupPluginError(`🚧 ${maintenanceMode.currently_undergoing_maintenance_message} 🚧`);
     }
 
-    // at this point we know the plugin is provionsed
+    // at this point we know the plugin is provisioned
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);

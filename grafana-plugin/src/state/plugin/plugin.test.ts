@@ -663,10 +663,11 @@ describe('PluginState.checkIfBackendIsInMaintenanceMode', () => {
     // mocks
     const maintenanceModeMsg = 'asdfljkadsjlfkajsdf';
     const mockedResp = { currently_undergoing_maintenance_message: maintenanceModeMsg };
+    const onCallApiUrl = 'http://hello.com';
     makeRequest.mockResolvedValueOnce(mockedResp);
 
     // test
-    const response = await PluginState.checkIfBackendIsInMaintenanceMode();
+    const response = await PluginState.checkIfBackendIsInMaintenanceMode(onCallApiUrl);
 
     // assertions
     expect(response).toEqual(maintenanceModeMsg);

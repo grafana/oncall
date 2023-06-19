@@ -4,7 +4,6 @@ import { Button, Label, Legend, LoadingPlaceholder } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
-import logo from 'img/logo.svg';
 import PluginState, { PluginStatusResponseBase } from 'state/plugin';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
@@ -228,8 +227,8 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       {pluginIsConnected ? (
         <>
           <p>
-            Plugin is connected! Continue to Grafana OnCall by clicking the{' '}
-            <img alt="Grafana OnCall Logo" src={logo} width={18} /> icon over there 👈
+            Plugin is connected! Continue to Grafana OnCall by clicking OnCall under Alerts & IRM in the navigation over
+            there 👈
           </p>
           <StatusMessageBlock
             text={`Connected to OnCall (${pluginIsConnected.version}, ${pluginIsConnected.license})`}

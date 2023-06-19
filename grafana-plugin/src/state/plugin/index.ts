@@ -137,16 +137,20 @@ class PluginState {
   static updateGrafanaPluginSettings = async (data: UpdateGrafanaPluginSettingsProps, enabled = true) =>
     this.grafanaBackend.post(this.GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
 
-  static createGrafanaToken = async () => {
-    const baseUrl = '/api/auth/keys';
-    const keys = await this.grafanaBackend.get(baseUrl);
-    const existingKey = keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+  static readonly KEYS_BASE_URL = '/api/auth/keys';
 
+  static getGrafanaToken = async () => {
+    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
+    return keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+  };
+
+  static createGrafanaToken = async () => {
+    const existingKey = await this.getGrafanaToken();
     if (existingKey) {
-      await this.grafanaBackend.delete(`${baseUrl}/${existingKey.id}`);
+      await this.grafanaBackend.delete(`${this.KEYS_BASE_URL}/${existingKey.id}`);
     }
 
-    return await this.grafanaBackend.post(baseUrl, {
+    return await this.grafanaBackend.post(this.KEYS_BASE_URL, {
       name: 'OnCall',
       role: 'Admin',
       secondsToLive: null,
@@ -205,6 +209,15 @@ class PluginState {
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginSyncStatusResponse | string> => {
     try {
+      /**
+       * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
+       * an API on accident but leaves the plugin settings intact.
+       */
+      const existingKey = await this.getGrafanaToken();
+      if (!existingKey) {
+        await this.installPlugin();
+      }
+
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
       if (typeof startSyncResponse === 'string') {
         // an error occured trying to initiate the sync
@@ -300,11 +313,22 @@ class PluginState {
     return null;
   };
 
-  static checkIfBackendIsInMaintenanceMode = async (): Promise<string> => {
-    const response = await makeRequest<PluginIsInMaintenanceModeResponse>('/maintenance-mode-status', {
-      method: 'GET',
-    });
-    return response.currently_undergoing_maintenance_message;
+  static checkIfBackendIsInMaintenanceMode = async (
+    onCallApiUrl: string,
+    onCallApiUrlIsConfiguredThroughEnvVar = false
+  ): Promise<PluginIsInMaintenanceModeResponse | string> => {
+    try {
+      return await makeRequest<PluginIsInMaintenanceModeResponse>('/maintenance-mode-status', {
+        method: 'GET',
+      });
+    } catch (e) {
+      return this.getHumanReadableErrorFromOnCallError(
+        e,
+        onCallApiUrl,
+        'install',
+        onCallApiUrlIsConfiguredThroughEnvVar
+      );
+    }
   };
 
   static checkIfPluginIsConnected = async (
