@@ -276,6 +276,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     async function onRouteDeleteConfirm() {
       setState({ routeIdForDeletion: undefined });
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
+      openNotification('Route has been deleted');
     }
 
     function onEscalationChainChange({ value }) {

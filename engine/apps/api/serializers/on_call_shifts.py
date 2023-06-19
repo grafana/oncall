@@ -33,13 +33,15 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ),  # todo: filter by team?
     )
     updated_shift = serializers.CharField(read_only=True, allow_null=True, source="updated_shift.public_primary_key")
+    # Name is optional to keep backward compatibility with older frontends
+    name = serializers.CharField(required=False)
 
     class Meta:
         model = CustomOnCallShift
         fields = [
             "id",
             "organization",
-            "title",
+            "name",
             "type",
             "schedule",
             "priority_level",
@@ -196,9 +198,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
-        validated_data["name"] = CustomOnCallShift.generate_name(
-            validated_data["schedule"], validated_data["priority_level"], validated_data["type"]
-        )
+
         # before creation, require users set
         self._require_users(validated_data)
         instance = super().create(validated_data)
@@ -216,16 +216,16 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(instance.type, validated_data)
-        change_only_title = True
+        change_only_name = True
         create_or_update_last_shift = False
         force_update = validated_data.pop("force_update", True)
 
         for field in validated_data:
-            if field != "title" and validated_data[field] != getattr(instance, field):
-                change_only_title = False
+            if field != "name" and validated_data[field] != getattr(instance, field):
+                change_only_name = False
                 break
 
-        if not change_only_title:
+        if not change_only_name:
             if instance.type != CustomOnCallShift.TYPE_OVERRIDE:
                 if instance.event_is_started:
                     create_or_update_last_shift = True
