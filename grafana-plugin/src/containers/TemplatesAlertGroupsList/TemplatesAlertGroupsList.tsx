@@ -41,13 +41,13 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   }, []);
 
   const getCodeEditorHeight = () => {
-    const mainDiv = document.getElementById('content-container-id');
+    const mainDiv = document.getElementById('alerts-content-container-id');
     const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT;
     return `${height}px`;
   };
 
   const getCodeEditorHeightWithBadge = () => {
-    const mainDiv = document.getElementById('content-container-id');
+    const mainDiv = document.getElementById('alerts-content-container-id');
     const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT - BADGE_WITH_PADDINGS_HEIGHT;
     return `${height}px`;
   };
@@ -80,7 +80,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   };
 
   return (
-    <div className={cx('template-block-list')} id="content-container-id">
+    <div className={cx('template-block-list')} id="alerts-content-container-id">
       {selectedAlertPayload ? (
         <>
           {isEditMode ? (
@@ -180,7 +180,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                 <HorizontalGroup justify="space-between" wrap>
                   <HorizontalGroup>
                     <Text>Recent Alert groups</Text>
-                    <Tooltip content="Here will be information about alert groups">
+                    <Tooltip content="Here will be information about alert groups" placement="top">
                       <Icon name="info-circle" />
                     </Tooltip>
                   </HorizontalGroup>

@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import math
@@ -23,6 +24,7 @@ from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+from common.l10n import format_localized_datetime, format_localized_time
 
 if typing.TYPE_CHECKING:
     from apps.mobile_app.models import MobileAppUserSettings
@@ -224,8 +226,33 @@ def _get_alert_group_escalation_fcm_message(
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
 
+def _get_youre_going_oncall_notification_title(
+    schedule: OnCallSchedule,
+    seconds_until_going_oncall: int,
+    schedule_event: ScheduleEvent,
+    mobile_app_user_settings: "MobileAppUserSettings",
+) -> str:
+    time_until_going_oncall = humanize.naturaldelta(seconds_until_going_oncall)
+
+    shift_start = schedule_event["start"]
+    shift_end = schedule_event["end"]
+    shift_starts_and_ends_on_same_day = shift_start.date() == shift_end.date()
+    dt_formatter_func = format_localized_time if shift_starts_and_ends_on_same_day else format_localized_datetime
+
+    def _format_datetime(dt):
+        return dt_formatter_func(dt, mobile_app_user_settings.locale)
+
+    formatted_shift = f"{_format_datetime(shift_start)} - {_format_datetime(shift_end)}"
+
+    return f"You're going on call in {time_until_going_oncall} for schedule {schedule.name}, {formatted_shift}"
+
+
 def _get_youre_going_oncall_fcm_message(
-    user: User, schedule: OnCallSchedule, device_to_notify: FCMDevice, seconds_until_going_oncall: int
+    user: User,
+    schedule: OnCallSchedule,
+    device_to_notify: FCMDevice,
+    seconds_until_going_oncall: int,
+    schedule_event: ScheduleEvent,
 ) -> Message:
     # avoid circular import
     from apps.mobile_app.models import MobileAppUserSettings
@@ -234,8 +261,8 @@ def _get_youre_going_oncall_fcm_message(
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-    notification_title = (
-        f"You are going on call in {humanize.naturaldelta(seconds_until_going_oncall)} for schedule {schedule.name}"
+    notification_title = _get_youre_going_oncall_notification_title(
+        schedule, seconds_until_going_oncall, schedule_event, mobile_app_user_settings
     )
 
     data: FCMMessageData = {
@@ -322,7 +349,7 @@ def _shift_starts_within_range(
 
 
 def should_we_send_going_oncall_push_notification(
-    now: timezone.datetime, user_settings: "MobileAppUserSettings", schedule_event: ScheduleEvent
+    now: datetime.datetime, user_settings: "MobileAppUserSettings", schedule_event: ScheduleEvent
 ) -> typing.Optional[int]:
     """
     If the user should be set a "you're going oncall" push notification, return the number of seconds
@@ -445,7 +472,7 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
             if seconds_until_going_oncall is not None and not already_sent_this_push_notification:
                 message = _get_youre_going_oncall_fcm_message(
-                    user, schedule, device_to_notify, seconds_until_going_oncall
+                    user, schedule, device_to_notify, seconds_until_going_oncall, schedule_event
                 )
                 _send_push_notification(device_to_notify, message)
                 cache.set(cache_key, True, PUSH_NOTIFICATION_TRACKING_CACHE_KEY_TTL)

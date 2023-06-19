@@ -137,10 +137,10 @@ def list_of_oncall_shifts_from_ical(
 
     # TODO: Review offset usage
     pytz_tz = pytz.timezone(user_timezone)
-    user_timezone_offset = timezone.datetime.now().astimezone(pytz_tz).utcoffset()
-    datetime_min = timezone.datetime.combine(date, datetime.time.min) + timezone.timedelta(milliseconds=1)
+    user_timezone_offset = datetime.datetime.now().astimezone(pytz_tz).utcoffset()
+    datetime_min = datetime.datetime.combine(date, datetime.time.min) + datetime.timedelta(milliseconds=1)
     datetime_start = (datetime_min - user_timezone_offset).astimezone(pytz.UTC)
-    datetime_end = datetime_start + timezone.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
+    datetime_end = datetime_start + datetime.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
 
     result_datetime = []
     result_date = []
@@ -269,12 +269,12 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
 
             calendar_tz = get_icalendar_tz_or_utc(calendar)
 
-            schedule_timezone_offset = timezone.datetime.now().astimezone(calendar_tz).utcoffset()
-            start_datetime = timezone.datetime.combine(start_date, datetime.time.min) + timezone.timedelta(
+            schedule_timezone_offset = datetime.datetime.now().astimezone(calendar_tz).utcoffset()
+            start_datetime = datetime.datetime.combine(start_date, datetime.time.min) + datetime.timedelta(
                 milliseconds=1
             )
             start_datetime_with_offset = (start_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
-            end_datetime = timezone.datetime.combine(end_date, datetime.time.max)
+            end_datetime = datetime.datetime.combine(end_date, datetime.time.max)
             end_datetime_with_offset = (end_datetime - schedule_timezone_offset).astimezone(pytz.UTC)
 
             events = ical_events.get_events_from_ical_between(
@@ -327,7 +327,7 @@ def list_users_to_notify_from_ical(
     """
     Retrieve on-call users for the current time
     """
-    events_datetime = events_datetime if events_datetime else timezone.datetime.now(timezone.utc)
+    events_datetime = events_datetime if events_datetime else datetime.datetime.now(timezone.utc)
     return list_users_to_notify_from_ical_for_period(
         schedule,
         events_datetime,
@@ -378,7 +378,7 @@ def get_oncall_users_for_multiple_schedules(
     from apps.user_management.models import User
 
     if events_datetime is None:
-        events_datetime = timezone.datetime.now(timezone.utc)
+        events_datetime = datetime.datetime.now(timezone.utc)
 
     # Exit early if there are no schedules
     if not schedules.exists():
@@ -549,10 +549,10 @@ def ical_date_to_datetime(date, tz, start):
     all_day = False
     if type(date) == datetime.date:
         all_day = True
-        calendar_timezone_offset = timezone.datetime.now().astimezone(tz).utcoffset()
-        date = timezone.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
+        calendar_timezone_offset = datetime.datetime.now().astimezone(tz).utcoffset()
+        date = datetime.datetime.combine(date, datetime_to_combine).astimezone(tz) - calendar_timezone_offset
         if not start:
-            date -= timezone.timedelta(seconds=1)
+            date -= datetime.timedelta(seconds=1)
     return date, all_day
 
 
@@ -690,9 +690,9 @@ DatetimeInterval = namedtuple("DatetimeInterval", ["start", "end"])
 def list_of_gaps_in_schedule(schedule, start_date, end_date):
     calendars = schedule.get_icalendars()
     intervals = []
-    start_datetime = timezone.datetime.combine(start_date, datetime.time.min) + timezone.timedelta(milliseconds=1)
+    start_datetime = datetime.datetime.combine(start_date, datetime.time.min) + datetime.timedelta(milliseconds=1)
     start_datetime = start_datetime.astimezone(pytz.UTC)
-    end_datetime = timezone.datetime.combine(end_date, datetime.time.max).astimezone(pytz.UTC)
+    end_datetime = datetime.datetime.combine(end_date, datetime.time.max).astimezone(pytz.UTC)
 
     for idx, calendar in enumerate(calendars):
         if calendar is not None:

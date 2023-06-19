@@ -730,6 +730,69 @@ def test_preview_shift(make_organization, make_user_for_organization, make_sched
 
 
 @pytest.mark.django_db
+def test_preview_shift_do_not_change_rotation_events(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=9),
+        "rotation_start": start_date + timezone.timedelta(hours=9),
+        "duration": timezone.timedelta(hours=9),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=12),
+        "rotation_start": start_date + timezone.timedelta(hours=12),
+        "duration": timezone.timedelta(seconds=3600),
+        "priority_level": 2,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    other_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    other_shift.add_rolling_users([[other_user]])
+
+    rotation_events, final_events = schedule.preview_shift(on_call_shift, "UTC", start_date, days=1)
+
+    # check rotation events
+    expected_rotation_events = [
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "start": on_call_shift.start,
+            "end": on_call_shift.start + on_call_shift.duration,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": False,
+            "is_gap": False,
+            "priority_level": on_call_shift.priority_level,
+            "missing_users": [],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+            "shift": {"pk": on_call_shift.public_primary_key},
+            "source": "api",
+        }
+    ]
+    assert rotation_events == expected_rotation_events
+
+
+@pytest.mark.django_db
 def test_preview_shift_no_user(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
     organization = make_organization()
     schedule = make_schedule(
@@ -1681,3 +1744,39 @@ def test_refresh_ical_final_schedule_all_day_date_event(
     calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
     events = [component for component in calendar.walk() if component.name == ICAL_COMPONENT_VEVENT]
     assert len(events) == 0
+
+
+@pytest.mark.django_db
+def test_event_until_non_utc(make_organization, make_schedule):
+    organization = make_organization()
+    cached_ical_primary_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID:testing
+        CALSCALE:GREGORIAN
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something
+        SUMMARY:testing
+        RRULE:FREQ=WEEKLY;UNTIL=20221231T010101
+        DTSTART;TZID=Europe/Madrid:20220309T130000
+        DTEND;TZID=Europe/Madrid:20220309T133000
+        SEQUENCE:4
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        cached_ical_file_primary=cached_ical_primary_schedule,
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # check this works without raising exception
+    schedule.final_events("UTC", now, days=7)

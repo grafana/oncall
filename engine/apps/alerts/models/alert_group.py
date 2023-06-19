@@ -1,3 +1,4 @@
+import datetime
 import logging
 import urllib
 from collections import namedtuple
@@ -462,8 +463,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def slack_permalink(self) -> Optional[str]:
-        if self.slack_message is not None:
-            return self.slack_message.permalink
+        return None if self.slack_message is None else self.slack_message.permalink
 
     @property
     def telegram_permalink(self) -> Optional[str]:
@@ -992,7 +992,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         now = timezone.now()
 
         if silence_delay is not None and silence_delay > 0:
-            silence_delay_timedelta = timezone.timedelta(seconds=silence_delay)
+            silence_delay_timedelta = datetime.timedelta(seconds=silence_delay)
             silenced_until = now + silence_delay_timedelta
             if self.is_root_alert_group:
                 self.start_unsilence_task(countdown=silence_delay)
@@ -1503,7 +1503,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         silence_for_period = silence_delay is not None and silence_delay > 0
 
         if silence_for_period:
-            silence_delay_timedelta = timezone.timedelta(seconds=silence_delay)
+            silence_delay_timedelta = datetime.timedelta(seconds=silence_delay)
             silenced_until = now + silence_delay_timedelta
         else:
             silence_delay_timedelta = None
@@ -1623,7 +1623,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         seconds = Organization.ACKNOWLEDGE_REMIND_DELAY[self.channel.organization.acknowledge_remind_timeout]
         if seconds > 0:
-            delay = timezone.timedelta(seconds=seconds).total_seconds()
+            delay = datetime.timedelta(seconds=seconds).total_seconds()
             acknowledge_reminder_task.apply_async(
                 (
                     self.pk,
@@ -1869,6 +1869,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         )
 
         return stop_escalation_log
+
+    def alerts_count_gt(self, max_alerts) -> bool:
+        """
+        alerts_count_gt checks if there are more than max_alerts alerts in given alert group.
+        It's optimized for alert groups with big number of alerts and relatively small max_alerts.
+        """
+        count = self.alerts.all()[: max_alerts + 1].count()
+        return count > max_alerts
 
 
 @receiver(post_save, sender=AlertGroup)

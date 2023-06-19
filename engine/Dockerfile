@@ -49,6 +49,7 @@ ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
 
 FROM base AS dev
 RUN apt-get install -y sqlite3 default-mysql-client postgresql-client
+RUN pip install -r requirements-dev.txt
 
 FROM dev AS dev-enterprise
 RUN pip install -r requirements-enterprise-docker.txt

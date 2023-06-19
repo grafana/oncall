@@ -44,8 +44,9 @@ const Integration2HearbeatForm = observer(({ alertReceveChannelId, onClose }: In
     <Drawer width={'640px'} scrollableContent title={'Heartbeat'} onClose={onClose} closeOnMaskClick={false}>
       <VerticalGroup spacing={'lg'}>
         <Text type="secondary">
-          Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
-          trigger false alarms.
+          A heartbeat acts as a healthcheck for alert group monitoring. You can configure you monitoring to regularly
+          send alerts to the heartbeat endpoint. If OnCall doen't receive one of these alerts, it will create an new
+          alert group and escalate it
         </Text>
 
         <VerticalGroup spacing="md">

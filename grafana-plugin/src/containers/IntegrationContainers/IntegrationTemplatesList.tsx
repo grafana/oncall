@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 
-import { ConfirmModal } from '@grafana/ui';
+import { ConfirmModal, InlineSwitch, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
@@ -22,17 +22,33 @@ interface IntegrationTemplateListProps {
   templates: AlertTemplatesDTO[];
   alertReceiveChannelId: AlertReceiveChannel['id'];
   openEditTemplateModal: (templateName: string | string[]) => void;
+  alertReceiveChannelIsBasedOnAlertManager: boolean;
+  alertReceiveChannelAllowSourceBasedResolving: boolean;
 }
 
 const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
   templates,
   openEditTemplateModal,
   alertReceiveChannelId,
+  alertReceiveChannelIsBasedOnAlertManager,
+  alertReceiveChannelAllowSourceBasedResolving,
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const [isRestoringTemplate, setIsRestoringTemplate] = useState<boolean>(false);
   const [templateRestoreName, setTemplateRestoreName] = useState<string>(undefined);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannelAllowSourceBasedResolving);
+
+  const handleSaveClick = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setAutoresolveValue(event.target.checked);
+    alertReceiveChannelStore
+      .saveAlertReceiveChannel(alertReceiveChannelId, {
+        allow_source_based_resolving: event.target.checked,
+      })
+      .then(() => {
+        openNotification('Autoresolve ' + (event.target.checked ? 'enabled' : 'disabled'));
+      });
+  }, []);
 
   return (
     <div className={cx('integration__templates')}>
@@ -52,7 +68,8 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
 
       <IntegrationBlockItem>
         <Text type="secondary">
-          Templates are used to interpret alert from monitoring. Reduce noise, customize visualization
+          Set templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution,
+          customize visualizations and notifications by extracting data from alerts.
         </Text>
       </IntegrationBlockItem>
 
@@ -67,20 +84,31 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                 isLoading={isRestoringTemplate && templateRestoreName === contents.name}
                 onRemove={() => onShowConfirmModal(contents.name)}
                 label={contents.label}
+                labelTooltip={contents.labelTooltip}
+                isTemplateEditable={isResolveConditionTemplateEditable(contents.name)}
                 renderInput={() => (
-                  <div className={cx('input')}>
-                    <MonacoEditor
-                      value={IntegrationHelper.getFilteredTemplate(
-                        templates[contents.name] || '',
-                        contents.height === MONACO_INPUT_HEIGHT_TALL
-                      )}
-                      disabled={true}
-                      height={contents.height}
-                      data={templates}
-                      showLineNumbers={false}
-                      monacoOptions={MONACO_OPTIONS}
-                    />
-                  </div>
+                  <>
+                    {isResolveConditionTemplate(contents.name) && (
+                      <Tooltip content={'Edit'}>
+                        <InlineSwitch value={autoresolveValue} onChange={handleSaveClick} />
+                      </Tooltip>
+                    )}
+                    {isResolveConditionTemplateEditable(contents.name) && (
+                      <div className={cx('input')}>
+                        <MonacoEditor
+                          value={IntegrationHelper.getFilteredTemplate(
+                            templates[contents.name] || '',
+                            contents.height === MONACO_INPUT_HEIGHT_TALL
+                          )}
+                          disabled={true}
+                          height={contents.height}
+                          data={templates}
+                          showLineNumbers={false}
+                          monacoOptions={MONACO_OPTIONS}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
                 onEdit={() => openEditTemplateModal(contents.name)}
               />
@@ -90,6 +118,17 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
       ))}
     </div>
   );
+
+  function isResolveConditionTemplateEditable(templateName: string) {
+    return (
+      !(alertReceiveChannelIsBasedOnAlertManager && isResolveConditionTemplate(templateName)) &&
+      (alertReceiveChannelAllowSourceBasedResolving || !isResolveConditionTemplate(templateName))
+    );
+  }
+
+  function isResolveConditionTemplate(templateName: string) {
+    return templateName === 'resolve_condition_template';
+  }
 
   function onShowConfirmModal(templateName: string) {
     setTemplateRestoreName(templateName);

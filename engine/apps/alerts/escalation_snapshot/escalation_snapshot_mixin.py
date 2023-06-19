@@ -215,11 +215,7 @@ class EscalationSnapshotMixin:
             return None
 
         raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
-        if not raw_next_step_eta:
-            return None
-
-        if raw_next_step_eta:
-            return parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
+        return None if not raw_next_step_eta else parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
 
     def start_escalation_if_needed(self, countdown=START_ESCALATION_DELAY, eta=None):
         """

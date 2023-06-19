@@ -1,9 +1,9 @@
 import datetime
 import itertools
 import re
+import typing
 from collections import defaultdict
 from enum import Enum
-from typing import Iterable, List, Optional, Tuple, TypedDict, Union
 
 import icalendar
 import pytz
@@ -56,49 +56,49 @@ class QualityReportCommentType(str, Enum):
     WARNING = "warning"
 
 
-class QualityReportComment(TypedDict):
+class QualityReportComment(typing.TypedDict):
     type: QualityReportCommentType
     text: str
 
 
-class QualityReportOverloadedUser(TypedDict):
+class QualityReportOverloadedUser(typing.TypedDict):
     id: str
     username: str
     score: int
 
 
-class QualityReport(TypedDict):
+class QualityReport(typing.TypedDict):
     total_score: int
-    comments: list[QualityReportComment]
-    overloaded_users: list[QualityReportOverloadedUser]
+    comments: typing.List[QualityReportComment]
+    overloaded_users: typing.List[QualityReportOverloadedUser]
 
 
-class ScheduleEventUser(TypedDict):
+class ScheduleEventUser(typing.TypedDict):
     display_name: str
     pk: str
     email: str
 
 
-class ScheduleEventShift(TypedDict):
+class ScheduleEventShift(typing.TypedDict):
     pk: str
 
 
-class ScheduleEvent(TypedDict):
+class ScheduleEvent(typing.TypedDict):
     all_day: bool
     start: datetime.datetime
     end: datetime.datetime
-    users: List[ScheduleEventUser]
-    missing_users: List[str]
-    priority_level: Union[int, None]
-    source: Union[str, None]
-    calendar_type: Union[int, None]
+    users: typing.List[ScheduleEventUser]
+    missing_users: typing.List[str]
+    priority_level: typing.Union[int, None]
+    source: typing.Union[str, None]
+    calendar_type: typing.Union[int, None]
     is_empty: bool
     is_gap: bool
     is_override: bool
     shift: ScheduleEventShift
 
 
-class ScheduleFinalShift(TypedDict):
+class ScheduleFinalShift(typing.TypedDict):
     user_pk: str
     user_email: str
     user_username: str
@@ -106,9 +106,9 @@ class ScheduleFinalShift(TypedDict):
     shift_end: str
 
 
-ScheduleEvents = List[ScheduleEvent]
-ScheduleEventIntervals = List[List[datetime.datetime]]
-ScheduleFinalShifts = List[ScheduleFinalShift]
+ScheduleEvents = typing.List[ScheduleEvent]
+ScheduleEventIntervals = typing.List[typing.List[datetime.datetime]]
+ScheduleFinalShifts = typing.List[ScheduleFinalShift]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():
@@ -238,7 +238,7 @@ class OnCallSchedule(PolymorphicModel):
 
     def check_gaps_for_next_week(self):
         today = timezone.now().date()
-        gaps = list_of_gaps_in_schedule(self, today, today + timezone.timedelta(days=7))
+        gaps = list_of_gaps_in_schedule(self, today, today + datetime.timedelta(days=7))
         has_gaps = len(gaps) != 0
         self.has_gaps = has_gaps
         self.save(update_fields=["has_gaps"])
@@ -246,7 +246,7 @@ class OnCallSchedule(PolymorphicModel):
 
     def check_empty_shifts_for_next_week(self):
         today = timezone.now().date()
-        empty_shifts = list_of_empty_shifts_in_schedule(self, today, today + timezone.timedelta(days=7))
+        empty_shifts = list_of_empty_shifts_in_schedule(self, today, today + datetime.timedelta(days=7))
         has_empty_shifts = len(empty_shifts) != 0
         self.has_empty_shifts = has_empty_shifts
         self.save(update_fields=["has_empty_shifts"])
@@ -316,17 +316,17 @@ class OnCallSchedule(PolymorphicModel):
             )
             or []
         )
-        events = []
+        events: ScheduleEvents = []
         for shift in shifts:
             start = shift["start"]
             all_day = type(start) == datetime.date
             # fix confusing end date for all-day event
-            end = shift["end"] - timezone.timedelta(days=1) if all_day else shift["end"]
+            end = shift["end"] - datetime.timedelta(days=1) if all_day else shift["end"]
             if all_day and all_day_datetime:
                 start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
                 end = datetime.datetime.combine(end, datetime.datetime.max.time(), tzinfo=pytz.UTC)
             is_gap = shift.get("is_gap", False)
-            shift_json = {
+            shift_json: ScheduleEvent = {
                 "all_day": all_day,
                 "start": start,
                 "end": end,
@@ -352,9 +352,7 @@ class OnCallSchedule(PolymorphicModel):
             events.append(shift_json)
 
         # combine multiple-users same-shift events into one
-        events = self._merge_events(events)
-
-        return events
+        return self._merge_events(events)
 
     def final_events(self, user_tz, starting_date, days):
         """Return schedule final events, after resolving shifts and overrides."""
@@ -369,7 +367,7 @@ class OnCallSchedule(PolymorphicModel):
         now = timezone.now()
         # window to consider: from now, -15 days + 6 months
         delta = EXPORT_WINDOW_DAYS_BEFORE
-        starting_datetime = now - timezone.timedelta(days=delta)
+        starting_datetime = now - datetime.timedelta(days=delta)
         starting_date = starting_datetime.date()
         days = EXPORT_WINDOW_DAYS_AFTER + delta
 
@@ -431,7 +429,7 @@ class OnCallSchedule(PolymorphicModel):
         user_tz = user.timezone or "UTC"
         now = timezone.now()
         # consider an extra day before to include events from UTC yesterday
-        starting_date = now.date() - timezone.timedelta(days=1)
+        starting_date = now.date() - datetime.timedelta(days=1)
         current_shift = upcoming_shift = None
 
         if self.cached_ical_final_schedule is None:
@@ -454,7 +452,7 @@ class OnCallSchedule(PolymorphicModel):
 
         return current_shift, upcoming_shift
 
-    def quality_report(self, date: Optional[timezone.datetime], days: Optional[int]) -> QualityReport:
+    def quality_report(self, date: typing.Optional[datetime.datetime], days: typing.Optional[int]) -> QualityReport:
         """
         Return schedule quality report to be used by the web UI.
         TODO: Add scores on "inside working hours" and "balance outside working hours" when
@@ -462,7 +460,7 @@ class OnCallSchedule(PolymorphicModel):
         """
         # get events to consider for calculation
         if date is None:
-            today = datetime.datetime.now(tz=datetime.timezone.utc)
+            today = datetime.datetime.now(tz=timezone.utc)
             date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
         if days is None:
             days = 52 * 7  # consider next 52 weeks (~1 year)
@@ -481,7 +479,7 @@ class OnCallSchedule(PolymorphicModel):
         def event_duration(ev: dict) -> datetime.timedelta:
             return ev["end"] - ev["start"]
 
-        def timedelta_sum(deltas: Iterable[datetime.timedelta]) -> datetime.timedelta:
+        def timedelta_sum(deltas: typing.Iterable[datetime.timedelta]) -> datetime.timedelta:
             return sum(deltas, start=datetime.timedelta())
 
         def score_to_percent(value: float) -> int:
@@ -586,7 +584,7 @@ class OnCallSchedule(PolymorphicModel):
         def event_start_cmp_key(e: ScheduleEvent) -> datetime.datetime:
             return e["start"]
 
-        def event_cmp_key(e: ScheduleEvent) -> Tuple[int, int, datetime.datetime]:
+        def event_cmp_key(e: ScheduleEvent) -> typing.Tuple[int, int, datetime.datetime]:
             """Sorting key criteria for events."""
             start = event_start_cmp_key(e)
             return (
@@ -766,22 +764,9 @@ class OnCallSchedule(PolymorphicModel):
 
         extra_shifts = [custom_shift]
         if updated_shift_pk is not None:
-            try:
-                update_shift = qs.get(public_primary_key=updated_shift_pk)
-            except CustomOnCallShift.DoesNotExist:
-                pass
-            else:
-                if update_shift.event_is_started:
-                    custom_shift.rotation_start = max(
-                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
-                    )
-                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
-                    update_shift.until = custom_shift.rotation_start
-                    extra_shifts.append(update_shift)
-                else:
-                    # only reuse PK for preview when updating a rotation that won't be started after the update
-                    custom_shift.public_primary_key = updated_shift_pk
-                qs = qs.exclude(public_primary_key=updated_shift_pk)
+            # only reuse PK for preview when updating a rotation that won't be started after the update
+            custom_shift.public_primary_key = updated_shift_pk
+            qs = qs.exclude(public_primary_key=updated_shift_pk)
 
         ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
 
@@ -793,7 +778,7 @@ class OnCallSchedule(PolymorphicModel):
         events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
         # return preview events for affected shifts
         updated_shift_pks = {s.public_primary_key for s in extra_shifts}
-        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
+        shift_events = [e.copy() for e in events if e["shift"]["pk"] in updated_shift_pks]
         final_events = self._resolve_schedule(events)
 
         _invalidate_cache(self, ical_property)

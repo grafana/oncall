@@ -337,6 +337,18 @@ def test_get_list_schedules_by_type(
         }
         assert response.json() == expected_payload
 
+    # request multiple types
+    url = reverse("api-internal:schedule-list") + "?type=0&type=1"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_payload = {
+        "count": 2,
+        "next": None,
+        "previous": None,
+        "results": [available_schedules[0], available_schedules[1]],
+    }
+    assert response.json() == expected_payload
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(

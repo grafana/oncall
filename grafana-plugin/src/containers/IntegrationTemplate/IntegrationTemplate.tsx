@@ -5,27 +5,28 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import CheatSheet from 'components/CheatSheet/CheatSheet';
 import {
   groupingTemplateCheatSheet,
   slackMessageTemplateCheatSheet,
-  webTitleTemplateCheatSheet,
+  genericTemplateCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
 import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { openErrorNotification } from 'utils';
 import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
-import styles from './IntegrationTemplate.module.css';
+import styles from './IntegrationTemplate.module.scss';
 
 const cx = cn.bind(styles);
 
@@ -44,7 +45,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId, templates } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
-  const [chatOps, setChatOps] = useState(undefined);
+  const [chatOpsPermalink, setChatOpsPermalink] = useState(undefined);
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
@@ -101,10 +102,8 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const onSelectAlertGroup = useCallback((alertGroup: Alert) => {
     if (template.additionalData?.chatOpsName) {
-      setChatOps({
+      setChatOpsPermalink({
         permalink: alertGroup?.permalinks[template.additionalData?.chatOpsName],
-        name: template.additionalData?.chatOpsName,
-        comment: template.additionalData?.data,
       });
     }
   }, []);
@@ -119,12 +118,8 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const handleSubmit = useCallback(() => {
     if (template.isRoute) {
-      if (changedTemplateBody) {
-        onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId);
-        onHide();
-      } else {
-        openErrorNotification('Route template body can not be empty');
-      }
+      onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId);
+      onHide();
     } else {
       onUpdateTemplates({ [template.name]: changedTemplateBody });
       onHide();
@@ -136,10 +131,10 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       case 'Grouping':
       case 'Autoresolve':
         return groupingTemplateCheatSheet;
-      case 'Web titile':
+      case 'Web title':
       case 'Web message':
       case 'Web image':
-        return webTitleTemplateCheatSheet;
+        return genericTemplateCheatSheet;
       case 'Auto acknowledge':
       case 'Source link':
       case 'Phone call':
@@ -154,7 +149,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       case 'Email message':
         return slackMessageTemplateCheatSheet;
       default:
-        return webTitleTemplateCheatSheet;
+        return genericTemplateCheatSheet;
     }
   };
   return (
@@ -168,12 +163,16 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             </VerticalGroup>
 
             <HorizontalGroup>
-              <Button variant="secondary" onClick={onHide}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handleSubmit}>
-                Save
-              </Button>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <Button variant="secondary" onClick={onHide}>
+                  Cancel
+                </Button>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <Button variant="primary" onClick={handleSubmit}>
+                  Save
+                </Button>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </HorizontalGroup>
         </div>
@@ -222,10 +221,10 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
           )}
           <Result
             alertReceiveChannelId={id}
-            templateName={template.name}
+            template={template}
             templateBody={changedTemplateBody}
             alertGroup={undefined}
-            chatOps={chatOps}
+            chatOpsPermalink={chatOpsPermalink}
             payload={alertGroupPayload}
             error={resultError}
             onSaveAndFollowLink={onSaveAndFollowLink}
@@ -238,17 +237,19 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
 interface ResultProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
-  templateName: string;
+  // templateName: string;
   templateBody: string;
+  template: TemplateForEdit;
   alertGroup?: Alert;
-  chatOps?: { permalink: string; name: string; comment?: string };
+  chatOpsPermalink?: string;
   payload?: JSON;
   error?: string;
   onSaveAndFollowLink?: (link: string) => void;
 }
 
 const Result = (props: ResultProps) => {
-  const { alertReceiveChannelId, templateName, chatOps, payload, templateBody, error, onSaveAndFollowLink } = props;
+  const { alertReceiveChannelId, template, templateBody, chatOpsPermalink, payload, error, onSaveAndFollowLink } =
+    props;
 
   const getCapitalizedChatopsName = (name: string) => {
     return name.charAt(0).toUpperCase() + name.slice(1);
@@ -270,8 +271,8 @@ const Result = (props: ResultProps) => {
             ) : (
               <Block bordered fullWidth withBackground>
                 <TemplatePreview
-                  key={templateName}
-                  templateName={templateName}
+                  key={template.name}
+                  templateName={template.name}
                   templateBody={templateBody}
                   alertReceiveChannelId={alertReceiveChannelId}
                   payload={payload}
@@ -279,27 +280,27 @@ const Result = (props: ResultProps) => {
               </Block>
             )}
 
-            {chatOps && (
+            {template?.additionalData?.additionalDescription && (
+              <Text type="secondary">{template?.additionalData.additionalDescription}</Text>
+            )}
+
+            {template?.additionalData?.chatOpsName && (
               <VerticalGroup>
-                <Button onClick={() => onSaveAndFollowLink(chatOps.permalink)}>
+                <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
                   <HorizontalGroup spacing="xs" align="center">
-                    Save and open Alert Group in {getCapitalizedChatopsName(chatOps.name)}{' '}
+                    Save and open Alert Group in {getCapitalizedChatopsName(template.additionalData.chatOpsName)}{' '}
                     <Icon name="external-link-alt" />
                   </HorizontalGroup>
                 </Button>
 
-                {chatOps.comment && (
-                  <Text type="secondary">
-                    Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.
-                  </Text>
-                )}
+                {template.additionalData.data && <Text type="secondary">{template.additionalData.data}</Text>}
               </VerticalGroup>
             )}
           </VerticalGroup>
         ) : (
           <div>
             <Block bordered fullWidth className={cx('block-style')}>
-              <Text>You do not have any input data to render result. Please select Alert group to see end result</Text>
+              <Text>← Select alert group or "Use custom payload"</Text>
             </Block>
           </div>
         )}

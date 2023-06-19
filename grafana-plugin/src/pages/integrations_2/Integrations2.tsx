@@ -147,7 +147,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       },
       {
         width: '20%',
-        title: 'Datasource',
+        title: 'Type',
         key: 'datasource',
         render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
       },
@@ -276,8 +276,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <Emoji
             className={cx('title')}
             text={
-              item.verbal_name.length > MAX_LINE_LENGTH
-                ? item.verbal_name.substring(0, MAX_LINE_LENGTH) + '...'
+              item.verbal_name?.length > MAX_LINE_LENGTH
+                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
                 : item.verbal_name
             }
           />
@@ -327,8 +327,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             borderType="success"
             icon="link"
             text={`${connectedEscalationsChainsCount}/${routesCounter}`}
-            tooltipTitle=""
-            tooltipContent={
+            tooltipContent={undefined}
+            tooltipTitle={
               connectedEscalationsChainsCount +
               ' connected escalation chain' +
               (connectedEscalationsChainsCount === 1 ? '' : 's') +
@@ -414,36 +414,34 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             <div className="thin-line-break" />
 
             <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
-              <>
-                <div className={cx('integrations-actionItem')}>
-                  <div
-                    onClick={() => {
-                      this.setState({
-                        confirmationModal: {
-                          isOpen: true,
-                          confirmText: 'Delete',
-                          dismissText: 'Cancel',
-                          onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
-                          title: 'Delete integration',
-                          body: (
-                            <Text type="primary">
-                              Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
-                            </Text>
-                          ),
-                        },
-                      });
-                    }}
-                    style={{ width: '100%' }}
-                  >
-                    <Text type="danger">
-                      <HorizontalGroup spacing={'xs'}>
-                        <Icon name="trash-alt" />
-                        <span>Delete Integration</span>
-                      </HorizontalGroup>
-                    </Text>
-                  </div>
+              <div className={cx('integrations-actionItem')}>
+                <div
+                  onClick={() => {
+                    this.setState({
+                      confirmationModal: {
+                        isOpen: true,
+                        confirmText: 'Delete',
+                        dismissText: 'Cancel',
+                        onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
+                        title: 'Delete integration',
+                        body: (
+                          <Text type="primary">
+                            Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
+                          </Text>
+                        ),
+                      },
+                    });
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  <Text type="danger">
+                    <HorizontalGroup spacing={'xs'}>
+                      <Icon name="trash-alt" />
+                      <span>Delete Integration</span>
+                    </HorizontalGroup>
+                  </Text>
                 </div>
-              </>
+              </div>
             </WithPermissionControlTooltip>
           </div>
         )}
@@ -475,9 +473,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   applyFilters = () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { integrationsFilters, page } = this.state;
+    const { integrationsFilters } = this.state;
 
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters).then(() => {
+      this.setState({ page: 1 });
+      LocationHelper.update({ p: 1 }, 'partial');
+    });
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

@@ -1,0 +1,108 @@
+suite: test extra envs for deployments
+templates:
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+  - celery/deployment-celery.yaml
+release:
+  name: oncall
+tests:
+  - it: env=[] -> should support old syntax
+    set:
+      env:
+        - name: SOME_VAR
+          value: some_value
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SOME_VAR
+            value: some_value
+
+  - it: env=map[] -> should set multiple envs
+    set:
+      env:
+        SOME_VAR: some_value
+        another_var: "another_value"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SOME_VAR
+            value: some_value
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: another_var
+            value: "another_value"
+
+  - it: env=[] -> should add envs into initContainer
+    templates:
+      - engine/deployment.yaml
+      - celery/deployment-celery.yaml
+    set:
+      env:
+        - name: SOME_VAR
+          value: some_value
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: SOME_VAR
+            value: some_value
+
+  - it: env=map[] -> should add envs into initContainer
+    templates:
+      - engine/deployment.yaml
+      - celery/deployment-celery.yaml
+    set:
+      env:
+        SOME_VAR: some_value
+        another_var: "another_value"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: SOME_VAR
+            value: some_value
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: another_var
+            value: "another_value"
+
+  - it: database.type=postgresql and env=map[] -> should add envs into initContainer
+    templates:
+      - engine/deployment.yaml
+      - celery/deployment-celery.yaml
+    set:
+      database.type: postgresql
+      env:
+        SOME_VAR: some_value
+        another_var: "another_value"
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: SOME_VAR
+            value: some_value
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: another_var
+            value: "another_value"
+
+  - it: database.type=postgresql and env=[] -> should support old style for initContainer
+    templates:
+      - engine/deployment.yaml
+      - celery/deployment-celery.yaml
+    set:
+      database.type: postgresql
+      env:
+        - name: SOME_VAR
+          value: some_value
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: SOME_VAR
+            value: some_value

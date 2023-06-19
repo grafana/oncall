@@ -107,11 +107,9 @@ webhook integrations to adjust them for incoming payloads.
 
 Configuration is done via environment variables passed to the docker container.
 
-<!-- markdownlint-disable MD013 -->
-
 | Name                                          | Description                                                                                                                                                                                            | Type                                | Default |
-|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------|---------|
-| `PAGERDUTY_API_TOKEN`                         | PagerDuty API **user token**. To create a token, refer to [PagerDuty docs](<https://support.pagerduty.com/docs/api-access-keys#generate-a-user-token-rest-api-key>).                                   | String                              | N/A     |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------- |
+| `PAGERDUTY_API_TOKEN`                         | PagerDuty API **user token**. To create a token, refer to [PagerDuty docs](https://support.pagerduty.com/docs/api-access-keys#generate-a-user-token-rest-api-key).                                     | String                              | N/A     |
 | `ONCALL_API_URL`                              | Grafana OnCall API URL. This can be found on the "Settings" page of your Grafana OnCall instance.                                                                                                      | String                              | N/A     |
 | `ONCALL_API_TOKEN`                            | Grafana OnCall API Token. To create a token, navigate to the "Settings" page of your Grafana OnCall instance.                                                                                          | String                              | N/A     |
 | `MODE`                                        | Migration mode (plan vs actual migration).                                                                                                                                                             | String (choices: `plan`, `migrate`) | `plan`  |
@@ -119,8 +117,6 @@ Configuration is done via environment variables passed to the docker container.
 | `UNSUPPORTED_INTEGRATION_TO_WEBHOOKS`         | When set to `true`, integrations with unsupported type will be migrated to Grafana OnCall integrations with type "webhook". When set to `false`, integrations with unsupported type won't be migrated. | Boolean                             | `false` |
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES`            | Migrate global event rulesets to Grafana OnCall integrations.                                                                                                                                          | Boolean                             | `false` |
 | `EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES` | Include service & integrations names from PD in migrated integrations (only effective when `EXPERIMENTAL_MIGRATE_EVENT_RULES` is `true`).                                                              | Boolean                             | `false` |
-
-<!-- markdownlint-enable MD013 -->
 
 ## Resources
 
@@ -144,11 +140,11 @@ The tool is capable of migrating on-call schedules from PagerDuty to Grafana OnC
 There are two ways to migrate on-call schedules:
 
 - Migrate on-call shifts as if they were created in Grafana OnCall web UI. Due to scheduling differences between
-PagerDuty and Grafana OnCall, it's sometimes impossible to automatically migrate on-call shifts without manual changes
-in PD. Pass `SCHEDULE_MIGRATION_MODE=web` to the tool to enable this mode.
+  PagerDuty and Grafana OnCall, it's sometimes impossible to automatically migrate on-call shifts without manual changes
+  in PD. Pass `SCHEDULE_MIGRATION_MODE=web` to the tool to enable this mode.
 - Using ICalendar file URLs from PagerDuty. This way it's always possible to migrate schedules without any manual
-changes in PD, but resulting schedules in Grafana OnCall will be read-only. Pass `SCHEDULE_MIGRATION_MODE=ical` to the tool
-to enable this mode.
+  changes in PD, but resulting schedules in Grafana OnCall will be read-only. Pass `SCHEDULE_MIGRATION_MODE=ical` to
+  the tool to enable this mode.
 
 On-call schedules will be migrated to new Grafana OnCall schedules with the same name as in PD. Any existing schedules
 with the same name will be deleted before migration. Any on-call schedules that reference unmatched users won't be
@@ -197,4 +193,4 @@ but it can also make the names of integrations too long.
 - Connect integrations (press the "How to connect" button on the integration page)
 - Make sure users connect their phone numbers, Slack accounts, etc. in their user settings
 - When using `SCHEDULE_MIGRATION_MODE=ical`, at some point you would probably want to recreate schedules using
-Google Calendar or Terraform to be able to modify migrated on-call schedules in Grafana OnCall
+  Google Calendar or Terraform to be able to modify migrated on-call schedules in Grafana OnCall

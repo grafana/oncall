@@ -92,6 +92,9 @@ ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
 ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
 
+# Prometheus exporter metrics endpoint auth
+PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
+
 
 # Database
 class DatabaseTypes:
@@ -657,6 +660,7 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
+    "config_integrations.alertmanager_v2",
     "config_integrations.alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",

@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, Tuple
 from uuid import uuid4
 
@@ -21,7 +22,7 @@ class TelegramChannelVerificationCode(models.Model):
 
     @property
     def is_active(self) -> bool:
-        return self.datetime + timezone.timedelta(days=1) < timezone.now()
+        return self.datetime + datetime.timedelta(days=1) < timezone.now()
 
     @property
     def uuid_with_org_uuid(self) -> str:
