@@ -247,7 +247,7 @@ def _get_youre_going_oncall_notification_subtitle(
 
     formatted_shift = f"{_format_datetime(shift_start)} - {_format_datetime(shift_end)}"
 
-    return f"{schedule.name}: {formatted_shift}"
+    return f"{formatted_shift}\nSchedule {schedule.name}"
 
 
 def _get_youre_going_oncall_fcm_message(

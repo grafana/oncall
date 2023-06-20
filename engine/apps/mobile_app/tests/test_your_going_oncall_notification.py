@@ -105,15 +105,15 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
 
     assert (
         same_day_shift_title
-        == f"Your on-call shift starts in {humanized_time_until_going_oncall} for schedule {schedule_name}, 09 h 00 - 17 h 00"
+        == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
     )
     assert(
         same_day_shift_subtitle
-        == f"{schedule_name}: 09 h 00 - 17 h 00"
+        == f"09 h 00 - 17 h 00\nSchedule: {schedule_name}"
     )
     assert (
         same_day_shift_no_locale_subtitle
-        == f"{schedule_name}: 9:00\u202fAM - 5:00\u202fPM"
+        == f"9:00\u202fAM - 5:00\u202fPM\nSchedule: {schedule_name}"
     )
 
     ##################
@@ -129,15 +129,15 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
 
     assert (
         multiple_day_shift_title
-        == f"Your on-call shift starts in {humanized_time_until_going_oncall} for schedule {schedule_name}, 2023-07-08 09 h 00 - 2023-07-12 17 h 00"
+        == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
     )
     assert (
         multiple_day_shift_subtitle
-        == f"{schedule_name}: 2023-07-08 09 h 00 - 2023-07-12 17 h 00"
+        == f"2023-07-08 09 h 00 - 2023-07-12 17 h 00\nSchedule: {schedule_name}"
     )
     assert (
         multiple_day_shift_no_locale_subtitle
-        == f"{schedule_name}: 7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM"
+        == f"7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM\nSchedule: {schedule_name}"
     )
 
 
