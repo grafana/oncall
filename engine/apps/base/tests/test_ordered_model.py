@@ -232,7 +232,7 @@ def test_order_with_respect_to_isolation():
 # They are skipped by default because they might take a lot of time to run.
 # It could be useful to run them manually when making changes to the code, making sure
 # that the changes don't break concurrent operations. To run the tests, set SKIP_CONCURRENT to False.
-SKIP_CONCURRENT = False
+SKIP_CONCURRENT = True
 
 
 @pytest.mark.skipif(SKIP_CONCURRENT, reason="OrderedModel concurrent tests are skipped to speed up tests")
