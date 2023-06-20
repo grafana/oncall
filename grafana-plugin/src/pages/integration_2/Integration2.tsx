@@ -509,6 +509,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         alertReceiveChannelStore.updateChannelFilters(id, true).then(() => {
           escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
         });
+        this.setState({
+          isEditTemplateModalOpen: undefined,
+        });
+        LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
       })
       .catch((err) => {
         const errors = get(err, 'response.data');
@@ -530,12 +534,17 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       .saveTemplates(id, data)
       .then(() => {
         openNotification('The Alert templates have been updated');
+        this.setState({
+          isEditTemplateModalOpen: undefined,
+        });
+        this.setState({ isTemplateSettingsOpen: true });
+        LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
       })
       .catch((err) => {
         if (err.response?.data?.length > 0) {
           openErrorNotification(err.response.data);
         } else {
-          openErrorNotification(err.message);
+          openErrorNotification('Template is not valid. Please check your template and try again');
         }
       });
   };

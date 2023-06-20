@@ -24,7 +24,7 @@
 }
 
 .template-editor-block-title {
-  padding: 8px 16px;
+  padding: 8px 16px 0;
   align-items: baseline;
   border: var(--border-weak);
   background-color: var(--background-secondary);
@@ -58,7 +58,7 @@
 }
 
 .result {
-  padding-left: 16px;
+  padding: 0 16px;
   padding-bottom: 60px;
 }
 

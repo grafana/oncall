@@ -30,7 +30,7 @@ const CheatSheet = (props: CheatSheetProps) => {
             <IconButton name="times" onClick={onClose} />
           </HorizontalGroup>
           <Text type="secondary">{cheatSheetData.description}</Text>
-          <div>
+          <div className={cx('u-width-100')}>
             {cheatSheetData.fields?.map((field: CheatSheetItem) => {
               return (
                 <div key={field.name} className={cx('cheatsheet-item')}>

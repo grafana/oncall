@@ -85,7 +85,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         <>
           {isEditMode ? (
             <>
-              <div className={cx('template-block-title')}>
+              <div className={cx('template-block-title-edit-mode')}>
                 <HorizontalGroup justify="space-between">
                   <Text>Edit custom payload</Text>
 
@@ -152,7 +152,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         <>
           {isEditMode ? (
             <>
-              <div className={cx('template-block-title')}>
+              <div className={cx('template-block-title-edit-mode')}>
                 <HorizontalGroup justify="space-between">
                   <Text>Edit custom payload</Text>
 
@@ -172,7 +172,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                     ...MONACO_OPTIONS,
                     readOnly: false,
                   }}
-                  showLineNumbers={false}
                   height={getCodeEditorHeight()}
                   onChange={getChangeHandler()}
                 />
