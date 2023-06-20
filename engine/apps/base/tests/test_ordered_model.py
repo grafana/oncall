@@ -206,6 +206,25 @@ def test_ordered_model_swap():
         assert _orders_are_sequential()
 
 
+@pytest.mark.django_db
+def test_order_with_respect_to_isolation():
+    instances = [TestOrderedModel.objects.create(test_field="test") for _ in range(5)]
+    other_instances = [TestOrderedModel.objects.create(test_field="test1") for _ in range(5)]
+
+    assert [i.order for i in instances] == [0, 1, 2, 3, 4]
+    assert [i.order for i in other_instances] == [0, 1, 2, 3, 4]
+
+    instances[0].to(8)
+    instances[1].swap(7)
+
+    for idx, instance in enumerate(other_instances):
+        instance.refresh_from_db()
+        assert instance.order == idx
+
+    with pytest.raises(IndexError):
+        instances[0].to_index(6)
+
+
 # Tests below are for checking that concurrent operations are performed correctly.
 # They are skipped by default because they might take a lot of time to run.
 # It could be useful to run them manually when making changes to the code, making sure
