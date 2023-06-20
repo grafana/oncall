@@ -9,7 +9,6 @@ import {
   Icon,
   Tooltip,
   ConfirmModal,
-  Select,
   LoadingPlaceholder,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -26,13 +25,13 @@ import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
+import GSelect from 'containers/GSelect/GSelect';
 import styles from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay.module.scss';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
-import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
@@ -195,20 +194,15 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       Escalation chain
                     </InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                      <Select
-                        isSearchable
+                      <GSelect
+                        showSearch
                         width={'auto'}
-                        menuShouldPortal
+                        modelName="escalationChainStore"
                         className={cx('select', 'control')}
                         placeholder="Select escalation chain"
                         isLoading={isRefreshingEscalationChains}
+                        displayField="name"
                         onChange={onEscalationChainChange}
-                        options={Object.keys(escalationChainStore.items).map(
-                          (eschalationChainId: EscalationChain['id']) => ({
-                            value: escalationChainStore.items[eschalationChainId].id,
-                            label: escalationChainStore.items[eschalationChainId].name,
-                          })
-                        )}
                         value={channelFilter.escalation_chain}
                         getOptionLabel={(item: SelectableValue) => {
                           return (
@@ -221,7 +215,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                             </>
                           );
                         }}
-                      ></Select>
+                      />
                     </WithPermissionControlTooltip>
 
                     <Tooltip placement={'top'} content={'Reload list'}>
@@ -279,7 +273,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       openNotification('Route has been deleted');
     }
 
-    function onEscalationChainChange({ value }) {
+    function onEscalationChainChange(value) {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           escalation_chain: value,
