@@ -80,11 +80,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         result = super().to_internal_value(data)
         return result
 
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
-        return ret
-
     def validate_by_day(self, by_day):
         if by_day:
             for day in by_day:
