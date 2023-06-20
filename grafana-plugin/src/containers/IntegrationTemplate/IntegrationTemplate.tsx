@@ -203,7 +203,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-                      Cheatsheat
+                      Cheatsheet
                     </Button>
                   </HorizontalGroup>
                 </div>
