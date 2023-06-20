@@ -16,12 +16,15 @@
   margin: 4px 0;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .separator__clickable {
   cursor: pointer;
+  margin-top: 12px;
 }
 
+/* 
 .separator::before {
   display: block;
   content: '';
@@ -38,7 +41,7 @@
   border-bottom: var(--border-medium);
   height: 0;
   margin-left: 5px;
-}
+} */
 
 .groups {
   width: 100%;
@@ -48,8 +51,6 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-height: 300px;
-  overflow: scroll;
 }
 
 .user {

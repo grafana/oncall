@@ -21,6 +21,11 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           403
         </span>
@@ -34,6 +39,11 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           You do not have access to view this page.
            
@@ -69,6 +79,11 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           403
         </span>
@@ -82,6 +97,11 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           You do not have access to view this page.
            
@@ -117,6 +137,11 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           403
         </span>
@@ -130,6 +155,11 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           You do not have access to view this page.
            
@@ -165,6 +195,11 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           403
         </span>
@@ -178,6 +213,11 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           You do not have access to view this page.
            
@@ -213,6 +253,11 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           403
         </span>
@@ -226,6 +271,11 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
       >
         <span
           className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
         >
           You do not have access to view this page.
            
