@@ -143,6 +143,7 @@ def test_get_youre_going_oncall_fcm_message(
 ):
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
     mock_notification_title = "asdfasdf"
+    mock_notification_subtitle = "asdfasdfsubtitle"
     shift_pk = "mncvmnvc"
     seconds_until_going_oncall = 600
 
@@ -170,6 +171,7 @@ def test_get_youre_going_oncall_fcm_message(
 
     data = {
         "title": mock_notification_title,
+        "subtitle": mock_notification_subtitle,
         "info_notification_sound_name": (
             maus.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
         ),
@@ -184,7 +186,7 @@ def test_get_youre_going_oncall_fcm_message(
 
     assert fcm_message == mock_fcm_message
 
-    mock_aps_alert.assert_called_once_with(title=mock_notification_title)
+    mock_aps_alert.assert_called_once_with(title=mock_notification_title, subtitle=mock_notification_subtitle)
     mock_critical_sound.assert_called_once_with(
         critical=False, name=maus.info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION
     )
