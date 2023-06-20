@@ -52,7 +52,7 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         instance = UserNotificationPolicy.objects.create(**validated_data)
 
         if order is not None:
-            self._adjust_order(instance, manual_order, order)
+            self._adjust_order(instance, manual_order, order, created=True)
 
         return instance
 
@@ -120,10 +120,16 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         raise exceptions.ValidationError({"type": "Invalid type"})
 
     @staticmethod
-    def _adjust_order(instance, manual_order, order):
+    def _adjust_order(instance, manual_order, order, created):
         # Passing order=-1 means that the policy should be moved to the end of the list.
         if order == -1:
-            order = instance.max_order() or 0
+            if created:
+                # The policy was just created, so it is already at the end of the list.
+                return
+
+            order = instance.max_order()
+            # max_order() can't be None here because at least one instance exists – the one we are moving.
+            assert order is not None
 
         # Negative order is not allowed.
         if order < 0:
@@ -163,6 +169,6 @@ class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerialize
         manual_order = validated_data.pop("manual_order")
         order = validated_data.pop("order", None)
         if order is not None:
-            self._adjust_order(instance, manual_order, order)
+            self._adjust_order(instance, manual_order, order, created=False)
 
         return super().update(instance, validated_data)
