@@ -338,7 +338,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
                 <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                   <div className={cx('integrations-actionItem')}>
                     <HorizontalGroup spacing="xs">
-                    <Icon name="arrow-up" />
+                      <Icon name="arrow-up" />
                       <Text type="primary" onClick={onRouteMoveUp}>
                         Move Up
                       </Text>

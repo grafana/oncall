@@ -661,7 +661,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <MonacoEditor
             value={initialDemoJSON}
             disabled={true}
-            height={`200px`}
+            height={`60vh`}
             useAutoCompleteList={false}
             language={MONACO_LANGUAGE.json}
             data={undefined}

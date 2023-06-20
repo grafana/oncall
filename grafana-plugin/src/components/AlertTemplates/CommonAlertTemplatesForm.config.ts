@@ -21,12 +21,12 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
   web_title_template: {
     displayName: 'Web title',
     name: TemplateOptions.WebTitle.key,
-    description: ''
+    description: '',
   },
   web_message_template: {
     displayName: 'Web message',
     name: TemplateOptions.WebMessage.key,
-    description: ''
+    description: '',
   },
   slack_title_template: {
     name: 'slack_title_template',
