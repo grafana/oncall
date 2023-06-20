@@ -44,11 +44,11 @@
 
 .user-title {
   padding: 6px 10px;
-  z-index: 1;
   color: #fff;
   width: 330px;
   overflow: hidden;
   white-space: nowrap;
+  position: relative;
 }
 
 .working-hours {

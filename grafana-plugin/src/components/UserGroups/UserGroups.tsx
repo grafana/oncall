@@ -66,6 +66,10 @@ const UserGroups = (props: UserGroupsProps) => {
       const newGroups = [...value];
       let lastGroup = newGroups[newGroups.length - 1];
       if (!isMultipleGroups || (lastGroup && !lastGroup.length)) {
+        if (!lastGroup) {
+          lastGroup = [];
+          newGroups.push(lastGroup);
+        }
         lastGroup.push(pk);
       } else {
         newGroups.push([pk]);

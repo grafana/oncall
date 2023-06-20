@@ -18,7 +18,6 @@ export function parseFilters(
   const filters = filterOptions.filter((filterOption: FilterOption) => filterOption.name in data);
 
   const values = filters.reduce((memo: any, filterOption: FilterOption) => {
-
     const rawValue = query[filterOption.name] || data[filterOption.name]; // query takes priority over local storage
 
     let value: any = rawValue;

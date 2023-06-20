@@ -19,6 +19,8 @@ interface UserItemProps {
   shiftEnd: string;
 }
 
+const WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
+
 const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
   const { userStore } = useStore();
 
@@ -32,21 +34,23 @@ const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
   const desc = userStore.items[pk]?.timezone;
   const workingHours = userStore.items[pk]?.working_hours;
   const timezone = userStore.items[pk]?.timezone;
+  const duration = dayjs(shiftEnd).diff(dayjs(shiftStart), 'seconds');
 
   return (
-    <>
+    <div style={{ backgroundColor: shiftColor, width: '100%' }}>
+      {duration <= WEEK_IN_SECONDS && (
+        <WorkingHours
+          timezone={timezone}
+          workingHours={workingHours}
+          startMoment={dayjs(shiftStart)}
+          duration={duration}
+          className={cx('working-hours')}
+        />
+      )}
       <div className={cx('user-title')}>
         <Text strong>{name}</Text> <Text style={{ color: 'var(--always-gray)' }}>({desc})</Text>
       </div>
-      <WorkingHours
-        timezone={timezone}
-        workingHours={workingHours}
-        startMoment={dayjs(shiftStart)}
-        duration={dayjs(shiftEnd).diff(dayjs(shiftStart), 'seconds')}
-        className={cx('working-hours')}
-        style={{ backgroundColor: shiftColor }}
-      />
-    </>
+    </div>
   );
 };
 
