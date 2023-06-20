@@ -107,7 +107,7 @@ cleanup: stop  ## this will remove all of the images, containers, volumes, and n
 install-pre-commit:
 	@if [ ! -x "$$(command -v pre-commit)" ]; then \
 		echo "installing pre-commit"; \
-		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements.txt); \
+		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements-dev.txt); \
 	else \
 		echo "pre-commit already installed"; \
 	fi
@@ -115,14 +115,15 @@ install-pre-commit:
 lint: install-pre-commit  ## run both frontend and backend linters
                           ## may need to run `yarn install` from within `grafana-plugin`
                           ## to install several `pre-commit` dependencies
-
 	pre-commit run --all-files
 
 install-precommit-hook: install-pre-commit
 	pre-commit install
 
 test:  ## run backend tests
-	$(call run_engine_docker_command,pytest)
+# always use settings.ci-test django settings file when running the tests
+# if we use settings.dev it's very possible that some fail just based on the settings alone
+	$(call run_engine_docker_command,pytest --ds=settings.ci-test)
 
 start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)

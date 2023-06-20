@@ -10,13 +10,19 @@ const normalize = (value: any) => {
   return value;
 };
 
-export function parseFilters(query: { [key: string]: any }, filterOptions: FilterOption[]) {
-  const filters = filterOptions.filter((filterOption: FilterOption) => filterOption.name in query);
+export function parseFilters(
+  data: { [key: string]: any },
+  filterOptions: FilterOption[],
+  query: { [key: string]: any }
+) {
+  const filters = filterOptions.filter((filterOption: FilterOption) => filterOption.name in data);
 
   const values = filters.reduce((memo: any, filterOption: FilterOption) => {
-    const rawValue = query[filterOption.name];
-    console.log(filterOption, rawValue);
+
+    const rawValue = query[filterOption.name] || data[filterOption.name]; // query takes priority over local storage
+
     let value: any = rawValue;
+
     if (filterOption.type === 'options' || filterOption.type === 'team_select') {
       if (!Array.isArray(rawValue)) {
         value = [rawValue];

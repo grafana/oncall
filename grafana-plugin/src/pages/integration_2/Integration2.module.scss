@@ -116,6 +116,7 @@ $LARGE-MARGIN: 24px;
 
 .input {
   flex-grow: 1;
+  max-width: calc(100% - 80px);
 }
 
 .how-to-connect__container {
@@ -200,6 +201,7 @@ $LARGE-MARGIN: 24px;
   &__item {
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 4px;
   }
 }

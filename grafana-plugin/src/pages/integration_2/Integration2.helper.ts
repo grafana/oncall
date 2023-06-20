@@ -8,6 +8,8 @@ import dayjs from 'dayjs';
 
 import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { RootStore } from 'state';
+import { AppFeature } from 'state/features';
 
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
 
@@ -37,24 +39,6 @@ const IntegrationHelper = {
     return slice.length === line.length ? slice : `${slice} ...`;
   },
 
-  getRouteConditionWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number): 'Default' | 'Else' | 'If' {
-    const totalCount = Object.keys(channelFilters).length;
-
-    if (routeIndex === totalCount - 1) {
-      return 'Default';
-    }
-    return routeIndex ? 'Else' : 'If';
-  },
-
-  getRouteConditionTooltipWording(channelFilters: Array<ChannelFilter['id']>, routeIndex: number) {
-    const totalCount = Object.keys(channelFilters).length;
-
-    if (routeIndex === totalCount - 1) {
-      return 'If the alert payload does not match to the previous routes, it will be directed to this default route.';
-    }
-    return 'If the alert payload evaluates the route template as True, it will be directed to this route. It will not be evaluated against the subsequent routes.';
-  },
-
   getMaintenanceText(maintenanceUntill: number, mode: number = undefined) {
     const date = dayjs(new Date(maintenanceUntill * 1000));
     const now = dayjs();
@@ -70,14 +54,38 @@ const IntegrationHelper = {
     return totalDiffString;
   },
 
-  getChatOpsChannels(channelFilter: ChannelFilter): Array<{ name: string; icon: IconName }> {
-    const channels: Array<{ name: string; icon: IconName }> = [];
+  hasChatopsInstalled(store: RootStore) {
+    const hasSlack = Boolean(store.teamStore.currentTeam?.slack_team_identity);
+    const hasTelegram =
+      store.hasFeature(AppFeature.Telegram) && store.telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
+    return hasSlack || hasTelegram;
+  },
 
-    if (channelFilter.notify_in_slack && channelFilter.slack_channel?.display_name) {
-      channels.push({ name: channelFilter.slack_channel.display_name, icon: 'slack' });
+  getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): Array<{ name: string; icon: IconName }> {
+    const channels: Array<{ name: string; icon: IconName }> = [];
+    const telegram = Object.keys(store.telegramChannelStore.items).map((k) => store.telegramChannelStore.items[k]);
+
+    if (store.hasFeature(AppFeature.Slack) && channelFilter.notify_in_slack) {
+      const matchingSlackChannel = store.teamStore.currentTeam?.slack_channel?.id
+        ? store.slackChannelStore.items[store.teamStore.currentTeam.slack_channel?.id]
+        : undefined;
+      if (channelFilter.slack_channel?.display_name || matchingSlackChannel?.display_name) {
+        channels.push({
+          name: channelFilter.slack_channel?.display_name || matchingSlackChannel?.display_name,
+          icon: 'slack',
+        });
+      }
     }
-    if (channelFilter.telegram_channel) {
-      channels.push({ name: channelFilter.telegram_channel, icon: 'telegram-alt' });
+
+    const matchingTelegram = telegram.find((t) => t.id === channelFilter.telegram_channel);
+
+    if (
+      store.hasFeature(AppFeature.Telegram) &&
+      channelFilter.telegram_channel &&
+      channelFilter.notify_in_telegram &&
+      matchingTelegram?.channel_name
+    ) {
+      channels.push({ name: matchingTelegram.channel_name, icon: 'telegram-alt' });
     }
 
     return channels;

@@ -3,6 +3,8 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
+x-user: &oncall-user "appuser"
+
 x-oncall-build: &oncall-build-args
   context: ./engine
   target: ${ONCALL_IMAGE_TARGET:-dev}
@@ -10,8 +12,10 @@ x-oncall-build: &oncall-build-args
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app
+  # see all the fun answers/comments here on why we need to do this
+  # tldr; using /dev/null as a default leads to a lot of fun problems
   # https://stackoverflow.com/a/60456034
-  - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
+  - ${ENTERPRISE_ENGINE:-/dev/null}:${ENTERPRISE_ENGINE_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
   - ${SQLITE_DB_FILE:-/dev/null}:/var/lib/oncall/oncall.db
   # this is mounted for testing purposes. Some of the authorization tests
   # reference this file
@@ -54,7 +58,8 @@ services:
       - ./grafana-plugin:/etc/app
       - node_modules_dev:/etc/app/node_modules
       # https://stackoverflow.com/a/60456034
-      - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
+      # see the explaination above that uses the $ENTERPRISE_ENGINE env var
+      - ${ENTERPRISE_FRONTEND:-/dev/null}:${ENTERPRISE_FRONTEND_VOLUME_MOUNT_DEST_DIR:-/tmp/empty:ro}
     profiles:
       - oncall_ui
 
@@ -63,6 +68,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: sh -c "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -84,6 +90,7 @@ services:
     container_name: oncall_engine_commands
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     env_file: *oncall-env-files
     environment: *oncall-env-vars
     volumes: *oncall-volumes
@@ -97,6 +104,7 @@ services:
     labels: *oncall-labels
     build: *oncall-build-args
     restart: always
+    user: *oncall-user
     command: "python manage.py start_celery"
     env_file: *oncall-env-files
     environment: *oncall-env-vars
@@ -127,6 +135,7 @@ services:
     container_name: oncall_db_migration
     labels: *oncall-labels
     build: *oncall-build-args
+    user: *oncall-user
     command: "python manage.py migrate --noinput"
     env_file: *oncall-env-files
     environment: *oncall-env-vars

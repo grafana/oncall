@@ -4,6 +4,14 @@
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
 
+## Optionally specify an array of imagePullSecrets.
+## Secrets must be manually created in the namespace.
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+## e.g:
+## imagePullSecrets:
+##   - name: myRegistryKeySecretName
+imagePullSecrets: []
+
 image:
   # Grafana OnCall docker image repository
   repository: grafana/oncall
@@ -67,6 +75,9 @@ celery:
     initialDelaySeconds: 30
     periodSeconds: 300
     timeoutSeconds: 10
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
   resources: {}
     # limits:
     #   cpu: 100m
@@ -130,6 +141,9 @@ oncall:
     password: ~
     tls: ~
     fromEmail: ~
+  exporter:
+    enabled: false
+    authToken: ~
   twilio:
     # Twilio account SID/username to allow OnCall to send SMSes and make phone calls
     accountSid: ""
@@ -161,6 +175,9 @@ oncall:
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
   # use a helm hook to manage the migration job
@@ -256,6 +273,12 @@ externalMysql:
   db_name:
   user:
   password:
+  # use an existing secret for the mysql password
+  existingSecret: ""
+  # the key in the secret containing the mysql username
+  usernameKey:
+  # the key in the secret containing the mysql password
+  passwordKey:
 
 # PostgreSQL is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -297,7 +320,7 @@ externalRabbitmq:
   # use an existing secret for the rabbitmq password
   existingSecret: ""
   # the key in the secret containing the rabbitmq password
-  passwordKey: password
+  passwordKey: ""
   # the key in the secret containing the rabbitmq username
   usernameKey: username
 
@@ -309,6 +332,10 @@ redis:
 externalRedis:
   host:
   password:
+  # use an existing secret for the redis password
+  existingSecret: ""
+  # the key in the secret containing the redis password
+  passwordKey:
 
 # Grafana is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -321,6 +348,9 @@ grafana:
       serve_from_sub_path: true
   persistence:
     enabled: true
+  # Disable psp as PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
+  rbac:
+    pspEnabled: false
   plugins:
     - grafana-oncall-app
 

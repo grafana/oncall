@@ -45,8 +45,6 @@ helm install \
 
 Follow the `helm install` output to finish setting up Grafana OnCall backend and Grafana OnCall frontend plugin e.g.
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 👋 Your Grafana OnCall instance has been successfully deployed
 
@@ -73,8 +71,6 @@ Follow the `helm install` output to finish setting up Grafana OnCall backend and
 
 🎉🎉🎉  Done! 🎉🎉🎉
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 ## Configuration
 
@@ -186,6 +182,9 @@ externalMysql:
   db_name:
   user:
   password:
+  existingSecret: ""
+  usernameKey: username
+  passwordKey: password
 ```
 
 ### Connect external PostgreSQL
@@ -250,6 +249,8 @@ redis:
 externalRedis:
   host:
   password:
+  existingSecret: ""
+  passwordKey: password
 ```
 
 ## Update

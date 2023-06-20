@@ -96,7 +96,6 @@ class ActionUpdateSerializer(ActionCreateSerializer):
     url = serializers.CharField(required=False, allow_null=False, allow_blank=False, source="webhook")
 
     class Meta(ActionCreateSerializer.Meta):
-
         extra_kwargs = {
             "name": {"required": False, "allow_null": False, "allow_blank": False},
             "data": {"required": False, "allow_null": True, "allow_blank": False},

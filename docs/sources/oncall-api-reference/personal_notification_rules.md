@@ -29,8 +29,6 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-<!-- markdownlint-disable MD013 -->
-
 | Parameter   | Required | Description                                                                                                                                                                                                                                                                                         |
 | ----------- | :------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `user_id`   |   Yes    | User ID                                                                                                                                                                                                                                                                                             |
@@ -38,8 +36,6 @@ The above command returns JSON structured in the following way:
 | `type`      |   Yes    | One of: `wait`, `notify_by_slack`, `notify_by_sms`, `notify_by_phone_call`, `notify_by_telegram`, `notify_by_email`.                                                                                                                                                                                |
 | `duration`  | Optional | A time in secs when type `wait` is chosen for `type`.                                                                                                                                                                                                                                               |
 | `important` | Optional | Boolean value indicates if a rule is "important". Default is `false`.                                                                                                                                                                                                                               |
-
-<!-- markdownlint-enable MD013 -->
 
 **HTTP request**
 

@@ -69,15 +69,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     return this.searchResult.map(
       (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
     );
-
-    // return {
-    //   count: this.searchResult.count,
-    //   results:
-    //     this.searchResult.results &&
-    //     this.searchResult.results.map(
-    //       (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
-    //     ),
-    // };
   }
 
   getPaginatedSearchResult(_query = '') {
@@ -159,8 +150,7 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   async updatePaginatedItems(query: any = '', page = 1) {
     const filters = typeof query === 'string' ? { search: query } : query;
-    const { search } = filters;
-    const { count, results } = await makeRequest(this.path, { params: { search, page } });
+    const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
 
     this.items = {
       ...this.items,

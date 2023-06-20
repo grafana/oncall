@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 class AllowOnlyTwilio(BasePermission):
-
     # https://www.twilio.com/docs/usage/tutorials/how-to-secure-your-django-project-by-validating-incoming-twilio-requests
     # https://www.django-rest-framework.org/api-guide/permissions/
     def has_permission(self, request, view):

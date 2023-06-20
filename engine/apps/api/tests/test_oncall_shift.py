@@ -1174,7 +1174,6 @@ def test_on_call_shift_update_permissions(
             status=status.HTTP_200_OK,
         ),
     ):
-
         response = client.put(url, format="json", **make_user_auth_headers(user, token))
 
         assert response.status_code == expected_status
@@ -1772,13 +1771,10 @@ def test_on_call_shift_preview_update(
 
     # check rotation events
     rotation_events = response.json()["rotation"]
-    assert len(rotation_events) == 4
-    # the final original rotation events are returned and the ID is kept
-    for shift in rotation_events[:3]:
-        assert shift["shift"]["pk"] == on_call_shift.public_primary_key
-    # previewing an update does not reuse shift PK if rotation already started
+    assert len(rotation_events) == 1
+    # previewing an update reuse shift PK if rotation already started
     new_shift_pk = rotation_events[-1]["shift"]["pk"]
-    assert new_shift_pk != on_call_shift.public_primary_key
+    assert new_shift_pk == on_call_shift.public_primary_key
     expected_shift_preview = {
         "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
         "shift": {"pk": new_shift_pk},
@@ -1801,9 +1797,6 @@ def test_on_call_shift_preview_update(
     final_events = response.json()["final"]
     expected = (
         # start (h), duration (H), user, priority
-        (0, 1, user.username, 1),  # 0-1 user
-        (4, 1, user.username, 1),  # 4-5 user
-        (8, 1, user.username, 1),  # 8-9 user
         (10, 8, other_user.username, 1),  # 10-18 other_user
     )
     expected_events = [

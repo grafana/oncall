@@ -1,4 +1,5 @@
 import copy
+import datetime
 import itertools
 import logging
 from calendar import monthrange
@@ -230,6 +231,13 @@ class CustomOnCallShift(models.Model):
                     self.duration = delta
                     update_fields += ["duration"]
             self.save(update_fields=update_fields)
+        elif self.schedule:
+            # for web schedule shifts to be hard-deleted, update the rotation updated_shift links
+            previous_shift = self.schedule.custom_shifts.filter(updated_shift=self).first()
+            super().delete(*args, **kwargs)
+            if previous_shift:
+                previous_shift.updated_shift = self.updated_shift
+                previous_shift.save(update_fields=["updated_shift"])
         else:
             super().delete(*args, **kwargs)
 
@@ -316,12 +324,14 @@ class CustomOnCallShift(models.Model):
                     break
                 last_start = start
                 day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
-                if (user_group_id, day, i) in combinations:
-                    all_rotations_checked = True
-                    break
+                # double-check day is valid (when until is set, we may get unexpected days)
+                if day in self.by_day:
+                    if (user_group_id, day, i) in combinations:
+                        all_rotations_checked = True
+                        break
 
-                starting_dates.append(start)
-                combinations.append((user_group_id, day, i))
+                    starting_dates.append(start)
+                    combinations.append((user_group_id, day, i))
                 # get next event date following the original rule
                 event_ical = self.generate_ical(start, 1, None, 1, time_zone, custom_rrule=day_by_day_rrule)
                 start = self.get_rotation_date(event_ical, get_next_date=True, interval=1)
@@ -333,7 +343,7 @@ class CustomOnCallShift(models.Model):
             # number of weeks used to cover all combinations
             week_interval = ((last_start - orig_start).days // 7) or 1
         counter = 1
-        for ((user_group_id, day, _), start) in zip(combinations, starting_dates):
+        for (user_group_id, day, _), start in zip(combinations, starting_dates):
             users = users_queue[user_group_id]
             for user_counter, user in enumerate(users, start=1):
                 # setup weekly events, for each user group/day combinations,
@@ -378,9 +388,12 @@ class CustomOnCallShift(models.Model):
             if self.frequency is not None and self.by_day and start is not None:
                 start_day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
                 if start_day not in self.by_day:
-                    expected_start_day = min(CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day)
+                    # when calculating first start date, make sure to sort days using week_start
+                    sorted_days = [i % 7 for i in range(self.week_start, self.week_start + 7)]
+                    selected_days = [CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day]
+                    expected_start_day = [d for d in sorted_days if d in selected_days][0]
                     delta = (expected_start_day - start.weekday()) % 7
-                    start = start + timezone.timedelta(days=delta)
+                    start = start + datetime.timedelta(days=delta)
 
             if self.frequency == CustomOnCallShift.FREQUENCY_DAILY and self.by_day:
                 result = self._daily_by_day_to_ical(time_zone, start, users_queue)
@@ -450,7 +463,7 @@ class CustomOnCallShift(models.Model):
             """
             Utility method for month calculation. E.g. (2022, 12) + 1 month = (2023, 1)
             """
-            dt = timezone.datetime.min.replace(year=year, month=month) + relativedelta.relativedelta(months=months_add)
+            dt = datetime.datetime.min.replace(year=year, month=month) + relativedelta.relativedelta(months=months_add)
             return dt.year, dt.month
 
         current_event = Event.from_ical(event_ical)
@@ -467,9 +480,9 @@ class CustomOnCallShift(models.Model):
         # for the first rotation, because in this case the min start date will be the same as the current event date.
         if get_next_date:
             if self.frequency == CustomOnCallShift.FREQUENCY_HOURLY:
-                next_event_start = current_event_start + timezone.timedelta(hours=ONE_HOUR)
+                next_event_start = current_event_start + datetime.timedelta(hours=ONE_HOUR)
             elif self.frequency == CustomOnCallShift.FREQUENCY_DAILY:
-                next_event_start = current_event_start + timezone.timedelta(days=ONE_DAY)
+                next_event_start = current_event_start + datetime.timedelta(days=ONE_DAY)
             elif self.frequency == CustomOnCallShift.FREQUENCY_WEEKLY:
                 DAYS_IN_A_WEEK = 7
                 # count days before the next week starts
@@ -477,7 +490,7 @@ class CustomOnCallShift(models.Model):
                 if days_for_next_event > DAYS_IN_A_WEEK:
                     days_for_next_event = days_for_next_event % DAYS_IN_A_WEEK
                 # count next event start date with respect to event interval
-                next_event_start = current_event_start + timezone.timedelta(
+                next_event_start = current_event_start + datetime.timedelta(
                     days=days_for_next_event + DAYS_IN_A_WEEK * (interval - 1)
                 )
             elif self.frequency == CustomOnCallShift.FREQUENCY_MONTHLY:
@@ -489,7 +502,7 @@ class CustomOnCallShift(models.Model):
                     year, month = add_months(current_event_start.year, current_event_start.month, i)
                     next_month_days = monthrange(year, month)[1]
                     days_for_next_event += next_month_days
-                next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
+                next_event_start = current_event_start + datetime.timedelta(days=days_for_next_event)
 
         end_date = None
         # get the period for calculating the current rotation end date for long events with frequency weekly and monthly
@@ -500,13 +513,13 @@ class CustomOnCallShift(models.Model):
             if next_event_start.weekday() != self.week_start:
                 days_diff = DAYS_IN_A_WEEK + next_event_start.weekday() - self.week_start
                 days_diff %= DAYS_IN_A_WEEK
-            end_date = next_event_start + timezone.timedelta(days=DAYS_IN_A_WEEK - days_diff - ONE_DAY)
+            end_date = next_event_start + datetime.timedelta(days=DAYS_IN_A_WEEK - days_diff - ONE_DAY)
         elif self.frequency == CustomOnCallShift.FREQUENCY_MONTHLY:
             # get the last day of the month
             current_day_number = next_event_start.day
             number_of_days = monthrange(next_event_start.year, next_event_start.month)[1]
             days_diff = number_of_days - current_day_number
-            end_date = next_event_start + timezone.timedelta(days=days_diff)
+            end_date = next_event_start + datetime.timedelta(days=days_diff)
 
         next_event = None
         # repetitions generate the next event shift according with the recurrence rules

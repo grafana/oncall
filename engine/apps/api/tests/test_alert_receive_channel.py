@@ -716,7 +716,6 @@ def test_start_maintenance_integration(
     make_escalation_chain,
     make_alert_receive_channel,
 ):
-
     organization, user, token = make_organization_and_user_with_plugin_token()
     make_escalation_chain(organization)
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -802,9 +801,7 @@ def test_alert_receive_channel_send_demo_alert_not_enabled(
     make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-    )
+    alert_receive_channel = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_MANUAL)
     client = APIClient()
 
     url = reverse(

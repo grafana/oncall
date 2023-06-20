@@ -20,7 +20,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class UserNotificationPolicyLogRecord(models.Model):
-
     (
         TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
         TYPE_PERSONAL_NOTIFICATION_FINISHED,

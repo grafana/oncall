@@ -45,11 +45,12 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     default_channel_filter = serializers.SerializerMethodField()
     instructions = serializers.SerializerMethodField()
     demo_alert_enabled = serializers.BooleanField(source="is_demo_alert_enabled", read_only=True)
+    is_based_on_alertmanager = serializers.BooleanField(source="has_alertmanager_payload_structure", read_only=True)
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
     description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
-    demo_alert_payload = serializers.CharField(source="config.example_payload", read_only=True)
+    demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
 
@@ -88,6 +89,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "demo_alert_payload",
             "routes_count",
             "connected_escalations_chains_count",
+            "is_based_on_alertmanager",
         ]
         read_only_fields = [
             "created_at",
@@ -101,6 +103,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "demo_alert_payload",
             "routes_count",
             "connected_escalations_chains_count",
+            "is_based_on_alertmanager",
         ]
         extra_kwargs = {"integration": {"required": True}}
 

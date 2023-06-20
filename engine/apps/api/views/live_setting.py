@@ -70,9 +70,6 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
             self._reset_telegram_integration(old_token=old_value)
             register_telegram_webhook.delay()
 
-        if name == "TELEGRAM_WEBHOOK_HOST":
-            register_telegram_webhook.delay()
-
         if name in ["SLACK_CLIENT_OAUTH_ID", "SLACK_CLIENT_OAUTH_SECRET"]:
             organization = self.request.auth.organization
             slack_team_identity = organization.slack_team_identity

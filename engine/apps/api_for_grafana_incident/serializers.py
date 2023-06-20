@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 class AlertSerializer(serializers.ModelSerializer):
-
     id_oncall = serializers.CharField(read_only=True, source="public_primary_key")
     payload = serializers.JSONField(read_only=True, source="raw_request_data")
 
@@ -21,7 +20,6 @@ class AlertSerializer(serializers.ModelSerializer):
 
 
 class AlertGroupSerializer(serializers.ModelSerializer):
-
     id = serializers.CharField(read_only=True, source="public_primary_key")
     status = serializers.SerializerMethodField(source="get_status")
     link = serializers.CharField(read_only=True, source="web_link")

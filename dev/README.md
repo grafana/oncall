@@ -269,25 +269,17 @@ ERROR: Failed building wheel for cryptography
 
 **Solution:**
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 LDFLAGS="-L$(brew --prefix openssl@1.1)/lib" CFLAGS="-I$(brew --prefix openssl@1.1)/include" pip install `cat engine/requirements.txt | grep cryptography`
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 ### django.db.utils.OperationalError: (1366, "Incorrect string value")
 
 **Problem:**
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 django.db.utils.OperationalError: (1366, "Incorrect string value: '\\xF0\\x9F\\x98\\x8A\\xF0\\x9F...' for column 'cached_name' at row 1")
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 
@@ -321,14 +313,10 @@ $ CDPATH="" make init
 
 When running `make init start`:
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 Error response from daemon: open /var/lib/docker/overlay2/ac57b871108ee1b98ff4455e36d2175eae90cbc7d4c9a54608c0b45cfb7c6da5/committed: is a directory
 make: *** [start] Error 1
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 clear everything in docker by resetting or:
@@ -376,8 +364,6 @@ See solution for "Encountered error while trying to install package - grpcio" [h
 This problem seems to occur when running the Celery process, outside of `docker-compose`
 (via `make run-backend-celery`), and using a `conda` virtual environment.
 
-<!-- markdownlint-disable MD013 -->
-
 ```bash
 conda create --name oncall-dev python=3.9.13
 conda activate oncall-dev
@@ -395,8 +381,6 @@ File "~/oncall/engine/engine/__init__.py", line 5, in <module>
     from grpc._cython import cygrpc
 ImportError: dlopen(/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/_cython/cygrpc.cpython-39-darwin.so, 0x0002): symbol not found in flat namespace '_EVP_DigestSignUpdate'
 ```
-
-<!-- markdownlint-enable MD013 -->
 
 **Solution:**
 

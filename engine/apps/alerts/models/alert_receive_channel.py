@@ -203,7 +203,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         ]
 
     def __str__(self):
-        short_name_with_emojis = emojize(self.short_name, use_aliases=True)
+        short_name_with_emojis = emojize(self.short_name, language="alias")
         return f"{self.pk}: {short_name_with_emojis}"
 
     def get_template_attribute(self, render_for, attr_name):
@@ -244,7 +244,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         super(AlertReceiveChannel, self).delete()
 
     def change_team(self, team_id, user):
-
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
@@ -271,7 +270,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @cached_property
     def emojized_verbal_name(self):
-        return emoji.emojize(self.verbal_name, use_aliases=True)
+        return emoji.emojize(self.verbal_name, language="alias")
 
     @property
     def new_incidents_web_link(self):
@@ -398,6 +397,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
+        if self.integration != AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
+            return None
+
         return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property

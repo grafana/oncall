@@ -22,7 +22,8 @@ import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
 import { debounce } from 'throttle-debounce';
 
-import { TemplateForEdit, templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
@@ -54,11 +55,13 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import styles from 'pages/integration_2/Integration2.module.scss';
+import { AppFeature } from 'state/features';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -66,7 +69,7 @@ import { openNotification, openErrorNotification } from 'utils';
 import { getVar } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { DATASOURCE_GRAFANA, PLUGIN_ROOT } from 'utils/consts';
+import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
 const cx = cn.bind(styles);
@@ -80,13 +83,13 @@ interface Integration2State extends PageBaseState {
   isEditRegexpRouteTemplateModalOpen: boolean;
   channelFilterIdForEdit: ChannelFilter['id'];
   isTemplateSettingsOpen: boolean;
-  newRoutes: string[];
   isAddingRoute: boolean;
+  openRoutes: string[];
 }
 
 const ACTIONS_LIST_WIDTH = 200;
 const ACTIONS_LIST_BORDER = 2;
-const NEW_ROUTE_DEFAULT = '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
+const NEW_ROUTE_DEFAULT = '';
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -101,8 +104,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       isEditRegexpRouteTemplateModalOpen: false,
       channelFilterIdForEdit: undefined,
       isTemplateSettingsOpen: false,
-      newRoutes: [],
       isAddingRoute: false,
+      openRoutes: [],
     };
   }
 
@@ -115,8 +118,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.props;
 
     const {
-      store: { alertReceiveChannelStore },
+      store,
+      store: { alertReceiveChannelStore, telegramChannelStore },
     } = this.props;
+
+    if (store.hasFeature(AppFeature.Telegram)) {
+      // workaround until we get the whole telegram data in response
+      telegramChannelStore.updateItems();
+    }
 
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
@@ -136,6 +145,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.state;
     const {
       store: { alertReceiveChannelStore },
+      query: { p },
       match: {
         params: { id },
       },
@@ -165,7 +175,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
           <div className={cx('root')}>
             {isTemplateSettingsOpen && (
               <Drawer
-                width="640px"
+                width="75%"
                 scrollableContent
                 title="Template Settings"
                 onClose={() => this.setState({ isTemplateSettingsOpen: false })}
@@ -178,6 +188,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   content={
                     <IntegrationTemplateList
                       alertReceiveChannelId={alertReceiveChannel.id}
+                      alertReceiveChannelIsBasedOnAlertManager={alertReceiveChannel.is_based_on_alertmanager}
+                      alertReceiveChannelAllowSourceBasedResolving={alertReceiveChannel.allow_source_based_resolving}
                       openEditTemplateModal={this.openEditTemplateModal}
                       templates={templates}
                     />
@@ -187,14 +199,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations_2' }}>
-                <IconButton name="arrow-left" size="xxl" />
+              <PluginLink query={{ page: 'integrations_2', p }}>
+                <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               <h1 className={cx('integration__name')}>
                 <Emoji text={alertReceiveChannel.verbal_name} />
               </h1>
-
-              <IntegrationActions alertReceiveChannel={alertReceiveChannel} />
+              <IntegrationActions
+                alertReceiveChannel={alertReceiveChannel}
+                changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
+              />
             </div>
 
             <div className={cx('integration__subheading-container')}>
@@ -225,117 +239,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             </div>
 
             <IntegrationCollapsibleTreeView
-              configElements={[
-                !hideHTTPEndpoint && {
-                  isCollapsible: false,
-                  customIcon: 'plug',
-                  canHoverIcon: false,
-                  collapsedView: null,
-                  expandedView: () => <HowToConnectComponent id={id} />,
-                },
-                {
-                  customIcon: 'layer-group',
-                  isExpanded: false,
-                  isCollapsible: false,
-                  canHoverIcon: false,
-                  expandedView: () => (
-                    <IntegrationBlock
-                      hasCollapsedBorder
-                      heading={
-                        <div className={cx('templates__outer-container')}>
-                          <Tag
-                            color={getVar('--tag-secondary-transparent')}
-                            border={getVar('--border-weak')}
-                            className={cx('tag')}
-                          >
-                            <Text type="primary" size="small">
-                              Templates
-                            </Text>
-                          </Tag>
-
-                          <div className={cx('templates__content')}>
-                            <div className={cx('templates__container')}>
-                              <div
-                                className={cx('templates__item', 'templates__item--large')}
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              >
-                                <Text type="secondary" className={cx('templates__item-text')}>
-                                  Grouping:
-                                </Text>
-                                <Text type="primary">
-                                  {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
-                                </Text>
-                              </div>
-
-                              <div
-                                className={cx('templates__item', 'templates__item--large')}
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              >
-                                <Text type="secondary" className={cx('templates__item-text')}>
-                                  Autoresolve:
-                                </Text>
-                                <Text type="primary">
-                                  {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
-                                </Text>
-                              </div>
-
-                              <div
-                                className={cx('templates__item', 'templates__item--small')}
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              >
-                                <Text type="secondary" className={cx('templates__item-text')}>
-                                  Visualisation:
-                                </Text>
-                                <Text type="primary">Multiple</Text>
-                              </div>
-                            </div>
-
-                            <div className={cx('templates__edit')}>
-                              <Button
-                                variant={'secondary'}
-                                icon="edit"
-                                size={'sm'}
-                                tooltip="Edit"
-                                onClick={() => this.setState({ isTemplateSettingsOpen: true })}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      }
-                      content={null}
-                    />
-                  ),
-                  collapsedView: undefined,
-                },
-                {
-                  customIcon: 'code-branch',
-                  isCollapsible: false,
-                  collapsedView: null,
-                  canHoverIcon: false,
-                  expandedView: () => (
-                    <div className={cx('routesSection')}>
-                      <VerticalGroup spacing="md">
-                        <Text type={'primary'} className={cx('routesSection__heading')}>
-                          Routes
-                        </Text>
-                        <HorizontalGroup>
-                          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                            <Button
-                              variant={'primary'}
-                              className={cx('routesSection__add')}
-                              onClick={this.handleAddNewRoute}
-                            >
-                              Add route
-                            </Button>
-                          </WithPermissionControlTooltip>
-                          {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
-                        </HorizontalGroup>
-                      </VerticalGroup>
-                    </div>
-                  ),
-                },
-                this.renderRoutesFn(),
-              ]}
+              configElements={this.getConfigForTreeComponent(hideHTTPEndpoint, id, templates)}
             />
 
             {isEditTemplateModalOpen && (
@@ -345,7 +249,9 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   this.setState({
                     isEditTemplateModalOpen: undefined,
                   });
-                  this.setState({ isTemplateSettingsOpen: true });
+                  if (selectedTemplate?.name !== 'route_template') {
+                    this.setState({ isTemplateSettingsOpen: true });
+                  }
                   LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
                 }}
                 channelFilterId={channelFilterIdForEdit}
@@ -376,6 +282,121 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     );
   }
 
+  getConfigForTreeComponent(hideHTTPEndpoint: boolean, id: string, templates: AlertTemplatesDTO[]) {
+    const configElements = [];
+
+    if (!hideHTTPEndpoint) {
+      configElements.push({
+        isCollapsible: false,
+        customIcon: 'plug',
+        canHoverIcon: false,
+        collapsedView: null,
+        expandedView: () => <HowToConnectComponent id={id} />,
+      });
+    }
+
+    return configElements.concat([
+      {
+        customIcon: 'layer-group',
+        isExpanded: false,
+        isCollapsible: false,
+        canHoverIcon: false,
+        expandedView: () => (
+          <IntegrationBlock
+            hasCollapsedBorder
+            heading={
+              <div className={cx('templates__outer-container')}>
+                <Tag
+                  color={getVar('--tag-secondary-transparent')}
+                  border={getVar('--border-weak')}
+                  className={cx('tag')}
+                >
+                  <Text type="primary" size="small">
+                    Templates
+                  </Text>
+                </Tag>
+
+                <div className={cx('templates__content')}>
+                  <div className={cx('templates__container')}>
+                    <div
+                      className={cx('templates__item', 'templates__item--large')}
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    >
+                      <Text type="secondary" className={cx('templates__item-text')}>
+                        Grouping:
+                      </Text>
+                      <Text type="primary">
+                        {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
+                      </Text>
+                    </div>
+
+                    <div
+                      className={cx('templates__item', 'templates__item--large')}
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    >
+                      <Text type="secondary" className={cx('templates__item-text')}>
+                        Autoresolve:
+                      </Text>
+                      <Text type="primary">
+                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
+                      </Text>
+                    </div>
+
+                    <div
+                      className={cx('templates__item', 'templates__item--large')}
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    >
+                      <Text type="secondary" className={cx('templates__item-text')}>
+                        Other:
+                      </Text>
+                      <Text type="primary">Click to see more</Text>
+                    </div>
+                  </div>
+
+                  <div className={cx('templates__edit')}>
+                    <Button
+                      variant={'secondary'}
+                      icon="edit"
+                      size={'sm'}
+                      tooltip="Edit"
+                      onClick={() => this.setState({ isTemplateSettingsOpen: true })}
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+            content={null}
+          />
+        ),
+        collapsedView: undefined,
+      },
+      {
+        customIcon: 'code-branch',
+        isCollapsible: false,
+        collapsedView: null,
+        canHoverIcon: false,
+        expandedView: () => (
+          <div className={cx('routesSection')}>
+            <VerticalGroup spacing="md">
+              <Text type={'primary'} className={cx('routesSection__heading')}>
+                Routes
+              </Text>
+              <HorizontalGroup>
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <Button variant={'primary'} className={cx('routesSection__add')} onClick={this.handleAddNewRoute}>
+                    Add route
+                  </Button>
+                </WithPermissionControlTooltip>
+                {this.state.isAddingRoute && <LoadingPlaceholder text="Loading..." />}
+              </HorizontalGroup>
+            </VerticalGroup>
+          </div>
+        ),
+      },
+      this.renderRoutesFn(),
+    ]);
+  }
+
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {
     const {
       store: { alertReceiveChannelStore },
@@ -403,7 +424,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             filtering_term_type: 1, // non-regex
           })
           .then(async (channelFilter: ChannelFilter) => {
-            this.setState({ isAddingRoute: false, newRoutes: this.state.newRoutes.concat(channelFilter.id) });
+            this.setState((prevState) => ({
+              isAddingRoute: false,
+              openRoutes: prevState.openRoutes.concat(channelFilter.id),
+            }));
             await alertReceiveChannelStore.updateChannelFilters(id, true);
             await escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
             openNotification('A new route has been added');
@@ -426,6 +450,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       },
     } = this.props;
 
+    const { openRoutes } = this.state;
+
     const templates = alertReceiveChannelStore.templates[id];
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
 
@@ -434,13 +460,14 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         ({
           canHoverIcon: true,
           isCollapsible: true,
-          // this will keep new routes expanded at the very first time
-          isExpanded: this.state.newRoutes.indexOf(channelFilterId) > -1 ? true : false,
-          onStateChange: () => {
-            if (this.state.newRoutes.indexOf(channelFilterId) > -1) {
-              // this will close them on user action
-              this.setState((prevState) => ({ newRoutes: prevState.newRoutes.filter((r) => r !== channelFilterId) }));
-            }
+          isExpanded: openRoutes.indexOf(channelFilterId) > -1,
+          onStateChange: (isChecked: boolean) => {
+            const newOpenRoutes = [...openRoutes];
+            this.setState({
+              openRoutes: isChecked
+                ? newOpenRoutes.concat(channelFilterId)
+                : newOpenRoutes.filter((filterId) => filterId !== channelFilterId),
+            });
           },
           collapsedView: (toggle) => (
             <CollapsedIntegrationRouteDisplay
@@ -600,9 +627,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 }) => {
   const store = useStore();
   const { alertReceiveChannelStore } = store;
-  const [demoPayload, setDemoPayload] = useState<string>(
-    JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')
-  );
+  const initialDemoJSON = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
+  const [demoPayload, setDemoPayload] = useState<string>(initialDemoJSON);
   let onPayloadChangeDebounced = debounce(100, onPayloadChange);
 
   return (
@@ -611,7 +637,16 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
       closeOnEscape
       isOpen={isOpen}
       onDismiss={onHideOrCancel}
-      title={`Send demo alert to ${alertReceiveChannel.verbal_name}`}
+      title={
+        <HorizontalGroup>
+          <Text.Title level={4}>
+            Send demo alert to integration: {''}
+            <strong>
+              <Emoji text={alertReceiveChannel.verbal_name} />
+            </strong>
+          </Text.Title>
+        </HorizontalGroup>
+      }
     >
       <VerticalGroup>
         <HorizontalGroup spacing={'xs'}>
@@ -619,7 +654,8 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <Tooltip
             content={
               <>
-                A demo alert will be generated. You can find it on the <strong>Alert Groups</strong> page
+                Modify the provided payload to test integration routes, templates, and escalations. Enable Debug
+                maintenance on the integration to prevent real notifications.
               </>
             }
             placement={'top-start'}
@@ -630,7 +666,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
         <div className={cx('integration__payloadInput')}>
           <MonacoEditor
-            value={JSON.stringify(alertReceiveChannel.demo_alert_payload, null, '\t')}
+            value={initialDemoJSON}
             disabled={true}
             height={`200px`}
             useAutoCompleteList={false}
@@ -684,9 +720,13 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
 interface IntegrationActionsProps {
   alertReceiveChannel: AlertReceiveChannel;
+  changeIsTemplateSettingsOpen: () => void;
 }
 
-const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveChannel }) => {
+const IntegrationActions: React.FC<IntegrationActionsProps> = ({
+  alertReceiveChannel,
+  changeIsTemplateSettingsOpen,
+}) => {
   const { maintenanceStore, alertReceiveChannelStore } = useStore();
 
   const history = useHistory();
@@ -781,9 +821,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                 <Text type="primary">Integration Settings</Text>
               </div>
 
-              <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
-                Hearbeat Settings
-              </div>
+              <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
+                <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
+                  Hearbeat Settings
+                </div>
+              </WithPermissionControlTooltip>
 
               {!alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
@@ -793,28 +835,33 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
                 </WithPermissionControlTooltip>
               )}
 
+              <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
+                <div className={cx('integration__actionItem')} onClick={changeIsTemplateSettingsOpen}>
+                  <Text type="primary">Edit Templates</Text>
+                </div>
+              </WithPermissionControlTooltip>
+
               {alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div className={cx('integration__actionItem')}>
-                    <div
-                      onClick={() => {
-                        setConfirmModal({
-                          isOpen: true,
-                          confirmText: 'Stop',
-                          dismissText: 'Cancel',
-                          onConfirm: onStopMaintenance,
-                          title: 'Stop Maintenance',
-                          body: (
-                            <Text type="primary">
-                              Are you sure you want to stop the maintenance for{' '}
-                              <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                            </Text>
-                          ),
-                        });
-                      }}
-                    >
-                      <Text type="primary">Stop Maintenance</Text>
-                    </div>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={() => {
+                      setConfirmModal({
+                        isOpen: true,
+                        confirmText: 'Stop',
+                        dismissText: 'Cancel',
+                        onConfirm: onStopMaintenance,
+                        title: 'Stop Maintenance',
+                        body: (
+                          <Text type="primary">
+                            Are you sure you want to stop the maintenance for{' '}
+                            <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                          </Text>
+                        ),
+                      });
+                    }}
+                  >
+                    <Text type="primary">Stop Maintenance</Text>
                   </div>
                 </WithPermissionControlTooltip>
               )}
@@ -899,6 +946,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
     maintenanceStore
       .stopMaintenanceMode(MaintenanceType.alert_receive_channel, id)
       .then(() => maintenanceStore.updateMaintenances())
+      .then(() => openNotification('Maintenance has been stopped'))
       .then(() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id));
   }
 };
@@ -906,8 +954,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({ alertReceiveCha
 const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-  const alertReceiveChannel = alertReceiveChannelStore.items[id];
-  const isGrafanaDatasource = alertReceiveChannel.integration === DATASOURCE_GRAFANA;
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
   return (
@@ -925,11 +971,18 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
               HTTP Endpoint
             </Text>
           </Tag>
-          <IntegrationInputField
-            value={alertReceiveChannelStore.items[id].integration_url}
-            className={cx('integration__input-field')}
-          />
-          <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer">
+          {alertReceiveChannelStore.items[id]?.integration_url && (
+            <IntegrationInputField
+              value={alertReceiveChannelStore.items[id].integration_url}
+              className={cx('integration__input-field')}
+            />
+          )}
+          <a
+            href="https://grafana.com/docs/oncall/latest/integrations/"
+            target="_blank"
+            rel="noreferrer"
+            className={cx('u-pull-right')}
+          >
             <Text type="link" size="small">
               <HorizontalGroup>
                 How to connect
@@ -939,7 +992,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
           </a>
         </div>
       }
-      content={isGrafanaDatasource || !hasAlerts ? renderContent() : null}
+      content={hasAlerts ? null : renderContent()}
     />
   );
 
@@ -951,20 +1004,6 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             <HorizontalGroup spacing={'xs'}>
               <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
               <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
-            </HorizontalGroup>
-          )}
-
-          {isGrafanaDatasource && (
-            <HorizontalGroup spacing={'xs'}>
-              <Icon name="list-ui-alt" size="md" />
-              <a href={`/alerting/notifications?alertmanager=grafana`} target="_blank" rel="noreferrer">
-                <Text type={'link'}>Contact Point</Text>
-              </a>
-              <Text type={'secondary'}>and</Text>
-              <a href="/alerting/routes?alertmanager=grafana" target="_blank">
-                <Text type={'link'}>Notification Policy</Text>
-              </a>
-              <Text type={'secondary'}>created in Grafana Alerting</Text>
             </HorizontalGroup>
           )}
         </VerticalGroup>
@@ -996,8 +1035,8 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         >
           <TooltipBadge
             borderType="primary"
-            tooltipTitle={undefined}
-            tooltipContent={getAlertReceiveChannelCounterTooltip()}
+            tooltipTitle={getAlertReceiveChannelCounterTooltip()}
+            tooltipContent={undefined}
             text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
           />
         </PluginLink>
@@ -1007,8 +1046,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         borderType="success"
         icon="link"
         text={`${alertReceiveChannel.connected_escalations_chains_count}/${alertReceiveChannel.routes_count}`}
-        tooltipTitle=""
-        tooltipContent={
+        tooltipTitle={
           alertReceiveChannel.connected_escalations_chains_count +
           ' connected escalation chain' +
           (alertReceiveChannel.connected_escalations_chains_count === 1 ? '' : 's') +
@@ -1017,6 +1055,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
           ' route' +
           (alertReceiveChannel.routes_count === 1 ? '' : 's')
         }
+        tooltipContent={undefined}
       />
 
       {alertReceiveChannel.maintenance_till && (
@@ -1043,7 +1082,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
       </div>
       <div className={cx('headerTop__item')}>
         <Text type="secondary">Team:</Text>
-        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+        <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
       </div>
       <div className={cx('headerTop__item')}>
         <Text type="secondary">Created by:</Text>

@@ -68,7 +68,6 @@ from apps.schedules.tests.factories import (
 )
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.tests.factories import (
-    SlackActionRecordFactory,
     SlackChannelFactory,
     SlackMessageFactory,
     SlackTeamIdentityFactory,
@@ -107,7 +106,6 @@ register(SlackUserGroupFactory)
 register(SlackUserIdentityFactory)
 register(SlackTeamIdentityFactory)
 register(SlackMessageFactory)
-register(SlackActionRecordFactory)
 
 register(TelegramToUserConnectorFactory)
 register(TelegramChannelFactory)
@@ -395,14 +393,6 @@ def make_slack_message():
         return slack_message
 
     return _make_slack_message
-
-
-@pytest.fixture
-def make_slack_action_record():
-    def _make_slack_action_record(organization, user, **kwargs):
-        return SlackActionRecordFactory(organization=organization, user=user, **kwargs)
-
-    return _make_slack_action_record
 
 
 @pytest.fixture
