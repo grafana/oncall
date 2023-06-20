@@ -10,6 +10,7 @@ import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_chan
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
+
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2Common.config';
 
 const IntegrationHelper = {

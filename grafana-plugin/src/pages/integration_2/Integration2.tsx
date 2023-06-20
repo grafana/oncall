@@ -70,6 +70,7 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+
 import { MONACO_PAYLOAD_OPTIONS } from './Integration2Common.config';
 
 const cx = cn.bind(styles);
