@@ -4,7 +4,6 @@ import typing
 from functools import wraps
 
 from django.db import IntegrityError, OperationalError, models, transaction
-from django.db.models import Case, F, Value, When
 
 
 def _retry(exc: typing.Type[Exception] | tuple[typing.Type[Exception], ...], max_attempts: int = 15) -> typing.Callable:
@@ -76,9 +75,12 @@ class OrderedModel(models.Model):
 
     @_retry(OperationalError)  # retry on deadlock
     def delete(self, *args, **kwargs) -> None:
-        super().delete(*args, **kwargs)
+        with transaction.atomic():
+            # lock ordering queryset to prevent deleting instances that are used by other transactions
+            self._lock_ordering_queryset()
+            super().delete(*args, **kwargs)
 
-    @_retry((IntegrityError, OperationalError))
+    @_retry((IntegrityError, OperationalError))  # retry on duplicate order or deadlock
     def _save_no_order_provided(self) -> None:
         """
         Save self to DB without an order provided (e.g on creation).
@@ -91,9 +93,11 @@ class OrderedModel(models.Model):
 
             assert (a.order, b.order, c.order, d.order) == (0, 1, 10, 11)
         """
-        max_order = self.max_order()
-        self.order = max_order + 1 if max_order is not None else 0
-        super().save()
+        with transaction.atomic():
+            instances = self._lock_ordering_queryset()  # lock ordering queryset to prevent reading inconsistent data
+            max_order = max(instance.order for instance in instances) if instances else -1
+            self.order = max_order + 1
+            super().save()
 
     @_retry(OperationalError)  # retry on deadlock
     def to(self, order: int) -> None:
@@ -151,36 +155,32 @@ class OrderedModel(models.Model):
         if self.order == order:
             return
 
-        # Figure out instances that need to be moved.
+        # Figure out instances that need to be moved and their new orders.
+        instances_to_move = []
         if self.order < order:
-            instances_to_move = [
-                instance
-                for instance in instances
-                if instance.order is not None and self.order < instance.order <= order
-            ]
+            for instance in instances:
+                if instance.order is not None and self.order < instance.order <= order:
+                    instance.order -= 1
+                    instances_to_move.append(instance)
         else:
-            instances_to_move = [
-                instance
-                for instance in instances
-                if instance.order is not None and order <= instance.order < self.order
-            ]
+            for instance in instances:
+                if instance.order is not None and order <= instance.order < self.order:
+                    instance.order += 1
+                    instances_to_move.append(instance)
 
-        # Temporarily set self.order to NULL and update other instances' orders in a single SQL command.
-        if instances_to_move:
-            order_by = "order" if self.order < order else "-order"
-            order_delta = -1 if self.order < order else 1
-            self._manager.filter(pk__in=[self.pk] + [instance.pk for instance in instances_to_move]).order_by(
-                order_by
-            ).update(
-                order=Case(
-                    When(pk=self.pk, then=Value(None)),
-                    default=F("order") + order_delta,
-                )
-            )
+        # If there's nothing to move, just update self.order and return.
+        if not instances_to_move:
+            self.order = order
+            self.save(update_fields=["order"])
+            return
 
-        # Update self.order from NULL to the correct value.
+        # Temporarily set order values to NULL to avoid unique constraint violations.
+        pks = [self.pk] + [instance.pk for instance in instances_to_move]
+        self._manager.filter(pk__in=pks).update(order=None)
+
+        # Update orders to appropriate unique values.
         self.order = order
-        self.save(update_fields=["order"])
+        self._manager.filter(pk__in=pks).bulk_update([self] + instances_to_move, fields=["order"])
 
     @_retry(OperationalError)  # retry on deadlock
     def swap(self, order: int) -> None:
@@ -217,24 +217,35 @@ class OrderedModel(models.Model):
             except StopIteration:
                 other = None
 
-            # Temporarily set self.order to NULL and update the other instance's order in a single SQL command.
-            if other:
-                order_by = "order" if self.order < order else "-order"
-                self._manager.filter(pk__in=[self.pk, other.pk]).order_by(order_by).update(
-                    order=Case(
-                        When(pk=self.pk, then=Value(None)),
-                        default=Value(self.order),
-                    )
-                )
+            # If there's no instance to swap with, just update self.order and return.
+            if not other:
+                self.order = order
+                self.save(update_fields=["order"])
+                return
 
-            # Update self.order from NULL to the correct value.
-            self.order = order
-            self.save(update_fields=["order"])
+            # Temporarily set order values to NULL to avoid unique constraint violations.
+            self._manager.filter(pk__in=[self.pk, other.pk]).update(order=None)
+
+            # Swap order values.
+            self.order, other.order = other.order, self.order
+            self._manager.filter(pk__in=[self.pk, other.pk]).bulk_update([self, other], fields=["order"])
 
     def next(self) -> Self | None:
+        """
+        Return the next instance in the ordering queryset, or None if there's no next instance.
+        Example:
+            a = OrderedModel(order=1)
+            b = OrderedModel(order=2)
+
+            assert a.next() == b
+            assert b.next() is None
+        """
         return self._get_ordering_queryset().filter(order__gt=self.order).first()
 
     def max_order(self) -> int | None:
+        """
+        Return the maximum order value in the ordering queryset or None if there are no instances.
+        """
         return self._get_ordering_queryset().aggregate(models.Max("order"))["order__max"]
 
     @staticmethod
