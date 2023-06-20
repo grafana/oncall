@@ -42,7 +42,7 @@ chain (e.g. acknowledge, resolve, silence etc), the escalation chain will contin
 execute.
 
 Users can create escalation chains to configure different type of escalation workflows.
-For example, you can create a chain that will notify n-call users with high priopity, and
+For example, you can create a chain that will notify on-call users with high priopity, and
 another chain that will only send a message into Slack channel.
 
 Escalation chain determines Who and When to notify. [How to notify]({{< relref notify >}}) is set by the user based on their own preferences.

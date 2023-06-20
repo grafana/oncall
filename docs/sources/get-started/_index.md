@@ -129,7 +129,7 @@ re-launch Escalation Chain and move Alert Group
 * **Resolved:** Similar to "Acknowledged".
 *
 
-*ossible transitions:
+* Possible transitions:
 *
 
 * Firing -> Acknowledged

@@ -20,7 +20,7 @@ The integration provides grouping and auto-resolve logic via customizable alert 
 
 > You must have an [Admin role]({{< relref "user-and-team-management" >}}) to create integrations in Grafana OnCall.
 
-## Configuring Grafana OnCall to Receive Alerts from Monitoring System
+## Configuring Grafana OnCall to Receive Alerts from AppDynamics
 
 1. In the **Integrations** tab, click **+ New integration**.
 2. Select **Alertmanager Prometheus** from the list of available integrations.
