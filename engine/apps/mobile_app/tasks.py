@@ -226,14 +226,17 @@ def _get_alert_group_escalation_fcm_message(
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
 
-def _get_youre_going_oncall_notification_title(
+def _get_youre_going_oncall_notification_title(seconds_until_going_oncall: int) -> str:
+    time_until_going_oncall = humanize.naturaldelta(seconds_until_going_oncall)
+
+    return f"You're going on call in {time_until_going_oncall}"
+
+
+def _get_youre_going_oncall_notification_subtitle(
     schedule: OnCallSchedule,
-    seconds_until_going_oncall: int,
     schedule_event: ScheduleEvent,
     mobile_app_user_settings: "MobileAppUserSettings",
 ) -> str:
-    time_until_going_oncall = humanize.naturaldelta(seconds_until_going_oncall)
-
     shift_start = schedule_event["start"]
     shift_end = schedule_event["end"]
     shift_starts_and_ends_on_same_day = shift_start.date() == shift_end.date()
@@ -244,7 +247,7 @@ def _get_youre_going_oncall_notification_title(
 
     formatted_shift = f"{_format_datetime(shift_start)} - {_format_datetime(shift_end)}"
 
-    return f"You're going on call in {time_until_going_oncall} for schedule {schedule.name}, {formatted_shift}"
+    return f"Schedule {schedule.name}, {formatted_shift}"
 
 
 def _get_youre_going_oncall_fcm_message(
@@ -261,12 +264,14 @@ def _get_youre_going_oncall_fcm_message(
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-    notification_title = _get_youre_going_oncall_notification_title(
-        schedule, seconds_until_going_oncall, schedule_event, mobile_app_user_settings
+    notification_title = _get_youre_going_oncall_notification_title(seconds_until_going_oncall)
+    notification_subtitle = _get_youre_going_oncall_notification_subtitle(
+        schedule, schedule_event, mobile_app_user_settings
     )
 
     data: FCMMessageData = {
         "title": notification_title,
+        "subtitle": notification_subtitle,
         "info_notification_sound_name": (
             mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
         ),
@@ -278,7 +283,7 @@ def _get_youre_going_oncall_fcm_message(
     apns_payload = APNSPayload(
         aps=Aps(
             thread_id=thread_id,
-            alert=ApsAlert(title=notification_title),
+            alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
                 name=mobile_app_user_settings.info_notification_sound_name
