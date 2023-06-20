@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
 
 ### Added
 
@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable schedule related profile settings oncall [1508](https://github.com/grafana/oncall/issues/1508)
 - Highlight user shifts oncall [1509](https://github.com/grafana/oncall/issues/1509)
 - Rename or Description for Schedules Rotations [1460](https://github.com/grafana/oncall/issues/1406)
+
+## Changed
+
+- Change mobile shift notifications title and subtitle by @imtoori ([#2288](https://github.com/grafana/oncall/pull/2288))
 
 ## v1.2.45 (2023-06-19)
 
