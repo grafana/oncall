@@ -418,7 +418,6 @@ const RotationForm = observer((props: RotationFormProps) => {
       <Modal
         top="0"
         isOpen={isOpen}
-        className={cx('modal')}
         width="430px"
         onDismiss={onHide}
         contentElement={(props, children) => (
@@ -477,9 +476,9 @@ const RotationForm = observer((props: RotationFormProps) => {
                 {!hasUpdatedShift && ended && (
                   <Block bordered className={cx('updated-shift-info')}>
                     <VerticalGroup>
-                      <HorizontalGroup align="flex-start">
+                      <HorizontalGroup>
                         <Icon name="info-circle" size="md"></Icon>
-                        <Text>This rotation has ended</Text>
+                        <Text>This rotation is over</Text>
                       </HorizontalGroup>
                     </VerticalGroup>
                   </Block>

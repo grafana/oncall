@@ -194,6 +194,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   return (
     <Modal
+      top="0"
       isOpen={isOpen}
       width="430px"
       onDismiss={onHide}
