@@ -119,10 +119,8 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const handleSubmit = useCallback(() => {
     if (template.isRoute) {
       onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId);
-      onHide();
     } else {
       onUpdateTemplates({ [template.name]: changedTemplateBody });
-      onHide();
     }
   }, [onUpdateTemplates, changedTemplateBody]);
 
@@ -199,7 +197,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             <>
               <div className={cx('template-block-codeeditor')}>
                 <div className={cx('template-editor-block-title')}>
-                  <HorizontalGroup justify="space-between" wrap>
+                  <HorizontalGroup justify="space-between" align="center" wrap>
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
@@ -299,7 +297,7 @@ const Result = (props: ResultProps) => {
           </VerticalGroup>
         ) : (
           <div>
-            <Block bordered fullWidth className={cx('block-style')}>
+            <Block bordered fullWidth className={cx('block-style')} withBackground>
               <Text>← Select alert group or "Use custom payload"</Text>
             </Block>
           </div>
