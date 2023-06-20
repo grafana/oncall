@@ -20,6 +20,7 @@ from recurring_ical_events import UnfoldableCalendar
 
 from apps.schedules.tasks import (
     drop_cached_ical_task,
+    refresh_ical_final_schedule,
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
 )
@@ -672,6 +673,14 @@ class CustomOnCallShift(models.Model):
 
         result %= len(self.rolling_users)
         return result
+
+    def refresh_schedule(self):
+        if not self.schedule:
+            # only trigger sync-refresh for web-created shifts
+            return
+        schedule = self.schedule.get_real_instance()
+        schedule.refresh_ical_file()
+        refresh_ical_final_schedule.apply_async((schedule.pk,))
 
     def start_drop_ical_and_check_schedule_tasks(self, schedule):
         drop_cached_ical_task.apply_async((schedule.pk,))
