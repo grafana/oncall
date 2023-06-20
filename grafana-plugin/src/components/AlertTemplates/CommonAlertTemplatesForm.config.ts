@@ -1,4 +1,4 @@
-import { TemplateOptions } from "pages/integration_2/Integration2.config";
+import { TemplateOptions } from 'pages/integration_2/Integration2.config';
 
 export interface Template {
   name: string;
@@ -21,14 +21,12 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
   web_title_template: {
     displayName: 'Web title',
     name: TemplateOptions.WebTitle.key,
-    description:
-      'Same for: phone call, sms, mobile push, mobile app title, email title, slack title, ms teams title, telegram title.',
+    description: ''
   },
   web_message_template: {
     displayName: 'Web message',
     name: TemplateOptions.WebMessage.key,
-    description:
-      'Same for: phone call, sms, mobile push, mobile app title, email title, slack title, ms teams title, telegram title.',
+    description: ''
   },
   slack_title_template: {
     name: 'slack_title_template',
@@ -96,8 +94,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
   web_image_url_template: {
     name: TemplateOptions.WebImage.key,
     displayName: 'Web image url',
-    description:
-      'Same for: phone call, sms, mobile push, mobile app title, email title, slack title, ms teams title, telegram title.',
+    description: '',
   },
   telegram_image_url_template: {
     name: TemplateOptions.TelegramImage.key,

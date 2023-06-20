@@ -9,7 +9,6 @@ import Text from 'components/Text/Text';
 import { openNotification } from 'utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
-
 import styles from './CheatSheet.module.scss';
 
 interface CheatSheetProps {
@@ -67,7 +66,9 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
                 <div className={cx('cheatsheet-item-small')}>
                   <Block bordered fullWidth withBackground>
                     <HorizontalGroup justify="space-between">
-                      <Text type="link" className={cx('code')}>{item.codeExample}</Text>
+                      <Text type="link" className={cx('code')}>
+                        {item.codeExample}
+                      </Text>
                       <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
                         <IconButton name="copy" />
                       </CopyToClipboard>

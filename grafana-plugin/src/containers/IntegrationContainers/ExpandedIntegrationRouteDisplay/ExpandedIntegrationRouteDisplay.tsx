@@ -334,21 +334,31 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
         <WithContextMenu
           renderMenuItems={() => (
             <div className={cx('integrations-actionsList')}>
-                {routeIndex > 0 && !channelFilter.is_default && (
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <div className={cx('integrations-actionItem')}>
-                      <Text type="primary" onClick={onRouteMoveUp}>Move Up</Text>
-                    </div>
-                  </WithPermissionControlTooltip>
-                )}
+              {routeIndex > 0 && !channelFilter.is_default && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integrations-actionItem')}>
+                    <HorizontalGroup spacing="xs">
+                    <Icon name="arrow-up" />
+                      <Text type="primary" onClick={onRouteMoveUp}>
+                        Move Up
+                      </Text>
+                    </HorizontalGroup>
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
 
-                {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <div className={cx('integrations-actionItem')}>
-                      <Text type="primary" onClick={onRouteMoveDown}>Move Down</Text>
-                    </div>
-                  </WithPermissionControlTooltip>
-                )}
+              {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integrations-actionItem')}>
+                    <HorizontalGroup spacing="xs">
+                      <Icon name={'arrow-down'} />
+                      <Text type="primary" onClick={onRouteMoveDown}>
+                        Move Down
+                      </Text>
+                    </HorizontalGroup>
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
 
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>

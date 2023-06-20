@@ -47,10 +47,12 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
     {
       name: 'Markdown refresher',
       listItems: [
-        { codeExample: `**bold**, _italic_, >quote, \`code\`,
+        {
+          codeExample: `**bold**, _italic_, >quote, \`code\`,
 \`\`\`multiline code\`\`\`
 <slug|url>
-- bullet list` },
+- bullet list`,
+        },
       ],
     },
     {
@@ -64,9 +66,12 @@ export const genericTemplateCheatSheet: CheatSheetInterface = {
 {% endif -%}`,
         },
         { listItemName: 'Booleans', codeExample: '{{ payload.status == "resolved" }}' },
-        { listItemName: 'Loops', codeExample: `{% for label in labels %}
+        {
+          listItemName: 'Loops',
+          codeExample: `{% for label in labels %}
   {{ label.title }}
-{% endfor %}` },
+{% endfor %}`,
+        },
       ],
     },
     {
@@ -157,8 +162,7 @@ export const slackMessageTemplateCheatSheet: CheatSheetInterface = {
         },
         {
           listItemName: 'Iterate over labels dictionary',
-          codeExample:
-            `**Labels:**
+          codeExample: `**Labels:**
 {% for k, v in payload["labels"].items() %}
 *{{ k }}*: {{ v }}
 {% endfor %}`,

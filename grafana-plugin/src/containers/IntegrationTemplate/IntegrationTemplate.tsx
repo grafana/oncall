@@ -135,7 +135,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       case TemplateOptions.WebTitle.key:
       case TemplateOptions.WebMessage.key:
       case TemplateOptions.WebImage.key:
-        return webTitleTemplateCheatSheet;
+        return genericTemplateCheatSheet;
       case TemplateOptions.Autoacknowledge.key:
       case TemplateOptions.SourceLink.key:
       case TemplateOptions.Phone.key:
@@ -204,7 +204,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-                      Cheatsheat
+                      Cheatsheet
                     </Button>
                   </HorizontalGroup>
                 </div>
