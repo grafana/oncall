@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import Q, QuerySet
+from django.db.models import Q
 
 from apps.base.messaging import get_messaging_backends
 from apps.base.models.ordered_model import OrderedModel
@@ -67,9 +67,11 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicyQuerySet(models.QuerySet):
-    def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
-        model = self.model
+    def create_default_policies_for_user(self, user: User) -> None:
+        if user.notification_policies.filter(important=False).exists():
+            return
 
+        model = self.model
         policies_to_create = (
             model(
                 user=user,
@@ -82,11 +84,12 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
         )
 
         super().bulk_create(policies_to_create)
-        return user.notification_policies.filter(important=False)
 
-    def create_important_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
+    def create_important_policies_for_user(self, user: User) -> None:
+        if user.notification_policies.filter(important=True).exists():
+            return
+
         model = self.model
-
         policies_to_create = (
             model(
                 user=user,
@@ -98,7 +101,6 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
         )
 
         super().bulk_create(policies_to_create)
-        return user.notification_policies.filter(important=True)
 
 
 class UserNotificationPolicy(OrderedModel):
