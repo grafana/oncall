@@ -5,7 +5,7 @@ from typing import Tuple
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import IntegrityError, models
 from django.db.models import Q
 
 from apps.base.messaging import get_messaging_backends
@@ -83,7 +83,10 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             model(user=user, step=model.Step.NOTIFY, notify_by=model.NotificationChannel.PHONE_CALL, order=2),
         )
 
-        super().bulk_create(policies_to_create)
+        try:
+            super().bulk_create(policies_to_create)
+        except IntegrityError:
+            pass
 
     def create_important_policies_for_user(self, user: User) -> None:
         if user.notification_policies.filter(important=True).exists():
@@ -100,7 +103,10 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             ),
         )
 
-        super().bulk_create(policies_to_create)
+        try:
+            super().bulk_create(policies_to_create)
+        except IntegrityError:
+            pass
 
 
 class UserNotificationPolicy(OrderedModel):
