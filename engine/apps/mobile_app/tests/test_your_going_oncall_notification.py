@@ -143,7 +143,6 @@ def test_get_youre_going_oncall_fcm_message(
 ):
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
     mock_notification_title = "asdfasdf"
-    mock_notification_subtitle = "9:06\u202fAM - 9:06\u202fAM\nSchedule Tell but."
     shift_pk = "mncvmnvc"
     seconds_until_going_oncall = 600
 
@@ -154,6 +153,8 @@ def test_get_youre_going_oncall_fcm_message(
     user_pk = user.public_primary_key
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
+
+    mock_notification_subtitle = f"9:06\u202fAM - 9:06\u202fAM\nSchedule {schedule.name}"
 
     schedule_event = _create_schedule_event(
         timezone.now(),
