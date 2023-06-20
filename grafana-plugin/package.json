@@ -7,7 +7,7 @@
     "lint:fix": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 --quiet ./src",
     "stylelint": "stylelint ./src/**/*.{css,scss,module.css,module.scss}",
     "stylelint:fix": "stylelint --fix ./src/**/*.{css,scss,module.css,module.scss}",
-    "build": "grafana-toolkit plugin:build --skipTest",
+    "build": "grafana-toolkit plugin:build",
     "build:dev": "grafana-toolkit plugin:build --skipTest --skipLint",
     "test": "jest --verbose",
     "test:silent": "jest --silent",

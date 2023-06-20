@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- iCal export final schedule oncall [#1501](https://github.com/grafana/oncall/issues/1501)
+- Schedules: Allow web-edited overrides for Terraform-managed rotations [828](https://github.com/grafana/oncall/issues/828)
+- Make it possible to completely delete a rotation oncall [1505](https://github.com/grafana/oncall/issues/1505)
+- Polish rotation modal form oncall [1506](https://github.com/grafana/oncall/issues/1506)
+- Quick actions when editing a schedule oncall [1507](https://github.com/grafana/oncall/issues/1507)
+- Enable schedule related profile settings oncall [1508](https://github.com/grafana/oncall/issues/1508)
+- Highlight user shifts oncall [1509](https://github.com/grafana/oncall/issues/1509)
+- Rename or Description for Schedules Rotations [1460](https://github.com/grafana/oncall/issues/1406)
+
 ## v1.2.45 (2023-06-19)
 
 ### Changed
