@@ -82,14 +82,6 @@ export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment
   return UTCDays;
 };
 
-export const getUTCWeekStart = (dayOptions: SelectOption[], moment: dayjs.Dayjs) => {
-  let week_start_index = mondayDayOffset[getWeekStartString()];
-  let byDayOptions = [];
-  dayOptions.forEach(({ value }) => byDayOptions.push(value));
-  week_start_index = getUTCDayIndex(week_start_index, moment, false);
-  return byDayOptions[week_start_index];
-};
-
 export const getSelectedDays = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
   if (moment.day() === moment.utc().day()) {
     return by_day;

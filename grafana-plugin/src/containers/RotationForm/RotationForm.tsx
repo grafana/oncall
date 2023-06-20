@@ -59,8 +59,6 @@ import {
   getUTCWeekStart,
   getWeekStartString,
 } from 'pages/schedule/Schedule.helpers';
-} from 'pages/schedule/Schedule.helpers';
-import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
 import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
