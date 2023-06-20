@@ -252,9 +252,6 @@ const Result = (props: ResultProps) => {
   const { alertReceiveChannelId, template, templateBody, chatOpsPermalink, payload, error, onSaveAndFollowLink } =
     props;
 
-  const getCapitalizedChatopsName = (name: string) => {
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  };
   return (
     <div className={cx('template-block-result')}>
       <div className={cx('template-block-title')}>
@@ -289,7 +286,7 @@ const Result = (props: ResultProps) => {
               <VerticalGroup>
                 <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
                   <HorizontalGroup spacing="xs" align="center">
-                    Save and open Alert Group in {getCapitalizedChatopsName(template.additionalData.chatOpsName)}{' '}
+                    Save and open Alert Group in {template.additionalData.chatOpsDisplayName}{' '}
                     <Icon name="external-link-alt" />
                   </HorizontalGroup>
                 </Button>

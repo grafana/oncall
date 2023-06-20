@@ -11,6 +11,7 @@ export interface TemplateForEdit {
   description?: string;
   additionalData?: {
     chatOpsName?: string;
+    chatOpsDisplayName?: string;
     data?: string;
     additionalDescription?: string;
   };
