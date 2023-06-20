@@ -4,6 +4,7 @@ from django.db import migrations, models
 from django.db.models import Count
 
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
+import django_migration_linter as linter
 
 
 def fix_duplicate_order_user_notification_policy(apps, schema_editor):
@@ -35,6 +36,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),  # adding a unique constraint after fixing duplicates should be fine
         migrations.AlterField(
             model_name='usernotificationpolicy',
             name='order',
