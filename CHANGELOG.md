@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- iCal export final schedule oncall [#1501](https://github.com/grafana/oncall/issues/1501)
-- Schedules: Allow web-edited overrides for Terraform-managed rotations [828](https://github.com/grafana/oncall/issues/828)
 - Make it possible to completely delete a rotation oncall [1505](https://github.com/grafana/oncall/issues/1505)
 - Polish rotation modal form oncall [1506](https://github.com/grafana/oncall/issues/1506)
 - Quick actions when editing a schedule oncall [1507](https://github.com/grafana/oncall/issues/1507)
