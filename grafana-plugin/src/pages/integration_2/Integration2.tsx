@@ -720,7 +720,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { maintenanceStore, alertReceiveChannelStore } = useStore();
+  const { maintenanceStore, alertReceiveChannelStore, heartbeatStore } = useStore();
 
   const history = useHistory();
 
@@ -814,11 +814,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 <Text type="primary">Integration Settings</Text>
               </div>
 
-              <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
-                  Hearbeat Settings
-                </div>
-              </WithPermissionControlTooltip>
+              {showHeartbeatSettings() && (
+                <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
+                    Heartbeat Settings
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
 
               {!alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
@@ -918,6 +920,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       </div>
     </>
   );
+
+  function showHeartbeatSettings() {
+    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
+    const heartbeat = heartbeatStore.items[heartbeatId];
+    return !!heartbeat?.last_heartbeat_time_verbal;
+  }
 
   function deleteIntegration() {
     alertReceiveChannelStore

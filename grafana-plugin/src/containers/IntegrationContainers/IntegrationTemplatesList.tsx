@@ -90,11 +90,15 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                   <>
                     {isResolveConditionTemplate(contents.name) && (
                       <Tooltip content={'Edit'}>
-                        <InlineSwitch value={autoresolveValue} onChange={handleSaveClick} />
+                        <InlineSwitch
+                          value={autoresolveValue}
+                          onChange={handleSaveClick}
+                          className={cx('inline-switch')}
+                        />
                       </Tooltip>
                     )}
                     {isResolveConditionTemplateEditable(contents.name) && (
-                      <div className={cx('input')}>
+                      <div className={cx('input', { 'input-with-toggle': isResolveConditionTemplate(contents.name) })}>
                         <MonacoEditor
                           value={IntegrationHelper.getFilteredTemplate(
                             templates[contents.name] || '',

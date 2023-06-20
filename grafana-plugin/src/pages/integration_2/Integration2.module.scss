@@ -118,6 +118,9 @@ $LARGE-MARGIN: 24px;
   flex-grow: 1;
   max-width: calc(100% - 80px);
 }
+.input-with-toggler {
+  max-width: calc(100% - 134px);
+}
 
 .how-to-connect__container {
   display: flex;
@@ -208,4 +211,8 @@ $LARGE-MARGIN: 24px;
 
 .radius {
   border-radius: 4px;
+}
+
+.inline-switch {
+  height: 34px;
 }
