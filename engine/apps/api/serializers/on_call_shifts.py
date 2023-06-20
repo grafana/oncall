@@ -67,6 +67,11 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def get_shift_end(self, obj):
         return obj.start + obj.duration
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
+        return ret
+
     def to_internal_value(self, data):
         data["source"] = CustomOnCallShift.SOURCE_WEB
         if not data.get("shift_end"):
@@ -74,11 +79,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
         result = super().to_internal_value(data)
         return result
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
-        return ret
 
     def validate_by_day(self, by_day):
         if by_day:
@@ -198,7 +198,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
-
         # before creation, require users set
         self._require_users(validated_data)
         instance = super().create(validated_data)
