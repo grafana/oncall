@@ -10,7 +10,7 @@ from django.db import models
 from django.utils import timezone
 from mirage import fields as mirage_fields
 
-from apps.alerts.models import MaintainableObject
+from apps.alerts.models import AlertReceiveChannel, MaintainableObject
 from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
@@ -64,6 +64,8 @@ class OrganizationManager(models.Manager):
 
 
 class Organization(MaintainableObject):
+    alert_receive_channels: models.QuerySet[AlertReceiveChannel]
+
     objects = OrganizationManager()
     objects_with_deleted = models.Manager()
 
