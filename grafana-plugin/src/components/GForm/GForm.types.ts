@@ -22,4 +22,5 @@ export interface FormItem {
     validation?: (v: any) => boolean;
   };
   extra?: any;
+  collapsed?: boolean;
 }

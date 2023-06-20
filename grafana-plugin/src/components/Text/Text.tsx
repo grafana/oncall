@@ -24,6 +24,8 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   clearBeforeEdit?: boolean;
   hidden?: boolean;
   editModalTitle?: string;
+  maxWidth?: string;
+  clickable?: boolean;
 }
 
 interface TextInterface extends React.FC<TextProps> {
@@ -52,6 +54,8 @@ const Text: TextInterface = (props) => {
     hidden = false,
     editModalTitle = 'New value',
     style,
+    maxWidth,
+    clickable,
     ...rest
   } = props;
 
@@ -84,27 +88,28 @@ const Text: TextInterface = (props) => {
         'root',
         'text',
         {
+          'with-maxWidth': Boolean(maxWidth),
           [`text--${type}`]: true,
           [`text--${size}`]: true,
           'text--strong': strong,
           'text--underline': underline,
+          'text--clickable': clickable,
           'no-wrap': !wrap,
           keyboard,
         },
         className
       )}
-      style={style}
+      style={{ ...style, maxWidth }}
       {...rest}
     >
       {hidden ? PLACEHOLDER : children}
       {editable && (
         <IconButton
           onClick={handleEditClick}
-          variant="primary"
           className={cx('icon-button')}
           tooltip="Edit"
           tooltipPlacement="top"
-          name="edit"
+          name="pen"
         />
       )}
       {copyable && (
