@@ -229,7 +229,7 @@ def _get_alert_group_escalation_fcm_message(
 def _get_youre_going_oncall_notification_title(seconds_until_going_oncall: int) -> str:
     time_until_going_oncall = humanize.naturaldelta(seconds_until_going_oncall)
 
-    return f"You're going on call in {time_until_going_oncall}"
+    return f"Your on-call shift starts in {time_until_going_oncall}"
 
 
 def _get_youre_going_oncall_notification_subtitle(
@@ -247,7 +247,7 @@ def _get_youre_going_oncall_notification_subtitle(
 
     formatted_shift = f"{_format_datetime(shift_start)} - {_format_datetime(shift_end)}"
 
-    return f"Schedule {schedule.name}, {formatted_shift}"
+    return f"{schedule.name}: {formatted_shift}"
 
 
 def _get_youre_going_oncall_fcm_message(

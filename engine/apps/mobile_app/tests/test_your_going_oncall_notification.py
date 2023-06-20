@@ -95,39 +95,49 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     ##################
     # same day shift
     ##################
-    same_day_shift_title = tasks._get_youre_going_oncall_notification_title(
-        schedule, seconds_until_going_oncall, same_day_shift, maus
+    same_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
+    same_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, same_day_shift, maus
     )
-    same_day_shift_no_locale_title = tasks._get_youre_going_oncall_notification_title(
-        schedule, seconds_until_going_oncall, same_day_shift, maus_no_locale
+    same_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, same_day_shift, maus_no_locale
     )
 
     assert (
         same_day_shift_title
-        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 09 h 00 - 17 h 00"
+        == f"Your on-call shift starts in {humanized_time_until_going_oncall} for schedule {schedule_name}, 09 h 00 - 17 h 00"
+    )
+    assert(
+        same_day_shift_subtitle
+        == f"{schedule_name}: 09 h 00 - 17 h 00"
     )
     assert (
-        same_day_shift_no_locale_title
-        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 9:00\u202fAM - 5:00\u202fPM"
+        same_day_shift_no_locale_subtitle
+        == f"{schedule_name}: 9:00\u202fAM - 5:00\u202fPM"
     )
 
     ##################
     # multiple day shift
     ##################
-    multiple_day_shift_title = tasks._get_youre_going_oncall_notification_title(
-        schedule, seconds_until_going_oncall, multiple_day_shift, maus
+    multiple_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
+    multiple_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, multiple_day_shift, maus
     )
-    multiple_day_shift_no_locale_title = tasks._get_youre_going_oncall_notification_title(
-        schedule, seconds_until_going_oncall, multiple_day_shift, maus_no_locale
+    multiple_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, multiple_day_shift, maus_no_locale
     )
 
     assert (
         multiple_day_shift_title
-        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 2023-07-08 09 h 00 - 2023-07-12 17 h 00"
+        == f"Your on-call shift starts in {humanized_time_until_going_oncall} for schedule {schedule_name}, 2023-07-08 09 h 00 - 2023-07-12 17 h 00"
     )
     assert (
-        multiple_day_shift_no_locale_title
-        == f"You're going on call in {humanized_time_until_going_oncall} for schedule {schedule_name}, 7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM"
+        multiple_day_shift_subtitle
+        == f"{schedule_name}: 2023-07-08 09 h 00 - 2023-07-12 17 h 00"
+    )
+    assert (
+        multiple_day_shift_no_locale_subtitle
+        == f"{schedule_name}: 7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM"
     )
 
 
