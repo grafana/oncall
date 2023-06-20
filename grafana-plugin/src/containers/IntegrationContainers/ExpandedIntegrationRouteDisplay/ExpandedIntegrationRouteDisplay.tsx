@@ -33,8 +33,8 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2Common.config';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -121,6 +121,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
                   tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
                   tooltipContent={undefined}
+                  className={cx('u-margin-right-xs')}
                 />
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
@@ -323,26 +324,36 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
 
   return (
     <HorizontalGroup spacing={'xs'}>
-      {routeIndex > 0 && !channelFilter.is_default && (
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Tooltip placement="top" content={'Move Up'}>
-            <Button variant={'secondary'} onClick={onRouteMoveUp} icon={'arrow-up'} size={'sm'} />
-          </Tooltip>
-        </WithPermissionControlTooltip>
-      )}
-
-      {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <Tooltip placement="top" content={'Move Down'}>
-            <Button variant={'secondary'} onClick={onRouteMoveDown} icon={'arrow-down'} size={'sm'} />
-          </Tooltip>
-        </WithPermissionControlTooltip>
-      )}
-
       {!channelFilter.is_default && (
         <WithContextMenu
           renderMenuItems={() => (
             <div className={cx('integrations-actionsList')}>
+              {routeIndex > 0 && !channelFilter.is_default && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integrations-actionItem')}>
+                    <HorizontalGroup spacing="xs">
+                      <Icon name="arrow-up" />
+                      <Text type="primary" onClick={onRouteMoveUp}>
+                        Move Up
+                      </Text>
+                    </HorizontalGroup>
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
+
+              {routeIndex < channelFilterIds.length - 2 && !channelFilter.is_default && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integrations-actionItem')}>
+                    <HorizontalGroup spacing="xs">
+                      <Icon name={'arrow-down'} />
+                      <Text type="primary" onClick={onRouteMoveDown}>
+                        Move Down
+                      </Text>
+                    </HorizontalGroup>
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
+
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>
                   <HorizontalGroup spacing={'xs'}>

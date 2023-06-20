@@ -14,6 +14,7 @@
   max-height: 100%;
   width: 100%;
   border: var(--border-strong);
+  padding-left: 16px;
 }
 
 .template-block-title {
@@ -53,7 +54,9 @@
 .template-block-result {
   width: 30%;
   overflow-y: scroll !important;
+  padding-right: 16px;
 }
+
 .result {
   padding: 0 16px;
   padding-bottom: 60px;

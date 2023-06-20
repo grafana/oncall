@@ -2,16 +2,23 @@
   width: 40%;
   height: 100%;
   padding: 16px;
+  padding-right: 0;
   border: var(--border-weak);
   min-width: min-content;
   overflow-y: scroll;
 }
-
-.cheatsheet-container > div {
+  
+.cheatsheet-innerContainer {
+  padding-right: 16px;
+  overflow-y: scroll;
   height: 100%;
-  max-height: 100%;
+  
+  > div {
+    height: 100%;
+    max-height: 100%;
+  }
 }
-
+  
 .cheatsheet-item {
   margin-bottom: 24px;
 }
@@ -19,4 +26,8 @@
 .cheatsheet-item-small {
   margin-bottom: 16px;
   width: 100%;
+}
+
+.code {
+  white-space: pre;
 }

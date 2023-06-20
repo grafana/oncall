@@ -22,6 +22,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { TemplateOptions } from 'pages/integration_2/Integration2.config';
 import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
@@ -124,27 +125,27 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     }
   }, [onUpdateTemplates, changedTemplateBody]);
 
-  const getCheatSheet = (templateName) => {
-    switch (templateName) {
-      case 'Grouping':
-      case 'Autoresolve':
+  const getCheatSheet = (templateKey: string) => {
+    switch (templateKey) {
+      case TemplateOptions.Grouping.key:
+      case TemplateOptions.Resolve.key:
         return groupingTemplateCheatSheet;
-      case 'Web title':
-      case 'Web message':
-      case 'Web image':
+      case TemplateOptions.WebTitle.key:
+      case TemplateOptions.WebMessage.key:
+      case TemplateOptions.WebImage.key:
         return genericTemplateCheatSheet;
-      case 'Auto acknowledge':
-      case 'Source link':
-      case 'Phone call':
-      case 'SMS':
-      case 'Slack title':
-      case 'Slack message':
-      case 'Slack image':
-      case 'Telegram title':
-      case 'Telegram message':
-      case 'Telegram image':
-      case 'Email title':
-      case 'Email message':
+      case TemplateOptions.Autoacknowledge.key:
+      case TemplateOptions.SourceLink.key:
+      case TemplateOptions.Phone.key:
+      case TemplateOptions.SMS.key:
+      case TemplateOptions.SlackTitle.key:
+      case TemplateOptions.SlackMessage.key:
+      case TemplateOptions.SlackImage.key:
+      case TemplateOptions.TelegramTitle.key:
+      case TemplateOptions.TelegramMessage.key:
+      case TemplateOptions.TelegramImage.key:
+      case TemplateOptions.EmailTitle.key:
+      case TemplateOptions.EmailMessage.key:
         return slackMessageTemplateCheatSheet;
       default:
         return genericTemplateCheatSheet;
@@ -190,7 +191,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
           {isCheatSheetVisible ? (
             <CheatSheet
               cheatSheetName={template.displayName}
-              cheatSheetData={getCheatSheet(template.displayName)}
+              cheatSheetData={getCheatSheet(template.name)}
               onClose={onCloseCheatSheet}
             />
           ) : (
@@ -201,7 +202,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-                      Cheatsheat
+                      Cheatsheet
                     </Button>
                   </HorizontalGroup>
                 </div>
@@ -249,9 +250,6 @@ const Result = (props: ResultProps) => {
   const { alertReceiveChannelId, template, templateBody, chatOpsPermalink, payload, error, onSaveAndFollowLink } =
     props;
 
-  const getCapitalizedChatopsName = (name: string) => {
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  };
   return (
     <div className={cx('template-block-result')}>
       <div className={cx('template-block-title')}>
@@ -286,7 +284,7 @@ const Result = (props: ResultProps) => {
               <VerticalGroup>
                 <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
                   <HorizontalGroup spacing="xs" align="center">
-                    Save and open Alert Group in {getCapitalizedChatopsName(template.additionalData.chatOpsName)}{' '}
+                    Save and open Alert Group in {template.additionalData.chatOpsDisplayName}{' '}
                     <Icon name="external-link-alt" />
                   </HorizontalGroup>
                 </Button>

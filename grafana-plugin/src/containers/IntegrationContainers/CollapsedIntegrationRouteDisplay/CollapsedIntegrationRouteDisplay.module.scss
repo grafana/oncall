@@ -18,7 +18,7 @@
     display: flex;
     white-space: nowrap;
     flex-direction: row;
-    gap: 8px;
+    gap: 4px;
   }
 
   &__item--large {
@@ -30,5 +30,23 @@
     overflow: hidden;
     max-width: calc(100% - 48px);
     text-overflow: ellipsis;
+  }
+}
+
+.icon {
+  margin-right: 4px;
+}
+
+.collapsedRoute {
+  &__container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: row;
   }
 }
