@@ -100,8 +100,8 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     same_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(schedule, same_day_shift, maus_no_locale)
 
     assert same_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
-    assert same_day_shift_subtitle == f"09 h 00 - 17 h 00\nSchedule: {schedule_name}"
-    assert same_day_shift_no_locale_subtitle == f"9:00\u202fAM - 5:00\u202fPM\nSchedule: {schedule_name}"
+    assert same_day_shift_subtitle == f"09 h 00 - 17 h 00\nSchedule {schedule_name}"
+    assert same_day_shift_no_locale_subtitle == f"9:00\u202fAM - 5:00\u202fPM\nSchedule {schedule_name}"
 
     ##################
     # multiple day shift
@@ -111,8 +111,8 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     multiple_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(schedule, multiple_day_shift, maus_no_locale)
 
     assert multiple_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
-    assert multiple_day_shift_subtitle == f"2023-07-08 09 h 00 - 2023-07-12 17 h 00\nSchedule: {schedule_name}"
-    assert multiple_day_shift_no_locale_subtitle == f"7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM\nSchedule: {schedule_name}"
+    assert multiple_day_shift_subtitle == f"2023-07-08 09 h 00 - 2023-07-12 17 h 00\nSchedule {schedule_name}"
+    assert multiple_day_shift_no_locale_subtitle == f"7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM\nSchedule {schedule_name}"
 
 
 @mock.patch("apps.mobile_app.tasks._get_youre_going_oncall_notification_title")
