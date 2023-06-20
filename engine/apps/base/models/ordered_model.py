@@ -3,33 +3,15 @@ import time
 import typing
 from functools import wraps
 
-from django.db import IntegrityError, OperationalError, connection, models, transaction
-
-# Update object's order to NULL and shift other objects' orders accordingly in a single SQL query.
-SQL_TO = """
-UPDATE {db_table} {t1}
-JOIN {db_table} {t2} ON {t2}.{pk_name} = %(pk)s
-SET {t1}.{order} = IF({t1}.{pk_name} = {t2}.{pk_name}, null, IF({t1}.{order} < {t2}.{order}, {t1}.{order} + 1, {t1}.{order} - 1))
-WHERE {ordering_condition}
-AND {t2}.{order} != %(order)s
-AND {t1}.{order} >= IF({t2}.{order} > %(order)s, %(order)s, {t2}.{order})
-AND {t1}.{order} <= IF({t2}.{order} > %(order)s, {t2}.{order}, %(order)s)
-ORDER BY IF({t1}.{order} <= {t2}.{order}, {t1}.{order}, null) DESC, IF({t1}.{order} >= {t2}.{order}, {t1}.{order}, null) ASC
-"""
-
-# Update object's order to NULL and set the other object's order to specified value in a single SQL query.
-SQL_SWAP = """
-UPDATE {db_table} {t1}
-JOIN {db_table} {t2} ON {t2}.{pk_name} = %(pk)s
-SET {t1}.{order} = IF({t1}.{pk_name} = {t2}.{pk_name}, null, {t2}.{order})
-WHERE {ordering_condition}
-AND {t2}.{order} != %(order)s
-AND ({t1}.{pk_name} = {t2}.{pk_name} OR {t1}.{order} = %(order)s)
-ORDER BY IF({t1}.{pk_name} = {t2}.{pk_name}, 0, 1) ASC
-"""
+from django.db import IntegrityError, OperationalError, models, transaction
+from django.db.models import Case, F, Value, When
 
 
 def _retry(exc: typing.Type[Exception] | tuple[typing.Type[Exception], ...], max_attempts: int = 15) -> typing.Callable:
+    """
+    A utility decorator for retrying a function on a given exception(s) up to max_attempts times.
+    """
+
     def _retry_with_params(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -46,6 +28,9 @@ def _retry(exc: typing.Type[Exception] | tuple[typing.Type[Exception], ...], max
         return wrapper
 
     return _retry_with_params
+
+
+Self = typing.TypeVar("Self", bound="OrderedModel")
 
 
 class OrderedModel(models.Model):
@@ -89,75 +74,188 @@ class OrderedModel(models.Model):
         else:
             super().save()
 
-    @_retry(OperationalError)
+    @_retry(OperationalError)  # retry on deadlock
     def delete(self, *args, **kwargs) -> None:
         super().delete(*args, **kwargs)
 
     @_retry((IntegrityError, OperationalError))
     def _save_no_order_provided(self) -> None:
+        """
+        Save self to DB without an order provided (e.g on creation).
+        Order is set to the next available order, or 0 if there are no other instances.
+        Example:
+            a = OrderedModel.objects.create()
+            b = OrderedModel.objects.create()
+            c = OrderedModel.objects.create(order=10)
+            d = OrderedModel.objects.create()
+
+            assert (a.order, b.order, c.order, d.order) == (0, 1, 10, 11)
+        """
         max_order = self.max_order()
         self.order = max_order + 1 if max_order is not None else 0
         super().save()
 
-    @_retry((IntegrityError, OperationalError))
+    @_retry(OperationalError)  # retry on deadlock
     def to(self, order: int) -> None:
-        if order is None or order < 0:
-            raise ValueError("Order must be a positive integer.")
+        """
+        Move self to a given order, adjusting other instances' orders if necessary.
+        Example:
+            a = OrderedModel(order=1)
+            b = OrderedModel(order=2)
+            c = OrderedModel(order=3)
 
-        sql = self._format_sql(SQL_TO)
-        params = {"pk": self.pk, "order": order, **self._ordering_params}
-
+            a.to(3)  # move the first element to the last order
+            assert (a.order, b.order, c.order) == (3, 1, 2)  # [a, b, c] -> [b, c, a]
+        """
+        self._validate_positive_integer(order)
         with transaction.atomic():
-            with connection.cursor() as cursor:
-                cursor.execute(sql, params)
-            self._meta.model.objects.filter(pk=self.pk).update(order=order)
+            instances = self._lock_ordering_queryset()
+            self._move_instances_to_order(instances, order)
 
-        self.refresh_from_db(fields=["order"])
-
+    @_retry(OperationalError)  # retry on deadlock
     def to_index(self, index: int) -> None:
-        order = self._get_ordering_queryset().values_list("order", flat=True)[index]
-        self.to(order)
+        """
+        Move self to a given index, adjusting other instances' orders if necessary.
+        Similar with to(), but accepts an index instead of an order.
+        This might be handy as orders might be non-sequential, but most clients assume that they are sequential.
 
-    @_retry((IntegrityError, OperationalError))
-    def swap(self, order: int) -> None:
-        if order is None or order < 0:
-            raise ValueError("Order must be a positive integer.")
+        Example:
+            a = OrderedModel(order=1)
+            b = OrderedModel(order=5)
+            c = OrderedModel(order=10)
 
-        sql = self._format_sql(SQL_SWAP)
-        params = {"pk": self.pk, "order": order, **self._ordering_params}
-
+            a.to_index(2)  # move the first element to the second index (where c is)
+            assert (a.order, b.order, c.order) == (10, 4, 9)  # [a, b, c] -> [b, c, a]
+        """
+        self._validate_positive_integer(index)
         with transaction.atomic():
-            with connection.cursor() as cursor:
-                cursor.execute(sql, params)
-            self._meta.model.objects.filter(pk=self.pk).update(order=order)
+            instances = self._lock_ordering_queryset()
+            order = instances[index].order  # get order of the instance at the given index
+            self._move_instances_to_order(instances, order)
 
-        self.refresh_from_db(fields=["order"])
+    def _move_instances_to_order(self, instances: list[Self], order: int) -> None:
+        """
+        Helper method for moving self to a given order, adjusting other instances' orders if necessary.
+        Must be called within a transaction that locks the ordering queryset.
+        """
 
-    def next(self) -> models.Model | None:
+        # Get the up-to-date instance from the database, because it might have been updated by another transaction.
+        try:
+            _self = next(instance for instance in instances if instance.pk == self.pk)
+            self.order = _self.order
+            assert self.order is not None
+        except StopIteration:
+            raise self.DoesNotExist()
+
+        # If the order is already correct, do nothing.
+        if self.order == order:
+            return
+
+        # Figure out instances that need to be moved.
+        if self.order < order:
+            instances_to_move = [
+                instance
+                for instance in instances
+                if instance.order is not None and self.order < instance.order <= order
+            ]
+        else:
+            instances_to_move = [
+                instance
+                for instance in instances
+                if instance.order is not None and order <= instance.order < self.order
+            ]
+
+        # Temporarily set self.order to NULL and update other instances' orders in a single SQL command.
+        if instances_to_move:
+            order_by = "order" if self.order < order else "-order"
+            order_delta = -1 if self.order < order else 1
+            self._manager.filter(pk__in=[self.pk] + [instance.pk for instance in instances_to_move]).order_by(
+                order_by
+            ).update(
+                order=Case(
+                    When(pk=self.pk, then=Value(None)),
+                    default=F("order") + order_delta,
+                )
+            )
+
+        # Update self.order from NULL to the correct value.
+        self.order = order
+        self.save(update_fields=["order"])
+
+    @_retry(OperationalError)  # retry on deadlock
+    def swap(self, order: int) -> None:
+        """
+        Swap self with an instance at a given order.
+        Example:
+            a = OrderedModel(order=1)
+            b = OrderedModel(order=2)
+            c = OrderedModel(order=3)
+            d = OrderedModel(order=4)
+
+            a.swap(4)  # swap the first element with the last element
+            assert (a.order, b.order, c.order, d.order) == (4, 2, 3, 1)  # [a, b, c, d] -> [d, b, c, a]
+        """
+        self._validate_positive_integer(order)
+        with transaction.atomic():
+            instances = self._lock_ordering_queryset()
+
+            # Get the up-to-date instance from the database, because it might have been updated by another transaction.
+            try:
+                _self = next(instance for instance in instances if instance.pk == self.pk)
+                self.order = _self.order
+                assert self.order is not None
+            except StopIteration:
+                raise self.DoesNotExist()
+
+            # If the order is already correct, do nothing.
+            if self.order == order:
+                return
+
+            # Get the instance to swap with.
+            try:
+                other = next(instance for instance in instances if instance.order == order)
+            except StopIteration:
+                other = None
+
+            # Temporarily set self.order to NULL and update the other instance's order in a single SQL command.
+            if other:
+                order_by = "order" if self.order < order else "-order"
+                self._manager.filter(pk__in=[self.pk, other.pk]).order_by(order_by).update(
+                    order=Case(
+                        When(pk=self.pk, then=Value(None)),
+                        default=Value(self.order),
+                    )
+                )
+
+            # Update self.order from NULL to the correct value.
+            self.order = order
+            self.save(update_fields=["order"])
+
+    def next(self) -> Self | None:
         return self._get_ordering_queryset().filter(order__gt=self.order).first()
 
     def max_order(self) -> int | None:
         return self._get_ordering_queryset().aggregate(models.Max("order"))["order__max"]
 
-    def _get_ordering_queryset(self) -> models.QuerySet:
-        return self._meta.model.objects.filter(**self._ordering_params)
+    @staticmethod
+    def _validate_positive_integer(value: int | None) -> None:
+        if value is None or not isinstance(value, int) or value < 0:
+            raise ValueError("Value must be a positive integer.")
+
+    def _get_ordering_queryset(self) -> models.QuerySet[Self]:
+        return self._manager.filter(**self._ordering_params)
+
+    def _lock_ordering_queryset(self) -> list[Self]:
+        """
+        Locks the ordering queryset with SELECT FOR UPDATE and returns the queryset as a list.
+        This allows to prevent concurrent updates from different transactions.
+        """
+        return list(self._get_ordering_queryset().select_for_update().only("pk", "order"))
+
+    @property
+    def _manager(self):
+        return self._meta.default_manager
 
     @property
     def _ordering_params(self) -> dict[str, typing.Any]:
         return {field: getattr(self, field) for field in self.order_with_respect_to}
-
-    def _format_sql(self, sql):
-        ordering_parts = [
-            "{t1}.{field} = %({field})s".format(t1=connection.ops.quote_name("t1"), field=field)
-            for field in self.order_with_respect_to
-        ]
-        ordering_condition = " AND ".join(ordering_parts)
-
-        return sql.format(
-            t1=connection.ops.quote_name("t1"),
-            t2=connection.ops.quote_name("t2"),
-            order=connection.ops.quote_name("order"),
-            db_table=connection.ops.quote_name(self._meta.db_table),
-            pk_name=connection.ops.quote_name(self._meta.pk.name),
-            ordering_condition=ordering_condition,
-        )
