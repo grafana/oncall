@@ -124,6 +124,7 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     )
 
 
+@mock.patch("apps.mobile_app.tasks._get_youre_going_oncall_notification_subtitle")
 @mock.patch("apps.mobile_app.tasks._get_youre_going_oncall_notification_title")
 @mock.patch("apps.mobile_app.tasks._construct_fcm_message")
 @mock.patch("apps.mobile_app.tasks.APNSPayload")
@@ -138,23 +139,24 @@ def test_get_youre_going_oncall_fcm_message(
     mock_apns_payload,
     mock_construct_fcm_message,
     mock_get_youre_going_oncall_notification_title,
+    mock_get_youre_going_oncall_notification_subtitle,
     make_organization_and_user,
     make_schedule,
 ):
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
     mock_notification_title = "asdfasdf"
+    mock_notification_subtitle = f"9:06\u202fAM - 9:06\u202fAM\nSchedule XYZ"
     shift_pk = "mncvmnvc"
     seconds_until_going_oncall = 600
 
     mock_construct_fcm_message.return_value = mock_fcm_message
     mock_get_youre_going_oncall_notification_title.return_value = mock_notification_title
+    mock_get_youre_going_oncall_notification_subtitle.return_value = mock_notification_subtitle
 
     organization, user = make_organization_and_user()
     user_pk = user.public_primary_key
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
-
-    mock_notification_subtitle = f"9:06\u202fAM - 9:06\u202fAM\nSchedule {schedule.name}"
 
     schedule_event = _create_schedule_event(
         timezone.now(),
@@ -201,9 +203,9 @@ def test_get_youre_going_oncall_fcm_message(
     )
     mock_apns_payload.assert_called_once_with(aps=mock_aps.return_value)
 
-    mock_get_youre_going_oncall_notification_title.assert_called_once_with(
-        schedule, seconds_until_going_oncall, schedule_event, maus
-    )
+    mock_get_youre_going_oncall_notification_subtitle.assert_called_once_with(schedule, schedule_event, maus)
+    mock_get_youre_going_oncall_notification_title.assert_called_once_with(seconds_until_going_oncall)
+
     mock_construct_fcm_message.assert_called_once_with(
         tasks.MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
     )
