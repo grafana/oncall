@@ -6,7 +6,7 @@ from functools import wraps
 from django.db import IntegrityError, OperationalError, models, transaction
 
 
-def _retry(exc: typing.Type[Exception] | tuple[typing.Type[Exception], ...], max_attempts: int = 15) -> typing.Callable:
+def _retry(exc: typing.Type[Exception] | tuple[typing.Type[Exception], ...], max_attempts: int = 5) -> typing.Callable:
     """
     A utility decorator for retrying a function on a given exception(s) up to max_attempts times.
     """
