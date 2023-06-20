@@ -1,11 +1,12 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
+import { Timezone, tzs } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 
 import styles from './UserTimezoneSelect.module.css';
@@ -18,8 +19,26 @@ interface UserTimezoneSelectProps {
 
 const cx = cn.bind(styles);
 
+interface TimezoneOption {
+  value: number;
+  utcOffset: number;
+  timezone: Timezone;
+  label: string;
+  description: string;
+}
+
 const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
   const { users, value: propValue, onChange } = props;
+
+  const [extraOptions, setExtraOptions] = useState<TimezoneOption[]>([
+    {
+      value: 0,
+      utcOffset: 0,
+      timezone: 'UTC' as Timezone,
+      label: 'GMT',
+      description: '',
+    },
+  ]);
 
   const options = useMemo(() => {
     return users
@@ -46,15 +65,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
           return memo;
         },
-        [
-          {
-            value: 0,
-            utcOffset: 0,
-            timezone: 'UTC' as Timezone,
-            label: 'GMT',
-            description: '',
-          },
-        ]
+        [...extraOptions.map((option) => ({ ...option }))]
       )
       .sort((a, b) => {
         if (b.utcOffset === 0) {
@@ -70,7 +81,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
         return 0;
       });
-  }, [users]);
+  }, [users, extraOptions]);
 
   const value = useMemo(() => {
     const utcOffset = dayjs().tz(propValue).utcOffset();
@@ -87,9 +98,70 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
     [options]
   );
 
+  const filterOption = useCallback((item: SelectableValue<number>, searchQuery: string) => {
+    const { data } = item;
+
+    return ['label', 'description', 'timezone'].some((key: string) => {
+      if (data.__isNew_) {
+        return true;
+      }
+      if (!data[key]) {
+        console.log(item);
+      }
+      return data[key] && data[key].toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, []);
+
+  const handleCreateOption = useCallback(
+    (value: string) => {
+      const matched = tzs.find((tz) => tz.toLowerCase().includes(value.toLowerCase()));
+      if (matched) {
+        const now = dayjs().tz(matched);
+        const utcOffset = now.utcOffset();
+        onChange(matched);
+
+        if (options.some((option) => option.utcOffset === utcOffset)) {
+          return;
+        }
+
+        setExtraOptions((extraOptions) => [
+          ...extraOptions,
+          {
+            value: utcOffset,
+            utcOffset,
+            timezone: matched,
+            label: getTzOffsetString(now),
+            description: '',
+          },
+        ]);
+
+        onChange(matched);
+      }
+    },
+    [options]
+  );
+
   return (
     <div className={cx('root')}>
-      <Select value={value} onChange={handleChange} width={30} placeholder={propValue} options={options} />
+      <Select
+        value={value}
+        onChange={handleChange}
+        width={30}
+        placeholder={propValue}
+        options={options}
+        filterOption={filterOption}
+        allowCustomValue
+        onCreateOption={handleCreateOption}
+        formatCreateLabel={(input: string) => {
+          const matched = tzs.find((tz) => tz.toLowerCase().includes(input.toLowerCase()));
+          const now = dayjs().tz(matched);
+          if (matched) {
+            return `Select ${getTzOffsetString(now)} (${matched})`;
+          } else {
+            return `Not found`;
+          }
+        }}
+      />
     </div>
   );
 };

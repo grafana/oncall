@@ -18,7 +18,8 @@
   box-shadow: var(--shadows-z3);
   border-radius: 2px;
   z-index: 10;
-  overflow: scroll;
+
+  /* overflow: scroll; */
 }
 
 /*

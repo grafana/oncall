@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Make it possible to completely delete a rotation oncall [1505](https://github.com/grafana/oncall/issues/1505)
+- Polish rotation modal form oncall [1506](https://github.com/grafana/oncall/issues/1506)
+- Quick actions when editing a schedule oncall [1507](https://github.com/grafana/oncall/issues/1507)
+- Enable schedule related profile settings oncall [1508](https://github.com/grafana/oncall/issues/1508)
+- Highlight user shifts oncall [1509](https://github.com/grafana/oncall/issues/1509)
+- Rename or Description for Schedules Rotations [1460](https://github.com/grafana/oncall/issues/1406)
+
 ## Changed
 
 - Change mobile shift notifications title and subtitle by @imtoori ([#2288](https://github.com/grafana/oncall/pull/2288))

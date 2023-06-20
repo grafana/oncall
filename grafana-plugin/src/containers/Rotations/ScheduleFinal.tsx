@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
@@ -26,9 +27,11 @@ interface ScheduleFinalProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
-  hideHeader?: boolean;
+  simplified?: boolean;
   onClick: (shiftId: Shift['id']) => void;
+  onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
   disabled?: boolean;
+  filters: ScheduleFiltersType;
 }
 
 interface ScheduleOverridesState {
@@ -42,7 +45,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   };
 
   render() {
-    const { startMoment, currentTimezone, store, hideHeader, scheduleId } = this.props;
+    const { startMoment, currentTimezone, store, simplified, scheduleId, filters } = this.props;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -60,7 +63,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
     return (
       <>
         <div className={cx('root')}>
-          {!hideHeader && (
+          {!simplified && (
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">
                 <div className={cx('title')}>
@@ -73,7 +76,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
           )}
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
-            <TimelineMarks startMoment={startMoment} />
+            <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
             <TransitionGroup className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, events }, index) => {
@@ -87,6 +90,9 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                         currentTimezone={currentTimezone}
                         color={findColor(shiftId, layers, overrides)}
                         onClick={this.getRotationClickHandler(shiftId)}
+                        handleAddOverride={this.handleShowOverrideForm}
+                        simplified={simplified}
+                        filters={filters}
                       />
                     </CSSTransition>
                   );
@@ -121,6 +127,12 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   };
 
   onSearchTermChangeCallback = () => {};
+
+  handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {
+    const { onShowOverrideForm } = this.props;
+
+    onShowOverrideForm('new', shiftStart, shiftEnd);
+  };
 }
 
 export default withMobXProviderContext(ScheduleFinal);

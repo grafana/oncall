@@ -29,7 +29,7 @@ export function parseFilters(
       value = value.map(normalize);
     } else if (filterOption.type === 'daterange') {
       value = convertRelativeToAbsoluteDate(value);
-    } else if (rawValue === 'true') {
+    } else if ((filterOption.type === 'boolean' && rawValue === '') || rawValue === 'true') {
       value = true;
     } else if (rawValue === 'false') {
       value = false;
