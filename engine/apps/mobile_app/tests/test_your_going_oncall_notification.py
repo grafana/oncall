@@ -143,7 +143,7 @@ def test_get_youre_going_oncall_fcm_message(
 ):
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
     mock_notification_title = "asdfasdf"
-    mock_notification_subtitle = "asdfasdfsubtitle"
+    mock_notification_subtitle = "9:06\u202fAM - 9:06\u202fAM\nSchedule Tell but."
     shift_pk = "mncvmnvc"
     seconds_until_going_oncall = 600
 
