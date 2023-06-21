@@ -162,7 +162,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-    const hideHTTPEndpoint = alertReceiveChannel.integration === 'inbound_email';
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -233,9 +232,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               )}
             </div>
 
-            <IntegrationCollapsibleTreeView
-              configElements={this.getConfigForTreeComponent(hideHTTPEndpoint, id, templates)}
-            />
+            <IntegrationCollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
 
             {isEditTemplateModalOpen && (
               <IntegrationTemplate
@@ -277,20 +274,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     );
   }
 
-  getConfigForTreeComponent(hideHTTPEndpoint: boolean, id: string, templates: AlertTemplatesDTO[]) {
-    const configElements = [];
-
-    if (!hideHTTPEndpoint) {
-      configElements.push({
+  getConfigForTreeComponent(id: string, templates: AlertTemplatesDTO[]) {
+    return [
+      {
         isCollapsible: false,
         customIcon: 'plug',
         canHoverIcon: false,
         collapsedView: null,
         expandedView: () => <HowToConnectComponent id={id} />,
-      });
-    }
-
-    return configElements.concat([
+      },
       {
         customIcon: 'layer-group',
         isExpanded: false,
@@ -389,7 +381,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         ),
       },
       this.renderRoutesFn(),
-    ]);
+    ];
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {
@@ -470,6 +462,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
               toggle={toggle}
+              openEditTemplateModal={this.openEditTemplateModal}
+              onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
             />
           ),
           expandedView: () => (
@@ -968,6 +962,9 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
+  const item = alertReceiveChannelStore.items[id];
+  const url = item?.integration_url || item?.inbound_email;
+
   return (
     <IntegrationBlock
       hasCollapsedBorder={false}
@@ -980,13 +977,14 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             className={cx('how-to-connect__tag')}
           >
             <Text type="primary" size="small" className={cx('radius')}>
-              HTTP Endpoint
+              {item?.inbound_email ? 'Inbound Email' : 'HTTP Endpoint'}
             </Text>
           </Tag>
-          {alertReceiveChannelStore.items[id]?.integration_url && (
+          {url && (
             <IntegrationInputField
-              value={alertReceiveChannelStore.items[id].integration_url}
+              value={url}
               className={cx('integration__input-field')}
+              showExternal={!!item?.integration_url}
             />
           )}
           <a

@@ -47,10 +47,10 @@
 }
 
 .alert-groups-editor-withBadge div[aria-label='Code editor container'] {
-  background-color: rgba(10, 10, 10, 0.4);
+  background-color: var(--cards-background);
   border-bottom: none;
   border-right: none;
-  padding-top: 42px;
+  padding-top: 52px;
 }
 
 .no-alert-groups-badge {
