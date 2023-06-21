@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable schedule related profile settings oncall [1508](https://github.com/grafana/oncall/issues/1508)
 - Highlight user shifts oncall [1509](https://github.com/grafana/oncall/issues/1509)
 - Rename or Description for Schedules Rotations [1460](https://github.com/grafana/oncall/issues/1406)
+- Add dashboard for OnCall metrics
 
 ## Changed
 
