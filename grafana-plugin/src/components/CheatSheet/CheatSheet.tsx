@@ -9,8 +9,7 @@ import Text from 'components/Text/Text';
 import { openNotification } from 'utils';
 
 import { CheatSheetInterface, CheatSheetItem } from './CheatSheet.config';
-
-import styles from './CheatSheet.module.css';
+import styles from './CheatSheet.module.scss';
 
 interface CheatSheetProps {
   cheatSheetName: string;
@@ -24,22 +23,24 @@ const CheatSheet = (props: CheatSheetProps) => {
   const { cheatSheetName, cheatSheetData, onClose } = props;
   return (
     <div className={cx('cheatsheet-container')}>
-      <VerticalGroup>
-        <HorizontalGroup justify="space-between">
-          <Text strong>{cheatSheetName} cheatsheet</Text>
-          <IconButton name="times" onClick={onClose} />
-        </HorizontalGroup>
-        <Text type="secondary">{cheatSheetData.description}</Text>
-        <div>
-          {cheatSheetData.fields?.map((field: CheatSheetItem) => {
-            return (
-              <div key={field.name} className={cx('cheatsheet-item')}>
-                <CheatSheetListItem field={field} />
-              </div>
-            );
-          })}
-        </div>
-      </VerticalGroup>
+      <div className={cx('cheatsheet-innerContainer')}>
+        <VerticalGroup>
+          <HorizontalGroup justify="space-between">
+            <Text strong>{cheatSheetName} cheatsheet</Text>
+            <IconButton name="times" onClick={onClose} />
+          </HorizontalGroup>
+          <Text type="secondary">{cheatSheetData.description}</Text>
+          <div className={cx('u-width-100')}>
+            {cheatSheetData.fields?.map((field: CheatSheetItem) => {
+              return (
+                <div key={field.name} className={cx('cheatsheet-item')}>
+                  <CheatSheetListItem field={field} />
+                </div>
+              );
+            })}
+          </div>
+        </VerticalGroup>
+      </div>
     </div>
   );
 };
@@ -65,7 +66,9 @@ const CheatSheetListItem = (props: CheatSheetListItemProps) => {
                 <div className={cx('cheatsheet-item-small')}>
                   <Block bordered fullWidth withBackground>
                     <HorizontalGroup justify="space-between">
-                      <Text type="link">{item.codeExample}</Text>
+                      <Text type="link" className={cx('code')}>
+                        {item.codeExample}
+                      </Text>
                       <CopyToClipboard text={item.codeExample} onCopy={() => openNotification('Example copied')}>
                         <IconButton name="copy" />
                       </CopyToClipboard>

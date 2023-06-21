@@ -13,6 +13,9 @@ export const GRAFANA_LICENSE_OSS = 'OpenSource';
 
 export const GRAFANA_LICENSE_CLOUD = 'Cloud';
 
+// height of new Grafana sticky header with breadcrumbs
+export const GRAFANA_HEADER_HEIGTH = 80;
+
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;
 

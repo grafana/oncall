@@ -365,12 +365,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
 
-    @property
-    def is_restricted(self):
-        integration_restricted_at = self.channel.restricted_at
-        if integration_restricted_at is None:
-            return False
-        return self.started_at >= integration_restricted_at
+    is_restricted = models.BooleanField(default=False, null=True)
 
     @staticmethod
     def get_silenced_state_filter():
@@ -1869,6 +1864,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         )
 
         return stop_escalation_log
+
+    def alerts_count_gt(self, max_alerts) -> bool:
+        """
+        alerts_count_gt checks if there are more than max_alerts alerts in given alert group.
+        It's optimized for alert groups with big number of alerts and relatively small max_alerts.
+        """
+        count = self.alerts.all()[: max_alerts + 1].count()
+        return count > max_alerts
 
 
 @receiver(post_save, sender=AlertGroup)

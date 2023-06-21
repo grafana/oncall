@@ -68,3 +68,15 @@
   margin-top: 8px;
   opacity: 15%;
 }
+
+.u-flex-xs {
+  gap: 4px;
+}
+
+.u-margin-right-xs {
+  margin-right: 4px;
+}
+
+.u-margin-right-md {
+  margin-right: 8px;
+}

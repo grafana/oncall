@@ -166,7 +166,7 @@ export const Root = observer((props: AppRootProps) => {
               <Schedules query={query} />
             </Route>
             <Route path={getRoutesForPage('schedule')} exact>
-              <Schedule />
+              <Schedule query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
               <OutgoingWebhooks query={query} />

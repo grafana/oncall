@@ -5,17 +5,24 @@
 
 .integrationBlock__heading {
   background-color: var(--background-secondary);
-  border: none;
+  border: var(--border-medium) !important;
+  border-radius: 0 !important;
+  border-top-left-radius: 4px !important;
+  border-top-right-radius: 4px !important;
 }
 
 .integrationBlock__content {
   background: var(--background-primary);
-  border: var(--border-weak);
+  border: var(--border-medium) !important;
+  
+  border-top: none !important;
   padding-bottom: 0;
+  border-bottom-left-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
 
   &--collapsedBorder {
-    border-left: none;
     padding-left: 0;
     padding-right: 0;
+    padding-bottom: 24px;
   }
 }

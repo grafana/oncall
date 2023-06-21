@@ -1,5 +1,4 @@
 import { TemplateForEdit, commonTemplateForEdit } from './CommonAlertTemplatesForm.config';
-
 export interface Template {
   name: string;
   group: string;

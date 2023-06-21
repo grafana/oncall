@@ -1,4 +1,4 @@
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from 'pages/integration_2/Integration2.config';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from 'pages/integration_2/Integration2Common.config';
 
 interface TemplateToRender {
   name: string;

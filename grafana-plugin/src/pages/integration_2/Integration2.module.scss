@@ -49,7 +49,7 @@ $LARGE-MARGIN: 24px;
 
   &__description {
     display: block;
-    margin-bottom: $LARGE-MARGIN;
+    margin-bottom: 32px;;
   }
 
   &__counter {
@@ -81,7 +81,7 @@ $LARGE-MARGIN: 24px;
   flex-direction: row;
 
   &:hover {
-    background: var(--gray-9);
+    background: var(--cards-background);
   }
 }
 
@@ -117,6 +117,9 @@ $LARGE-MARGIN: 24px;
 .input {
   flex-grow: 1;
   max-width: calc(100% - 80px);
+}
+.input-with-toggler {
+  max-width: calc(100% - 134px);
 }
 
 .how-to-connect__container {
@@ -204,4 +207,12 @@ $LARGE-MARGIN: 24px;
     align-items: center;
     gap: 4px;
   }
+}
+
+.radius {
+  border-radius: 4px;
+}
+
+.inline-switch {
+  height: 34px;
 }

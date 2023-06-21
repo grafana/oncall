@@ -6,3 +6,8 @@ export interface TelegramChannel {
   discussion_group_name: string;
   is_default_channel: false;
 }
+
+export interface TelegramChannelDetails {
+  display_name: string;
+  id: string;
+}

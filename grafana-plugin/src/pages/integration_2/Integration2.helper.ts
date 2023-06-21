@@ -11,7 +11,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
 
-import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2.config';
+import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2Common.config';
 
 const IntegrationHelper = {
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {
@@ -63,7 +63,6 @@ const IntegrationHelper = {
 
   getChatOpsChannels(channelFilter: ChannelFilter, store: RootStore): Array<{ name: string; icon: IconName }> {
     const channels: Array<{ name: string; icon: IconName }> = [];
-    const telegram = Object.keys(store.telegramChannelStore.items).map((k) => store.telegramChannelStore.items[k]);
 
     if (store.hasFeature(AppFeature.Slack) && channelFilter.notify_in_slack) {
       const matchingSlackChannel = store.teamStore.currentTeam?.slack_channel?.id
@@ -77,15 +76,12 @@ const IntegrationHelper = {
       }
     }
 
-    const matchingTelegram = telegram.find((t) => t.id === channelFilter.telegram_channel);
-
     if (
       store.hasFeature(AppFeature.Telegram) &&
-      channelFilter.telegram_channel &&
-      channelFilter.notify_in_telegram &&
-      matchingTelegram?.channel_name
+      channelFilter.telegram_channel_details &&
+      channelFilter.notify_in_telegram
     ) {
-      channels.push({ name: matchingTelegram.channel_name, icon: 'telegram-alt' });
+      channels.push({ name: channelFilter.telegram_channel_details.display_name, icon: 'telegram-alt' });
     }
 
     return channels;

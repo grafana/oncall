@@ -7,11 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Make it possible to completely delete a rotation oncall [1505](https://github.com/grafana/oncall/issues/1505)
+- Polish rotation modal form oncall [1506](https://github.com/grafana/oncall/issues/1506)
+- Quick actions when editing a schedule oncall [1507](https://github.com/grafana/oncall/issues/1507)
+- Enable schedule related profile settings oncall [1508](https://github.com/grafana/oncall/issues/1508)
+- Highlight user shifts oncall [1509](https://github.com/grafana/oncall/issues/1509)
+- Rename or Description for Schedules Rotations [1460](https://github.com/grafana/oncall/issues/1406)
+- Add documentation for OnCall metrics exporter ([#2149](https://github.com/grafana/oncall/pull/2149))
+- Add dashboard for OnCall metrics ([#1973](https://github.com/grafana/oncall/pull/1973))
+
+## Changed
+
+- Change mobile shift notifications title and subtitle by @imtoori ([#2288](https://github.com/grafana/oncall/pull/2288))
+- Change permissions used during setup to better represent actions being taken by @mderynck ([#2242](https://github.com/grafana/oncall/pull/2242))
+
+## Fixed
+
+- Fix duplicate orders for user notification policies by @vadimkerr ([#2278](https://github.com/grafana/oncall/pull/2278))
+- Fix broken markup on alert group page, declutter, make time format consistent [#2296](https://github.com/grafana/oncall/pull/2295)
+
+## v1.2.45 (2023-06-19)
+
 ### Changed
 
 - Change .Values.externalRabbitmq.passwordKey from `password` to `""` (default value `rabbitmq-password`) ([#864](https://github.com/grafana/oncall/pull/864))
 - Remove deprecated `permissions` string array from the internal API user serializer by @joeyorlando ([#2269](https://github.com/grafana/oncall/pull/2269))
-- Change permissions used during setup to better represent actions being taken by @mderynck ([#2242](https://github.com/grafana/oncall/pull/2242))
+- Make web schedule updates to trigger sync refresh of its ical representation ([#2279](https://github.com/grafana/oncall/pull/2279))
 
 ### Added
 
@@ -22,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Handle non-UTC UNTIL datetime value when repeating ical events [#2241](https://github.com/grafana/oncall/pull/2241)
+- Optimize AlertManager auto-resolve mechanism
 
 ## v1.2.44 (2023-06-14)
 
