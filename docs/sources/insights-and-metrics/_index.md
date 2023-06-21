@@ -39,7 +39,7 @@ Metrics have prefix `grafanacloud_oncall_instance`, e.g. `grafanacloud_oncall_in
 To collect OnCall application metrics you need to set up Prometheus and add it to your Grafana instance as a datasource.
 You can find more information about Prometheus setup in the [OSS documentation](https://github.com/grafana/oncall#readme)
 
-Metrics have prefix `oncall`, e.g. `oncall_alert_groups_total` and `oncall_alert_groups_response_time_seconds_bucket`.
+Metrics will have the prefix `oncall`, e.g. `oncall_alert_groups_total` and `oncall_alert_groups_response_time_seconds_bucket`.
 
 Your metrics also may have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
 
