@@ -778,12 +778,14 @@ function GroupedIncident({
             </HorizontalGroup>
           </div>
         </div>
-        <div
-          className={cx('message', 'text-secondary')}
-          dangerouslySetInnerHTML={{
-            __html: sanitize(incident.render_for_web.message),
-          }}
-        />
+        <Text type="secondary">
+          <div
+            className={cx('message')}
+            dangerouslySetInnerHTML={{
+              __html: sanitize(incident.render_for_web.message),
+            }}
+          />
+        </Text>
         {incident.render_for_web.image_url && <img className={cx('image')} src={incident.render_for_web.image_url} />}
       </div>
     </>
