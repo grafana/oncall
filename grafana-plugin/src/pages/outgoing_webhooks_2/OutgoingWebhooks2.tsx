@@ -319,7 +319,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     ) : (
       <VerticalGroup spacing="none">
         <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('MMM DD, YYYY') : '-'}</Text>
-        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('hh:mm A') : ''}</Text>
+        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('HH:mm') : ''}</Text>
         <Text type="secondary">
           {lastRunMoment.isValid()
             ? record.last_response_log?.status_code
