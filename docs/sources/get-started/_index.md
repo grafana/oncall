@@ -41,10 +41,10 @@ Otherwise you'll need to install [Open Source Grafana OnCall]({{< relref "../ope
 
 * Users with [Admin role]({{< relref "user-and-team-management" >}}) can configure Alert rules (Integrations, Routes, etc)
 to define **when and which users to notify**
-* OnCall users with [User role]({{< relref "user-and-team-management" >}}) can work with Alerts Groups and set up personal settings,
+* OnCall users with [Editor role]({{< relref "user-and-team-management" >}}) can work with Alerts Groups and set up personal settings,
 e.g. **how to notify**.
 
-> **Note:** If your role is **User**, you can skip to [**Learn Alert Workflow**]({{< relref "#learn-alert-workflow" >}}) section
+> **Note:** If your role is **Editor**, you can skip to [**Learn Alert Workflow**]({{< relref "#learn-about-the-alert-workflow" >}}) section
 of this doc
 
 ## Get alerts into Grafana OnCall and configure rules
@@ -111,7 +111,7 @@ For more information on Escalation Chains and more ways to customize them, refer
 Routes define which messenger channels and escalation chains to use for notifications. See more details in
 the [Routes]({{< relref "../escalation-chains-and-routes#routes" >}}) section.
 
-### Learn Alert Workflow
+### Learn about the Alert Workflow
 
 * All Alerts in OnCall are grouped into Alert Groups ([read more about Grouping ID]({{< relref "../jinja2-templating" >}})).
 An Alert Group can have the following, mutually exclusive states:

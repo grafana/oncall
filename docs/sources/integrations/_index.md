@@ -69,7 +69,7 @@ in different parts of Grafana OnCall: UI, messengers, emails, notifications, etc
 To manage existing integrations, navigate to the **Integrations** tab in Grafana OnCall and select the integration
 you want to manage.
 
-#### Maintenance mode
+#### Maintenance Mode
 
 Start maintenance mode when performing scheduled maintenance or updates on your infrastructure, which may trigger false alarms.
 There are two possible maintenance modes:
