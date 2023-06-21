@@ -50,6 +50,7 @@ import {
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { User } from 'models/user/user.types';
+import { IncidentDropdown } from 'pages/incidents/parts/IncidentDropdown';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -58,7 +59,7 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
-import { getActionButtons, getIncidentStatusTag } from './Incident.helpers';
+import { getActionButtons } from './Incident.helpers';
 import styles from './Incident.module.scss';
 import PagedUsers from './parts/PagedUsers';
 
@@ -278,8 +279,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
                 <Text.Title level={3}>
-                  {' '}
-                  / #{incident.inside_organization_number} {incident.render_for_web.title}
+                  #{incident.inside_organization_number} {incident.render_for_web.title}
                 </Text.Title>
                 {incident.root_alert_group && (
                   <Text type="secondary">
@@ -339,7 +339,18 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           </HorizontalGroup>
           <div className={cx('info-row')}>
             <HorizontalGroup>
-              <div className={cx('status-tag-container')}>{getIncidentStatusTag(incident)}</div>
+              <div className={cx('status-tag-container')}>
+                <IncidentDropdown
+                  alert={incident}
+                  onResolve={this.getOnActionButtonClick(incident.pk, AlertAction.Resolve)}
+                  onUnacknowledge={this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge)}
+                  onUnresolve={this.getOnActionButtonClick(incident.pk, AlertAction.unResolve)}
+                  onAcknowledge={this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge)}
+                  onSilence={this.getSilenceClickHandler(incident)}
+                  onUnsilence={this.getUnsilenceClickHandler(incident)}
+                />
+              </div>
+
               {integration && (
                 <HorizontalGroup>
                   <PluginLink
@@ -520,7 +531,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item, history))}
                   </Text>
                   <Text type="secondary" size="small">
-                    {moment(item.created_at).format('MMM DD, YYYY hh:mm A')}
+                    {moment(item.created_at).format('MMM DD, YYYY HH:mm:ss Z')}
                   </Text>
                 </VerticalGroup>
               </HorizontalGroup>
@@ -611,7 +622,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
     };
   };
 
@@ -619,7 +630,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { store } = this.props;
 
     return (value: number) => {
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
         delay: value,
       });
     };
@@ -631,7 +642,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (event: any) => {
       event.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
     };
   };
 
@@ -646,17 +657,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 }
 
-function Incident({ incident, datetimeReference }: { incident: Alert; datetimeReference: string }) {
+function Incident({ incident }: { incident: Alert; datetimeReference: string }) {
   return (
     <div key={incident.pk} className={cx('incident')}>
-      <HorizontalGroup wrap>
-        <Text.Title type="secondary" level={4}>
-          {incident.inside_organization_number
-            ? `#${incident.inside_organization_number} ${incident.render_for_web.title}`
-            : incident.render_for_web.title}
-        </Text.Title>
-        <Text type="secondary">{datetimeReference}</Text>
-      </HorizontalGroup>
       <div
         className={cx('message')}
         dangerouslySetInnerHTML={{
@@ -692,13 +695,12 @@ function GroupedIncidentsList({
     <Collapse
       headerWithBackground
       className={cx('collapse')}
-      isOpen
+      isOpen={false}
       label={
         <HorizontalGroup wrap>
-          {incident.alerts_count} Grouped Alerts
-          <Text type="secondary">
-            (latest {latestAlertMoment.fromNow()}, {latestAlertMoment.toString()})
-          </Text>
+          <Text>{incident.alerts_count} Grouped Alerts</Text>
+          <Text type="secondary">latest {latestAlertMoment.fromNow()},</Text>
+          <Text type="secondary">{latestAlertMoment.format('MMM DD, YYYY HH:mm:ss Z').toString()}</Text>
         </HorizontalGroup>
       }
       contentClassName={cx('incidents-content')}
@@ -777,7 +779,7 @@ function GroupedIncident({
           </div>
         </div>
         <div
-          className={cx('message')}
+          className={cx('message', 'text-secondary')}
           dangerouslySetInnerHTML={{
             __html: sanitize(incident.render_for_web.message),
           }}
