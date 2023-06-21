@@ -59,7 +59,7 @@
     "@grafana/eslint-config": "^5.1.0",
     "@grafana/toolkit": "^9.5.2",
     "@jest/globals": "^27.5.1",
-    "@playwright/test": "^1.32.0",
+    "@playwright/test": "^1.35.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "12",
     "@testing-library/user-event": "^14.4.3",
