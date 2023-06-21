@@ -977,7 +977,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             className={cx('how-to-connect__tag')}
           >
             <Text type="primary" size="small" className={cx('radius')}>
-              HTTP Endpoint
+              {item?.inbound_email ? 'Inbound Email' : 'HTTP Endpoint'}
             </Text>
           </Tag>
           {url && (
