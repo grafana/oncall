@@ -91,7 +91,7 @@ grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket{slug="tes
 To import OnCall metrics dashboard go to `Administration` -> `Plugins` page, find OnCall in the plugins list, open
 `Dashboards` tab at the OnCall plugin settings page and click "Import" near "OnCall metrics". After that you can find
 the "OnCall metrics" dashboard in your dashboards list. In the datasource dropdown select your Prometheus datasource
-(for Cloud customers it's `grafanacluod_usage`). You can filter data by your Grafana instances, teams and integrations.
+(for Cloud customers it's `grafanacloud_usage`). You can filter data by your Grafana instances, teams and integrations.
 
 To update the dashboard to the newest version go to `Dashboards` tab at the OnCall plugin settings page and click
 “Re-import”.
