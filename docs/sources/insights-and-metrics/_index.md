@@ -22,7 +22,7 @@ It is a gauge, and its name has the suffix `alert_groups_total`
 for the last 7 days in selected period). It is a histogram, and its name has the suffix `alert_groups_response_time`
 with the histogram suffixes such as `_bucket`, `_sum` and `_count`
 
-More information about metrics types you can find in the [Prometheus documentation](https://prometheus.io/docs/concepts/metric_types).
+You can find more information about metrics types in the [Prometheus documentation](https://prometheus.io/docs/concepts/metric_types).
 
 To retrieve Prometheus metrics use PromQL. If you are not familiar with PromQL, check this [documentation](https://prometheus.io/docs/prometheus/latest/querying/basics/).
 
