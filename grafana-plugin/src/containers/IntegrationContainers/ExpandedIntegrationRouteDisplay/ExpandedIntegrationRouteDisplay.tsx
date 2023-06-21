@@ -32,13 +32,13 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
 import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2Common.config';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
-import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 
 const cx = cn.bind(styles);
 
@@ -199,7 +199,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       Escalation chain
                     </InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <Select
+                      <Select
                         isSearchable
                         width={'auto'}
                         menuShouldPortal
@@ -328,7 +328,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   channelFilterId,
   routeIndex,
   setRouteIdForDeletion,
-  openRouteTemplateEditor
+  openRouteTemplateEditor,
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
