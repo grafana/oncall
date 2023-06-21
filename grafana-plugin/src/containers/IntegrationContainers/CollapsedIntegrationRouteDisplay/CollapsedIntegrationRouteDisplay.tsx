@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { ConfirmModal, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -63,6 +63,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex
                   )}
+                  className={cx('u-margin-right-xs')}
                   tooltipContent={undefined}
                 />
                 {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
@@ -95,29 +96,31 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
           }
           content={
             <div className={cx('spacing')}>
-              <VerticalGroup>
+              <div className={cx('collapsedRoute__container')}>
                 {chatOpsAvailableChannels.length > 0 && (
-                  <HorizontalGroup spacing="xs">
-                    <Text type="secondary">Publish to ChatOps</Text>
+                  <div className={cx('collapsedRoute__item')}>
+                    <HorizontalGroup spacing="xs">
+                      <Text type="secondary">Publish to ChatOps</Text>
 
-                    {chatOpsAvailableChannels
-                      .filter((it) => it)
-                      .map((chatOpsChannel) => (
-                        <>
-                          <Icon name={chatOpsChannel.icon} />
-                          <Text type="primary" strong>
-                            {chatOpsChannel.name}
-                          </Text>
-                        </>
-                      ))}
-                  </HorizontalGroup>
+                      {chatOpsAvailableChannels
+                        .filter((it) => it)
+                        .map((chatOpsChannel) => (
+                          <>
+                            <Icon name={chatOpsChannel.icon} className={cx('icon')} />
+                            <Text type="primary">{chatOpsChannel.name}</Text>
+                          </>
+                        ))}
+                    </HorizontalGroup>
+                  </div>
                 )}
 
-                <HorizontalGroup>
-                  <HorizontalGroup spacing={'xs'}>
+                <div className={cx('collapsedRoute__item')}>
+                  <div className={cx('u-flex', 'u-align-items-center', 'u-flex-xs')}>
                     <Icon name="list-ui-alt" />
-                    <Text type="secondary">Trigger escalation chain</Text>
-                  </HorizontalGroup>
+                    <Text type="secondary" className={cx('u-margin-right-xs')}>
+                      Trigger escalation chain
+                    </Text>
+                  </div>
 
                   {escalationChain?.name && (
                     <PluginLink
@@ -130,15 +133,15 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   )}
 
                   {!escalationChain?.name && (
-                    <HorizontalGroup spacing={'xs'}>
+                    <div className={cx('u-flex', 'u-align-items-center', 'u-flex-xs')}>
                       <div className={cx('icon-exclamation')}>
                         <Icon name="exclamation-triangle" />
                       </div>
                       <Text type="primary">Not selected</Text>
-                    </HorizontalGroup>
+                    </div>
                   )}
-                </HorizontalGroup>
-              </VerticalGroup>
+                </div>
+              </div>
             </div>
           }
         />

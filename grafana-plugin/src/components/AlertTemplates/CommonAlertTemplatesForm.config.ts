@@ -1,3 +1,5 @@
+import { TemplateOptions } from 'pages/integration_2/Integration2.config';
+
 export interface Template {
   name: string;
   group: string;
@@ -9,6 +11,7 @@ export interface TemplateForEdit {
   description?: string;
   additionalData?: {
     chatOpsName?: string;
+    chatOpsDisplayName?: string;
     data?: string;
     additionalDescription?: string;
   };
@@ -18,17 +21,17 @@ export interface TemplateForEdit {
 export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
   web_title_template: {
     displayName: 'Web title',
-    name: 'web_title_template',
+    name: TemplateOptions.WebTitle.key,
     description: '',
   },
   web_message_template: {
     displayName: 'Web message',
-    name: 'web_message_template',
+    name: TemplateOptions.WebMessage.key,
     description: '',
   },
   slack_title_template: {
     name: 'slack_title_template',
-    displayName: 'Slack title',
+    displayName: TemplateOptions.SlackTitle.key,
     description: '',
     additionalData: {
       chatOpsName: 'slack',
@@ -36,22 +39,22 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
   },
   sms_title_template: {
-    name: 'sms_title_template',
+    name: TemplateOptions.SMS.key,
     displayName: 'Sms title',
     description: '',
   },
   phone_call_title_template: {
-    name: 'phone_call_title_template',
+    name: TemplateOptions.Phone.key,
     displayName: 'Phone call title',
     description: '',
   },
   email_title_template: {
-    name: 'email_title_template',
+    name: TemplateOptions.EmailTitle.key,
     displayName: 'Email title',
     description: '',
   },
   telegram_title_template: {
-    name: 'telegram_title_template',
+    name: TemplateOptions.TelegramTitle.key,
     displayName: 'Telegram title',
     description: '',
     additionalData: {
@@ -59,7 +62,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
   },
   slack_message_template: {
-    name: 'slack_message_template',
+    name: TemplateOptions.SlackMessage.key,
     displayName: 'Slack message',
     description: '',
     additionalData: {
@@ -68,12 +71,12 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
   },
   email_message_template: {
-    name: 'email_message_template',
+    name: TemplateOptions.EmailMessage.key,
     displayName: 'Email message',
     description: '',
   },
   telegram_message_template: {
-    name: 'telegram_message_template',
+    name: TemplateOptions.TelegramMessage.key,
     displayName: 'Telegram message',
     description: '',
     additionalData: {
@@ -81,7 +84,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
   },
   slack_image_url_template: {
-    name: 'slack_image_url_template',
+    name: TemplateOptions.SlackImage.key,
     displayName: 'Slack image url',
     description: '',
     additionalData: {
@@ -90,12 +93,12 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
   },
   web_image_url_template: {
-    name: 'web_image_url_template',
+    name: TemplateOptions.WebImage.key,
     displayName: 'Web image url',
     description: '',
   },
   telegram_image_url_template: {
-    name: 'telegram_image_url_template',
+    name: TemplateOptions.TelegramImage.key,
     displayName: 'Telegram image url',
     description: '',
     additionalData: {
@@ -103,32 +106,29 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     },
   },
   grouping_id_template: {
-    name: 'grouping_id_template',
+    name: TemplateOptions.Grouping.key,
     displayName: 'Grouping',
     description:
       'Reduce noise, minimize duplication with Alert Grouping, based on time, alert content, and even multiple features at the same time.  Check the cheasheet to customize your template.',
-    additionalData: {
-      additionalDescription: 'Alerts with this Grouping ID are grouped together',
-    },
   },
   acknowledge_condition_template: {
-    name: 'acknowledge_condition_template',
+    name: TemplateOptions.Autoacknowledge.key,
     displayName: 'Acknowledge condition',
     description: '',
   },
   resolve_condition_template: {
-    name: 'resolve_condition_template',
+    name: TemplateOptions.Resolve.key,
     displayName: 'Resolve condition',
     description:
-      'When monitoring systems return to normal, they can send "resolve" alerts. If Autoresolution Template is True, the alert will resolve its group as "resolved by source". If the group is already resolved, the alert will be added to that group',
+      'When monitoring systems return to normal, they can send "resolve" alerts. OnCall can use these signals to resolve alert groups accordingly.',
   },
   source_link_template: {
-    name: 'source_link_template',
+    name: TemplateOptions.SourceLink.key,
     displayName: 'Source link',
     description: '',
   },
   route_template: {
-    name: 'route_template',
+    name: TemplateOptions.Routing.key,
     displayName: 'Routing',
     description:
       'Routes direct alerts to different escalation chains based on the content, such as severity or region.',

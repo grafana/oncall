@@ -1,4 +1,5 @@
 from calendar import monthrange
+from unittest.mock import patch
 
 import pytest
 import pytz
@@ -1789,3 +1790,38 @@ def test_week_start_changed_daily_shift_until(
     unexpected_by_days = ("BYDAY=WE", "BYDAY=TH")
     for unexpected in unexpected_by_days:
         assert unexpected not in ical_data
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "shift_type",
+    [
+        CustomOnCallShift.TYPE_OVERRIDE,
+        CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+    ],
+)
+def test_refresh_schedule(make_organization_and_user, make_schedule, make_on_call_shift, shift_type):
+    organization, _ = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = timezone.now()
+
+    frequency = CustomOnCallShift.FREQUENCY_DAILY if shift_type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT else None
+    data = {
+        "priority_level": 1,
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": frequency,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=shift_type, **data)
+
+    assert schedule.cached_ical_file_primary is None
+    assert schedule.cached_ical_file_overrides is None
+
+    with patch("apps.schedules.models.custom_on_call_shift.refresh_ical_final_schedule") as mock_refresh_final:
+        on_call_shift.refresh_schedule()
+
+    assert mock_refresh_final.apply_async.called
+    assert schedule.cached_ical_file_primary is not None
+    assert schedule.cached_ical_file_overrides is not None

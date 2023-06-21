@@ -53,7 +53,7 @@ const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
               </Tooltip>
             </WithPermissionControlTooltip>
             <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-              <Tooltip content={'Reset Template to default'}>
+              <Tooltip content={'Reset template to default'}>
                 <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />
               </Tooltip>
             </WithPermissionControlTooltip>
