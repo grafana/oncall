@@ -18,14 +18,14 @@ weight: 500
 The Jira integration for Grafana OnCall handles issue events sent from Jira webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have an [Admin role]({{< relref "user-and-team-management" >}}) to create integrations in Grafana OnCall.
+> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
 
-## Configuring Grafana OnCall to Receive Alerts from Monitoring System
+## Configuring Grafana OnCall to Receive Alerts from Jira
 
 1. In the **Integrations** tab, click **+ New integration**.
 2. Select **Jira** from the list of available integrations.
 3. Enter a name and description for the integration, click **Create**
-4. The new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section, you will need it when configuring Alertmanager.
+4. A new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section. You will need it when configuring Jira.
 
 ## Configuring Jira to Send Alerts to Grafana OnCall
 

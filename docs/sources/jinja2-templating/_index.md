@@ -20,8 +20,8 @@ web-share" allowfullscreen></iframe>
 ## Alert payload
 
 Alerts received by Grafana OnCall contain metadata as keys and values in a JSON object.
-The following is an example of an alert received by Grafana OnCall initiated by Grafana
-Alerting:
+The following is an example of an alert which was initiated by Grafana Alerting, and
+received by Grafana OnCall:
 
 ```json
 {
@@ -69,7 +69,7 @@ alert behavior:
 - `{{ payload.ruleId }}` -> Grouping Id
 - `{{ 1 if payload.state == 'OK' else 0 }}` -> Resolve Signal
 
-Grafana OnCall provides a pre configured default Jinja template for supported
+Grafana OnCall provides pre-configured default Jinja templates for supported
 integrations. If your monitoring system is
 not in the Grafana OnCall integrations list, you can create a generic `webhook`
 integration, send an alert, and configure
@@ -79,19 +79,18 @@ your templates.
 
 Alert templates allow you to format any alert fields recognized by Grafana OnCall. You can
 customize default alert
-templates for all the different ways you receive your alerts such as web, slack, SMS, and
-email. For more advanced
+templates for all the different notification methods. For more advanced
 customization, use Jinja templates.
 
 ### Routing template
 
-- `Routing Template` - used to route alerts to different escalation chains based on alert content (Conditional template, output should be `True`)
+- `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template, output should be `True`)
 
    > **Note:** For conditional templates, the output should be `True` to be applied, for example `{{ True if payload.state == 'OK' else False }}`
 
 #### Appearance templates
 
-How alerts displayed in the UI, messengers and notifications
+How alerts are displayed in the UI, messengers, and notifications
 
 - `Title`, `Message`, `Image url` for Web
 - `Title`, `Message`, `Image url` for Slack
@@ -104,7 +103,7 @@ How alerts displayed in the UI, messengers and notifications
 #### Behavioral templates
 
 - `Grouping Id` - applied to every incoming alert payload after the `Routing Template`. It
-can be based on time, or alert content, or both. If the resulting grouping id matches an
+can be based on time, alert content, or both. If the resulting grouping id matches an
 existing non-resolved alert group grouping id, the alert will be grouped accordingly.
 Otherwise, a new alert group will be created
 - `Autoresolution` - used to auto-resolve alert groups with status `Resolved by source`
@@ -121,31 +120,30 @@ alert message.
 
 #### How to edit templates
 
-1. Open **Integration** page for the integration you want to edit
-1`. Click **Edit** button for the Templates Section. Now you can see previews of all
+1. Open the **Integration** page for the integration you want to edit
+1`. Click the **Edit** button for the Templates Section. Now you can see previews of all
 templates for the Integration
-1. Select the template you want to edit and click **Edit** button right to the template
-name. Template editor will be opened. First column is the example alert payload, second
+1. Select the template you want to edit and click the **Edit** button to the right to the template
+name. The template editor will open. The first column is the example alert payload, second
 column is the Template itself, and third column is used to view rendered result.
-1. Select one of the **Recent Alert groups** for the integration to see it's `latest alert
-payload`. If you want to edit this payload, click **Edit** button right to the Alert Group
+1. Select one of the **Recent Alert groups** for the integration to see its `latest alert
+payload`. If you want to edit this payload, click the **Edit** button right to the Alert Group
 Name.
 1. Alternatively, you can click **Use custom payload** and write your own payload to see
 how it will be rendered
 1. Press `Control + Enter` in the editor to see suggestions
 1. Click **Cheatsheet** in the second column to get some inspiration.
 1. If you edit Messenger templates, click **Save and open Alert Group in ChatOps** to see
-how the alert will be rendered in the messenger right in the messenger (Only works for
-Alert Group that exists in the messenger)
-1. Click **Save** to save the templat
+how the alert will be rendered in the messenger, right in the messenger (Only works for
+an Alert Group that exists in the messenger)
+1. Click **Save** to save the template
 
 ## Advanced Jinja templates
 
-Grafana OnCall uses [Jinja templating language](http://jinja.pocoo.org/docs/2.10/) to
+Grafana OnCall uses the [Jinja templating language](http://jinja.pocoo.org/docs/2.10/) to
 format alert groups for the Web,
-Slack, phone calls, SMS messages, and more because the JSON format is not easily readable
-by humans. As a result, you
-can decide what you want to see when an alert group is triggered as well as how it should
+Slack, phone calls, SMS messages, and more. As a result, you
+can decide what you want to see when an alert group is triggered, as well as how it should
 be presented.
 
 Jinja2 offers simple but multi-faceted functionality by using loops, conditions,
