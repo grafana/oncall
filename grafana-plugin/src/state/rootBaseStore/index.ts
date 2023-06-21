@@ -34,7 +34,7 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 // ------ Dashboard ------ //
 
@@ -181,7 +181,7 @@ export class RootBaseStore {
 
     if (is_user_anonymous) {
       return this.setupPluginError(
-        '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
+        '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
     } else if (!is_installed || !token_ok) {
       if (!allow_signup) {
@@ -249,8 +249,18 @@ export class RootBaseStore {
     return this.features?.[feature];
   }
 
+  getLicense() {
+    if (this.backendLicense) {
+      return this.backendLicense;
+    }
+    if (CLOUD_VERSION_REGEX.test(APP_VERSION)) {
+      return GRAFANA_LICENSE_CLOUD;
+    }
+    return GRAFANA_LICENSE_OSS;
+  }
+
   isOpenSource(): boolean {
-    return this.backendLicense === GRAFANA_LICENSE_OSS;
+    return this.getLicense() === GRAFANA_LICENSE_OSS;
   }
 
   @observable

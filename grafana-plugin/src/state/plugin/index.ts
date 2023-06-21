@@ -48,21 +48,19 @@ class PluginState {
   static grafanaBackend = getBackendSrv();
 
   static generateOnCallApiUrlConfiguredThroughEnvVarMsg = (isConfiguredThroughEnvVar: boolean): string =>
-    isConfiguredThroughEnvVar
-      ? ' (NOTE: your OnCall API URL is currently being taken from process.env of your UI)'
-      : '';
+    isConfiguredThroughEnvVar ? ' (NOTE: OnCall API URL is currently being taken from process.env of your UI)' : '';
 
   static generateInvalidOnCallApiURLErrorMsg = (onCallApiUrl: string, isConfiguredThroughEnvVar: boolean): string =>
-    `Could not communicate with your OnCall API at ${onCallApiUrl}${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
+    `Could not communicate with OnCall API at ${onCallApiUrl}${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
       isConfiguredThroughEnvVar
-    )}.\nValidate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance.`;
+    )}.\nValidate that the URL is correct, OnCall API is running, and that it is accessible from your Grafana instance.`;
 
   static generateUnknownErrorMsg = (
     onCallApiUrl: string,
     verb: InstallationVerb,
     isConfiguredThroughEnvVar: boolean
   ): string =>
-    `An unknown error occured when trying to ${verb} the plugin. Are you sure that your OnCall API URL, ${onCallApiUrl}, is correct${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
+    `An unknown error occurred when trying to ${verb} the plugin. Verify OnCall API URL, ${onCallApiUrl}, is correct${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
       isConfiguredThroughEnvVar
     )}?\nRefresh your page and try again, or try removing your plugin configuration and reconfiguring.`;
 
@@ -78,7 +76,7 @@ class PluginState {
       installationVerb,
       onCallApiUrlIsConfiguredThroughEnvVar
     );
-    const consoleMsg = `occured while trying to ${installationVerb} the plugin w/ the OnCall backend`;
+    const consoleMsg = `occurred while trying to ${installationVerb} the plugin w/ the OnCall backend`;
 
     if (isNetworkError(e)) {
       const { status: statusCode } = e.response;
@@ -104,7 +102,7 @@ class PluginState {
         errorMsg = unknownErrorMsg;
       }
     } else {
-      // a non-network related error occured.. this scenario shouldn't occur...
+      // a non-network related error occurred.. this scenario shouldn't occur...
       console.warn(`An unknown error ${consoleMsg}`, e);
       errorMsg = unknownErrorMsg;
     }
@@ -121,11 +119,11 @@ class PluginState {
 
     if (isNetworkError(e)) {
       // The user likely put in a bogus URL for the OnCall API URL
-      console.warn('An HTTP related error occured while trying to provision the plugin w/ Grafana', e.response);
+      console.warn('An HTTP related error occurred while trying to provision the plugin w/ Grafana', e.response);
       errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
     } else {
-      // a non-network related error occured.. this scenario shouldn't occur...
-      console.warn('An unknown error occured while trying to provision the plugin w/ Grafana', e);
+      // a non-network related error occurred.. this scenario shouldn't occur...
+      console.warn('An unknown error occurred while trying to provision the plugin w/ Grafana', e);
       errorMsg = this.generateUnknownErrorMsg(onCallApiUrl, installationVerb, onCallApiUrlIsConfiguredThroughEnvVar);
     }
     return errorMsg;
@@ -211,16 +209,25 @@ class PluginState {
     try {
       /**
        * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
-       * an API on accident but leaves the plugin settings intact.
+       * an API key on accident but leaves the plugin settings intact.
        */
       const existingKey = await this.getGrafanaToken();
       if (!existingKey) {
-        await this.installPlugin();
+        try {
+          await this.installPlugin();
+        } catch (e) {
+          return this.getHumanReadableErrorFromOnCallError(
+            e,
+            onCallApiUrl,
+            'install',
+            onCallApiUrlIsConfiguredThroughEnvVar
+          );
+        }
       }
 
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
       if (typeof startSyncResponse === 'string') {
-        // an error occured trying to initiate the sync
+        // an error occurred trying to initiate the sync
         return startSyncResponse;
       }
 

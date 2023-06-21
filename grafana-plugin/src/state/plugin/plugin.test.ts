@@ -383,6 +383,7 @@ describe('PluginState.syncDataWithOnCall', () => {
     const errorMsg = 'asdfasdf';
 
     makeRequest.mockResolvedValueOnce(errorMsg);
+    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
     PluginState.pollOnCallDataSyncStatus = jest.fn();
 
     // test
@@ -403,6 +404,7 @@ describe('PluginState.syncDataWithOnCall', () => {
     const mockedPollOnCallDataSyncStatusResponse = 'dfjkdfjdf';
 
     makeRequest.mockResolvedValueOnce(mockedResponse);
+    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
     PluginState.pollOnCallDataSyncStatus = jest.fn().mockResolvedValueOnce(mockedPollOnCallDataSyncStatusResponse);
 
     // test
@@ -427,6 +429,7 @@ describe('PluginState.syncDataWithOnCall', () => {
     const mockedHumanReadableError = 'asdfjkdfjkdfjk';
 
     makeRequest.mockRejectedValueOnce(mockedError);
+    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
     PluginState.pollOnCallDataSyncStatus = jest.fn();
     PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(mockedHumanReadableError);
 
@@ -670,7 +673,7 @@ describe('PluginState.checkIfBackendIsInMaintenanceMode', () => {
     const response = await PluginState.checkIfBackendIsInMaintenanceMode(onCallApiUrl);
 
     // assertions
-    expect(response).toEqual(maintenanceModeMsg);
+    expect(response).toEqual(mockedResp);
     expect(makeRequest).toHaveBeenCalledTimes(1);
     expect(makeRequest).toHaveBeenCalledWith('/maintenance-mode-status', { method: 'GET' });
   });

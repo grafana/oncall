@@ -4,8 +4,14 @@ import plugin from '../../package.json'; // eslint-disable-line
 export const APP_TITLE = 'Grafana OnCall';
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
 
+export const APP_VERSION = `${plugin?.version}`;
+
+export const CLOUD_VERSION_REGEX = new RegExp('r[\\d]+-v[\\d]+.[\\d]+.[\\d]+');
+
 // License
 export const GRAFANA_LICENSE_OSS = 'OpenSource';
+
+export const GRAFANA_LICENSE_CLOUD = 'Cloud';
 
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;

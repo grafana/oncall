@@ -8,7 +8,6 @@ import { AppRootProps } from 'types';
 
 import logo from 'img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
-import PluginState from 'state/plugin';
 import { useStore } from 'state/useStore';
 
 export type PluginSetupProps = AppRootProps & {
@@ -35,10 +34,7 @@ const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => 
 
 const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
   const store = useStore();
-  const setupPlugin = useCallback(
-    () => PluginState.getGrafanaPluginSettings().then((meta) => store.setupPlugin(meta)),
-    []
-  );
+  const setupPlugin = useCallback(() => store.setupPlugin(props.meta), [props.meta]);
 
   useEffect(() => {
     setupPlugin();
