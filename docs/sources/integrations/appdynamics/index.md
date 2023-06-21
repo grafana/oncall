@@ -18,21 +18,21 @@ weight: 500
 The AppDynamics integration for Grafana OnCall handles health rule violation events sent from AppDynamics actions.
 The integration provides grouping and auto-resolve logic via customizable alert templates.
 
-> You must have an [Admin role]({{< relref "user-and-team-management" >}}) to create integrations in Grafana OnCall.
+> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from AppDynamics
 
 1. In the **Integrations** tab, click **+ New integration**.
-2. Select **Alertmanager Prometheus** from the list of available integrations.
+2. Select **AppDynamics** from the list of available integrations.
 3. Enter a name and description for the integration, click **Create**
-4. The new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section,
-you will need it when configuring Alertmanager.
+4. A new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section.
+You will need it when configuring AppDynamics.
 
 ## Configuring AppDynamics to Send Alerts to Grafana OnCall
 
 Create a new HTTP Request Template in AppDynamics to send events to Grafana OnCall using the integration URL above.
 
-Refer to [AppDynamics documentation](<https://docs.appdynamics.com/appd/23.x/latest/en/appdynamics-essentials>s>
+Refer to [AppDynamics documentation](<https://docs.appdynamics.com/appd/23.x/latest/en/appdynamics-essentials
 /alert-and-respond/actions/http-request-actions-and-templates) for more information on **how to create HTTP Request Templates**:
 
 Use the following values when configuring a new HTTP Request Template:

@@ -17,7 +17,7 @@ weight: 100
 Grafana Alerting for Grafana OnCall can be set up using two methods:
 
 - Grafana Alerting: Grafana OnCall is connected to the same Grafana instance being used to manage Grafana OnCall.
-- Grafana (Other Grafana): Grafana OnCall is connected to one or more Grafana instances separate from the one being used to manage Grafana OnCall.
+- Grafana (Other Grafana): Grafana OnCall is connected to one or more Grafana instances, separate from the one being used to manage Grafana OnCall.
 
 ## Configure Grafana Alerting for Grafana OnCall
 

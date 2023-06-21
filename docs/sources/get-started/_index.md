@@ -12,7 +12,7 @@ weight: 300
 
 # Get started with Grafana OnCall
 
-Grafana OnCall is an incident response tool built to help DevOps and SRE teams improve their collaboration and resolve incidents faster.
+Grafana OnCall is an incident response tool built to help DevOps and SRE teams improve their collaboration, and resolve incidents faster.
 
 With a centralized view of all your alerts and alert groups, automated escalations and grouping, and on-call scheduling, Grafana
 OnCall helps ensure that alert notifications reach the right people, at the right time using the right notification method.
@@ -31,9 +31,9 @@ Grafana OnCall is available both in Grafana Cloud and Grafana Open Source.
 OnCall is available in Grafana Cloud automatically:
 
 1. Create or log in into [Grafana Cloud account](https://grafana.com/auth/sign-up/create-user)
-2. Sign in into your Grafana stack
-3. Choose **Alerts and IRM** from the left meu
-4. Click **OnCall** to access Grafana OnCall.
+2. Sign in to your Grafana stack
+3. Choose **Alerts and IRM** from the left menu
+4. Click **OnCall** to access Grafana OnCall
 
 Otherwise you'll need to install [Open Source Grafana OnCall]({{< relref "../open-source" >}}) on your own.
 
@@ -49,8 +49,8 @@ of this doc
 
 ## Get alerts into Grafana OnCall and configure rules
 
-Once you’ve installed Grafana OnCall or accessed it from your Grafana Cloud instance, you can begin integrating with
-monitoring systems to get alerts into Grafana OnCall, and configure which users and when to notify by setting templates, routes,
+Once you’ve installed Grafana OnCall, or accessed it from your Grafana Cloud instance, you can begin integrating with
+monitoring systems to get alerts into Grafana OnCall. Additionally, you can configure when, and which, users get notified, by setting templates, routes,
 escalation chains, etc.
 
 ### Integrate with a monitoring system
@@ -77,16 +77,15 @@ For more information on Grafana OnCall integrations and further configuration gu
 
 ### Review and modify alert templates
 
-Review and customizr templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution,
-customize visualizations and notifications by extracting data from alerts. See more details in
+Review and customize templates to interpret monitoring alerts and minimize noise. Group alerts, enable auto-resolution,
+customize visualizations and notifications by extracting data from alerts. See more details in the
 [Jinja2 templating]({{< relref "../jinja2-templating" >}}) section.
 
 ### Configure scalation Chains
 
-Escalation chains is a set of steps that define who to notify and when.
-You can notify
+Escalation chains are a set of steps that define who to notify, and when.
 
-See more details in [Escalation Chains]({{< relref "../escalation-chains-and-routes#escalation-chains" >}}) section.
+See more details in the [Escalation Chains]({{< relref "../escalation-chains-and-routes#escalation-chains" >}}) section.
 
 Escalation Chains are customizable automated alert routing steps that enable you to specify who is notified for a certain
 alert. In addition to escalation chains, you can configure Routes to send alerts to different escalation chains depending
@@ -110,15 +109,12 @@ For more information on Escalation Chains and more ways to customize them, refer
 [Configure and manage Escalation Chains]({{< relref "escalation-chains-and-routes" >}})
 
 Routes define which messenger channels and escalation chains to use for notifications. See more details in
-[Routes]({{< relref "../escalation-chains-and-routes#routes" >}}) section.
+the [Routes]({{< relref "../escalation-chains-and-routes#routes" >}}) section.
 
 ### Learn Alert Workflow
 
-*ll Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "../jinja2-templating" >}})).
-Alert Group could have mutually
-*xclusive states:
-*
-
+* All Alerts in OnCall are grouped into Alert Groups ([read more about Grouping ID]({{< relref "../jinja2-templating" >}})).
+An Alert Group can have the following, mutually exclusive states:
 * **Firing:** Once Alert Group is registered, Escalation Policy associated with it is getting started.
 Escalation policy will work while Alert Group is in this status.
 * **Acknowledged:** Ongoing Escalation Chain will be interrupted. Unacknowledge will move Alert Group to
@@ -130,8 +126,6 @@ re-launch Escalation Chain and move Alert Group
 *
 
 * Possible transitions:
-*
-
 * Firing -> Acknowledged
 * Firing -> Silenced
 * Firing -> Resolved
@@ -143,7 +137,7 @@ re-launch Escalation Chain and move Alert Group
 * Acknowledged -> Resolved
 * Resolved -> Firing
 
-Transitions change trigger Escalation Chain launch with a few-seconds delay to avoid unexpected notifications.
+Transition changes trigger Escalation Chains to launch, with a few-second delay (to avoid unexpected notifications).
 
 ## Get notified of an alert
 
@@ -153,7 +147,7 @@ policies, chatops integrations, and on-call schedules allow you to automate how 
 ### Configure personal notification policies
 
 Personal notification policies determine how a user is notified for a certain type of alert. Get notified by SMS,
-phone call, Slack mentions, or mobile push notification. Administrators can configure how users receive notification
+phone call, Slack mentions, or mobile push notification. Administrators can configure how users receive notifications
 for certain types of alerts.
 For more information on personal notification policies, refer to
 [Manage users and teams for Grafana OnCall]({{< relref "user-and-team-management" >}})

@@ -15,20 +15,20 @@ weight: 300
 
 # Alertmanager integration for Grafana OnCall
 
-> You must have an [Admin role]({{< relref "user-and-team-management" >}}) to create integrations in Grafana OnCall.
+> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
 
 The Alertmanager integration handles alerts from [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/).
-This integration is the recommended way to send alerts from Prometheus deployed in your infrastructure to Grafana OnCall.
+This integration is the recommended way to send alerts from Prometheus deployed in your infrastructure, to Grafana OnCall.
 
-> **Pro tip:** Create one integration per team and configure alertmanager labels selector to send alerts only related to that team
+> **Pro tip:** Create one integration per team, and configure alertmanager labels selector to send alerts only related to that team
 
-## Configuring Grafana OnCall to Receive Alerts from Monitoring System
+## Configuring Grafana OnCall to Receive Alerts from Prometheus Alertmanager
 
 1. In the **Integrations** tab, click **+ New integration**.
 2. Select **Alertmanager Prometheus** from the list of available integrations.
 3. Enter a name and description for the integration, click **Create**
-4. The new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section,
-you will need it when configuring Alertmanager.
+4. A new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section.
+You will need it when configuring Alertmanager.
 
 <!--![123](../_images/connect-new-monitoring.png)-->
 

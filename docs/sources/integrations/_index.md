@@ -14,23 +14,23 @@ weight: 500
 
 # Integrations
 
-"Integration" is a main entry point for alerts being consumed by OnCall.
-Integration receives alerts on an unique API URL, interprets them using set of templates tailored for monitoring system and starts
+An "Integration" is a main entry point for alerts being consumed by Grafana OnCall.
+Integrations receive alerts on a unique API URL, interprets them using a set of templates tailored for the monitoring system, and starts
 escalations.
 
 Read more about Jinja2 templating used in OnCall [here]({{< relref "../jinja2-templating" >}}).
 
 ## Learn Alert Flow Within Integration
 
-1. Alert is received on integration's **Unique URL** as HTTP POST request with JSON payload, or from
-[e-mail]({{< relref "inbound-email" >}}) for inbound e-mail integration
-1. Route is determined for the incoming alert by applying [Routing Template]({{< relref "jinja2-templating#routing-template" >}})
-1. Alert Group is determined based on [Grouping Id Template]({{< relref "jinja2-templating#behavioral-template" >}})
-1. Alert Group may be acknowledged or resolved with status `_ by source` based on
+1. An Alert is received on an integration's **Unique URL** as an HTTP POST request with a JSON payload (or via
+[e-mail]({{< relref "inbound-email" >}}), for inbound e-mail integrations)
+1. Routing is determined for the incoming alert, by applying the [Routing Template]({{< relref "jinja2-templating#routing-template" >}})
+1. Alert Grouping is determined based on [Grouping Id Template]({{< relref "jinja2-templating#behavioral-template" >}})
+1. An Alert Group may be acknowledged or resolved with status `_ by source` based on
 [Behaviour Templates]({{< relref "jinja2-templating#behavioral-template" >}})
-1. Alert Group is available in Web and can be published to the messengers based on Route's **Publish to Chatops** configuration.
+1. The Alert Group is available in Web, and can be published to messengers, based on the Route's **Publish to Chatops** configuration.
 It is rendered using [Appearance Templates]({{< relref "jinja2-templating#appearance-template" >}})
-1. Alert Group is escalated to the Users based on the Escalation Chains selected for the Route
+1. The Alert Group is escalated to uers based on the Escalation Chains selected for the Route
 1. Users can perform actions listed in [Learn Alert Workflow]({{< relref "get-started#learn-alert-workflow" >}}) section
 
 ## Configure and manage integrations
@@ -43,11 +43,12 @@ describe how to configure and customize your integrations to ensure alerts are t
 To configure an integration for Grafana OnCall:
 
 1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration**.
-1. Select an integration type from the [list of available integrations]({{< relref "#list-of-available-integrations" >}}),
-if the integration you want isn’t listed, then select **Webhook**.
-1. Fill in title and description for your integration, assign it to the team and click **Create Integration**.
-1. Integration page will open, you can use HTTP Endpoint url to send events from monitoring system, click **How to connect**
-link for more specific information.
+1. Select an integration type from the [list of available integrations]({{< relref "#list-of-available-integrations" >}}).
+If the integration you want isn’t listed, then select **Webhook**.
+1. Fill in a title and a description for your integration, assign it to a team, and click **Create Integration**.
+1. The Integration page will open. Here you will see details about the Integration.
+You can use the HTTP Endpoint url to send events from an external monitoring system.
+Click the **How to connect** link for more information.
 1. Complete any necessary configurations in your tool to send alerts to Grafana OnCall.
 1. Click **Send demo alert** to send a test alert to Grafana OnCall.
 
@@ -58,9 +59,9 @@ if you want to customise alert behaviour for your team
 - Review and customise [other templates]({{< relref "../jinja2-templating" >}}) to change how alert groups are displayed
 in different parts of Grafana OnCall: UI, messengers, emails, notifications, etc.
 - Add routes to your integration to route alerts to different users and teams based on labels or other data
-- Connect your escalation chains to the routes to notify right people at the right time
-- Learn [how to start Maintenance mode]({{< relref "#maintenance-mode" >}}) for integration
-- Send demo alerts to integration to make sure routes, templates and escalation are working as expected. Consider using
+- Connect your escalation chains to routes to notify the right people, at the right time
+- Learn [how to start Maintenance Mode]({{< relref "#maintenance-mode" >}}) for an integration
+- Send demo alerts to an integration to make sure routes, templates, and escalations, are working as expected. Consider using
 `Debug Maintenance mode` to avoid sending real notifications to your team
 
 ### Manage integrations
@@ -70,21 +71,21 @@ you want to manage.
 
 #### Maintenance mode
 
-Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may trigger false alarms.
+Start maintenance mode when performing scheduled maintenance or updates on your infrastructure, which may trigger false alarms.
 There are two possible maintenance modes:
 
 - **Debug** - test routing and escalations without real notifications. Alerts will be processed as usual, but no notifications
 will be sent to users.
 - **Maintenance** - group alerts into one during infrastructure work.
 
-##### Manage maintenance mode
+##### Manage maintenance Mode
 
-1. Go to Integration page and click **Three dots**
+1. Go to the Integration page and click **Three dots**
 1. Select **Start Maintenance Mode**
 1. Select **Debug** or **Maintenance** mode
-1. Set **Duration** of maintenance mode
+1. Set the **Duration** of Maintenance Mode
 1. Click **Start**
-1. If you want to stop maintenance mode before it's end, click **Three dots** and select **Stop Maintenance Mode**
+1. If you want to stop maintenance mode before it ends, click **Three dots** and select **Stop Maintenance Mode**
 
 #### Heartbeat monitoring
 
@@ -96,7 +97,7 @@ to the heartbeat endpoint. If OnCall doen't receive one of these alerts, it will
 1. Set **Heartbeat interval**
 1. Copy **Endpoint** into you monitoring system.
 
-More specific instructions can be found in specific integration documentation.
+More specific instructions can be found in a specific integration's documentation.
 
 #### Behaviour and rendering templates example
 
@@ -137,7 +138,7 @@ To edit the name of an integration:
 
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
 1. Click the **three dots** next to the integration name and select **Integration settings**.
-1. Provide a new name, description and team and click **Save**.
+1. Provide a new name, description, and team, and click **Save**.
 
 ## List of available integrations
 

@@ -93,11 +93,11 @@ Check more information on [Personal Notification Preferences]({{< relref notify 
 1. Open **Escalation Chains** page
 2. Click **New escalation chain** button to create a new escalation chain
 
-3. Enter the name and Assign it to the team
+3. Enter a name and assign it to a team
    > **Note:** Name must be unique across organization
-   > **Note:** Alert Groups inherit the team from the Integration, not Escalation Chain
+   > **Note:** Alert Groups inherit the team from the Integration, not the Escalation Chain
 4. Click **Add escalation step** button to add a new step
-5. Click **Delete** to delete the Chain, and **Edit** to edit the name or the team.
+5. Click **Delete** to delete the Escalation Chain, and **Edit** to edit the name or the team.
 
 > **Important:** Linked Integrations and Routes are displayed in the right panel. Any change in the Escalation Chain will
 affect all linked Integrations and Routes.
