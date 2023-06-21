@@ -62,7 +62,6 @@
   --shadows-z1: 0 1px 2px rgba(24, 26, 27, 0.2);
   --shadows-z2: 0 4px 8px rgba(24, 26, 27, 0.2);
   --shadows-z3: 0 13px 20px 1px rgba(24, 26, 27, 0.18);
-
   --tag-text-success: rgb(50, 96, 43);
   --tag-border-success: rgb(148, 203, 140);
 }
@@ -96,7 +95,6 @@
   --shadows-z1: 0 1px 2px rgba(24, 26, 27, 0.75);
   --shadows-z2: 0 4px 8px rgba(24, 26, 27, 0.75);
   --shadows-z3: 0 8px 24px rgb(1, 4, 9);
-
   --tag-text-success: rgb(165, 214, 159);
   --tag-border-success: rgb(49, 100, 43);
 }
