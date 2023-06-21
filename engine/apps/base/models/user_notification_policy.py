@@ -5,11 +5,11 @@ from typing import Tuple
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
-from django.db import models
-from django.db.models import Q, QuerySet
-from ordered_model.models import OrderedModel
+from django.db import IntegrityError, models
+from django.db.models import Q
 
 from apps.base.messaging import get_messaging_backends
+from apps.base.models.ordered_model import OrderedModel
 from apps.user_management.models import User
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -67,9 +67,11 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicyQuerySet(models.QuerySet):
-    def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
-        model = self.model
+    def create_default_policies_for_user(self, user: User) -> None:
+        if user.notification_policies.filter(important=False).exists():
+            return
 
+        model = self.model
         policies_to_create = (
             model(
                 user=user,
@@ -81,12 +83,16 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             model(user=user, step=model.Step.NOTIFY, notify_by=model.NotificationChannel.PHONE_CALL, order=2),
         )
 
-        super().bulk_create(policies_to_create)
-        return user.notification_policies.filter(important=False)
+        try:
+            super().bulk_create(policies_to_create)
+        except IntegrityError:
+            pass
 
-    def create_important_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
+    def create_important_policies_for_user(self, user: User) -> None:
+        if user.notification_policies.filter(important=True).exists():
+            return
+
         model = self.model
-
         policies_to_create = (
             model(
                 user=user,
@@ -97,13 +103,15 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             ),
         )
 
-        super().bulk_create(policies_to_create)
-        return user.notification_policies.filter(important=True)
+        try:
+            super().bulk_create(policies_to_create)
+        except IntegrityError:
+            pass
 
 
 class UserNotificationPolicy(OrderedModel):
     objects = UserNotificationPolicyQuerySet.as_manager()
-    order_with_respect_to = ("user", "important")
+    order_with_respect_to = ("user_id", "important")
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -145,6 +153,11 @@ class UserNotificationPolicy(OrderedModel):
 
     class Meta:
         ordering = ("order",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_id", "important", "order"], name="unique_user_notification_policy_order"
+            )
+        ]
 
     def __str__(self):
         return f"{self.pk}: {self.short_verbal}"
