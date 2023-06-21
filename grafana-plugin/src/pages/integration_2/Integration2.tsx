@@ -963,7 +963,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
   const item = alertReceiveChannelStore.items[id];
-  const url = item?.integration_url || item?.inbound_email
+  const url = item?.integration_url || item?.inbound_email;
 
   return (
     <IntegrationBlock
