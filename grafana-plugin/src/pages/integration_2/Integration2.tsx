@@ -984,6 +984,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             <IntegrationInputField
               value={url}
               className={cx('integration__input-field')}
+              showExternal={!!item?.integration_url}
             />
           )}
           <a
