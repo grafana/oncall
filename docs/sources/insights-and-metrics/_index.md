@@ -41,7 +41,7 @@ You can find more information about Prometheus setup in the [OSS documentation](
 
 Metrics will have the prefix `oncall`, e.g. `oncall_alert_groups_total` and `oncall_alert_groups_response_time_seconds_bucket`.
 
-Your metrics also may have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
+Your metrics may also have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
 
 ### Metric Alert groups total
 
