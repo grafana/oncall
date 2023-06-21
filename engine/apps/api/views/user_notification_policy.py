@@ -142,7 +142,12 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
     def move_to_position(self, request, pk):
         instance = self.get_object()
         position = get_move_to_position_param(request)
-        instance.to(position)
+
+        try:
+            instance.to_index(position)
+        except IndexError:
+            raise BadRequest(detail="Invalid position")
+
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])

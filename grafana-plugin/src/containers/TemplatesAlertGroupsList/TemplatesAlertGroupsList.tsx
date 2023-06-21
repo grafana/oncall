@@ -10,7 +10,7 @@ import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2.config';
+import { MONACO_OPTIONS, MONACO_PAYLOAD_OPTIONS } from 'pages/integration_2/Integration2Common.config';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
@@ -85,7 +85,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         <>
           {isEditMode ? (
             <>
-              <div className={cx('template-block-title')}>
+              <div className={cx('template-block-title-edit-mode')}>
                 <HorizontalGroup justify="space-between">
                   <Text>Edit custom payload</Text>
 
@@ -129,6 +129,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   className={cx('alert-groups-last-payload-badge')}
                 />
                 <div className={cx('alert-groups-editor-withBadge')}>
+                  {/* Editor used for Editing Given Payload */}
                   <MonacoEditor
                     value={JSON.stringify(selectedAlertPayload, null, 4)}
                     data={undefined}
@@ -151,7 +152,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         <>
           {isEditMode ? (
             <>
-              <div className={cx('template-block-title')}>
+              <div className={cx('template-block-title-edit-mode')}>
                 <HorizontalGroup justify="space-between">
                   <Text>Edit custom payload</Text>
 
@@ -167,8 +168,10 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   useAutoCompleteList={false}
                   language={MONACO_LANGUAGE.json}
                   data={templates}
-                  monacoOptions={MONACO_PAYLOAD_OPTIONS}
-                  showLineNumbers={false}
+                  monacoOptions={{
+                    ...MONACO_OPTIONS,
+                    readOnly: false,
+                  }}
                   height={getCodeEditorHeight()}
                   onChange={getChangeHandler()}
                 />

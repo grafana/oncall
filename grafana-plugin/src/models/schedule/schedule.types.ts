@@ -68,7 +68,7 @@ export interface Shift {
   schedule: Schedule['id'];
   shift_end: string;
   shift_start: string;
-  title: string;
+  name: string;
   type: number; // 2 - rotations, 3 - overrides
   until: string | null;
   updated_shift: null;
@@ -93,6 +93,7 @@ export interface Event {
   source: string;
   start: string;
   users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  is_override: boolean;
 }
 
 export interface Events {

@@ -74,6 +74,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const {
       query: { p },
     } = this.props;
+
     this.setState({ page: p ? Number(p) : 1 }, this.update);
 
     this.parseQueryParams();

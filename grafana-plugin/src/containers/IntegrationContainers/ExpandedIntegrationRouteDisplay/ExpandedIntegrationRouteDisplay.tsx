@@ -9,8 +9,8 @@ import {
   Icon,
   Tooltip,
   ConfirmModal,
-  Select,
   LoadingPlaceholder,
+  Select,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -34,8 +34,8 @@ import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
 import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2Common.config';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -109,6 +109,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       return <LoadingPlaceholder text="Loading..." />;
     }
 
+    const escChainDisplayName = escalationChainStore.items[channelFilter.escalation_chain]?.name;
+
     return (
       <>
         <IntegrationBlock
@@ -122,6 +124,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
                   tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
                   tooltipContent={undefined}
+                  className={cx('u-margin-right-xs')}
                 />
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
@@ -130,6 +133,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
                   setRouteIdForDeletion={() => setState({ routeIdForDeletion: channelFilterId })}
+                  openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
               </HorizontalGroup>
             </HorizontalGroup>
@@ -205,17 +209,18 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                         onChange={onEscalationChainChange}
                         options={Object.keys(escalationChainStore.items).map(
                           (eschalationChainId: EscalationChain['id']) => ({
-                            value: escalationChainStore.items[eschalationChainId].id,
+                            id: escalationChainStore.items[eschalationChainId].id,
+                            value: escalationChainStore.items[eschalationChainId].name,
                             label: escalationChainStore.items[eschalationChainId].name,
                           })
                         )}
-                        value={channelFilter.escalation_chain}
+                        value={escChainDisplayName}
                         getOptionLabel={(item: SelectableValue) => {
                           return (
                             <>
                               <Text>{item.label} </Text>
                               <TeamName
-                                team={grafanaTeamStore.items[escalationChainStore.items[item.value].team]}
+                                team={grafanaTeamStore.items[escalationChainStore.items[item.id].team]}
                                 size="small"
                               />
                             </>
@@ -251,7 +256,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                     )}
                   </HorizontalGroup>
 
-                  {isEscalationCollapsed && (
+                  {!isEscalationCollapsed && (
                     <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
                   )}
                 </VerticalGroup>
@@ -279,14 +284,14 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       openNotification('Route has been deleted');
     }
 
-    function onEscalationChainChange({ value }) {
+    function onEscalationChainChange({ id }) {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
-          escalation_chain: value,
+          escalation_chain: id,
         })
         .then(() => {
           escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
-          escalationPolicyStore.updateEscalationPolicies(value);
+          escalationPolicyStore.updateEscalationPolicies(id);
         });
     }
 
@@ -315,6 +320,7 @@ interface RouteButtonsDisplayProps {
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   setRouteIdForDeletion(): void;
+  openRouteTemplateEditor(): void;
 }
 
 export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
@@ -322,6 +328,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   channelFilterId,
   routeIndex,
   setRouteIdForDeletion,
+  openRouteTemplateEditor,
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -349,6 +356,10 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
         <WithContextMenu
           renderMenuItems={() => (
             <div className={cx('integrations-actionsList')}>
+              <div className={cx('integrations-actionItem')} onClick={openRouteTemplateEditor}>
+                <Text type="primary">Edit Template</Text>
+              </div>
+
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>
                   <HorizontalGroup spacing={'xs'}>

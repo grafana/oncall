@@ -4,20 +4,23 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
+import { Timezone } from 'models/timezone/timezone.types';
+import { getNow } from 'pages/schedule/Schedule.helpers';
 
-import styles from './TimelineMarks.module.css';
+import styles from './TimelineMarks.module.scss';
 
 interface TimelineMarksProps {
   startMoment: dayjs.Dayjs;
+  timezone: Timezone;
   debug?: boolean;
 }
 
 const cx = cn.bind(styles);
 
 const TimelineMarks: FC<TimelineMarksProps> = (props) => {
-  const { startMoment, debug } = props;
+  const { startMoment, timezone, debug } = props;
 
-  const currentMoment = useMemo(() => dayjs(), []);
+  const currentMoment = useMemo(() => getNow(timezone), []);
 
   const momentsToRender = useMemo(() => {
     const hoursToSplit = 12;
@@ -62,11 +65,14 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
           ))}
         </svg>
       )}
+
       {momentsToRender.map((m, i) => {
         const isCurrentDay = currentMoment.isSame(m.moment, 'day');
 
+        // const isWeekend = m.moment.day() == 0 || m.moment.day() === 6;
+
         return (
-          <div key={i} className={cx('weekday')}>
+          <div key={i} className={cx('weekday' /* , { 'weekday--weekend': isWeekend } */)}>
             <div className={cx('weekday-title')}>
               <Text type="secondary" strong={isCurrentDay}>
                 {m.moment.format('ddd D MMM')}
