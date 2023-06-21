@@ -649,7 +649,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 function Incident({ incident, datetimeReference }: { incident: Alert; datetimeReference: string }) {
   return (
     <div key={incident.pk} className={cx('incident')}>
-      <HorizontalGroup wrap={false}>
+      <HorizontalGroup wrap>
         <Text.Title type="secondary" level={4}>
           {incident.inside_organization_number
             ? `#${incident.inside_organization_number} ${incident.render_for_web.title}`
@@ -761,7 +761,7 @@ function GroupedIncident({
       <div key={incident.id}>
         <div className={cx('incident-row')}>
           <div className={cx('incident-row-left')}>
-            <HorizontalGroup wrap={false} justify={'flex-start'}>
+            <HorizontalGroup wrap justify={'flex-start'}>
               <Text.Title type="secondary" level={4}>
                 {incident.render_for_web.title}
               </Text.Title>
