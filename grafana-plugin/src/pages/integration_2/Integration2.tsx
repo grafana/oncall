@@ -470,6 +470,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
               toggle={toggle}
+              openEditTemplateModal={this.openEditTemplateModal}
+              onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
             />
           ),
           expandedView: () => (

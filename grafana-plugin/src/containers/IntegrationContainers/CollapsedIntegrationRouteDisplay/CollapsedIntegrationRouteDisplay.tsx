@@ -24,10 +24,12 @@ interface CollapsedIntegrationRouteDisplayProps {
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   toggle: () => void;
+  openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
+  onEditRegexpTemplate: (channelFilterId: ChannelFilter['id']) => void;
 }
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
-  ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
+  ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle, openEditTemplateModal, onEditRegexpTemplate }) => {
     const store = useStore();
     const { escalationChainStore, alertReceiveChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
@@ -90,6 +92,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
                   setRouteIdForDeletion={() => setRouteIdForDeletion(channelFilterId)}
+                  openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
               </div>
             </div>
@@ -158,6 +161,14 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
         )}
       </>
     );
+
+    function handleEditRoutingTemplate(channelFilter, channelFilterId) {
+      if (channelFilter.filtering_term_type === 0) {
+        onEditRegexpTemplate(channelFilterId);
+      } else {
+        openEditTemplateModal('route_template', channelFilterId);
+      }
+    }
 
     async function onRouteDeleteConfirm() {
       setRouteIdForDeletion(undefined);
