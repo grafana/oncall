@@ -329,6 +329,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script
+      - name: Install docker binary
+        run: curl -fsSL https://get.docker.com -o get-docker.sh | sh
+
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
         with:
