@@ -38,7 +38,7 @@
 }
 
 .theme-light {
-  --cards-background: var(--blue-2);
+  --cards-background: rgba(244, 245, 245);
   --highlighted-row-bg: var(--cyan-1);
   --disabled-button-color: #bdbdbd;
   --primary-background: rgb(255, 255, 255);
