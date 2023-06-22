@@ -10,9 +10,9 @@ import Text from 'components/Text/Text';
 import { templatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import styles from 'pages/integration_2/Integration2.module.scss';
-import { MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2Common.config';
+import IntegrationHelper from 'pages/integration/Integration.helper';
+import styles from 'pages/integration/Integration.module.scss';
+import { MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
 

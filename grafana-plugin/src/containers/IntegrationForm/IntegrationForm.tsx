@@ -20,10 +20,10 @@ import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import { form } from './IntegrationForm2.config';
-import { prepareForEdit } from './IntegrationForm2.helpers';
+import { form } from './IntegrationForm.config';
+import { prepareForEdit } from './IntegrationForm.helpers';
 
-import styles from './IntegrationForm2.module.css';
+import styles from './IntegrationForm.module.css';
 
 const cx = cn.bind(styles);
 
@@ -34,7 +34,7 @@ interface IntegrationFormProps {
   onUpdate: () => void;
 }
 
-const IntegrationForm2 = observer((props: IntegrationFormProps) => {
+const IntegrationForm = observer((props: IntegrationFormProps) => {
   const { id, onHide, onUpdate, isTableView = true } = props;
 
   const store = useStore();
@@ -230,4 +230,4 @@ const IntegrationForm2 = observer((props: IntegrationFormProps) => {
   }
 });
 
-export default IntegrationForm2;
+export default IntegrationForm;

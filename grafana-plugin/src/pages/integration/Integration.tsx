@@ -42,9 +42,9 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import Integration2HeartbeatForm from 'containers/IntegrationContainers/Integration2HearbeatForm/Integration2HeartbeatForm';
+import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHearbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
+import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
@@ -58,9 +58,9 @@ import {
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
-import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration_2/Integration2.config';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import styles from 'pages/integration_2/Integration2.module.scss';
+import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
+import IntegrationHelper from 'pages/integration/Integration.helper';
+import styles from 'pages/integration/Integration.module.scss';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -71,13 +71,13 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
-import { MONACO_PAYLOAD_OPTIONS } from './Integration2Common.config';
+import { MONACO_PAYLOAD_OPTIONS } from './IntegrationCommon.config';
 
 const cx = cn.bind(styles);
 
-interface Integration2Props extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IntegrationProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-interface Integration2State extends PageBaseState {
+interface IntegrationState extends PageBaseState {
   isDemoModalOpen: boolean;
   isEditTemplateModalOpen: boolean;
   selectedTemplate: TemplateForEdit;
@@ -93,8 +93,8 @@ const ACTIONS_LIST_BORDER = 2;
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
-class Integration2 extends React.Component<Integration2Props, Integration2State> {
-  constructor(props: Integration2Props) {
+class Integration extends React.Component<IntegrationProps, IntegrationState> {
+  constructor(props: IntegrationProps) {
     super(props);
 
     this.state = {
@@ -775,7 +775,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isIntegrationSettingsOpen && (
-        <IntegrationForm2
+        <IntegrationForm
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
@@ -784,7 +784,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isHearbeatFormOpen && (
-        <Integration2HeartbeatForm
+        <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
           onClose={() => setIsHearbeatFormOpen(false)}
         />
@@ -1141,4 +1141,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export default withRouter(withMobXProviderContext(Integration2));
+export default withRouter(withMobXProviderContext(Integration));
