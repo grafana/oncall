@@ -210,7 +210,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
                 )}
 
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                  <Button form={form.name} type="submit">
+                  <Button form={form.name} type="submit" data-testid="update-integration-button">
                     {id === 'new' ? 'Create' : 'Update'} Integration
                   </Button>
                 </WithPermissionControlTooltip>

@@ -1,7 +1,6 @@
 import { Page } from '@playwright/test';
-// import { clickButton, fillInInput, selectDropdownValue } from './forms';
+import { clickButton } from './forms';
 import { goToOnCallPage } from './navigation';
-// import { click } from '@testing-library/user-event/dist/types/convenience';
 
 const CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR = 'div[data-testid="create-integration-modal"]';
 
@@ -17,42 +16,36 @@ export const openCreateIntegrationModal = async (page: Page): Promise<void> => {
 };
 
 export const createIntegrationAndSendDemoAlert = async (
-  _page: Page,
-  _integrationName: string,
+  page: Page,
+  integrationName: string,
   _escalationChainName: string
 ): Promise<void> => {
-  // await openCreateIntegrationModal(page);
+  await openCreateIntegrationModal(page);
 
-  // // create a webhook integration
-  // (await page.waitForSelector(`${CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR} >> text=Webhook`)).click();
+  // create a webhook integration
+  (await page.waitForSelector(`${CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR} >> text=Webhook`)).click();
 
-  // // wait for the integrations settings modal to open up... and then close it
-  // await clickButton({ page, buttonText: 'Open Escalations Settings' });
+  // fill in the required inputs
+  (await page.waitForSelector('input[name="verbal_name"]', { state: 'attached' })).fill(integrationName);
+  (await page.waitForSelector('textarea[name="description_short"]', { state: 'attached' })).fill("Here goes your integration description");
 
-  // // update the integration name
-  // await (await page.waitForSelector('div[data-testid="integration-header"] >> h4 >> button')).click();
+  const grafanaUpdateBtn = page.getByTestId("update-integration-button");
+  await grafanaUpdateBtn.click();
 
-  // const grafanaAlertingIntegration = page.getByTestId('integration-display-name');
-  // await grafanaAlertingIntegration.click();
+  /*
+   * TODO: This is slightly more complicated now, change this in next iteration */
+  // const integrationSettingsElement = page.getByTestId('integration-settings');
 
-  // await fillInInput(page, 'input[name="verbal_name"]', integrationName);
-  // await fillInInput(page, 'textarea[name="description_short"]', "Here goes your integration description");
-  // await clickButton({ page, buttonText: "Create Integration" })
+  // // assign the escalation chain to the integration
+  // await selectDropdownValue({
+  //   page,
+  //   selectType: 'grafanaSelect',
+  //   placeholderText: 'Select Escalation Chain',
+  //   value: escalationChainName,
+  //   startingLocator: integrationSettingsElement,
+  // });
 
-  // /*
-  //  * TODO: This is slightly more complicated now, change this in next iteration */
-  // // const integrationSettingsElement = page.getByTestId('integration-settings');
-
-  // // // assign the escalation chain to the integration
-  // // await selectDropdownValue({
-  // //   page,
-  // //   selectType: 'grafanaSelect',
-  // //   placeholderText: 'Select Escalation Chain',
-  // //   value: escalationChainName,
-  // //   startingLocator: integrationSettingsElement,
-  // // });
-
-  // // send demo alert
-  // await clickButton({ page, buttonText: 'Send demo alert', dataTestId: 'send-demo-alert' });
-  // await clickButton({ page, buttonText: 'Send Alert', dataTestId: "submit-send-alert" })
+  // send demo alert
+  await clickButton({ page, buttonText: 'Send demo alert', dataTestId: 'send-demo-alert' });
+  await clickButton({ page, buttonText: 'Send Alert', dataTestId: "submit-send-alert" })
 };

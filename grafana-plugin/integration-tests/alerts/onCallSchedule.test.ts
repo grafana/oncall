@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
-// import { verifyThatAlertGroupIsTriggered } from '../utils/alertGroup';
+import { verifyThatAlertGroupIsTriggered } from '../utils/alertGroup';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
 import { generateRandomValue } from '../utils/forms';
-// import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
+import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { createOnCallSchedule } from '../utils/schedule';
 
 test('we can create an oncall schedule + receive an alert', async ({ page }) => {
@@ -10,7 +10,7 @@ test('we can create an oncall schedule + receive an alert', async ({ page }) => 
   test.slow();
 
   const escalationChainName = generateRandomValue();
-  // const integrationName = generateRandomValue();
+  const integrationName = generateRandomValue();
   const onCallScheduleName = generateRandomValue();
 
   await createOnCallSchedule(page, onCallScheduleName);
@@ -21,7 +21,7 @@ test('we can create an oncall schedule + receive an alert', async ({ page }) => 
     onCallScheduleName
   );
 
-  // await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
+  await createIntegrationAndSendDemoAlert(page, integrationName, escalationChainName);
 
-  // await verifyThatAlertGroupIsTriggered(page, integrationName, `Notify on-call from Schedule '${onCallScheduleName}'`);
+  await verifyThatAlertGroupIsTriggered(page, integrationName, `Notify on-call from Schedule '${onCallScheduleName}'`);
 });
