@@ -15,7 +15,6 @@
   width: 30%;
   height: 100%;
   max-width: 100%;
-  overflow-y: scroll;
 }
 
 .alert-group-payload-view {
@@ -47,7 +46,7 @@
 }
 
 .alert-groups-editor-withBadge div[aria-label='Code editor container'] {
-  background-color: var(--cards-background);
+  background-color: var(--box-background);
   border-bottom: none;
   border-right: none;
   padding-top: 52px;

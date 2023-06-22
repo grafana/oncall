@@ -6,9 +6,12 @@
 .integrationBlock__heading {
   background-color: var(--background-secondary);
   border: var(--border-medium) !important;
-  border-radius: 0 !important;
-  border-top-left-radius: 4px !important;
-  border-top-right-radius: 4px !important;
+  border-radius: 4px !important;
+
+  &--noBorderBottom {
+    border-bottom-left-radius: 0px !important;
+    border-bottom-right-radius: 0px !important;
+  }
 }
 
 .integrationBlock__content {
@@ -16,13 +19,6 @@
   border: var(--border-medium) !important;
   
   border-top: none !important;
-  padding-bottom: 0;
   border-bottom-left-radius: 4px !important;
   border-bottom-right-radius: 4px !important;
-
-  &--collapsedBorder {
-    padding-left: 0;
-    padding-right: 0;
-    padding-bottom: 24px;
-  }
 }

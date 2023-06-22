@@ -114,7 +114,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     return (
       <>
         <IntegrationBlock
-          hasCollapsedBorder
+          noContent={false}
           key={channelFilterId}
           heading={
             <HorizontalGroup justify={'space-between'}>
