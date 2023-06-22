@@ -51,6 +51,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
   const [editorHeight, setEditorHeight] = useState<string>(undefined);
+  const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
 
   useEffect(() => {
     const locationParams: any = { template: template.name };
@@ -107,6 +108,10 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
         permalink: alertGroup?.permalinks[template.additionalData?.chatOpsName],
       });
     }
+  }, []);
+
+  const onLoadAlertGroupsList = useCallback((isAlertGroup: boolean) => {
+    setIsRecentAlertGroupExisting(isAlertGroup);
   }, []);
 
   const onSaveAndFollowLink = useCallback(
@@ -187,6 +192,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}
             templates={templates}
+            onLoadAlertGroupsList={onLoadAlertGroupsList}
           />
           {isCheatSheetVisible ? (
             <CheatSheet
@@ -222,7 +228,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             alertReceiveChannelId={id}
             template={template}
             templateBody={changedTemplateBody}
-            alertGroup={undefined}
+            isAlertGroupExisting={isRecentAlertGroupExisting}
             chatOpsPermalink={chatOpsPermalink}
             payload={alertGroupPayload}
             error={resultError}
@@ -239,7 +245,7 @@ interface ResultProps {
   // templateName: string;
   templateBody: string;
   template: TemplateForEdit;
-  alertGroup?: Alert;
+  isAlertGroupExisting?: boolean;
   chatOpsPermalink?: string;
   payload?: JSON;
   error?: string;
@@ -247,8 +253,16 @@ interface ResultProps {
 }
 
 const Result = (props: ResultProps) => {
-  const { alertReceiveChannelId, template, templateBody, chatOpsPermalink, payload, error, onSaveAndFollowLink } =
-    props;
+  const {
+    alertReceiveChannelId,
+    template,
+    templateBody,
+    chatOpsPermalink,
+    payload,
+    error,
+    isAlertGroupExisting,
+    onSaveAndFollowLink,
+  } = props;
 
   return (
     <div className={cx('template-block-result')}>
@@ -280,7 +294,7 @@ const Result = (props: ResultProps) => {
               <Text type="secondary">{template?.additionalData.additionalDescription}</Text>
             )}
 
-            {template?.additionalData?.chatOpsName && (
+            {template?.additionalData?.chatOpsName && isAlertGroupExisting && (
               <VerticalGroup>
                 <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
                   <HorizontalGroup spacing="xs" align="center">

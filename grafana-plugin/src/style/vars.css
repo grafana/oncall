@@ -68,7 +68,7 @@
 }
 
 .theme-dark {
-  --cards-background: var(--gray-9);
+  --cards-background: rgba(10, 10, 10, 0.4);
   --highlighted-row-bg: var(--gray-9);
   --disabled-button-color: hsla(0, 0%, 100%, 0.08);
   --primary-background: rgb(24, 27, 31);

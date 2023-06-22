@@ -125,7 +125,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
             <div
               className={cx('message')}
               dangerouslySetInnerHTML={{
-                __html: sanitize(result.preview?.replace(/\n/g, '<br />') || ''),
+                __html: sanitize(result.preview || ''),
               }}
             />
           )}
