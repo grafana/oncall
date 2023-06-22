@@ -193,7 +193,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations_2', p }}>
+              <PluginLink query={{ page: 'integrations', p }}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               <h1 className={cx('integration__name')}>
@@ -566,7 +566,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       history,
     } = this.props;
 
-    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
+    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations/`));
   };
 
   async loadIntegration() {
@@ -596,7 +596,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     await Promise.all(promises).catch(() => {
       if (!alertReceiveChannelStore.items[id]) {
         // failed fetching the integration (most likely it's not existent)
-        history.push(`${PLUGIN_ROOT}/integrations_2`);
+        history.push(`${PLUGIN_ROOT}/integrations`);
       }
     });
   }
@@ -935,7 +935,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   function deleteIntegration() {
     alertReceiveChannelStore
       .deleteAlertReceiveChannel(alertReceiveChannel.id)
-      .then(() => history.push(`${PLUGIN_ROOT}/integrations_2`));
+      .then(() => history.push(`${PLUGIN_ROOT}/integrations`));
   }
 
   function openIntegrationSettings() {

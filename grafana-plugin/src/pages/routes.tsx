@@ -1,7 +1,7 @@
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
-import IntegrationsPage from 'pages/integrations/Integrations';
+// import IntegrationsPage from 'pages/integrations/Integrations';
 import MaintenancePage from 'pages/maintenance/Maintenance';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
@@ -34,10 +34,10 @@ export const routes: { [id: string]: NavRoute } = [
     component: UsersPage,
     id: 'users',
   },
-  {
-    component: IntegrationsPage,
-    id: 'integrations',
-  },
+  // {
+  //   component: IntegrationsPage,
+  //   id: 'integrations',
+  // },
   {
     component: IntegrationsPage2,
     id: 'integrations_2',

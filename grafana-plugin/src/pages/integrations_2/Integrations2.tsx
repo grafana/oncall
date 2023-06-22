@@ -272,7 +272,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     } = this.props;
 
     return (
-      <PluginLink query={{ page: 'integrations_2', id: item.id, p }}>
+      <PluginLink query={{ page: 'integrations', id: item.id, p }}>
         <Text type="link" size="medium">
           <Emoji
             className={cx('title')}
