@@ -8,7 +8,7 @@
     align-items: center;
     vertical-align: middle;
     justify-content: center;
-    background-color: rgba(204, 204, 220, 0.16);
+    background-color: var(--button-background);
     border: 1px solid transparent;
     height: 32px;
     width: 30px;
@@ -23,8 +23,8 @@
     align-items: center;
     vertical-align: middle;
     justify-content: center;
-    background-color: rgba(204, 204, 220, 0.16);
-    color: var(--secondary-background);
+    background-color: var(--button-background);
+    color: var(--primary-text-color);
     border: 1px solid transparent;
     height: 24px;
     width: 22px;

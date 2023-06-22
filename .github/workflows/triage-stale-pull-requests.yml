@@ -16,6 +16,7 @@ jobs:
           days-before-pr-stale: 30
           days-before-pr-close: 30
           ascending: true # start processing older pull requests first
+          stale-pr-label: "pr:stale"
           stale-pr-message: >
             This pull request has been automatically marked as stale because it has not had activity in the last 30 days. It will be closed in 30 days if no further activity occurs. Please feel free to give a status update now, ping for review, or re-open when it's ready. Thank you for your contributions!
           close-pr-message: >

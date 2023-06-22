@@ -84,7 +84,7 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
             filterOptions={(optionId) => optionId !== id}
             value={selected}
             onChange={getChangeHandler}
-            getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm A')}
+            getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm')}
             getOptionLabel={(item: SelectableValue) => <GroupedAlertNumber value={item.value} />}
           />
         </WithPermissionControlTooltip>

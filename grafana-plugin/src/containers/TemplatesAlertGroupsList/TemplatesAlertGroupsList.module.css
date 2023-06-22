@@ -1,14 +1,20 @@
 .template-block-title {
-  padding: 16px 16px 16px 0;
+  padding: 16px;
   align-items: baseline;
   min-height: 56px;
+}
+
+.template-block-title-edit-mode {
+  padding: 16px;
+  align-items: baseline;
+  min-height: 56px;
+  background-color: var(--background-secondary);
 }
 
 .template-block-list {
   width: 30%;
   height: 100%;
   max-width: 100%;
-  overflow-y: hidden;
 }
 
 .alert-group-payload-view {
@@ -17,12 +23,8 @@
   padding-left: 0;
 }
 
-.alert-groups-list > div {
-  border-right: none;
-}
-
 .alert-groups-list {
-  padding-right: 16px;
+  padding: 0 16px;
 }
 
 .alert-groups-list button {
@@ -38,21 +40,16 @@
   background-color: var(--background-secondary);
 }
 
-.alert-groups-editor {
-  width: calc(100% + 16px);
-  margin-left: -16px;
-}
-
 .alert-groups-editor div[aria-label='Code editor container'] {
   border-bottom: none;
   border-right: none;
 }
 
 .alert-groups-editor-withBadge div[aria-label='Code editor container'] {
-  background-color: rgba(10, 10, 10, 0.4);
+  background-color: var(--box-background);
   border-bottom: none;
   border-right: none;
-  padding-top: 42px;
+  padding-top: 52px;
 }
 
 .no-alert-groups-badge {
@@ -86,4 +83,5 @@
 .title-action-icons {
   display: flex;
   align-items: center;
+  gap: 4px;
 }

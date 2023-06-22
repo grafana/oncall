@@ -22,6 +22,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { TemplateOptions } from 'pages/integration_2/Integration2.config';
 import { waitForElement } from 'utils/DOM';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
@@ -50,6 +51,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
   const [editorHeight, setEditorHeight] = useState<string>(undefined);
+  const [isRecentAlertGroupExisting, setIsRecentAlertGroupExisting] = useState<boolean>(false);
 
   useEffect(() => {
     const locationParams: any = { template: template.name };
@@ -108,6 +110,10 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
     }
   }, []);
 
+  const onLoadAlertGroupsList = useCallback((isAlertGroup: boolean) => {
+    setIsRecentAlertGroupExisting(isAlertGroup);
+  }, []);
+
   const onSaveAndFollowLink = useCallback(
     (link: string) => {
       onUpdateTemplates({ [template.name]: changedTemplateBody });
@@ -119,34 +125,32 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const handleSubmit = useCallback(() => {
     if (template.isRoute) {
       onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId);
-      onHide();
     } else {
       onUpdateTemplates({ [template.name]: changedTemplateBody });
-      onHide();
     }
   }, [onUpdateTemplates, changedTemplateBody]);
 
-  const getCheatSheet = (templateName) => {
-    switch (templateName) {
-      case 'Grouping':
-      case 'Autoresolve':
+  const getCheatSheet = (templateKey: string) => {
+    switch (templateKey) {
+      case TemplateOptions.Grouping.key:
+      case TemplateOptions.Resolve.key:
         return groupingTemplateCheatSheet;
-      case 'Web title':
-      case 'Web message':
-      case 'Web image':
+      case TemplateOptions.WebTitle.key:
+      case TemplateOptions.WebMessage.key:
+      case TemplateOptions.WebImage.key:
         return genericTemplateCheatSheet;
-      case 'Auto acknowledge':
-      case 'Source link':
-      case 'Phone call':
-      case 'SMS':
-      case 'Slack title':
-      case 'Slack message':
-      case 'Slack image':
-      case 'Telegram title':
-      case 'Telegram message':
-      case 'Telegram image':
-      case 'Email title':
-      case 'Email message':
+      case TemplateOptions.Autoacknowledge.key:
+      case TemplateOptions.SourceLink.key:
+      case TemplateOptions.Phone.key:
+      case TemplateOptions.SMS.key:
+      case TemplateOptions.SlackTitle.key:
+      case TemplateOptions.SlackMessage.key:
+      case TemplateOptions.SlackImage.key:
+      case TemplateOptions.TelegramTitle.key:
+      case TemplateOptions.TelegramMessage.key:
+      case TemplateOptions.TelegramImage.key:
+      case TemplateOptions.EmailTitle.key:
+      case TemplateOptions.EmailMessage.key:
         return slackMessageTemplateCheatSheet;
       default:
         return genericTemplateCheatSheet;
@@ -188,22 +192,23 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}
             templates={templates}
+            onLoadAlertGroupsList={onLoadAlertGroupsList}
           />
           {isCheatSheetVisible ? (
             <CheatSheet
               cheatSheetName={template.displayName}
-              cheatSheetData={getCheatSheet(template.displayName)}
+              cheatSheetData={getCheatSheet(template.name)}
               onClose={onCloseCheatSheet}
             />
           ) : (
             <>
               <div className={cx('template-block-codeeditor')}>
                 <div className={cx('template-editor-block-title')}>
-                  <HorizontalGroup justify="space-between" wrap>
+                  <HorizontalGroup justify="space-between" align="center" wrap>
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-                      Cheatsheat
+                      Cheatsheet
                     </Button>
                   </HorizontalGroup>
                 </div>
@@ -223,7 +228,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             alertReceiveChannelId={id}
             template={template}
             templateBody={changedTemplateBody}
-            alertGroup={undefined}
+            isAlertGroupExisting={isRecentAlertGroupExisting}
             chatOpsPermalink={chatOpsPermalink}
             payload={alertGroupPayload}
             error={resultError}
@@ -240,20 +245,26 @@ interface ResultProps {
   // templateName: string;
   templateBody: string;
   template: TemplateForEdit;
-  alertGroup?: Alert;
+  isAlertGroupExisting?: boolean;
   chatOpsPermalink?: string;
   payload?: JSON;
   error?: string;
   onSaveAndFollowLink?: (link: string) => void;
+  templateIsRoute?: boolean;
 }
 
 const Result = (props: ResultProps) => {
-  const { alertReceiveChannelId, template, templateBody, chatOpsPermalink, payload, error, onSaveAndFollowLink } =
-    props;
+  const {
+    alertReceiveChannelId,
+    template,
+    templateBody,
+    chatOpsPermalink,
+    payload,
+    error,
+    isAlertGroupExisting,
+    onSaveAndFollowLink,
+  } = props;
 
-  const getCapitalizedChatopsName = (name: string) => {
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  };
   return (
     <div className={cx('template-block-result')}>
       <div className={cx('template-block-title')}>
@@ -274,6 +285,8 @@ const Result = (props: ResultProps) => {
                   key={template.name}
                   templateName={template.name}
                   templateBody={templateBody}
+                  templateType={template.type}
+                  templateIsRoute={template.isRoute}
                   alertReceiveChannelId={alertReceiveChannelId}
                   payload={payload}
                 />
@@ -284,11 +297,11 @@ const Result = (props: ResultProps) => {
               <Text type="secondary">{template?.additionalData.additionalDescription}</Text>
             )}
 
-            {template?.additionalData?.chatOpsName && (
+            {template?.additionalData?.chatOpsName && isAlertGroupExisting && (
               <VerticalGroup>
                 <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
                   <HorizontalGroup spacing="xs" align="center">
-                    Save and open Alert Group in {getCapitalizedChatopsName(template.additionalData.chatOpsName)}{' '}
+                    Save and open Alert Group in {template.additionalData.chatOpsDisplayName}{' '}
                     <Icon name="external-link-alt" />
                   </HorizontalGroup>
                 </Button>
@@ -299,7 +312,7 @@ const Result = (props: ResultProps) => {
           </VerticalGroup>
         ) : (
           <div>
-            <Block bordered fullWidth className={cx('block-style')}>
+            <Block bordered fullWidth className={cx('block-style')} withBackground>
               <Text>← Select alert group or "Use custom payload"</Text>
             </Block>
           </div>

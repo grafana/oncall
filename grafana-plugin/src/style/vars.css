@@ -31,14 +31,12 @@
   --tag-border-warning: rgb(150, 75, 0);
   --tag-background-warning: rgba(245, 183, 61, 0.18);
   --tag-text-warning: rgb(255, 190, 124);
-  --tag-border-success: rgb(49, 100, 43);
   --tag-border-link: rgba(56, 113, 220, 0.2);
   --tag-background-success: rgba(27, 133, 94, 0.15);
-  --tag-text-success: rgb(165, 214, 159);
 }
 
 .theme-light {
-  --cards-background: var(--blue-2);
+  --cards-background: rgba(244, 245, 245);
   --highlighted-row-bg: var(--cyan-1);
   --disabled-button-color: #bdbdbd;
   --primary-background: rgb(255, 255, 255);
@@ -64,6 +62,10 @@
   --shadows-z1: 0 1px 2px rgba(24, 26, 27, 0.2);
   --shadows-z2: 0 4px 8px rgba(24, 26, 27, 0.2);
   --shadows-z3: 0 13px 20px 1px rgba(24, 26, 27, 0.18);
+  --tag-text-success: rgb(50, 96, 43);
+  --tag-border-success: rgb(148, 203, 140);
+  --button-background: rgba(36, 41, 46, 0.16);
+  --box-background: rgba(244, 245, 245);
 }
 
 .theme-dark {
@@ -95,4 +97,8 @@
   --shadows-z1: 0 1px 2px rgba(24, 26, 27, 0.75);
   --shadows-z2: 0 4px 8px rgba(24, 26, 27, 0.75);
   --shadows-z3: 0 8px 24px rgb(1, 4, 9);
+  --tag-text-success: rgb(165, 214, 159);
+  --tag-border-success: rgb(49, 100, 43);
+  --button-background: rgba(204, 204, 220, 0.16);
+  --box-background: rgba(10, 10, 10, 0.4);
 }

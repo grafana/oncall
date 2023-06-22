@@ -629,7 +629,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <VerticalGroup spacing="none">
         <Text type="secondary">{m.format('MMM DD, YYYY')}</Text>
-        <Text type="secondary">{m.format('hh:mm A')}</Text>
+        <Text type="secondary">{m.format('HH:mm')}</Text>
       </VerticalGroup>
     );
   }
