@@ -283,7 +283,7 @@ describe('PluginConfigPage', () => {
     const metaJsonDataOnCallApiUrl = 'onCallApiUrlFromMetaJsonData';
 
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
-
+    window.location.reload = jest.fn();
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
     mockSyncDataWithOnCall(License.OSS);
 
@@ -301,8 +301,6 @@ describe('PluginConfigPage', () => {
     await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
     await userEvent.click(screen.getByText('Remove'));
-
-    // await screen.findByTestId(successful ? PLUGIN_CONFIGURATION_FORM_DATA_ID : STATUS_MESSAGE_BLOCK_DATA_ID);
 
     // assertions
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);

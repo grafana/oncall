@@ -13,6 +13,8 @@ export const GRAFANA_LICENSE_OSS = 'OpenSource';
 
 export const GRAFANA_LICENSE_CLOUD = 'Cloud';
 
+export const FALLBACK_LICENSE = CLOUD_VERSION_REGEX.test(APP_VERSION) ? GRAFANA_LICENSE_CLOUD : GRAFANA_LICENSE_OSS;
+
 // height of new Grafana sticky header with breadcrumbs
 export const GRAFANA_HEADER_HEIGTH = 80;
 

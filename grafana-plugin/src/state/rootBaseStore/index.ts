@@ -249,7 +249,7 @@ export class RootBaseStore {
     return this.features?.[feature];
   }
 
-  getLicense() {
+  get license() {
     if (this.backendLicense) {
       return this.backendLicense;
     }
@@ -260,7 +260,7 @@ export class RootBaseStore {
   }
 
   isOpenSource(): boolean {
-    return this.getLicense() === GRAFANA_LICENSE_OSS;
+    return this.license === GRAFANA_LICENSE_OSS;
   }
 
   @observable

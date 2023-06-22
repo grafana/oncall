@@ -428,47 +428,93 @@ exports[`PluginConfigPage Plugin reset: successful - true 1`] = `
   <p>
     This page will help you configure the OnCall plugin 👋
   </p>
-  <pre
-    data-testid="status-message-block"
-  >
-    <span
-      class="root text text--undefined text--medium"
-    >
-      There was an error resetting your plugin, try again.
-    </span>
-  </pre>
-  <div
-    class="css-ve64a7-horizontal-group"
-    style="width: 100%; height: 100%;"
+  <form
+    class="css-xs0vux"
+    data-testid="plugin-configuration-form"
   >
     <div
-      class="css-cvef6c-layoutChildrenWrapper"
+      class="info-block"
     >
-      <button
-        class="css-z53gi5-button"
-        type="button"
+      <p>
+        1. Launch the OnCall backend
+      </p>
+      <span
+        class="root text text--secondary text--medium"
       >
-        <span
-          class="css-1mhnkuh"
+        Run hobby, dev or production backend. See
+         
+        <a
+          href="https://github.com/grafana/oncall#getting-started"
+          rel="noreferrer"
+          target="_blank"
         >
-          Retry Sync
-        </span>
-      </button>
+          <span
+            class="root text text--link text--medium"
+          >
+            here
+          </span>
+        </a>
+         
+        on how to get started.
+      </span>
     </div>
     <div
-      class="css-cvef6c-layoutChildrenWrapper"
+      class="info-block"
     >
-      <button
-        class="css-1ed0qk5-button"
-        type="button"
+      <p>
+        2. Let us know the base URL of your OnCall API
+      </p>
+      <span
+        class="root text text--secondary text--medium"
       >
-        <span
-          class="css-1mhnkuh"
-        >
-          Remove current configuration
-        </span>
-      </button>
+        The OnCall backend must be reachable from your Grafana installation. Some examples are:
+        <br />
+        - http://host.docker.internal:8080
+        <br />
+        - http://localhost:8080
+      </span>
     </div>
-  </div>
+    <div
+      class="css-8e5b3"
+    >
+      <div
+        class="css-jt4xma-Label"
+      >
+        <label>
+          <div
+            class="css-xhqy0o"
+          >
+            OnCall backend URL
+          </div>
+        </label>
+      </div>
+      <div>
+        <div
+          class="css-xcstkt-input-wrapper"
+          data-testid="input-wrapper"
+        >
+          <div
+            class="css-1w5c5dq-input-inputWrapper"
+          >
+            <input
+              class="css-1mlczho-input-input"
+              data-testid="onCallApiUrl"
+              name="onCallApiUrl"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <button
+      class="css-z53gi5-button"
+      type="submit"
+    >
+      <span
+        class="css-1mhnkuh"
+      >
+        Connect
+      </span>
+    </button>
+  </form>
 </div>
 `;

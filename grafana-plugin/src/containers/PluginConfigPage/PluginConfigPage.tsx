@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
 import PluginState, { PluginStatusResponseBase } from 'state/plugin';
-import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { FALLBACK_LICENSE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import ConfigurationForm from './parts/ConfigurationForm';
 import RemoveCurrentConfigurationButton from './parts/RemoveCurrentConfigurationButton';
@@ -74,13 +74,12 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   const pluginMetaOnCallApiUrl = jsonData?.onCallApiUrl;
   const processEnvOnCallApiUrl = process.env.ONCALL_API_URL; // don't destructure this, will break how webpack supplies this
   const onCallApiUrl = pluginMetaOnCallApiUrl || processEnvOnCallApiUrl;
-  const fallbackLicense = CLOUD_VERSION_REGEX.test(APP_VERSION) ? GRAFANA_LICENSE_CLOUD : GRAFANA_LICENSE_OSS;
-  const licenseType = pluginIsConnected?.license || fallbackLicense;
+  const licenseType = pluginIsConnected?.license || FALLBACK_LICENSE;
 
   const resetQueryParams = useCallback(() => removePluginConfiguredQueryParams(pluginIsEnabled), [pluginIsEnabled]);
 
   const triggerDataSyncWithOnCall = useCallback(async () => {
-    await resetMessages();
+    resetMessages();
     setSyncingPlugin(true);
 
     const syncDataResponse = await PluginState.syncDataWithOnCall(onCallApiUrl);
@@ -176,6 +175,15 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     [resettingPlugin, triggerPluginReset]
   );
 
+  const ReconfigurePluginButtons = () => (
+    <HorizontalGroup>
+      <Button variant="primary" onClick={triggerDataSyncWithOnCall} size="md">
+        Retry Sync
+      </Button>
+      {licenseType === GRAFANA_LICENSE_OSS ? <RemoveConfigButton /> : null}
+    </HorizontalGroup>
+  );
+
   let content: React.ReactNode;
 
   if (checkingIfPluginIsConnected) {
@@ -186,24 +194,14 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     content = (
       <>
         <StatusMessageBlock text={pluginConnectionCheckError || pluginResetError} />
-        <HorizontalGroup>
-          <Button variant="primary" onClick={triggerDataSyncWithOnCall} size="md">
-            Retry Sync
-          </Button>
-          {licenseType === GRAFANA_LICENSE_OSS ? <RemoveConfigButton /> : null}
-        </HorizontalGroup>
+        <ReconfigurePluginButtons />
       </>
     );
   } else if (syncError) {
     content = (
       <>
         <StatusMessageBlock text={syncError} />
-        <HorizontalGroup>
-          <Button variant="primary" onClick={triggerDataSyncWithOnCall} size="md">
-            Retry Sync
-          </Button>
-          {licenseType === GRAFANA_LICENSE_OSS ? <RemoveConfigButton /> : null}
-        </HorizontalGroup>
+        <ReconfigurePluginButtons />
       </>
     );
   } else if (!pluginIsConnected) {
