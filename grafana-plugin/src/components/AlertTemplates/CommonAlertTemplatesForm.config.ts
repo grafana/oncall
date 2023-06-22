@@ -38,6 +38,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -66,6 +67,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'plain',
   },
@@ -75,6 +77,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -91,6 +94,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'plain',
   },
@@ -100,6 +104,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -116,6 +121,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'image',
   },
