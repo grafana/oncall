@@ -683,7 +683,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL copied!')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
-          <Button variant={'primary'} onClick={sendDemoAlert}>
+          <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
             Send Alert
           </Button>
         </HorizontalGroup>
