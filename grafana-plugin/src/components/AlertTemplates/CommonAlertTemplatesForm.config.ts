@@ -16,6 +16,7 @@ export interface TemplateForEdit {
     additionalDescription?: string;
   };
   isRoute?: boolean;
+  type?: 'html' | 'plain' | 'image' | 'boolean';
 }
 
 export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
@@ -23,11 +24,13 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     displayName: 'Web title',
     name: TemplateOptions.WebTitle.key,
     description: '',
+    type: 'html',
   },
   web_message_template: {
     displayName: 'Web message',
     name: TemplateOptions.WebMessage.key,
     description: '',
+    type: 'html',
   },
   slack_title_template: {
     name: 'slack_title_template',
@@ -37,21 +40,25 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
       chatOpsName: 'slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
+    type: 'plain',
   },
   sms_title_template: {
     name: TemplateOptions.SMS.key,
     displayName: 'Sms title',
     description: '',
+    type: 'plain',
   },
   phone_call_title_template: {
     name: TemplateOptions.Phone.key,
     displayName: 'Phone call title',
     description: '',
+    type: 'plain',
   },
   email_title_template: {
     name: TemplateOptions.EmailTitle.key,
     displayName: 'Email title',
     description: '',
+    type: 'plain',
   },
   telegram_title_template: {
     name: TemplateOptions.TelegramTitle.key,
@@ -60,6 +67,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     additionalData: {
       chatOpsName: 'telegram',
     },
+    type: 'plain',
   },
   slack_message_template: {
     name: TemplateOptions.SlackMessage.key,
@@ -69,11 +77,13 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
       chatOpsName: 'slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
+    type: 'plain',
   },
   email_message_template: {
     name: TemplateOptions.EmailMessage.key,
     displayName: 'Email message',
     description: '',
+    type: 'plain',
   },
   telegram_message_template: {
     name: TemplateOptions.TelegramMessage.key,
@@ -82,6 +92,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     additionalData: {
       chatOpsName: 'telegram',
     },
+    type: 'plain',
   },
   slack_image_url_template: {
     name: TemplateOptions.SlackImage.key,
@@ -91,11 +102,13 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
       chatOpsName: 'slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
+    type: 'plain',
   },
   web_image_url_template: {
     name: TemplateOptions.WebImage.key,
     displayName: 'Web image url',
     description: '',
+    type: 'image',
   },
   telegram_image_url_template: {
     name: TemplateOptions.TelegramImage.key,
@@ -104,28 +117,33 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     additionalData: {
       chatOpsName: 'telegram',
     },
+    type: 'image',
   },
   grouping_id_template: {
     name: TemplateOptions.Grouping.key,
     displayName: 'Grouping',
     description:
       'Reduce noise, minimize duplication with Alert Grouping, based on time, alert content, and even multiple features at the same time.  Check the cheasheet to customize your template.',
+    type: 'plain',
   },
   acknowledge_condition_template: {
     name: TemplateOptions.Autoacknowledge.key,
     displayName: 'Acknowledge condition',
     description: '',
+    type: 'boolean',
   },
   resolve_condition_template: {
     name: TemplateOptions.Resolve.key,
     displayName: 'Resolve condition',
     description:
       'When monitoring systems return to normal, they can send "resolve" alerts. OnCall can use these signals to resolve alert groups accordingly.',
+    type: 'boolean',
   },
   source_link_template: {
     name: TemplateOptions.SourceLink.key,
     displayName: 'Source link',
     description: '',
+    type: 'plain',
   },
   route_template: {
     name: TemplateOptions.Routing.key,
@@ -137,5 +155,6 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
       data: 'Selected Alert will be directed to this route',
     },
     isRoute: true,
+    type: 'boolean',
   },
 };
