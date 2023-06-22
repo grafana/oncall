@@ -121,11 +121,21 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
                 }}
               />
             </div>
-          ) : (
+          ) : templateName.includes('web_') ? (
             <div
               className={cx('message')}
               dangerouslySetInnerHTML={{
-                __html: sanitize(result.preview?.replace(/\n/g, '<br />') || ''),
+                __html: sanitize(result.preview),
+              }}
+            />
+          ) : (
+            // <Text className={cx('display-linebreak')}>
+            //   {sanitize(result.preview)}
+            // </Text>
+            <div
+              className={cx('message', 'pre-wrap')}
+              dangerouslySetInnerHTML={{
+                __html: sanitize(result.preview),
               }}
             />
           )}
