@@ -183,7 +183,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
               <VerticalGroup>
-                <Text.Title level={3}>Integrations 2</Text.Title>
+                <Text.Title level={3}>Integrations</Text.Title>
                 <Text type="secondary">
                   Receive alerts, group and interpret using templates and route to escalations
                 </Text>
