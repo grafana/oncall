@@ -49,7 +49,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     return (
       <>
         <IntegrationBlock
-          hasCollapsedBorder={false}
+          noContent={false}
           key={channelFilterId}
           toggle={toggle}
           heading={
@@ -98,7 +98,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
             </div>
           }
           content={
-            <div className={cx('spacing')}>
+            <div>
               <div className={cx('collapsedRoute__container')}>
                 {chatOpsAvailableChannels.length > 0 && (
                   <div className={cx('collapsedRoute__item')}>

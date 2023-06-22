@@ -177,7 +177,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               >
                 <IntegrationBlock
                   className={cx('template-drawer')}
-                  hasCollapsedBorder
+                  noContent
                   heading={undefined}
                   content={
                     <IntegrationTemplateList
@@ -290,7 +290,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         canHoverIcon: false,
         expandedView: () => (
           <IntegrationBlock
-            hasCollapsedBorder
+            noContent
             heading={
               <div className={cx('templates__outer-container')}>
                 <Tag
@@ -967,7 +967,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
 
   return (
     <IntegrationBlock
-      hasCollapsedBorder={false}
+      noContent={hasAlerts}
       toggle={noop}
       heading={
         <div className={cx('how-to-connect__container')}>
@@ -1008,16 +1008,14 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
 
   function renderContent() {
     return (
-      <div className={cx('integration__alertsPanel')}>
-        <VerticalGroup justify={'flex-start'} spacing={'xs'}>
-          {!hasAlerts && (
-            <HorizontalGroup spacing={'xs'}>
-              <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-              <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
-            </HorizontalGroup>
-          )}
-        </VerticalGroup>
-      </div>
+      <VerticalGroup justify={'flex-start'} spacing={'xs'}>
+        {!hasAlerts && (
+          <HorizontalGroup spacing={'xs'}>
+            <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
+            <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
+          </HorizontalGroup>
+        )}
+      </VerticalGroup>
     );
   }
 };

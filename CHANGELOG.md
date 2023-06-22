@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 
 - Fix duplicate orders for user notification policies by @vadimkerr ([#2278](https://github.com/grafana/oncall/pull/2278))
+- Fix broken markup on alert group page, declutter, make time format consistent [#2296](https://github.com/grafana/oncall/pull/2295)
 
 ## v1.2.45 (2023-06-19)
 

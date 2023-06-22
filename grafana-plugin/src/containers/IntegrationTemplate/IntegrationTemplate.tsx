@@ -250,6 +250,7 @@ interface ResultProps {
   payload?: JSON;
   error?: string;
   onSaveAndFollowLink?: (link: string) => void;
+  templateIsRoute?: boolean;
 }
 
 const Result = (props: ResultProps) => {
@@ -284,6 +285,8 @@ const Result = (props: ResultProps) => {
                   key={template.name}
                   templateName={template.name}
                   templateBody={templateBody}
+                  templateType={template.type}
+                  templateIsRoute={template.isRoute}
                   alertReceiveChannelId={alertReceiveChannelId}
                   payload={payload}
                 />
