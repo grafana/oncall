@@ -19,6 +19,8 @@ const cx = cn.bind(styles);
 interface TemplatePreviewProps {
   templateName: string;
   templateBody: string | null;
+  templateType?: 'plain' | 'html' | 'image' | 'boolean';
+  templateIsRoute?: boolean;
   payload?: JSON;
   alertReceiveChannelId: AlertReceiveChannel['id'];
   onEditClick?: () => void;
@@ -32,7 +34,8 @@ interface ConditionalResult {
 }
 
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, payload, alertReceiveChannelId, alertGroupId } = props;
+  const { templateName, templateBody, templateType, payload, alertReceiveChannelId, alertGroupId, templateIsRoute } =
+    props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
@@ -49,7 +52,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
         setResult(data);
         if (data?.preview === 'True') {
           setConditionalResult({ isResult: true, value: 'True' });
-        } else if (templateName.includes('route') || templateName.includes('condition')) {
+        } else if (templateType === 'boolean') {
           setConditionalResult({ isResult: true, value: 'False' });
         } else {
           setConditionalResult({ isResult: false, value: undefined });
@@ -67,7 +70,7 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   useEffect(handleTemplateBodyChange, [templateBody, payload]);
 
   const conditionalMessage = (success: boolean) => {
-    if (templateName.includes('route')) {
+    if (templateIsRoute) {
       return (
         <Text type="secondary">
           Selected alert will {!success && <Text type="secondary">not</Text>} be matched with this route
@@ -83,58 +86,87 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     }
   };
 
-  return result ? (
-    <>
-      {conditionalResult?.isResult ? (
-        <Text type={conditionalResult.value === 'True' ? 'success' : 'danger'}>
-          {conditionalResult.value === 'True' ? (
-            <VerticalGroup>
-              <HorizontalGroup>
-                <Icon name="check" size="lg" /> {conditionalResult.value}
-              </HorizontalGroup>
-              {conditionalMessage(conditionalResult.value === 'True')}
-            </VerticalGroup>
-          ) : (
-            <VerticalGroup>
-              <HorizontalGroup>
-                <Icon name="times-circle" size="lg" />
-                <div
-                  className={cx('message')}
-                  dangerouslySetInnerHTML={{
-                    __html: sanitize(result.preview),
-                  }}
-                />
-              </HorizontalGroup>
-              {conditionalMessage(conditionalResult.value === 'True')}
-            </VerticalGroup>
-          )}
-        </Text>
-      ) : (
-        <>
-          {templateName.includes('image') ? (
-            <div className={cx('image-result')}>
-              <img
-                src={result.preview}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.alt = result.preview || 'No image found';
+  function renderResult() {
+    switch (templateType) {
+      case 'html': {
+        return renderHtmlResult();
+      }
+      case 'image': {
+        return renderImageResult();
+      }
+      case 'boolean': {
+        return renderBooleanResult();
+      }
+      case 'plain': {
+        return renderPlainResult();
+      }
+      default: {
+        return renderPlainResult();
+      }
+    }
+  }
+  function renderBooleanResult() {
+    return (
+      <Text type={conditionalResult.value === 'True' ? 'success' : 'danger'}>
+        {conditionalResult.value === 'True' ? (
+          <VerticalGroup>
+            <HorizontalGroup>
+              <Icon name="check" size="lg" /> {conditionalResult.value}
+            </HorizontalGroup>
+            {conditionalMessage(conditionalResult.value === 'True')}
+          </VerticalGroup>
+        ) : (
+          <VerticalGroup>
+            <HorizontalGroup>
+              <Icon name="times-circle" size="lg" />
+              <div
+                className={cx('message')}
+                dangerouslySetInnerHTML={{
+                  __html: sanitize(result.preview),
                 }}
               />
-            </div>
-          ) : (
-            <div
-              className={cx('message')}
-              dangerouslySetInnerHTML={{
-                __html: sanitize(result.preview?.replace(/\n/g, '<br />') || ''),
-              }}
-            />
-          )}
-        </>
-      )}
-    </>
-  ) : (
-    <LoadingPlaceholder text="Loading..." />
-  );
+            </HorizontalGroup>
+            {conditionalMessage(conditionalResult.value === 'True')}
+          </VerticalGroup>
+        )}
+      </Text>
+    );
+  }
+  function renderHtmlResult() {
+    return (
+      <div
+        className={cx('message')}
+        dangerouslySetInnerHTML={{
+          __html: sanitize(result.preview),
+        }}
+      />
+    );
+  }
+  function renderPlainResult() {
+    return (
+      <div
+        className={cx('message', 'display-linebreak')}
+        dangerouslySetInnerHTML={{
+          __html: sanitize(result.preview),
+        }}
+      />
+    );
+  }
+  function renderImageResult() {
+    return (
+      <div className={cx('image-result')}>
+        <img
+          src={result.preview}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.alt = result.preview || 'No image found';
+          }}
+        />
+      </div>
+    );
+  }
+
+  return result ? <>{renderResult()}</> : <LoadingPlaceholder text="Loading..." />;
 });
 
 export default TemplatePreview;
