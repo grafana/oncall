@@ -24,10 +24,11 @@ interface TemplatesAlertGroupsListProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   onSelectAlertGroup?: (alertGroup: Alert) => void;
   onEditPayload?: (payload: string) => void;
+  onLoadAlertGroupsList?: (isRecentAlertExising: boolean) => void;
 }
 
 const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
-  const { alertReceiveChannelId, templates, onEditPayload, onSelectAlertGroup } = props;
+  const { alertReceiveChannelId, templates, onEditPayload, onSelectAlertGroup, onLoadAlertGroupsList } = props;
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
   const [selectedAlertPayload, setSelectedAlertPayload] = useState<string>(undefined);
@@ -35,9 +36,10 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
-    store.alertGroupStore
-      .getAlertGroupsForIntegration(alertReceiveChannelId)
-      .then((result) => setAlertGroupsList(result.slice(0, 30)));
+    store.alertGroupStore.getAlertGroupsForIntegration(alertReceiveChannelId).then((result) => {
+      setAlertGroupsList(result.slice(0, 30));
+      onLoadAlertGroupsList(result.length > 0);
+    });
   }, []);
 
   const getCodeEditorHeight = () => {
