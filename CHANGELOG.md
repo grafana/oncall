@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- UI Updates for the integrations page ([#2310](https://github.com/grafana/oncall/pull/2310))
+
 ## v1.2.46 (2023-06-22)
 
 ### Added

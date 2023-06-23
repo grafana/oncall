@@ -37,8 +37,6 @@ import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
 import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
-// import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
-import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
@@ -177,22 +175,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   </div>
                 </div>
                 {showIntegrationSettings && (
-                  // <IntegrationSettings
-                  //   alertGroupId={incident.pk}
-                  //   onUpdate={() => {
-                  //     alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
-                  //   }}
-                  //   onUpdateTemplates={() => {
-                  //     store.alertGroupStore.getAlert(id);
-                  //   }}
-                  //   startTab={IntegrationSettingsTab.Templates}
-                  //   id={incident.alert_receive_channel.id}
-                  //   onHide={() =>
-                  //     this.setState({
-                  //       showIntegrationSettings: undefined,
-                  //     })
-                  //   }
-                  // />
                   <Modal
                     isOpen
                     title="Edit template"
@@ -208,7 +190,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                         query={{
                           page: 'integrations',
                           id: incident.alert_receive_channel.id,
-                          tab: IntegrationSettingsTab.Templates,
+                          // tab: IntegrationSettingsTab.Templates,
                         }}
                       >
                         Integrations
