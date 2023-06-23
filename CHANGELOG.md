@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 
 - Change mobile shift notifications title and subtitle by @imtoori ([#2288](https://github.com/grafana/oncall/pull/2288))
+- Removed url from sms notification, changed format ([0000](https://github.com/grafana/oncall/pull/0000))  
 
 ## Fixed
 
