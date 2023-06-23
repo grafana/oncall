@@ -400,10 +400,9 @@ class AlertGroupView(
 
     @action(detail=False)
     def stats(self, *args, **kwargs):
-        MAX_COUNT = 1001
+        MAX_COUNT = 100001
         alert_groups = self.filter_queryset(self.get_queryset())[:MAX_COUNT]
         count = alert_groups.count()
-        print(count)
         count = f"{MAX_COUNT-1}+" if count == MAX_COUNT else str(count)
         return Response(
             {
