@@ -238,7 +238,13 @@ export class RootBaseStore {
 
   checkMissingSetupPermissions() {
     const fallback = contextSrv.user.orgRole === OrgRole.Admin && !contextSrv.accessControlEnabled();
-    const setupRequiredPermissions = ['plugins:write', 'users:read', 'teams:read', 'apikeys:create', 'apikeys:delete'];
+    const setupRequiredPermissions = [
+      'plugins:write',
+      'org.users:read',
+      'teams:read',
+      'apikeys:create',
+      'apikeys:delete',
+    ];
     return setupRequiredPermissions.filter(function (permission) {
       return !contextSrv.hasAccess(permission, fallback);
     });

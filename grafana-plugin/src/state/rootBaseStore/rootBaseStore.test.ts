@@ -237,12 +237,12 @@ describe('rootBaseStore', () => {
     { role: OrgRole.Viewer, missing_permissions: [], expected_result: true },
     {
       role: OrgRole.Admin,
-      missing_permissions: ['plugins:write', 'users:read', 'teams:read', 'apikeys:create', 'apikeys:delete'],
+      missing_permissions: ['plugins:write', 'org.users:read', 'teams:read', 'apikeys:create', 'apikeys:delete'],
       expected_result: false,
     },
     {
       role: OrgRole.Viewer,
-      missing_permissions: ['plugins:write', 'users:read', 'teams:read', 'apikeys:create', 'apikeys:delete'],
+      missing_permissions: ['plugins:write', 'org.users:read', 'teams:read', 'apikeys:create', 'apikeys:delete'],
       expected_result: false,
     },
   ])('signup is allowed, accessControlEnabled, various roles and permissions', async (scenario) => {
