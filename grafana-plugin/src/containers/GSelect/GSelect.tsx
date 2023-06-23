@@ -146,7 +146,6 @@ const GSelect = observer((props: GSelectProps) => {
 
   return (
     <div className={cx('root', className)}>
-      {/*@ts-ignore*/}
       <Tag
         autoFocus={autoFocus}
         isSearchable={showSearch}

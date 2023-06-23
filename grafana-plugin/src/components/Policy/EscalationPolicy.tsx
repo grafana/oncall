@@ -36,7 +36,11 @@ import styles from './EscalationPolicy.module.css';
 
 const cx = cn.bind(styles);
 
-export interface EscalationPolicyProps {
+interface ElementSortableProps {
+  index: number;
+}
+
+export interface EscalationPolicyProps extends ElementSortableProps {
   data: EscalationPolicyType;
   waitDelays?: any[];
   isDisabled?: boolean;

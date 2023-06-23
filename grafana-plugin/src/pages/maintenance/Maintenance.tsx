@@ -29,6 +29,7 @@ interface MaintenancePageState {
   maintenanceData?: {
     type?: MaintenanceType;
     alert_receive_channel_id?: AlertReceiveChannel['id'];
+    disabled?: boolean;
   };
 }
 
@@ -199,7 +200,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderDuration = (maintenance: Maintenance) => {
     const started = moment(maintenance.started_at_timestamp * 1000);
     const ended = moment(maintenance.maintenance_till_timestamp * 1000);
-    return `${started.format('MMM DD, YYYY hh:mm A')} - ${ended.format('MMM DD, YYYY hh:mm A')}`;
+    return `${started.format('MMM DD, YYYY HH:mm')} - ${ended.format('MMM DD, YYYY hh:mm')}`;
   };
 
   renderTimer = (maintenance: Maintenance) => {

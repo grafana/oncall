@@ -69,7 +69,6 @@ class SlackClientWithErrorHandling(SlackClient):
         response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
 
         if not response["ok"]:
-
             exception_text = "Slack API Call Error: {} \nArgs: {} \nKwargs: {} \nResponse: {}".format(
                 response["error"], args, kwargs, response
             )

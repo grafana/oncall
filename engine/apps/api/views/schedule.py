@@ -1,3 +1,6 @@
+import functools
+import operator
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, OuterRef, Subquery
 from django.db.utils import IntegrityError
@@ -27,6 +30,7 @@ from apps.api.serializers.user import ScheduleUserSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
@@ -72,7 +76,10 @@ class ScheduleView(
     ModelViewSet,
     mixins.ListModelMixin,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
@@ -163,7 +170,7 @@ class ScheduleView(
 
     def get_queryset(self, ignore_filtering_by_available_teams=False):
         is_short_request = self.request.query_params.get("short", "false") == "true"
-        filter_by_type = self.request.query_params.get("type")
+        filter_by_type = self.request.query_params.getlist("type")
         mine = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("mine"))
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
@@ -178,8 +185,12 @@ class ScheduleView(
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
-        if filter_by_type is not None and filter_by_type in SCHEDULE_TYPE_TO_CLASS:
-            queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
+        if filter_by_type:
+            valid_types = [i for i in filter_by_type if i in SCHEDULE_TYPE_TO_CLASS]
+            if valid_types:
+                queryset = functools.reduce(
+                    operator.or_, [queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[i]) for i in valid_types]
+                )
         if used is not None:
             queryset = queryset.filter(escalation_policies__isnull=not used).distinct()
         if mine:

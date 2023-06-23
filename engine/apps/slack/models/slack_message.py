@@ -80,7 +80,8 @@ class SlackMessage(models.Model):
                 self.alert_group.slack_message = self
                 self.alert_group.save(update_fields=["slack_message"])
                 return self.alert_group
-            return self.alert.group
+            else:
+                raise
 
     @property
     def permalink(self):
@@ -217,32 +218,3 @@ class SlackMessage(models.Model):
                 pass
             else:
                 raise e
-
-    @classmethod
-    def get_alert_group_from_slack_message_payload(cls, slack_team_identity, payload):
-
-        message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
-        channel_id = payload["channel"]["id"]
-
-        try:
-            slack_message = cls.objects.get(
-                slack_id=message_ts,
-                _slack_team_identity=slack_team_identity,
-                channel_id=channel_id,
-            )
-            alert_group = slack_message.get_alert_group()
-        except cls.DoesNotExist as e:
-            logger.error(
-                f"Tried to get SlackMessage from message_ts:"
-                f"slack_team_identity_id={slack_team_identity.pk},"
-                f"message_ts={message_ts}"
-            )
-            raise e
-        except cls.alert.RelatedObjectDoesNotExist as e:
-            logger.error(
-                f"Tried to get AlertGroup from SlackMessage:"
-                f"slack_team_identity_id={slack_team_identity.pk},"
-                f"message_ts={message_ts}"
-            )
-            raise e
-        return alert_group

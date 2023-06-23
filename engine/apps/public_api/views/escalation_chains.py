@@ -34,7 +34,7 @@ class EscalationChainView(RateLimitHeadersMixin, ModelViewSet):
         if name is not None:
             queryset = queryset.filter(name=name)
 
-        return queryset
+        return queryset.order_by("id")
 
     def get_object(self):
         public_primary_key = self.kwargs["pk"]

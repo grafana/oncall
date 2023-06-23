@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/oncall/latest/get-started/
   - /getting-started/
 canonical: https://grafana.com/docs/oncall/latest/get-started/
 keywords:
@@ -21,10 +20,10 @@ OnCall helps ensure that alert notifications reach the right people, at the righ
 
 The following diagram details an example alert workflow with Grafana OnCall:
 
-<img src="/static/img/docs/oncall/oncall-alertworkflow.png" class="no-shadow" width="700px">
+<img src="/static/img/docs/oncall/oncall-alert-workflow.png" class="no-shadow" width="700px">
 
 These procedures introduce you to initial Grafana OnCall configuration steps, including monitoring system integration,
-how to set up escalation chains, and how to use your calendar service for on-call scheduling.
+how to set up escalation chains, and how to set up calendar for on-call scheduling.
 
 ## Before you begin
 
@@ -68,7 +67,7 @@ For more information on Grafana OnCall integrations and further configuration gu
 
 ### Learn Alert Flow
 
-All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "../alert-behavior/alert-templates" >}})). Alert Group could have mutually
+All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "../jinja2-templating" >}})). Alert Group could have mutually
 exclusive states:
 
 - **Firing:** Once Alert Group is registered, Escalation Policy associated with it is getting started. Escalation policy will work while Alert Group is in this status.
@@ -112,7 +111,7 @@ To configure Escalation Chains:
 Alerts from this integration will now follow the escalation steps configured in your Escalation Chain.
 
 For more information on Escalation Chains and more ways to customize them, refer to
-[Configure and manage Escalation Chains]({{< relref "../escalation-policies/configure-escalation-chains" >}})
+[Configure and manage Escalation Chains]({{< relref "escalation-chains-and-routes" >}})
 
 ## Get notified of an alert
 
@@ -122,9 +121,9 @@ policies, chatops integrations, and on-call schedules allow you to automate how 
 ### Configure personal notification policies
 
 Personal notification policies determine how a user is notified for a certain type of alert. Get notified by SMS,
-phone call, or Slack mentions. Administrators can configure how users receive notification for certain types of alerts.
+phone call, Slack mentions, or mobile push notification. Administrators can configure how users receive notification for certain types of alerts.
 For more information on personal notification policies, refer to
-[Manage users and teams for Grafana OnCall]({{< relref "../configure-user-settings" >}})
+[Manage users and teams for Grafana OnCall]({{< relref "user-and-team-management" >}})
 
 To configure users personal notification policies:
 
@@ -148,7 +147,9 @@ To configure Slack for Grafana OnCall:
 6. Ensure users verify their Slack accounts in their user profile in Grafana OnCall.
 
 For further instruction on connecting to your Slack workspace, refer to
-[Slack integration for Grafana OnCall]({{< relref "../integrations/chatops-integrations/configure-slack/" >}})
+[Slack integration for Grafana OnCall]({{< relref "../notify/slack/" >}})
+
+Grafana OnCall also supports other ChatOps integration like [Microsoft Teams and Telegram]({{< relref "../notify" >}}).
 
 ### Add your on-call schedule
 
@@ -159,8 +160,6 @@ To integrate your on-call calendar with Grafana OnCall:
 
 1. In the **Schedules** tab of Grafana OnCall, click **+ Add team schedule for on-call rotation**.
 2. Provide a schedule name.
-3. Copy the iCal URL associated with your on-call calendar from your calendar integration settings.
-4. Configure the rest of the schedule settings and click Create Schedule
+3. Configure the rest of the schedule settings and click Create Schedule
 
-For more information on on-call schedules, refer to
-[Configure and manage on-call schedules]({{< relref "../calendar-schedules" >}})
+[More information on on-call schedules.]({{< relref "on-call-schedules" >}})

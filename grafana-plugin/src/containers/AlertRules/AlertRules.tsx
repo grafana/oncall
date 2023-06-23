@@ -292,6 +292,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
               )}
             </div>
           </Block>
+
           {alertReceiveChannel.description && (
             <div className={cx('description-style')}>
               <Alert

@@ -1,6 +1,8 @@
 from calendar import monthrange
+from unittest.mock import patch
 
 import pytest
+import pytz
 from django.utils import timezone
 
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
@@ -12,7 +14,7 @@ def test_get_on_call_users_from_single_event(make_organization_and_user, make_on
     organization, user = make_organization_and_user()
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
 
     data = {
         "priority_level": 1,
@@ -96,7 +98,7 @@ def test_get_on_call_users_from_recurrent_event(make_organization_and_user, make
     organization, user = make_organization_and_user()
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
 
     data = {
         "priority_level": 1,
@@ -575,7 +577,7 @@ def test_rolling_users_event_with_interval_monthly(
     user_2 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    start_date = timezone.datetime(year=2022, month=10, day=1, hour=10, minute=30)
+    start_date = timezone.datetime(year=2022, month=10, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
     days_for_next_month_1 = monthrange(2022, 10)[1]
     days_for_next_month_2 = monthrange(2022, 11)[1] + days_for_next_month_1
     days_for_next_month_3 = monthrange(2022, 12)[1] + days_for_next_month_2
@@ -939,7 +941,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30)
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
     days_in_curr_month = monthrange(2022, 12)[1]
     days_in_next_month = monthrange(2023, 1)[1]
 
@@ -995,7 +997,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly_by_monthday(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30)
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30, tzinfo=pytz.UTC)
     days_in_curr_month = monthrange(2022, 12)[1]
     days_in_next_month = monthrange(2023, 1)[1]
 
@@ -1314,7 +1316,7 @@ def test_get_oncall_users_for_multiple_schedules(
     schedule_1 = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedule_2 = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
 
-    now = timezone.now().replace(tzinfo=None, microsecond=0)
+    now = timezone.now().replace(microsecond=0)
 
     on_call_shift_1 = make_on_call_shift(
         organization=organization,
@@ -1417,7 +1419,7 @@ def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
 def test_shift_convert_to_ical(make_organization_and_user, make_on_call_shift):
     organization, user = make_organization_and_user()
 
-    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    date = timezone.now().replace(microsecond=0)
     until = date + timezone.timedelta(days=30)
 
     data = {
@@ -1588,6 +1590,52 @@ def test_delete_shift(make_organization_and_user, make_schedule, make_on_call_sh
 
 
 @pytest.mark.django_db
+def test_delete_shift_updates_linked_shift(
+    make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization, user_1 = make_organization_and_user()
+    other_user = make_user_for_organization(organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = (timezone.now() - timezone.timedelta(days=7)).replace(microsecond=0)
+
+    updated_shifts = (
+        (start_date, 3600, user_1),
+        (start_date, 3600 * 2, user_1),
+        (start_date, 3600, other_user),
+    )
+
+    shifts = []
+    previous_shift = None
+    for start_date, duration, user in reversed(updated_shifts):
+        data = {
+            "priority_level": 1,
+            "start": start_date,
+            "rotation_start": start_date,
+            "duration": timezone.timedelta(seconds=duration),
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+            "updated_shift": previous_shift,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+        previous_shift = on_call_shift
+        shifts.append(on_call_shift)
+
+    last_shift, intermediate_shift, first_shift = shifts
+    intermediate_shift.delete(force=True)
+
+    # deleted shift does not exist
+    with pytest.raises(CustomOnCallShift.DoesNotExist):
+        intermediate_shift.refresh_from_db()
+
+    # first shift now is linked to the following one
+    first_shift.refresh_from_db()
+    assert first_shift.updated_shift == last_shift
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "starting_day,duration,deleted",
     [
@@ -1665,3 +1713,115 @@ def test_until_rrule_must_be_utc(
     expected_rrule = f"RRULE:FREQ=WEEKLY;UNTIL={ical_rrule_until}Z;INTERVAL=4;WKST=SU"
 
     assert expected_rrule in ical_data
+
+
+@pytest.mark.django_db
+def test_week_start_changed_daily_shift(
+    make_organization_and_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user_1 = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, time_zone="Europe/Warsaw")
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_weekday = now.weekday()
+    last_sunday = now - timezone.timedelta(days=7 + (today_weekday + 1) % 7)
+    last_saturday = last_sunday - timezone.timedelta(days=1)
+
+    # set week start to Sunday, so first event should be on last_sunday itself
+    data = {
+        "priority_level": 1,
+        "start": last_saturday,
+        "rotation_start": last_sunday,
+        "duration": timezone.timedelta(seconds=3600),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "by_day": ["MO", "SU"],
+        "week_start": 5,  # SU
+        "interval": 1,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = [[user_1]]
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    expected_start = "DTSTART;VALUE=DATE-TIME:{}T000000Z".format(last_sunday.strftime("%Y%m%d"))
+    assert expected_start in ical_data
+
+
+@pytest.mark.django_db
+def test_week_start_changed_daily_shift_until(
+    make_organization_and_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user_1 = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, time_zone="Europe/Warsaw")
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_weekday = now.weekday()
+    last_sunday = now - timezone.timedelta(days=7 + (today_weekday + 1) % 7)
+    last_saturday = last_sunday - timezone.timedelta(days=1)
+    thursday = last_sunday + timezone.timedelta(days=4)
+
+    data = {
+        "priority_level": 1,
+        "start": last_saturday,
+        "rotation_start": last_sunday,
+        "duration": timezone.timedelta(seconds=3600),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "by_day": ["MO", "SU"],
+        "week_start": 5,  # SU
+        "interval": 1,
+        "until": thursday,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = [[user_1]]
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    # setting UNTIL to Thursday was generating extra events for current week Wednesday and Thursday
+    unexpected_by_days = ("BYDAY=WE", "BYDAY=TH")
+    for unexpected in unexpected_by_days:
+        assert unexpected not in ical_data
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "shift_type",
+    [
+        CustomOnCallShift.TYPE_OVERRIDE,
+        CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+    ],
+)
+def test_refresh_schedule(make_organization_and_user, make_schedule, make_on_call_shift, shift_type):
+    organization, _ = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = timezone.now()
+
+    frequency = CustomOnCallShift.FREQUENCY_DAILY if shift_type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT else None
+    data = {
+        "priority_level": 1,
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": frequency,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=shift_type, **data)
+
+    assert schedule.cached_ical_file_primary is None
+    assert schedule.cached_ical_file_overrides is None
+
+    with patch("apps.schedules.models.custom_on_call_shift.refresh_ical_final_schedule") as mock_refresh_final:
+        on_call_shift.refresh_schedule()
+
+    assert mock_refresh_final.apply_async.called
+    assert schedule.cached_ical_file_primary is not None
+    assert schedule.cached_ical_file_overrides is not None

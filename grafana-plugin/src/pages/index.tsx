@@ -29,7 +29,7 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'bell',
     id: 'alert-groups',
     hideFromBreadcrumbs: true,
-    text: 'Alert Groups',
+    text: 'Alert groups',
     hideTitle: true,
     path: getPath('alert-groups'),
     action: UserActions.AlertGroupsRead,
@@ -55,6 +55,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'integrations_2',
     text: 'Integrations 2',
     path: getPath('integrations_2'),
+    hideTitle: true,
     hideFromBreadcrumbs: true,
     hideFromTabs: true,
     action: UserActions.IntegrationsRead,
@@ -62,7 +63,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'list-ul',
     id: 'escalations',
-    text: 'Escalation Chains',
+    text: 'Escalation chains',
     hideFromBreadcrumbs: true,
     path: getPath('escalations'),
     action: UserActions.EscalationChainsRead,
@@ -91,7 +92,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'link',
     id: 'outgoing_webhooks',
-    text: 'Outgoing Webhooks',
+    text: 'Outgoing webhooks',
     path: getPath('outgoing_webhooks'),
     hideFromBreadcrumbs: true,
     action: UserActions.OutgoingWebhooksRead,
@@ -108,7 +109,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'link',
     id: 'outgoing_webhooks_2',
-    text: 'Outgoing Webhooks 2',
+    text: 'Outgoing webhooks 2',
     path: getPath('outgoing_webhooks_2'),
     hideFromBreadcrumbs: true,
     hideFromTabs: true,

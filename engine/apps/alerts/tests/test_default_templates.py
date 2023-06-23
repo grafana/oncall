@@ -15,6 +15,9 @@ from config_integrations import grafana
 
 
 @pytest.mark.django_db
+@pytest.mark.filterwarnings(
+    "ignore:The input looks more like a filename than markup. You may want to open this file and pass the filehandle into Beautiful Soup."
+)
 @pytest.mark.parametrize(
     "integration, template_module",
     # Test only the integrations that have "tests" field in configuration
@@ -63,10 +66,6 @@ def test_default_templates(
                 )
 
             rendered_attr = getattr(rendered_alert, attr)
-            print(f"{alert_receive_channel}'s {notification_channel} {attr} ")
-            print(rendered_attr)
-            print()
-            print("====================================")
             assert rendered_attr == expected, (
                 f"{alert_receive_channel}'s {notification_channel} {attr} " f"is not equal to expected"
             )
@@ -106,3 +105,26 @@ def test_default_templates_are_valid():
                     jinja_template_env.from_string(template)
                 except TemplateSyntaxError as e:
                     pytest.fail(e.message)
+
+
+@pytest.mark.parametrize("config", AlertReceiveChannel._config)
+def test_is_demo_alert_enabled(config):
+    # is_demo_alert_enabled must be defined
+    try:
+        assert isinstance(config.is_demo_alert_enabled, bool), "is_demo_alert_enabled must be bool"
+    except AttributeError:
+        pytest.fail("is_demo_alert_enabled must be defined")
+
+    # example_payload must be defined
+    try:
+        assert config.example_payload is None or isinstance(
+            config.example_payload, dict
+        ), "example_payload must be dict or None"
+    except AttributeError:
+        pytest.fail("example_payload must be defined")
+
+    # example_payload must be provided when is_demo_alert_enabled is True
+    if config.is_demo_alert_enabled:
+        assert config.example_payload, "example_payload must be defined and non-empty"
+    else:
+        assert config.example_payload is None, "example_payload must be None if is_demo_alert_enabled is False"

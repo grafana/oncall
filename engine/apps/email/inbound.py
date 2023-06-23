@@ -60,16 +60,16 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         return super().dispatch(request, alert_channel_key=integration_token)
 
-    def post(self, request, alert_receive_channel):
+    def post(self, request):
         for message in self.get_messages_from_esp_request(request):
             payload = self.get_alert_payload_from_email_message(message)
             create_alert.delay(
                 title=payload["subject"],
                 message=payload["message"],
-                alert_receive_channel_pk=alert_receive_channel.pk,
+                alert_receive_channel_pk=request.alert_receive_channel.pk,
                 image_url=None,
                 link_to_upstream_details=None,
-                integration_unique_data=request.data,
+                integration_unique_data=None,
                 raw_request_data=payload,
             )
 

@@ -6,7 +6,7 @@ export const toPlainArray = (groups: string[][]) => {
     items.push({
       key: `group-${groupIndex}`,
       type: 'group',
-      data: { name: `Group ${groupIndex + 1}` },
+      data: { name: `Recurrence group ${groupIndex + 1}` },
     });
 
     groups[groupIndex].forEach((item: string, itemIndex: number) => {

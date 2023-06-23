@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -12,6 +12,7 @@ import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/W
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { openErrorNotification, openNotification, openWarningNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppConnection.module.scss';
@@ -73,6 +74,8 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   const [userTimeoutId, setUserTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
   const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
+  const [isAttemptingTestNotification, setIsAttemptingTestNotification] = useState(false);
+  const isCurrentUser = userStore.currentUserPk === userPk;
 
   const fetchQRCode = useCallback(
     async (showLoader = true) => {
@@ -184,10 +187,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   return (
-    <WithPermissionControlDisplay
-      userAction={UserActions.UserSettingsWrite}
-      message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
-    >
+    <VerticalGroup>
       <div className={cx('container')}>
         <Block shadowed bordered withBackground className={cx('container__box')}>
           <DownloadIcons />
@@ -196,8 +196,45 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           {content}
         </Block>
       </div>
-    </WithPermissionControlDisplay>
+      {store.hasFeature(AppFeature.MobileTestPush) && mobileAppIsCurrentlyConnected && isCurrentUser && (
+        <div className={cx('notification-buttons')}>
+          <HorizontalGroup spacing={'md'} justify={'flex-end'}>
+            <Button
+              variant="secondary"
+              onClick={() => onSendTestNotification()}
+              disabled={isAttemptingTestNotification}
+            >
+              Send Test Push
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => onSendTestNotification(true)}
+              disabled={isAttemptingTestNotification}
+            >
+              Send Test Push Important
+            </Button>
+          </HorizontalGroup>
+        </div>
+      )}
+    </VerticalGroup>
   );
+
+  async function onSendTestNotification(isCritical = false) {
+    setIsAttemptingTestNotification(true);
+
+    try {
+      await userStore.sendTestPushNotification(userPk, isCritical);
+      openNotification(isCritical ? 'Push Important Notification has been sent' : 'Push Notification has been sent');
+    } catch (ex) {
+      if (ex.response?.status === 429) {
+        openWarningNotification('Too much attempts, try again later');
+      } else {
+        openErrorNotification('There was an error sending the notification');
+      }
+    } finally {
+      setIsAttemptingTestNotification(false);
+    }
+  }
 
   function getParsedQRCodeValue() {
     try {

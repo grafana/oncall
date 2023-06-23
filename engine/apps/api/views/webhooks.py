@@ -63,7 +63,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
         try:
-            obj = organization.webhooks.filter(*self.available_teams_lookup_args).get(public_primary_key=pk)
+            obj = organization.webhooks.filter(*self.available_teams_lookup_args).distinct().get(public_primary_key=pk)
         except ObjectDoesNotExist:
             raise NotFound
 

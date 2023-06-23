@@ -21,3 +21,6 @@
 .idea/
 *.tmproj
 .vscode/
+
+# exclude helm unit tests
+tests/

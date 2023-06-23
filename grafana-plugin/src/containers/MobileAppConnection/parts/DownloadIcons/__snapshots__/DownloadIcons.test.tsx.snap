@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DownloadIcons it renders properly 1`] = `
+<div>
+  <div
+    class="css-1j7sh2x-vertical-group"
+    style="width: 100%; height: 100%;"
+  >
+    <div
+      class="css-ztyofd-layoutChildrenWrapper"
+    >
+      <span
+        class="root text text--primary text--medium text--strong"
+      >
+        Download
+      </span>
+    </div>
+    <div
+      class="css-ztyofd-layoutChildrenWrapper"
+    >
+      <span
+        class="root text text--primary text--medium"
+      >
+        The Grafana IRM app is available on both the App Store and Google Play Store.
+      </span>
+    </div>
+    <div
+      class="css-ztyofd-layoutChildrenWrapper"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-bxa289-layoutChildrenWrapper"
+        >
+          <a
+            href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+            rel="noreferrer"
+            style="width: 100%;"
+            target="_blank"
+          >
+            <div
+              class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
+            >
+              <img
+                alt="Apple"
+                class="icon"
+                src="[object Object]"
+              />
+              <span
+                class="root text text--primary text--medium icon-text"
+              >
+                iOS
+              </span>
+            </div>
+          </a>
+        </div>
+        <div
+          class="css-bxa289-layoutChildrenWrapper"
+        >
+          <a
+            href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+            rel="noreferrer"
+            style="width: 100%;"
+            target="_blank"
+          >
+            <div
+              class="root root_bordered root--fullWidth root--hover icon-block"
+            >
+              <img
+                alt="Play Store"
+                class="icon"
+                src="[object Object]"
+              />
+              <span
+                class="root text text--primary text--medium icon-text"
+              >
+                Android
+              </span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

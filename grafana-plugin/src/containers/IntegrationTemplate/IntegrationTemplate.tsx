@@ -1,46 +1,72 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, HorizontalGroup, Drawer, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Drawer, VerticalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import { TemplateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
 import CheatSheet from 'components/CheatSheet/CheatSheet';
 import {
   groupingTemplateCheatSheet,
   slackMessageTemplateCheatSheet,
-  webTitleTemplateCheatSheet,
+  genericTemplateCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
 import Block from 'components/GBlock/Block';
-import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
 import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { TemplateOptions } from 'pages/integration_2/Integration2.config';
+import { waitForElement } from 'utils/DOM';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
-import styles from './IntegrationTemplate.module.css';
+import styles from './IntegrationTemplate.module.scss';
 
 const cx = cn.bind(styles);
 
 interface IntegrationTemplateProps {
   id: AlertReceiveChannel['id'];
+  channelFilterId?: ChannelFilter['id'];
   template: TemplateForEdit;
   templateBody: string;
+  templates: AlertTemplatesDTO[];
   onHide: () => void;
   onUpdateTemplates: (values: any) => void;
-  onUpdateRoute: (values: any) => void;
+  onUpdateRoute: (values: any, channelFilterId?: ChannelFilter['id']) => void;
 }
 
 const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
-  const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody } = props;
+  const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId, templates } = props;
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
-  const [chatOps, setChatOps] = useState(undefined);
+  const [chatOpsPermalink, setChatOpsPermalink] = useState(undefined);
   const [alertGroupPayload, setAlertGroupPayload] = useState<JSON>(undefined);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(templateBody);
   const [resultError, setResultError] = useState<string>(undefined);
+  const [editorHeight, setEditorHeight] = useState<string>(undefined);
+
+  useEffect(() => {
+    const locationParams: any = { template: template.name };
+    if (template.isRoute) {
+      locationParams.routeId = channelFilterId;
+    }
+    LocationHelper.update(locationParams, 'partial');
+  }, []);
+
+  useEffect(() => {
+    waitForElement('#content-container-id').then(() => {
+      const mainDiv = document.getElementById('content-container-id');
+      const height = mainDiv?.getBoundingClientRect().height - 59;
+      setEditorHeight(`${height}px`);
+    });
+  }, []);
 
   const onShowCheatSheet = useCallback(() => {
     setIsCheatSheetVisible(true);
@@ -53,7 +79,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const getChangeHandler = () => {
     return debounce((value: string) => {
       setChangedTemplateBody(value);
-    }, 1000);
+    }, 500);
   };
 
   const onEditPayload = (alertPayload: string) => {
@@ -77,150 +103,153 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
 
   const onSelectAlertGroup = useCallback((alertGroup: Alert) => {
     if (template.additionalData?.chatOpsName) {
-      setChatOps({
+      setChatOpsPermalink({
         permalink: alertGroup?.permalinks[template.additionalData?.chatOpsName],
-        name: template.additionalData?.chatOpsName,
-        comment: template.additionalData?.data,
       });
     }
   }, []);
 
   const onSaveAndFollowLink = useCallback(
     (link: string) => {
-      onHide();
+      onUpdateTemplates({ [template.name]: changedTemplateBody });
       window.open(link, '_blank');
     },
     [onUpdateTemplates, onUpdateRoute, changedTemplateBody]
   );
 
   const handleSubmit = useCallback(() => {
-    template.isRoute
-      ? onUpdateRoute({ [template.name]: changedTemplateBody })
-      : onUpdateTemplates({ [template.name]: changedTemplateBody });
-
-    onHide();
+    if (template.isRoute) {
+      onUpdateRoute({ [template.name]: changedTemplateBody }, channelFilterId);
+    } else {
+      onUpdateTemplates({ [template.name]: changedTemplateBody });
+    }
   }, [onUpdateTemplates, changedTemplateBody]);
 
-  const getCheatSheet = (templateName) => {
-    switch (templateName) {
-      case 'Grouping':
-      case 'Autoresolve':
+  const getCheatSheet = (templateKey: string) => {
+    switch (templateKey) {
+      case TemplateOptions.Grouping.key:
+      case TemplateOptions.Resolve.key:
         return groupingTemplateCheatSheet;
-      case 'Web titile':
-      case 'Web message':
-      case 'Web image':
-        return webTitleTemplateCheatSheet;
-      case 'Auto acknowledge':
-      case 'Source link':
-      case 'Phone call':
-      case 'SMS':
-      case 'Slack title':
-      case 'Slack message':
-      case 'Slack image':
-      case 'Telegram title':
-      case 'Telegram message':
-      case 'Telegram image':
-      case 'Email title':
-      case 'Email message':
+      case TemplateOptions.WebTitle.key:
+      case TemplateOptions.WebMessage.key:
+      case TemplateOptions.WebImage.key:
+        return genericTemplateCheatSheet;
+      case TemplateOptions.Autoacknowledge.key:
+      case TemplateOptions.SourceLink.key:
+      case TemplateOptions.Phone.key:
+      case TemplateOptions.SMS.key:
+      case TemplateOptions.SlackTitle.key:
+      case TemplateOptions.SlackMessage.key:
+      case TemplateOptions.SlackImage.key:
+      case TemplateOptions.TelegramTitle.key:
+      case TemplateOptions.TelegramMessage.key:
+      case TemplateOptions.TelegramImage.key:
+      case TemplateOptions.EmailTitle.key:
+      case TemplateOptions.EmailMessage.key:
         return slackMessageTemplateCheatSheet;
       default:
-        return webTitleTemplateCheatSheet;
+        return genericTemplateCheatSheet;
     }
   };
   return (
-    <>
-      <Drawer
-        title={
-          <div className={cx('title-container')}>
-            <HorizontalGroup justify="space-between" align="flex-start">
-              <VerticalGroup>
-                <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
-                {template.description && <Text type="secondary">{template.description}</Text>}
-              </VerticalGroup>
+    <Drawer
+      title={
+        <div className={cx('title-container')}>
+          <HorizontalGroup justify="space-between" align="flex-start">
+            <VerticalGroup>
+              <Text.Title level={3}>Edit {template.displayName} template</Text.Title>
+              {template.description && <Text type="secondary">{template.description}</Text>}
+            </VerticalGroup>
 
-              <HorizontalGroup>
+            <HorizontalGroup>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button variant="primary" onClick={handleSubmit}>
                   Save
                 </Button>
-              </HorizontalGroup>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
-          </div>
-        }
-        onClose={onHide}
-        closeOnMaskClick={false}
-        width={'95%'}
-      >
-        <div className={cx('container')}>
+          </HorizontalGroup>
+        </div>
+      }
+      onClose={onHide}
+      closeOnMaskClick={false}
+      width={'95%'}
+    >
+      <div className={cx('container-wrapper')}>
+        <div className={cx('container')} id={'content-container-id'}>
           <TemplatesAlertGroupsList
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}
+            templates={templates}
           />
           {isCheatSheetVisible ? (
-            <CheatSheet cheatSheetData={getCheatSheet(template.displayName)} onClose={onCloseCheatSheet} />
+            <CheatSheet
+              cheatSheetName={template.displayName}
+              cheatSheetData={getCheatSheet(template.name)}
+              onClose={onCloseCheatSheet}
+            />
           ) : (
             <>
               <div className={cx('template-block-codeeditor')}>
                 <div className={cx('template-editor-block-title')}>
-                  <HorizontalGroup justify="space-between">
+                  <HorizontalGroup justify="space-between" align="center" wrap>
                     <Text>Template editor</Text>
 
                     <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-                      Cheatsheat
+                      Cheatsheet
                     </Button>
                   </HorizontalGroup>
                 </div>
-
-                <MonacoJinja2Editor
-                  value={templateBody}
-                  data={undefined}
-                  showLineNumbers={true}
-                  height={'100vh'}
-                  onChange={getChangeHandler()}
-                />
+                <div className={cx('template-editor-block-content')}>
+                  <MonacoEditor
+                    value={changedTemplateBody}
+                    data={templates}
+                    showLineNumbers={true}
+                    height={editorHeight}
+                    onChange={getChangeHandler()}
+                  />
+                </div>
               </div>
             </>
           )}
-          {/* {alertGroupPayload || resultError ? ( */}
           <Result
             alertReceiveChannelId={id}
-            templateName={template.name}
+            template={template}
             templateBody={changedTemplateBody}
             alertGroup={undefined}
-            chatOps={chatOps}
+            chatOpsPermalink={chatOpsPermalink}
             payload={alertGroupPayload}
             error={resultError}
             onSaveAndFollowLink={onSaveAndFollowLink}
           />
-          {/* ) : (
-            <div className={cx('template-block-result')}>
-              <div className={cx('template-block-title')}>
-                <Text>Please select Alert group to see end result</Text>
-              </div>
-            </div>
-          )} */}
         </div>
-      </Drawer>
-    </>
+      </div>
+    </Drawer>
   );
 });
 
 interface ResultProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
-  templateName: string;
+  // templateName: string;
   templateBody: string;
+  template: TemplateForEdit;
   alertGroup?: Alert;
-  chatOps?: { permalink: string; name: string; comment?: string };
+  chatOpsPermalink?: string;
   payload?: JSON;
   error?: string;
   onSaveAndFollowLink?: (link: string) => void;
+  templateIsRoute?: boolean;
 }
 
 const Result = (props: ResultProps) => {
-  const { alertReceiveChannelId, templateName, chatOps, payload, templateBody, error, onSaveAndFollowLink } = props;
+  const { alertReceiveChannelId, template, templateBody, chatOpsPermalink, payload, error, onSaveAndFollowLink } =
+    props;
 
   return (
     <div className={cx('template-block-result')}>
@@ -237,35 +266,40 @@ const Result = (props: ResultProps) => {
                 <Text>{error}</Text>
               </Block>
             ) : (
-              <Block bordered fullWidth className={cx('block-style')}>
+              <Block bordered fullWidth withBackground>
                 <TemplatePreview
-                  key={templateName}
-                  templateName={templateName}
+                  key={template.name}
+                  templateName={template.name}
                   templateBody={templateBody}
+                  templateType={template.type}
+                  templateIsRoute={template.isRoute}
                   alertReceiveChannelId={alertReceiveChannelId}
                   payload={payload}
                 />
               </Block>
             )}
 
-            {chatOps && (
+            {template?.additionalData?.additionalDescription && (
+              <Text type="secondary">{template?.additionalData.additionalDescription}</Text>
+            )}
+
+            {template?.additionalData?.chatOpsName && (
               <VerticalGroup>
-                <Button onClick={() => onSaveAndFollowLink(chatOps.permalink)}>
-                  Save and open Alert Group in {chatOps.name}
+                <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
+                  <HorizontalGroup spacing="xs" align="center">
+                    Save and open Alert Group in {template.additionalData.chatOpsDisplayName}{' '}
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
                 </Button>
 
-                {chatOps.comment && (
-                  <Text type="secondary">
-                    Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.
-                  </Text>
-                )}
+                {template.additionalData.data && <Text type="secondary">{template.additionalData.data}</Text>}
               </VerticalGroup>
             )}
           </VerticalGroup>
         ) : (
           <div>
-            <Block bordered fullWidth className={cx('block-style')}>
-              <Text>You do not have any input data to render result. Please select Alert group to see end result</Text>
+            <Block bordered fullWidth className={cx('block-style')} withBackground>
+              <Text>← Select alert group or "Use custom payload"</Text>
             </Block>
           </div>
         )}

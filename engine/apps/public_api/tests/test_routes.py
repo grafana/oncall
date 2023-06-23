@@ -329,7 +329,6 @@ def test_update_route_with_messaging_backend(
     make_slack_team_identity,
     make_slack_channel,
 ):
-
     organization, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
     slack_team_identity = make_slack_team_identity()
     organization.slack_team_identity = slack_team_identity

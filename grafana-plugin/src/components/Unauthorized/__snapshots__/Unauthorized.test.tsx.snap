@@ -1,0 +1,291 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Unauthorized renders properly - access control enabled: false 1`] = `
+<div
+  className="not-found"
+>
+  <div
+    className="css-9ztktj-vertical-group"
+    style={
+      Object {
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h1
+        className="title error-code"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          403
+        </span>
+      </h1>
+    </div>
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h4
+        className="title"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          You do not have access to view this page.
+           
+          You must be at least an Admin.
+          <br />
+          <br />
+          Please contact your organization administrator to request access.
+        </span>
+      </h4>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Unauthorized renders properly - access control enabled: true 1`] = `
+<div
+  className="not-found"
+>
+  <div
+    className="css-9ztktj-vertical-group"
+    style={
+      Object {
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h1
+        className="title error-code"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          403
+        </span>
+      </h1>
+    </div>
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h4
+        className="title"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          You do not have access to view this page.
+           
+          You are missing the grafana-oncall-app.testing:hi permission.
+          <br />
+          <br />
+          Please contact your organization administrator to request access.
+        </span>
+      </h4>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Unauthorized renders properly the grammar for different roles - Admin 1`] = `
+<div
+  className="not-found"
+>
+  <div
+    className="css-9ztktj-vertical-group"
+    style={
+      Object {
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h1
+        className="title error-code"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          403
+        </span>
+      </h1>
+    </div>
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h4
+        className="title"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          You do not have access to view this page.
+           
+          You must be at least an Admin.
+          <br />
+          <br />
+          Please contact your organization administrator to request access.
+        </span>
+      </h4>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Unauthorized renders properly the grammar for different roles - Editor 1`] = `
+<div
+  className="not-found"
+>
+  <div
+    className="css-9ztktj-vertical-group"
+    style={
+      Object {
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h1
+        className="title error-code"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          403
+        </span>
+      </h1>
+    </div>
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h4
+        className="title"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          You do not have access to view this page.
+           
+          You must be at least an Editor.
+          <br />
+          <br />
+          Please contact your organization administrator to request access.
+        </span>
+      </h4>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Unauthorized renders properly the grammar for different roles - Viewer 1`] = `
+<div
+  className="not-found"
+>
+  <div
+    className="css-9ztktj-vertical-group"
+    style={
+      Object {
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h1
+        className="title error-code"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          403
+        </span>
+      </h1>
+    </div>
+    <div
+      className="css-1ec9088-layoutChildrenWrapper"
+    >
+      <h4
+        className="title"
+      >
+        <span
+          className="root text text--undefined text--medium"
+          style={
+            Object {
+              "maxWidth": undefined,
+            }
+          }
+        >
+          You do not have access to view this page.
+           
+          You must be at least a Viewer.
+          <br />
+          <br />
+          Please contact your organization administrator to request access.
+        </span>
+      </h4>
+    </div>
+  </div>
+</div>
+`;

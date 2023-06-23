@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -61,13 +61,15 @@ steps:
       ref:
         - refs/tags/v*.*.*
 
-  - name: Lint Everything
+  - name: Lint Backend
     image: python:3.11.3
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements.txt)
-      - pre-commit run --all-files
+      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
+      - pre-commit run isort --all-files
+      - pre-commit run black --all-files
+      - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
     image: python:3.11.3
@@ -78,7 +80,7 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements.txt
+      - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
@@ -112,7 +114,7 @@ steps:
       config:
         from_secret: gcr_admin
     depends_on:
-      - Lint Everything
+      - Lint Backend
       - Unit Test Backend
       - Image Tag
 
@@ -132,7 +134,7 @@ steps:
       username:
         from_secret: docker_username
     depends_on:
-      - Lint Everything
+      - Lint Backend
       - Unit Test Backend
       - Image Tag
     when:
@@ -148,7 +150,7 @@ services:
       RABBITMQ_DEFAULT_PASS: rabbitmq
 
   - name: mysql_test
-    image: mysql:5.7.25
+    image: mysql:8.0.32
     environment:
       MYSQL_DATABASE: oncall_local_dev
       MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -172,7 +174,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -183,7 +185,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-buster
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -416,6 +418,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 9eb4e539c2313ae319d12d1f5149ddf93ea017720b1690abe5e1730e2a1489f2
+hmac: 59ad498428731001484be9ac6b9d10685b2cd49f30eb3d97ed7dc99f031dca22
 
 ...

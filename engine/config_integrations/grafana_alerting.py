@@ -8,6 +8,7 @@ short_description = (
 description = None
 is_displayed_on_web = True
 is_featured = True
+featured_tag_name = "Quick Connect"
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
 
@@ -17,7 +18,7 @@ Alerts from Grafana Alertmanager are automatically routed to this integration.
 <br>Click <a href='{{dict_item.contact_point_url}}' target='_blank'>here</a>
  to open contact point, and
  <a href='{{dict_item.routes_url}}' target='_blank'>here</a>
- to open routes for {{dict_item.alertmanager_name}} Alertmanager.
+ to open Notification policy for {{dict_item.alertmanager_name}} Alertmanager.
 {% endfor %}
 {% if not is_finished_alerting_setup %}
 <br>Creating contact points and routes for other alertmanagers...
@@ -114,7 +115,7 @@ example_payload = {
                 "alertname": "TestAlert",
                 "region": "eu-1",
             },
-            "annotations": {"description": "This alert was sent by user for the demonstration purposes"},
+            "annotations": {"description": "This alert was sent by user for demonstration purposes"},
             "startsAt": "2018-12-25T15:47:47.377363608Z",
             "endsAt": "0001-01-01T00:00:00Z",
             "generatorURL": "",

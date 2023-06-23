@@ -247,8 +247,9 @@ class GcomAPIClient(APIClient):
         return self.api_get(query)
 
     def is_stack_deleted(self, stack_id: str) -> bool:
-        instance_info = self.get_instance_info(stack_id)
-        return instance_info and instance_info.get("status") == self.STACK_STATUS_DELETED
+        url = f"instances?includeDeleted=true&id={stack_id}"
+        instance_infos, _ = self.api_get(url)
+        return instance_infos["items"] and instance_infos["items"][0].get("status") == self.STACK_STATUS_DELETED
 
     def post_active_users(self, body):
         return self.api_post("app-active-users", body)

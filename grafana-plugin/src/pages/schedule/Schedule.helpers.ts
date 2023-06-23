@@ -1,3 +1,4 @@
+import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 
 import { findColor } from 'containers/Rotations/Rotations.helpers';
@@ -6,6 +7,20 @@ import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
+
+const mondayDayOffset = {
+  saturday: -2,
+  sunday: -1,
+  monday: 0,
+  browser: 0,
+};
+
+export const getWeekStartString = () => {
+  if (!config.bootData.user.weekStart || config.bootData.user.weekStart === 'browser') {
+    return 'monday';
+  }
+  return config.bootData.user.weekStart;
+};
 
 export const getNow = (tz: Timezone) => {
   const now = dayjs().tz(tz);
@@ -17,7 +32,9 @@ export const getStartOfDay = (tz: Timezone) => {
 };
 
 export const getStartOfWeek = (tz: Timezone) => {
-  return getNow(tz).startOf('isoWeek');
+  return getNow(tz)
+    .startOf('isoWeek') // it's Monday always
+    .add(mondayDayOffset[getWeekStartString()], 'day');
 };
 
 export const getUTCString = (moment: dayjs.Dayjs) => {
@@ -28,28 +45,78 @@ export const getDateTime = (date: string) => {
   return dayjs(date);
 };
 
+const getUTCDayIndex = (index: number, moment: dayjs.Dayjs, reverse: boolean) => {
+  let utc_index = index;
+  if (moment.day() !== moment.utc().day()) {
+    let offset = moment.utcOffset();
+    if ((offset < 0 && !reverse) || (reverse && offset > 0)) {
+      // move one day after
+      utc_index = (utc_index + 1) % 7;
+    } else {
+      // move one day before
+      utc_index = utc_index - 1;
+    }
+  }
+  if (utc_index < 0) {
+    utc_index = ((utc_index % 7) + 7) % 7;
+  }
+  return utc_index;
+};
+
 export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
-  if (by_day.length && moment.day() !== moment.utc().day()) {
+  if (moment.day() === moment.utc().day()) {
+    return by_day;
+  }
+  // when converting to UTC, shift starts on a different day,
+  // so we need to update the by_day list
+  // depending on the UTC side, move one day before or after
+  let UTCDays = [];
+  let byDayOptions = [];
+  dayOptions.forEach(({ value }) => byDayOptions.push(value));
+  by_day.forEach((element) => {
+    let index = byDayOptions.indexOf(element);
+    index = getUTCDayIndex(index, moment, false);
+    UTCDays.push(byDayOptions[index]);
+  });
+
+  return UTCDays;
+};
+
+export const getSelectedDays = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
+  if (moment.day() === moment.utc().day()) {
+    return by_day;
+  }
+
+  const byDayOptions = dayOptions.map(({ value }) => value);
+
+  let selectedTimezoneDays = [];
+  by_day.forEach((element) => {
+    let index = byDayOptions.indexOf(element);
+    index = getUTCDayIndex(index, moment, true);
+    selectedTimezoneDays.push(byDayOptions[index]);
+  });
+
+  return selectedTimezoneDays;
+};
+
+export const getUTCWeekStart = (dayOptions: SelectOption[], moment: dayjs.Dayjs) => {
+  let week_start_index = 0;
+  let byDayOptions = [];
+  dayOptions.forEach(({ value }) => byDayOptions.push(value));
+  if (moment.day() !== moment.utc().day()) {
     // when converting to UTC, shift starts on a different day,
-    // so we need to update the by_day list
+    // so we may need to change when week starts based on the UTC start time
     // depending on the UTC side, move one day before or after
     let offset = moment.utcOffset();
-    let UTCDays = [];
-    let byDayOptions = [];
-    dayOptions.forEach(({ value }) => byDayOptions.push(value));
-    by_day.forEach((element) => {
-      let index = byDayOptions.indexOf(element);
-      if (offset < 0) {
-        // move one day after
-        UTCDays.push(byDayOptions[(index + 1) % 7]);
-      } else {
-        // move one day before
-        UTCDays.push(byDayOptions[(((index - 1) % 7) + 7) % 7]);
-      }
-    });
-    return UTCDays;
+    if (offset < 0) {
+      // move one day after
+      week_start_index = (week_start_index + 1) % 7;
+    } else {
+      // move one day before
+      week_start_index = (((week_start_index - 1) % 7) + 7) % 7;
+    }
   }
-  return by_day;
+  return byDayOptions[week_start_index];
 };
 
 export const getColorSchemeMappingForUsers = (

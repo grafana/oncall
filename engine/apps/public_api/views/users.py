@@ -48,6 +48,9 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
 
     throttle_classes = [UserThrottle]
 
+    # self.get_object() is not used in export action because UserScheduleExportAuthentication is used
+    extra_actions_ignore_no_get_object = ["schedule_export"]
+
     def get_queryset(self):
         if is_request_from_terraform(self.request):
             sync_users_on_tf_request(self.request.auth.organization)

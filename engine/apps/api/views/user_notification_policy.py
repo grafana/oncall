@@ -19,6 +19,7 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
+from common.api_helpers.serializers import get_move_to_position_param
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
 
@@ -139,16 +140,15 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
 
     @action(detail=True, methods=["put"])
     def move_to_position(self, request, pk):
-        position = request.query_params.get("position", None)
-        if position is not None:
-            step = self.get_object()
-            try:
-                step.to(int(position))
-                return Response(status=status.HTTP_200_OK)
-            except ValueError as e:
-                raise BadRequest(detail=f"{e}")
-        else:
-            raise BadRequest(detail="Position was not provided")
+        instance = self.get_object()
+        position = get_move_to_position_param(request)
+
+        try:
+            instance.to_index(position)
+        except IndexError:
+            raise BadRequest(detail="Invalid position")
+
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def delay_options(self, request):

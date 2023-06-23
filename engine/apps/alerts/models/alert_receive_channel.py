@@ -23,6 +23,11 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
+from apps.metrics_exporter.helpers import (
+    metrics_add_integration_to_cache,
+    metrics_remove_deleted_integration_from_cache,
+    metrics_update_integration_cache,
+)
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
@@ -187,6 +192,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
+    # TODO: remove this field after AlertGroup.is_restricted change has been released
     restricted_at = models.DateTimeField(null=True, default=None)
 
     class Meta:
@@ -198,7 +204,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         ]
 
     def __str__(self):
-        short_name_with_emojis = emojize(self.short_name, use_aliases=True)
+        short_name_with_emojis = emojize(self.short_name, language="alias")
         return f"{self.pk}: {short_name_with_emojis}"
 
     def get_template_attribute(self, render_for, attr_name):
@@ -239,7 +245,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         super(AlertReceiveChannel, self).delete()
 
     def change_team(self, team_id, user):
-
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
@@ -256,9 +261,17 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def grafana_alerting_sync_manager(self):
         return GrafanaAlertingSyncManager(self)
 
-    @property
+    @cached_property
+    def team_name(self):
+        return self.team.name if self.team else "No team"
+
+    @cached_property
+    def team_id_or_no_team(self):
+        return self.team_id if self.team else "no_team"
+
+    @cached_property
     def emojized_verbal_name(self):
-        return emoji.emojize(self.verbal_name, use_aliases=True)
+        return emoji.emojize(self.verbal_name, language="alias")
 
     @property
     def new_incidents_web_link(self):
@@ -385,6 +398,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
+        if self.integration != AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
+            return None
+
         return f"{self.token}@{live_settings.INBOUND_EMAIL_DOMAIN}"
 
     @property
@@ -506,42 +522,35 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     # Demo alerts
     def send_demo_alert(self, force_route_id=None, payload=None):
         logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
+
+        if not self.is_demo_alert_enabled:
+            raise UnableToSendDemoAlert("Unable to send demo alert for this integration.")
+
         if payload is None:
             payload = self.config.example_payload
-        if self.is_demo_alert_enabled:
-            if self.has_alertmanager_payload_structure:
-                if (alerts := payload.get("alerts", None)) and type(alerts) == list and len(alerts):
-                    for alert in alerts:
-                        create_alertmanager_alerts.apply_async(
-                            [],
-                            {
-                                "alert_receive_channel_pk": self.pk,
-                                "alert": alert,
-                                "is_demo": True,
-                                "force_route_id": force_route_id,
-                            },
-                        )
-                else:
-                    raise UnableToSendDemoAlert(
-                        "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
-                    )
-            else:
-                create_alert.apply_async(
-                    [],
-                    {
-                        "title": "Demo alert",
-                        "message": "Demo alert",
-                        "image_url": None,
-                        "link_to_upstream_details": None,
-                        "alert_receive_channel_pk": self.pk,
-                        "integration_unique_data": None,
-                        "raw_request_data": payload,
-                        "is_demo": True,
-                        "force_route_id": force_route_id,
-                    },
+
+        if self.has_alertmanager_payload_structure:
+            alerts = payload.get("alerts", None)
+            if not isinstance(alerts, list) or not len(alerts):
+                raise UnableToSendDemoAlert(
+                    "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
+                )
+            for alert in alerts:
+                create_alertmanager_alerts.delay(
+                    alert_receive_channel_pk=self.pk, alert=alert, is_demo=True, force_route_id=force_route_id
                 )
         else:
-            raise UnableToSendDemoAlert("Unable to send demo alert for this integration")
+            create_alert.delay(
+                title="Demo alert",
+                message="Demo alert",
+                image_url=None,
+                link_to_upstream_details=None,
+                alert_receive_channel_pk=self.pk,
+                integration_unique_data=None,
+                raw_request_data=payload,
+                is_demo=True,
+                force_route_id=force_route_id,
+            )
 
     @property
     def has_alertmanager_payload_structure(self):
@@ -614,6 +623,13 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
         if instance.is_available_for_integration_heartbeat:
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
+
+        metrics_add_integration_to_cache(instance)
+
+    elif instance.deleted_at:
+        metrics_remove_deleted_integration_from_cache(instance)
+    else:
+        metrics_update_integration_cache(instance)
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
         if created:

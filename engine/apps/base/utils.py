@@ -32,7 +32,6 @@ live_settings = LiveSettingProxy()
 
 
 class LiveSettingValidator:
-
     EMPTY_VALID_NAMES = (
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",
@@ -45,7 +44,7 @@ class LiveSettingValidator:
     def get_error(self):
         check_fn_name = f"_check_{self.live_setting.name.lower()}"
 
-        if self.live_setting.value is None and self.live_setting.name not in self.EMPTY_VALID_NAMES:
+        if self.live_setting.value in (None, "") and self.live_setting.name not in self.EMPTY_VALID_NAMES:
             return "Empty"
 
         # skip validation if there's no handler for it
@@ -138,9 +137,11 @@ class LiveSettingValidator:
     @classmethod
     def _check_telegram_webhook_host(cls, telegram_webhook_host):
         try:
+            # avoid circular import
+            from apps.telegram.client import TelegramClient
+
             url = create_engine_url("/telegram/", override_base=telegram_webhook_host)
-            bot = Bot(token=live_settings.TELEGRAM_TOKEN)
-            bot.set_webhook(url)
+            TelegramClient().register_webhook(url)
         except Exception as e:
             return f"Telegram error: {str(e)}"
 

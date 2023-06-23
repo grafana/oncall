@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel
+from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models import UserNotificationPolicyLogRecord
 
@@ -40,6 +41,33 @@ def alert_group_internal_api_setup(
         alert_receive_channel, default_channel_filter, alert_raw_request_data
     )
     return user, token, alert_groups
+
+
+@pytest.mark.django_db
+def test_get_filter_by_integration(
+    alert_group_internal_api_setup, make_alert_receive_channel, make_alert_group, make_user_auth_headers
+):
+    user, token, alert_groups = alert_group_internal_api_setup
+
+    ag = alert_groups[0]
+    # channel filter could be None, but the alert group still belongs to the original integration
+    ag.channel_filter = None
+    ag.save()
+
+    # make an alert group in other integration
+    alert_receive_channel = make_alert_receive_channel(user.organization)
+    make_alert_group(alert_receive_channel)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(
+        url + f"?integration={ag.channel.public_primary_key}",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 4
 
 
 @pytest.mark.django_db
@@ -1805,3 +1833,42 @@ def test_direct_paging_integration_treated_as_deleted(
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.json()["alert_receive_channel"]["deleted"] is True
+
+
+@pytest.mark.django_db
+def test_alert_group_resolve_resolution_note(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    new_alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=new_alert_group, raw_request_data=alert_raw_request_data)
+
+    organization.is_resolution_note_required = True
+    organization.save()
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
+
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
+    # check that resolution note is required
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["code"] == AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value
+
+    with patch(
+        "apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async"
+    ) as mock_signal:
+        url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
+        response = client.post(
+            url, format="json", data={"resolution_note": "hi"}, **make_user_auth_headers(user, token)
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        assert new_alert_group.has_resolution_notes
+        assert mock_signal.called

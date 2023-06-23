@@ -28,11 +28,13 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       # following 2 steps - need to install the frontend dependencies for the eslint/prettier/stylelint steps
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
       - name: Use cached frontend dependencies
@@ -54,7 +56,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
       - name: Use cached frontend dependencies
@@ -101,7 +103,7 @@ jobs:
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:5.7.25
+        image: mysql:8.0.32
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -113,12 +115,24 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Lint migrations
         working-directory: engine
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           python manage.py lintmigrations
+
+  unit-test-helm-chart:
+    name: "Helm Chart Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: d3adb5/helm-unittest-action@v2
+        with:
+          helm-version: v3.8.0
+          charts: ./helm/oncall
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -141,7 +155,7 @@ jobs:
         ports:
           - 5672:5672
       mysql_test:
-        image: mysql:5.7.25
+        image: mysql:8.0.32
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -153,12 +167,14 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Unit Test Backend
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
@@ -201,11 +217,13 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Unit Test Backend
         working-directory: engine
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           pytest -x
 
   unit-test-backend-sqlite-redis:
@@ -237,12 +255,14 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Unit Test Backend
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           pytest -x
 
   unit-test-pd-migrator:
@@ -261,22 +281,58 @@ jobs:
           pip install -r requirements.txt
           pytest -x
 
-  end-to-end-tests:
-    # TODO: reenable this job once https://github.com/grafana/oncall/issues/1692 is fixed
+  mypy:
+    name: "mypy"
+    # disable until we fix all the pre-existing errors (aka https://github.com/grafana/oncall/issues/2168 is marked as completed)
     if: ${{ false }}
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.3"
+          cache: "pip"
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
+      - name: mypy Static Type Checking
+        working-directory: engine
+        run: |
+          pip install -r requirements.txt -r requirements-dev.txt
+          mypy .
+
+  end-to-end-tests:
+    # default "ubuntu-latest" runners only provide 2 CPU cores + 7GB of RAM. this seems to lead to HTTP 504s from
+    # the oncall backend, and hence, flaky tests. Let's use CI runners w/ more resources to avoid this (plus
+    # this will allow us to run more backend containers and parralelize the tests)
+    runs-on: ubuntu-latest-8-cores
     name: "End to end tests - Grafana: ${{ matrix.grafana-image-tag }}"
     strategy:
       matrix:
         grafana-image-tag:
-          - 8.5.22
-          - 9.2.6
+          # OnCall doesn't work on the following versions of Grafana
+          # - 8.5.22
+          # - 9.0.0
+          # - 9.1.0
+
+          # 9.2.0 is the earliest version where things work
+          - 9.2.13
+          - 9.3.14
+          - 9.4.10
+          - 9.5.2
           - main
           - latest
       fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Collect Workflow Telemetry
+        uses: runforesight/workflow-telemetry-action@v1
+        with:
+          comment_on_pr: false
+          proc_trace_chart_show: false
+          proc_trace_table_show: false
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
@@ -285,7 +341,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 14.17.0
+          node-version: 18.16.0
           cache: "yarn"
           cache-dependency-path: grafana-plugin/yarn.lock
 
@@ -331,10 +387,12 @@ jobs:
       - name: Load engine Docker image on the nodes of the cluster
         run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
 
-      # spin up 2 engine, 2 celery, and 2 grafana pods, this will allow us to parralelize the integration tests
+      # spin up 3 engine and 3 celery pods, this will allow us to parralelize the integration tests,
       # and complete them much faster by using multiple test processes
-      # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized integration
-      # test process
+      # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized integration test process
+      # NOTE: it appears that using > 1 grafana container w/ SQLite as the database sometimes leads to failed
+      # grafana database migrations (this is documented in this GitHub issue
+      # https://github.com/bitnami/charts/issues/10905)
       #
       # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
       # OnCall plugin rather than the latest published version
@@ -346,8 +404,8 @@ jobs:
             --values ./helm/simple.yml \
             --values ./helm/values-local-image.yml \
             --set-json 'env=[{"name":"GRAFANA_CLOUD_NOTIFICATIONS_ENABLED","value":"False"}]' \
-            --set engine.replicaCount=1 \
-            --set celery.replicaCount=1 \
+            --set engine.replicaCount=3 \
+            --set celery.replicaCount=3 \
             --set celery.worker_beat_enabled="False" \
             --set oncall.twilio.accountSid="${{ secrets.TWILIO_ACCOUNT_SID }}" \
             --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
@@ -360,7 +418,6 @@ jobs:
             --set grafana.env.GF_FEATURE_TOGGLES_ENABLE=topnav \
             --set grafana.env.GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=grafana-oncall-app \
             --set-json "grafana.plugins=[]" \
-            --set-json 'grafana.securityContext={"runAsUser": 0, "runAsGroup": 0, "fsGroup": 0}' \
             --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
 
@@ -378,20 +435,29 @@ jobs:
           path: "~/.cache/ms-playwright"
           key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-chromium-firefox-webkit
 
-      - name: Install Playwright binaries/dependencies
+      # For the next two steps, use the binary directly from node_modules/.bin as opposed to npx playwright
+      # due to this bug (https://github.com/microsoft/playwright/issues/13188)
+      - name: Install Playwright Browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        # https://stackoverflow.com/questions/65900299/install-single-dependency-from-package-json-with-yarn
-        run: |
-          yarn add "@playwright/test@${{ env.PLAYWRIGHT_VERSION }}"
-          npx playwright install --with-deps chromium firefox webkit
+        working-directory: grafana-plugin
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
 
-      - name: Await k8s pods and other resources up
-        uses: jupyterhub/action-k8s-await-workloads@v1
-        with:
-          workloads: "" # all
-          namespace: "" # default
-          timeout: 300
-          max-restarts: -1
+      # use the cached browsers, but we still need to install the necessary system dependencies
+      # (system deps are installed in the cache-miss step above by the --with-deps flag)
+      - name: Install Playwright System Dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        working-directory: grafana-plugin
+        run: ./node_modules/.bin/playwright install-deps chromium firefox webkit
+
+      # we could instead use the --wait flag for the helm install command above
+      # but there's no reason to block on that step
+      # instead we can let the k8s resources start up behind the scenes and do other
+      # setup tasks (ex. install playwright + its dependencies)
+      - name: Wait until k8s resources are ready
+        run: |
+          kubectl rollout status deployment/helm-testing-grafana --timeout=300s
+          kubectl rollout status deployment/helm-testing-oncall-engine --timeout=300s
+          kubectl rollout status deployment/helm-testing-oncall-celery --timeout=300s
 
       - name: Run Integration Tests
         env:
@@ -408,17 +474,16 @@ jobs:
           GRAFANA_PASSWORD: oncall
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
-        # -x = exit command after first failing test
-        run: yarn test:integration -x
+        run: yarn test:integration
 
-      # always spit out the engine and celery logs, AFTER the e2e tests have completed
-      # can be helpful for debugging failing/flaky tests
+      # spit out the engine, celery, and grafana logs, if the the e2e tests have failed
+      # can be helpful for debugging failing tests
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
         uses: jupyterhub/action-k8s-namespace-report@v1
         if: failure()
         with:
-          important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery"
+          important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery deploy/helm-testing-grafana"
 
       - uses: actions/upload-artifact@v3
         if: failure()

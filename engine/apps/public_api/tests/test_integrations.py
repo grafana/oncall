@@ -33,6 +33,7 @@ def test_get_list_integrations(
                 "name": "grafana",
                 "description_short": "Some description",
                 "link": integration.integration_url,
+                "inbound_email": None,
                 "type": "grafana",
                 "default_route": {
                     "escalation_chain_id": None,
@@ -165,6 +166,7 @@ def test_update_integration_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -227,6 +229,7 @@ def test_update_integration_template_messaging_backend(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -305,6 +308,7 @@ def test_update_resolve_signal_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -415,6 +419,7 @@ def test_update_sms_template_with_empty_dict(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -477,6 +482,7 @@ def test_update_integration_name(
         "name": "grafana_updated",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -539,6 +545,7 @@ def test_update_integration_name_and_description_short(
         "name": "grafana_updated",
         "description_short": "Some description",
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -604,6 +611,7 @@ def test_set_default_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -672,6 +680,7 @@ def test_set_default_messaging_backend_template(
         "name": "grafana",
         "description_short": None,
         "link": integration.integration_url,
+        "inbound_email": None,
         "type": "grafana",
         "default_route": {
             "escalation_chain_id": None,
@@ -734,3 +743,51 @@ def test_get_list_integrations_direct_paging_hidden(
     # Check no direct paging integrations in the response
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["results"] == []
+
+
+@pytest.mark.django_db
+def test_get_list_integrations_link_and_inbound_email(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_integration_heartbeat,
+    settings,
+):
+    """
+    Check that "link" and "inbound_email" fields are populated correctly for different integration types.
+    """
+
+    settings.BASE_URL = "https://test.com"
+    settings.INBOUND_EMAIL_DOMAIN = "test.com"
+
+    organization, user, token = make_organization_and_user_with_token()
+
+    for integration in AlertReceiveChannel._config:
+        make_alert_receive_channel(organization, integration=integration.slug, token="test123")
+
+    client = APIClient()
+    url = reverse("api-public:integrations-list")
+
+    response = client.get(url, HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+    for integration in response.json()["results"]:
+        integration_type, integration_link, integration_inbound_email = (
+            integration["type"],
+            integration["link"],
+            integration["inbound_email"],
+        )
+
+        if integration_type in [
+            AlertReceiveChannel.INTEGRATION_MANUAL,
+            AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL,
+            AlertReceiveChannel.INTEGRATION_MAINTENANCE,
+        ]:
+            assert integration_link is None
+            assert integration_inbound_email is None
+        elif integration_type == AlertReceiveChannel.INTEGRATION_INBOUND_EMAIL:
+            assert integration_link is None
+            assert integration_inbound_email == "test123@test.com"
+        else:
+            assert integration_link == f"https://test.com/integrations/v1/{integration_type}/test123/"
+            assert integration_inbound_email is None

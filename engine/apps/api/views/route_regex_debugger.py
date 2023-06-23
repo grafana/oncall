@@ -39,7 +39,6 @@ class RouteRegexDebuggerView(APIView):
             .filter(channel__organization=organization, channel__team=team)
             .order_by("-started_at")[:INCIDENTS_TO_LOOKUP]
         ):
-
             if len(incidents_matching_regex) < MAX_INCIDENTS_TO_SHOW:
                 first_alert = ag.alerts.all()[0]
                 if re.search(regex, json.dumps(first_alert.raw_request_data)):

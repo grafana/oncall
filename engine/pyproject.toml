@@ -1,10 +1,62 @@
 [tool.isort]
 profile = "black"
 line_length=120
+# TODO: upgrade this to python 3.11
 py_version=39
 extend_skip_glob = "**/migrations/**"
 
 [tool.black]
 line-length = 120
+# TODO: upgrade this to python 3.11
 target-version = ["py39"]
 force-exclude = "migrations"
+
+[tool.mypy]
+implicit_reexport = true
+plugins = [
+    "mypy_django_plugin.main",
+    "mypy_drf_plugin.main",
+]
+exclude = [
+    # TOML's double-quoted strings require escaping backslashes
+    "tests/test_.*\\.py$",    # test files
+    "migrations/\\d*.*\\.py",  # migration files
+]
+
+# mypy per-module options
+[[tool.mypy.overrides]]
+module = [
+    # the following setting should eventually be removed, one module at a time.
+    # It's only being added to temporarily surpress the:
+    # "module is installed, but missing library stubs or py.typed marker" errors
+    # we can slowly either start to add library stubs ourselves, or try and upgrade these libraries to see if
+    # a newer version includes type stubs
+    "anymail.*",
+    "debug_toolbar.*",
+    "django_deprecate_fields.*",
+    "django_sns_view.*",
+    "factory.*",
+    "fcm_django.*",
+    "firebase_admin.*",
+    "humanize.*",
+    "icalendar.*",
+    "markdown2.*",
+    "mirage.*",
+    "ordered_model.*",
+    "phonenumbers.*",
+    "polymorphic.*",
+    "pyroscope.*",
+    "ratelimit.*",
+    "recurring_ical_events.*",
+    "rest_polymorphic.*",
+    "slackclient.*",
+    "social_core.*",
+    "social_django.*",
+    "twilio.*",
+    "uwsgidecorators.*",
+    "whitenoise.*",
+]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "settings.dev"

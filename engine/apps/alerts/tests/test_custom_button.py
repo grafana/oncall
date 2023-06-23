@@ -9,7 +9,6 @@ def test_escaping_payload_with_double_quotes(
     make_alert_group,
     make_alert,
 ):
-
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
@@ -40,7 +39,6 @@ def test_escaping_payload_with_single_quote_in_string(
     make_alert_group,
     make_alert,
 ):
-
     organization = make_organization()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)

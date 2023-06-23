@@ -50,7 +50,6 @@ END:VCALENDAR
 
 @pytest.mark.django_db
 def test_export_calendar(make_organization_and_user_with_token, make_user_for_organization, make_schedule):
-
     organization, user, _ = make_organization_and_user_with_token()
     usernames = {"amixr", "justin.hunthrop@grafana.com"}
     # setup users for shifts
@@ -89,7 +88,6 @@ def test_export_calendar(make_organization_and_user_with_token, make_user_for_or
 
 @pytest.mark.django_db
 def test_export_user_calendar(make_organization_and_user_with_token, make_schedule):
-
     organization, user, _ = make_organization_and_user_with_token()
 
     # make a schedule so that one is available

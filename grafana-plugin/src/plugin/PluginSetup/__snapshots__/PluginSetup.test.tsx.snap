@@ -1,0 +1,193 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PluginSetup app initialized with topnavbar = false 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      Initializing plugin...
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PluginSetup app initialized with topnavbar = true 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      Initializing plugin...
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PluginSetup app is loading 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      Initializing plugin...
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PluginSetup app successfully initialized 1`] = `
+<div>
+  <div>
+    hello
+  </div>
+</div>
+`;
+
+exports[`PluginSetup currently undergoing maintenance 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      there is some sort of maintenance
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PluginSetup there is an error message - retry setup 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      ohhhh noo
+    </div>
+    <div
+      class="configure-plugin"
+    >
+      <div
+        class="css-ve64a7-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <button
+            class="css-1pq88ji-button"
+            type="button"
+          >
+            <span
+              class="css-1mhnkuh"
+            >
+              Retry
+            </span>
+          </button>
+        </div>
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <a
+            class="css-1pq88ji-button"
+            href="/plugins/grafana-oncall-app?page=configuration"
+            tabindex="0"
+          >
+            <span
+              class="css-1mhnkuh"
+            >
+              Configure Plugin
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PluginSetup there is an error message 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      ohhhh noo
+    </div>
+    <div
+      class="configure-plugin"
+    >
+      <div
+        class="css-ve64a7-horizontal-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <button
+            class="css-1pq88ji-button"
+            type="button"
+          >
+            <span
+              class="css-1mhnkuh"
+            >
+              Retry
+            </span>
+          </button>
+        </div>
+        <div
+          class="css-cvef6c-layoutChildrenWrapper"
+        >
+          <a
+            class="css-1pq88ji-button"
+            href="/plugins/grafana-oncall-app?page=configuration"
+            tabindex="0"
+          >
+            <span
+              class="css-1mhnkuh"
+            >
+              Configure Plugin
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
