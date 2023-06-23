@@ -1,4 +1,4 @@
-import { TemplateOptions } from 'pages/integration_2/Integration2.config';
+import { TemplateOptions } from 'pages/integration/Integration.config';
 
 export interface Template {
   name: string;

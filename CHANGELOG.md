@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI Updates for the integrations page ([#2310](https://github.com/grafana/oncall/pull/2310))
 - `telegram.webhookUrl` now defaults to `https://<base_url>` if not set
 
 ## v1.2.46 (2023-06-22)

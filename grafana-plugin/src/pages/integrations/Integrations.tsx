@@ -1,49 +1,62 @@
 import React from 'react';
 
-import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
-import qs from 'query-string';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import GList from 'components/GList/GList';
+import GTable from 'components/GTable/GTable';
+import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
+import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import Tutorial from 'components/Tutorial/Tutorial';
-import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import AlertReceiveChannelCard from 'containers/AlertReceiveChannelCard/AlertReceiveChannelCard';
-import AlertRules from 'containers/AlertRules/AlertRules';
-import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';
-import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
-import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import {
-  AlertReceiveChannel,
-  AlertReceiveChannelOption,
-} from 'models/alert_receive_channel/alert_receive_channel.types';
-import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { HeartIcon, HeartRedIcon } from 'icons';
+import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import IntegrationHelper from 'pages/integration/Integration.helper';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { openNotification } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT } from 'utils/consts';
 
-import styles from './Integrations.module.css';
+import styles from './Integrations.module.scss';
 
 const cx = cn.bind(styles);
+const FILTERS_DEBOUNCE_MS = 500;
+const ITEMS_PER_PAGE = 15;
+const MAX_LINE_LENGTH = 40;
+const ACTIONS_LIST_WIDTH = 200;
+const ACTIONS_LIST_BORDER = 2;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
-  showCreateIntegrationModal: boolean;
-  alertReceiveChannelToShowSettings?: AlertReceiveChannel['id'];
-  integrationSettingsTab?: IntegrationSettingsTab;
-  extraAlertReceiveChannels?: AlertReceiveChannel[];
+  alertReceiveChannelId?: AlertReceiveChannel['id'] | 'new';
+  page: number;
+  confirmationModal: {
+    isOpen: boolean;
+    title: any;
+    dismissText: string;
+    confirmText: string;
+    body?: React.ReactNode;
+    description?: string;
+    confirmationText?: string;
+    onConfirm: () => void;
+  };
 }
 
 interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
@@ -52,288 +65,410 @@ interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentPro
 class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {
   state: IntegrationsState = {
     integrationsFilters: { searchTerm: '' },
-    showCreateIntegrationModal: false,
     errorData: initErrorDataState(),
+    page: 1,
+    confirmationModal: undefined,
   };
 
-  private alertReceiveChanneltoPoll: { [key: string]: number } = {};
-  private alertReceiveChannelTimerId: ReturnType<typeof setTimeout>;
+  async componentDidMount() {
+    const {
+      query: { p },
+    } = this.props;
 
-  componentWillUnmount() {
-    clearInterval(this.alertReceiveChannelTimerId);
+    this.setState({ page: p ? Number(p) : 1 }, this.update);
+
+    this.parseQueryParams();
   }
 
-  componentDidUpdate(prevProps: Readonly<IntegrationsProps>): void {
+  componentDidUpdate(prevProps: IntegrationsProps) {
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
     }
   }
 
-  setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    const { store } = this.props;
-    store.selectedAlertReceiveChannel = alertReceiveChannelId;
-  };
-
   parseQueryParams = async () => {
-    this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse // reset wrong team error to false
+    this.setState((_prevState) => ({
+      errorData: initErrorDataState(),
+      alertReceiveChannelId: undefined,
+    })); // reset state on query parse
 
     const {
       store,
-      query,
       match: {
         params: { id },
       },
     } = this.props;
-    const { alertReceiveChannelStore } = store;
 
-    let selectedAlertReceiveChannel = undefined;
+    if (!id) {
+      return;
+    }
 
-    if (id) {
-      let alertReceiveChannel = await alertReceiveChannelStore
+    let alertReceiveChannel: AlertReceiveChannel | void = undefined;
+    const isNewAlertReceiveChannel = id === 'new';
+
+    if (!isNewAlertReceiveChannel) {
+      alertReceiveChannel = await store.alertReceiveChannelStore
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
-
-      if (!alertReceiveChannel) {
-        return;
-      }
-
-      alertReceiveChannel = alertReceiveChannelStore.items[id];
-      if (alertReceiveChannel) {
-        selectedAlertReceiveChannel = alertReceiveChannel.id;
-      }
-
-      if (query.tab) {
-        this.setState({ integrationSettingsTab: query.tab });
-        this.setState({ alertReceiveChannelToShowSettings: id });
-      }
     }
 
-    if (selectedAlertReceiveChannel) {
-      this.enrichAlertReceiveChannelsAndSelect(selectedAlertReceiveChannel);
-    } else {
-      store.selectedAlertReceiveChannel = undefined;
+    if (alertReceiveChannel || isNewAlertReceiveChannel) {
+      this.setState({ alertReceiveChannelId: id });
     }
+  };
+
+  update = () => {
+    const { store } = this.props;
+    const { page, integrationsFilters } = this.state;
+    LocationHelper.update({ p: page }, 'partial');
+
+    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
   };
 
   render() {
-    const {
-      store,
-      match: {
-        params: { id },
+    const { store, query } = this.props;
+    const { alertReceiveChannelId, page, confirmationModal } = this.state;
+    const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore } = store;
+
+    const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
+
+    const columns = [
+      {
+        width: '35%',
+        title: 'Name',
+        key: 'name',
+        render: this.renderName,
       },
-      query,
-    } = this.props;
-    const {
-      alertReceiveChannelToShowSettings,
-      integrationSettingsTab,
-      showCreateIntegrationModal,
-      errorData,
-      extraAlertReceiveChannels,
-    } = this.state;
 
-    const { alertReceiveChannelStore, selectedAlertReceiveChannel } = store;
-
-    const searchResult = alertReceiveChannelStore.getSearchResult();
-
-    let data = searchResult;
-    if (extraAlertReceiveChannels && extraAlertReceiveChannels.length) {
-      data = [...extraAlertReceiveChannels, ...searchResult];
-    }
+      {
+        width: '15%',
+        title: 'Status',
+        key: 'status',
+        render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
+      },
+      {
+        width: '20%',
+        title: 'Type',
+        key: 'datasource',
+        render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
+      },
+      {
+        width: '10%',
+        title: 'Maintenance',
+        key: 'maintenance',
+        render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
+      },
+      {
+        width: '5%',
+        title: 'Heartbeat',
+        key: 'heartbeat',
+        render: (item: AlertReceiveChannel) => this.renderHeartbeat(item, alertReceiveChannelStore, heartbeatStore),
+      },
+      {
+        width: '15%',
+        title: 'Team',
+        render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
+      },
+      {
+        width: '50px',
+        key: 'buttons',
+        render: (item: AlertReceiveChannel) => this.renderButtons(item),
+        className: cx('buttons'),
+      },
+    ];
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="integration"
-        pageName="integrations"
-        itemNotFoundMessage={`Integration with id=${id} is not found. Please select integration from the list.`}
-      >
-        {() => (
-          <>
-            <div className={cx('root')}>
-              <div className={cx('filters')}>
-                <RemoteFilters
-                  query={query}
-                  page="integrations"
-                  grafanaTeamStore={store.grafanaTeamStore}
-                  onChange={this.handleIntegrationsFiltersChange}
-                />
-              </div>
-              {data?.length ? (
-                <div className={cx('integrations')}>
-                  <div className={cx('integrationsList')}>
-                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                      <Button
-                        onClick={() => {
-                          this.setState({ showCreateIntegrationModal: true });
-                        }}
-                        icon="plus"
-                        className={cx('newIntegrationButton')}
-                      >
-                        New integration to receive alerts
-                      </Button>
-                    </WithPermissionControlTooltip>
-                    <div className={cx('alert-receive-channels-list')}>
-                      <GList
-                        autoScroll
-                        selectedId={selectedAlertReceiveChannel}
-                        items={data}
-                        itemKey="id"
-                        onSelect={this.handleAlertReceiveChannelSelect}
-                      >
-                        {(item) => (
-                          <AlertReceiveChannelCard
-                            id={item.id}
-                            onShowHeartbeatModal={() => {
-                              this.setState({
-                                alertReceiveChannelToShowSettings: item.id,
-                                integrationSettingsTab: IntegrationSettingsTab.Heartbeat,
-                              });
-                            }}
-                          />
-                        )}
-                      </GList>
-                    </div>
-                  </div>
-                  <div className={cx('alert-rules', 'alertRulesBorder')}>
-                    <AlertRules
-                      alertReceiveChannelId={store.selectedAlertReceiveChannel}
-                      onDelete={this.handleDeleteAlertReceiveChannel}
-                      onShowSettings={(integrationSettingsTab?: IntegrationSettingsTab) => {
-                        this.setState({
-                          alertReceiveChannelToShowSettings: store.selectedAlertReceiveChannel,
-                          integrationSettingsTab,
-                        });
-
-                        LocationHelper.update({ tab: integrationSettingsTab }, 'partial');
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : data ? (
-                <Tutorial
-                  step={TutorialStep.Integrations}
-                  title={
-                    <VerticalGroup align="center" spacing="lg">
-                      <Text type="secondary">No integrations found. Review your filter and team settings.</Text>
-                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                        <Button
-                          icon="plus"
-                          variant="primary"
-                          size="lg"
-                          onClick={() => {
-                            this.setState({ showCreateIntegrationModal: true });
-                          }}
-                        >
-                          New integration to receive alerts
-                        </Button>
-                      </WithPermissionControlTooltip>
-                    </VerticalGroup>
-                  }
-                />
-              ) : (
-                <LoadingPlaceholder text="Loading..." />
-              )}
-            </div>
-            {alertReceiveChannelToShowSettings && (
-              <IntegrationSettings
-                onUpdate={() => {
-                  alertReceiveChannelStore.updateItem(alertReceiveChannelToShowSettings);
-                }}
-                startTab={integrationSettingsTab}
-                id={alertReceiveChannelToShowSettings}
-                onHide={() => {
-                  this.setState({
-                    alertReceiveChannelToShowSettings: undefined,
-                    integrationSettingsTab: undefined,
-                  });
-                  LocationHelper.update({ tab: undefined }, 'partial');
-                }}
-              />
-            )}
-            {showCreateIntegrationModal && (
-              <CreateAlertReceiveChannelContainer
-                onHide={() => {
-                  this.setState({ showCreateIntegrationModal: false });
-                }}
-                onCreate={this.handleCreateNewAlertReceiveChannel}
-              />
-            )}
-          </>
+      <>
+        <div className={cx('root')}>
+          <div className={cx('title')}>
+            <HorizontalGroup justify="space-between">
+              <VerticalGroup>
+                <Text.Title level={3}>Integrations</Text.Title>
+                <Text type="secondary">
+                  Receive alerts, group and interpret using templates and route to escalations
+                </Text>
+              </VerticalGroup>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <Button
+                  onClick={() => {
+                    this.setState({ alertReceiveChannelId: 'new' });
+                  }}
+                  icon="plus"
+                  className={cx('newIntegrationButton')}
+                >
+                  New integration
+                </Button>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
+          </div>
+          <div>
+            <RemoteFilters
+              query={query}
+              page="integrations"
+              grafanaTeamStore={store.grafanaTeamStore}
+              onChange={this.handleIntegrationsFiltersChange}
+            />
+            <GTable
+              emptyText={this.renderNotFound()}
+              rowKey="id"
+              data={results}
+              columns={columns}
+              className={cx('integrations-table')}
+              rowClassName={cx('integrations-table-row')}
+              pagination={{
+                page,
+                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                onChange: this.handleChangePage,
+              }}
+            />
+          </div>
+        </div>
+        {alertReceiveChannelId && (
+          <IntegrationForm
+            onHide={() => {
+              this.setState({ alertReceiveChannelId: undefined });
+            }}
+            onUpdate={this.update}
+            id={alertReceiveChannelId}
+          />
         )}
-      </PageErrorHandlingWrapper>
+
+        {confirmationModal && (
+          <ConfirmModal
+            isOpen={confirmationModal.isOpen}
+            title={confirmationModal.title}
+            confirmText={confirmationModal.confirmText}
+            dismissText="Cancel"
+            body={confirmationModal.body}
+            description={confirmationModal.description}
+            confirmationText={confirmationModal.confirmationText}
+            onConfirm={confirmationModal.onConfirm}
+            onDismiss={() =>
+              this.setState({
+                confirmationModal: undefined,
+              })
+            }
+          />
+        )}
+      </>
     );
   }
 
-  handleCreateNewAlertReceiveChannel = (option: AlertReceiveChannelOption, team: GrafanaTeam['id']) => {
-    const { store, history } = this.props;
-
-    store.alertReceiveChannelStore
-      .create({ integration: option.value, team })
-      .then(async (alertReceiveChannel: AlertReceiveChannel) => {
-        await this.applyFilters();
-
-        const query = { ...qs.parse(window.location.search), tab: IntegrationSettingsTab.HowToConnect };
-
-        history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannel.id}?${qs.stringify(query)}`);
-
-        const integration = store.alertReceiveChannelStore.getIntegration(alertReceiveChannel);
-        if (integration?.display_name === 'Grafana Alerting') {
-          this.alertReceiveChanneltoPoll = { ...this.alertReceiveChanneltoPoll, [alertReceiveChannel.id]: 200 };
-          if (!this.alertReceiveChannelTimerId) {
-            this.alertReceiveChannelTimerId = setInterval(this.checkTimerTick, 3000);
-          }
-        }
-      });
+  handleChangePage = (page: number) => {
+    this.setState({ page }, this.update);
   };
 
-  checkTimerTick = () => {
-    const { store } = this.props;
+  renderNotFound() {
+    return (
+      <div className={cx('loader')}>
+        <Text type="secondary">Not found</Text>
+      </div>
+    );
+  }
 
-    if (store.selectedAlertReceiveChannel in this.alertReceiveChanneltoPoll) {
-      let counter = this.alertReceiveChanneltoPoll[store.selectedAlertReceiveChannel];
-      if (counter > 0) {
-        store.alertReceiveChannelStore.updateItem(store.selectedAlertReceiveChannel);
-        this.alertReceiveChanneltoPoll[store.selectedAlertReceiveChannel]--;
-      } else {
-        delete this.alertReceiveChanneltoPoll[store.selectedAlertReceiveChannel];
-      }
+  renderName = (item: AlertReceiveChannel) => {
+    const {
+      query: { p },
+    } = this.props;
+
+    return (
+      <PluginLink query={{ page: 'integrations', id: item.id, p }}>
+        <Text type="link" size="medium">
+          <Emoji
+            className={cx('title')}
+            text={
+              item.verbal_name?.length > MAX_LINE_LENGTH
+                ? item.verbal_name?.substring(0, MAX_LINE_LENGTH) + '...'
+                : item.verbal_name
+            }
+          />
+        </Text>
+      </PluginLink>
+    );
+  };
+
+  renderDatasource(item: AlertReceiveChannel, alertReceiveChannelStore) {
+    const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
+    const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+    return (
+      <HorizontalGroup spacing="xs">
+        <IntegrationLogo scale={0.08} integration={integration} />
+        <Text type="secondary">{integration?.display_name}</Text>
+      </HorizontalGroup>
+    );
+  }
+
+  renderIntegrationStatus(item: AlertReceiveChannel, alertReceiveChannelStore) {
+    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[item.id];
+    let routesCounter = item.routes_count;
+    let connectedEscalationsChainsCount = item.connected_escalations_chains_count;
+
+    return (
+      <HorizontalGroup spacing="xs">
+        {alertReceiveChannelCounter && (
+          <PluginLink query={{ page: 'incidents', integration: item.id }} className={cx('alertsInfoText')}>
+            <TooltipBadge
+              borderType="primary"
+              text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
+              tooltipTitle=""
+              tooltipContent={
+                alertReceiveChannelCounter?.alerts_count +
+                ' alert' +
+                (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+                ' in ' +
+                alertReceiveChannelCounter?.alert_groups_count +
+                ' alert group' +
+                (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+              }
+            />
+          </PluginLink>
+        )}
+        {routesCounter && (
+          <TooltipBadge
+            borderType="success"
+            icon="link"
+            text={`${connectedEscalationsChainsCount}/${routesCounter}`}
+            tooltipContent={undefined}
+            tooltipTitle={
+              connectedEscalationsChainsCount +
+              ' connected escalation chain' +
+              (connectedEscalationsChainsCount === 1 ? '' : 's') +
+              ' in ' +
+              routesCounter +
+              ' route' +
+              (routesCounter === 1 ? '' : 's')
+            }
+          />
+        )}
+      </HorizontalGroup>
+    );
+  }
+
+  renderHeartbeat(item: AlertReceiveChannel, alertReceiveChannelStore, heartbeatStore) {
+    const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
+
+    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
+    const heartbeat = heartbeatStore.items[heartbeatId];
+
+    const heartbeatStatus = Boolean(heartbeat?.status);
+    return (
+      <div>
+        {alertReceiveChannel.is_available_for_integration_heartbeat && heartbeat?.last_heartbeat_time_verbal && (
+          <TooltipBadge
+            text={undefined}
+            className={cx('heartbeat-badge')}
+            borderType={heartbeatStatus ? 'success' : 'danger'}
+            customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
+            tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
+            tooltipContent={undefined}
+          />
+        )}
+      </div>
+    );
+  }
+
+  renderMaintenance(item: AlertReceiveChannel) {
+    const maintenanceMode = item.maintenance_mode;
+
+    if (maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance) {
+      return (
+        <div className={cx('u-flex')}>
+          <TooltipBadge
+            borderType="primary"
+            icon="pause"
+            text={IntegrationHelper.getMaintenanceText(item.maintenance_till)}
+            tooltipTitle={IntegrationHelper.getMaintenanceText(item.maintenance_till, maintenanceMode)}
+            tooltipContent={undefined}
+          />
+        </div>
+      );
     }
+
+    return null;
+  }
+
+  renderTeam(item: AlertReceiveChannel, teams: any) {
+    return <TeamName team={teams[item.team]} />;
+  }
+
+  renderButtons = (item: AlertReceiveChannel) => {
+    return (
+      <WithContextMenu
+        renderMenuItems={() => (
+          <div className={cx('integrations-actionsList')}>
+            <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
+              <div className={cx('integrations-actionItem')} onClick={() => this.onIntegrationEditClick(item.id)}>
+                <Text type="primary">Integration settings</Text>
+              </div>
+            </WithPermissionControlTooltip>
+
+            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID is copied')}>
+              <div className={cx('integrations-actionItem')}>
+                <HorizontalGroup spacing={'xs'}>
+                  <Icon name="copy" />
+
+                  <Text type="primary">UID: {item.id}</Text>
+                </HorizontalGroup>
+              </div>
+            </CopyToClipboard>
+
+            <div className="thin-line-break" />
+
+            <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
+              <div className={cx('integrations-actionItem')}>
+                <div
+                  onClick={() => {
+                    this.setState({
+                      confirmationModal: {
+                        isOpen: true,
+                        confirmText: 'Delete',
+                        dismissText: 'Cancel',
+                        onConfirm: () => this.handleDeleteAlertReceiveChannel(item.id),
+                        title: 'Delete integration',
+                        body: (
+                          <Text type="primary">
+                            Are you sure you want to delete <Emoji text={item.verbal_name} /> integration?
+                          </Text>
+                        ),
+                      },
+                    });
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  <Text type="danger">
+                    <HorizontalGroup spacing={'xs'}>
+                      <Icon name="trash-alt" />
+                      <span>Delete Integration</span>
+                    </HorizontalGroup>
+                  </Text>
+                </div>
+              </div>
+            </WithPermissionControlTooltip>
+          </div>
+        )}
+      >
+        {({ openMenu }) => (
+          <HamburgerMenu openMenu={openMenu} listBorder={ACTIONS_LIST_BORDER} listWidth={ACTIONS_LIST_WIDTH} />
+        )}
+      </WithContextMenu>
+    );
+  };
+
+  onIntegrationEditClick = (id: AlertReceiveChannel['id']) => {
+    this.setState({ alertReceiveChannelId: id });
   };
 
   handleDeleteAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    const { store, history } = this.props;
-    const { extraAlertReceiveChannels } = this.state;
-    const { alertReceiveChanneltoPoll } = this;
+    const { store } = this.props;
 
     const { alertReceiveChannelStore } = store;
 
-    if (alertReceiveChanneltoPoll[alertReceiveChannelId]) {
-      delete alertReceiveChanneltoPoll[alertReceiveChannelId];
-    }
+    alertReceiveChannelStore.deleteAlertReceiveChannel(alertReceiveChannelId).then(this.applyFilters);
+    this.setState({ confirmationModal: undefined });
+  };
 
-    alertReceiveChannelStore
-      .deleteAlertReceiveChannel(alertReceiveChannelId)
-      .then(this.applyFilters)
-      .then(() => {
-        if (alertReceiveChannelId === store.selectedAlertReceiveChannel) {
-          if (extraAlertReceiveChannels) {
-            const newExtraAlertReceiveChannels = extraAlertReceiveChannels.filter(
-              (alertReceiveChannel) => alertReceiveChannel.id !== alertReceiveChannelId
-            );
-
-            this.setState({ extraAlertReceiveChannels: newExtraAlertReceiveChannels });
-          }
-
-          const searchResult = alertReceiveChannelStore.getSearchResult();
-
-          const index = searchResult.findIndex(
-            (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
-          );
-          const newSelected = searchResult[index - 1] || searchResult[0];
-
-          history.push(`${PLUGIN_ROOT}/integrations/${newSelected?.id || ''}${window.location.search}`);
-        }
-      });
+  handleIntegrationsFiltersChange = (integrationsFilters: Filters) => {
+    this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations());
   };
 
   applyFilters = () => {
@@ -341,76 +476,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters } = this.state;
 
-    return alertReceiveChannelStore.updateItems(integrationsFilters);
-  };
-
-  autoSelectAlertReceiveChannel = () => {
-    const { store, history } = this.props;
-    const { alertReceiveChannelStore } = store;
-    const searchResult = alertReceiveChannelStore.getSearchResult();
-
-    if (
-      !searchResult.some(
-        (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
-      )
-    ) {
-      const id = searchResult[0]?.id;
-      history.push(`${PLUGIN_ROOT}/integrations/${id || ''}${window.location.search}`);
-    }
-  };
-
-  handleIntegrationsFiltersChange = (integrationsFilters: Filters, isOnMount: boolean) => {
-    const {
-      match: {
-        params: { id },
-      },
-    } = this.props;
-
-    this.setState({ integrationsFilters, extraAlertReceiveChannels: undefined }, () => {
-      this.applyFilters().then(() => {
-        if (isOnMount && id) {
-          this.parseQueryParams();
-        } else {
-          this.autoSelectAlertReceiveChannel();
-        }
-      });
+    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters).then(() => {
+      this.setState({ page: 1 });
+      LocationHelper.update({ p: 1 }, 'partial');
     });
   };
 
-  handleAlertReceiveChannelSelect = (id: AlertReceiveChannel['id']) => {
-    const { history } = this.props;
-
-    history.push(`${PLUGIN_ROOT}/integrations/${id}${window.location.search}`);
-  };
-
-  enrichAlertReceiveChannelsAndSelect = async (id: AlertReceiveChannel['id']) => {
-    const { store } = this.props;
-    const { extraAlertReceiveChannels } = this.state;
-    const { alertReceiveChannelStore } = store;
-
-    const searchResult = alertReceiveChannelStore.getSearchResult();
-    if (
-      !searchResult.some((alertReceiveChannel) => alertReceiveChannel.id === id) &&
-      (!extraAlertReceiveChannels ||
-        (extraAlertReceiveChannels &&
-          !extraAlertReceiveChannels.some((alertReceiveChannel) => alertReceiveChannel.id === id)))
-    ) {
-      let alertReceiveChannel = await alertReceiveChannelStore
-        .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
-
-      if (alertReceiveChannel) {
-        this.setState(
-          { extraAlertReceiveChannels: [...(this.state.extraAlertReceiveChannels || []), alertReceiveChannel] },
-          () => {
-            this.setSelectedAlertReceiveChannel(id);
-          }
-        );
-      }
-    } else {
-      this.setSelectedAlertReceiveChannel(id);
-    }
-  };
+  debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 }
 
 export default withRouter(withMobXProviderContext(Integrations));
