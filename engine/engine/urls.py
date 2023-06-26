@@ -67,6 +67,11 @@ if settings.IS_OPEN_SOURCE:
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
     ]
 
+if settings.PHONE_PROVIDER == "zvonok":
+    urlpatterns += [
+        path("zvonok/", include("apps.zvonok.urls"))
+    ]
+
 if settings.DEBUG:
     import debug_toolbar
 
