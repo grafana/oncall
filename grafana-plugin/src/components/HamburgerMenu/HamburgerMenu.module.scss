@@ -3,14 +3,18 @@
   color: var(--primary-text-color);
   border: var(--border-weak);
   border-radius: var(--border-radius);
+  background-color: var(--button-background);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  justify-content: center;
+
+  &:hover {
+    background-color: var(--button-hover-background);
+  }
 
   &--withBackground {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    vertical-align: middle;
-    justify-content: center;
-    background-color: var(--button-background);
     height: 32px;
     width: 30px;
     padding: 4px;
@@ -19,13 +23,6 @@
   }
 
   &--small {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    vertical-align: middle;
-    justify-content: center;
-    background-color: var(--button-background);
-    color: var(--primary-text-color);
     height: 24px;
     width: 22px;
     padding: 4px;

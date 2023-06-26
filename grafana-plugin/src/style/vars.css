@@ -65,6 +65,7 @@
   --tag-text-success: rgb(50, 96, 43);
   --tag-border-success: rgb(148, 203, 140);
   --button-background: rgba(36, 41, 46, 0.08);
+  --button-hover-background: rgba(36, 41, 46, 0.15);
   --box-background: rgba(244, 245, 245);
 }
 
@@ -100,5 +101,6 @@
   --tag-text-success: rgb(165, 214, 159);
   --tag-border-success: rgb(49, 100, 43);
   --button-background: rgba(204, 204, 220, 0.1);
+  --button-hover-background: rgba(204, 204, 220, 0.14);
   --box-background: rgba(10, 10, 10, 0.4);
 }
