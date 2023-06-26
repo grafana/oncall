@@ -9,6 +9,7 @@
   align-items: center;
   vertical-align: middle;
   justify-content: center;
+  padding: 4px;
 
   &:hover {
     background-color: var(--button-hover-background);
@@ -17,7 +18,6 @@
   &--withBackground {
     height: 32px;
     width: 30px;
-    padding: 4px;
     cursor: pointer;
     color: var(--primary-text-color);
   }
@@ -25,7 +25,6 @@
   &--small {
     height: 24px;
     width: 22px;
-    padding: 4px;
     cursor: pointer;
     color: var(--primary-text-color);
   }
