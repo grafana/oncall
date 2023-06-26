@@ -73,7 +73,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
     integrations = (
         AlertReceiveChannel.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
         .filter(~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE) & Q(organization_id=organization_id))
-        .select_related("organization", "team")
+        .select_related("team")
     )
 
     response_time_period = get_response_time_period()
@@ -160,8 +160,6 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
         .filter(organization_id=organization_id)
         .annotate(num_logs=Count("personal_log_records"))
         .filter(num_logs__gte=1)
-        .select_related("organization")
-        .prefetch_related("personal_log_records")
     )
 
     instance_slug = organization.stack_slug
