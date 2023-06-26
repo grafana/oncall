@@ -54,6 +54,11 @@ const IntegrationHelper = {
     return totalDiffString;
   },
 
+  fetchChatOps(_store: RootStore): Promise<void> {
+    // in oncall-private this fetches MSTeams data
+    return Promise.resolve();
+  },
+
   hasChatopsInstalled(store: RootStore) {
     const hasSlack = Boolean(store.teamStore.currentTeam?.slack_team_identity);
     const hasTelegram =

@@ -1,6 +1,8 @@
 .hamburgerMenu {
   cursor: pointer;
   color: var(--primary-text-color);
+  border: var(--border-weak);
+  border-radius: var(--border-radius);
 
   &--withBackground {
     display: inline-flex;
@@ -9,7 +11,6 @@
     vertical-align: middle;
     justify-content: center;
     background-color: var(--button-background);
-    border: 1px solid transparent;
     height: 32px;
     width: 30px;
     padding: 4px;
@@ -25,7 +26,6 @@
     justify-content: center;
     background-color: var(--button-background);
     color: var(--primary-text-color);
-    border: 1px solid transparent;
     height: 24px;
     width: 22px;
     padding: 4px;
