@@ -1,4 +1,4 @@
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from 'pages/integration_2/Integration2Common.config';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 
 interface TemplateToRender {
   name: string;
@@ -38,7 +38,7 @@ export const commonTemplatesToRender: TemplateBlock[] = [
       {
         name: 'web_title_template',
         label: 'Title',
-        height: MONACO_INPUT_HEIGHT_TALL,
+        height: MONACO_INPUT_HEIGHT_SMALL,
       },
       {
         name: 'web_message_template',
