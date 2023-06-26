@@ -3,7 +3,7 @@ import typing
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Count, Q
 
 from apps.alerts.constants import AlertGroupState
 from apps.metrics_exporter.constants import (
@@ -11,17 +11,20 @@ from apps.metrics_exporter.constants import (
     METRICS_ORGANIZATIONS_IDS_CACHE_TIMEOUT,
     AlertGroupsResponseTimeMetricsDict,
     AlertGroupsTotalMetricsDict,
-    RecalculateMetricsTimer,
     RecalculateOrgMetricsDict,
+    UserWasNotifiedOfAlertGroupsMetricsDict,
 )
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
+    get_metric_user_was_notified_of_alert_groups_key,
     get_metrics_cache_timer_key,
     get_metrics_recalculation_timeout,
     get_organization_ids_from_db,
     get_response_time_period,
+    is_allowed_to_start_metrics_calculation,
 )
+from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.database import get_random_readonly_database_key_if_present_otherwise_default
 
@@ -40,9 +43,14 @@ def save_organizations_ids_in_cache():
 def start_calculate_and_cache_metrics(metrics_to_recalculate: list[RecalculateOrgMetricsDict]):
     """Start calculation metrics for each object in metrics_to_recalculate"""
     for counter, recalculation_data in enumerate(metrics_to_recalculate):
+        if not is_allowed_to_start_metrics_calculation(**recalculation_data):
+            continue
         # start immediately if recalculation starting has been forced
         countdown = 0 if recalculation_data.get("force") else counter
         calculate_and_cache_metrics.apply_async(kwargs=recalculation_data, countdown=countdown)
+        calculate_and_cache_user_was_notified_metric.apply_async(
+            (recalculation_data["organization_id"],), countdown=countdown
+        )
 
 
 @shared_dedicated_queue_retry_task(
@@ -50,32 +58,17 @@ def start_calculate_and_cache_metrics(metrics_to_recalculate: list[RecalculateOr
 )
 def calculate_and_cache_metrics(organization_id, force=False):
     """
-    Calculate metrics for organization.
-    Before calculation checks if calculation has already been started to avoid too frequent launch or parallel launch
+    Calculate integrations metrics for organization.
     """
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    ONE_HOUR = 3600
+    Organization = apps.get_model("user_management", "Organization")
+
     TWO_HOURS = 7200
 
-    recalculate_timeout = get_metrics_recalculation_timeout()
-
-    # check if recalculation has been already started
-    metrics_cache_timer_key = get_metrics_cache_timer_key(organization_id)
-    metrics_cache_timer = cache.get(metrics_cache_timer_key)
-    if metrics_cache_timer:
-        if not force or metrics_cache_timer.get("forced_started", False):
-            return
-        else:
-            metrics_cache_timer["forced_started"] = True
-    else:
-        metrics_cache_timer: RecalculateMetricsTimer = {
-            "recalculate_timeout": recalculate_timeout,
-            "forced_started": force,
-        }
-
-    metrics_cache_timer["recalculate_timeout"] = recalculate_timeout
-    cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout)
+    organization = Organization.objects.filter(pk=organization_id).first()
+    if not organization:
+        return
 
     integrations = (
         AlertReceiveChannel.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
@@ -84,6 +77,10 @@ def calculate_and_cache_metrics(organization_id, force=False):
     )
 
     response_time_period = get_response_time_period()
+
+    instance_slug = organization.stack_slug
+    instance_id = organization.stack_id
+    instance_org_id = organization.org_id
 
     metric_alert_group_total: typing.Dict[int, AlertGroupsTotalMetricsDict] = {}
     metric_alert_group_response_time: typing.Dict[int, AlertGroupsResponseTimeMetricsDict] = {}
@@ -96,8 +93,6 @@ def calculate_and_cache_metrics(organization_id, force=False):
     }
 
     for integration in integrations:
-        instance_slug = integration.organization.stack_slug
-        instance_id = integration.organization.stack_id
         # calculate states
         for state, alert_group_filter in states.items():
             metric_alert_group_total.setdefault(
@@ -106,7 +101,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
                     "integration_name": integration.emojized_verbal_name,
                     "team_name": integration.team_name,
                     "team_id": integration.team_id_or_no_team,
-                    "org_id": integration.organization.org_id,
+                    "org_id": instance_org_id,
                     "slug": instance_slug,
                     "id": instance_id,
                 },
@@ -124,7 +119,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
             "integration_name": integration.emojized_verbal_name,
             "team_name": integration.team_name,
             "team_id": integration.team_id_or_no_team,
-            "org_id": integration.organization.org_id,
+            "org_id": instance_org_id,
             "slug": instance_slug,
             "id": instance_id,
             "response_time": all_response_time_seconds,
@@ -133,9 +128,67 @@ def calculate_and_cache_metrics(organization_id, force=False):
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)
     metric_alert_groups_response_time_key = get_metric_alert_groups_response_time_key(organization_id)
 
+    recalculate_timeout = get_metrics_recalculation_timeout()
     metrics_cache_timeout = recalculate_timeout + TWO_HOURS
     cache.set(metric_alert_groups_total_key, metric_alert_group_total, timeout=metrics_cache_timeout)
     cache.set(metric_alert_groups_response_time_key, metric_alert_group_response_time, timeout=metrics_cache_timeout)
-    if metrics_cache_timer["forced_started"]:
+    if force:
+        metrics_cache_timer_key = get_metrics_cache_timer_key(organization_id)
+        metrics_cache_timer = cache.get(metrics_cache_timer_key)
         metrics_cache_timer["forced_started"] = False
-        cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout - ONE_HOUR)
+        cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout - TWO_HOURS)
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+)
+def calculate_and_cache_user_was_notified_metric(organization_id):
+    """
+    Calculate metric "user_was_notified_of_alert_groups" for organization.
+    """
+    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    Organization = apps.get_model("user_management", "Organization")
+
+    TWO_HOURS = 7200
+
+    organization = Organization.objects.filter(pk=organization_id).first()
+    if not organization:
+        return
+
+    users = (
+        User.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
+        .filter(organization_id=organization_id)
+        .annotate(num_logs=Count("personal_log_records"))
+        .filter(num_logs__gt=1)
+        .select_related("organization")
+        .prefetch_related("personal_log_records")
+    )
+
+    instance_slug = organization.stack_slug
+    instance_id = organization.stack_id
+    instance_org_id = organization.org_id
+
+    metric_user_was_notified: typing.Dict[int, UserWasNotifiedOfAlertGroupsMetricsDict] = {}
+
+    for user in users:
+
+        counter = (
+            user.personal_log_records.filter(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED)
+            .values("alert_group")
+            .distinct()
+            .count()
+        )
+
+        metric_user_was_notified[user.id] = {
+            "user_username": user.username,
+            "org_id": instance_org_id,
+            "slug": instance_slug,
+            "id": instance_id,
+            "counter": counter,
+        }
+
+    metric_user_was_notified_key = get_metric_user_was_notified_of_alert_groups_key(organization_id)
+
+    recalculate_timeout = get_metrics_recalculation_timeout()
+    metrics_cache_timeout = recalculate_timeout + TWO_HOURS
+    cache.set(metric_user_was_notified_key, metric_user_was_notified, timeout=metrics_cache_timeout)
