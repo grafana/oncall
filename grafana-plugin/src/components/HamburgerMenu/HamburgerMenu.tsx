@@ -22,7 +22,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = (props) => {
   return (
     <div
       ref={ref}
-      className={withBackground ? cx('hamburgerMenu--withBackground') : cx('hamburgerMenu', className)}
+      className={cx('hamburgerMenu', { 'hamburgerMenu--withBackground': withBackground }, className)}
       onClick={(e) => {
         if (stopPropagation) {
           e.stopPropagation();

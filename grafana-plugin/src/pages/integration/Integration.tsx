@@ -42,9 +42,9 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import Integration2HeartbeatForm from 'containers/IntegrationContainers/Integration2HearbeatForm/Integration2HeartbeatForm';
+import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHearbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
+import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
@@ -58,10 +58,9 @@ import {
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
-import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration_2/Integration2.config';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import styles from 'pages/integration_2/Integration2.module.scss';
-import { AppFeature } from 'state/features';
+import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
+import IntegrationHelper from 'pages/integration/Integration.helper';
+import styles from 'pages/integration/Integration.module.scss';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -72,13 +71,13 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
-import { MONACO_PAYLOAD_OPTIONS } from './Integration2Common.config';
+import { MONACO_PAYLOAD_OPTIONS } from './IntegrationCommon.config';
 
 const cx = cn.bind(styles);
 
-interface Integration2Props extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IntegrationProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-interface Integration2State extends PageBaseState {
+interface IntegrationState extends PageBaseState {
   isDemoModalOpen: boolean;
   isEditTemplateModalOpen: boolean;
   selectedTemplate: TemplateForEdit;
@@ -94,8 +93,8 @@ const ACTIONS_LIST_BORDER = 2;
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
-class Integration2 extends React.Component<Integration2Props, Integration2State> {
-  constructor(props: Integration2Props) {
+class Integration extends React.Component<IntegrationProps, IntegrationState> {
+  constructor(props: IntegrationProps) {
     super(props);
 
     this.state = {
@@ -121,19 +120,18 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     const {
       store,
-      store: { alertReceiveChannelStore, telegramChannelStore },
+      store: { alertReceiveChannelStore },
     } = this.props;
-
-    if (store.hasFeature(AppFeature.Telegram)) {
-      // workaround until we get the whole telegram data in response
-      telegramChannelStore.updateItems();
-    }
 
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
 
-    await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
+    await Promise.all([
+      this.loadIntegration(),
+      IntegrationHelper.fetchChatOps(store),
+      alertReceiveChannelStore.updateTemplates(id),
+    ]);
   }
 
   render() {
@@ -200,7 +198,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations_2', p }}>
+              <PluginLink query={{ page: 'integrations', p }}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               <h1 className={cx('integration__name')}>
@@ -573,7 +571,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       history,
     } = this.props;
 
-    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
+    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations/`));
   };
 
   async loadIntegration() {
@@ -603,7 +601,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     await Promise.all(promises).catch(() => {
       if (!alertReceiveChannelStore.items[id]) {
         // failed fetching the integration (most likely it's not existent)
-        history.push(`${PLUGIN_ROOT}/integrations_2`);
+        history.push(`${PLUGIN_ROOT}/integrations`);
       }
     });
   }
@@ -690,7 +688,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL copied!')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
-          <Button variant={'primary'} onClick={sendDemoAlert}>
+          <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
             Send Alert
           </Button>
         </HorizontalGroup>
@@ -782,7 +780,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isIntegrationSettingsOpen && (
-        <IntegrationForm2
+        <IntegrationForm
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
@@ -791,7 +789,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isHearbeatFormOpen && (
-        <Integration2HeartbeatForm
+        <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
           onClose={() => setIsHearbeatFormOpen(false)}
         />
@@ -942,7 +940,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   function deleteIntegration() {
     alertReceiveChannelStore
       .deleteAlertReceiveChannel(alertReceiveChannel.id)
-      .then(() => history.push(`${PLUGIN_ROOT}/integrations_2`));
+      .then(() => history.push(`${PLUGIN_ROOT}/integrations`));
   }
 
   function openIntegrationSettings() {
@@ -1148,4 +1146,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export default withRouter(withMobXProviderContext(Integration2));
+export default withRouter(withMobXProviderContext(Integration));

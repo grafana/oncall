@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.3.0 (2023-06-26)
+
+### Added
+
+- Secrets consistency for the chart. Bugfixing [#1016](https://github.com/grafana/oncall/pull/1016)
+
+### Changed
+
+- `telegram.webhookUrl` now defaults to `https://<base_url>` if not set
+- UI Updates for the integrations page ([#2310](https://github.com/grafana/oncall/pull/2310))
+- Prefer shift start when displaying rotation start value for existing shifts ([#2316](https://github.com/grafana/oncall/pull/2316))
+
+### Fixed
+
+- Fixed minor schedule preview issue missing last day ([#2316](https://github.com/grafana/oncall/pull/2316))
+
 ## v1.2.46 (2023-06-22)
 
 ### Added

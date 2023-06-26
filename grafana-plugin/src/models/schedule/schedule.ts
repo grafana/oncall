@@ -252,7 +252,7 @@ export class ScheduleStore extends BaseStore {
     const dayBefore = startMoment.subtract(1, 'day');
 
     const response = await makeRequest(`/oncall_shifts/preview/`, {
-      params: { date: getFromString(dayBefore) },
+      params: { date: getFromString(dayBefore), days: 8 },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
     });
