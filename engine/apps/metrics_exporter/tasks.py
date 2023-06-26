@@ -159,7 +159,7 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
         User.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
         .filter(organization_id=organization_id)
         .annotate(num_logs=Count("personal_log_records"))
-        .filter(num_logs__gt=1)
+        .filter(num_logs__gte=1)
         .select_related("organization")
         .prefetch_related("personal_log_records")
     )
