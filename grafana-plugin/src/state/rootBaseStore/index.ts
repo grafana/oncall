@@ -1,3 +1,5 @@
+import { OrgRole } from '@grafana/data';
+import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
@@ -32,8 +34,7 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 // ------ Dashboard ------ //
 
@@ -162,13 +163,15 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    const isInMaintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode();
-    if (isInMaintenanceMode !== null) {
+    const maintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode(this.onCallApiUrl);
+    if (typeof maintenanceMode === 'string') {
+      return this.setupPluginError(maintenanceMode);
+    } else if (maintenanceMode.currently_undergoing_maintenance_message) {
       this.currentlyUndergoingMaintenance = true;
-      return this.setupPluginError(`🚧 ${isInMaintenanceMode} 🚧`);
+      return this.setupPluginError(`🚧 ${maintenanceMode.currently_undergoing_maintenance_message} 🚧`);
     }
 
-    // at this point we know the plugin is provionsed
+    // at this point we know the plugin is provisioned
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
@@ -178,28 +181,38 @@ export class RootBaseStore {
 
     if (is_user_anonymous) {
       return this.setupPluginError(
-        '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
+        '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
     } else if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
-
-      if (!isUserActionAllowed(UserActions.PluginsInstall)) {
-        return this.setupPluginError(
-          '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
-        );
-      }
-
-      try {
-        /**
-         * this will install AND sync the necessary data
-         * the sync is done automatically by the /plugin/install OnCall API endpoint
-         * therefore there is no need to trigger an additional/separate sync, nor poll a status
-         */
-        await PluginState.installPlugin();
-      } catch (e) {
-        return this.setupPluginError(PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install'));
+      const missingPermissions = this.checkMissingSetupPermissions();
+      if (missingPermissions.length === 0) {
+        try {
+          /**
+           * this will install AND sync the necessary data
+           * the sync is done automatically by the /plugin/install OnCall API endpoint
+           * therefore there is no need to trigger an additional/separate sync, nor poll a status
+           */
+          await PluginState.installPlugin();
+        } catch (e) {
+          return this.setupPluginError(
+            PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
+          );
+        }
+      } else {
+        if (contextSrv.accessControlEnabled()) {
+          return this.setupPluginError(
+            '🚫 User is missing permission(s) ' +
+              missingPermissions.join(', ') +
+              ' to setup OnCall before it can be used'
+          );
+        } else {
+          return this.setupPluginError(
+            '🚫 User with Admin permissions in your organization must sign on and setup OnCall before it can be used'
+          );
+        }
       }
     } else {
       const syncDataResponse = await PluginState.syncDataWithOnCall(this.onCallApiUrl);
@@ -223,13 +236,37 @@ export class RootBaseStore {
     this.appLoading = false;
   }
 
+  checkMissingSetupPermissions() {
+    const fallback = contextSrv.user.orgRole === OrgRole.Admin && !contextSrv.accessControlEnabled();
+    const setupRequiredPermissions = [
+      'plugins:write',
+      'org.users:read',
+      'teams:read',
+      'apikeys:create',
+      'apikeys:delete',
+    ];
+    return setupRequiredPermissions.filter(function (permission) {
+      return !contextSrv.hasAccess(permission, fallback);
+    });
+  }
+
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only
     return this.features?.[feature];
   }
 
+  get license() {
+    if (this.backendLicense) {
+      return this.backendLicense;
+    }
+    if (CLOUD_VERSION_REGEX.test(APP_VERSION)) {
+      return GRAFANA_LICENSE_CLOUD;
+    }
+    return GRAFANA_LICENSE_OSS;
+  }
+
   isOpenSource(): boolean {
-    return this.backendLicense === GRAFANA_LICENSE_OSS;
+    return this.license === GRAFANA_LICENSE_OSS;
   }
 
   @observable
