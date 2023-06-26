@@ -76,6 +76,7 @@ tests:
       - celery/deployment-celery.yaml
     set:
       database.type: postgresql
+      postgresql.enabled: true
       env:
         SOME_VAR: some_value
         another_var: "another_value"
@@ -97,6 +98,7 @@ tests:
       - celery/deployment-celery.yaml
     set:
       database.type: postgresql
+      postgresql.enabled: true
       env:
         - name: SOME_VAR
           value: some_value

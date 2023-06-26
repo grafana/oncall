@@ -370,10 +370,11 @@ const RotationForm = observer((props: RotationFormProps) => {
   useEffect(() => {
     if (shift) {
       setRotationName(getShiftName(shift));
-      const rotationStart = getDateTime(shift.rotation_start);
-      setRotationStart(rotationStart);
-      setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
       const shiftStart = getDateTime(shift.shift_start);
+      // use shiftStart as rotationStart for existing shifts
+      // (original rotationStart defaulted to the shift creation timestamp)
+      setRotationStart(shiftStart);
+      setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
       setShiftStart(shiftStart);
       const shiftEnd = getDateTime(shift.shift_end);
       setShiftEnd(shiftEnd);

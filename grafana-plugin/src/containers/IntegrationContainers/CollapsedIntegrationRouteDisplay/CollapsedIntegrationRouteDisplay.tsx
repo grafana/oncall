@@ -12,8 +12,8 @@ import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDi
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
-import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
+import IntegrationHelper from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 
@@ -49,7 +49,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
     return (
       <>
         <IntegrationBlock
-          hasCollapsedBorder={false}
+          noContent={false}
           key={channelFilterId}
           toggle={toggle}
           heading={
@@ -98,7 +98,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
             </div>
           }
           content={
-            <div className={cx('spacing')}>
+            <div>
               <div className={cx('collapsedRoute__container')}>
                 {chatOpsAvailableChannels.length > 0 && (
                   <div className={cx('collapsedRoute__item')}>
