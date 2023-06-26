@@ -69,7 +69,7 @@ We prepared multiple environments:
      - job_name: prometheus
        metrics_path: /metrics/
        authorization:
-         - credentials: my_random_prometheus_secret
+         credentials: my_random_prometheus_secret
        static_configs:
          - targets: [\"host.docker.internal:8080\"]" > prometheus.yml
    ```
