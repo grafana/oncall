@@ -2,24 +2,12 @@ $FLEX-GAP: 4px;
 $LARGE-MARGIN: 24px;
 
 .integration {
-  &__heading-container {
-    margin-bottom: calc($LARGE-MARGIN - 12px);
-  }
-
   &__subheading-container {
     margin-bottom: $LARGE-MARGIN;
   }
 
   &__payloadInput {
     width: 100%;
-  }
-
-  &__alertsPanel {
-    padding-bottom: 12px;
-  }
-
-  &__name {
-    margin-bottom: 0;
   }
 
   &__heading-container {
@@ -48,8 +36,8 @@ $LARGE-MARGIN: 24px;
   }
 
   &__description {
+    padding-top: 12px;
     display: block;
-    margin-bottom: 32px;;
   }
 
   &__counter {
@@ -81,7 +69,7 @@ $LARGE-MARGIN: 24px;
   flex-direction: row;
 
   &:hover {
-    background: var(--gray-9);
+    background: var(--cards-background);
   }
 }
 
@@ -191,6 +179,7 @@ $LARGE-MARGIN: 24px;
 }
 
 .no-wrap {
+  padding-top: 24px;
   white-space: nowrap;
 }
 

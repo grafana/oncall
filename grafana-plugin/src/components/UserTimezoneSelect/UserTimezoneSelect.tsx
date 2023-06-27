@@ -105,9 +105,6 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
       if (data.__isNew_) {
         return true;
       }
-      if (!data[key]) {
-        console.log(item);
-      }
       return data[key] && data[key].toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, []);

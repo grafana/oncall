@@ -109,6 +109,12 @@
       "role": "Viewer",
       "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true
+    },
+    {
+      "type": "dashboard",
+      "path": "dashboards/oncall_metrics_dashboard.json",
+      "addToNav": true,
+      "name": "OnCall Metrics"
     }
   ],
   "routes": [

@@ -25,6 +25,7 @@ tests:
   - it: database.type=postgresql -> should create initContainer for PostgreSQL database
     set:
       database.type: postgresql
+      externalPostgresql.host: some-postgresql-host
     asserts:
       - contains:
           path: spec.template.spec.initContainers

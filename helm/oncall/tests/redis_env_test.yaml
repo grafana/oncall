@@ -77,6 +77,16 @@ tests:
                 key: redis-password
                 name: oncall-redis
   
+  - it: redis.enabled=false -> should fail if host not set
+    set:
+      redis.enabled: false
+      externalRedis:
+        existingSecret: some-redis-secret
+    asserts:
+      - failedTemplate:
+          errorMessage: externalRedis.host is required if not redis.enabled
+        template: engine/job-migrate.yaml
+
   - it: redis.enabled=false -> should fail if not externalRabbitmq.existingSecret or not externalRabbitmq.password
     templates:
       - engine/deployment.yaml

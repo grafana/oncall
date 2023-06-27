@@ -42,9 +42,9 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import Integration2HeartbeatForm from 'containers/IntegrationContainers/Integration2HearbeatForm/Integration2HeartbeatForm';
+import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHearbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
-import IntegrationForm2 from 'containers/IntegrationForm/IntegrationForm2';
+import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
 import TeamName from 'containers/TeamName/TeamName';
@@ -58,9 +58,9 @@ import {
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
-import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration_2/Integration2.config';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
-import styles from 'pages/integration_2/Integration2.module.scss';
+import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
+import IntegrationHelper from 'pages/integration/Integration.helper';
+import styles from 'pages/integration/Integration.module.scss';
 import { PageProps, SelectOption, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -71,13 +71,13 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
-import { MONACO_PAYLOAD_OPTIONS } from './Integration2Common.config';
+import { MONACO_PAYLOAD_OPTIONS } from './IntegrationCommon.config';
 
 const cx = cn.bind(styles);
 
-interface Integration2Props extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+interface IntegrationProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-interface Integration2State extends PageBaseState {
+interface IntegrationState extends PageBaseState {
   isDemoModalOpen: boolean;
   isEditTemplateModalOpen: boolean;
   selectedTemplate: TemplateForEdit;
@@ -93,8 +93,8 @@ const ACTIONS_LIST_BORDER = 2;
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
-class Integration2 extends React.Component<Integration2Props, Integration2State> {
-  constructor(props: Integration2Props) {
+class Integration extends React.Component<IntegrationProps, IntegrationState> {
+  constructor(props: IntegrationProps) {
     super(props);
 
     this.state = {
@@ -119,6 +119,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     } = this.props;
 
     const {
+      store,
       store: { alertReceiveChannelStore },
     } = this.props;
 
@@ -126,7 +127,11 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
 
-    await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
+    await Promise.all([
+      this.loadIntegration(),
+      IntegrationHelper.fetchChatOps(store),
+      alertReceiveChannelStore.updateTemplates(id),
+    ]);
   }
 
   render() {
@@ -162,7 +167,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-    const hideHTTPEndpoint = alertReceiveChannel.integration === 'inbound_email';
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -178,7 +182,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               >
                 <IntegrationBlock
                   className={cx('template-drawer')}
-                  hasCollapsedBorder
+                  noContent
                   heading={undefined}
                   content={
                     <IntegrationTemplateList
@@ -194,7 +198,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations_2', p }}>
+              <PluginLink query={{ page: 'integrations', p }}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               <h1 className={cx('integration__name')}>
@@ -233,9 +237,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               )}
             </div>
 
-            <IntegrationCollapsibleTreeView
-              configElements={this.getConfigForTreeComponent(hideHTTPEndpoint, id, templates)}
-            />
+            <IntegrationCollapsibleTreeView configElements={this.getConfigForTreeComponent(id, templates) as any} />
 
             {isEditTemplateModalOpen && (
               <IntegrationTemplate
@@ -277,20 +279,15 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     );
   }
 
-  getConfigForTreeComponent(hideHTTPEndpoint: boolean, id: string, templates: AlertTemplatesDTO[]) {
-    const configElements = [];
-
-    if (!hideHTTPEndpoint) {
-      configElements.push({
+  getConfigForTreeComponent(id: string, templates: AlertTemplatesDTO[]) {
+    return [
+      {
         isCollapsible: false,
         customIcon: 'plug',
         canHoverIcon: false,
         collapsedView: null,
         expandedView: () => <HowToConnectComponent id={id} />,
-      });
-    }
-
-    return configElements.concat([
+      },
       {
         customIcon: 'layer-group',
         isExpanded: false,
@@ -298,7 +295,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         canHoverIcon: false,
         expandedView: () => (
           <IntegrationBlock
-            hasCollapsedBorder
+            noContent
             heading={
               <div className={cx('templates__outer-container')}>
                 <Tag
@@ -389,7 +386,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
         ),
       },
       this.renderRoutesFn(),
-    ]);
+    ];
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {
@@ -470,6 +467,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               channelFilterId={channelFilterId}
               routeIndex={routeIndex}
               toggle={toggle}
+              openEditTemplateModal={this.openEditTemplateModal}
+              onEditRegexpTemplate={this.handleEditRegexpRouteTemplate}
             />
           ),
           expandedView: () => (
@@ -572,7 +571,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       history,
     } = this.props;
 
-    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
+    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations/`));
   };
 
   async loadIntegration() {
@@ -602,7 +601,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     await Promise.all(promises).catch(() => {
       if (!alertReceiveChannelStore.items[id]) {
         // failed fetching the integration (most likely it's not existent)
-        history.push(`${PLUGIN_ROOT}/integrations_2`);
+        history.push(`${PLUGIN_ROOT}/integrations`);
       }
     });
   }
@@ -689,7 +688,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL copied!')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
-          <Button variant={'primary'} onClick={sendDemoAlert}>
+          <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
             Send Alert
           </Button>
         </HorizontalGroup>
@@ -781,7 +780,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isIntegrationSettingsOpen && (
-        <IntegrationForm2
+        <IntegrationForm
           isTableView={false}
           onHide={() => setIsIntegrationSettingsOpen(false)}
           onUpdate={() => alertReceiveChannelStore.updateItem(alertReceiveChannel['id'])}
@@ -790,7 +789,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {isHearbeatFormOpen && (
-        <Integration2HeartbeatForm
+        <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
           onClose={() => setIsHearbeatFormOpen(false)}
         />
@@ -941,7 +940,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   function deleteIntegration() {
     alertReceiveChannelStore
       .deleteAlertReceiveChannel(alertReceiveChannel.id)
-      .then(() => history.push(`${PLUGIN_ROOT}/integrations_2`));
+      .then(() => history.push(`${PLUGIN_ROOT}/integrations`));
   }
 
   function openIntegrationSettings() {
@@ -968,9 +967,12 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
   const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
 
+  const item = alertReceiveChannelStore.items[id];
+  const url = item?.integration_url || item?.inbound_email;
+
   return (
     <IntegrationBlock
-      hasCollapsedBorder={false}
+      noContent={hasAlerts}
       toggle={noop}
       heading={
         <div className={cx('how-to-connect__container')}>
@@ -980,13 +982,14 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             className={cx('how-to-connect__tag')}
           >
             <Text type="primary" size="small" className={cx('radius')}>
-              HTTP Endpoint
+              {item?.inbound_email ? 'Inbound Email' : 'HTTP Endpoint'}
             </Text>
           </Tag>
-          {alertReceiveChannelStore.items[id]?.integration_url && (
+          {url && (
             <IntegrationInputField
-              value={alertReceiveChannelStore.items[id].integration_url}
+              value={url}
               className={cx('integration__input-field')}
+              showExternal={!!item?.integration_url}
             />
           )}
           <a
@@ -1010,16 +1013,14 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
 
   function renderContent() {
     return (
-      <div className={cx('integration__alertsPanel')}>
-        <VerticalGroup justify={'flex-start'} spacing={'xs'}>
-          {!hasAlerts && (
-            <HorizontalGroup spacing={'xs'}>
-              <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-              <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
-            </HorizontalGroup>
-          )}
-        </VerticalGroup>
-      </div>
+      <VerticalGroup justify={'flex-start'} spacing={'xs'}>
+        {!hasAlerts && (
+          <HorizontalGroup spacing={'xs'}>
+            <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
+            <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
+          </HorizontalGroup>
+        )}
+      </VerticalGroup>
     );
   }
 };
@@ -1145,4 +1146,4 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
   }
 };
 
-export default withRouter(withMobXProviderContext(Integration2));
+export default withRouter(withMobXProviderContext(Integration));

@@ -11,7 +11,7 @@ const cx = cn.bind(styles);
 
 interface IntegrationBlockProps {
   className?: string;
-  hasCollapsedBorder: boolean;
+  noContent: boolean;
   heading: React.ReactNode;
   content: React.ReactNode;
   toggle?: () => void;
@@ -20,24 +20,26 @@ interface IntegrationBlockProps {
 const IntegrationBlock: React.FC<IntegrationBlockProps> = ({
   heading,
   content,
-  hasCollapsedBorder,
+  noContent,
   className,
   toggle = noop,
 }) => {
   return (
     <div className={cx('integrationBlock', className)}>
       {heading && (
-        <Block bordered shadowed className={cx('integrationBlock__heading')} onClick={toggle}>
+        <Block
+          bordered
+          shadowed
+          className={cx('integrationBlock__heading', {
+            'integrationBlock__heading--noBorderBottom': !noContent,
+          })}
+          onClick={toggle}
+        >
           {heading}
         </Block>
       )}
       {content && (
-        <div
-          className={cx('integrationBlock__content', {
-            'integrationBlock__content--collapsedBorder': hasCollapsedBorder,
-          })}
-          onClick={toggle}
-        >
+        <div className={cx('integrationBlock__content')} onClick={toggle}>
           {content}
         </div>
       )}
