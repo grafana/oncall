@@ -3,6 +3,7 @@ import { KeyValuePair } from 'utils';
 export const TEXTAREA_ROWS_COUNT = 4;
 export const MAX_CHARACTERS_COUNT = 50;
 
+// Mostly used for input fields where we're hiding scrollbars
 export const MONACO_OPTIONS = {
   renderLineHighlight: false,
   readOnly: true,

@@ -11,7 +11,7 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
 
-import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './Integration2Common.config';
+import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
 const IntegrationHelper = {
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {
@@ -52,6 +52,11 @@ const IntegrationHelper = {
     }
 
     return totalDiffString;
+  },
+
+  fetchChatOps(_store: RootStore): Promise<void> {
+    // in oncall-private this fetches MSTeams data
+    return Promise.resolve();
   },
 
   hasChatopsInstalled(store: RootStore) {

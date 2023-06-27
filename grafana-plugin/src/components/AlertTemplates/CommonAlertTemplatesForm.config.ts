@@ -1,4 +1,4 @@
-import { TemplateOptions } from 'pages/integration_2/Integration2.config';
+import { TemplateOptions } from 'pages/integration/Integration.config';
 
 export interface Template {
   name: string;
@@ -38,6 +38,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -67,6 +68,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'plain',
   },
@@ -76,6 +78,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -92,6 +95,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'plain',
   },
@@ -101,6 +105,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -117,6 +122,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'image',
   },

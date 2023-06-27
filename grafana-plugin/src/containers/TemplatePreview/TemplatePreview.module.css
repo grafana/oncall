@@ -2,6 +2,10 @@
   width: 100%;
 }
 
+.message {
+  word-wrap: break-word;
+}
+
 .message ul {
   margin-left: 24px;
 }
