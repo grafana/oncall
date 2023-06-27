@@ -45,7 +45,7 @@ class RecalculateOrgMetricsDict(typing.TypedDict):
     force: bool
 
 
-METRICS_PREFIX = "grafanacloud_oncall_instance_" if not settings.IS_OPEN_SOURCE else "oncall_"
+METRICS_PREFIX = "oncall_" if settings.IS_OPEN_SOURCE else "grafanacloud_oncall_instance_"
 USER_WAS_NOTIFIED_OF_ALERT_GROUPS = METRICS_PREFIX + "user_was_notified_of_alert_groups"
 
 ALERT_GROUPS_TOTAL = "oncall_alert_groups_total"
