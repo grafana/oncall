@@ -51,7 +51,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
   },
   phone_call_title_template: {
     name: TemplateOptions.Phone.key,
-    displayName: 'Phone call title',
+    displayName: 'Phone Call title',
     description: '',
     type: 'plain',
   },

@@ -67,7 +67,7 @@ export const commonTemplatesToRender: TemplateBlock[] = [
     ],
   },
   {
-    name: null,
+    name: 'Phone',
     contents: [
       {
         name: 'phone_call_title_template',
