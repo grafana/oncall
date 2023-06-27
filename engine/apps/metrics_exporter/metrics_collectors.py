@@ -52,15 +52,11 @@ class ApplicationMetricsCollector:
         org_ids = set(get_organization_ids())
 
         # alert groups total metric: gauge
-        alert_groups_total, missing_org_ids_1 = self.get_alert_groups_total_metric_and_missing_org_ids(org_ids)
+        alert_groups_total, missing_org_ids_1 = self._get_alert_groups_total_metric(org_ids)
         # alert groups response time metrics: histogram
-        alert_groups_response_time_seconds, missing_org_ids_2 = self.get_response_time_metric_and_missing_org_ids(
-            org_ids
-        )
+        alert_groups_response_time_seconds, missing_org_ids_2 = self._get_response_time_metric(org_ids)
         # user was notified of alert groups metrics: counter
-        user_was_notified, missing_org_ids_3 = self.get_user_was_notified_of_alert_groups_metric_and_missing_org_ids(
-            org_ids
-        )
+        user_was_notified, missing_org_ids_3 = self._get_user_was_notified_of_alert_groups_metric(org_ids)
 
         # check for orgs missing any of the metrics or needing a refresh, start recalculation task for missing org ids
         missing_org_ids = missing_org_ids_1 | missing_org_ids_2 | missing_org_ids_3
@@ -70,7 +66,7 @@ class ApplicationMetricsCollector:
         yield alert_groups_response_time_seconds
         yield user_was_notified
 
-    def get_alert_groups_total_metric_and_missing_org_ids(self, org_ids):
+    def _get_alert_groups_total_metric(self, org_ids):
         alert_groups_total = GaugeMetricFamily(
             ALERT_GROUPS_TOTAL, "All alert groups", labels=self._integration_labels_with_state
         )
@@ -97,7 +93,7 @@ class ApplicationMetricsCollector:
         missing_org_ids = org_ids - processed_org_ids
         return alert_groups_total, missing_org_ids
 
-    def get_response_time_metric_and_missing_org_ids(self, org_ids):
+    def _get_response_time_metric(self, org_ids):
         alert_groups_response_time_seconds = HistogramMetricFamily(
             ALERT_GROUPS_RESPONSE_TIME,
             "Users response time to alert groups in 7 days (seconds)",
@@ -131,7 +127,7 @@ class ApplicationMetricsCollector:
         missing_org_ids = org_ids - processed_org_ids
         return alert_groups_response_time_seconds, missing_org_ids
 
-    def get_user_was_notified_of_alert_groups_metric_and_missing_org_ids(self, org_ids):
+    def _get_user_was_notified_of_alert_groups_metric(self, org_ids):
         user_was_notified = CounterMetricFamily(
             USER_WAS_NOTIFIED_OF_ALERT_GROUPS, "Number of alert groups user was notified of", labels=self._user_labels
         )

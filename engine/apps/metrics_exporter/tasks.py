@@ -64,6 +64,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
     Organization = apps.get_model("user_management", "Organization")
 
+    ONE_HOUR = 3600
     TWO_HOURS = 7200
 
     organization = Organization.objects.filter(pk=organization_id).first()
@@ -136,7 +137,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
         metrics_cache_timer_key = get_metrics_cache_timer_key(organization_id)
         metrics_cache_timer = cache.get(metrics_cache_timer_key)
         metrics_cache_timer["forced_started"] = False
-        cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout - TWO_HOURS)
+        cache.set(metrics_cache_timer_key, metrics_cache_timer, timeout=recalculate_timeout - ONE_HOUR)
 
 
 @shared_dedicated_queue_retry_task(
