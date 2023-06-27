@@ -1,8 +1,8 @@
 ---
 aliases:
   - ../integrations/configure-outgoing-webhooks/integrate-jira/
-  - /docs/oncall/latest/alert-behavior/outgoing-webhooks/integrate-jira/
-canonical: https://grafana.com/docs/oncall/latest/alert-behavior/outgoing-webhooks/integrate-jira/
+  - /docs/oncall/latest/outgoing-webhooks/integrate-jira/
+canonical: https://grafana.com/docs/oncall/latest/outgoing-webhooks/integrate-jira/
 keywords:
   - Grafana Cloud
   - Alerts

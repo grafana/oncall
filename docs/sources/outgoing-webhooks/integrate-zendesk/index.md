@@ -1,8 +1,8 @@
 ---
 aliases:
   - ../integrations/configure-outgoing-webhooks/integrate-zendesk/
-  - /docs/oncall/latest/alert-behavior/outgoing-webhooks/integrate-zendesk/
-canonical: https://grafana.com/docs/oncall/latest/alert-behavior/outgoing-webhooks/integrate-zendesk/
+  - /docs/oncall/latest/outgoing-webhooks/integrate-zendesk/
+canonical: https://grafana.com/docs/oncall/latest/outgoing-webhooks/integrate-zendesk/
 keywords:
   - Grafana Cloud
   - Alerts
