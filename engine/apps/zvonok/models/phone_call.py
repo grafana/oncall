@@ -74,3 +74,4 @@ class ZvonokPhoneCall(ProviderPhoneCall, models.Model):
     campaign_id = models.CharField(
         max_length=50,
     )
+
