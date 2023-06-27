@@ -14,22 +14,24 @@ weight: 500
 
 # Integrations
 
-"Integration" is a main entry point for alerts being consumed by OnCall. Rendering, grouping and routing are configured
-within integrations.
-
-"Integration" is a set of Jinja2 templates which is transforming alert payload to the format suitable to OnCall.
-You could check pre-configured templates in the list of avaliable integrations (Integrations ->
-"New integration to receive alerts"), create your own or adjust existing.
+An "Integration" is a main entry point for alerts being consumed by Grafana OnCall.
+Integrations receive alerts on a unique API URL, interprets them using a set of templates tailored for the monitoring system, and starts
+escalations.
 
 Read more about Jinja2 templating used in OnCall [here]({{< relref "../jinja2-templating" >}}).
 
-Alert flow within integration:
+## Learn Alert Flow Within Integration
 
-1. Alert is registered by unique integration url (or [e-mail]({{< relref "inbound-email" >}}) in case of inbound e-mail
-integration)
-2. If there is a non-resolved "alert group" with the same "grouping id", alert will be added to this "alert group".
-3. If there is no non-resolved "alert group" with the same "grouping id", new "alert group" will be issued.
-4. New "alert group" will be routed using routing engine and escalation chain will be started (TODO: link).
+1. An Alert is received on an integration's **Unique URL** as an HTTP POST request with a JSON payload (or via
+[e-mail]({{< relref "inbound-email" >}}), for inbound e-mail integrations)
+1. Routing is determined for the incoming alert, by applying the [Routing Template]({{< relref "jinja2-templating#routing-template" >}})
+1. Alert Grouping is determined based on [Grouping Id Template]({{< relref "jinja2-templating#behavioral-template" >}})
+1. An Alert Group may be acknowledged or resolved with status `_ by source` based on
+[Behaviour Templates]({{< relref "jinja2-templating#behavioral-template" >}})
+1. The Alert Group is available in Web, and can be published to messengers, based on the Route's **Publish to Chatops** configuration.
+It is rendered using [Appearance Templates]({{< relref "jinja2-templating#appearance-template" >}})
+1. The Alert Group is escalated to uers based on the Escalation Chains selected for the Route
+1. Users can perform actions listed in [Learn Alert Workflow]({{< relref "get-started#learn-alert-workflow" >}}) section
 
 ## Configure and manage integrations
 
@@ -40,19 +42,69 @@ describe how to configure and customize your integrations to ensure alerts are t
 
 To configure an integration for Grafana OnCall:
 
-1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration to receive alerts**.
-2. Select an integration from the provided options, if the integration you want isn’t listed, then select **Webhook**.
-3. Follow the configuration steps on the integration settings page.
-4. Complete any necessary configurations in your tool to send alerts to Grafana OnCall.
+1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration**.
+1. Select an integration type from the [list of available integrations]({{< relref "#list-of-available-integrations" >}}).
+If the integration you want isn’t listed, then select **Webhook**.
+1. Fill in a title and a description for your integration, assign it to a team, and click **Create Integration**.
+1. The Integration page will open. Here you will see details about the Integration.
+You can use the HTTP Endpoint url to send events from an external monitoring system.
+Click the **How to connect** link for more information.
+1. Complete any necessary configurations in your tool to send alerts to Grafana OnCall.
+1. Click **Send demo alert** to send a test alert to Grafana OnCall.
+
+### Complete the integration configuration
+
+- Review and customise grouping, autoresolution, autoacknowledge, etc [templates]({{< relref "../jinja2-templating" >}})
+if you want to customise alert behaviour for your team
+- Review and customise [other templates]({{< relref "../jinja2-templating" >}}) to change how alert groups are displayed
+in different parts of Grafana OnCall: UI, messengers, emails, notifications, etc.
+- Add routes to your integration to route alerts to different users and teams based on labels or other data
+- Connect your escalation chains to routes to notify the right people, at the right time
+- Learn [how to start Maintenance Mode]({{< relref "#maintenance-mode" >}}) for an integration
+- Send demo alerts to an integration to make sure routes, templates, and escalations, are working as expected. Consider using
+`Debug Maintenance mode` to avoid sending real notifications to your team
 
 ### Manage integrations
 
 To manage existing integrations, navigate to the **Integrations** tab in Grafana OnCall and select the integration
 you want to manage.
 
-#### Manage integration behaviour and rendering
+#### Maintenance Mode
+
+Start maintenance mode when performing scheduled maintenance or updates on your infrastructure, which may trigger false alarms.
+There are two possible maintenance modes:
+
+- **Debug** - test routing and escalations without real notifications. Alerts will be processed as usual, but no notifications
+will be sent to users.
+- **Maintenance** - group alerts into one during infrastructure work.
+
+##### Manage maintenance Mode
+
+1. Go to the Integration page and click **Three dots**
+1. Select **Start Maintenance Mode**
+1. Select **Debug** or **Maintenance** mode
+1. Set the **Duration** of Maintenance Mode
+1. Click **Start**
+1. If you want to stop maintenance mode before it ends, click **Three dots** and select **Stop Maintenance Mode**
+
+#### Heartbeat monitoring
+
+An OnCall heartbeat acts as a healthcheck for alert group monitoring. You can configure you monitoring to regularly send alerts
+to the heartbeat endpoint. If OnCall doen't receive one of these alerts, it will create an new alert group and escalate it
+
+1. Go to Integration page and click **Three dots**
+1. Select **Heartbeat Settings**
+1. Set **Heartbeat interval**
+1. Copy **Endpoint** into you monitoring system.
+
+More specific instructions can be found in a specific integration's documentation.
+
+#### Behaviour and rendering templates example
 
 "Integration templates" are Jinja2 templates which are applied to each alert to define it's rendering and behaviour.
+
+Read more in [Templates guide]({{< relref jinja2-templating>}})
+
 For templates editor:
 
 1. Navigate to the **Integrations** tab, select an integration from the list.
@@ -80,14 +132,14 @@ template: `{{ payload.region }}}`
 Should point to the most specific place in the alert source related to the alert group. Also rendering result will be
 available in other templates as a variable `{{ source_link }}`.
 
-Read more about Jinja2 (TODO: link) in a specific section.
-
-#### Edit integration name
+#### Edit integration name, description and assigned team
 
 To edit the name of an integration:
 
 1. Navigate to the **Integrations** tab, select an integration from the list of enabled integrations.
-2. Click the **pencil icon** next to the integration name.
-3. Provide a new name and click **Update**.
+1. Click the **three dots** next to the integration name and select **Integration settings**.
+1. Provide a new name, description, and team, and click **Save**.
+
+## List of available integrations
 
 {{< section >}}
