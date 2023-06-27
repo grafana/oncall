@@ -1744,3 +1744,39 @@ def test_refresh_ical_final_schedule_all_day_date_event(
     calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
     events = [component for component in calendar.walk() if component.name == ICAL_COMPONENT_VEVENT]
     assert len(events) == 0
+
+
+@pytest.mark.django_db
+def test_event_until_non_utc(make_organization, make_schedule):
+    organization = make_organization()
+    cached_ical_primary_schedule = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        PRODID:testing
+        CALSCALE:GREGORIAN
+        BEGIN:VEVENT
+        CREATED:20220316T121102Z
+        LAST-MODIFIED:20230127T151619Z
+        DTSTAMP:20230127T151619Z
+        UID:something
+        SUMMARY:testing
+        RRULE:FREQ=WEEKLY;UNTIL=20221231T010101
+        DTSTART;TZID=Europe/Madrid:20220309T130000
+        DTEND;TZID=Europe/Madrid:20220309T133000
+        SEQUENCE:4
+        END:VEVENT
+        END:VCALENDAR
+    """
+    )
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        cached_ical_file_primary=cached_ical_primary_schedule,
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # check this works without raising exception
+    schedule.final_events("UTC", now, days=7)

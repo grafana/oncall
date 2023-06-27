@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { ConfirmModal, HorizontalGroup, Icon, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -12,9 +12,10 @@ import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDi
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
-import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
+import IntegrationHelper from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
+import { openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
@@ -23,17 +24,15 @@ interface CollapsedIntegrationRouteDisplayProps {
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   toggle: () => void;
+  openEditTemplateModal: (templateName: string | string[], channelFilterId?: ChannelFilter['id']) => void;
+  onEditRegexpTemplate: (channelFilterId: ChannelFilter['id']) => void;
 }
 
 const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDisplayProps> = observer(
-  ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle }) => {
+  ({ channelFilterId, alertReceiveChannelId, routeIndex, toggle, openEditTemplateModal, onEditRegexpTemplate }) => {
     const store = useStore();
-    const { escalationChainStore, alertReceiveChannelStore, telegramChannelStore } = store;
+    const { escalationChainStore, alertReceiveChannelStore } = store;
     const [routeIdForDeletion, setRouteIdForDeletion] = useState<ChannelFilter['id']>(undefined);
-
-    useEffect(() => {
-      telegramChannelStore.updateItems();
-    }, [channelFilterId]);
 
     const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
     if (!channelFilter) {
@@ -45,12 +44,14 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
       alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
       routeIndex
     );
-    const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store);
+    const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store).filter(
+      (channel) => channel
+    );
 
     return (
       <>
         <IntegrationBlock
-          hasCollapsedBorder={false}
+          noContent={false}
           key={channelFilterId}
           toggle={toggle}
           heading={
@@ -66,6 +67,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                     alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
                     routeIndex
                   )}
+                  className={cx('u-margin-right-xs')}
                   tooltipContent={undefined}
                 />
                 {routeWording === 'Default' && <Text type="secondary">Unmatched alerts routed to default route</Text>}
@@ -92,35 +94,41 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
                   setRouteIdForDeletion={() => setRouteIdForDeletion(channelFilterId)}
+                  openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
               </div>
             </div>
           }
           content={
-            <div className={cx('spacing')}>
-              <VerticalGroup>
+            <div>
+              <div className={cx('collapsedRoute__container')}>
                 {chatOpsAvailableChannels.length > 0 && (
-                  <HorizontalGroup spacing="xs">
-                    <Text type="secondary">Publish to ChatOps</Text>
+                  <div className={cx('collapsedRoute__item')}>
+                    <HorizontalGroup spacing="xs">
+                      <Text type="secondary">Publish to ChatOps</Text>
 
-                    {chatOpsAvailableChannels
-                      .filter((it) => it)
-                      .map((chatOpsChannel) => (
-                        <>
-                          <Icon name={chatOpsChannel.icon} />
-                          <Text type="primary" strong>
-                            {chatOpsChannel.name}
-                          </Text>
-                        </>
-                      ))}
-                  </HorizontalGroup>
+                      {chatOpsAvailableChannels.map(
+                        (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
+                          <div
+                            key={`${chatOpsChannel.name}-${chatOpsIndex}`}
+                            className={cx({ 'u-margin-right-xs': chatOpsIndex !== chatOpsAvailableChannels.length })}
+                          >
+                            <Icon name={chatOpsChannel.icon} className={cx('icon')} />
+                            <Text type="primary">{chatOpsChannel.name}</Text>
+                          </div>
+                        )
+                      )}
+                    </HorizontalGroup>
+                  </div>
                 )}
 
-                <HorizontalGroup>
-                  <HorizontalGroup spacing={'xs'}>
+                <div className={cx('collapsedRoute__item')}>
+                  <div className={cx('u-flex', 'u-align-items-center', 'u-flex-xs')}>
                     <Icon name="list-ui-alt" />
-                    <Text type="secondary">Trigger escalation chain</Text>
-                  </HorizontalGroup>
+                    <Text type="secondary" className={cx('u-margin-right-xs')}>
+                      Trigger escalation chain
+                    </Text>
+                  </div>
 
                   {escalationChain?.name && (
                     <PluginLink
@@ -133,15 +141,15 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   )}
 
                   {!escalationChain?.name && (
-                    <HorizontalGroup spacing={'xs'}>
+                    <div className={cx('u-flex', 'u-align-items-center', 'u-flex-xs')}>
                       <div className={cx('icon-exclamation')}>
                         <Icon name="exclamation-triangle" />
                       </div>
                       <Text type="primary">Not selected</Text>
-                    </HorizontalGroup>
+                    </div>
                   )}
-                </HorizontalGroup>
-              </VerticalGroup>
+                </div>
+              </div>
             </div>
           }
         />
@@ -159,9 +167,18 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
       </>
     );
 
+    function handleEditRoutingTemplate(channelFilter, channelFilterId) {
+      if (channelFilter.filtering_term_type === 0) {
+        onEditRegexpTemplate(channelFilterId);
+      } else {
+        openEditTemplateModal('route_template', channelFilterId);
+      }
+    }
+
     async function onRouteDeleteConfirm() {
       setRouteIdForDeletion(undefined);
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
+      openNotification('Route has been deleted');
     }
   }
 );

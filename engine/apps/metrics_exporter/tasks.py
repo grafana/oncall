@@ -81,7 +81,6 @@ def calculate_and_cache_metrics(organization_id, force=False):
         AlertReceiveChannel.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
         .filter(~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE) & Q(organization_id=organization_id))
         .select_related("organization", "team")
-        .prefetch_related("alert_groups")
     )
 
     response_time_period = get_response_time_period()
@@ -113,17 +112,13 @@ def calculate_and_cache_metrics(organization_id, force=False):
                 },
             )[state] = integration.alert_groups.filter(alert_group_filter).count()
 
-        # calculate response time
-        all_response_time = []
-        alert_groups = integration.alert_groups.filter(started_at__gte=response_time_period)
-        for alert_group in alert_groups:
-            if alert_group.response_time:
-                all_response_time.append(int(alert_group.response_time.total_seconds()))
-            elif alert_group.state != AlertGroupState.FIRING:
-                # get calculated value from current alert group information
-                response_time = alert_group._get_response_time()
-                if response_time:
-                    all_response_time.append(int(response_time.total_seconds()))
+        # get response time
+        all_response_time = integration.alert_groups.filter(
+            started_at__gte=response_time_period,
+            response_time__isnull=False,
+        ).values_list("response_time", flat=True)
+
+        all_response_time_seconds = [int(response_time.total_seconds()) for response_time in all_response_time]
 
         metric_alert_group_response_time[integration.id] = {
             "integration_name": integration.emojized_verbal_name,
@@ -132,7 +127,7 @@ def calculate_and_cache_metrics(organization_id, force=False):
             "org_id": integration.organization.org_id,
             "slug": instance_slug,
             "id": instance_id,
-            "response_time": all_response_time,
+            "response_time": all_response_time_seconds,
         }
 
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(organization_id)

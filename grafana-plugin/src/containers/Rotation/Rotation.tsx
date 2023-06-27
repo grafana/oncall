@@ -3,12 +3,13 @@ import React, { FC, useMemo, useState } from 'react';
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import hash from 'object-hash';
 
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
 import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
-import { getLabel } from './Rotation.helpers';
 import RotationTutorial from './RotationTutorial';
 
 import styles from './Rotation.module.css';
@@ -23,37 +24,52 @@ interface RotationProps {
   rotationIndex?: number;
   color?: string;
   events: Event[];
-  onClick?: (moment: dayjs.Dayjs) => void;
+  onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
+  handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   days?: number;
   transparent?: boolean;
   tutorialParams?: RotationFormLiveParams;
+  simplified?: boolean;
+  filters?: ScheduleFiltersType;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
   const {
     events,
     scheduleId,
-    layerIndex,
-    rotationIndex,
     startMoment,
     currentTimezone,
     color,
-    onClick,
     days = 7,
     transparent = false,
     tutorialParams,
+    onClick,
+    handleAddOverride,
+    simplified,
+    filters,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
 
-  const handleClick = (event) => {
+  const handleRotationClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left; //x position within the element.
     const width = event.currentTarget.offsetWidth;
 
     const dayOffset = Math.floor((x / width) * 7);
 
-    onClick(startMoment.add(dayOffset, 'day'));
+    const shiftStart = startMoment.add(dayOffset, 'day');
+    const shiftEnd = shiftStart.add(1, 'day');
+
+    onClick(shiftStart, shiftEnd);
+  };
+
+  const getAddOverrideClickHandler = (scheduleEvent: Event) => {
+    return (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+
+      handleAddOverride(dayjs(scheduleEvent.start), dayjs(scheduleEvent.end));
+    };
   };
 
   const x = useMemo(() => {
@@ -68,13 +84,8 @@ const Rotation: FC<RotationProps> = (props) => {
     return firstShiftOffset / base;
   }, [events]);
 
-  let eventIndexToShowLabel = -1;
-  if (!isNaN(layerIndex) && !isNaN(rotationIndex)) {
-    eventIndexToShowLabel = events.findIndex((event) => dayjs(event.start).isSameOrAfter(startMoment));
-  }
-
   return (
-    <div className={cx('root')} onClick={handleClick}>
+    <div className={cx('root')} onClick={handleRotationClick}>
       <div className={cx('timeline')}>
         {tutorialParams && <RotationTutorial startMoment={startMoment} {...tutorialParams} />}
         {events ? (
@@ -83,16 +94,18 @@ const Rotation: FC<RotationProps> = (props) => {
               className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
               style={{ transform: `translate(${x * 100}%, 0)` }}
             >
-              {events.map((event, index) => {
+              {events.map((event) => {
                 return (
                   <ScheduleSlot
                     scheduleId={scheduleId}
-                    key={event.start}
+                    key={hash(event)}
                     event={event}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     color={color}
-                    label={index === eventIndexToShowLabel && getLabel(layerIndex, rotationIndex)}
+                    handleAddOverride={getAddOverrideClickHandler(event)}
+                    simplified={simplified}
+                    filters={filters}
                   />
                 );
               })}

@@ -67,6 +67,11 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def get_shift_end(self, obj):
         return obj.start + obj.duration
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
+        return ret
+
     def to_internal_value(self, data):
         data["source"] = CustomOnCallShift.SOURCE_WEB
         if not data.get("shift_end"):
@@ -74,11 +79,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
         result = super().to_internal_value(data)
         return result
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
-        return ret
 
     def validate_by_day(self, by_day):
         if by_day:
@@ -198,12 +198,13 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
-
         # before creation, require users set
         self._require_users(validated_data)
         instance = super().create(validated_data)
 
-        instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
+        # refresh related schedule ical files
+        instance.refresh_schedule()
+
         return instance
 
 
@@ -212,7 +213,7 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
     type = serializers.ReadOnlyField()
 
     class Meta(OnCallShiftSerializer.Meta):
-        read_only_fields = ("schedule", "type")
+        read_only_fields = ["schedule", "type"]
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(instance.type, validated_data)
@@ -241,5 +242,7 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
         else:
             result = super().update(instance, validated_data)
 
-        instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
+        # refresh related schedule ical files
+        instance.refresh_schedule()
+
         return result

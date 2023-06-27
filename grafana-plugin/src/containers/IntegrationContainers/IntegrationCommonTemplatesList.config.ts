@@ -1,4 +1,4 @@
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from 'pages/integration_2/Integration2.config';
+import { MONACO_INPUT_HEIGHT_SMALL, MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 
 interface TemplateToRender {
   name: string;
@@ -19,15 +19,14 @@ export const commonTemplatesToRender: TemplateBlock[] = [
       {
         name: 'grouping_id_template',
         label: 'Grouping',
-        labelTooltip:
-          'The Grouping Template is applied to every incoming alert payload after the Routing Template. It can be based on time, or alert content, or both. If the resulting grouping key matches an existing non-resolved alert group, the alert will be grouped accordingly. Otherwise, a new alert group will be created',
+        labelTooltip: 'Alerts with the same Grouping Id will be grouped together. See docs for more information',
         height: MONACO_INPUT_HEIGHT_SMALL,
       },
       {
         name: 'resolve_condition_template',
         label: 'Autoresolution',
         labelTooltip:
-          'If Autoresolution Template is True, the alert will resolve its group as "resolved by source". If the group is already resolved, the alert will be added to that group.',
+          'If Autoresolution Template is True, the alert will resolve its group as "resolved by source", See docs for more information',
         height: MONACO_INPUT_HEIGHT_SMALL,
       },
     ],
@@ -38,7 +37,7 @@ export const commonTemplatesToRender: TemplateBlock[] = [
       {
         name: 'web_title_template',
         label: 'Title',
-        height: MONACO_INPUT_HEIGHT_TALL,
+        height: MONACO_INPUT_HEIGHT_SMALL,
       },
       {
         name: 'web_message_template',
@@ -68,7 +67,7 @@ export const commonTemplatesToRender: TemplateBlock[] = [
     ],
   },
   {
-    name: null,
+    name: 'Phone',
     contents: [
       {
         name: 'phone_call_title_template',

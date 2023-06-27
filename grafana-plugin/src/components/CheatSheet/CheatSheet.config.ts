@@ -14,13 +14,13 @@ export interface CheatSheetInterface {
 
 export const groupingTemplateCheatSheet: CheatSheetInterface = {
   name: 'Grouping template cheatsheet',
-  description: 'Jinja2 is used for templating ( docs). ',
+  description:
+    'Template is powered by Jinja2 and Markdown.\n Grouping template is used to extract key from the alert payload and group alerts based on that key. The key can combine different variables based on content and time. See examples below. ',
   fields: [
     {
       name: 'Additional variables and functions',
       listItems: [
         { listItemName: 'time(), datetimeformat, iso8601_to_time' },
-        { listItemName: 'to_pretty_json' },
         { listItemName: 'regex_replace, regex_match' },
       ],
     },
@@ -28,27 +28,31 @@ export const groupingTemplateCheatSheet: CheatSheetInterface = {
       name: 'Examples',
       listItems: [
         { listItemName: 'group every hour', codeExample: '{{ time() | datetimeformat("%d-%m-%Y %H") }}' },
-        { listItemName: 'group every X hours', codeExample: '{{ every_hour(5) }}' },
         { listItemName: 'group alerts every microsecond (every 0.000001 second)', codeExample: '{{ time() }}' },
         { listItemName: 'group based on the specific field', codeExample: '{{ payload.uuid }}' },
-        { listItemName: 'group based on multiple fields', codeExample: '{{ payload.uuid }} \n {{ payload.region }}' },
+        { listItemName: 'group based on multiple fields', codeExample: '{{ payload.uuid }}-{{ payload.region }}' },
         {
           listItemName: 'group alerts with the same uuid, create new group every hour',
-          codeExample: '{{ payload.uuid }} \n {{ time() | datetimeformat("%d-%m-%Y %H") }}',
+          codeExample: '{{ payload.uuid }}-{{ time() | datetimeformat("%d-%m-%Y %H") }}',
         },
       ],
     },
   ],
 };
 
-export const webTitleTemplateCheatSheet: CheatSheetInterface = {
+export const genericTemplateCheatSheet: CheatSheetInterface = {
   name: 'Web title template cheatsheet',
   description: 'Jinja2 is used for templating (docs). \n Markdown is used for markup',
   fields: [
     {
       name: 'Markdown refresher',
       listItems: [
-        { codeExample: '**bold**, _italic_, >quote, `code`, ```multiline code```, [``](url), - bullet list' },
+        {
+          codeExample: `**bold**, _italic_, >quote, \`code\`,
+\`\`\`multiline code\`\`\`
+<slug|url>
+- bullet list`,
+        },
       ],
     },
     {
@@ -57,10 +61,17 @@ export const webTitleTemplateCheatSheet: CheatSheetInterface = {
         { listItemName: ' {{ payload.labels.foo }} - extract field value' },
         {
           listItemName: 'Conditions',
-          codeExample: '{%- if "status" in payload %} \n {{ payload.status }} \n {% endif -%}',
+          codeExample: `{%- if "status" in payload %}
+  {{ payload.status }}
+{% endif -%}`,
         },
-        { listItemName: 'Booleans', codeExample: '{{ payload.status == “resolved” }}' },
-        { listItemName: 'Loops', codeExample: '{% for label in labels %} \n {{ label.title }} \n {% endfor %}' },
+        { listItemName: 'Booleans', codeExample: '{{ payload.status == "resolved" }}' },
+        {
+          listItemName: 'Loops',
+          codeExample: `{% for label in labels %}
+  {{ label.title }}
+{% endfor %}`,
+        },
       ],
     },
     {
@@ -133,11 +144,17 @@ export const slackMessageTemplateCheatSheet: CheatSheetInterface = {
       listItems: [
         {
           listItemName: 'Examples Convert Web template in Classic Markdown to Slack markdown',
-          codeExample: '{{ web_message \n| replace("**", "*") \n| regex_replace("/((.*))[(.*)]/", "<$2|$1>") }}',
+          codeExample: `{{
+    web_message
+    | replace("**", "*")
+    | regex_replace("/((.*))[(.*)]/", "<$2|$1>")
+}}`,
         },
         {
           listItemName: 'Show status if exists',
-          codeExample: '{%- if "status" in payload %} \n **Status**: {{ payload.status }} \n {% endif -%}',
+          codeExample: `{%- if "status" in payload %}
+**Status**: {{ payload.status }}
+{% endif -%}`,
         },
         {
           listItemName: 'Show field value or “N/A” is not exist',
@@ -145,8 +162,10 @@ export const slackMessageTemplateCheatSheet: CheatSheetInterface = {
         },
         {
           listItemName: 'Iterate over labels dictionary',
-          codeExample:
-            '**Labels:** \n {% for k, v in payload["labels"].items() %} \n *{{ k }}*: {{ v }} \n {% endfor %} ',
+          codeExample: `**Labels:**
+{% for k, v in payload["labels"].items() %}
+*{{ k }}*: {{ v }}
+{% endfor %}`,
         },
       ],
     },

@@ -175,7 +175,7 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
             "telegram",
             "manual_order",
         ]
-        read_only_fields = ("is_the_last_route",)
+        read_only_fields = ["is_the_last_route"]
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)

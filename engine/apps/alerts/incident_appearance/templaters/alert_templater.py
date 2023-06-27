@@ -65,10 +65,10 @@ class TemplateLoader:
 
 @dataclass
 class TemplatedAlert:
-    title: str = None
-    message: str = None
-    image_url: str = None
-    source_link: str = None
+    title: str | None = None
+    message: str | None = None
+    image_url: str | None = None
+    source_link: str | None = None
 
 
 class AlertTemplater(ABC):
@@ -160,7 +160,7 @@ class AlertTemplater(ABC):
 
         return templated_alert
 
-    def _render_attribute_with_template(self, attr, data, channel, templated_alert):
+    def _render_attribute_with_template(self, attr, data, channel, templated_alert: TemplatedAlert) -> str | None:
         """
         Get attr template and then apply it.
         If attr template is None or invalid will return None.
@@ -212,5 +212,5 @@ class AlertTemplater(ABC):
         return None
 
     @abstractmethod
-    def _render_for(self):
+    def _render_for(self) -> str:
         raise NotImplementedError

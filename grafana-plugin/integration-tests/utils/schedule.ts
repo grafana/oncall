@@ -19,7 +19,6 @@ export const createOnCallSchedule = async (page: Page, scheduleName: string): Pr
   await clickButton({ page, buttonText: 'Create Schedule' });
 
   await clickButton({ page, buttonText: 'Add rotation' });
-  await selectValuePickerValue(page, 'New Layer');
 
   await selectDropdownValue({
     page,

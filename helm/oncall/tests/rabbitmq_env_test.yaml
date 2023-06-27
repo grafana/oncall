@@ -177,7 +177,7 @@ tests:
             name: RABBITMQ_PASSWORD
             valueFrom:
               secretKeyRef:
-                key: password
+                key: rabbitmq-password
                 name: oncall-rabbitmq-external
       - containsDocument:
           kind: Secret
@@ -200,6 +200,7 @@ tests:
       broker.type: rabbitmq
       rabbitmq.enabled: false
       externalRabbitmq:
+        host: some-rabbitmq-host
         existingSecret: existing-secret
         passwordKey: password-key
     asserts:
@@ -236,7 +237,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: RABBITMQ_HOST
-            value: oncall-rabbitmq
+            value: some-rabbitmq-host
       - contains:
           path: spec.template.spec.containers[0].env
           content:
@@ -252,3 +253,18 @@ tests:
           content:
             name: RABBITMQ_VHOST
             value: ""
+  - it: rabbitmq.enabled=false -> should fail if host is missing
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: rabbitmq
+      rabbitmq.enabled: false
+      externalRabbitmq:
+        existingSecret: existing-secret
+        passwordKey: password-key
+    asserts:
+      - failedTemplate:
+          errorMessage: externalRabbitmq.host is required if not rabbitmq.enabled
+        template: engine/job-migrate.yaml

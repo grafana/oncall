@@ -244,7 +244,7 @@ class User(models.Model):
         return self.username
 
     @property
-    def timezone(self):
+    def timezone(self) -> typing.Optional[str]:
         if self._timezone:
             return self._timezone
 
@@ -313,7 +313,7 @@ class User(models.Model):
 
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
-def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
+def listen_for_user_model_save(sender: User, instance: User, created: bool, *args, **kwargs) -> None:
     if created:
         instance.notification_policies.create_default_policies_for_user(instance)
         instance.notification_policies.create_important_policies_for_user(instance)

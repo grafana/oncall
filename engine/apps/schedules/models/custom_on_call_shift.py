@@ -20,6 +20,7 @@ from recurring_ical_events import UnfoldableCalendar
 
 from apps.schedules.tasks import (
     drop_cached_ical_task,
+    refresh_ical_final_schedule,
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
 )
@@ -324,12 +325,14 @@ class CustomOnCallShift(models.Model):
                     break
                 last_start = start
                 day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
-                if (user_group_id, day, i) in combinations:
-                    all_rotations_checked = True
-                    break
+                # double-check day is valid (when until is set, we may get unexpected days)
+                if day in self.by_day:
+                    if (user_group_id, day, i) in combinations:
+                        all_rotations_checked = True
+                        break
 
-                starting_dates.append(start)
-                combinations.append((user_group_id, day, i))
+                    starting_dates.append(start)
+                    combinations.append((user_group_id, day, i))
                 # get next event date following the original rule
                 event_ical = self.generate_ical(start, 1, None, 1, time_zone, custom_rrule=day_by_day_rrule)
                 start = self.get_rotation_date(event_ical, get_next_date=True, interval=1)
@@ -386,7 +389,10 @@ class CustomOnCallShift(models.Model):
             if self.frequency is not None and self.by_day and start is not None:
                 start_day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
                 if start_day not in self.by_day:
-                    expected_start_day = min(CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day)
+                    # when calculating first start date, make sure to sort days using week_start
+                    sorted_days = [i % 7 for i in range(self.week_start, self.week_start + 7)]
+                    selected_days = [CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day]
+                    expected_start_day = [d for d in sorted_days if d in selected_days][0]
                     delta = (expected_start_day - start.weekday()) % 7
                     start = start + datetime.timedelta(days=delta)
 
@@ -667,6 +673,14 @@ class CustomOnCallShift(models.Model):
 
         result %= len(self.rolling_users)
         return result
+
+    def refresh_schedule(self):
+        if not self.schedule:
+            # only trigger sync-refresh for web-created shifts
+            return
+        schedule = self.schedule.get_real_instance()
+        schedule.refresh_ical_file()
+        refresh_ical_final_schedule.apply_async((schedule.pk,))
 
     def start_drop_ical_and_check_schedule_tasks(self, schedule):
         drop_cached_ical_task.apply_async((schedule.pk,))

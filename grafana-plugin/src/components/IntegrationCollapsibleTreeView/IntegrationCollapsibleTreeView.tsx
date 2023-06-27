@@ -15,7 +15,7 @@ export interface IntegrationCollapsibleItem {
   expandedView: () => React.ReactNode; // for consistency, this is also a function
   isCollapsible: boolean;
   isExpanded?: boolean;
-  onStateChange?(): void;
+  onStateChange?(isChecked: boolean): void;
 }
 
 interface IntegrationCollapsibleTreeViewProps {
@@ -41,7 +41,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
               <IntegrationCollapsibleTreeItem
                 item={it}
                 key={`${idx}-${innerIdx}`}
-                onClick={() => expandOrCollapseAtPos(idx, innerIdx)}
+                onClick={() => expandOrCollapseAtPos(!expandedList[idx][innerIdx], idx, innerIdx)}
                 isExpanded={expandedList[idx][innerIdx]}
               />
             ));
@@ -51,7 +51,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
             <IntegrationCollapsibleTreeItem
               item={item}
               key={idx}
-              onClick={() => expandOrCollapseAtPos(idx)}
+              onClick={() => expandOrCollapseAtPos(expandedList[idx] as boolean, idx)}
               isExpanded={expandedList[idx] as boolean}
             />
           );
@@ -72,16 +72,16 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
     return expandedArrayValues;
   }
 
-  function expandOrCollapseAtPos(i: number, j: number = undefined) {
-    if (j) {
+  function expandOrCollapseAtPos(isChecked: boolean, i: number, j: number = undefined) {
+    if (j !== undefined) {
       let elem = configElements[i] as IntegrationCollapsibleItem[];
       if (elem[j].onStateChange) {
-        elem[j].onStateChange();
+        elem[j].onStateChange(isChecked);
       }
     } else {
       let elem = configElements[i] as IntegrationCollapsibleItem;
       if (elem.onStateChange) {
-        elem.onStateChange();
+        elem.onStateChange(isChecked);
       }
     }
 

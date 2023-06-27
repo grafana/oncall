@@ -1,11 +1,9 @@
 import math
 import time
-import typing
 
 from django.conf import settings
 from rest_framework import serializers
 
-from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
@@ -37,7 +35,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     timezone = TimeZoneField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
-    permissions = serializers.SerializerMethodField()
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
 
@@ -52,7 +49,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "email",
             "username",
             "name",
-            "role",  # LEGACY.. this should get removed eventually
+            "role",
             "avatar",
             "avatar_full",
             "timezone",
@@ -62,7 +59,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "slack_user_identity",
             "telegram_configuration",
             "messaging_backends",
-            "permissions",  # LEGACY.. this should get removed eventually
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
@@ -71,7 +67,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "email",
             "username",
             "name",
-            "role",  # LEGACY.. this should get removed eventually
+            "role",
             "verified_phone_number",
         ]
 
@@ -128,9 +124,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
-    def get_permissions(self, obj) -> typing.List[str]:
-        return DONT_USE_LEGACY_PERMISSION_MAPPING[obj.role]
-
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
@@ -173,7 +166,6 @@ class UserHiddenFieldsSerializer(UserSerializer):
         "timezone",
         "working_hours",
         "notification_chain_verbal",
-        "permissions",
     ]
 
     def to_representation(self, instance):

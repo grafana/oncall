@@ -24,9 +24,8 @@ import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
 import Incident from 'pages/incident/Incident';
 import Incidents from 'pages/incidents/Incidents';
-import Integration2 from 'pages/integration_2/Integration2';
+import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
-import Integrations2 from 'pages/integrations_2/Integrations2';
 import Maintenance from 'pages/maintenance/Maintenance';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
@@ -153,11 +152,8 @@ export const Root = observer((props: AppRootProps) => {
             <Route path={getRoutesForPage('integrations')} exact>
               <Integrations query={query} />
             </Route>
-            <Route path={getRoutesForPage('integrations_2')} exact>
-              <Integrations2 query={query} />
-            </Route>
-            <Route path={getRoutesForPage('integration_2')} exact>
-              <Integration2 query={query} />
+            <Route path={getRoutesForPage('integration')} exact>
+              <Integration query={query} />
             </Route>
             <Route path={getRoutesForPage('escalations')} exact>
               <EscalationChains query={query} />
@@ -166,7 +162,7 @@ export const Root = observer((props: AppRootProps) => {
               <Schedules query={query} />
             </Route>
             <Route path={getRoutesForPage('schedule')} exact>
-              <Schedule />
+              <Schedule query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
               <OutgoingWebhooks query={query} />

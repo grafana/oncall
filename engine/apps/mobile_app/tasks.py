@@ -6,6 +6,7 @@ import typing
 from enum import Enum
 
 import humanize
+import pytz
 import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -25,6 +26,7 @@ from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.l10n import format_localized_datetime, format_localized_time
+from common.timezones import is_valid_timezone
 
 if typing.TYPE_CHECKING:
     from apps.mobile_app.models import MobileAppUserSettings
@@ -226,25 +228,38 @@ def _get_alert_group_escalation_fcm_message(
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
 
-def _get_youre_going_oncall_notification_title(
+def _get_youre_going_oncall_notification_title(seconds_until_going_oncall: int) -> str:
+    return f"Your on-call shift starts in {humanize.naturaldelta(seconds_until_going_oncall)}"
+
+
+def _get_youre_going_oncall_notification_subtitle(
     schedule: OnCallSchedule,
-    seconds_until_going_oncall: int,
     schedule_event: ScheduleEvent,
     mobile_app_user_settings: "MobileAppUserSettings",
+    user_timezone: typing.Optional[str],
 ) -> str:
-    time_until_going_oncall = humanize.naturaldelta(seconds_until_going_oncall)
-
     shift_start = schedule_event["start"]
     shift_end = schedule_event["end"]
     shift_starts_and_ends_on_same_day = shift_start.date() == shift_end.date()
     dt_formatter_func = format_localized_time if shift_starts_and_ends_on_same_day else format_localized_datetime
 
-    def _format_datetime(dt):
-        return dt_formatter_func(dt, mobile_app_user_settings.locale)
+    def _format_datetime(dt: datetime.datetime) -> str:
+        """
+        1. Convert the shift datetime to the user's configured timezone, if set, otherwise fallback to UTC
+        2. Display the timezone aware datetime as a formatted string that is based on the user's configured mobile
+        app locale, otherwise fallback to "en"
+        """
+        if user_timezone is None or not is_valid_timezone(user_timezone):
+            user_tz = "UTC"
+        else:
+            user_tz = user_timezone
+
+        localized_dt = dt.astimezone(pytz.timezone(user_tz))
+        return dt_formatter_func(localized_dt, mobile_app_user_settings.locale)
 
     formatted_shift = f"{_format_datetime(shift_start)} - {_format_datetime(shift_end)}"
 
-    return f"You're going on call in {time_until_going_oncall} for schedule {schedule.name}, {formatted_shift}"
+    return f"{formatted_shift}\nSchedule {schedule.name}"
 
 
 def _get_youre_going_oncall_fcm_message(
@@ -261,12 +276,14 @@ def _get_youre_going_oncall_fcm_message(
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
-    notification_title = _get_youre_going_oncall_notification_title(
-        schedule, seconds_until_going_oncall, schedule_event, mobile_app_user_settings
+    notification_title = _get_youre_going_oncall_notification_title(seconds_until_going_oncall)
+    notification_subtitle = _get_youre_going_oncall_notification_subtitle(
+        schedule, schedule_event, mobile_app_user_settings, user.timezone
     )
 
     data: FCMMessageData = {
         "title": notification_title,
+        "subtitle": notification_subtitle,
         "info_notification_sound_name": (
             mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
         ),
@@ -278,7 +295,7 @@ def _get_youre_going_oncall_fcm_message(
     apns_payload = APNSPayload(
         aps=Aps(
             thread_id=thread_id,
-            alert=ApsAlert(title=notification_title),
+            alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
                 name=mobile_app_user_settings.info_notification_sound_name

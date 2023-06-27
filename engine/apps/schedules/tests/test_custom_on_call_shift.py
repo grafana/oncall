@@ -1,4 +1,5 @@
 from calendar import monthrange
+from unittest.mock import patch
 
 import pytest
 import pytz
@@ -1712,3 +1713,115 @@ def test_until_rrule_must_be_utc(
     expected_rrule = f"RRULE:FREQ=WEEKLY;UNTIL={ical_rrule_until}Z;INTERVAL=4;WKST=SU"
 
     assert expected_rrule in ical_data
+
+
+@pytest.mark.django_db
+def test_week_start_changed_daily_shift(
+    make_organization_and_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user_1 = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, time_zone="Europe/Warsaw")
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_weekday = now.weekday()
+    last_sunday = now - timezone.timedelta(days=7 + (today_weekday + 1) % 7)
+    last_saturday = last_sunday - timezone.timedelta(days=1)
+
+    # set week start to Sunday, so first event should be on last_sunday itself
+    data = {
+        "priority_level": 1,
+        "start": last_saturday,
+        "rotation_start": last_sunday,
+        "duration": timezone.timedelta(seconds=3600),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "by_day": ["MO", "SU"],
+        "week_start": 5,  # SU
+        "interval": 1,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = [[user_1]]
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    expected_start = "DTSTART;VALUE=DATE-TIME:{}T000000Z".format(last_sunday.strftime("%Y%m%d"))
+    assert expected_start in ical_data
+
+
+@pytest.mark.django_db
+def test_week_start_changed_daily_shift_until(
+    make_organization_and_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user_1 = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, time_zone="Europe/Warsaw")
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_weekday = now.weekday()
+    last_sunday = now - timezone.timedelta(days=7 + (today_weekday + 1) % 7)
+    last_saturday = last_sunday - timezone.timedelta(days=1)
+    thursday = last_sunday + timezone.timedelta(days=4)
+
+    data = {
+        "priority_level": 1,
+        "start": last_saturday,
+        "rotation_start": last_sunday,
+        "duration": timezone.timedelta(seconds=3600),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "by_day": ["MO", "SU"],
+        "week_start": 5,  # SU
+        "interval": 1,
+        "until": thursday,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = [[user_1]]
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    # setting UNTIL to Thursday was generating extra events for current week Wednesday and Thursday
+    unexpected_by_days = ("BYDAY=WE", "BYDAY=TH")
+    for unexpected in unexpected_by_days:
+        assert unexpected not in ical_data
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "shift_type",
+    [
+        CustomOnCallShift.TYPE_OVERRIDE,
+        CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+    ],
+)
+def test_refresh_schedule(make_organization_and_user, make_schedule, make_on_call_shift, shift_type):
+    organization, _ = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = timezone.now()
+
+    frequency = CustomOnCallShift.FREQUENCY_DAILY if shift_type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT else None
+    data = {
+        "priority_level": 1,
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": frequency,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=shift_type, **data)
+
+    assert schedule.cached_ical_file_primary is None
+    assert schedule.cached_ical_file_overrides is None
+
+    with patch("apps.schedules.models.custom_on_call_shift.refresh_ical_final_schedule") as mock_refresh_final:
+        on_call_shift.refresh_schedule()
+
+    assert mock_refresh_final.apply_async.called
+    assert schedule.cached_ical_file_primary is not None
+    assert schedule.cached_ical_file_overrides is not None
