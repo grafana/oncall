@@ -34,6 +34,8 @@ from common.utils import clean_markup, str_or_backup
 from .alert_group_counter import AlertGroupCounter
 
 if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
     from apps.alerts.models import AlertGroupLogRecord
 
 logger = logging.getLogger(__name__)
@@ -136,7 +138,7 @@ class AlertGroupSlackRenderingMixin:
 
 
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
-    log_records: models.QuerySet["AlertGroupLogRecord"]
+    log_records: "RelatedManager['AlertGroupLogRecord']"
 
     all_objects = AlertGroupQuerySet.as_manager()
     unarchived_objects = UnarchivedAlertGroupQuerySet.as_manager()

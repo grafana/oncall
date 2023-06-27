@@ -19,6 +19,9 @@ from common.oncall_gateway import create_oncall_connector, delete_oncall_connect
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -66,7 +69,8 @@ class OrganizationManager(models.Manager):
 
 
 class Organization(MaintainableObject):
-    users: models.QuerySet["User"]
+    users: "RelatedManager['User']"
+    oncall_schedules: "RelatedManager['OnCallSchedule']"
 
     objects = OrganizationManager()
     objects_with_deleted = models.Manager()
