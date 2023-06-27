@@ -16,11 +16,16 @@ const makeGrafanaLoginRequest = async (browserContext: BrowserContext): Promise<
   });
 
 const pollGrafanaInstanceUntilItIsHealthy = async (browserContext: BrowserContext): Promise<boolean> => {
+  console.log('Polling the grafana instance to make sure it is healthy');
+
   const res = await makeGrafanaLoginRequest(browserContext);
 
   if (!res.ok()) {
+    console.log(`Grafana instance is unavailable. Got HTTP ${res.status()}. Will wait 5 seconds and then try again`);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     return pollGrafanaInstanceUntilItIsHealthy(browserContext);
   }
+  console.log('Grafana instance is available');
   return true;
 };
 
