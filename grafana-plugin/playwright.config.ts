@@ -12,7 +12,6 @@ require('dotenv').config();
  */
 const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
-  globalSetup: './integration-tests/globalSetup.ts',
   /* Maximum time one test can run for. */
   timeout: 60 * 1000,
   expect: {
@@ -54,22 +53,29 @@ const config: PlaywrightTestConfig = {
   /* Configure projects for major browsers */
   projects: [
     {
+      name: 'setup',
+      testMatch: /globalSetup\.ts/,
+    },
+    {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
       },
+      dependencies: ['setup'],
     },
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
       },
+      dependencies: ['setup'],
     },
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
       },
+      dependencies: ['setup'],
     },
 
     /* Test against mobile viewports. */
