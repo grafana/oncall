@@ -47,7 +47,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     name: TemplateOptions.SMS.key,
     displayName: 'Sms title',
     description:
-      "Result of this template will be used as title of SMS message. Please don't include any urls to avoid SMS message being blocked by carriers.",
+      "Result of this template will be used as title of SMS message. Please don't include any urls, or phone numbers, to avoid SMS message being blocked by carriers.",
     type: 'plain',
   },
   phone_call_title_template: {
