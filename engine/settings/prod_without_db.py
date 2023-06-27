@@ -58,6 +58,7 @@ CELERY_TASK_ROUTES = {
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
     "apps.heartbeat.tasks.restore_heartbeat_tasks": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
+    "apps.metrics_exporter.tasks.start_recalculation_for_new_metric": {"queue": "default"},
     "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_file": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files": {"queue": "default"},
