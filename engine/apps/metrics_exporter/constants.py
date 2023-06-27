@@ -1,6 +1,5 @@
+import datetime
 import typing
-
-from django.utils import timezone
 
 
 class AlertGroupsTotalMetricsDict(typing.TypedDict):
@@ -39,7 +38,7 @@ class RecalculateOrgMetricsDict(typing.TypedDict):
 ALERT_GROUPS_TOTAL = "oncall_alert_groups_total"
 ALERT_GROUPS_RESPONSE_TIME = "oncall_alert_groups_response_time_seconds"
 
-METRICS_RESPONSE_TIME_CALCULATION_PERIOD = timezone.timedelta(days=7)
+METRICS_RESPONSE_TIME_CALCULATION_PERIOD = datetime.timedelta(days=7)
 
 METRICS_CACHE_LIFETIME = 93600  # 26 hours. Should be higher than METRICS_RECALCULATE_CACHE_TIMEOUT
 

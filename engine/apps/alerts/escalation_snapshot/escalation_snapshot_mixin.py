@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Optional
+import typing
 
 import pytz
 from celery import uuid as celery_uuid
@@ -17,6 +17,9 @@ from apps.alerts.escalation_snapshot.snapshot_classes import (
 )
 from apps.alerts.tasks import escalate_alert_group
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import ChannelFilter
+
 logger = logging.getLogger(__name__)
 
 # Is a delay to prevent intermediate activity by system in case user is doing some multi-step action.
@@ -28,6 +31,11 @@ class EscalationSnapshotMixin:
     """
     Mixin for AlertGroup. It contains methods related with alert group escalation
     """
+
+    # TODO: add stricter typing
+    # TODO: should this class actually be an AbstractBaseClass instead?
+    raw_escalation_snapshot: dict | None
+    channel_filter: typing.Optional["ChannelFilter"]
 
     def build_raw_escalation_snapshot(self) -> dict:
         """
@@ -91,7 +99,7 @@ class EscalationSnapshotMixin:
         data = {}
 
         if self.escalation_chain_exists:
-            channel_filter = self.channel_filter
+            channel_filter: "ChannelFilter" = self.channel_filter
             escalation_chain = channel_filter.escalation_chain
             escalation_policies = escalation_chain.escalation_policies.all()
 
@@ -116,7 +124,7 @@ class EscalationSnapshotMixin:
         return self.escalation_chain_snapshot or (self.channel_filter.escalation_chain if self.channel_filter else None)
 
     @cached_property
-    def channel_filter_snapshot(self) -> Optional[ChannelFilterSnapshot]:
+    def channel_filter_snapshot(self) -> typing.Optional[ChannelFilterSnapshot]:
         """
         in some cases we need only channel filter and don't want to serialize whole escalation
         """
@@ -132,7 +140,7 @@ class EscalationSnapshotMixin:
         return ChannelFilterSnapshot(**channel_filter_snapshot)
 
     @cached_property
-    def escalation_chain_snapshot(self) -> Optional[EscalationChainSnapshot]:
+    def escalation_chain_snapshot(self) -> typing.Optional[EscalationChainSnapshot]:
         """
         in some cases we need only escalation chain and don't want to serialize whole escalation
         escalation_chain_snapshot_object = None
@@ -149,7 +157,7 @@ class EscalationSnapshotMixin:
         return EscalationChainSnapshot(**escalation_chain_snapshot)
 
     @cached_property
-    def escalation_snapshot(self) -> Optional[EscalationSnapshot]:
+    def escalation_snapshot(self) -> typing.Optional[EscalationSnapshot]:
         raw_escalation_snapshot = self.raw_escalation_snapshot
         if raw_escalation_snapshot:
             try:
@@ -207,7 +215,7 @@ class EscalationSnapshotMixin:
         return self.raw_escalation_snapshot.get("pause_escalation", False)
 
     @property
-    def next_step_eta(self) -> Optional[datetime.datetime]:
+    def next_step_eta(self) -> typing.Optional[datetime.datetime]:
         """
         get next_step_eta field directly to avoid serialization overhead
         """
