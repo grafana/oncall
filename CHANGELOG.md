@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Change permissions used during setup to better represent actions being taken by @mderynck ([#2242](https://github.com/grafana/oncall/pull/2242))
+- Display 100000+ in stats when there are more than 100000 alert groups in the result ([#1901](https://github.com/grafana/oncall/pull/1901))
+
+### Fixed
+
+- For "You're Going OnCall" push notifications, show shift times in the user's configured timezone, otherwise UTC
+  by @joeyorlando ([#2351](https://github.com/grafana/oncall/pull/2351))
+
+## v1.3.1 (2023-06-26)
+
+### Fixed
+
+- Fix phone call & SMS relay by @vadimkerr ([#2345](https://github.com/grafana/oncall/pull/2345))
+
+## v1.3.0 (2023-06-26)
+
+### Added
+
+- Secrets consistency for the chart. Bugfixing [#1016](https://github.com/grafana/oncall/pull/1016)
+
+### Changed
+
+- `telegram.webhookUrl` now defaults to `https://<base_url>` if not set
 - UI Updates for the integrations page ([#2310](https://github.com/grafana/oncall/pull/2310))
 - Prefer shift start when displaying rotation start value for existing shifts ([#2316](https://github.com/grafana/oncall/pull/2316))
 
@@ -20,7 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Secrets consistency for the chart. Bugfixing [#1016](https://github.com/grafana/oncall/pull/1016)
 - Make it possible to completely delete a rotation oncall ([#1505](https://github.com/grafana/oncall/issues/1505))
 - Polish rotation modal form oncall ([#1506](https://github.com/grafana/oncall/issues/1506))
 - Quick actions when editing a schedule oncall ([#1507](https://github.com/grafana/oncall/issues/1507))

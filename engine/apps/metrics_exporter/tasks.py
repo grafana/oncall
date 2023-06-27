@@ -81,7 +81,6 @@ def calculate_and_cache_metrics(organization_id, force=False):
         AlertReceiveChannel.objects.using(get_random_readonly_database_key_if_present_otherwise_default())
         .filter(~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE) & Q(organization_id=organization_id))
         .select_related("organization", "team")
-        .prefetch_related("alert_groups")
     )
 
     response_time_period = get_response_time_period()

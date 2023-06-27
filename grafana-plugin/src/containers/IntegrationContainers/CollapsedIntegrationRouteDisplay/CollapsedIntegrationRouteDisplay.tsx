@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon } from '@grafana/ui';
+import { ConfirmModal, HorizontalGroup, Icon, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -44,7 +44,9 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
       alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
       routeIndex
     );
-    const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store);
+    const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store).filter(
+      (channel) => channel
+    );
 
     return (
       <>
@@ -105,14 +107,17 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                     <HorizontalGroup spacing="xs">
                       <Text type="secondary">Publish to ChatOps</Text>
 
-                      {chatOpsAvailableChannels
-                        .filter((it) => it)
-                        .map((chatOpsChannel) => (
-                          <>
+                      {chatOpsAvailableChannels.map(
+                        (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
+                          <div
+                            key={`${chatOpsChannel.name}-${chatOpsIndex}`}
+                            className={cx({ 'u-margin-right-xs': chatOpsIndex !== chatOpsAvailableChannels.length })}
+                          >
                             <Icon name={chatOpsChannel.icon} className={cx('icon')} />
                             <Text type="primary">{chatOpsChannel.name}</Text>
-                          </>
-                        ))}
+                          </div>
+                        )
+                      )}
                     </HorizontalGroup>
                   </div>
                 )}

@@ -244,7 +244,7 @@ class User(models.Model):
         return self.username
 
     @property
-    def timezone(self):
+    def timezone(self) -> typing.Optional[str]:
         if self._timezone:
             return self._timezone
 
