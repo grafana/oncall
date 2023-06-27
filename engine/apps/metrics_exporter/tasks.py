@@ -178,6 +178,9 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
             .count()
         )
 
+        if counter == 0:  # means that user has no successful notifications
+            continue
+
         metric_user_was_notified[user.id] = {
             "user_username": user.username,
             "org_id": instance_org_id,
