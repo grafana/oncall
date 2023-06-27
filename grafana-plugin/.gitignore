@@ -19,4 +19,4 @@ frontend_enterprise
 /test-results/
 /playwright-report/
 /playwright/.cache/
-storageState.json
+/integration-tests/storageState.json

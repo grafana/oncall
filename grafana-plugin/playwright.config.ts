@@ -1,3 +1,5 @@
+import path from 'path';
+
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices } from '@playwright/test';
 
@@ -6,6 +8,8 @@ import { devices } from '@playwright/test';
  * https://github.com/motdotla/dotenv
  */
 require('dotenv').config();
+
+export const STORAGE_STATE = path.join(__dirname, 'integration-tests/storageState.json');
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -37,8 +41,6 @@ const config: PlaywrightTestConfig = {
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    storageState: './storageState.json',
-
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -60,6 +62,7 @@ const config: PlaywrightTestConfig = {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
     },
@@ -67,6 +70,7 @@ const config: PlaywrightTestConfig = {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
+        storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
     },
@@ -74,6 +78,7 @@ const config: PlaywrightTestConfig = {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
+        storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
     },

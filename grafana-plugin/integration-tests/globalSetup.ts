@@ -3,6 +3,7 @@ import { test as setup, chromium, FullConfig, expect, Page, BrowserContext, APIR
 import { BASE_URL, GRAFANA_PASSWORD, GRAFANA_USERNAME, IS_OPEN_SOURCE, ONCALL_API_URL } from './utils/constants';
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
+import { STORAGE_STATE } from '../playwright.config';
 
 const IS_CLOUD = !IS_OPEN_SOURCE;
 const GLOBAL_SETUP_RETRIES = 3;
@@ -33,11 +34,6 @@ const pollGrafanaInstanceUntilItIsHealthy = async (browserContext: BrowserContex
  * go to config page and wait for plugin icon to be available on left-hand navigation
  */
 const configureOnCallPlugin = async (page: Page): Promise<void> => {
-  // plugin configuration can safely be skipped for non open-source environments
-  if (IS_CLOUD) {
-    return;
-  }
-
   /**
    * go to the oncall plugin configuration page and wait for the page to be loaded
    */
@@ -86,11 +82,15 @@ const globalSetup = async (config: FullConfig): Promise<void> => {
   const res = await makeGrafanaLoginRequest(browserContext);
 
   expect(res.ok()).toBeTruthy();
-  await browserContext.storageState({ path: './storageState.json' });
+  await browserContext.storageState({ path: STORAGE_STATE });
 
   // make sure the plugin has been configured
   const page = await browserContext.newPage();
-  await configureOnCallPlugin(page);
+
+  if (IS_OPEN_SOURCE) {
+    // plugin configuration can safely be skipped for cloud environments
+    await configureOnCallPlugin(page);
+  }
 
   await browserContext.close();
 };
