@@ -99,7 +99,7 @@ services:
           cpus: "0.1"
 
   rabbitmq:
-    image: "rabbitmq:3.7.15-management"
+    image: "rabbitmq:3.12.0-management"
     restart: always
     hostname: rabbitmq
     volumes:
