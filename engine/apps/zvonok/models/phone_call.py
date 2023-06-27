@@ -6,6 +6,7 @@ class ZvonokCallStatuses:
     """
     https://zvonok.com/ru-ru/guide/guide_statuses/
     """
+
     ATTEMPTS_EXC = 10
     COMPL_FINISHED = 20
     COMPL_NOFINISHED = 30
@@ -49,7 +50,7 @@ class ZvonokCallStatuses:
         "in_process": IN_PROCESS,
         "pincode_nook": PINCODE_NOOK,
         "synth_error": SYNTH_ERROR,
-        "user": USER
+        "user": USER,
     }
 
 
@@ -73,6 +74,3 @@ class ZvonokPhoneCall(ProviderPhoneCall, models.Model):
     campaign_id = models.CharField(
         max_length=50,
     )
-
-
-

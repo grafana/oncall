@@ -9,7 +9,7 @@ from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 from apps.phone_notifications.exceptions import FailedToMakeCall, FailedToStartVerification
 from apps.zvonok.models.phone_call import ZvonokPhoneCall, ZvonokCallStatuses
 
-ZVONOK_CALL_URL = 'https://zvonok.com/manager/cabapi_external/api/v1/phones/call/'
+ZVONOK_CALL_URL = "https://zvonok.com/manager/cabapi_external/api/v1/phones/call/"
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,6 @@ class ZvonokPhoneProvider(PhoneProvider):
             logger.error(f"ZvonokPhoneProvider.make_notification_call: failed {conn_err}")
             raise FailedToMakeCall(graceful_msg=f"Failed make notification call to {number}")
 
-
     def make_call(self, number: str, message: str):
         body = None
         speaker = live_settings.ZVONOK_SPEAKER_ID
@@ -85,10 +84,10 @@ class ZvonokPhoneProvider(PhoneProvider):
 
     def _call_create(self, number: str, text: str, speaker: Optional[str] = None):
         params = {
-            'public_key': live_settings.ZVONOK_API_KEY,
-            'campaign_id': live_settings.ZVONOK_CAMPAIGN_ID,
-            'phone': number,
-            'text': text
+            "public_key": live_settings.ZVONOK_API_KEY,
+            "campaign_id": live_settings.ZVONOK_CAMPAIGN_ID,
+            "phone": number,
+            "text": text,
         }
 
         if speaker:

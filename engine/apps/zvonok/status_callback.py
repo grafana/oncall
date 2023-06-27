@@ -15,9 +15,7 @@ def update_zvonok_call_status(call_id: str, call_status: str, user_choice: Optio
 
     status_code = ZvonokCallStatuses.DETERMINANT.get(call_status)
     if status_code is None:
-        logger.warning(
-            f"zvonok.update_zvonok_call_status: unexpected status call_id={call_id} status={call_status}"
-        )
+        logger.warning(f"zvonok.update_zvonok_call_status: unexpected status call_id={call_id} status={call_status}")
         return
 
     zvonok_phone_call = ZvonokPhoneCall.objects.filter(call_id=call_id).first()

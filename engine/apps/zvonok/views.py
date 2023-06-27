@@ -42,6 +42,7 @@ class CallStatusCallback(APIView):
         update_zvonok_call_status(call_id=call_id, call_status=call_status, user_choice=user_choice)
         return Response(data="", status=status.HTTP_204_NO_CONTENT)
 
+
 class HealthCheck(APIView):
     def get(self, request):
         return Response("OK")
