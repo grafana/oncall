@@ -22,7 +22,7 @@ It is a gauge, and its name has the suffix `alert_groups_total`
 for the last 7 days in selected period). It is a histogram, and its name has the suffix `alert_groups_response_time`
 with the histogram suffixes such as `_bucket`, `_sum` and `_count`
 - A total count of alert groups users were notified of for each user. It is a counter, and its name has the suffix
-`user_was_notified_of_alert_groups`
+`user_was_notified_of_alert_groups_total`
 
 You can find more information about metrics types in the [Prometheus documentation](https://prometheus.io/docs/concepts/metric_types).
 
@@ -35,7 +35,7 @@ cloud instance.
 
 Metrics have prefix `grafanacloud_oncall_instance`, e.g. `grafanacloud_oncall_instance_alert_groups_total`,
 `grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket` and
-`grafanacloud_oncall_instance_user_was_notified_of_alert_groups`.
+`grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total`.
 
 ### For open source customers
 
@@ -43,7 +43,7 @@ To collect OnCall application metrics you need to set up Prometheus and add it t
 You can find more information about Prometheus setup in the [OSS documentation](https://github.com/grafana/oncall#readme)
 
 Metrics will have the prefix `oncall`, e.g. `oncall_alert_groups_total`, `oncall_alert_groups_response_time_seconds_bucket`
-and `oncall_user_was_notified_of_alert_groups`.
+and `oncall_user_was_notified_of_alert_groups_total`.
 
 Your metrics may also have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
 
@@ -106,7 +106,7 @@ This metric has the following labels:
 Get the number of alert groups user with username "alex" was notified of in Grafana stack "test_stack":
 
 ```promql
-grafanacloud_oncall_instance_user_was_notified_of_alert_groups{slug="test_stack", username="alex"}
+grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total{slug="test_stack", username="alex"}
 ```
 
 ### Dashboard
