@@ -12,6 +12,7 @@ target-version = ["py39"]
 force-exclude = "migrations"
 
 [tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/type_stubs"
 implicit_reexport = true
 plugins = [
     "mypy_django_plugin.main",
@@ -39,7 +40,7 @@ module = [
     "fcm_django.*",
     "firebase_admin.*",
     "humanize.*",
-    "icalendar.*",
+    "ipware.*",
     "markdown2.*",
     "mirage.*",
     "ordered_model.*",
@@ -50,6 +51,7 @@ module = [
     "recurring_ical_events.*",
     "rest_polymorphic.*",
     "slackclient.*",
+    "slackviewer.*",
     "social_core.*",
     "social_django.*",
     "twilio.*",

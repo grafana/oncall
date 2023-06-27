@@ -2,10 +2,10 @@ import re
 
 import emoji
 from django.apps import apps
-from slackviewer.formatter import SlackFormatter
+from slackviewer.formatter import SlackFormatter as SlackFormatterBase
 
 
-class SlackFormatter(SlackFormatter):
+class SlackFormatter(SlackFormatterBase):
     _LINK_PAT = re.compile(r"<(https|http|mailto):[A-Za-z0-9_\.\-\/\?\,\=\#\:\@\& ]+\|[^>]+>")
 
     def __init__(self, organization):

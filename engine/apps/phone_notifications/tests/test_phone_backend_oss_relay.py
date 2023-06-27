@@ -28,7 +28,7 @@ def test_relay_oss_call(
     _, user = make_organization_and_user()
     phone_backend = PhoneBackend()
     phone_backend.relay_oss_call(user, "relayed_call")
-    assert mock_make_call.called
+    mock_make_call.assert_called_once_with(user.verified_phone_number, "relayed_call")
 
 
 @pytest.mark.django_db
@@ -66,7 +66,7 @@ def test_relay_oss_call_limit_exceed(
 @pytest.mark.django_db
 @mock.patch("apps.phone_notifications.phone_backend.PhoneBackend._validate_user_number", return_value=True)
 @mock.patch("apps.phone_notifications.phone_backend.PhoneBackend._validate_sms_left", return_value=10)
-@mock.patch("apps.phone_notifications.tests.mock_phone_provider.MockPhoneProvider.make_call")
+@mock.patch("apps.phone_notifications.tests.mock_phone_provider.MockPhoneProvider.send_sms")
 def test_relay_oss_sms(
     mock_send_sms,
     mock_validate_user_number,
@@ -75,8 +75,8 @@ def test_relay_oss_sms(
 ):
     _, user = make_organization_and_user()
     phone_backend = PhoneBackend()
-    phone_backend.relay_oss_call(user, "relayed_call")
-    assert mock_send_sms.called
+    phone_backend.relay_oss_sms(user, "relayed_sms")
+    mock_send_sms.assert_called_once_with(user.verified_phone_number, "relayed_sms")
 
 
 @pytest.mark.django_db

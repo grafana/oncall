@@ -1,3 +1,4 @@
+import datetime
 import random
 import typing
 
@@ -23,6 +24,9 @@ from apps.metrics_exporter.constants import (
     UserWasNotifiedOfAlertGroupsMetricsDict,
 )
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertReceiveChannel
+
 
 def get_organization_ids_from_db():
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
@@ -45,7 +49,7 @@ def get_organization_ids():
     return organizations_ids
 
 
-def is_allowed_to_start_metrics_calculation(organization_id, force=False):
+def is_allowed_to_start_metrics_calculation(organization_id, force=False) -> bool:
     """Check if metrics_cache_timer doesn't exist or if recalculation was started by force."""
     recalculate_timeout = get_metrics_recalculation_timeout()
     metrics_cache_timer_key = get_metrics_cache_timer_key(organization_id)
@@ -66,12 +70,12 @@ def is_allowed_to_start_metrics_calculation(organization_id, force=False):
     return True
 
 
-def get_response_time_period():
+def get_response_time_period() -> datetime.datetime:
     """Returns period for response time calculation"""
     return timezone.now() - METRICS_RESPONSE_TIME_CALCULATION_PERIOD
 
 
-def get_metrics_recalculation_timeout():
+def get_metrics_recalculation_timeout() -> int:
     """
     Returns timeout when metrics should be recalculated.
     Add some dispersion to avoid starting recalculation tasks for all organizations at the same time.
@@ -90,7 +94,7 @@ def get_metrics_cache_timeout(organization_id):
     return metrics_cache_timeout
 
 
-def get_metrics_cache_timer_key(organization_id):
+def get_metrics_cache_timer_key(organization_id) -> str:
     return f"{METRICS_CACHE_TIMER}_{organization_id}"
 
 
@@ -99,23 +103,23 @@ def get_metrics_cache_timer_for_organization(organization_id):
     return cache.get(key)
 
 
-def get_metric_alert_groups_total_key(organization_id):
+def get_metric_alert_groups_total_key(organization_id) -> str:
     return f"{ALERT_GROUPS_TOTAL}_{organization_id}"
 
 
-def get_metric_alert_groups_response_time_key(organization_id):
+def get_metric_alert_groups_response_time_key(organization_id) -> str:
     return f"{ALERT_GROUPS_RESPONSE_TIME}_{organization_id}"
 
 
-def get_metric_user_was_notified_of_alert_groups_key(organization_id):
+def get_metric_user_was_notified_of_alert_groups_key(organization_id) -> str:
     return f"{USER_WAS_NOTIFIED_OF_ALERT_GROUPS}_{organization_id}"
 
 
-def get_metric_calculation_started_key(metric_name):
+def get_metric_calculation_started_key(metric_name) -> str:
     return f"calculation_started_for_{metric_name}"
 
 
-def metrics_update_integration_cache(integration):
+def metrics_update_integration_cache(integration: "AlertReceiveChannel") -> None:
     """Update integration data in metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
@@ -137,7 +141,7 @@ def metrics_update_integration_cache(integration):
                 cache.set(metric_key, metric_cache, timeout=metrics_cache_timeout)
 
 
-def metrics_remove_deleted_integration_from_cache(integration):
+def metrics_remove_deleted_integration_from_cache(integration: "AlertReceiveChannel"):
     """Remove data related to deleted integration from metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)
@@ -150,7 +154,7 @@ def metrics_remove_deleted_integration_from_cache(integration):
             cache.set(metric_key, metric_cache, timeout=metrics_cache_timeout)
 
 
-def metrics_add_integration_to_cache(integration):
+def metrics_add_integration_to_cache(integration: "AlertReceiveChannel"):
     """Add new integration data to metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
     metric_alert_groups_total_key = get_metric_alert_groups_total_key(integration.organization_id)

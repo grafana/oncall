@@ -22,14 +22,14 @@ You must have an Admin role to create integrations in Grafana OnCall.
 
 1. In the **Integrations** tab, click **+ New integration to receive alerts**.
 2. Select **Inbound Email** from the list of available integrations.
-3. Get your dedicated email address in the **How to connect** window.
+3. Get your dedicated email address in the **Integration email** section and use it to send your emails.
 
 ## Grouping and auto-resolve
 
 Alert groups will be grouped by email subject and auto-resolved if the email message text equals "OK".
  This behaviour can be modified via [custom templates]({{< relref "jinja2-templating" >}}).
 
-Alerts from Inbound Email integration have followng payload:
+Alerts from Inbound Email integration have the following payload:
 
 ```json
 {

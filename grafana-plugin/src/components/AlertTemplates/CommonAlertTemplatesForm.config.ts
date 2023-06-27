@@ -33,8 +33,8 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     type: 'html',
   },
   slack_title_template: {
-    name: 'slack_title_template',
-    displayName: TemplateOptions.SlackTitle.key,
+    displayName: 'Slack title',
+    name: TemplateOptions.SlackTitle.key,
     description: '',
     additionalData: {
       chatOpsName: 'slack',
@@ -45,13 +45,13 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
   },
   sms_title_template: {
     name: TemplateOptions.SMS.key,
-    displayName: 'Sms title',
+    displayName: 'SMS title',
     description: '',
     type: 'plain',
   },
   phone_call_title_template: {
     name: TemplateOptions.Phone.key,
-    displayName: 'Phone call title',
+    displayName: 'Phone Call title',
     description: '',
     type: 'plain',
   },

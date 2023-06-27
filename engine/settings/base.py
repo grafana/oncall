@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import typing
 from random import randrange
 
 from celery.schedules import crontab
@@ -88,8 +89,8 @@ DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", defaul
 WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
-ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
-ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN")
+ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
+ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
 
 # Prometheus exporter metrics endpoint auth
@@ -125,7 +126,9 @@ assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, Database
 
 DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
 
-DATABASE_CONFIGS = {
+DatabaseConfig = typing.Dict[str, typing.Dict[str, typing.Any]]
+
+DATABASE_CONFIGS: DatabaseConfig = {
     DatabaseTypes.SQLITE3: {
         "ENGINE": DATABASE_ENGINE,
         "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
@@ -152,6 +155,7 @@ DATABASE_CONFIGS = {
     },
 }
 
+READONLY_DATABASES: DatabaseConfig = {}
 DATABASES = {
     "default": DATABASE_CONFIGS[DATABASE_TYPE],
 }
@@ -570,7 +574,7 @@ SOCIAL_AUTH_PIPELINE = (
     "apps.social_auth.pipeline.delete_slack_auth_token",
 )
 
-SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = []
+SOCIAL_AUTH_FIELDS_STORED_IN_SESSION: typing.List[str] = []
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = getenv_boolean("SOCIAL_AUTH_REDIRECT_IS_HTTPS", default=True)
 SOCIAL_AUTH_SLUGIFY_USERNAMES = True
 
