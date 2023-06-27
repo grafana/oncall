@@ -20,16 +20,16 @@ for more details.
 check [Readme](https://github.com/grafana/terraform-provider-grafana/blob/master/README.md) and make local changes
 1. Set env variables
   
-  Warning: you might want to set another OS_ARCH, provided value are for Apple Silicon
+    Warning: you might want to set another OS_ARCH, provided value are for Apple Silicon
 
-  ```bash
-  export BINARY=terraform-provider-grafana
-  OS_ARCH=darwin_arm64
-  HOSTNAME=grafana.com
-  NAMESPACE=raintank
-  NAME=grafana
-  VERSION=1.0.0
-  ```
+    ```bash
+    export BINARY=terraform-provider-grafana
+    OS_ARCH=darwin_arm64
+    HOSTNAME=grafana.com
+    NAMESPACE=raintank
+    NAME=grafana
+    VERSION=1.0.0
+    ```
 
 1. Build provider
 
