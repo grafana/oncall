@@ -15,24 +15,33 @@ weight: 300
 
 # Alertmanager integration for Grafana OnCall
 
-The Alertmanager integration for Grafana OnCall handles alerts sent by client applications such as the Prometheus server.
+> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
 
-Grafana OnCall provides<!--[grouping](#alertmanager-grouping-amp-oncall-grouping)--> grouping abilities when processing
-alerts from Alertmanager, including initial deduplicating, grouping, and routing the alerts to Grafana OnCall.
+The Alertmanager integration handles alerts from [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/).
+This integration is the recommended way to send alerts from Prometheus deployed in your infrastructure, to Grafana OnCall.
 
-## Configure Alertmanager integration for Grafana OnCall
+> **Pro tip:** Create one integration per team, and configure alertmanager labels selector to send alerts only related to that team
 
-You must have an Admin role to create integrations in Grafana OnCall.
+## Configuring Grafana OnCall to Receive Alerts from Prometheus Alertmanager
 
-1. In the **Integrations** tab, click **+ New integration to receive alerts**.
-2. Select **Alertmanager** from the list of available integrations.
-3. Follow the instructions in the **How to connect** window to get your unique integration URL and identify next steps.
+1. In the **Integrations** tab, click **+ New integration**.
+2. Select **Alertmanager Prometheus** from the list of available integrations.
+3. Enter a name and description for the integration, click **Create**
+4. A new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section.
+You will need it when configuring Alertmanager.
 
 <!--![123](../_images/connect-new-monitoring.png)-->
 
-## Configure Alertmanager
+## Configuring Alertmanager to Send Alerts to Grafana OnCall
 
-Update the `receivers` section of your Alertmanager configuration to use a unique integration URL:
+1. Add a new [Webhook](https://prometheus.io/docs/alerting/latest/configuration/#webhook_config) receiver to `receivers`
+section of your Alertmanager configuration
+2. Set `url` to the **OnCall Integration URL** from previous section
+3. Set `send_resolved` to `true`, so Grafana OnCall can autoresolve alert groups when they are resolved in Alertmanager
+4. It is recommended to set `max_alerts` to less than `300` to avoid rate-limiting issues
+5. Use this receiver in your route configuration
+
+Here is the example of final configuration:
 
 ```yaml
 route:
@@ -44,28 +53,63 @@ receivers:
     webhook_configs:
       - url: <integation-url>
         send_resolved: true
+        max_alerts: 300
 ```
 
-## Configure grouping with Alertmanager and Grafana OnCall
+## Complete the Integration Configuration
 
-You can use the alert grouping mechanics of Alertmanager and Grafana OnCall to configure your alert grouping preferences.
+Complete configuration by setting routes, templates, maintenances, etc. Read more in
+[this section]({{< relref "../../integrations/#complete-the-integration-configuration" >}})
 
-Alertmanager offers three alert grouping options:
+## Configuring OnCall Heartbeats (optional)
 
-- `group_by` provides two options, `instance` or `job`.
-- `group_wait` sets the length of time to initially wait before sending a notification for a particular group of alerts.
-  For example, `group_wait` can be set to 45s.
+An OnCall heartbeat acts as a monitoring for monitoring systems. If your monitoring is down and stop sending alerts,
+Grafana OnCall will notify you about that.
 
-  Setting a high value for `group_wait` reduces alert noise and minimizes interruption, but it may introduce delays in
-  receiving alert notifications. To set an appropriate wait time, consider whether the group of alerts will be the same
-  as those previously sent.
+### Configuring Grafana OnCall Heartbeat
 
-- `group_interval` sets the length of time to wait before sending notifications about new alerts that have been added to
-  a group of alerts that have been previously alerted on. This setting is usually set to five minutes or more.
+1. Go to **Integration Page**, click on three dots on top right, click **Heartbeat settings**
+2. Copy **OnCall Heartbeat URL**, you will need it when configuring Alertmanager
+3. Set up **Heartbeat Interval**, time period after which Grafana OnCall will start a new alert group if it
+doesn't receive a heartbeat request
 
-  During high alert volume periods, Alertmanager will send alerts at each `group_interval`, which can mean a lot of
-  distraction. Grafana OnCall grouping will help manage this in the following ways:
+### Configuring Alertmanager to send heartbeats to Grafana OnCall Heartbeat
 
-  - Grafana OnCall groups alerts based on the first label of each alert.
-  - Grafana OnCall marks an alert group as resolved only when there are fewer than 500 grouped
-  alerts, and every `firing` alert with the same labels has a corresponding `resolved` alert.
+You can configure Alertmanager to regularly send alerts to the heartbeat endpoint. Add `vector(1)` as a heartbeat
+generator to `prometheus.yaml`. It will always return true and act like always firing alert, which will be sent to
+Grafana OnCall once in a given period of time:
+
+```yaml
+            groups:
+            - name: meta
+              rules:
+              - alert: heartbeat
+                expr: vector(1)
+                labels:
+                  severity: none
+                annotations:
+                  description: This is a heartbeat alert for Grafana OnCall
+                  summary: Heartbeat for Grafana OnCall
+```
+
+Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL**:
+
+```yaml
+
+            ...
+            route:
+            ...
+                routes:
+                - match:
+                    alertname: heartbeat
+                  receiver: 'grafana-oncall-heartbeat'
+                  group_wait: 0s
+                  group_interval: 1m
+                  repeat_interval: 50s
+            receivers:
+            - name: 'grafana-oncall-heartbeat'
+              webhook_configs:
+            - url: https://oncall-dev-us-central-0.grafana.net/oncall/integrations/v1/alertmanager/1234567890/heartbeat/
+              send_resolved: false
+        
+        ```

@@ -119,6 +119,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     } = this.props;
 
     const {
+      store,
       store: { alertReceiveChannelStore },
     } = this.props;
 
@@ -126,7 +127,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
 
-    await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
+    await Promise.all([
+      this.loadIntegration(),
+      IntegrationHelper.fetchChatOps(store),
+      alertReceiveChannelStore.updateTemplates(id),
+    ]);
   }
 
   render() {

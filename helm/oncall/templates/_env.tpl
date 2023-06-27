@@ -99,7 +99,7 @@
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 {{- if .Values.oncall.telegram.enabled }}
 - name: TELEGRAM_WEBHOOK_HOST
-  value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
+  value: {{ .Values.oncall.telegram.webhookUrl | default (printf "https://%s" .Values.base_url) | quote }}
 {{- if .Values.oncall.telegram.existingSecret }}
 - name: TELEGRAM_TOKEN
   valueFrom:
