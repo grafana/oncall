@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - For "You're Going OnCall" push notifications, show shift times in the user's configured timezone, otherwise UTC
-  by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+  by @joeyorlando ([#2351](https://github.com/grafana/oncall/pull/2351))
 
 ## v1.3.1 (2023-06-26)
 
