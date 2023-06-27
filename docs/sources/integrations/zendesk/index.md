@@ -25,13 +25,14 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 1. In the **Integrations** tab, click **+ New integration**.
 2. Select **Zendesk** from the list of available integrations.
 3. Enter a name and description for the integration, click **Create**
-4. A new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section. You will need it when configuring Zendesk.
+4. A new page will open with the integration details. Copy the **OnCall Integration URL** from **HTTP Endpoint** section.
 
 ## Configuring Zendesk to Send Alerts to Grafana OnCall
 
 Create a new "Trigger or automation" webhook connection in Zendesk to send events to Grafana OnCall using the integration URL above.
 
-Refer to [Zendesk documentation](https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems
+Refer to [Zendesk documentation]
+(<https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems>
 ) for more information on how to create and manage webhooks.
 
 After setting up a webhook in Zendesk, create a new trigger with the following condition:

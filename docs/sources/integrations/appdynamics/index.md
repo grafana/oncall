@@ -32,8 +32,10 @@ You will need it when configuring AppDynamics.
 
 Create a new HTTP Request Template in AppDynamics to send events to Grafana OnCall using the integration URL above.
 
-Refer to [AppDynamics documentation](<https://docs.appdynamics.com/appd/23.x/latest/en/appdynamics-essentials
-/alert-and-respond/actions/http-request-actions-and-templates) for more information on **how to create HTTP Request Templates**:
+Refer to
+[AppDynamics documentation]
+(<https://docs.appdynamics.com/appd/23.x/latest/en/appdynamics-essentials/alert-and-respond/actions/http-request-actions-and-templates>)
+for more information on **how to create HTTP Request Templates**:
 
 Use the following values when configuring a new HTTP Request Template:
 

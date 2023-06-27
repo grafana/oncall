@@ -76,7 +76,8 @@ passes some threshold
 
 ### Notification types
 
-Each escalation step that notifies a user, does so by triggering their personal notification steps. These are configured in the Grafana OnCall users page (by clicking "View my profile").
+Each escalation step that notifies a user, does so by triggering their personal notification steps. These are configured in the Grafana
+ OnCall users page (by clicking "View my profile").
 It will be executed for each user in the escalation step
 User can configure two types of personal notification chains:
 
