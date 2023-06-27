@@ -17,9 +17,11 @@ from apps.metrics_exporter.constants import (
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
+    get_metric_calculation_started_key,
     get_metric_user_was_notified_of_alert_groups_key,
     get_metrics_cache_timer_key,
     get_metrics_recalculation_timeout,
+    get_organization_ids,
     get_organization_ids_from_db,
     get_response_time_period,
     is_allowed_to_start_metrics_calculation,
@@ -51,6 +53,22 @@ def start_calculate_and_cache_metrics(metrics_to_recalculate: list[RecalculateOr
         calculate_and_cache_user_was_notified_metric.apply_async(
             (recalculation_data["organization_id"],), countdown=countdown
         )
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
+def start_recalculation_for_new_metric(metric_name):
+    TEN_MINUTES = 600
+    calculation_started_key = get_metric_calculation_started_key(metric_name)
+    is_calculation_started = cache.get(calculation_started_key)
+    if is_calculation_started:
+        return
+    cache.set(calculation_started_key, True, timeout=TEN_MINUTES)
+    org_ids = set(get_organization_ids())
+    countdown = 0
+    for counter, organization_id in enumerate(org_ids):
+        if counter % 10 == 0:
+            countdown += 1
+        calculate_and_cache_user_was_notified_metric.apply_async((organization_id,), countdown=countdown)
 
 
 @shared_dedicated_queue_retry_task(

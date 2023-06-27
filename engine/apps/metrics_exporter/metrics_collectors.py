@@ -18,11 +18,12 @@ from apps.metrics_exporter.constants import (
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
+    get_metric_calculation_started_key,
     get_metric_user_was_notified_of_alert_groups_key,
     get_metrics_cache_timer_key,
     get_organization_ids,
 )
-from apps.metrics_exporter.tasks import start_calculate_and_cache_metrics
+from apps.metrics_exporter.tasks import start_calculate_and_cache_metrics, start_recalculation_for_new_metric
 
 application_metrics_registry = CollectorRegistry()
 
@@ -57,6 +58,9 @@ class ApplicationMetricsCollector:
         alert_groups_response_time_seconds, missing_org_ids_2 = self._get_response_time_metric(org_ids)
         # user was notified of alert groups metrics: counter
         user_was_notified, missing_org_ids_3 = self._get_user_was_notified_of_alert_groups_metric(org_ids)
+
+        # update new metric gradually
+        missing_org_ids_3 = self._update_new_metric(USER_WAS_NOTIFIED_OF_ALERT_GROUPS, org_ids, missing_org_ids_3)
 
         # check for orgs missing any of the metrics or needing a refresh, start recalculation task for missing org ids
         missing_org_ids = missing_org_ids_1 | missing_org_ids_2 | missing_org_ids_3
@@ -151,6 +155,18 @@ class ApplicationMetricsCollector:
             processed_org_ids.add(int(org_id_from_key))
         missing_org_ids = org_ids - processed_org_ids
         return user_was_notified, missing_org_ids
+
+    def _update_new_metric(self, metric_name, org_ids, missing_org_ids):
+        """
+        This method is used for new metrics to calculate metrics gradually and avoid force recalculation for all orgs
+        """
+        calculation_started_key = get_metric_calculation_started_key(metric_name)
+        is_calculation_started = cache.get(calculation_started_key)
+        if len(missing_org_ids) == len(org_ids) or is_calculation_started:
+            missing_org_ids = set()
+            if not is_calculation_started:
+                start_recalculation_for_new_metric.apply_async((metric_name,))
+        return missing_org_ids
 
     def recalculate_cache_for_missing_org_ids(self, org_ids, missing_org_ids):
         cache_timer_for_org_keys = [get_metrics_cache_timer_key(org_id) for org_id in org_ids]

@@ -111,6 +111,10 @@ def get_metric_user_was_notified_of_alert_groups_key(organization_id):
     return f"{USER_WAS_NOTIFIED_OF_ALERT_GROUPS}_{organization_id}"
 
 
+def get_metric_calculation_started_key(metric_name):
+    return f"calculation_started_for_{metric_name}"
+
+
 def metrics_update_integration_cache(integration):
     """Update integration data in metrics cache"""
     metrics_cache_timeout = get_metrics_cache_timeout(integration.organization_id)
