@@ -136,22 +136,72 @@ class PluginState {
     this.grafanaBackend.post(this.GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
 
   static readonly KEYS_BASE_URL = '/api/auth/keys';
+  static readonly SERVICE_ACCOUNTS_BASE_URL = '/api/serviceaccounts';
+  static readonly ONCALL_SERVICE_ACCOUNT_NAME = 'sa-autogen-OnCall';
+  static readonly SERVICE_ACCOUNTS_SEARCH_URL = `${PluginState.SERVICE_ACCOUNTS_BASE_URL}/search?query=${PluginState.ONCALL_SERVICE_ACCOUNT_NAME}`;
 
-  static getGrafanaToken = async () => {
-    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
-    return keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+  static getServiceAccount = async () => {
+    const serviceAccounts = await this.grafanaBackend.get(this.SERVICE_ACCOUNTS_SEARCH_URL);
+    return serviceAccounts.serviceAccounts.length > 0 ? serviceAccounts.serviceAccounts[0] : null;
   };
 
+  static getOrCreateServiceAccount = async () => {
+    const serviceAccount = await this.getServiceAccount();
+    if (serviceAccount) {
+      return serviceAccount;
+    }
+
+    return await this.grafanaBackend.post(this.SERVICE_ACCOUNTS_BASE_URL, {
+      name: this.ONCALL_SERVICE_ACCOUNT_NAME,
+      role: 'Admin',
+      isDisabled: false,
+    });
+  };
+
+  static getTokenFromServiceAccount = async (serviceAccount) => {
+    const tokens = await this.grafanaBackend.get(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`);
+    return tokens.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+  };
+
+  /**
+   * This will satisfy a check for an existing key regardless of if the key is an older api key or under a
+   * service account.
+   */
+  static getGrafanaToken = async () => {
+    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
+    const oncallApiKeys = keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+    if (oncallApiKeys) {
+      return oncallApiKeys;
+    }
+
+    const serviceAccount = await this.getServiceAccount();
+    if (serviceAccount) {
+      return await this.getTokenFromServiceAccount(serviceAccount);
+    }
+
+    return null;
+  };
+
+  /**
+   * Create service account and api token belonging to it instead of using api keys
+   */
   static createGrafanaToken = async () => {
     const existingKey = await this.getGrafanaToken();
     if (existingKey) {
       await this.grafanaBackend.delete(`${this.KEYS_BASE_URL}/${existingKey.id}`);
     }
 
-    return await this.grafanaBackend.post(this.KEYS_BASE_URL, {
+    const serviceAccount = await this.getOrCreateServiceAccount();
+    const existingToken = await this.getTokenFromServiceAccount(serviceAccount);
+    if (existingToken) {
+      await this.grafanaBackend.delete(
+        `${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens/${existingToken.id}`
+      );
+    }
+
+    return await this.grafanaBackend.post(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`, {
       name: 'OnCall',
       role: 'Admin',
-      secondsToLive: null,
     });
   };
 
