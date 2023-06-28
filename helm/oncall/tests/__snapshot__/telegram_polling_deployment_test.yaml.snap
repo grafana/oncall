@@ -31,7 +31,7 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
     - name: TELEGRAM_LONG_POLLING_ENABLED
       value: "True"
     - name: TELEGRAM_WEBHOOK_HOST
-      value: ""
+      value: https://example.com
     - name: TELEGRAM_TOKEN
       value: ""
     - name: MYSQL_HOST

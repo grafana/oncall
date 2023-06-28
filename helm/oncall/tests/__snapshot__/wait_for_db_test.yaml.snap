@@ -404,7 +404,7 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
         - name: DATABASE_TYPE
           value: postgresql
         - name: DATABASE_HOST
-          value: oncall-postgresql
+          value: some-postgresql-host
         - name: DATABASE_PORT
           value: "5432"
         - name: DATABASE_NAME
@@ -415,7 +415,7 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
           valueFrom:
             secretKeyRef:
               key: postgres-password
-              name: oncall-postgresql
+              name: oncall-postgresql-external
         - name: RABBITMQ_USERNAME
           value: user
         - name: RABBITMQ_PASSWORD

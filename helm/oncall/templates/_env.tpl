@@ -98,9 +98,9 @@
 {{- if .Values.telegramPolling.enabled -}}
 {{- $_ := set .Values.oncall.telegram "enabled" true -}}
 {{- end -}}
-{{- if .Values.oncall.telegram.enabled -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
+{{- if .Values.oncall.telegram.enabled -}}
 {{- if .Values.telegramPolling.enabled }}
 - name: TELEGRAM_LONG_POLLING_ENABLED
   value: {{ .Values.telegramPolling.enabled | toString | title | quote }}
