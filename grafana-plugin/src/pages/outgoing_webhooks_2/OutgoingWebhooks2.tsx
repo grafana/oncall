@@ -279,10 +279,10 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
             <div className={cx('hamburgerMenu__item')}>
               <CopyToClipboard text={record.id}>
-                <Text type="primary">
+                <HorizontalGroup type="primary" spacing='xs'>
                   <Icon name="clipboard-alt" />
-                  <span>UID: {record.id}</span>
-                </Text>
+                  <Text type="primary">UID: {record.id}</Text>
+                </HorizontalGroup>
               </CopyToClipboard>
             </div>
 
@@ -291,14 +291,16 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
             <div className={cx('hamburgerMenu__item')}>
               <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
                 <WithConfirm title={`Are you sure to remove "${record.name}"?`} confirmText="Remove">
-                  <Text type="danger">
+                  <HorizontalGroup spacing='xs'>
                     <IconButton
                       tooltip="Remove"
                       tooltipPlacement="top"
+                      variant='destructive'
                       onClick={this.getDeleteClickHandler(record.id)}
                       name="trash-alt"
                     />
-                  </Text>
+                    <Text type="danger">Delete Webhook</Text>
+                  </HorizontalGroup>
                 </WithConfirm>
               </WithPermissionControlTooltip>
             </div>
