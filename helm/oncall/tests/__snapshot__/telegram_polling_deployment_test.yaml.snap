@@ -28,7 +28,7 @@ telegramPolling.enabled=true -> should create telegram polling deployment:
       value: http://oncall-grafana
     - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
       value: "True"
-    - name: TELEGRAM_LONG_POLLING_ENABLED
+    - name: FEATURE_TELEGRAM_LONG_POLLING_ENABLED
       value: "True"
     - name: TELEGRAM_WEBHOOK_HOST
       value: https://example.com

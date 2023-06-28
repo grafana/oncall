@@ -137,7 +137,7 @@ class LiveSettingValidator:
 
     @classmethod
     def _check_telegram_webhook_host(cls, telegram_webhook_host):
-        if settings.TELEGRAM_LONG_POLLING_ENABLED:
+        if settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED:
             return
 
         try:

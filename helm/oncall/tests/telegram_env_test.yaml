@@ -75,5 +75,5 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: TELEGRAM_LONG_POLLING_ENABLED
+            name: FEATURE_TELEGRAM_LONG_POLLING_ENABLED
             value: "True"

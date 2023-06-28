@@ -170,12 +170,12 @@ def test_live_settings_telegram_set_webhook_not_called_if_long_polling_enabled(
     settings,
 ):
     """
-    Check that when TELEGRAM_LONG_POLLING_ENABLED is true setting webhook with updating TELEGRAM_WEBHOOK_HOST live setting
-    does not evaluate.
+    Check that when FEATURE_TELEGRAM_LONG_POLLING_ENABLED is true setting webhook with updating
+    TELEGRAM_WEBHOOK_HOST live setting does not evaluate.
     """
 
     settings.FEATURE_LIVE_SETTINGS_ENABLED = True
-    settings.TELEGRAM_LONG_POLLING_ENABLED = True
+    settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED = True
 
     organization, user, token = make_organization_and_user_with_plugin_token()
     LiveSetting.populate_settings_if_needed()

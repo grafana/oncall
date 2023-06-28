@@ -57,7 +57,7 @@ def on_after_setup_logger(logger, **kwargs):
 def on_worker_ready(*args, **kwargs):
     from apps.telegram.tasks import register_telegram_webhook
 
-    if not settings.TELEGRAM_LONG_POLLING_ENABLED:
+    if not settings.FEATURE_TELEGRAM_LONG_POLLING_ENABLED:
         register_telegram_webhook.delay()
 
 
