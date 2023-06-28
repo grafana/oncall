@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, VerticalGroup, WithContextMenu } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -9,6 +9,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
+import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -32,7 +33,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import styles from './OutgoingWebhooks2.module.css';
+import styles from './OutgoingWebhooks2.module.scss';
 
 const cx = cn.bind(styles);
 
@@ -246,52 +247,66 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   }
 
   renderActionButtons = (record: ActionDTO) => {
+    console.log({ record });
+
     return (
-      <HorizontalGroup justify="flex-end">
-        <CopyToClipboard text={record.id}>
-          <IconButton
-            variant="primary"
-            tooltip={
-              <div>
-                ID {record.id}
-                <br />
-                (click to copy ID to clipboard)
-              </div>
-            }
-            tooltipPlacement="top"
-            name="info-circle"
-          />
-        </CopyToClipboard>
-        <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-          <IconButton
-            tooltip="Status"
-            tooltipPlacement="top"
-            name="history"
-            onClick={() => this.onStatusClick(record.id)}
-          />
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <IconButton tooltip="Edit" tooltipPlacement="top" name="cog" onClick={() => this.onEditClick(record.id)} />
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <IconButton
-            tooltip="Make a copy"
-            tooltipPlacement="top"
-            name="copy"
-            onClick={() => this.onCopyClick(record.id)}
-          />
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <WithConfirm title={`Are you sure to remove "${record.name}"?`} confirmText="Remove">
-            <IconButton
-              tooltip="Remove"
-              tooltipPlacement="top"
-              onClick={this.getDeleteClickHandler(record.id)}
-              name="trash-alt"
-            />
-          </WithConfirm>
-        </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      <WithContextMenu
+        renderMenuItems={() => (
+          <div className={cx('hamburgerMenu')}>
+            <div className={cx('hamburgerMenu__item')}>
+              <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
+                <Text type="primary" onClick={() => this.onStatusClick(record.id)}>
+                  Status
+                </Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <div className={cx('hamburgerMenu__item')}>
+              <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <Text type="primary" onClick={() => this.onEditClick(record.id)}>
+                  Edit
+                </Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <div className={cx('hamburgerMenu__item')}>
+              <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <Text type="primary" onClick={() => this.onCopyClick(record.id)}>
+                  Make a copy
+                </Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <div className={cx('hamburgerMenu__item')}>
+              <CopyToClipboard text={record.id}>
+                <Text type="primary">
+                  <Icon name="clipboard-alt" />
+                  <span>UID: {record.id}</span>
+                </Text>
+              </CopyToClipboard>
+            </div>
+
+            <div className={cx('thin-line-break')} />
+
+            <div className={cx('hamburgerMenu__item')}>
+              <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <WithConfirm title={`Are you sure to remove "${record.name}"?`} confirmText="Remove">
+                  <Text type="danger">
+                    <IconButton
+                      tooltip="Remove"
+                      tooltipPlacement="top"
+                      onClick={this.getDeleteClickHandler(record.id)}
+                      name="trash-alt"
+                    />
+                  </Text>
+                </WithConfirm>
+              </WithPermissionControlTooltip>
+            </div>
+          </div>
+        )}
+      >
+        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} withBackground />}
+      </WithContextMenu>
     );
   };
 
