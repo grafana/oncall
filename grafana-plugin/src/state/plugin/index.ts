@@ -136,6 +136,7 @@ class PluginState {
     this.grafanaBackend.post(this.GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
 
   static readonly KEYS_BASE_URL = '/api/auth/keys';
+  static readonly ONCALL_KEY_NAME = 'OnCall';
   static readonly SERVICE_ACCOUNTS_BASE_URL = '/api/serviceaccounts';
   static readonly ONCALL_SERVICE_ACCOUNT_NAME = 'sa-autogen-OnCall';
   static readonly SERVICE_ACCOUNTS_SEARCH_URL = `${PluginState.SERVICE_ACCOUNTS_BASE_URL}/search?query=${PluginState.ONCALL_SERVICE_ACCOUNT_NAME}`;
@@ -160,7 +161,7 @@ class PluginState {
 
   static getTokenFromServiceAccount = async (serviceAccount) => {
     const tokens = await this.grafanaBackend.get(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`);
-    return tokens.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+    return tokens.find((key: { id: number; name: string; role: string }) => key.name === PluginState.ONCALL_KEY_NAME);
   };
 
   /**
@@ -168,15 +169,17 @@ class PluginState {
    * service account.
    */
   static getGrafanaToken = async () => {
-    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
-    const oncallApiKeys = keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
-    if (oncallApiKeys) {
-      return oncallApiKeys;
-    }
-
     const serviceAccount = await this.getServiceAccount();
     if (serviceAccount) {
       return await this.getTokenFromServiceAccount(serviceAccount);
+    }
+
+    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
+    const oncallApiKeys = keys.find(
+      (key: { id: number; name: string; role: string }) => key.name === PluginState.ONCALL_KEY_NAME
+    );
+    if (oncallApiKeys) {
+      return oncallApiKeys;
     }
 
     return null;
@@ -186,11 +189,6 @@ class PluginState {
    * Create service account and api token belonging to it instead of using api keys
    */
   static createGrafanaToken = async () => {
-    const existingKey = await this.getGrafanaToken();
-    if (existingKey) {
-      await this.grafanaBackend.delete(`${this.KEYS_BASE_URL}/${existingKey.id}`);
-    }
-
     const serviceAccount = await this.getOrCreateServiceAccount();
     const existingToken = await this.getTokenFromServiceAccount(serviceAccount);
     if (existingToken) {
@@ -199,8 +197,13 @@ class PluginState {
       );
     }
 
+    const existingKey = await this.getGrafanaToken();
+    if (existingKey) {
+      await this.grafanaBackend.delete(`${this.KEYS_BASE_URL}/${existingKey.id}`);
+    }
+
     return await this.grafanaBackend.post(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`, {
-      name: 'OnCall',
+      name: PluginState.ONCALL_KEY_NAME,
       role: 'Admin',
     });
   };
