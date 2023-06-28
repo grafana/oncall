@@ -253,38 +253,38 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       <WithContextMenu
         renderMenuItems={() => (
           <div className={cx('hamburgerMenu')}>
-            <div className={cx('hamburgerMenu__item')}>
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onStatusClick(record.id)}>
               <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-                <Text type="primary" onClick={() => this.onStatusClick(record.id)}>
+                <Text type="primary">
                   Status
                 </Text>
               </WithPermissionControlTooltip>
             </div>
 
-            <div className={cx('hamburgerMenu__item')}>
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onEditClick(record.id)}>
               <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary" onClick={() => this.onEditClick(record.id)}>
+                <Text type="primary">
                   Edit
                 </Text>
               </WithPermissionControlTooltip>
             </div>
 
-            <div className={cx('hamburgerMenu__item')}>
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onCopyClick(record.id)}>
               <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary" onClick={() => this.onCopyClick(record.id)}>
+                <Text type="primary">
                   Make a copy
                 </Text>
               </WithPermissionControlTooltip>
             </div>
 
-            <div className={cx('hamburgerMenu__item')}>
-              <CopyToClipboard text={record.id}>
+            <CopyToClipboard text={record.id}>
+              <div className={cx('hamburgerMenu__item')}>
                 <HorizontalGroup type="primary" spacing='xs'>
                   <Icon name="clipboard-alt" />
                   <Text type="primary">UID: {record.id}</Text>
                 </HorizontalGroup>
-              </CopyToClipboard>
-            </div>
+              </div>
+            </CopyToClipboard>
 
             <div className={cx('thin-line-break')} />
 
