@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Use Telegram polling protocol instead of a webhook if `FEATURE_TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
+  ([#2250](https://github.com/grafana/oncall/pull/2250))
+
 ## v1.3.8 (2023-07-11)
 
 ### Added
@@ -148,8 +155,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `locale` column to mobile app user settings table by @joeyorlando [#2131](https://github.com/grafana/oncall/pull/2131)
 - Update notification text for "You're going on call" push notifications to include information about the shift start
   and end times by @joeyorlando ([#2131](https://github.com/grafana/oncall/pull/2131))
-- Use Telegram polling protocol instead of a webhook if `FEATURE_TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
-  ([#2250](https://github.com/grafana/oncall/pull/2250))
 
 ### Fixed
 
