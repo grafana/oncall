@@ -1,4 +1,5 @@
 import logging
+import typing
 from urllib.parse import urljoin
 
 import requests
@@ -51,7 +52,7 @@ class CloudConnector(models.Model):
 
         return sync_status, error_msg
 
-    def sync_users_with_cloud(self) -> tuple[bool, str]:
+    def sync_users_with_cloud(self) -> typing.Tuple[bool, typing.Optional[str]]:
         sync_status = False
         error_msg = None
 

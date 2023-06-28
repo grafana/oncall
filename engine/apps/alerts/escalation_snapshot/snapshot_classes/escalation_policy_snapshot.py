@@ -117,7 +117,7 @@ class EscalationPolicySnapshot:
         return next_user
 
     def execute(self, alert_group: "AlertGroup", reason) -> StepExecutionResultData:
-        action_map: typing.Dict[typing.Union[int, None], EscalationPolicySnapshot.StepExecutionFunc] = {
+        action_map: typing.Dict[typing.Optional[int], EscalationPolicySnapshot.StepExecutionFunc] = {
             EscalationPolicy.STEP_WAIT: self._escalation_step_wait,
             EscalationPolicy.STEP_FINAL_NOTIFYALL: self._escalation_step_notify_all,
             EscalationPolicy.STEP_REPEAT_ESCALATION_N_TIMES: self._escalation_step_repeat_escalation_n_times,

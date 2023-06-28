@@ -11,7 +11,8 @@ from apps.grafana_plugin.helpers import GrafanaAPIClient
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from apps.alerts.models import GrafanaAlertingContactPoint
+    from apps.alerts.models import AlertReceiveChannel, GrafanaAlertingContactPoint
+    from apps.user_management.models import Organization
 
 
 class GrafanaAlertingSyncManager:
@@ -24,7 +25,7 @@ class GrafanaAlertingSyncManager:
     ALERTING_DATASOURCE = "alertmanager"
     IS_GRAFANA_VERSION_GRE_9 = None
 
-    def __init__(self, alert_receive_channel):
+    def __init__(self, alert_receive_channel: "AlertReceiveChannel") -> None:
         self.alert_receive_channel = alert_receive_channel
         self.client = GrafanaAPIClient(
             api_url=self.alert_receive_channel.organization.grafana_url,
@@ -33,7 +34,7 @@ class GrafanaAlertingSyncManager:
         self.receiver_name = self.alert_receive_channel.emojized_verbal_name
 
     @classmethod
-    def check_for_connection_errors(cls, organization) -> Optional[str]:
+    def check_for_connection_errors(cls, organization: "Organization") -> Optional[str]:
         """Check if it possible to connect to alerting, otherwise return error message"""
         client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
         recipient = cls.GRAFANA_CONTACT_POINT
@@ -561,7 +562,7 @@ class GrafanaAlertingSyncManager:
                 break
         return name_in_alerting
 
-    def get_datasource_name(self, contact_point) -> str:
+    def get_datasource_name(self, contact_point: "GrafanaAlertingContactPoint") -> str:
         datasource_id = contact_point.datasource_id
         datasource_uid = contact_point.datasource_uid
         datasource, response_info = self.client.get_datasource(datasource_uid)

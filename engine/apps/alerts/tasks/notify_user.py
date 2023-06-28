@@ -4,7 +4,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from kombu import uuid as celery_uuid
+from kombu.utils.uuid import uuid as celery_uuid
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal

@@ -276,7 +276,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
     type = EscalationPolicyTypeField(required=False, source="step", allow_null=True)
 
     class Meta(EscalationPolicySerializer.Meta):
-        read_only_fields = ("route_id",)
+        read_only_fields = ["route_id"]
 
     def update(self, instance, validated_data):
         if "step" in validated_data:
