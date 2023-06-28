@@ -117,9 +117,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
                 rel="noreferrer"
                 className={cx('link')}
               >
-                <Text type="link">
-                  documentation
-                </Text>
+                <Text type="link">documentation</Text>
               </a>{' '}
               for more details.
             </Text>
