@@ -9,6 +9,7 @@ from kombu.utils.uuid import uuid as celery_uuid
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.metrics_exporter.helpers import metrics_update_user_cache
 from apps.phone_notifications.phone_backend import PhoneBackend
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -186,6 +187,17 @@ def notify_user_task(
                         notification_channel=notification_policy.notify_by,
                     )
         if log_record:  # log_record is None if user notification policy step is unspecified
+            # if this is the first notification step, and user hasn't been notified for this alert group - update metric
+            if (
+                log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED
+                and previous_notification_policy_pk is None
+                and not user.personal_log_records.filter(
+                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+                    alert_group_id=alert_group_pk,
+                ).exists()
+            ):
+                metrics_update_user_cache(user)
+
             log_record.save()
             if notify_user_task.request.retries == 0:
                 transaction.on_commit(lambda: send_user_notification_signal.apply_async((log_record.pk,)))
