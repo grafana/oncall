@@ -4,7 +4,6 @@ import json
 import logging
 import typing
 from contextlib import suppress
-from typing import Optional
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -434,26 +433,26 @@ class SlackEventApiEndpointView(APIView):
 
         return Response(status=200)
 
-    def _get_slack_team_identity_from_payload(self, payload) -> Optional[SlackTeamIdentity]:
-        slack_team_identity = None
+    @staticmethod
+    def _get_slack_team_identity_from_payload(payload: dict[str, typing.Any]) -> SlackTeamIdentity | None:
+        def _slack_team_id() -> str | None:
+            with suppress(KeyError):
+                return payload["team"]["id"]
 
-        if "team" in payload:
-            slack_team_id = payload["team"]["id"]
-        elif "team_id" in payload:
-            slack_team_id = payload["team_id"]
-        else:
-            return slack_team_identity
+            with suppress(KeyError):
+                return payload["team_id"]
+
+            return None
 
         try:
-            slack_team_identity = SlackTeamIdentity.objects.get(slack_id=slack_team_id)
-        except SlackTeamIdentity.DoesNotExist as e:
-            logger.warning("Team identity not detected, that's dangerous!" + str(e))
-        return slack_team_identity
+            return SlackTeamIdentity.objects.get(slack_id=_slack_team_id())
+        except SlackTeamIdentity.DoesNotExist:
+            return None
 
     @staticmethod
     def _get_organization_from_payload(
         payload: dict[str, typing.Any], slack_team_identity: SlackTeamIdentity
-    ) -> typing.Optional[Organization]:
+    ) -> Organization | None:
         """
         Extract organization from Slack payload.
         First try to get "organization_id" from the payload, for cases when it was explicitly passed from elsewhere.
