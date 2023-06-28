@@ -79,8 +79,6 @@ SCENARIOS_ROUTES.extend(NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING)
 
 logger = logging.getLogger(__name__)
 
-SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID = "SELECT_ORGANIZATION_AND_ROUTE"
-
 
 class StopAnalyticsReporting(APIView):
     def get(self, request):
@@ -460,8 +458,6 @@ class SlackEventApiEndpointView(APIView):
         payload_message_ts = payload.get("message_ts")
 
         payload_view = payload.get("view", {})
-        payload_view_state = payload_view.get("state", {})
-        payload_view_state_values = payload_view_state.get("values", {})
 
         payload_event = payload.get("event", {})
         payload_event_channel = payload_event.get("channel")
@@ -476,12 +472,6 @@ class SlackEventApiEndpointView(APIView):
                 # steps with private_metadata in which we know organization before open view
                 if "organization_id" in private_metadata:
                     organization_id = json.loads(private_metadata).get("organization_id")
-                # steps with organization selection in view (e.g. slash commands)
-                elif SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload_view_state_values:
-                    selected_value = payload_view_state_values[SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
-                        SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
-                    ]["selected_option"]["value"]
-                    organization_id = int(selected_value.split("-")[0])
                 if organization_id:
                     organization = slack_team_identity.organizations.get(pk=organization_id)
                     return organization
