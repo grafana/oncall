@@ -454,12 +454,20 @@ class SlackEventApiEndpointView(APIView):
     def _get_organization_from_payload(
         payload: dict[str, typing.Any], slack_team_identity: SlackTeamIdentity
     ) -> typing.Optional[Organization]:
+        """
+        Extract organization from Slack payload.
+        First try to get "organization_id" from the payload, for cases when it was explicitly passed from elsewhere.
+        Then try to find appropriate SlackMessage associated with the payload and get organization from it.
+        """
+
         def _organization_id() -> str | int | None:
             with suppress(KeyError, TypeError, json.JSONDecodeError):
                 return json.loads(payload["view"]["private_metadata"])["organization_id"]
 
             with suppress(KeyError, IndexError, TypeError, json.JSONDecodeError):
                 return json.loads(payload["actions"][0]["value"])["organization_id"]
+
+            return None
 
         with suppress(ObjectDoesNotExist):
             # see this GitHub issue for more context on how this situation can arise
@@ -475,6 +483,8 @@ class SlackEventApiEndpointView(APIView):
 
             with suppress(KeyError):
                 return payload["channel_id"]
+
+            return None
 
         def _message_ts() -> str | None:
             with suppress(KeyError):
@@ -495,6 +505,8 @@ class SlackEventApiEndpointView(APIView):
             with suppress(KeyError):
                 return payload["event"]["thread_ts"]
 
+            return None
+
         channel_id, message_ts = _channel_id(), _message_ts()
         if not (channel_id and message_ts):
             return None
@@ -506,6 +518,8 @@ class SlackEventApiEndpointView(APIView):
                 channel_id=channel_id,
             )
             return slack_message.get_alert_group().channel.organization
+
+        return None
 
     def _open_warning_window_if_needed(self, payload, slack_team_identity, warning_text) -> None:
         if payload.get("trigger_id") is not None:
