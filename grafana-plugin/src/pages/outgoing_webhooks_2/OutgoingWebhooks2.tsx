@@ -255,31 +255,25 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
           <div className={cx('hamburgerMenu')}>
             <div className={cx('hamburgerMenu__item')} onClick={() => this.onStatusClick(record.id)}>
               <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-                <Text type="primary">
-                  Status
-                </Text>
+                <Text type="primary">Status</Text>
               </WithPermissionControlTooltip>
             </div>
 
             <div className={cx('hamburgerMenu__item')} onClick={() => this.onEditClick(record.id)}>
               <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary">
-                  Edit
-                </Text>
+                <Text type="primary">Edit</Text>
               </WithPermissionControlTooltip>
             </div>
 
             <div className={cx('hamburgerMenu__item')} onClick={() => this.onCopyClick(record.id)}>
               <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary">
-                  Make a copy
-                </Text>
+                <Text type="primary">Make a copy</Text>
               </WithPermissionControlTooltip>
             </div>
 
             <CopyToClipboard text={record.id}>
               <div className={cx('hamburgerMenu__item')}>
-                <HorizontalGroup type="primary" spacing='xs'>
+                <HorizontalGroup type="primary" spacing="xs">
                   <Icon name="clipboard-alt" />
                   <Text type="primary">UID: {record.id}</Text>
                 </HorizontalGroup>
@@ -291,11 +285,11 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
             <div className={cx('hamburgerMenu__item')}>
               <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
                 <WithConfirm title={`Are you sure to remove "${record.name}"?`} confirmText="Remove">
-                  <HorizontalGroup spacing='xs'>
+                  <HorizontalGroup spacing="xs">
                     <IconButton
                       tooltip="Remove"
                       tooltipPlacement="top"
-                      variant='destructive'
+                      variant="destructive"
                       onClick={this.getDeleteClickHandler(record.id)}
                       name="trash-alt"
                     />
