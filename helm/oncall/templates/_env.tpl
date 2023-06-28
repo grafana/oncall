@@ -100,7 +100,7 @@
 {{- end -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
-{{- if .Values.oncall.telegram.enabled -}}
+{{- if .Values.oncall.telegram.enabled }}
 {{- if .Values.telegramPolling.enabled }}
 - name: FEATURE_TELEGRAM_LONG_POLLING_ENABLED
   value: {{ .Values.telegramPolling.enabled | toString | title | quote }}
