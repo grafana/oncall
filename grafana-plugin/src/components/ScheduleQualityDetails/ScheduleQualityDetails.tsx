@@ -115,8 +115,11 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
                 href={'https://grafana.com/docs/oncall/latest/on-call-schedules/web-schedule/#schedule-quality-report'}
                 target="_blank"
                 rel="noreferrer"
+                className={cx('link')}
               >
-                <Text type="link">documentation</Text>
+                <Text type="link">
+                  documentation
+                </Text>
               </a>{' '}
               for more details.
             </Text>
