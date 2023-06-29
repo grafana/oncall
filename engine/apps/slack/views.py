@@ -28,7 +28,6 @@ from apps.slack.scenarios.profile_update import STEPS_ROUTING as PROFILE_UPDATE_
 from apps.slack.scenarios.resolution_note import STEPS_ROUTING as RESOLUTION_NOTE_ROUTING
 from apps.slack.scenarios.scenario_step import (
     EVENT_SUBTYPE_BOT_MESSAGE,
-    EVENT_SUBTYPE_FILE_SHARE,
     EVENT_SUBTYPE_MESSAGE_CHANGED,
     EVENT_SUBTYPE_MESSAGE_DELETED,
     EVENT_TYPE_APP_MENTION,
@@ -334,7 +333,6 @@ class SlackEventApiEndpointView(APIView):
                     in [
                         EVENT_SUBTYPE_BOT_MESSAGE,
                         EVENT_SUBTYPE_MESSAGE_CHANGED,
-                        EVENT_SUBTYPE_FILE_SHARE,
                         EVENT_SUBTYPE_MESSAGE_DELETED,
                     ]
                 )

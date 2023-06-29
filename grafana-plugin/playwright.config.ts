@@ -1,3 +1,5 @@
+import path from 'path';
+
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices } from '@playwright/test';
 
@@ -7,12 +9,13 @@ import { devices } from '@playwright/test';
  */
 require('dotenv').config();
 
+export const STORAGE_STATE = path.join(__dirname, 'integration-tests/storageState.json');
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
-  globalSetup: './integration-tests/globalSetup.ts',
   /* Maximum time one test can run for. */
   timeout: 60 * 1000,
   expect: {
@@ -38,8 +41,6 @@ const config: PlaywrightTestConfig = {
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    storageState: './storageState.json',
-
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -54,22 +55,32 @@ const config: PlaywrightTestConfig = {
   /* Configure projects for major browsers */
   projects: [
     {
+      name: 'setup',
+      testMatch: /globalSetup\.ts/,
+    },
+    {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        storageState: STORAGE_STATE,
       },
+      dependencies: ['setup'],
     },
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
+        storageState: STORAGE_STATE,
       },
+      dependencies: ['setup'],
     },
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
+        storageState: STORAGE_STATE,
       },
+      dependencies: ['setup'],
     },
 
     /* Test against mobile viewports. */
