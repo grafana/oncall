@@ -16,7 +16,7 @@ from apps.user_management.models import Organization
 
 
 class PluginAuthToken(BaseAuthToken):
-    objects: models.QuerySet["PluginAuthToken"]
+    objects: models.Manager["PluginAuthToken"]
 
     salt = models.CharField(max_length=constants.AUTH_TOKEN_CHARACTER_LENGTH, null=True)
     organization = models.ForeignKey(

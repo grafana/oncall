@@ -844,7 +844,7 @@ class OnCallSchedule(PolymorphicModel):
 
 class OnCallScheduleICal(OnCallSchedule):
     escalation_policies: "RelatedManager['EscalationPolicy']"
-    objects: models.QuerySet["OnCallScheduleICal"]
+    objects: models.Manager["OnCallScheduleICal"]
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
 
     # For the ical schedule both primary and overrides icals are imported via ical url
@@ -913,7 +913,7 @@ class OnCallScheduleICal(OnCallSchedule):
 
 class OnCallScheduleCalendar(OnCallSchedule):
     escalation_policies: "RelatedManager['EscalationPolicy']"
-    objects: models.QuerySet["OnCallScheduleCalendar"]
+    objects: models.Manager["OnCallScheduleCalendar"]
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
 
     # For the calendar schedule only overrides ical is imported via ical url.
@@ -1010,7 +1010,7 @@ class OnCallScheduleCalendar(OnCallSchedule):
 
 class OnCallScheduleWeb(OnCallSchedule):
     escalation_policies: "RelatedManager['EscalationPolicy']"
-    objects: models.QuerySet["OnCallScheduleWeb"]
+    objects: models.Manager["OnCallScheduleWeb"]
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
 
     time_zone = models.CharField(max_length=100, default="UTC")

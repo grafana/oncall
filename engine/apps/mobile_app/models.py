@@ -52,7 +52,7 @@ class MobileAppVerificationToken(BaseAuthToken):
 
 
 class MobileAppAuthToken(BaseAuthToken):
-    objects: models.QuerySet["MobileAppAuthToken"]
+    objects: models.Manager["MobileAppAuthToken"]
 
     user = models.OneToOneField(to=User, null=False, blank=False, on_delete=models.CASCADE)
     organization = models.ForeignKey(
