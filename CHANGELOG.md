@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Change alerts order for `/alert` public api endpoint [#1031](https://github.com/grafana/oncall/issues/1031)
+
 ## v1.3.2 (2023-06-29)
 
 ### Added
