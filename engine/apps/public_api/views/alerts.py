@@ -46,4 +46,4 @@ class AlertView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
 
-        return queryset.order_by("id")
+        return queryset.order_by("-id")
