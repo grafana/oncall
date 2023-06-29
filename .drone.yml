@@ -144,7 +144,7 @@ steps:
 # Services for Unit Test Backend
 services:
   - name: rabbit_test
-    image: rabbitmq:3.7.19
+    image: rabbitmq:3.12.0
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -418,6 +418,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 59ad498428731001484be9ac6b9d10685b2cd49f30eb3d97ed7dc99f031dca22
+hmac: e4d25ad9f26d0a2444033ec077029da50818d912fd24ba49c0a915947adffbab
 
 ...
