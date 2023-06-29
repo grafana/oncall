@@ -5,12 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.3 (2023-06-29)
+
+### Added
+
+- Docs for `/resolution_notes` public api endpoint [#222](https://github.com/grafana/oncall/issues/222)
+
+### Fixed
+
+- Change alerts order for `/alert` public api endpoint [#1031](https://github.com/grafana/oncall/issues/1031)
+- Change resolution notes order for `/resolution_notes` public api endpoint to show notes for the newest alert group
+  on top ([#2404](https://github.com/grafana/oncall/pull/2404))
+- Remove attempt to check token when editor/viewers are accessing the plugin @mderynck ([#2410](https://github.com/grafana/oncall/pull/2410))
+
+## v1.3.2 (2023-06-29)
+
+### Added
+
+- Add metric "how many alert groups user was notified of" to Prometheus exporter ([#2334](https://github.com/grafana/oncall/pull/2334/))
 
 ### Changed
 
 - Change permissions used during setup to better represent actions being taken by @mderynck ([#2242](https://github.com/grafana/oncall/pull/2242))
 - Display 100000+ in stats when there are more than 100000 alert groups in the result ([#1901](https://github.com/grafana/oncall/pull/1901))
+- Change OnCall plugin to use service accounts and api tokens for communicating with backend, by @mderynck ([#2385](https://github.com/grafana/oncall/pull/2385))
 
 ### Fixed
 

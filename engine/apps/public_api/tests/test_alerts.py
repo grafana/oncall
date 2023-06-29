@@ -40,7 +40,8 @@ def test_get_list_alerts(
     # https://api-docs.amixr.io/#list-alerts
     organization, alert_receive_channel, default_channel_filter = alert_public_api_setup
     alert_group = make_alert_group(alert_receive_channel)
-    alert = make_alert(alert_group, alert_raw_request_data)
+    alert_1 = make_alert(alert_group, alert_raw_request_data)
+    alert_2 = make_alert(alert_group, alert_raw_request_data)
     admin = make_user_for_organization(organization)
     _, token = make_public_api_token(admin, organization)
 
@@ -50,14 +51,14 @@ def test_get_list_alerts(
     response = client.get(url, HTTP_AUTHORIZATION=f"{token}")
 
     expected_response = {
-        "count": 1,
+        "count": 2,
         "next": None,
         "previous": None,
         "results": [
             {
-                "id": alert.public_primary_key,
+                "id": alert_2.public_primary_key,
                 "alert_group_id": alert_group.public_primary_key,
-                "created_at": alert.created_at.isoformat().replace("+00:00", "Z"),
+                "created_at": alert_2.created_at.isoformat().replace("+00:00", "Z"),
                 "payload": {
                     "state": "alerting",
                     "title": "[Alerting] Test notification",
@@ -70,7 +71,24 @@ def test_get_list_alerts(
                         {"tags": None, "value": 200, "metric": "Higher Value"},
                     ],
                 },
-            }
+            },
+            {
+                "id": alert_1.public_primary_key,
+                "alert_group_id": alert_group.public_primary_key,
+                "created_at": alert_1.created_at.isoformat().replace("+00:00", "Z"),
+                "payload": {
+                    "state": "alerting",
+                    "title": "[Alerting] Test notification",
+                    "ruleId": 0,
+                    "message": "Someone is testing the alert notification within grafana.",
+                    "ruleUrl": "http://localhost:3000/",
+                    "ruleName": "Test notification",
+                    "evalMatches": [
+                        {"tags": None, "value": 100, "metric": "High value"},
+                        {"tags": None, "value": 200, "metric": "Higher Value"},
+                    ],
+                },
+            },
         ],
     }
     assert response.status_code == status.HTTP_200_OK

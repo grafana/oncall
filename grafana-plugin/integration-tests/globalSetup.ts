@@ -1,20 +1,39 @@
-import { chromium, FullConfig, expect, Page } from '@playwright/test';
+import { test as setup, chromium, FullConfig, expect, Page, BrowserContext, APIResponse } from '@playwright/test';
 
 import { BASE_URL, GRAFANA_PASSWORD, GRAFANA_USERNAME, IS_OPEN_SOURCE, ONCALL_API_URL } from './utils/constants';
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
+import { STORAGE_STATE } from '../playwright.config';
 
+const IS_CLOUD = !IS_OPEN_SOURCE;
 const GLOBAL_SETUP_RETRIES = 3;
+
+const makeGrafanaLoginRequest = async (browserContext: BrowserContext): Promise<APIResponse> =>
+  browserContext.request.post(`${BASE_URL}/login`, {
+    data: {
+      user: GRAFANA_USERNAME,
+      password: GRAFANA_PASSWORD,
+    },
+  });
+
+const pollGrafanaInstanceUntilItIsHealthy = async (browserContext: BrowserContext): Promise<boolean> => {
+  console.log('Polling the grafana instance to make sure it is healthy');
+
+  const res = await makeGrafanaLoginRequest(browserContext);
+
+  if (!res.ok()) {
+    console.log(`Grafana instance is unavailable. Got HTTP ${res.status()}. Will wait 5 seconds and then try again`);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    return pollGrafanaInstanceUntilItIsHealthy(browserContext);
+  }
+  console.log('Grafana instance is available');
+  return true;
+};
 
 /**
  * go to config page and wait for plugin icon to be available on left-hand navigation
  */
 const configureOnCallPlugin = async (page: Page): Promise<void> => {
-  // plugin configuration can safely be skipped for non open-source environments
-  if (!IS_OPEN_SOURCE) {
-    return;
-  }
-
   /**
    * go to the oncall plugin configuration page and wait for the page to be loaded
    */
@@ -52,19 +71,26 @@ const globalSetup = async (config: FullConfig): Promise<void> => {
   const browser = await chromium.launch({ headless, slowMo: headless ? 0 : 100 });
   const browserContext = await browser.newContext();
 
-  const res = await browserContext.request.post(`${BASE_URL}/login`, {
-    data: {
-      user: GRAFANA_USERNAME,
-      password: GRAFANA_PASSWORD,
-    },
-  });
+  if (IS_CLOUD) {
+    /**
+     * check that the grafana instance is available. If HTTP 503 is returned it means the
+     * instance is currently unavailable. Poll until it is available
+     */
+    await pollGrafanaInstanceUntilItIsHealthy(browserContext);
+  }
+
+  const res = await makeGrafanaLoginRequest(browserContext);
 
   expect(res.ok()).toBeTruthy();
-  await browserContext.storageState({ path: './storageState.json' });
+  await browserContext.storageState({ path: STORAGE_STATE });
 
   // make sure the plugin has been configured
   const page = await browserContext.newPage();
-  await configureOnCallPlugin(page);
+
+  if (IS_OPEN_SOURCE) {
+    // plugin configuration can safely be skipped for cloud environments
+    await configureOnCallPlugin(page);
+  }
 
   await browserContext.close();
 };
@@ -88,4 +114,13 @@ const globalSetupWithRetries = async (config: FullConfig): Promise<void> => {
   await globalSetup(config);
 };
 
-export default globalSetupWithRetries;
+setup('Configure Grafana OnCall plugin', async ({}, { config }) => {
+  /**
+   * Unconditionally marks the setup as "slow", giving it triple the default timeout.
+   * This is mostly useful for the rare case for Cloud Grafana instances where the instance may be down/unavailable
+   * and we need to poll it until it is available
+   */
+  setup.slow();
+
+  await globalSetupWithRetries(config);
+});
