@@ -283,8 +283,6 @@ jobs:
 
   mypy:
     name: "mypy"
-    # disable until we fix all the pre-existing errors (aka https://github.com/grafana/oncall/issues/2168 is marked as completed)
-    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

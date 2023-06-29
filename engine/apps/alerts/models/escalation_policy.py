@@ -229,7 +229,10 @@ class EscalationPolicy(OrderedModel):
         "alerts.EscalationChain", on_delete=models.CASCADE, related_name="escalation_policies"
     )
 
-    notify_to_users_queue = models.ManyToManyField("user_management.User")
+    notify_to_users_queue = models.ManyToManyField(
+        "user_management.User",
+        related_name="escalation_policy_notify_queues",
+    )
 
     last_notified_user = models.ForeignKey(
         "user_management.User",
@@ -244,6 +247,7 @@ class EscalationPolicy(OrderedModel):
     notify_to_group = models.ForeignKey(
         "slack.SlackUserGroup",
         on_delete=models.SET_NULL,
+        related_name="escalation_policies",
         default=None,
         null=True,
     )
