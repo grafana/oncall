@@ -25,7 +25,6 @@ beautifulsoup4==4.12.2
 social-auth-app-django==5.0.0
 cryptography==38.0.4 # version 39.0.0 introduced an issue - https://stackoverflow.com/a/75053968/3902555
 factory-boy<3.0
-python-json-logger==2.0.1
 django-log-request-id==1.6.0
 django-polymorphic==3.0.0
 django-rest-polymorphic==0.1.9
