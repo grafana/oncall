@@ -17,7 +17,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    # from apps.alerts.models import EscalationPolicy
+    from apps.alerts.models import EscalationPolicy
     from apps.schedules.models import OnCallSchedule
 
 
@@ -39,7 +39,7 @@ def generate_public_primary_key_for_slack_user_group():
 
 
 class SlackUserGroup(models.Model):
-    # escalationpolicy: "RelatedManager['EscalationPolicy']" TODO:
+    escalation_policies: "RelatedManager['EscalationPolicy']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
 
     public_primary_key = models.CharField(

@@ -8,6 +8,8 @@ from apps.user_management.models import Organization, User
 
 
 class UserScheduleExportAuthToken(BaseAuthToken):
+    objects: models.QuerySet["UserScheduleExportAuthToken"]
+
     class Meta:
         unique_together = ("user", "organization")
 

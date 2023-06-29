@@ -21,7 +21,12 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
+    from apps.auth_token.models import (
+        ApiAuthToken,
+        PluginAuthToken,
+        ScheduleExportAuthToken,
+        UserScheduleExportAuthToken,
+    )
     from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
@@ -74,7 +79,7 @@ class Organization(MaintainableObject):
     auth_tokens: "RelatedManager['ApiAuthToken']"
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
-    # pluginauthtoken: "RelatedManager['PluginAuthToken']" # TODO:
+    plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"

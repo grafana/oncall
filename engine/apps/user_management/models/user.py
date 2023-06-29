@@ -144,7 +144,7 @@ class UserQuerySet(models.QuerySet):
 
 class User(models.Model):
     auth_tokens: "RelatedManager['ApiAuthToken']"
-    # escalationpolicy: "RelatedManager['EscalationPolicy']" TODO:
+    escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
