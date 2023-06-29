@@ -12,6 +12,10 @@ import PluginConfigPage, {
   removePluginConfiguredQueryParams,
 } from './PluginConfigPage';
 
+jest.mock('../../../package.json', () => ({
+  version: 'v1.2.3',
+}));
+
 jest.mock('react-router-dom', () => ({
   useLocation: jest.fn(() => ({
     search: '',

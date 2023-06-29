@@ -69,9 +69,9 @@ class OrderedModel(models.Model):
 
     def save(self, *args, **kwargs) -> None:
         if self.order is None:
-            self._save_no_order_provided()
+            self._save_no_order_provided(*args, **kwargs)
         else:
-            super().save()
+            super().save(*args, **kwargs)
 
     @_retry(OperationalError)  # retry on deadlock
     def delete(self, *args, **kwargs) -> None:
@@ -81,7 +81,7 @@ class OrderedModel(models.Model):
             super().delete(*args, **kwargs)
 
     @_retry((IntegrityError, OperationalError))  # retry on duplicate order or deadlock
-    def _save_no_order_provided(self) -> None:
+    def _save_no_order_provided(self, *args, **kwargs) -> None:
         """
         Save self to DB without an order provided (e.g on creation).
         Order is set to the next available order, or 0 if there are no other instances.
@@ -97,7 +97,7 @@ class OrderedModel(models.Model):
             instances = self._lock_ordering_queryset()  # lock ordering queryset to prevent reading inconsistent data
             max_order = max(instance.order for instance in instances) if instances else -1
             self.order = max_order + 1
-            super().save()
+            super().save(*args, **kwargs)
 
     @_retry(OperationalError)  # retry on deadlock
     def to(self, order: int) -> None:
