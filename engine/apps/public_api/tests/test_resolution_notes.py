@@ -7,6 +7,63 @@ from apps.alerts.models import ResolutionNote
 
 
 @pytest.mark.django_db
+def test_get_resolution_notes(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_resolution_note,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group_1 = make_alert_group(alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel)
+
+    resolution_note_1 = make_resolution_note(
+        alert_group=alert_group_1,
+        source=ResolutionNote.Source.WEB,
+        author=user,
+    )
+    resolution_note_2 = make_resolution_note(
+        alert_group=alert_group_2,
+        source=ResolutionNote.Source.WEB,
+        author=user,
+    )
+
+    url = reverse("api-public:resolution_notes-list")
+
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    expected_response = {
+        "count": 2,
+        "next": None,
+        "previous": None,
+        "results": [
+            {
+                "id": resolution_note_2.public_primary_key,
+                "alert_group_id": alert_group_2.public_primary_key,
+                "author": user.public_primary_key,
+                "source": resolution_note_2.get_source_display(),
+                "created_at": resolution_note_2.created_at.isoformat().replace("+00:00", "Z"),
+                "text": resolution_note_2.text,
+            },
+            {
+                "id": resolution_note_1.public_primary_key,
+                "alert_group_id": alert_group_1.public_primary_key,
+                "author": user.public_primary_key,
+                "source": resolution_note_1.get_source_display(),
+                "created_at": resolution_note_1.created_at.isoformat().replace("+00:00", "Z"),
+                "text": resolution_note_1.text,
+            },
+        ],
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
 def test_get_resolution_note(
     make_organization_and_user_with_token,
     make_alert_receive_channel,
