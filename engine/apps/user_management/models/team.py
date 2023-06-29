@@ -1,3 +1,5 @@
+import typing
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -5,6 +7,11 @@ from django.db import models
 from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import AlertGroupLogRecord
 
 
 def generate_public_primary_key_for_team():
@@ -76,6 +83,8 @@ class TeamManager(models.Manager):
 
 
 class Team(models.Model):
+    oncall_schedules: "RelatedManager['AlertGroupLogRecord']"
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],

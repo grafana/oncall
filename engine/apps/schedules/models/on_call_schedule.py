@@ -46,6 +46,13 @@ from apps.user_management.models import User
 from common.database import NON_POLYMORPHIC_CASCADE, NON_POLYMORPHIC_SET_NULL
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+    from apps.auth_token.models import ScheduleExportAuthToken
+
+
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
 RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?(\w+)")
 
@@ -836,6 +843,9 @@ class OnCallSchedule(PolymorphicModel):
 
 
 class OnCallScheduleICal(OnCallSchedule):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+
     # For the ical schedule both primary and overrides icals are imported via ical url
     ical_url_primary = models.CharField(max_length=500, null=True, default=None)
     ical_file_error_primary = models.CharField(max_length=200, null=True, default=None)
@@ -901,6 +911,9 @@ class OnCallScheduleICal(OnCallSchedule):
 
 
 class OnCallScheduleCalendar(OnCallSchedule):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+
     # For the calendar schedule only overrides ical is imported via ical url.
     ical_url_overrides = models.CharField(max_length=500, null=True, default=None)
     ical_file_error_overrides = models.CharField(max_length=200, null=True, default=None)
@@ -994,6 +1007,9 @@ class OnCallScheduleCalendar(OnCallSchedule):
 
 
 class OnCallScheduleWeb(OnCallSchedule):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+
     time_zone = models.CharField(max_length=100, default="UTC")
 
     def _generate_ical_file_primary(self):

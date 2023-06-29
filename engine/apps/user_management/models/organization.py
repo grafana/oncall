@@ -21,6 +21,8 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
+    from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
@@ -69,8 +71,13 @@ class OrganizationManager(models.Manager):
 
 
 class Organization(MaintainableObject):
-    users: "RelatedManager['User']"
+    auth_tokens: "RelatedManager['ApiAuthToken']"
+    mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
+    # pluginauthtoken: "RelatedManager['PluginAuthToken']" # TODO:
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+    users: "RelatedManager['User']"
 
     objects = OrganizationManager()
     objects_with_deleted = models.Manager()

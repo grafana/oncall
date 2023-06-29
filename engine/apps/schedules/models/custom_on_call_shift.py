@@ -2,6 +2,7 @@ import copy
 import datetime
 import itertools
 import logging
+import typing
 from calendar import monthrange
 from uuid import uuid4
 
@@ -27,6 +28,12 @@ from apps.schedules.tasks import (
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.schedules.models import OnCallSchedule
+
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -46,6 +53,8 @@ def generate_public_primary_key_for_custom_oncall_shift():
 
 
 class CustomOnCallShift(models.Model):
+    schedules: "RelatedManager['OnCallSchedule']"
+
     (
         FREQUENCY_DAILY,
         FREQUENCY_WEEKLY,
