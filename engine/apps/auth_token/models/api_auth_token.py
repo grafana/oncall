@@ -8,6 +8,8 @@ from apps.user_management.models import Organization, User
 
 
 class ApiAuthToken(BaseAuthToken):
+    objects: models.QuerySet["ApiAuthToken"]
+
     user = models.ForeignKey(to=User, null=False, blank=False, related_name="auth_tokens", on_delete=models.CASCADE)
     organization = models.ForeignKey(
         to=Organization, null=False, blank=False, related_name="auth_tokens", on_delete=models.CASCADE
