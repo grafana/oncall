@@ -19,7 +19,6 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhook2Form from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form';
-import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -43,13 +42,20 @@ const Action = {
   COPY: 'copy',
 };
 
+export enum WebhookFormActionType {
+  NEW,
+  COPY,
+  VIEW_LAST_RUN,
+  EDIT_SETTINGS,
+}
+
 interface OutgoingWebhooks2Props
   extends WithStoreProps,
     PageProps,
     RouteComponentProps<{ id: string; action: string }> {}
 
 interface OutgoingWebhooks2State extends PageBaseState {
-  outgoingWebhook2Action?: 'new' | 'update';
+  outgoingWebhook2Action?: WebhookFormActionType;
   outgoingWebhook2Id?: OutgoingWebhook2['id'];
 }
 
@@ -91,12 +97,14 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     }
 
-    if (isNewWebhook || (action === Action.COPY && outgoingWebhook2)) {
-      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: 'new' });
+    if (isNewWebhook) {
+      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.NEW });
+    } else if (action === Action.COPY && outgoingWebhook2) {
+      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.COPY });
     } else if (action === Action.EDIT && outgoingWebhook2) {
-      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: 'update' });
+      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.EDIT_SETTINGS });
     } else if (action === Action.STATUS && outgoingWebhook2) {
-      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: undefined });
+      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN });
     }
   };
 
@@ -147,6 +155,12 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       },
     ];
 
+    const shouldShowWebhookForm = [
+      WebhookFormActionType.COPY,
+      WebhookFormActionType.EDIT_SETTINGS,
+      WebhookFormActionType.NEW,
+    ].includes(outgoingWebhook2Action);
+
     return store.hasFeature(AppFeature.Webhooks2) ? (
       <PageErrorHandlingWrapper
         errorData={errorData}
@@ -193,17 +207,11 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 data={webhooks}
               />
             </div>
-            {outgoingWebhook2Id && outgoingWebhook2Action && (
+
+            {outgoingWebhook2Id && shouldShowWebhookForm && (
               <OutgoingWebhook2Form
                 id={outgoingWebhook2Id}
                 action={outgoingWebhook2Action}
-                onUpdate={this.update}
-                onHide={this.handleOutgoingWebhookFormHide}
-              />
-            )}
-            {outgoingWebhook2Id && !outgoingWebhook2Action && (
-              <OutgoingWebhook2Status
-                id={outgoingWebhook2Id}
                 onUpdate={this.update}
                 onHide={this.handleOutgoingWebhookFormHide}
               />
@@ -253,15 +261,21 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       <WithContextMenu
         renderMenuItems={() => (
           <div className={cx('hamburgerMenu')}>
-            <div className={cx('hamburgerMenu__item')} onClick={() => this.onStatusClick(record.id)}>
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onLastRunClick(record.id)}>
               <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-                <Text type="primary">Status</Text>
+                <Text type="primary">View Last Run</Text>
               </WithPermissionControlTooltip>
             </div>
 
             <div className={cx('hamburgerMenu__item')} onClick={() => this.onEditClick(record.id)}>
               <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary">Edit</Text>
+                <Text type="primary">Edit settings</Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onDisableWebhook(record.id)}>
+              <WithPermissionControlTooltip key={'disable_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <Text type="primary">Disable</Text>
               </WithPermissionControlTooltip>
             </div>
 
@@ -353,7 +367,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   onEditClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: 'update' });
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.EDIT_SETTINGS });
 
     history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
   };
@@ -361,15 +375,17 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   onCopyClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: 'new' });
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.NEW });
 
     history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/copy/${id}`);
   };
 
-  onStatusClick = (id: OutgoingWebhook2['id']) => {
+  onDisableWebhook = (_id: OutgoingWebhook2['id']) => {};
+
+  onLastRunClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: undefined });
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN });
 
     history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/status/${id}`);
   };
