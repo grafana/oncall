@@ -179,7 +179,7 @@ services:
   rabbitmq:
     container_name: rabbitmq
     labels: *oncall-labels
-    image: "rabbitmq:3.7.15-management"
+    image: "rabbitmq:3.12.0-management"
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
