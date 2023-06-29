@@ -144,7 +144,7 @@ steps:
 # Services for Unit Test Backend
 services:
   - name: rabbit_test
-    image: rabbitmq:3.7.19
+    image: rabbitmq:3.12.0
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -224,10 +224,8 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: OSS engine release (amd64)
-platform:
-  os: linux
-  arch: amd64
+name: OSS engine release
+
 steps:
   - name: set engine version
     image: alpine
@@ -244,7 +242,8 @@ steps:
       DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
-      tags: ${DRONE_TAG}-amd64-linux
+      tags: ${DRONE_TAG}
+      platform: linux/arm64/v8,linux/amd64
       dockerfile: engine/Dockerfile
       target: prod
       context: engine/
@@ -254,90 +253,6 @@ steps:
         from_secret: docker_username
     depends_on:
       - set engine version
-
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-kind: pipeline
-type: docker
-name: OSS engine release (arm64)
-platform:
-  os: linux
-  arch: arm64
-steps:
-  - name: set engine version
-    image: alpine
-    commands:
-      - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
-      - cat engine/settings/base.py | grep VERSION | head -1
-
-  - name: build and push docker image
-    image: plugins/docker
-    environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
-      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
-      DOCKER_BUILDKIT: 1
-    settings:
-      repo: grafana/oncall
-      tags: ${DRONE_TAG}-arm64-linux
-      dockerfile: engine/Dockerfile
-      target: prod
-      context: engine/
-      password:
-        from_secret: docker_password
-      username:
-        from_secret: docker_username
-    depends_on:
-      - set engine version
-
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-depends_on:
-  - OSS engine release (amd64)
-  - OSS engine release (arm64)
-kind: pipeline
-type: docker
-name: manifest
-steps:
-  - name: manifest tag
-    image: plugins/manifest
-    settings:
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      target: "grafana/oncall:${DRONE_TAG}"
-      template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
-      platforms:
-        - linux/amd64
-        - linux/arm64
-
-  - name: manifest latest
-    image: plugins/manifest
-    settings:
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      target: "grafana/oncall:latest"
-      template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
-      platforms:
-        - linux/amd64
-        - linux/arm64
 
 trigger:
   event:
@@ -418,6 +333,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 59ad498428731001484be9ac6b9d10685b2cd49f30eb3d97ed7dc99f031dca22
+hmac: 610fb051f4361baa2621f6aa41c18b3afee5160492b30f5a5f23fcecf86f1b0c
 
 ...
