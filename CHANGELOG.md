@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.3.4 (2023-06-29)
 
-This version contains just some small cleanup and CI changes 🙂
+### Changed
+
+- Change OnCall plugin to use service accounts and api tokens for communicating with backend, by @mderynck ([#2385](https://github.com/grafana/oncall/pull/2385))
 
 ## v1.3.3 (2023-06-28)
 
