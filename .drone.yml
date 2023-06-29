@@ -239,7 +239,7 @@ steps:
     settings:
       repo: grafana/oncall
       tags: ${DRONE_TAG}
-      platform: linux/arm64,linux/amd64
+      platform: linux/arm64/v8,linux/amd64
       dockerfile: engine/Dockerfile
       target: prod
       context: engine/
@@ -329,4 +329,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: c455edcac58e27e49800929097751b97d8ab0b8874943b3af6f012007cea3885
+hmac: 08184a4c1313a5e6cbca2370d20a6a8c5d71726b4148b5c3ed1396a21bebaa37
+
+...
