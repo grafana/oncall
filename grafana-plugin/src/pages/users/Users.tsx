@@ -323,6 +323,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   renderNote = (user: UserType) => {
     const { store } = this.props;
+
+    const telegramConfigured = store.teamStore.currentTeam?.env_status.telegram_configured;
+    const slackConfigured = store.teamStore.currentTeam?.slack_team_identity;
+
     if (user.hidden_fields === true) {
       return null;
     }
@@ -352,10 +356,10 @@ class Users extends React.Component<UsersProps, UsersState> {
       if (!phone_verified) {
         texts.push(phone_not_verified_message);
       }
-      if (!user.slack_user_identity) {
+      if (slackConfigured && !user.slack_user_identity) {
         texts.push('Slack not verified');
       }
-      if (store.hasFeature(AppFeature.Telegram) && !user.telegram_configuration) {
+      if (store.hasFeature(AppFeature.Telegram) && telegramConfigured && !user.telegram_configuration) {
         texts.push('Telegram not verified');
       }
 
