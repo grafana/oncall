@@ -31,7 +31,6 @@ disable_error_code = [
     "attr-defined",
     "call-arg",
     "call-overload",
-    # "django-manager-missing",
     "has-type",
     "import",
     "index",
