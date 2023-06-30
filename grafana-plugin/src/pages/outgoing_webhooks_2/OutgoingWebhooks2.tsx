@@ -33,21 +33,9 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks2.module.scss';
+import { WebhookFormActionType } from './OutgoingWebhooks2.types';
 
 const cx = cn.bind(styles);
-
-const Action = {
-  STATUS: 'status',
-  EDIT: 'edit',
-  COPY: 'copy',
-};
-
-export enum WebhookFormActionType {
-  NEW,
-  COPY,
-  VIEW_LAST_RUN,
-  EDIT_SETTINGS,
-}
 
 interface OutgoingWebhooks2Props
   extends WithStoreProps,
@@ -66,7 +54,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   };
 
   componentDidUpdate(prevProps: OutgoingWebhooks2Props) {
-    if (prevProps.match.params.id !== this.props.match.params.id) {
+    if (prevProps.match.params.id !== this.props.match.params.id && !this.state.outgoingWebhook2Action) {
       this.parseQueryParams();
     }
   }
@@ -80,7 +68,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const {
       store,
       match: {
-        params: { id, action },
+        params: { id },
       },
     } = this.props;
 
@@ -88,23 +76,14 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       return;
     }
 
-    let outgoingWebhook2: OutgoingWebhook2 | void = undefined;
     const isNewWebhook = id === 'new';
-
-    if (!isNewWebhook) {
-      outgoingWebhook2 = await store.outgoingWebhook2Store
-        .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
-    }
 
     if (isNewWebhook) {
       this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.NEW });
-    } else if (action === Action.COPY && outgoingWebhook2) {
-      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.COPY });
-    } else if (action === Action.EDIT && outgoingWebhook2) {
-      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.EDIT_SETTINGS });
-    } else if (action === Action.STATUS && outgoingWebhook2) {
-      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN });
+    } else {
+      await store.outgoingWebhook2Store
+        .loadItem(id, true)
+        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     }
   };
 
@@ -155,11 +134,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       },
     ];
 
-    const shouldShowWebhookForm = [
-      WebhookFormActionType.COPY,
-      WebhookFormActionType.EDIT_SETTINGS,
-      WebhookFormActionType.NEW,
-    ].includes(outgoingWebhook2Action);
+    console.log({ outgoingWebhook2Id, outgoingWebhook2Action })
 
     return store.hasFeature(AppFeature.Webhooks2) ? (
       <PageErrorHandlingWrapper
@@ -208,7 +183,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
               />
             </div>
 
-            {outgoingWebhook2Id && shouldShowWebhookForm && (
+            {outgoingWebhook2Id && outgoingWebhook2Action && (
               <OutgoingWebhook2Form
                 id={outgoingWebhook2Id}
                 action={outgoingWebhook2Action}
@@ -255,8 +230,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   }
 
   renderActionButtons = (record: ActionDTO) => {
-    console.log({ record });
-
     return (
       <WithContextMenu
         renderMenuItems={() => (
@@ -367,17 +340,17 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   onEditClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.EDIT_SETTINGS });
-
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.EDIT_SETTINGS }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`)
+    );
   };
 
   onCopyClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.NEW });
-
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/copy/${id}`);
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.COPY }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/copy/${id}`)
+    );
   };
 
   onDisableWebhook = (_id: OutgoingWebhook2['id']) => {};
@@ -385,9 +358,9 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   onLastRunClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN });
-
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/status/${id}`);
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`)
+    );
   };
 
   handleOutgoingWebhookFormHide = () => {

@@ -8,7 +8,7 @@ import GForm from 'components/GForm/GForm';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
-import { WebhookFormActionType } from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
+import { WebhookFormActionType } from 'pages/outgoing_webhooks_2/OutgoingWebhooks2.types';
 import { useStore } from 'state/useStore';
 import { KeyValuePair } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -33,7 +33,9 @@ export const WebhookTabs = {
 
 const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   const { id, action, onUpdate, onHide } = props;
-  const [activeTab, setActiveTab] = useState<string>(WebhookTabs.Settings.key);
+  const [activeTab, setActiveTab] = useState<string>(
+    action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
+  );
 
   const store = useStore();
 
@@ -59,6 +61,8 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     },
     [id]
   );
+
+  console.log({ action, activeTab })
 
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
     return (
