@@ -270,7 +270,12 @@ class User(models.Model):
         self._timezone = value
 
     def short(self):
-        return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}
+        return {
+            "username": self.username,
+            "pk": self.public_primary_key,
+            "avatar": self.avatar_url,
+            "avatar_full": self.avatar_full_url,
+        }
 
     # Insight logs
     @property
