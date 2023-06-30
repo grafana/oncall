@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import Text from 'components/Text/Text';
+import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks_2/OutgoingWebhooks2.types';
@@ -62,8 +63,6 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     [id]
   );
 
-  console.log({ action, activeTab })
-
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
     return (
       <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
@@ -91,11 +90,13 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
       </TabsBar>
 
       <WebhookTabsContent
+        id={id}
         action={action}
         activeTab={activeTab}
         data={data}
         handleSubmit={handleSubmit}
         onHide={onHide}
+        onUpdate={onUpdate}
       />
     </Drawer>
   );
@@ -105,42 +106,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
       <>
         <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
           <GForm form={form} data={data} onSubmit={handleSubmit} />
-          <HorizontalGroup justify={'flex-end'}>
-            <Button variant="secondary" onClick={onHide}>
-              Cancel
-            </Button>
-            <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-              <Button form={form.name} type="submit" disabled={data.is_legacy}>
-                {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
-              </Button>
-            </WithPermissionControlTooltip>
-          </HorizontalGroup>
-        </div>
-      </>
-    );
-  }
-});
-
-interface WebhookTabsProps {
-  activeTab: string;
-  action: WebhookFormActionType;
-  data:
-    | OutgoingWebhook2
-    | {
-        is_webhook_enabled: boolean;
-        is_legacy: boolean;
-      };
-  onHide: () => void;
-  handleSubmit: (data: Partial<OutgoingWebhook2>) => void;
-}
-
-const WebhookTabsContent: React.FC<WebhookTabsProps> = ({ action, activeTab, data, handleSubmit, onHide }) => {
-  return (
-    <div className={cx('tabs__content')}>
-      {activeTab === WebhookTabs.Settings.key && (
-        <>
-          <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
-            <GForm form={form} data={data} onSubmit={handleSubmit} />
+          <div className={cx('buttons')}>
             <HorizontalGroup justify={'flex-end'}>
               <Button variant="secondary" onClick={onHide}>
                 Cancel
@@ -152,6 +118,55 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({ action, activeTab, dat
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
+        </div>
+      </>
+    );
+  }
+});
+
+interface WebhookTabsProps {
+  id: OutgoingWebhook2['id'] | 'new';
+  activeTab: string;
+  action: WebhookFormActionType;
+  data:
+    | OutgoingWebhook2
+    | {
+        is_webhook_enabled: boolean;
+        is_legacy: boolean;
+      };
+  onHide: () => void;
+  onUpdate: () => void;
+  handleSubmit: (data: Partial<OutgoingWebhook2>) => void;
+}
+
+const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
+  id,
+  action,
+  activeTab,
+  data,
+  handleSubmit,
+  onHide,
+  onUpdate,
+}) => {
+  return (
+    <div className={cx('tabs__content')}>
+      {activeTab === WebhookTabs.Settings.key && (
+        <>
+          <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
+            <GForm form={form} data={data} onSubmit={handleSubmit} />
+            <div className={cx('buttons')}>
+              <HorizontalGroup justify={'flex-end'}>
+                <Button variant="secondary" onClick={onHide}>
+                  Cancel
+                </Button>
+                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                  <Button form={form.name} type="submit" disabled={data.is_legacy}>
+                    {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
+                  </Button>
+                </WithPermissionControlTooltip>
+              </HorizontalGroup>
+            </div>
+          </div>
           {data.is_legacy ? (
             <div className={cx('content')}>
               <Text type="secondary">Legacy migrated webhooks are not editable.</Text>
@@ -161,7 +176,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({ action, activeTab, dat
           )}
         </>
       )}
-      {activeTab === WebhookTabs.LastRun.key && <div className={cx('tab__page')}></div>}
+      {activeTab === WebhookTabs.LastRun.key && <OutgoingWebhook2Status id={id} onUpdate={onUpdate} />}
     </div>
   );
 };

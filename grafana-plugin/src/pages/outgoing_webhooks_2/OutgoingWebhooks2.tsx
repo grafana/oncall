@@ -68,7 +68,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const {
       store,
       match: {
-        params: { id },
+        params: { id, action },
       },
     } = this.props;
 
@@ -76,8 +76,11 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       return;
     }
 
-    const isNewWebhook = id === 'new';
+    if (action) {
+      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: convertWebhookUrlToAction(action) });
+    }
 
+    const isNewWebhook = id === 'new';
     if (isNewWebhook) {
       this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.NEW });
     } else {
@@ -133,8 +136,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         render: this.renderActionButtons,
       },
     ];
-
-    console.log({ outgoingWebhook2Id, outgoingWebhook2Action })
 
     return store.hasFeature(AppFeature.Webhooks2) ? (
       <PageErrorHandlingWrapper
@@ -288,7 +289,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
           </div>
         )}
       >
-        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} withBackground />}
+        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={225} withBackground />}
       </WithContextMenu>
     );
   };
@@ -359,7 +360,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const { history } = this.props;
 
     this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN }, () =>
-      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`)
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`)
     );
   };
 
@@ -370,6 +371,18 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
     history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2`);
   };
+}
+
+function convertWebhookUrlToAction(urlAction: string) {
+  if (urlAction === 'new') {
+    return WebhookFormActionType.NEW;
+  } else if (urlAction === 'copy') {
+    return WebhookFormActionType.COPY;
+  } else if (urlAction === 'edit') {
+    return WebhookFormActionType.EDIT_SETTINGS;
+  } else {
+    return WebhookFormActionType.VIEW_LAST_RUN;
+  }
 }
 
 export { OutgoingWebhooks2 };
