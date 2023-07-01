@@ -725,7 +725,6 @@ PHONE_PROVIDERS = {
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
 
 if PHONE_PROVIDER == "zvonok":
-    GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = False
     ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
     ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)
     ZVONOK_AUDIO_ID = os.getenv("ZVONOK_AUDIO_ID", None)
