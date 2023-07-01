@@ -232,8 +232,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
-    "apps.phone_notifications",
-    "apps.zvonok"
+    "apps.phone_notifications"
 ]
 
 REST_FRAMEWORK = {
@@ -679,7 +678,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
 ]
 
 if IS_OPEN_SOURCE:
-    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
