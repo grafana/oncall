@@ -43,7 +43,7 @@ def update_zvonok_call_status(call_id: str, call_status: str, user_choice: Optio
     log_record_type = None
     log_record_error_code = None
 
-    success_statuses = [ZvonokCallStatuses.USER, ZvonokCallStatuses.COMPL_FINISHED, ZvonokCallStatuses.ATTEMPTS_EXC]
+    success_statuses = [ZvonokCallStatuses.USER, ZvonokCallStatuses.COMPL_FINISHED]
 
     if status_code in success_statuses:
         log_record_type = UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS
