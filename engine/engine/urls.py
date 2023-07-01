@@ -65,10 +65,6 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
-    ]
-
-if settings.PHONE_PROVIDER == "zvonok":
-    urlpatterns += [
         path("zvonok/", include("apps.zvonok.urls"))
     ]
 
