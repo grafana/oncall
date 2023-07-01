@@ -160,18 +160,12 @@ class LiveSetting(models.Model):
         "ZVONOK_API_KEY": "API public key. You can get it in Profile->Settings section.",
         "ZVONOK_CAMPAIGN_ID": "Calls by API campaign ID. You can get it after campaign creation.",
         "ZVONOK_AUDIO_ID": "Calls with specific audio. You can get it in Audioclips section.",
-        "ZVONOK_SPEAKER_ID": "Calls with speaker, "
-                             "<a href='https://zvonok.com/manager/audioclips/all-speakers/' target='_blank'>more info</a>.",
-        "ZVONOK_POSTBACK_CALL_ID": "'Postback' call id (ct_call_id) query parameter name to validate a postback request, "
-                                "<a href='https://zvonok.com/ru-ru/guide/guide_postback/' target='_blank'>more info</a>.",
-        "ZVONOK_POSTBACK_CAMPAIGN_ID": "'Postback' company id (ct_campaign_id) query parameter name to validate a postback request, "
-                                       "<a href='https://zvonok.com/ru-ru/guide/guide_postback/' target='_blank'>more info</a>.",
-        "ZVONOK_POSTBACK_STATUS": "'Postback' status (ct_status) query parameter name to validate a postback request, "
-                                  "<a href='https://zvonok.com/ru-ru/guide/guide_postback/' target='_blank'>more info</a>.",
-        "ZVONOK_POSTBACK_USER_CHOICE": "'Postback' user choice (ct_user_choice) query parameter name (optional), "
-                                "<a href='https://zvonok.com/ru-ru/guide/guide_postback/' target='_blank'>more info</a>.",
-        "ZVONOK_POSTBACK_USER_CHOICE_ACK": "'Postback' user choice (ct_user_choice) query parameter value for acknowledge alert group (optional), "
-                                       "<a href='https://zvonok.com/ru-ru/guide/guide_postback/' target='_blank'>more info</a>.",
+        "ZVONOK_SPEAKER_ID": "Calls with speaker.",
+        "ZVONOK_POSTBACK_CALL_ID": "'Postback' call id (ct_call_id) query parameter name to validate a postback request.",
+        "ZVONOK_POSTBACK_CAMPAIGN_ID": "'Postback' company id (ct_campaign_id) query parameter name to validate a postback request.",
+        "ZVONOK_POSTBACK_STATUS": "'Postback' status (ct_status) query parameter name to validate a postback request.",
+        "ZVONOK_POSTBACK_USER_CHOICE": "'Postback' user choice (ct_user_choice) query parameter name (optional).",
+        "ZVONOK_POSTBACK_USER_CHOICE_ACK": "'Postback' user choice (ct_user_choice) query parameter value for acknowledge alert group (optional).",
     }
 
     SECRET_SETTING_NAMES = (
