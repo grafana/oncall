@@ -55,9 +55,6 @@ class ZvonokCallStatuses:
 
 
 class ZvonokPhoneCall(ProviderPhoneCall, models.Model):
-    class Meta:
-        db_table = "zvonok_phonecall"
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     status = models.PositiveSmallIntegerField(
