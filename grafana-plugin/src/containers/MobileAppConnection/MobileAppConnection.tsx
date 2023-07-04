@@ -196,7 +196,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           {content}
         </Block>
       </div>
-      {store.hasFeature(AppFeature.MobileTestPush) && mobileAppIsCurrentlyConnected && isCurrentUser && (
+      {mobileAppIsCurrentlyConnected && isCurrentUser && (
         <div className={cx('notification-buttons')}>
           <HorizontalGroup spacing={'md'} justify={'flex-end'}>
             <Button

@@ -1858,3 +1858,36 @@ def test_get_schedule_from_other_team_with_flag(
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_get_schedule_on_call_now(
+    make_organization, make_user_for_organization, make_token_for_organization, make_schedule, make_user_auth_headers
+):
+    organization = make_organization(grafana_url="https://example.com")
+    user = make_user_for_organization(organization, username="test", avatar_url="/avatar/test123")
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-list")
+    with patch(
+        "apps.schedules.models.on_call_schedule.OnCallScheduleQuerySet.get_oncall_users",
+        return_value={schedule.pk: [user]},
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["results"][0]["on_call_now"] == [
+        {
+            "pk": user.public_primary_key,
+            "username": "test",
+            "avatar": "/avatar/test123",
+            "avatar_full": "https://example.com/avatar/test123",
+        }
+    ]
