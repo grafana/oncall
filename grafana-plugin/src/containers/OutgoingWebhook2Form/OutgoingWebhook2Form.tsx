@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import Text from 'components/Text/Text';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
@@ -146,6 +147,8 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   onHide,
   onUpdate,
 }) => {
+  const store = useStore();
+  const webhook = store.outgoingWebhook2Store.items[id];
   return (
     <div className={cx('tabs__content')}>
       {activeTab === WebhookTabs.Settings.key && (
@@ -157,6 +160,15 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
+                {
+                  <WithConfirm title={`Are you sure you want to delete ${webhook.name}?`}>
+                    <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                      <Button form={form.name} variant="destructive" type="button" disabled={data.is_legacy}>
+                        Delete Webhook
+                      </Button>
+                    </WithPermissionControlTooltip>
+                  </WithConfirm>
+                }
                 <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                   <Button form={form.name} type="submit" disabled={data.is_legacy}>
                     {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
