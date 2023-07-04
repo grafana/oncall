@@ -12,6 +12,7 @@
     "test": "jest --verbose",
     "test:silent": "jest --silent",
     "test:integration": "yarn playwright test",
+    "test:integration-rbac": "yarn playwright test",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch",
     "sign": "grafana-toolkit plugin:sign",

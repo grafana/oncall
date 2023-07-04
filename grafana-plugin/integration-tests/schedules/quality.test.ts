@@ -1,10 +1,12 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule } from '../utils/schedule';
 
-test('check schedule quality for simple 1-user schedule', async ({ page }) => {
+test('check schedule quality for simple 1-user schedule', async ({ adminRolePage }) => {
+  const { page, userName } = adminRolePage;
   const onCallScheduleName = generateRandomValue();
-  await createOnCallSchedule(page, onCallScheduleName);
+
+  await createOnCallSchedule(page, onCallScheduleName, userName);
 
   /**
    * this page.reload() call is a hack to temporarily get around this issue
