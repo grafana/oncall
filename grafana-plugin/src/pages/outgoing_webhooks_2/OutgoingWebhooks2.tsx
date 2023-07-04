@@ -213,6 +213,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 action={outgoingWebhook2Action}
                 onUpdate={this.update}
                 onHide={this.handleOutgoingWebhookFormHide}
+                onDelete={() => this.onDeleteClick(outgoingWebhook2Id)}
               />
             )}
           </>

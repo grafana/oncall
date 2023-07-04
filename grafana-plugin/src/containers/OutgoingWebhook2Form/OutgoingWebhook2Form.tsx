@@ -26,6 +26,7 @@ interface OutgoingWebhook2FormProps {
   action: WebhookFormActionType;
   onHide: () => void;
   onUpdate: () => void;
+  onDelete: () => void;
 }
 
 export const WebhookTabs = {
@@ -34,7 +35,7 @@ export const WebhookTabs = {
 };
 
 const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
-  const { id, action, onUpdate, onHide } = props;
+  const { id, action, onUpdate, onHide, onDelete } = props;
   const [activeTab, setActiveTab] = useState<string>(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
@@ -94,6 +95,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
         activeTab={activeTab}
         data={data}
         handleSubmit={handleSubmit}
+        onDelete={onDelete}
         onHide={onHide}
         onUpdate={onUpdate}
       />
@@ -135,6 +137,7 @@ interface WebhookTabsProps {
       };
   onHide: () => void;
   onUpdate: () => void;
+  onDelete: () => void;
   handleSubmit: (data: Partial<OutgoingWebhook2>) => void;
 }
 
@@ -146,6 +149,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   handleSubmit,
   onHide,
   onUpdate,
+  onDelete,
 }) => {
   const store = useStore();
   const webhook = store.outgoingWebhook2Store.items[id];
@@ -160,15 +164,19 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
-                {
-                  <WithConfirm title={`Are you sure you want to delete ${webhook.name}?`}>
-                    <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                      <Button form={form.name} variant="destructive" type="button" disabled={data.is_legacy}>
-                        Delete Webhook
-                      </Button>
-                    </WithPermissionControlTooltip>
-                  </WithConfirm>
-                }
+                <WithConfirm title={`Are you sure you want to delete ${webhook.name}?`}>
+                  <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                    <Button
+                      form={form.name}
+                      variant="destructive"
+                      type="button"
+                      disabled={data.is_legacy}
+                      onClick={onDelete}
+                    >
+                      Delete Webhook
+                    </Button>
+                  </WithPermissionControlTooltip>
+                </WithConfirm>
                 <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                   <Button form={form.name} type="submit" disabled={data.is_legacy}>
                     {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
