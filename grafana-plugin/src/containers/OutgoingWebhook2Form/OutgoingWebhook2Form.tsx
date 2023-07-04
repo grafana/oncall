@@ -1,12 +1,12 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button, Drawer, HorizontalGroup, Tab, TabsBar } from '@grafana/ui';
+import { Button, ConfirmModal, ConfirmModalProps, Drawer, HorizontalGroup, Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { useHistory } from 'react-router-dom';
 
 import GForm from 'components/GForm/GForm';
 import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
@@ -14,6 +14,7 @@ import { WebhookFormActionType } from 'pages/outgoing_webhooks_2/OutgoingWebhook
 import { useStore } from 'state/useStore';
 import { KeyValuePair } from 'utils';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import { form } from './OutgoingWebhook2Form.config';
 
@@ -35,6 +36,7 @@ export const WebhookTabs = {
 };
 
 const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
+  const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
   const [activeTab, setActiveTab] = useState<string>(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
@@ -44,6 +46,13 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
 
   const { outgoingWebhook2Store } = store;
   const isNewOrCopy = action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY;
+
+  if (
+    (action === WebhookFormActionType.EDIT_SETTINGS || action === WebhookFormActionType.VIEW_LAST_RUN) &&
+    !outgoingWebhook2Store.items[id]
+  ) {
+    return null;
+  }
 
   const data =
     id === 'new'
@@ -63,7 +72,16 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     [id]
   );
 
+  if (
+    (action === WebhookFormActionType.EDIT_SETTINGS || action === WebhookFormActionType.VIEW_LAST_RUN) &&
+    !outgoingWebhook2Store.items[id]
+  ) {
+    // nothing to show if we open invalid ID for edit/last_run
+    return null;
+  }
+
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
+    // show just the creation form, not the tabs
     return (
       <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
         {renderWebhookForm()}
@@ -72,18 +90,25 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   }
 
   return (
+    // show tabbed drawer (edit/live_run)
     <Drawer scrollableContent title={'Outgoing webhook details'} onClose={onHide} closeOnMaskClick={false}>
       <TabsBar>
         <Tab
           key={WebhookTabs.Settings.key}
-          onChangeTab={() => setActiveTab(WebhookTabs.Settings.key)}
+          onChangeTab={() => {
+            setActiveTab(WebhookTabs.Settings.key);
+            history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
+          }}
           active={activeTab === WebhookTabs.Settings.key}
           label={WebhookTabs.Settings.value}
         />
 
         <Tab
           key={WebhookTabs.LastRun.key}
-          onChangeTab={() => setActiveTab(WebhookTabs.LastRun.key)}
+          onChangeTab={() => {
+            setActiveTab(WebhookTabs.LastRun.key);
+            history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`);
+          }}
           active={activeTab === WebhookTabs.LastRun.key}
           label={WebhookTabs.LastRun.value}
         />
@@ -151,10 +176,14 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   onUpdate,
   onDelete,
 }) => {
-  const store = useStore();
-  const webhook = store.outgoingWebhook2Store.items[id];
+  const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
+
   return (
     <div className={cx('tabs__content')}>
+      {confirmationModal && (
+        <ConfirmModal {...(confirmationModal as ConfirmModalProps)} onDismiss={() => setConfirmationModal(undefined)} />
+      )}
+
       {activeTab === WebhookTabs.Settings.key && (
         <>
           <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
@@ -164,19 +193,26 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
                 <Button variant="secondary" onClick={onHide}>
                   Cancel
                 </Button>
-                <WithConfirm title={`Are you sure you want to delete ${webhook.name}?`}>
-                  <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                    <Button
-                      form={form.name}
-                      variant="destructive"
-                      type="button"
-                      disabled={data.is_legacy}
-                      onClick={onDelete}
-                    >
-                      Delete Webhook
-                    </Button>
-                  </WithPermissionControlTooltip>
-                </WithConfirm>
+                <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                  <Button
+                    form={form.name}
+                    variant="destructive"
+                    type="button"
+                    disabled={data.is_legacy}
+                    onClick={() => {
+                      setConfirmationModal({
+                        isOpen: true,
+                        body: 'The action cannot be undone.',
+                        confirmText: 'Delete',
+                        dismissText: 'Cancel',
+                        onConfirm: onDelete,
+                        title: `Are you sure you want to delete webhook?`,
+                      } as ConfirmModalProps);
+                    }}
+                  >
+                    Delete Webhook
+                  </Button>
+                </WithPermissionControlTooltip>
                 <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                   <Button form={form.name} type="submit" disabled={data.is_legacy}>
                     {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook

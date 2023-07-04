@@ -400,7 +400,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               </div>
             </WithPermissionControlTooltip>
 
-            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID is copied')}>
+            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={cx('integrations-actionItem')}>
                 <HorizontalGroup spacing={'xs'}>
                   <Icon name="copy" />

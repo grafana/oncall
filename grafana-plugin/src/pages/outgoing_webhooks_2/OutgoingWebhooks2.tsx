@@ -1,6 +1,15 @@
 import React from 'react';
 
-import { Button, ConfirmModal, HorizontalGroup, Icon, IconButton, VerticalGroup, WithContextMenu } from '@grafana/ui';
+import {
+  Button,
+  ConfirmModal,
+  ConfirmModalProps,
+  HorizontalGroup,
+  Icon,
+  IconButton,
+  VerticalGroup,
+  WithContextMenu,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -44,16 +53,7 @@ interface OutgoingWebhooks2Props
 interface OutgoingWebhooks2State extends PageBaseState {
   outgoingWebhook2Action?: WebhookFormActionType;
   outgoingWebhook2Id?: OutgoingWebhook2['id'];
-  confirmationModal: {
-    isOpen: boolean;
-    title: any;
-    dismissText: string;
-    confirmText: string;
-    body?: React.ReactNode;
-    description?: string;
-    confirmationText?: string;
-    onConfirm: () => void;
-  };
+  confirmationModal: ConfirmModalProps;
 }
 
 @observer
@@ -92,7 +92,9 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     } else if (id) {
       await store.outgoingWebhook2Store
         .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+        .catch((error) =>
+          this.setState({ errorData: { ...getWrongTeamResponseInfo(error) }, outgoingWebhook2Action: undefined })
+        );
     }
   };
 
@@ -102,7 +104,13 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   };
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store,
+      history,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const { outgoingWebhook2Id, outgoingWebhook2Action, errorData, confirmationModal } = this.state;
 
     const webhooks = store.outgoingWebhook2Store.getSearchResult();
@@ -147,20 +155,13 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         errorData={errorData}
         objectName="outgoing webhook 2"
         pageName="outgoing_webhooks_2"
-        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+        itemNotFoundMessage={`Outgoing webhook with id=${id} was not found. Please select outgoing webhook from the list.`}
       >
         {() => (
           <>
             {confirmationModal && (
               <ConfirmModal
-                isOpen={confirmationModal.isOpen}
-                title={confirmationModal.title}
-                confirmText={confirmationModal.confirmText}
-                dismissText="Cancel"
-                body={confirmationModal.body}
-                description={confirmationModal.description}
-                confirmationText={confirmationModal.confirmationText}
-                onConfirm={confirmationModal.onConfirm}
+                {...(confirmationModal as ConfirmModalProps)}
                 onDismiss={() =>
                   this.setState({
                     confirmationModal: undefined,
@@ -213,7 +214,12 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 action={outgoingWebhook2Action}
                 onUpdate={this.update}
                 onHide={this.handleOutgoingWebhookFormHide}
-                onDelete={() => this.onDeleteClick(outgoingWebhook2Id)}
+                onDelete={() => {
+                  this.onDeleteClick(outgoingWebhook2Id).then(() => {
+                    this.setState({ outgoingWebhook2Id: undefined, outgoingWebhook2Action: undefined });
+                    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2`);
+                  });
+                }}
               />
             )}
           </>
@@ -280,10 +286,8 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                     confirmText: 'Confirm',
                     dismissText: 'Cancel',
                     onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
-                    title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} ${
-                      record.name
-                    }?`,
-                  },
+                    title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
+                  } as ConfirmModalProps,
                 })
               }
             >
@@ -298,7 +302,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
               </WithPermissionControlTooltip>
             </div>
 
-            <CopyToClipboard text={record.id}>
+            <CopyToClipboard text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
               <div className={cx('hamburgerMenu__item')}>
                 <HorizontalGroup type="primary" spacing="xs">
                   <Icon name="clipboard-alt" />
@@ -318,8 +322,9 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                     confirmText: 'Confirm',
                     dismissText: 'Cancel',
                     onConfirm: () => this.onDeleteClick(record.id),
-                    title: `Are you sure you want to delete ${record.name}?`,
-                  },
+                    body: 'The action cannot be undone.',
+                    title: `Are you sure you want to delete webhook?`,
+                  } as Partial<ConfirmModalProps> as ConfirmModalProps,
                 })
               }
             >
@@ -374,7 +379,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   }
 
-  onDeleteClick = (id: OutgoingWebhook2['id']) => {
+  onDeleteClick = (id: OutgoingWebhook2['id']): Promise<void> => {
     const { store } = this.props;
     return store.outgoingWebhook2Store
       .delete(id)
