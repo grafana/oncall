@@ -42,10 +42,19 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
 
-  const store = useStore();
+  const { outgoingWebhook2Store } = useStore();
+  const isNew = action === WebhookFormActionType.NEW;
+  const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
 
-  const { outgoingWebhook2Store } = store;
-  const isNewOrCopy = action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY;
+  const handleSubmit = useCallback(
+    (data: Partial<OutgoingWebhook2>) => {
+      (isNewOrCopy ? outgoingWebhook2Store.create(data) : outgoingWebhook2Store.update(id, data)).then(() => {
+        onHide();
+        onUpdate();
+      });
+    },
+    [id]
+  );
 
   if (
     (action === WebhookFormActionType.EDIT_SETTINGS || action === WebhookFormActionType.VIEW_LAST_RUN) &&
@@ -54,23 +63,20 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     return null;
   }
 
-  const data =
-    id === 'new'
-      ? { is_webhook_enabled: true, is_legacy: false }
-      : isNewOrCopy
-      ? { ...outgoingWebhook2Store.items[id], is_legacy: false, name: '' }
-      : outgoingWebhook2Store.items[id];
+  let data:
+    | OutgoingWebhook2
+    | {
+        is_webhook_enabled: boolean;
+        is_legacy: boolean;
+      };
 
-  const handleSubmit = useCallback(
-    (data: Partial<OutgoingWebhook2>) => {
-      (isNewOrCopy ? outgoingWebhook2Store.create(data) : outgoingWebhook2Store.update(id, data)).then(() => {
-        onHide();
-
-        onUpdate();
-      });
-    },
-    [id]
-  );
+  if (isNew) {
+    data = { is_webhook_enabled: true, is_legacy: false };
+  } else if (isNewOrCopy) {
+    data = { ...outgoingWebhook2Store.items[id], is_legacy: false, name: '' };
+  } else {
+    data = outgoingWebhook2Store.items[id];
+  }
 
   if (
     (action === WebhookFormActionType.EDIT_SETTINGS || action === WebhookFormActionType.VIEW_LAST_RUN) &&
