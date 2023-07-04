@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change permissions used during setup to better represent actions being taken by @mderynck ([#2242](https://github.com/grafana/oncall/pull/2242))
 - Display 100000+ in stats when there are more than 100000 alert groups in the result ([#1901](https://github.com/grafana/oncall/pull/1901))
 - Change OnCall plugin to use service accounts and api tokens for communicating with backend, by @mderynck ([#2385](https://github.com/grafana/oncall/pull/2385))
+- RabbitMQ Docker image upgraded from 3.7.19 to 3.12.0 in `docker-compose-developer.yml` and
+  `docker-compose-mysql-rabbitmq.yml`. **Note**: if you use one of these config files for your deployment
+  you _may_ need to follow the RabbitMQ "upgrade steps" listed [here](https://rabbitmq.com/upgrade.html#rabbitmq-version-upgradability)
+  by @joeyorlando ([#2359](https://github.com/grafana/oncall/pull/2359))
 
 ### Fixed
 
