@@ -4,7 +4,7 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 
 from apps.auth_token.exceptions import InvalidToken
-from apps.user_management.exceptions import OrganizationMovedException
+from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 
 from .models import MobileAppAuthToken, MobileAppVerificationToken
@@ -45,5 +45,7 @@ class MobileAppAuthTokenAuthentication(BaseAuthentication):
 
         if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
 
         return auth_token.user, auth_token
