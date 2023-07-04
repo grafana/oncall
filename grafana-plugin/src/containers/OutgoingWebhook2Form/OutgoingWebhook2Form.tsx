@@ -114,7 +114,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
               </Button>
               <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                 <Button form={form.name} type="submit" disabled={data.is_legacy}>
-                  {action === WebhookFormActionType.NEW ? 'Create' : 'Update'} Webhook
+                  {isNewOrCopy ? 'Create' : 'Update'} Webhook
                 </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
