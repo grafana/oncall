@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createEscalationChain } from '../utils/escalationChain';
 
@@ -16,7 +16,9 @@ const assertEscalationChainSearchWorks = async (
 };
 
 // TODO: add tests for the new filtering. Commented out as this search doesn't exist anymore
-test.skip('searching allows case-insensitive partial matches', async ({ page }) => {
+test.skip('searching allows case-insensitive partial matches', async ({ adminRolePage }) => {
+  const { page } = adminRolePage;
+
   const escalationChainName = `${generateRandomValue()} ${generateRandomValue()}`;
   const [firstHalf, secondHalf] = escalationChainName.split(' ');
 
