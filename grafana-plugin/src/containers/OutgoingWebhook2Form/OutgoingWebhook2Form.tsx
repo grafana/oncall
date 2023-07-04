@@ -52,10 +52,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook2>) => {
-      (isNewOrCopy
-        ? outgoingWebhook2Store.create(data)
-        : outgoingWebhook2Store.update(id, data)
-      ).then(() => {
+      (isNewOrCopy ? outgoingWebhook2Store.create(data) : outgoingWebhook2Store.update(id, data)).then(() => {
         onHide();
 
         onUpdate();
