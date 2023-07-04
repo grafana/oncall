@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.grafana_plugin.helpers import GrafanaAPIClient
-from apps.user_management.models.organization import Organization, ProvisionedPlugin
+from apps.user_management.models.organization import Organization
 from apps.user_management.sync import sync_organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
 
@@ -23,7 +23,7 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
         grafana_url = settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"]
         grafana_api_token = self.instance_context["grafana_token"]
 
-        provisioning_info: ProvisionedPlugin = {"error": None}
+        provisioning_info = {"error": None}
 
         if settings.LICENSE != settings.OPEN_SOURCE_LICENSE_NAME:
             provisioning_info["error"] = f"License type not authorized"

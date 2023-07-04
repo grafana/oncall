@@ -35,7 +35,7 @@ class ResolutionNoteView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelView
         queryset = self.serializer_class.setup_eager_loading(queryset)
         if alert_group_id:
             queryset = queryset.filter(alert_group__public_primary_key=alert_group_id)
-        return queryset.order_by("alert_group__started_at")
+        return queryset.order_by("-alert_group__started_at")
 
     def get_object(self):
         public_primary_key = self.kwargs["pk"]
