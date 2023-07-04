@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, VerticalGroup, WithContextMenu } from '@grafana/ui';
+import { Button, ConfirmModal, HorizontalGroup, Icon, IconButton, VerticalGroup, WithContextMenu } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -17,12 +17,10 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhook2Form from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { ActionDTO } from 'models/action';
 import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
@@ -46,12 +44,23 @@ interface OutgoingWebhooks2Props
 interface OutgoingWebhooks2State extends PageBaseState {
   outgoingWebhook2Action?: WebhookFormActionType;
   outgoingWebhook2Id?: OutgoingWebhook2['id'];
+  confirmationModal: {
+    isOpen: boolean;
+    title: any;
+    dismissText: string;
+    confirmText: string;
+    body?: React.ReactNode;
+    description?: string;
+    confirmationText?: string;
+    onConfirm: () => void;
+  };
 }
 
 @observer
 class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, OutgoingWebhooks2State> {
   state: OutgoingWebhooks2State = {
     errorData: initErrorDataState(),
+    confirmationModal: undefined,
   };
 
   componentDidUpdate(prevProps: OutgoingWebhooks2Props) {
@@ -89,13 +98,12 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
   update = () => {
     const { store } = this.props;
-
     return store.outgoingWebhook2Store.updateItems();
   };
 
   render() {
     const { store, query } = this.props;
-    const { outgoingWebhook2Id, outgoingWebhook2Action, errorData } = this.state;
+    const { outgoingWebhook2Id, outgoingWebhook2Action, errorData, confirmationModal } = this.state;
 
     const webhooks = store.outgoingWebhook2Store.getSearchResult();
 
@@ -143,6 +151,24 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       >
         {() => (
           <>
+            {confirmationModal && (
+              <ConfirmModal
+                isOpen={confirmationModal.isOpen}
+                title={confirmationModal.title}
+                confirmText={confirmationModal.confirmText}
+                dismissText="Cancel"
+                body={confirmationModal.body}
+                description={confirmationModal.description}
+                confirmationText={confirmationModal.confirmationText}
+                onConfirm={confirmationModal.onConfirm}
+                onDismiss={() =>
+                  this.setState({
+                    confirmationModal: undefined,
+                  })
+                }
+              />
+            )}
+
             <div className={cx('root')}>
               {this.renderOutgoingWebhooksFilters()}
               <GTable
@@ -244,7 +270,22 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
               </WithPermissionControlTooltip>
             </div>
 
-            <div className={cx('hamburgerMenu__item')} onClick={() => this.onDisableWebhook(record.id, !record.is_webhook_enabled)}>
+            <div
+              className={cx('hamburgerMenu__item')}
+              onClick={() =>
+                this.setState({
+                  confirmationModal: {
+                    isOpen: true,
+                    confirmText: 'Confirm',
+                    dismissText: 'Cancel',
+                    onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
+                    title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} ${
+                      record.name
+                    }?`,
+                  },
+                })
+              }
+            >
               <WithPermissionControlTooltip key={'disable_action'} userAction={UserActions.OutgoingWebhooksWrite}>
                 <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>
               </WithPermissionControlTooltip>
@@ -267,20 +308,25 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
             <div className={cx('thin-line-break')} />
 
-            <div className={cx('hamburgerMenu__item')}>
+            <div
+              className={cx('hamburgerMenu__item')}
+              onClick={() =>
+                this.setState({
+                  confirmationModal: {
+                    isOpen: true,
+                    confirmText: 'Confirm',
+                    dismissText: 'Cancel',
+                    onConfirm: () => this.onDeleteClick(record.id),
+                    title: `Are you sure you want to delete ${record.name}?`,
+                  },
+                })
+              }
+            >
               <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <WithConfirm title={`Are you sure to remove "${record.name}"?`} confirmText="Remove">
-                  <HorizontalGroup spacing="xs">
-                    <IconButton
-                      tooltip="Remove"
-                      tooltipPlacement="top"
-                      variant="destructive"
-                      onClick={this.getDeleteClickHandler(record.id)}
-                      name="trash-alt"
-                    />
-                    <Text type="danger">Delete Webhook</Text>
-                  </HorizontalGroup>
-                </WithConfirm>
+                <HorizontalGroup spacing="xs">
+                  <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
+                  <Text type="danger">Delete Webhook</Text>
+                </HorizontalGroup>
               </WithPermissionControlTooltip>
             </div>
           </div>
@@ -327,12 +373,14 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   }
 
-  getDeleteClickHandler = (id: OutgoingWebhook2['id']) => {
+  onDeleteClick = (id: OutgoingWebhook2['id']) => {
     const { store } = this.props;
-
-    return () => {
-      store.outgoingWebhook2Store.delete(id).then(this.update);
-    };
+    return store.outgoingWebhook2Store
+      .delete(id)
+      .then(this.update)
+      .then(() => openNotification('Webhook has been removed'))
+      .catch(() => openNotification('Webook could not been removed'))
+      .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
   onEditClick = (id: OutgoingWebhook2['id']) => {
@@ -359,13 +407,14 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const data = {
       ...{ ...outgoingWebhook2Store.items[id], is_webhook_enabled: isEnabled },
       is_legacy: false,
-      name: '',
     };
 
     outgoingWebhook2Store
       .update(id, data)
+      .then(() => this.update())
       .then(() => openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`))
-      .catch(() => openErrorNotification('Webhook could not been updated'));
+      .catch(() => openErrorNotification('Webhook could not been updated'))
+      .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
   onLastRunClick = (id: OutgoingWebhook2['id']) => {
