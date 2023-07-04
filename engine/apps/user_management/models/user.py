@@ -21,6 +21,12 @@ from apps.api.permissions import (
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+    from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
+
 logger = logging.getLogger(__name__)
 
 
@@ -137,6 +143,12 @@ class UserQuerySet(models.QuerySet):
 
 
 class User(models.Model):
+    auth_tokens: "RelatedManager['ApiAuthToken']"
+    escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
+    last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+
     objects = UserManager.from_queryset(UserQuerySet)()
 
     class Meta:
@@ -258,7 +270,12 @@ class User(models.Model):
         self._timezone = value
 
     def short(self):
-        return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}
+        return {
+            "username": self.username,
+            "pk": self.public_primary_key,
+            "avatar": self.avatar_url,
+            "avatar_full": self.avatar_full_url,
+        }
 
     # Insight logs
     @property

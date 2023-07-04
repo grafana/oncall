@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add full avatar URL for on-call users in schedule internal API by @vadimkerr ([#2414](https://github.com/grafana/oncall/pull/2414))
+
+## v1.3.3 (2023-06-29)
+
+### Added
+
+- Docs for `/resolution_notes` public api endpoint [#222](https://github.com/grafana/oncall/issues/222)
+
+### Fixed
+
+- Change alerts order for `/alert` public api endpoint [#1031](https://github.com/grafana/oncall/issues/1031)
+- Change resolution notes order for `/resolution_notes` public api endpoint to show notes for the newest alert group
+  on top ([#2404](https://github.com/grafana/oncall/pull/2404))
+- Remove attempt to check token when editor/viewers are accessing the plugin @mderynck ([#2410](https://github.com/grafana/oncall/pull/2410))
+
 ## v1.3.2 (2023-06-29)
 
 ### Added

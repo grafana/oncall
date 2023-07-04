@@ -82,7 +82,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     resetMessages();
     setSyncingPlugin(true);
 
-    const syncDataResponse = await PluginState.syncDataWithOnCall(onCallApiUrl);
+    const syncDataResponse = await PluginState.checkTokenAndSyncDataWithOncall(onCallApiUrl);
 
     if (typeof syncDataResponse === 'string') {
       setSyncError(syncDataResponse);

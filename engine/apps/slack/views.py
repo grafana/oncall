@@ -2,9 +2,11 @@ import hashlib
 import hmac
 import json
 import logging
-from typing import Optional
+import typing
+from contextlib import suppress
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -77,8 +79,6 @@ SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
 SCENARIOS_ROUTES.extend(NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING)
 
 logger = logging.getLogger(__name__)
-
-SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID = "SELECT_ORGANIZATION_AND_ROUTE"
 
 
 class StopAnalyticsReporting(APIView):
@@ -431,114 +431,92 @@ class SlackEventApiEndpointView(APIView):
 
         return Response(status=200)
 
-    def _get_slack_team_identity_from_payload(self, payload) -> Optional[SlackTeamIdentity]:
-        slack_team_identity = None
+    @staticmethod
+    def _get_slack_team_identity_from_payload(payload: dict[str, typing.Any]) -> SlackTeamIdentity | None:
+        def _slack_team_id() -> str | None:
+            with suppress(KeyError):
+                return payload["team"]["id"]
 
-        if "team" in payload:
-            slack_team_id = payload["team"]["id"]
-        elif "team_id" in payload:
-            slack_team_id = payload["team_id"]
-        else:
-            return slack_team_identity
+            with suppress(KeyError):
+                return payload["team_id"]
 
-        try:
-            slack_team_identity = SlackTeamIdentity.objects.get(slack_id=slack_team_id)
-        except SlackTeamIdentity.DoesNotExist as e:
-            logger.warning("Team identity not detected, that's dangerous!" + str(e))
-        return slack_team_identity
-
-    def _get_organization_from_payload(self, payload, slack_team_identity):
-        message_ts = None
-        channel_id = None
-        organization = None
-
-        payload_type = payload.get("type")
-        payload_actions = payload.get("actions", [])
-        payload_message = payload.get("message", {})
-        payload_message_ts = payload.get("message_ts")
-
-        payload_view = payload.get("view", {})
-        payload_view_state = payload_view.get("state", {})
-        payload_view_state_values = payload_view_state.get("values", {})
-
-        payload_event = payload.get("event", {})
-        payload_event_channel = payload_event.get("channel")
-        payload_event_message = payload_event.get("message", {})
-        payload_event_thread_ts = payload_event.get("thread_ts")
+            return None
 
         try:
-            # view submission or actions in view
-            if payload_view:
-                organization_id = None
-                private_metadata = payload_view.get("private_metadata", {})
-                # steps with private_metadata in which we know organization before open view
-                if "organization_id" in private_metadata:
-                    organization_id = json.loads(private_metadata).get("organization_id")
-                # steps with organization selection in view (e.g. slash commands)
-                elif SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload_view_state_values:
-                    selected_value = payload_view_state_values[SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
-                        SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
-                    ]["selected_option"]["value"]
-                    organization_id = int(selected_value.split("-")[0])
-                if organization_id:
-                    organization = slack_team_identity.organizations.get(pk=organization_id)
-                    return organization
-            # buttons and actions
-            elif payload_type in [
-                PAYLOAD_TYPE_BLOCK_ACTIONS,
-                PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
-                PAYLOAD_TYPE_MESSAGE_ACTION,
-            ]:
-                # for cases when we put organization_id into action value (e.g. public suggestion)
-                if payload_actions:
-                    payload_action_value = payload_actions[0].get("value", {})
+            return SlackTeamIdentity.objects.get(slack_id=_slack_team_id())
+        except SlackTeamIdentity.DoesNotExist:
+            return None
 
-                    if "organization_id" in payload_action_value:
-                        organization_id = int(json.loads(payload_action_value)["organization_id"])
-                        organization = slack_team_identity.organizations.get(pk=organization_id)
-                        return organization
+    @staticmethod
+    def _get_organization_from_payload(
+        payload: dict[str, typing.Any], slack_team_identity: SlackTeamIdentity
+    ) -> Organization | None:
+        """
+        Extract organization from Slack payload.
+        First try to get "organization_id" from the payload, for cases when it was explicitly passed from elsewhere.
+        Then try to find appropriate SlackMessage associated with the payload and get organization from it.
+        """
 
-                channel_id = payload["channel"]["id"]
-                if payload_message:
-                    message_ts = payload_message.get("thread_ts") or payload_message["ts"]
-                # for interactive message
-                elif payload_message_ts:
-                    message_ts = payload_message_ts
-                else:
-                    return
-            # events
-            elif payload_type == PAYLOAD_TYPE_EVENT_CALLBACK:
-                if payload_event_channel:  # events without channel: user_change, events with subteam, etc.
-                    channel_id = payload_event_channel
+        def _organization_id() -> str | int | None:
+            with suppress(KeyError, TypeError, json.JSONDecodeError):
+                return json.loads(payload["view"]["private_metadata"])["organization_id"]
 
-                if payload_event_message:
-                    message_ts = payload_event_message.get("thread_ts") or payload_event_message["ts"]
-                elif payload_event_thread_ts:
-                    message_ts = payload_event_thread_ts
-                else:
-                    return
+            with suppress(KeyError, IndexError, TypeError, json.JSONDecodeError):
+                return json.loads(payload["actions"][0]["value"])["organization_id"]
 
-            if not (message_ts and channel_id):
-                return
+            return None
 
-            try:
-                slack_message = SlackMessage.objects.get(
-                    slack_id=message_ts,
-                    _slack_team_identity=slack_team_identity,
-                    channel_id=channel_id,
-                )
-            except SlackMessage.DoesNotExist:
-                pass
-            else:
-                alert_group = slack_message.get_alert_group()
-                if alert_group:
-                    organization = alert_group.channel.organization
-                    return organization
-            return organization
-        except Organization.DoesNotExist:
+        with suppress(ObjectDoesNotExist):
             # see this GitHub issue for more context on how this situation can arise
             # https://github.com/grafana/oncall-private/issues/1836
+            return slack_team_identity.organizations.get(pk=_organization_id())
+
+        def _channel_id() -> str | None:
+            with suppress(KeyError):
+                return payload["channel"]["id"]
+
+            with suppress(KeyError):
+                return payload["event"]["channel"]
+
+            with suppress(KeyError):
+                return payload["channel_id"]
+
             return None
+
+        def _message_ts() -> str | None:
+            with suppress(KeyError):
+                return payload["message"]["thread_ts"]
+
+            with suppress(KeyError):
+                return payload["message"]["ts"]
+
+            with suppress(KeyError):
+                return payload["message_ts"]
+
+            with suppress(KeyError):
+                return payload["event"]["message"]["thread_ts"]
+
+            with suppress(KeyError):
+                return payload["event"]["message"]["ts"]
+
+            with suppress(KeyError):
+                return payload["event"]["thread_ts"]
+
+            return None
+
+        channel_id, message_ts = _channel_id(), _message_ts()
+        if not (channel_id and message_ts):
+            return None
+
+        with suppress(ObjectDoesNotExist):
+            slack_message = SlackMessage.objects.get(
+                _slack_team_identity=slack_team_identity,
+                slack_id=message_ts,
+                channel_id=channel_id,
+            )
+            return slack_message.get_alert_group().channel.organization
+
+        return None
 
     def _open_warning_window_if_needed(self, payload, slack_team_identity, warning_text) -> None:
         if payload.get("trigger_id") is not None:

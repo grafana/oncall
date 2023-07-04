@@ -260,24 +260,6 @@ class PluginState {
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginSyncStatusResponse | string> => {
     try {
-      /**
-       * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
-       * an API key on accident but leaves the plugin settings intact.
-       */
-      const existingKey = await this.getGrafanaToken();
-      if (!existingKey) {
-        try {
-          await this.installPlugin();
-        } catch (e) {
-          return this.getHumanReadableErrorFromOnCallError(
-            e,
-            onCallApiUrl,
-            'install',
-            onCallApiUrlIsConfiguredThroughEnvVar
-          );
-        }
-      }
-
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
       if (typeof startSyncResponse === 'string') {
         // an error occurred trying to initiate the sync
@@ -292,6 +274,23 @@ class PluginState {
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
     }
+  };
+
+  static checkTokenAndSyncDataWithOncall = async (onCallApiUrl: string): Promise<PluginSyncStatusResponse | string> => {
+    /**
+     * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
+     * an API key on accident but leaves the plugin settings intact.
+     */
+    const existingKey = await PluginState.getGrafanaToken();
+    if (!existingKey) {
+      try {
+        await PluginState.installPlugin();
+      } catch (e) {
+        return PluginState.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'install', false);
+      }
+    }
+
+    return await PluginState.syncDataWithOnCall(onCallApiUrl);
   };
 
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(

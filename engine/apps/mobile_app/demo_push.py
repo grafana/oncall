@@ -9,8 +9,6 @@ from apps.mobile_app.exceptions import DeviceNotSet
 from apps.mobile_app.tasks import FCMMessageData, MessageType, _construct_fcm_message, _send_push_notification, logger
 from apps.user_management.models import User
 
-TEST_PUSH_TITLE = "Hi, this is a test notification from Grafana OnCall"
-
 
 def send_test_push(user, critical=False):
     device_to_notify = FCMDevice.objects.filter(user=user).first()
@@ -42,7 +40,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
     ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
 
     fcm_message_data: FCMMessageData = {
-        "title": TEST_PUSH_TITLE,
+        "title": get_test_push_title(critical),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": (
             mobile_app_user_settings.default_notification_sound_name
@@ -68,7 +66,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
     apns_payload = APNSPayload(
         aps=Aps(
             thread_id=thread_id,
-            alert=ApsAlert(title=TEST_PUSH_TITLE),
+            alert=ApsAlert(title=get_test_push_title(critical)),
             sound=CriticalSound(
                 # The notification shouldn't be critical if the user has disabled "override DND" setting
                 critical=overrideDND,
@@ -84,3 +82,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, cr
     message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
 
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
+
+
+def get_test_push_title(critical: bool) -> str:
+    return f"Hi, this is a {'critical ' if critical else ''}test notification from Grafana OnCall"
