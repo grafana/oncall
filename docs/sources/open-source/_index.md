@@ -210,8 +210,10 @@ To connect to Grafana Cloud, refer to the **Cloud** page in your OSS Grafana OnC
 ## Supported Phone Providers
 
 ### Twilio
+
 Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you prefer to configure SMS and phone call
 notifications using Twilio, complete the following steps:
+
 1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
 1. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`.
 
@@ -225,18 +227,19 @@ Zvonok.com, complete the following steps:
 3. Create campaign and assign its ID value to `ZVONOK_CAMPAIGN_ID`.
 4. If you are planning to use pre-recorded audio instead of a speech synthesizer, you can copy the ID of the audio clip
 to the variable `ZVONOK_AUDIO_ID` (optional step).
-5. To make a call with a specific voice, you can set the `ZVONOK_SPEAKER_ID`. 
+5. To make a call with a specific voice, you can set the `ZVONOK_SPEAKER_ID`.
 By default, the ID used is `Salli` (optional step).
-6. To process the call status, it is required to add a postback with the GET/POST method on the side of the zvonok.com 
+6. To process the call status, it is required to add a postback with the GET/POST method on the side of the zvonok.com
 service with the following format (optional step):
 `${ONCALL_BASE_URL}/zvonok/call_status_events?campaign_id={ct_campaign_id}&call_id={ct_call_id}&status={ct_status}&user_choice={ct_user_choice}`
 
 The names of the transmitted parameters can be redefined through environment variables:
-   - `ZVONOK_POSTBACK_CALL_ID` - call id (ct_call_id) query parameter name
-   - `ZVONOK_POSTBACK_CAMPAIGN_ID` - company id (ct_campaign_id) query parameter name
-   - `ZVONOK_POSTBACK_STATUS` - status (ct_status) query parameter name
-   - `ZVONOK_POSTBACK_USER_CHOICE` - user choice (ct_user_choice) query parameter name
-   - `ZVONOK_POSTBACK_USER_CHOICE_ACK` - user choice (ct_user_choice) query parameter value for acknowledge alert group
+
+- `ZVONOK_POSTBACK_CALL_ID` - call id (ct_call_id) query parameter name
+- `ZVONOK_POSTBACK_CAMPAIGN_ID` - company id (ct_campaign_id) query parameter name
+- `ZVONOK_POSTBACK_STATUS` - status (ct_status) query parameter name
+- `ZVONOK_POSTBACK_USER_CHOICE` - user choice (ct_user_choice) query parameter name
+- `ZVONOK_POSTBACK_USER_CHOICE_ACK` - user choice (ct_user_choice) query parameter value for acknowledge alert group
 
 ## Email Setup
 

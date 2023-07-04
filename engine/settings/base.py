@@ -236,7 +236,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
-    "apps.phone_notifications"
+    "apps.phone_notifications",
 ]
 
 REST_FRAMEWORK = {

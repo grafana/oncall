@@ -1,11 +1,12 @@
 import logging
-
-from apps.base.utils import live_settings
 from typing import Optional
+
 from django.apps import apps
-from apps.zvonok.models.phone_call import ZvonokPhoneCall, ZvonokCallStatuses
-from apps.alerts.signals import user_notification_action_triggered_signal
+
 from apps.alerts.constants import ActionSource
+from apps.alerts.signals import user_notification_action_triggered_signal
+from apps.base.utils import live_settings
+from apps.zvonok.models.phone_call import ZvonokCallStatuses, ZvonokPhoneCall
 
 logger = logging.getLogger(__name__)
 

@@ -1,1 +1,1 @@
-from .phone_call import ZvonokPhoneCall, ZvonokCallStatuses  # noqa: F401
+from .phone_call import ZvonokCallStatuses, ZvonokPhoneCall  # noqa: F401

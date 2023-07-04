@@ -1,13 +1,14 @@
-import requests
 import logging
-
-from typing import Optional
 from random import randint
+from typing import Optional
+
+import requests
 from django.core.cache import cache
+
 from apps.base.utils import live_settings
-from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 from apps.phone_notifications.exceptions import FailedToMakeCall, FailedToStartVerification
-from apps.zvonok.models.phone_call import ZvonokPhoneCall, ZvonokCallStatuses
+from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
+from apps.zvonok.models.phone_call import ZvonokCallStatuses, ZvonokPhoneCall
 
 ZVONOK_CALL_URL = "https://zvonok.com/manager/cabapi_external/api/v1/phones/call/"
 
@@ -91,7 +92,7 @@ class ZvonokPhoneProvider(PhoneProvider):
         }
 
         if speaker:
-            params['speaker'] = speaker
+            params["speaker"] = speaker
 
         return requests.post(ZVONOK_CALL_URL, params=params)
 

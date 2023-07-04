@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import CallStatusCallback
 
+from .views import CallStatusCallback
 
 urlpatterns = [
     path("call_status_events", CallStatusCallback.as_view(), name="call_status_events"),

@@ -1,5 +1,6 @@
-from apps.phone_notifications.phone_provider import ProviderPhoneCall
 from django.db import models
+
+from apps.phone_notifications.phone_provider import ProviderPhoneCall
 
 
 class ZvonokCallStatuses:
@@ -71,4 +72,3 @@ class ZvonokPhoneCall(ProviderPhoneCall, models.Model):
     campaign_id = models.CharField(
         max_length=50,
     )
-

@@ -1,9 +1,11 @@
 from django.apps import apps
-from apps.base.utils import live_settings
 from rest_framework import status
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import BasePermission
+
+from apps.base.utils import live_settings
+
 from .status_callback import update_zvonok_call_status
 
 
