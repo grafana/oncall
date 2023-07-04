@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI drawer updates for webhooks2 ([#2419](https://github.com/grafana/oncall/pull/2419))
 - Removed url from sms notification, changed format ([2317](https://github.com/grafana/oncall/pull/2317))  
 
+### Fixed
+
+- Address issue where having multiple registered mobile apps for a user could lead to issues in delivering push
+  notifications by @joeyorlando ([#2421](https://github.com/grafana/oncall/pull/2421))
+
 ## v1.3.3 (2023-06-29)
 
 ### Added

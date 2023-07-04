@@ -619,7 +619,7 @@ FCM_DJANGO_SETTINGS = {
     "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
-    "DELETE_INACTIVE_DEVICES": False,
+    "DELETE_INACTIVE_DEVICES": True,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
     "USER_MODEL": "user_management.User",
 }
