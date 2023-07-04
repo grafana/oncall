@@ -29,6 +29,7 @@ import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.t
 import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { openErrorNotification, openNotification } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -226,7 +227,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     return <TeamName team={teams[record.team]} />;
   }
 
-  renderActionButtons = (record: ActionDTO) => {
+  renderActionButtons = (record: OutgoingWebhook2) => {
     return (
       <WithContextMenu
         renderMenuItems={() => (
@@ -243,9 +244,9 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
               </WithPermissionControlTooltip>
             </div>
 
-            <div className={cx('hamburgerMenu__item')} onClick={() => this.onDisableWebhook(record.id)}>
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onDisableWebhook(record.id, !record.is_webhook_enabled)}>
               <WithPermissionControlTooltip key={'disable_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-                <Text type="primary">Disable</Text>
+                <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>
               </WithPermissionControlTooltip>
             </div>
 
@@ -350,7 +351,22 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   };
 
-  onDisableWebhook = (_id: OutgoingWebhook2['id']) => {};
+  onDisableWebhook = (id: OutgoingWebhook2['id'], isEnabled: boolean) => {
+    const {
+      store: { outgoingWebhook2Store },
+    } = this.props;
+
+    const data = {
+      ...{ ...outgoingWebhook2Store.items[id], is_webhook_enabled: isEnabled },
+      is_legacy: false,
+      name: '',
+    };
+
+    outgoingWebhook2Store
+      .update(id, data)
+      .then(() => openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`))
+      .catch(() => openErrorNotification('Webhook could not been updated'));
+  };
 
   onLastRunClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
