@@ -41,17 +41,18 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   const store = useStore();
 
   const { outgoingWebhook2Store } = store;
+  const isNewOrCopy = action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY;
 
   const data =
     id === 'new'
       ? { is_webhook_enabled: true, is_legacy: false }
-      : action === WebhookFormActionType.NEW
+      : isNewOrCopy
       ? { ...outgoingWebhook2Store.items[id], is_legacy: false, name: '' }
       : outgoingWebhook2Store.items[id];
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook2>) => {
-      (action === WebhookFormActionType.NEW
+      (isNewOrCopy
         ? outgoingWebhook2Store.create(data)
         : outgoingWebhook2Store.update(id, data)
       ).then(() => {

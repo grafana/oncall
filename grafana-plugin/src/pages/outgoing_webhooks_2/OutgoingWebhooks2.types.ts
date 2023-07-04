@@ -1,7 +1,6 @@
 export enum WebhookFormActionType {
-    NEW,
-    COPY,
-    VIEW_LAST_RUN,
-    EDIT_SETTINGS,
-  }
-  
+  NEW = 1,
+  COPY = 2,
+  VIEW_LAST_RUN = 3,
+  EDIT_SETTINGS = 4,
+}

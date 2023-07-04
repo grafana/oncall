@@ -72,10 +72,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       },
     } = this.props;
 
-    if (!id) {
-      return;
-    }
-
     if (action) {
       this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: convertWebhookUrlToAction(action) });
     }
@@ -83,7 +79,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const isNewWebhook = id === 'new';
     if (isNewWebhook) {
       this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.NEW });
-    } else {
+    } else if (id) {
       await store.outgoingWebhook2Store
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
