@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.5 (2023-07-05)
+
+### Fixed
+
+- Fix for phone provider initialization which can lead to an HTTP 500 on startup ([#2434](https://github.com/grafana/oncall/pull/2434))
+
 ## v1.3.4 (2023-07-05)
 
 ### Added
