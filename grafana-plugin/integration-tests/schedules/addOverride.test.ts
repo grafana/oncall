@@ -1,11 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule, getOverrideFormDateInputs } from '../utils/schedule';
 import dayjs from 'dayjs';
 
-test('default dates in override creation modal are correct', async ({ page }) => {
+test('default dates in override creation modal are correct', async ({ adminRolePage }) => {
+  const { page, userName } = adminRolePage;
+
   const onCallScheduleName = generateRandomValue();
-  await createOnCallSchedule(page, onCallScheduleName);
+  await createOnCallSchedule(page, onCallScheduleName, userName);
 
   await clickButton({ page, buttonText: 'Add override' });
 

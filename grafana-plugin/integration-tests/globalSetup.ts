@@ -1,37 +1,57 @@
-import { test as setup, chromium, FullConfig, expect, Page, BrowserContext, APIResponse } from '@playwright/test';
+import { test as setup, chromium, expect, Page, BrowserContext, FullConfig, APIRequestContext } from '@playwright/test';
 
-import { BASE_URL, GRAFANA_PASSWORD, GRAFANA_USERNAME, IS_OPEN_SOURCE, ONCALL_API_URL } from './utils/constants';
+import GrafanaAPIClient from './utils/clients/grafana';
+import {
+  GRAFANA_ADMIN_PASSWORD,
+  GRAFANA_ADMIN_USERNAME,
+  GRAFANA_EDITOR_PASSWORD,
+  GRAFANA_EDITOR_USERNAME,
+  GRAFANA_VIEWER_PASSWORD,
+  GRAFANA_VIEWER_USERNAME,
+  IS_CLOUD,
+  IS_OPEN_SOURCE,
+  ONCALL_API_URL,
+} from './utils/constants';
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
-import { STORAGE_STATE } from '../playwright.config';
+import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
+import { OrgRole } from '@grafana/data';
 
-const IS_CLOUD = !IS_OPEN_SOURCE;
-const GLOBAL_SETUP_RETRIES = 3;
+const grafanaApiClient = new GrafanaAPIClient(GRAFANA_ADMIN_USERNAME, GRAFANA_ADMIN_PASSWORD);
 
-const makeGrafanaLoginRequest = async (browserContext: BrowserContext): Promise<APIResponse> =>
-  browserContext.request.post(`${BASE_URL}/login`, {
-    data: {
-      user: GRAFANA_USERNAME,
-      password: GRAFANA_PASSWORD,
-    },
-  });
+type UserCreationSettings = {
+  adminAuthedRequest: APIRequestContext;
+  role: OrgRole;
+};
 
-const pollGrafanaInstanceUntilItIsHealthy = async (browserContext: BrowserContext): Promise<boolean> => {
-  console.log('Polling the grafana instance to make sure it is healthy');
-
-  const res = await makeGrafanaLoginRequest(browserContext);
-
-  if (!res.ok()) {
-    console.log(`Grafana instance is unavailable. Got HTTP ${res.status()}. Will wait 5 seconds and then try again`);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    return pollGrafanaInstanceUntilItIsHealthy(browserContext);
+const generateLoginStorageStateAndOptionallCreateUser = async (
+  config: FullConfig,
+  userName: string,
+  password: string,
+  storageStateFileLocation: string,
+  userCreationSettings?: UserCreationSettings,
+  closeContext = false
+): Promise<BrowserContext> => {
+  if (userCreationSettings !== undefined && IS_OPEN_SOURCE) {
+    const { adminAuthedRequest, role } = userCreationSettings;
+    await grafanaApiClient.idempotentlyCreateUserWithRole(adminAuthedRequest, userName, password, role);
   }
-  console.log('Grafana instance is available');
-  return true;
+
+  const { headless } = config.projects[0]!.use;
+  const browser = await chromium.launch({ headless, slowMo: headless ? 0 : 100 });
+  const browserContext = await browser.newContext();
+
+  await grafanaApiClient.login(browserContext.request, userName, password);
+  await browserContext.storageState({ path: storageStateFileLocation });
+
+  if (closeContext) {
+    await browserContext.close();
+  }
+  return browserContext;
 };
 
 /**
- * go to config page and wait for plugin icon to be available on left-hand navigation
+ go to config page and wait for plugin icon to be available on left-hand navigation
  */
 const configureOnCallPlugin = async (page: Page): Promise<void> => {
   /**
@@ -66,55 +86,7 @@ const configureOnCallPlugin = async (page: Page): Promise<void> => {
  * Borrowed from our friends on the Incident team
  * https://github.com/grafana/incident/blob/main/plugin/e2e/global-setup.ts
  */
-const globalSetup = async (config: FullConfig): Promise<void> => {
-  const { headless } = config.projects[0]!.use;
-  const browser = await chromium.launch({ headless, slowMo: headless ? 0 : 100 });
-  const browserContext = await browser.newContext();
-
-  if (IS_CLOUD) {
-    /**
-     * check that the grafana instance is available. If HTTP 503 is returned it means the
-     * instance is currently unavailable. Poll until it is available
-     */
-    await pollGrafanaInstanceUntilItIsHealthy(browserContext);
-  }
-
-  const res = await makeGrafanaLoginRequest(browserContext);
-
-  expect(res.ok()).toBeTruthy();
-  await browserContext.storageState({ path: STORAGE_STATE });
-
-  // make sure the plugin has been configured
-  const page = await browserContext.newPage();
-
-  if (IS_OPEN_SOURCE) {
-    // plugin configuration can safely be skipped for cloud environments
-    await configureOnCallPlugin(page);
-  }
-
-  await browserContext.close();
-};
-
-/**
- * Let's retry global setup, in the event that it fails due to an oncall-engine/oncall-celery backend error.
- * Sometimes the sync endpoint will randomly return HTTP 500.
- * See here for an example CI job which failed global setup
- * https://github.com/grafana/oncall/actions/runs/5062712137/jobs/9088529416#step:19:2536
- *
- * References on retrying playwright global setup
- * https://github.com/microsoft/playwright/discussions/11371
- */
-const globalSetupWithRetries = async (config: FullConfig): Promise<void> => {
-  for (let i = 0; i < GLOBAL_SETUP_RETRIES - 1; i++) {
-    try {
-      return await globalSetup(config);
-    } catch (e) {}
-  }
-  // One last time, throwing an error if it fails.
-  await globalSetup(config);
-};
-
-setup('Configure Grafana OnCall plugin', async ({}, { config }) => {
+setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
   /**
    * Unconditionally marks the setup as "slow", giving it triple the default timeout.
    * This is mostly useful for the rare case for Cloud Grafana instances where the instance may be down/unavailable
@@ -122,5 +94,47 @@ setup('Configure Grafana OnCall plugin', async ({}, { config }) => {
    */
   setup.slow();
 
-  await globalSetupWithRetries(config);
+  if (IS_CLOUD) {
+    await grafanaApiClient.pollInstanceUntilItIsHealthy(request);
+  }
+
+  const adminBrowserContext = await generateLoginStorageStateAndOptionallCreateUser(
+    config,
+    GRAFANA_ADMIN_USERNAME,
+    GRAFANA_ADMIN_PASSWORD,
+    ADMIN_USER_STORAGE_STATE
+  );
+  const adminPage = await adminBrowserContext.newPage();
+  const { request: adminAuthedRequest } = adminBrowserContext;
+
+  await generateLoginStorageStateAndOptionallCreateUser(
+    config,
+    GRAFANA_EDITOR_USERNAME,
+    GRAFANA_EDITOR_PASSWORD,
+    EDITOR_USER_STORAGE_STATE,
+    {
+      adminAuthedRequest,
+      role: OrgRole.Editor,
+    },
+    true
+  );
+
+  await generateLoginStorageStateAndOptionallCreateUser(
+    config,
+    GRAFANA_VIEWER_USERNAME,
+    GRAFANA_VIEWER_PASSWORD,
+    VIEWER_USER_STORAGE_STATE,
+    {
+      adminAuthedRequest,
+      role: OrgRole.Viewer,
+    },
+    true
+  );
+
+  if (IS_OPEN_SOURCE) {
+    // plugin configuration can safely be skipped for cloud environments
+    await configureOnCallPlugin(adminPage);
+  }
+
+  await adminBrowserContext.close();
 });
