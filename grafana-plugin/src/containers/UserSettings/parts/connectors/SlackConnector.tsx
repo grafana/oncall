@@ -1,18 +1,12 @@
 import React, { useCallback } from 'react';
 
-import { Button, Label } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-
-import styles from './index.module.css';
-
-const cx = cn.bind(styles);
 
 interface SlackConnectorProps {
   id: User['pk'];
@@ -27,7 +21,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
 
   const storeUser = userStore.items[id];
 
-  const isCurrent = id === store.userStore.currentUserPk;
+  const isCurrentUser = id === store.userStore.currentUserPk;
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.SlackInfo);
@@ -38,42 +32,49 @@ const SlackConnector = (props: SlackConnectorProps) => {
   }, []);
 
   return (
-    <div className={cx('user-item')}>
-      <Label>Slack username:</Label>
-      <span className={cx('user-value')}>{storeUser.slack_user_identity?.name || '—'}</span>
+    <>
       {storeUser.slack_user_identity ? (
-        <div>
-          <Text type="secondary"> Slack account is connected</Text>
-          {storeUser.pk === userStore.currentUserPk ? (
-            <WithConfirm title="Are you sure to disconnect your Slack account?" confirmText="Disconnect">
-              <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkSlackAccount}>
-                Unlink Slack account
-              </Button>
-            </WithConfirm>
-          ) : (
-            ''
-          )}
-        </div>
+        <>
+          <InlineField label="Slack" labelWidth={12}>
+            <HorizontalGroup spacing="xs">
+              <Input
+                disabled={true}
+                value={
+                  storeUser.slack_user_identity?.slack_login ? '@' + storeUser.slack_user_identity?.slack_login : ''
+                }
+              />
+              <WithConfirm title="Are you sure to disconnect your Slack account?" confirmText="Disconnect">
+                <Button
+                  variant="destructive"
+                  icon="times"
+                  onClick={handleUnlinkSlackAccount}
+                  disabled={!isCurrentUser}
+                />
+              </WithConfirm>
+            </HorizontalGroup>
+          </InlineField>
+        </>
       ) : teamStore.currentTeam?.slack_team_identity ? (
-        <div>
-          <Text type="warning">Slack account is not connected</Text>
-          {isCurrent && (
-            <Button size="sm" fill="text" onClick={handleConnectButtonClick}>
-              Connect
-            </Button>
-          )}
-        </div>
+        <>
+          <InlineField label="Slack" labelWidth={12} disabled={!isCurrentUser}>
+            <Button onClick={handleConnectButtonClick}>Connect account</Button>
+          </InlineField>
+        </>
       ) : (
-        <div>
-          <Text type="warning">Slack Integration is not installed</Text>
-          <PluginLink query={{ page: 'chat-ops' }}>
-            <Button size="sm" fill="text">
-              Install
-            </Button>
-          </PluginLink>
-        </div>
+        <>
+          <InlineField label="Slack" labelWidth={12}>
+            <PluginLink query={{ page: 'chat-ops' }}>
+              <WithConfirm
+                title="The Slack application is not installed globally for this Grafana Stack. You will be redirected to the Grafana OnCall organization settings to connect the Slack app. Please note that you may need Slack admin permissions to install the Slack app."
+                confirmText="Proceed"
+              >
+                <Button>Install Slack App</Button>
+              </WithConfirm>
+            </PluginLink>
+          </InlineField>
+        </>
       )}
-    </div>
+    </>
   );
 };
 

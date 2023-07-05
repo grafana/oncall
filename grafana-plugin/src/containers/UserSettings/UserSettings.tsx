@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { Modal } from '@grafana/ui';
+import { HorizontalGroup, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
+import Avatar from 'components/Avatar/Avatar';
 import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -55,15 +56,15 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     isCurrent,
   ];
 
+  const title = (
+    <HorizontalGroup>
+      <Avatar className={cx('user-avatar')} size="large" src={storeUser.avatar} /> <h2>{storeUser.username}</h2>
+    </HorizontalGroup>
+  );
+
   return (
     <>
-      <Modal
-        title={`${storeUser.username}`}
-        className={cx('modal', 'modal-wide')}
-        isOpen
-        closeOnEscape={false}
-        onDismiss={onHide}
-      >
+      <Modal title={title} className={cx('modal', 'modal-wide')} isOpen closeOnEscape={false} onDismiss={onHide}>
         <div className={cx('root')}>
           <Tabs
             onTabChange={onTabChange}

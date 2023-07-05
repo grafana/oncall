@@ -1,19 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, Icon, Label, LoadingPlaceholder } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Alert, Button, HorizontalGroup, InlineField, Input, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import Text from 'components/Text/Text';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
-
-import styles from './index.module.css';
-
-const cx = cn.bind(styles);
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 interface ICalConnectorProps {
@@ -54,69 +49,82 @@ const ICalConnector = (props: ICalConnectorProps) => {
     await userStore.deleteiCalLink(id);
   };
 
+  const isCurrentUser = id === store.userStore.currentUserPk;
+
   return (
-    <div className={cx('user-item')}>
-      <Label>iCal link:</Label>
-      <Text type="secondary">
-        Secret iCal export link to add your assigned on call shifts to your calendar.
-        <br />
-        NOTE: We do not have control over when a client refreshes an imported calendar.
-      </Text>
-      <div className={cx('iCal-settings')}>
-        {iCalLoading ? (
-          <LoadingPlaceholder text="Loading..." />
-        ) : (
-          <>
-            {isiCalLinkExisting ? (
-              <>
-                {showiCalLink !== undefined ? (
-                  <>
-                    <div className={cx('iCal-link-container')}>
-                      <Icon name="exclamation-triangle" className={cx('warning-icon')} />{' '}
-                      <Text type="warning">Make sure you copy it - you won't be able to access it again.</Text>
-                      <div className={cx('iCal-link')}>{showiCalLink}</div>
-                    </div>
-                    <CopyToClipboard
-                      text={showiCalLink}
-                      onCopy={() => {
-                        openNotification('iCal link is copied');
-                      }}
-                    >
-                      <Button icon="copy" variant="secondary" className={cx('iCal-button')}>
-                        Copy iCal link
-                      </Button>
-                    </CopyToClipboard>
-                  </>
-                ) : (
-                  <>
-                    <Text type="secondary">
-                      In case you lost your iCal link you can revoke it and generate a new one.
-                    </Text>
-                    <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
-                      <Button
-                        icon="trash-alt"
-                        onClick={handleRevokeiCalLink}
-                        className={cx('iCal-button')}
-                        variant="destructive"
-                        fill="outline"
+    <>
+      {iCalLoading ? (
+        <LoadingPlaceholder text="Loading..." />
+      ) : (
+        <>
+          {isiCalLinkExisting ? (
+            <>
+              {showiCalLink !== undefined ? (
+                <>
+                  <InlineField
+                    label="iCal link"
+                    labelWidth={12}
+                    tooltip={'Secret iCal export link to add your assigned on call shifts to your calendar'}
+                  >
+                    <HorizontalGroup spacing="xs">
+                      <Tooltip content={'In case you lost your iCal link you can revoke it and generate a new one.'}>
+                        <Input disabled value={showiCalLink} />
+                      </Tooltip>
+                      <CopyToClipboard
+                        text={showiCalLink}
+                        onCopy={() => {
+                          openNotification('iCal link is copied');
+                        }}
                       >
-                        Revoke iCal link
-                      </Button>
-                    </WithPermissionControlTooltip>
-                  </>
-                )}
-              </>
-            ) : (
-              <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
-                <Button icon="plus" onClick={handleCreateiCalLink} className={cx('iCal-button')} variant="secondary">
-                  Create iCal link
+                        <Button icon="copy">Copy</Button>
+                      </CopyToClipboard>
+                    </HorizontalGroup>
+                  </InlineField>
+                  <Alert severity="warning" title="Make sure you copy it - you won't be able to access it again." />
+                </>
+              ) : (
+                <>
+                  <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
+                    <InlineField
+                      label="iCal link"
+                      labelWidth={12}
+                      tooltip={'Secret iCal export link to add your assigned on call shifts to your calendar'}
+                    >
+                      <HorizontalGroup spacing="xs">
+                        <Tooltip content={'In case you lost your iCal link you can revoke it and generate a new one.'}>
+                          <Input value={'***'} />
+                        </Tooltip>
+                        <WithConfirm
+                          title={'Are you sure you want to revoke iCal link' + (!isCurrentUser && ' for other user')}
+                          confirmText="Revoke"
+                        >
+                          <Button icon="trash-alt" variant="destructive" onClick={handleRevokeiCalLink}>
+                            Revoke
+                          </Button>
+                        </WithConfirm>
+                      </HorizontalGroup>
+                    </InlineField>
+                  </WithPermissionControlTooltip>
+                </>
+              )}
+            </>
+          ) : (
+            <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
+              <InlineField
+                label="iCal link"
+                labelWidth={12}
+                tooltip={'Secret iCal export link to add your assigned on call shifts to your calendar'}
+              >
+                <Button onClick={handleCreateiCalLink} variant="secondary">
+                  Create
                 </Button>
-              </WithPermissionControlTooltip>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+              </InlineField>
+            </WithPermissionControlTooltip>
+          )}
+        </>
+      )}
+      <Alert title="Note: We do not have control over when a client refreshes an imported calendar." severity="info" />
+    </>
   );
 };
 

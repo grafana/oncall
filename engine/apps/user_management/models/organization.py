@@ -165,7 +165,7 @@ class Organization(MaintainableObject):
         ACKNOWLEDGE_REMIND_10H,
     ) = range(5)
     ACKNOWLEDGE_REMIND_CHOICES = (
-        (ACKNOWLEDGE_REMIND_NEVER, "Never remind about ack-ed incidents"),
+        (ACKNOWLEDGE_REMIND_NEVER, "Never remind"),
         (ACKNOWLEDGE_REMIND_1H, "Remind every 1 hour"),
         (ACKNOWLEDGE_REMIND_3H, "Remind every 3 hours"),
         (ACKNOWLEDGE_REMIND_5H, "Remind every 5 hours"),
