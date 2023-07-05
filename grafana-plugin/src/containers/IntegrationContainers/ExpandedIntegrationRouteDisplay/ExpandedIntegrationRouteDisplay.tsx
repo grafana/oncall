@@ -42,9 +42,6 @@ import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
-const ACTIONS_LIST_WIDTH = 200;
-const ACTIONS_LIST_BORDER = 2;
-
 interface ExpandedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
   channelFilterId: ChannelFilter['id'];
@@ -370,7 +367,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
                 </div>
               </CopyToClipboard>
 
-              <div className="thin-line-break" />
+              <div className={cx('thin-line-break')} />
 
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={onDelete}>
@@ -388,8 +385,8 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           {({ openMenu }) => (
             <HamburgerMenu
               openMenu={openMenu}
-              listBorder={ACTIONS_LIST_BORDER}
-              listWidth={ACTIONS_LIST_WIDTH}
+              listBorder={2}
+              listWidth={200}
               className={'hamburgerMenu--small'}
               stopPropagation={true}
             />

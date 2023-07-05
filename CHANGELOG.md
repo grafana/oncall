@@ -5,12 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
 ## v1.3.4 (2023-07-05)
 
 ### Added
 
 - Add full avatar URL for on-call users in schedule internal API by @vadimkerr ([#2414](https://github.com/grafana/oncall/pull/2414))
 - Add phone call using the zvonok.com service by @sreway ([#2339](https://github.com/grafana/oncall/pull/2339))
+
+### Changed
+
+- UI drawer updates for webhooks2 ([#2419](https://github.com/grafana/oncall/pull/2419))
+- Removed url from sms notification, changed format ([2317](https://github.com/grafana/oncall/pull/2317))  
 
 ## v1.3.3 (2023-06-29)
 
