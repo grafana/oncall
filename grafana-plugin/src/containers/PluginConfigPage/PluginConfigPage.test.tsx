@@ -12,6 +12,10 @@ import PluginConfigPage, {
   removePluginConfiguredQueryParams,
 } from './PluginConfigPage';
 
+jest.mock('../../../package.json', () => ({
+  version: 'v1.2.3',
+}));
+
 jest.mock('react-router-dom', () => ({
   useLocation: jest.fn(() => ({
     search: '',
@@ -67,8 +71,8 @@ afterEach(() => {
   console.error = originalError;
 });
 
-const mockSyncDataWithOnCall = (license: License = License.OSS) => {
-  PluginState.syncDataWithOnCall = jest.fn().mockResolvedValueOnce({
+const mockCheckTokenAndSyncDataWithOncall = (license: License = License.OSS) => {
+  PluginState.checkTokenAndSyncDataWithOncall = jest.fn().mockResolvedValueOnce({
     token_ok: true,
     license,
     version: 'v1.2.3',
@@ -126,7 +130,7 @@ describe('PluginConfigPage', () => {
     // mocks
     const metaJsonDataOnCallApiUrl = 'onCallApiUrlFromMetaJsonData';
     PluginState.checkIfPluginIsConnected = jest.fn();
-    mockSyncDataWithOnCall();
+    mockCheckTokenAndSyncDataWithOncall();
 
     // test setup
     render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl, true)} />);
@@ -138,8 +142,8 @@ describe('PluginConfigPage', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
 
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledTimes(1);
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
+    expect(PluginState.checkTokenAndSyncDataWithOncall).toHaveBeenCalledTimes(1);
+    expect(PluginState.checkTokenAndSyncDataWithOncall).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
   });
 
   test("It doesn't make any network calls if the plugin configured query params are provided", async () => {
@@ -153,7 +157,7 @@ describe('PluginConfigPage', () => {
     } as ReturnType<typeof useLocationOriginal>);
 
     PluginState.checkIfPluginIsConnected = jest.fn();
-    mockSyncDataWithOnCall();
+    mockCheckTokenAndSyncDataWithOncall();
 
     // test setup
     const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);
@@ -161,7 +165,7 @@ describe('PluginConfigPage', () => {
 
     // assertions
     expect(PluginState.checkIfPluginIsConnected).not.toHaveBeenCalled();
-    expect(PluginState.syncDataWithOnCall).not.toHaveBeenCalled();
+    expect(PluginState.checkTokenAndSyncDataWithOncall).not.toHaveBeenCalled();
     expect(component.container).toMatchSnapshot();
   });
 
@@ -170,7 +174,7 @@ describe('PluginConfigPage', () => {
     delete process.env.ONCALL_API_URL;
 
     PluginState.checkIfPluginIsConnected = jest.fn();
-    PluginState.syncDataWithOnCall = jest.fn();
+    PluginState.checkTokenAndSyncDataWithOncall = jest.fn();
 
     // test setup
     const component = render(<PluginConfigPage {...generateComponentProps()} />);
@@ -178,7 +182,7 @@ describe('PluginConfigPage', () => {
 
     // assertions
     expect(PluginState.checkIfPluginIsConnected).not.toHaveBeenCalled();
-    expect(PluginState.syncDataWithOnCall).not.toHaveBeenCalled();
+    expect(PluginState.checkTokenAndSyncDataWithOncall).not.toHaveBeenCalled();
     expect(component.container).toMatchSnapshot();
   });
 
@@ -188,7 +192,7 @@ describe('PluginConfigPage', () => {
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
     PluginState.selfHostedInstallPlugin = jest.fn();
-    mockSyncDataWithOnCall();
+    mockCheckTokenAndSyncDataWithOncall();
 
     // test setup
     render(<PluginConfigPage {...generateComponentProps()} />);
@@ -234,7 +238,7 @@ describe('PluginConfigPage', () => {
     expect(component.container).toMatchSnapshot();
   });
 
-  test('OnCallApiUrl is set, and syncDataWithOnCall returns an error', async () => {
+  test('OnCallApiUrl is set, and checkApiTokenSyncData returns an error', async () => {
     // mocks
     const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';
     const metaJsonDataOnCallApiUrl = 'onCallApiUrlFromMetaJsonData';
@@ -242,7 +246,7 @@ describe('PluginConfigPage', () => {
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
-    PluginState.syncDataWithOnCall = jest.fn().mockResolvedValueOnce(SNYC_DATA_WITH_ONCALL_ERROR_MESSAGE);
+    PluginState.checkTokenAndSyncDataWithOncall = jest.fn().mockResolvedValueOnce(SNYC_DATA_WITH_ONCALL_ERROR_MESSAGE);
 
     // test setup
     const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);
@@ -255,7 +259,7 @@ describe('PluginConfigPage', () => {
   });
 
   test.each([License.CLOUD, License.OSS])(
-    'OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: %s',
+    'OnCallApiUrl is set, and checkApiTokenSyncData does not return an error. It displays properly the plugin connected items based on the license - License: %s',
     async (license) => {
       // mocks
       const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';
@@ -264,7 +268,7 @@ describe('PluginConfigPage', () => {
       process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
       PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
-      mockSyncDataWithOnCall(license);
+      mockCheckTokenAndSyncDataWithOncall(license);
 
       // test setup
       const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);
@@ -285,7 +289,7 @@ describe('PluginConfigPage', () => {
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
     window.location.reload = jest.fn();
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
-    mockSyncDataWithOnCall(License.OSS);
+    mockCheckTokenAndSyncDataWithOncall(License.OSS);
 
     if (successful) {
       PluginState.resetPlugin = jest.fn().mockResolvedValueOnce(null);
@@ -306,8 +310,8 @@ describe('PluginConfigPage', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
 
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledTimes(1);
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
+    expect(PluginState.checkTokenAndSyncDataWithOncall).toHaveBeenCalledTimes(1);
+    expect(PluginState.checkTokenAndSyncDataWithOncall).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
 
     expect(PluginState.resetPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.resetPlugin).toHaveBeenCalledWith();

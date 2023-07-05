@@ -21,6 +21,8 @@ It is a gauge, and its name has the suffix `alert_groups_total`
 - Response time on alert groups for each integration (mean time between the start and first action of all alert groups
 for the last 7 days in selected period). It is a histogram, and its name has the suffix `alert_groups_response_time`
 with the histogram suffixes such as `_bucket`, `_sum` and `_count`
+- A total count of alert groups users were notified of for each user. It is a counter, and its name has the suffix
+`user_was_notified_of_alert_groups_total`
 
 You can find more information about metrics types in the [Prometheus documentation](https://prometheus.io/docs/concepts/metric_types).
 
@@ -31,15 +33,17 @@ To retrieve Prometheus metrics use PromQL. If you are not familiar with PromQL, 
 OnCall application metrics are collected in preinstalled `grafanacloud_usage` datasource and are available for every
 cloud instance.
 
-Metrics have prefix `grafanacloud_oncall_instance`, e.g. `grafanacloud_oncall_instance_alert_groups_total` and
-`grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket`.
+Metrics have prefix `grafanacloud_oncall_instance`, e.g. `grafanacloud_oncall_instance_alert_groups_total`,
+`grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket` and
+`grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total`.
 
 ### For open source customers
 
 To collect OnCall application metrics you need to set up Prometheus and add it to your Grafana instance as a datasource.
 You can find more information about Prometheus setup in the [OSS documentation](https://github.com/grafana/oncall#readme)
 
-Metrics will have the prefix `oncall`, e.g. `oncall_alert_groups_total` and `oncall_alert_groups_response_time_seconds_bucket`.
+Metrics will have the prefix `oncall`, e.g. `oncall_alert_groups_total`, `oncall_alert_groups_response_time_seconds_bucket`
+and `oncall_user_was_notified_of_alert_groups_total`.
 
 Your metrics may also have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
 
@@ -86,17 +90,37 @@ in Grafana stack "test_stack":
 grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket{slug="test_stack", integration="Grafana Alerting", le="600"}
 ```
 
+### Metric Alert groups user was notified of
+
+This metric has the following labels:
+
+| Label Name    |                                 Description                                   |
+|---------------|:-----------------------------------------------------------------------------:|
+| `id`          | ID of Grafana instance (stack)                                                |
+| `slug`        | Slug of Grafana instance (stack)                                              |
+| `org_id`      | ID of Grafana organization                                                    |
+| `username`    | User username                                                                 |
+
+**Query example:**
+
+Get the number of alert groups user with username "alex" was notified of in Grafana stack "test_stack":
+
+```promql
+grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total{slug="test_stack", username="alex"}
+```
+
 ### Dashboard
 
-To import OnCall metrics dashboard go to `Administration` -> `Plugins` page, find OnCall in the plugins list, open
-`Dashboards` tab at the OnCall plugin settings page and click "Import" near "OnCall metrics". After that you can find
-the "OnCall metrics" dashboard in your dashboards list. In the datasource dropdown select your Prometheus datasource
-(for Cloud customers it's `grafanacloud_usage`). You can filter data by your Grafana instances, teams and integrations.
+You can find the "OnCall Metrics" dashboard in the list of your dashboards in the folder `General`, it has the tag
+`oncall`. In the datasource dropdown select your Prometheus datasource (for Cloud customers it's `grafanacloud_usage`).
+You can filter data by your Grafana instances, teams and integrations.
 
-To update the dashboard to the newest version go to `Dashboards` tab at the OnCall plugin settings page and click
-“Re-import”.
-Be aware: if you have made changes to the dashboard, they will be deleted after re-importing. To save your changes go
-to the dashboard settings, click "Save as" and save a copy of the dashboard.
+To re-import OnCall metrics dashboard go to `Administration` -> `Plugins` page, find OnCall in the plugins list, open
+`Dashboards` tab at the OnCall plugin settings page and click "Re-import" near "OnCall Metrics". After that you can find
+the "OnCall Metrics" dashboard in your dashboards list.
+
+Be aware: if you have made changes to the dashboard, they will be lost after re-importing or after the plugin update.
+To save your changes go to the "OnCall Metrics" dashboard settings, click "Save as" and save a copy of the dashboard.
 
 ## Insight Logs
 

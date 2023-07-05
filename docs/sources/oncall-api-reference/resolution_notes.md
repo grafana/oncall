@@ -1,20 +1,19 @@
 ---
-canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/postmortem_messages/
-draft: true
-title: Postmortem Messages HTTP API
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/resolution_notes/
+title: Resolution Notes HTTP API
 weight: 900
 ---
 
-# Create a postmortem message
+# Create a resolution note
 
 ```shell
-curl "{{API_URL}}/api/v1/postmortem_messages/" \
+curl "{{API_URL}}/api/v1/resolution_notes/" \
   --request POST \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json" \
   --data '{
       "alert_group_id": "I68T24C13IFW1",
-      "text": "Demo postmortem message"
+      "text": "Demo resolution note"
   }'
 ```
 
@@ -27,18 +26,23 @@ The above command returns JSON structured in the following way:
   "author": "U4DNY931HHJS5",
   "source": "web",
   "created_at": "2020-06-19T12:40:01.429805Z",
-  "text": "Demo postmortem message"
+  "text": "Demo resolution note"
 }
 ```
 
+| Parameter       | Required | Description                                                                                                                                                                                                                                                                                         |
+| --------------- | :------: | :--------------------- |
+| `alert_group_id`|   Yes    | Alert group ID         |                                                                                                                                                                                                                                                                                    |
+| `text`          |   Yes    | Resolution note text   |
+
 **HTTP request**
 
-`POST {{API_URL}}/api/v1/postmortem_messages/`
+`POST {{API_URL}}/api/v1/resolution_notes/`
 
-# Get a postmortem message
+# Get a resolution note
 
 ```shell
-curl "{{API_URL}}/api/v1/postmortem_messages/M4BTQUS3PRHYQ/" \
+curl "{{API_URL}}/api/v1/resolution_notes/M4BTQUS3PRHYQ/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json"
@@ -53,18 +57,18 @@ The above command returns JSON structured in the following way:
   "author": "U4DNY931HHJS5",
   "source": "web",
   "created_at": "2020-06-19T12:40:01.429805Z",
-  "text": "Demo postmortem message"
+  "text": "Demo resolution note"
 }
 ```
 
 **HTTP request**
 
-`GET {{API_URL}}/api/v1/postmortem_messages/<POSTMORTEM_MESSAGE_ID>/`
+`GET {{API_URL}}/api/v1/resolution_notes/<RESOLUTION_NOTE_ID>/`
 
-# List postmortem messages
+# List resolution notes
 
 ```shell
-curl "{{API_URL}}/api/v1/postmortem_messages/" \
+curl "{{API_URL}}/api/v1/resolution_notes/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json"
@@ -84,7 +88,7 @@ The above command returns JSON structured in the following way:
       "author": "U4DNY931HHJS5",
       "source": "web",
       "created_at": "2020-06-19T12:40:01.429805Z",
-      "text": "Demo postmortem message"
+      "text": "Demo resolution note"
     }
   ]
 }
@@ -96,17 +100,17 @@ The following available filter parameter should be provided as a `GET` argument:
 
 **HTTP request**
 
-`GET {{API_URL}}/api/v1/postmortem_messages/`
+`GET {{API_URL}}/api/v1/resolution_notes/`
 
-# Update a postmortem message
+# Update a resolution note
 
 ```shell
-curl "{{API_URL}}/api/v1/postmortem_messages/M4BTQUS3PRHYQ/" \
+curl "{{API_URL}}/api/v1/resolution_notes/M4BTQUS3PRHYQ/" \
   --request PUT \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json" \
   --data '{
-      "text": "Demo postmortem message"
+      "text": "Demo resolution note updated"
   }'
 ```
 
@@ -119,22 +123,22 @@ The above command returns JSON structured in the following way:
   "author": "U4DNY931HHJS5",
   "source": "web",
   "created_at": "2020-06-19T12:40:01.429805Z",
-  "text": "Demo postmortem message"
+  "text": "Demo resolution note updated"
 }
 ```
 
 **HTTP request**
 
-`PUT {{API_URL}}/api/v1/postmortem_messages/<POSTMORTEM_MESSAGE_ID>/`
+`PUT {{API_URL}}/api/v1/resolution_notes/<RESOLUTION_NOTE_ID>/`
 
-# Delete a postmortem message
+# Delete a resolution note
 
 ```shell
-curl "{{API_URL}}/api/v1/postmortem_messages/M4BTQUS3PRHYQ/" \
+curl "{{API_URL}}/api/v1/resolution_notes/M4BTQUS3PRHYQ/" \
   --request DELETE \
   --header "Authorization: meowmeowmeow"
 ```
 
 **HTTP request**
 
-`DELETE {{API_URL}}/api/v1/postmortem_messages/<POSTMORTEM_MESSAGE_ID>/`
+`DELETE {{API_URL}}/api/v1/resolution_notes/<RESOLUTION_NOTE_ID>/`

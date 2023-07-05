@@ -16,9 +16,9 @@ class TeamSerializer(serializers.ModelSerializer):
             "is_sharing_resources_to_all",
         )
 
-        read_only_fields = (
+        read_only_fields = [
             "id",
             "name",
             "email",
             "avatar_url",
-        )
+        ]
