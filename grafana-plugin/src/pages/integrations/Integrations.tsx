@@ -40,8 +40,6 @@ const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
 const MAX_LINE_LENGTH = 40;
-const ACTIONS_LIST_WIDTH = 200;
-const ACTIONS_LIST_BORDER = 2;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -402,7 +400,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               </div>
             </WithPermissionControlTooltip>
 
-            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID is copied')}>
+            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={cx('integrations-actionItem')}>
                 <HorizontalGroup spacing={'xs'}>
                   <Icon name="copy" />
@@ -412,7 +410,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               </div>
             </CopyToClipboard>
 
-            <div className="thin-line-break" />
+            <div className={cx('thin-line-break')} />
 
             <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
               <div className={cx('integrations-actionItem')}>
@@ -447,9 +445,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           </div>
         )}
       >
-        {({ openMenu }) => (
-          <HamburgerMenu openMenu={openMenu} listBorder={ACTIONS_LIST_BORDER} listWidth={ACTIONS_LIST_WIDTH} />
-        )}
+        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} />}
       </WithContextMenu>
     );
   };
