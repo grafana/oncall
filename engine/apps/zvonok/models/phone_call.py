@@ -4,9 +4,6 @@ from apps.phone_notifications.phone_provider import ProviderPhoneCall
 
 
 class ZvonokCallStatuses:
-    """
-    https://zvonok.com/ru-ru/guide/guide_statuses/
-    """
 
     ATTEMPTS_EXC = 10
     COMPL_FINISHED = 20

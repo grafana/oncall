@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 class ZvonokPhoneProvider(PhoneProvider):
     """
     ZvonokPhoneProvider is an implementation of phone provider which supports only voice calls (zvonok.com).
-    API docs: https://api-docs.zvonok.com/ . Call status description: https://zvonok.com/ru-ru/guide/guide_statuses/
     """
 
     def make_notification_call(self, number: str, message: str) -> ZvonokPhoneCall:
