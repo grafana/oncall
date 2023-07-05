@@ -29,6 +29,11 @@ class ActiveFCMDeviceQuerySet(models.QuerySet):
 class FCMDevice(BaseFCMDevice):
     active_objects = ActiveFCMDeviceQuerySet.as_manager()
 
+    class Meta:
+        # don't create a table for this model..
+        # https://docs.djangoproject.com/en/dev/topics/db/models/#differences-between-proxy-inheritance-and-unmanaged-models
+        proxy = True
+
     @classmethod
     def get_active_device_for_user(cls, user: "User") -> FCMDevice | None:
         return cls.active_objects.filter(user=user).first()
