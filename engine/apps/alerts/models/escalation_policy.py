@@ -1,7 +1,8 @@
+import datetime
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.utils import timezone
 from ordered_model.models import OrderedModel
 
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -228,7 +229,10 @@ class EscalationPolicy(OrderedModel):
         "alerts.EscalationChain", on_delete=models.CASCADE, related_name="escalation_policies"
     )
 
-    notify_to_users_queue = models.ManyToManyField("user_management.User")
+    notify_to_users_queue = models.ManyToManyField(
+        "user_management.User",
+        related_name="escalation_policy_notify_queues",
+    )
 
     last_notified_user = models.ForeignKey(
         "user_management.User",
@@ -243,6 +247,7 @@ class EscalationPolicy(OrderedModel):
     notify_to_group = models.ForeignKey(
         "slack.SlackUserGroup",
         on_delete=models.SET_NULL,
+        related_name="escalation_policies",
         default=None,
         null=True,
     )
@@ -271,13 +276,13 @@ class EscalationPolicy(OrderedModel):
         null=True,
     )
 
-    ONE_MINUTE = timezone.timedelta(minutes=1)
-    FIVE_MINUTES = timezone.timedelta(minutes=5)
-    FIFTEEN_MINUTES = timezone.timedelta(minutes=15)
-    THIRTY_MINUTES = timezone.timedelta(minutes=30)
-    HOUR = timezone.timedelta(minutes=60)
+    ONE_MINUTE = datetime.timedelta(minutes=1)
+    FIVE_MINUTES = datetime.timedelta(minutes=5)
+    FIFTEEN_MINUTES = datetime.timedelta(minutes=15)
+    THIRTY_MINUTES = datetime.timedelta(minutes=30)
+    HOUR = datetime.timedelta(minutes=60)
 
-    DEFAULT_WAIT_DELAY = timezone.timedelta(minutes=5)
+    DEFAULT_WAIT_DELAY = datetime.timedelta(minutes=5)
 
     DURATION_CHOICES = (
         (ONE_MINUTE, "1 min"),

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ConfirmModal, HorizontalGroup, Icon } from '@grafana/ui';
+import { ConfirmModal, HorizontalGroup, Icon, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -12,8 +12,8 @@ import styles from 'containers/IntegrationContainers/CollapsedIntegrationRouteDi
 import { RouteButtonsDisplay } from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter';
-import CommonIntegrationHelper from 'pages/integration_2/CommonIntegration2.helper';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
+import IntegrationHelper from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 
@@ -44,12 +44,14 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
       alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId],
       routeIndex
     );
-    const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store);
+    const chatOpsAvailableChannels = IntegrationHelper.getChatOpsChannels(channelFilter, store).filter(
+      (channel) => channel
+    );
 
     return (
       <>
         <IntegrationBlock
-          hasCollapsedBorder={false}
+          noContent={false}
           key={channelFilterId}
           toggle={toggle}
           heading={
@@ -98,21 +100,24 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
             </div>
           }
           content={
-            <div className={cx('spacing')}>
+            <div>
               <div className={cx('collapsedRoute__container')}>
                 {chatOpsAvailableChannels.length > 0 && (
                   <div className={cx('collapsedRoute__item')}>
                     <HorizontalGroup spacing="xs">
                       <Text type="secondary">Publish to ChatOps</Text>
 
-                      {chatOpsAvailableChannels
-                        .filter((it) => it)
-                        .map((chatOpsChannel) => (
-                          <>
+                      {chatOpsAvailableChannels.map(
+                        (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
+                          <div
+                            key={`${chatOpsChannel.name}-${chatOpsIndex}`}
+                            className={cx({ 'u-margin-right-xs': chatOpsIndex !== chatOpsAvailableChannels.length })}
+                          >
                             <Icon name={chatOpsChannel.icon} className={cx('icon')} />
                             <Text type="primary">{chatOpsChannel.name}</Text>
-                          </>
-                        ))}
+                          </div>
+                        )
+                      )}
                     </HorizontalGroup>
                   </div>
                 )}

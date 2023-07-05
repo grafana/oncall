@@ -1,7 +1,7 @@
 import pytest
 from fcm_django.models import FCMDevice
 
-from apps.mobile_app.demo_push import TEST_PUSH_TITLE, _get_test_escalation_fcm_message
+from apps.mobile_app.demo_push import _get_test_escalation_fcm_message, get_test_push_title
 from apps.mobile_app.models import MobileAppUserSettings
 
 
@@ -33,8 +33,8 @@ def test_test_escalation_fcm_message_user_settings(
 
     # Check expected test push content
     assert message.apns.payload.aps.badge is None
-    assert message.apns.payload.aps.alert.title == TEST_PUSH_TITLE
-    assert message.data["title"] == TEST_PUSH_TITLE
+    assert message.apns.payload.aps.alert.title == get_test_push_title(critical=False)
+    assert message.data["title"] == get_test_push_title(critical=False)
 
 
 @pytest.mark.django_db
@@ -66,8 +66,8 @@ def test_escalation_fcm_message_user_settings_critical(
 
     # Check expected test push content
     assert message.apns.payload.aps.badge is None
-    assert message.apns.payload.aps.alert.title == TEST_PUSH_TITLE
-    assert message.data["title"] == TEST_PUSH_TITLE
+    assert message.apns.payload.aps.alert.title == get_test_push_title(critical=True)
+    assert message.data["title"] == get_test_push_title(critical=True)
 
 
 @pytest.mark.django_db
@@ -91,5 +91,5 @@ def test_escalation_fcm_message_user_settings_critical_override_dnd_disabled(
 
     # Check expected test push content
     assert message.apns.payload.aps.badge is None
-    assert message.apns.payload.aps.alert.title == TEST_PUSH_TITLE
-    assert message.data["title"] == TEST_PUSH_TITLE
+    assert message.apns.payload.aps.alert.title == get_test_push_title(critical=True)
+    assert message.data["title"] == get_test_push_title(critical=True)

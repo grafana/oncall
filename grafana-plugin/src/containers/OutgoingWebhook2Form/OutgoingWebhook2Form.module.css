@@ -9,3 +9,7 @@
 .content {
   margin: 4px;
 }
+
+.tabs__content {
+  padding-top: 16px;
+}

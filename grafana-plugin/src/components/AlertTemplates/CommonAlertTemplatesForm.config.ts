@@ -1,4 +1,4 @@
-import { TemplateOptions } from 'pages/integration_2/Integration2.config';
+import { TemplateOptions } from 'pages/integration/Integration.config';
 
 export interface Template {
   name: string;
@@ -33,11 +33,12 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     type: 'html',
   },
   slack_title_template: {
-    name: 'slack_title_template',
-    displayName: TemplateOptions.SlackTitle.key,
+    displayName: 'Slack title',
+    name: TemplateOptions.SlackTitle.key,
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -45,12 +46,13 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
   sms_title_template: {
     name: TemplateOptions.SMS.key,
     displayName: 'Sms title',
-    description: '',
+    description:
+      "Result of this template will be used as title of SMS message. Please don't include any urls, or phone numbers, to avoid SMS message being blocked by carriers.",
     type: 'plain',
   },
   phone_call_title_template: {
     name: TemplateOptions.Phone.key,
-    displayName: 'Phone call title',
+    displayName: 'Phone Call title',
     description: '',
     type: 'plain',
   },
@@ -66,6 +68,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'plain',
   },
@@ -75,6 +78,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -91,6 +95,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'plain',
   },
@@ -100,6 +105,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'slack',
+      chatOpsDisplayName: 'Slack',
       data: 'Click "Acknowledge" and then "Unacknowledge" in Slack to trigger re-rendering.',
     },
     type: 'plain',
@@ -116,6 +122,7 @@ export const commonTemplateForEdit: { [id: string]: TemplateForEdit } = {
     description: '',
     additionalData: {
       chatOpsName: 'telegram',
+      chatOpsDisplayName: 'Telegram',
     },
     type: 'image',
   },

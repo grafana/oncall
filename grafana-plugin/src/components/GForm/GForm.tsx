@@ -151,9 +151,11 @@ class GForm extends React.Component<GFormProps, {}> {
           return (
             <>
               {openFields.map(renderField)}
-              <Collapse isOpen={false} label="Notification settings" className={cx('collapse')}>
-                {collapsedfields.map(renderField)}
-              </Collapse>
+              {collapsedfields.length > 0 && (
+                <Collapse isOpen={false} label="Notification settings" className={cx('collapse')}>
+                  {collapsedfields.map(renderField)}
+                </Collapse>
+              )}
             </>
           );
         }}

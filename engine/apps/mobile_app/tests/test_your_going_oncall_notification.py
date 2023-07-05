@@ -96,9 +96,11 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     # same day shift
     ##################
     same_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
-    same_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(schedule, same_day_shift, maus)
+    same_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, same_day_shift, maus, user.timezone
+    )
     same_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
-        schedule, same_day_shift, maus_no_locale
+        schedule, same_day_shift, maus_no_locale, user2.timezone
     )
 
     assert same_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
@@ -110,10 +112,10 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     ##################
     multiple_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
     multiple_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
-        schedule, multiple_day_shift, maus
+        schedule, multiple_day_shift, maus, user.timezone
     )
     multiple_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
-        schedule, multiple_day_shift, maus_no_locale
+        schedule, multiple_day_shift, maus_no_locale, user2.timezone
     )
 
     assert multiple_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
@@ -121,6 +123,47 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     assert (
         multiple_day_shift_no_locale_subtitle
         == f"7/8/23, 9:00\u202fAM - 7/12/23, 5:00\u202fPM\nSchedule {schedule_name}"
+    )
+
+
+@pytest.mark.parametrize(
+    "user_timezone,expected_shift_times",
+    [
+        (None, "9:00 AM - 5:00 PM"),
+        ("Europe/Amsterdam", "11:00 AM - 7:00 PM"),
+        ("asdfasdfasdf", "9:00 AM - 5:00 PM"),
+    ],
+)
+@pytest.mark.django_db
+def test_get_youre_going_oncall_notification_subtitle(
+    make_organization, make_user_for_organization, make_schedule, user_timezone, expected_shift_times
+):
+    schedule_name = "asdfasdfasdfasdf"
+
+    organization = make_organization()
+    user = make_user_for_organization(organization, _timezone=user_timezone)
+    user_pk = user.public_primary_key
+    maus = MobileAppUserSettings.objects.create(user=user)
+
+    schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
+
+    shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
+    shift_end = timezone.datetime(2023, 7, 8, 17, 0, 0)
+
+    shift = _create_schedule_event(
+        shift_start,
+        shift_end,
+        "asdfasdfasdf",
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
+    assert (
+        tasks._get_youre_going_oncall_notification_subtitle(schedule, shift, maus, user.timezone)
+        == f"{expected_shift_times}\nSchedule {schedule_name}"
     )
 
 
@@ -140,7 +183,8 @@ def test_get_youre_going_oncall_fcm_message(
     mock_construct_fcm_message,
     mock_get_youre_going_oncall_notification_title,
     mock_get_youre_going_oncall_notification_subtitle,
-    make_organization_and_user,
+    make_organization,
+    make_user_for_organization,
     make_schedule,
 ):
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
@@ -153,7 +197,9 @@ def test_get_youre_going_oncall_fcm_message(
     mock_get_youre_going_oncall_notification_title.return_value = mock_notification_title
     mock_get_youre_going_oncall_notification_subtitle.return_value = mock_notification_subtitle
 
-    organization, user = make_organization_and_user()
+    organization = make_organization()
+    user_tz = "Europe/Amsterdam"
+    user = make_user_for_organization(organization, _timezone=user_tz)
     user_pk = user.public_primary_key
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
@@ -203,7 +249,7 @@ def test_get_youre_going_oncall_fcm_message(
     )
     mock_apns_payload.assert_called_once_with(aps=mock_aps.return_value)
 
-    mock_get_youre_going_oncall_notification_subtitle.assert_called_once_with(schedule, schedule_event, maus)
+    mock_get_youre_going_oncall_notification_subtitle.assert_called_once_with(schedule, schedule_event, maus, user_tz)
     mock_get_youre_going_oncall_notification_title.assert_called_once_with(seconds_until_going_oncall)
 
     mock_construct_fcm_message.assert_called_once_with(

@@ -1,35 +1,22 @@
 .hamburgerMenu {
   cursor: pointer;
   color: var(--primary-text-color);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  justify-content: center;
+  padding: 4px;
 
   &--withBackground {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    vertical-align: middle;
-    justify-content: center;
-    background-color: var(--button-background);
-    border: 1px solid transparent;
     height: 32px;
     width: 30px;
-    padding: 4px;
     cursor: pointer;
-    color: var(--primary-text-color);
   }
 
   &--small {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    vertical-align: middle;
-    justify-content: center;
-    background-color: var(--button-background);
-    color: var(--primary-text-color);
-    border: 1px solid transparent;
     height: 24px;
     width: 22px;
-    padding: 4px;
     cursor: pointer;
-    color: var(--primary-text-color);
   }
 }

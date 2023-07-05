@@ -94,15 +94,15 @@ oncall:
   secrets:
     # Use existing secret. (secretKey and mirageSecretKey is required)
     existingSecret: ""
-    # the key in the secret containing secret key
+    # The key in the secret containing secret key
     secretKey: ""
-    # the key in the secret containing mirage secret key
+    # The key in the secret containing mirage secret key
     mirageSecretKey: ""
-  # slack configures the Grafana Oncall Slack ChatOps integration.
+  # Slack configures the Grafana Oncall Slack ChatOps integration.
   slack:
-    # enabled enable the Slack ChatOps integration for the Oncall Engine.
+    # Enable the Slack ChatOps integration for the Oncall Engine.
     enabled: false
-    # commandName sets the Slack bot slash-command
+    # Sets the Slack bot slash-command
     commandName: oncall
     # clientId configures the Slack app OAuth2 client ID.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client ID
@@ -110,18 +110,18 @@ oncall:
     # clientSecret configures the Slack app OAuth2 client secret.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client Secret
     clientSecret: ~
-    # signingSecret configures the Slack app signature secret used to sign
+    # signingSecret - configures the Slack app signature secret used to sign
     # requests comming from Slack.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Signing Secret
     signingSecret: ~
     # Use existing secret for clientId, clientSecret and signingSecret.
     # clientIdKey, clientSecretKey and signingSecretKey are required
     existingSecret: ""
-    # the key in the secret containing OAuth2 client ID
+    # The key in the secret containing OAuth2 client ID
     clientIdKey: ""
-    # the key in the secret containing OAuth2 client secret
+    # The key in the secret containing OAuth2 client secret
     clientSecretKey: ""
-    # the key in the secret containing the Slack app signature secret
+    # The key in the secret containing the Slack app signature secret
     signingSecretKey: ""
     # OnCall external URL
     redirectHost: ~
@@ -129,9 +129,9 @@ oncall:
     enabled: false
     token: ~
     webhookUrl: ~
-    # Use exsting secret. (tokenKey is required)
+    # Use existing secret. (tokenKey is required)
     existingSecret: ""
-    # the key in the secret containing Telegram token
+    # The key in the secret containing Telegram token
     tokenKey: ""
   smtp:
     enabled: false
@@ -161,16 +161,19 @@ oncall:
     # Use existing secret for authToken, phoneNumber, verifySid, apiKeySid and apiKeySecret.
     existingSecret: ""
     # Twilio password to allow OnCall to send SMSes and make calls
-    # the key in the secret containing the auth token
+    # The key in the secret containing the auth token
     authTokenKey: ""
-    # the key in the secret containing the phone number
+    # The key in the secret containing the phone number
     phoneNumberKey: ""
-    # the key in the secret containing verify service sid
+    # The key in the secret containing verify service sid
     verifySidKey: ""
-    # the key in the secret containing api key sid
+    # The key in the secret containing api key sid
     apiKeySidKey: ""
-    # the key in the secret containing the api key secret
+    # The key in the secret containing the api key secret
     apiKeySecretKey: ""
+    # Phone notifications limit (the only non-secret value).
+    # TODO: rename to phoneNotificationLimit
+    limitPhone:
 
 # Whether to run django database migrations automatically
 migrate:
@@ -252,6 +255,7 @@ mariadb:
   enabled: true
   auth:
     database: oncall
+    existingSecret:
   primary:
     extraEnvVars:
       - name: MARIADB_COLLATE
@@ -273,11 +277,11 @@ externalMysql:
   db_name:
   user:
   password:
-  # use an existing secret for the mysql password
-  existingSecret: ""
-  # the key in the secret containing the mysql username
+  # Use an existing secret for the mysql password.
+  existingSecret:
+  # The key in the secret containing the mysql username
   usernameKey:
-  # the key in the secret containing the mysql password
+  # The key in the secret containing the mysql password
   passwordKey:
 
 # PostgreSQL is included into this release for the convenience.
@@ -287,6 +291,7 @@ postgresql:
   enabled: false
   auth:
     database: oncall
+    existingSecret:
 
 # Make sure to create the database with the following parameters:
 # CREATE DATABASE oncall WITH ENCODING UTF8;
@@ -296,9 +301,9 @@ externalPostgresql:
   db_name:
   user:
   password:
-  # use an existing secret for the database password
-  existingSecret: ""
-  # the key in the secret containing the database password
+  # Use an existing secret for the database password
+  existingSecret:
+  # The key in the secret containing the database password
   passwordKey:
 
 # RabbitMQ is included into this release for the convenience.
@@ -306,6 +311,8 @@ externalPostgresql:
 # Set rabbitmq.enabled = false and configure externalRabbitmq
 rabbitmq:
   enabled: true
+  auth:
+    existingPasswordSecret:
 
 broker:
   type: rabbitmq
@@ -317,24 +324,26 @@ externalRabbitmq:
   password:
   protocol:
   vhost:
-  # use an existing secret for the rabbitmq password
-  existingSecret: ""
-  # the key in the secret containing the rabbitmq password
+  # Use an existing secret for the rabbitmq password
+  existingSecret:
+  # The key in the secret containing the rabbitmq password
   passwordKey: ""
-  # the key in the secret containing the rabbitmq username
+  # The key in the secret containing the rabbitmq username
   usernameKey: username
 
 # Redis is included into this release for the convenience.
 # It is recommended to host it separately from this release
 redis:
   enabled: true
+  auth:
+    existingSecret:
 
 externalRedis:
   host:
   password:
-  # use an existing secret for the redis password
-  existingSecret: ""
-  # the key in the secret containing the redis password
+  # Use an existing secret for the redis password
+  existingSecret:
+  # The key in the secret containing the redis password
   passwordKey:
 
 # Grafana is included into this release for the convenience.
@@ -355,6 +364,7 @@ grafana:
     - grafana-oncall-app
 
 externalGrafana:
+  # Example: https://grafana.mydomain.com
   url:
 
 nameOverride: ""

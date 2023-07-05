@@ -100,7 +100,7 @@ class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerialize
     )
 
     class Meta(UserNotificationPolicyBaseSerializer.Meta):
-        read_only_fields = ("order", "user", "important")
+        read_only_fields = ["order", "user", "important"]
 
     def update(self, instance, validated_data):
         self_or_admin = instance.user.self_or_admin(

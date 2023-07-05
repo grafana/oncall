@@ -14,7 +14,6 @@ FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 FEATURE_WEB_SCHEDULES = "web_schedules"
 FEATURE_WEBHOOKS2 = "webhooks2"
-FEATURE_MOBILE_TEST_PUSH = "mobile_test_push"
 
 
 class FeaturesAPIView(APIView):
@@ -63,13 +62,5 @@ class FeaturesAPIView(APIView):
 
         if is_webhooks_enabled_for_organization(request.auth.organization.pk):
             enabled_features.append(FEATURE_WEBHOOKS2)
-
-        enabled_mobile_test_push = DynamicSetting.objects.get_or_create(
-            name="enabled_mobile_test_push",
-            defaults={"boolean_value": False},
-        )[0]
-
-        if enabled_mobile_test_push.boolean_value:
-            enabled_features.append(FEATURE_MOBILE_TEST_PUSH)
 
         return enabled_features

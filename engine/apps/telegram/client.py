@@ -100,8 +100,8 @@ class TelegramClient:
         message_id: Union[int, str],
         text: str,
         keyboard: Optional[InlineKeyboardMarkup] = None,
-    ) -> Message:
-        message = self.api_client.edit_message_text(
+    ) -> Union[Message, bool]:
+        return self.api_client.edit_message_text(
             chat_id=chat_id,
             message_id=message_id,
             text=text,
@@ -109,7 +109,6 @@ class TelegramClient:
             parse_mode=self.PARSE_MODE,
             disable_web_page_preview=False,
         )
-        return message
 
     @staticmethod
     def _get_message_and_keyboard(
