@@ -6,5 +6,4 @@ export enum AppFeature {
   CloudConnection = 'grafana_cloud_connection',
   WebSchedules = 'web_schedules',
   Webhooks2 = 'webhooks2',
-  MobileTestPush = 'mobile_test_push',
 }

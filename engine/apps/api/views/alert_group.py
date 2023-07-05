@@ -400,20 +400,13 @@ class AlertGroupView(
 
     @action(detail=False)
     def stats(self, *args, **kwargs):
-        alert_groups = self.filter_queryset(self.get_queryset())
-        # Only count field is used, other fields left just in case for the backward compatibility
+        MAX_COUNT = 100001
+        alert_groups = self.filter_queryset(self.get_queryset())[:MAX_COUNT]
+        count = alert_groups.count()
+        count = f"{MAX_COUNT-1}+" if count == MAX_COUNT else str(count)
         return Response(
             {
-                "count": alert_groups.filter().count(),
-                "count_previous_same_period": 0,
-                "alert_group_rate_to_previous_same_period": 1,
-                "count_escalations": 0,
-                "count_escalations_previous_same_period": 0,
-                "escalation_rate_to_previous_same_period": 1,
-                "average_response_time": None,
-                "average_response_time_to_previous_same_period": None,
-                "average_response_time_rate_to_previous_same_period": 0,
-                "prev_period_in_days": 1,
+                "count": count,
             }
         )
 

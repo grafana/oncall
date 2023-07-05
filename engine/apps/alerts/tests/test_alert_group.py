@@ -14,7 +14,7 @@ def test_render_for_phone_call(
     make_alert,
 ):
     organization, _ = make_organization_with_slack_team_identity()
-    alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
+    alert_receive_channel = make_alert_receive_channel(organization)
 
     alert_group = make_alert_group(alert_receive_channel)
     SlackMessage.objects.create(channel_id="CWER1ASD", alert_group=alert_group)
@@ -60,7 +60,7 @@ def test_delete(
     slack_channel = make_slack_channel(slack_team_identity, name="general", slack_id="CWER1ASD")
     user = make_user(organization=organization)
 
-    alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
+    alert_receive_channel = make_alert_receive_channel(organization)
 
     alert_group = make_alert_group(alert_receive_channel)
     SlackMessage.objects.create(channel_id="CWER1ASD", alert_group=alert_group)
@@ -104,7 +104,7 @@ def test_alerts_count_gt(
     make_alert,
 ):
     organization = make_organization()
-    alert_receive_channel = make_alert_receive_channel(organization, integration_slack_channel_id="CWER1ASD")
+    alert_receive_channel = make_alert_receive_channel(organization)
 
     alert_group = make_alert_group(alert_receive_channel)
 

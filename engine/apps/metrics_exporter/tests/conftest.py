@@ -1,13 +1,22 @@
 import pytest
 from django.core.cache import cache
 
-from apps.metrics_exporter.constants import ALERT_GROUPS_RESPONSE_TIME, ALERT_GROUPS_TOTAL
-from apps.metrics_exporter.helpers import get_metric_alert_groups_response_time_key, get_metric_alert_groups_total_key
+from apps.metrics_exporter.constants import (
+    ALERT_GROUPS_RESPONSE_TIME,
+    ALERT_GROUPS_TOTAL,
+    USER_WAS_NOTIFIED_OF_ALERT_GROUPS,
+)
+from apps.metrics_exporter.helpers import (
+    get_metric_alert_groups_response_time_key,
+    get_metric_alert_groups_total_key,
+    get_metric_user_was_notified_of_alert_groups_key,
+)
 
 METRICS_TEST_INTEGRATION_NAME = "Test integration"
 METRICS_TEST_ORG_ID = 123  # random number
 METRICS_TEST_INSTANCE_SLUG = "test_instance"
 METRICS_TEST_INSTANCE_ID = 292  # random number
+METRICS_TEST_USER_USERNAME = "Alex"
 
 
 @pytest.fixture()
@@ -17,6 +26,8 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
             key = ALERT_GROUPS_TOTAL
         elif key.startswith(ALERT_GROUPS_RESPONSE_TIME):
             key = ALERT_GROUPS_RESPONSE_TIME
+        elif key.startswith(USER_WAS_NOTIFIED_OF_ALERT_GROUPS):
+            key = USER_WAS_NOTIFIED_OF_ALERT_GROUPS
         test_metrics = {
             ALERT_GROUPS_TOTAL: {
                 1: {
@@ -41,6 +52,15 @@ def mock_cache_get_metrics_for_collector(monkeypatch):
                     "slug": "Test stack",
                     "id": 1,
                     "response_time": [2, 10, 200, 650],
+                }
+            },
+            USER_WAS_NOTIFIED_OF_ALERT_GROUPS: {
+                1: {
+                    "org_id": 1,
+                    "slug": "Test stack",
+                    "id": 1,
+                    "user_username": "Alex",
+                    "counter": 4,
                 }
             },
         }
@@ -98,6 +118,30 @@ def make_metrics_cache_params(monkeypatch):
                         "acknowledged": 0,
                         "silenced": 0,
                         "resolved": 0,
+                    }
+                },
+            }
+            return metrics_data.get(key, {})
+
+        return cache_get
+
+    return _make_cache_params
+
+
+@pytest.fixture
+def make_user_was_notified_metrics_cache_params(monkeypatch):
+    def _make_cache_params(user_id, organization_id):
+        metric_user_was_notified_key = get_metric_user_was_notified_of_alert_groups_key(organization_id)
+
+        def cache_get(key, *args, **kwargs):
+            metrics_data = {
+                metric_user_was_notified_key: {
+                    user_id: {
+                        "org_id": METRICS_TEST_ORG_ID,
+                        "slug": METRICS_TEST_INSTANCE_SLUG,
+                        "id": METRICS_TEST_INSTANCE_ID,
+                        "user_username": METRICS_TEST_USER_USERNAME,
+                        "counter": 1,
                     }
                 },
             }
