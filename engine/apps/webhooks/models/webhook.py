@@ -293,6 +293,7 @@ class WebhookResponse(models.Model):
     url = models.TextField(null=True, default=None)
     status_code = models.IntegerField(default=None, null=True)
     content = models.TextField(null=True, default=None)
+    event_data = models.TextField(null=True, default=None)
 
     def json(self):
         if self.content:
