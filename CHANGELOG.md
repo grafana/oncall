@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add full avatar URL for on-call users in schedule internal API by @vadimkerr ([#2414](https://github.com/grafana/oncall/pull/2414))
+- Add phone call using the zvonok.com service by @sreway ([#2339](https://github.com/grafana/oncall/pull/2339))
 
 ## v1.3.3 (2023-06-29)
 

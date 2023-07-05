@@ -682,7 +682,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
 ]
 
 if IS_OPEN_SOURCE:
-    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
@@ -724,5 +724,16 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
+    "zvonok": "apps.zvonok.phone_provider.ZvonokPhoneProvider",
 }
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
+
+ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
+ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)
+ZVONOK_AUDIO_ID = os.getenv("ZVONOK_AUDIO_ID", None)
+ZVONOK_SPEAKER_ID = os.getenv("ZVONOK_SPEAKER_ID", "Salli")
+ZVONOK_POSTBACK_CALL_ID = os.getenv("ZVONOK_POSTBACK_CALL_ID", "call_id")
+ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign_id")
+ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
+ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
+ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
