@@ -1,8 +1,7 @@
 import pytest
-from fcm_django.models import FCMDevice
 
 from apps.mobile_app.demo_push import _get_test_escalation_fcm_message, get_test_push_title
-from apps.mobile_app.models import MobileAppUserSettings
+from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 
 
 @pytest.mark.django_db

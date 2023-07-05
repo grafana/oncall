@@ -1,17 +1,22 @@
 import json
 import random
 import string
+import typing
 
-from fcm_django.models import FCMDevice
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.exceptions import DeviceNotSet
 from apps.mobile_app.tasks import FCMMessageData, MessageType, _construct_fcm_message, _send_push_notification, logger
 from apps.user_management.models import User
 
+if typing.TYPE_CHECKING:
+    from apps.mobile_app.models import FCMDevice
+
 
 def send_test_push(user, critical=False):
-    device_to_notify = FCMDevice.objects.filter(user=user).first()
+    from apps.mobile_app.models import FCMDevice
+
+    device_to_notify = FCMDevice.get_active_device_for_user(user)
     if device_to_notify is None:
         logger.info(f"send_test_push: fcm_device not found user_id={user.id}")
         raise DeviceNotSet
@@ -19,7 +24,7 @@ def send_test_push(user, critical=False):
     _send_push_notification(device_to_notify, message)
 
 
-def _get_test_escalation_fcm_message(user: User, device_to_notify: FCMDevice, critical: bool) -> Message:
+def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", critical: bool) -> Message:
     # TODO: this method is copied from _get_alert_group_escalation_fcm_message
     # to have same notification/sound/overrideDND logic. Ideally this logic should be abstracted, not repeated.
     from apps.mobile_app.models import MobileAppUserSettings
