@@ -393,7 +393,7 @@ def should_we_send_going_oncall_push_notification(
 
     if not user_wants_to_receive_info_notifications:
         logger.info("not sending going oncall push notification because info_notifications_enabled is false")
-        return
+        return None
 
     # 14 minute window where the notification could be sent (7 mins before or 7 mins after)
     timing_window_lower = user_notification_timing_preference - NOTIFICATION_TIMING_BUFFER
@@ -421,6 +421,7 @@ def should_we_send_going_oncall_push_notification(
         logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
         return seconds_until_shift_starts
     logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
+    return None
 
 
 def _generate_going_oncall_push_notification_cache_key(user_pk: str, schedule_event: ScheduleEvent) -> str:

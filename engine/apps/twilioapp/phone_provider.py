@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class TwilioPhoneProvider(PhoneProvider):
-    def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall:
+    def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall | None:
         message = self._escape_call_message(message)
 
         twiml_query = self._message_to_twiml(message, with_gather=True)
@@ -57,8 +57,9 @@ class TwilioPhoneProvider(PhoneProvider):
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
             )
+        return None
 
-    def send_notification_sms(self, number: str, message: str) -> TwilioSMS:
+    def send_notification_sms(self, number: str, message: str) -> TwilioSMS | None:
         try_without_callback = False
         response = None
 
@@ -86,6 +87,7 @@ class TwilioPhoneProvider(PhoneProvider):
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
             )
+        return None
 
     def send_verification_sms(self, number: str):
         self._send_verification_code(number, via="sms")

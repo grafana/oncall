@@ -38,7 +38,6 @@ disable_error_code = [
     "name-defined",
     "no-redef",
     "operator",
-    "return",
     "return-value",
     "typeddict-item",
     "union-attr",
