@@ -31,7 +31,7 @@ class FCMDevice(BaseFCMDevice):
 
     @classmethod
     def get_active_device_for_user(cls, user: "User") -> FCMDevice | None:
-        return cls.active_objects.get(user=user)
+        return cls.active_objects.filter(user=user).first()
 
 
 class MobileAppVerificationTokenQueryset(models.QuerySet):
