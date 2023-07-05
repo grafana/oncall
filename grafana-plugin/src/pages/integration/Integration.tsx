@@ -88,8 +88,6 @@ interface IntegrationState extends PageBaseState {
   openRoutes: string[];
 }
 
-const ACTIONS_LIST_WIDTH = 200;
-const ACTIONS_LIST_BORDER = 2;
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
@@ -685,7 +683,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
           </Button>
-          <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL copied!')}>
+          <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL has been copied')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
           <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
@@ -884,7 +882,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 </div>
               </CopyToClipboard>
 
-              <div className="thin-line-break" />
+              <div className={cx('thin-line-break')} />
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integration__actionItem')}>
@@ -918,14 +916,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
             </div>
           )}
         >
-          {({ openMenu }) => (
-            <HamburgerMenu
-              openMenu={openMenu}
-              listBorder={ACTIONS_LIST_BORDER}
-              listWidth={ACTIONS_LIST_WIDTH}
-              withBackground
-            />
-          )}
+          {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} withBackground />}
         </WithContextMenu>
       </div>
     </>

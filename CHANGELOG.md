@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI drawer updates for webhooks2 ([#2419](https://github.com/grafana/oncall/pull/2419))
 - Removed url from sms notification, changed format ([2317](https://github.com/grafana/oncall/pull/2317))  
 
 ## v1.3.4 (2023-07-05)
