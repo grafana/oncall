@@ -724,8 +724,11 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
-    "zvonok": "apps.zvonok.phone_provider.ZvonokPhoneProvider",
 }
+
+if IS_OPEN_SOURCE:
+    PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
+
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
 
 ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
