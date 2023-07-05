@@ -8,19 +8,15 @@ test('check schedule quality for simple 1-user schedule', async ({ adminRolePage
 
   await createOnCallSchedule(page, onCallScheduleName, userName);
 
-  /**
-   * this page.reload() call is a hack to temporarily get around this issue
-   * https://github.com/grafana/oncall/issues/1968
-   */
-  await page.reload({ waitUntil: 'networkidle' });
-
   const scheduleQualityElement = page.getByTestId('schedule-quality');
+  await scheduleQualityElement.waitFor({ state: 'visible' });
 
   await expect(scheduleQualityElement).toHaveText('Quality: Great', { timeout: 15_000 });
 
   await scheduleQualityElement.hover();
 
   const scheduleQualityDetailsElement = page.getByTestId('schedule-quality-details');
+  await scheduleQualityDetailsElement.waitFor({ state: 'visible' });
 
   await expect(scheduleQualityDetailsElement.locator('span[class*="Text"] >> nth=2 ')).toHaveText(
     'Schedule has no gaps'
