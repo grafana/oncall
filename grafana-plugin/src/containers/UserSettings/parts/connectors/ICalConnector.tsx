@@ -95,7 +95,9 @@ const ICalConnector = (props: ICalConnectorProps) => {
                           <Input value={'***'} />
                         </Tooltip>
                         <WithConfirm
-                          title={'Are you sure you want to revoke iCal link' + (!isCurrentUser && ' for other user')}
+                          title={
+                            'Are you sure you want to revoke iCal link' + (!isCurrentUser ? ' for other user' : '')
+                          }
                           confirmText="Revoke"
                         >
                           <Button icon="trash-alt" variant="destructive" onClick={handleRevokeiCalLink}>
