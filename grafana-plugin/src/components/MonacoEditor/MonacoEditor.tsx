@@ -11,7 +11,7 @@ declare const monaco: any;
 interface MonacoEditorProps {
   value: string;
   disabled?: boolean;
-  height?: string;
+  height?: string | number;
   focus?: boolean;
   data: any;
   showLineNumbers?: boolean;

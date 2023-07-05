@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
 import GForm from 'components/GForm/GForm';
+import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import Text from 'components/Text/Text';
 import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -42,6 +43,9 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
 
+  // show template editor if true
+  const [, setShowTemplateEditor] = useState<boolean>(false);
+
   const { outgoingWebhook2Store } = useStore();
   const isNew = action === WebhookFormActionType.NEW;
   const isNewOrCopy = isNew || action === WebhookFormActionType.COPY;
@@ -55,6 +59,26 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     },
     [id]
   );
+
+  const getTemplateEditClickHandler = (formItem: FormItem) => {
+    return () => {
+      console.log('formItem', formItem);
+      setShowTemplateEditor(true);
+    };
+  };
+
+  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement) => {
+    if (formItem.type === FormItemType.Monaco) {
+      return (
+        <div className={cx('form-row')}>
+          <div className={cx('form-field')}>{renderedControl}</div>
+          <Button icon="edit" variant="secondary" onClick={getTemplateEditClickHandler(formItem)} />
+        </div>
+      );
+    }
+
+    return renderedControl;
+  };
 
   if (
     (action === WebhookFormActionType.EDIT_SETTINGS || action === WebhookFormActionType.VIEW_LAST_RUN) &&
@@ -86,11 +110,27 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     return null;
   }
 
+  const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
+
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
     // show just the creation form, not the tabs
     return (
       <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
-        {renderWebhookForm()}
+        <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
+          {formElement}
+          <div className={cx('buttons')}>
+            <HorizontalGroup justify={'flex-end'}>
+              <Button variant="secondary" onClick={onHide}>
+                Cancel
+              </Button>
+              <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
+                <Button form={form.name} type="submit" disabled={data.is_legacy}>
+                  {isNewOrCopy ? 'Create' : 'Update'} Webhook
+                </Button>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
+          </div>
+        </div>
       </Drawer>
     );
   }
@@ -129,31 +169,10 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
         onDelete={onDelete}
         onHide={onHide}
         onUpdate={onUpdate}
+        formElement={formElement}
       />
     </Drawer>
   );
-
-  function renderWebhookForm() {
-    return (
-      <>
-        <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
-          <GForm form={form} data={data} onSubmit={handleSubmit} />
-          <div className={cx('buttons')}>
-            <HorizontalGroup justify={'flex-end'}>
-              <Button variant="secondary" onClick={onHide}>
-                Cancel
-              </Button>
-              <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                <Button form={form.name} type="submit" disabled={data.is_legacy}>
-                  {isNewOrCopy ? 'Create' : 'Update'} Webhook
-                </Button>
-              </WithPermissionControlTooltip>
-            </HorizontalGroup>
-          </div>
-        </div>
-      </>
-    );
-  }
 });
 
 interface WebhookTabsProps {
@@ -170,6 +189,7 @@ interface WebhookTabsProps {
   onUpdate: () => void;
   onDelete: () => void;
   handleSubmit: (data: Partial<OutgoingWebhook2>) => void;
+  formElement: React.ReactElement;
 }
 
 const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
@@ -177,10 +197,10 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   action,
   activeTab,
   data,
-  handleSubmit,
   onHide,
   onUpdate,
   onDelete,
+  formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
 
@@ -193,7 +213,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
       {activeTab === WebhookTabs.Settings.key && (
         <>
           <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
-            <GForm form={form} data={data} onSubmit={handleSubmit} />
+            {formElement}
             <div className={cx('buttons')}>
               <HorizontalGroup justify={'flex-end'}>
                 <Button variant="secondary" onClick={onHide}>
