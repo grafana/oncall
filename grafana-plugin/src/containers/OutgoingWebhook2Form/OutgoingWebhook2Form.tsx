@@ -130,12 +130,6 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     // show tabbed drawer (edit/live_run)
     <>
       <Drawer scrollableContent title={'Outgoing webhook details'} onClose={onHide} closeOnMaskClick={false}>
-        <Button variant="destructive" onClick={() => setShowTemplateEditor(true)}>
-          Open Template Editor
-        </Button>
-        <br />
-        <br />
-
         <TabsBar>
           <Tab
             key={WebhookTabs.Settings.key}
