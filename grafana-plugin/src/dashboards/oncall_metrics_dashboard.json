@@ -673,7 +673,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[1h:])[1h:])",
+          "expr": "increase(max_over_time(sum by (integration) (avg without(pod, instance) ($alert_groups_total{slug=~\"$instance\", team=~\"$team\", integration=~\"$integration\"}))[30m:])[1h:])",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1167,7 +1167,7 @@
           "editorMode": "code",
           "excludeNullMetadata": false,
           "exemplar": false,
-          "expr": "increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[1h:])[1h:])",
+          "expr": "increase(max_over_time(sum by (username) (avg without(pod, instance) ($user_was_notified_of_alert_groups_total{slug=~\"$instance\"}))[30m:])[1h:])",
           "fullMetaSearch": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1672,6 +1672,11 @@
         "type": "datasource"
       },
       {
+        "current": {
+          "selected": true,
+          "text": ["oncall_alert_groups_total", "grafanacloud_oncall_instance_alert_groups_total"],
+          "value": ["oncall_alert_groups_total", "grafanacloud_oncall_instance_alert_groups_total"]
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
@@ -1680,7 +1685,7 @@
         "hide": 2,
         "includeAll": false,
         "label": "alert_groups_total",
-        "multi": false,
+        "multi": true,
         "name": "alert_groups_total",
         "options": [],
         "query": {
