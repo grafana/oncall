@@ -39,7 +39,9 @@ Alerts from Inbound Email integration have the following payload:
 }
 ```
 
+<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
 [jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating"
 {{% /docs/reference %}}
+<!-- markdownlint-enable MD033 -->

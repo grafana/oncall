@@ -45,6 +45,7 @@ read-only and cannot be edited from the UI.
 To learn more, read our [Get started with Grafana OnCall and Terraform](
 <https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/>) blog post.
 
+<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [ical-schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/ical-schedules"
 [ical-schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/ical-schedules"
@@ -55,3 +56,4 @@ To learn more, read our [Get started with Grafana OnCall and Terraform](
 [web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
 [web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
 {{% /docs/reference %}}
+<!-- markdownlint-enable MD033 -->

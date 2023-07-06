@@ -35,7 +35,9 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 4. Set the following URL: **OnCall Integration URL**
 5. Check "Payload type" is JSON.
 
+<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}
+<!-- markdownlint-enable MD033 -->

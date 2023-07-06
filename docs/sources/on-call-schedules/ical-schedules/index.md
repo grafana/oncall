@@ -100,7 +100,9 @@ For example, users AliceGrafana and BobGrafana have overlapping schedules but Bo
 contact. The calendar events titles would be `[L1] BobGrafana` and `[L0] AliceGrafana` - In this case AliceGrafana
 maintains the default [L0] status, and would not receive notifications during the overlapping time with BobGrafana.
 
+<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
 [web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
 {{% /docs/reference %}}
+<!-- markdownlint-enable MD033 -->

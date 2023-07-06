@@ -50,7 +50,9 @@ Grafana OnCall provides grouping, auto-acknowledge and auto-resolve logic for th
 
 To customize this behaviour, consider modifying alert templates in integration settings.
 
+<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}
+<!-- markdownlint-enable MD033 -->

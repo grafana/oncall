@@ -55,7 +55,9 @@ level, event frequency, or specific tags.
 
 Once the alert conditions are met, Sentry will trigger the webhook action and send a request to the Grafana OnCall.
 
+<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}
+<!-- markdownlint-enable MD033 -->

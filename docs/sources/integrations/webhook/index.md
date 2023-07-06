@@ -62,7 +62,9 @@ https://a-prod-us-central-0.grafana.net/integrations/v1/formatted_webhook/m12xmI
 To learn how to use custom alert templates for formatted webhooks, see
 [Configure alerts templates][jinja2-templating].
 
+<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
 [jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating"
 {{% /docs/reference %}}
+<!-- markdownlint-enable MD033 -->
