@@ -16,7 +16,7 @@ import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
-import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
@@ -44,6 +44,9 @@ interface IntegrationTemplateProps {
 
 const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
   const { id, onHide, template, onUpdateTemplates, onUpdateRoute, templateBody, channelFilterId, templates } = props;
+
+  console.log('IntegrationTemplate');
+  console.log(props);
 
   const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [chatOpsPermalink, setChatOpsPermalink] = useState(undefined);
@@ -188,6 +191,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       <div className={cx('container-wrapper')}>
         <div className={cx('container')} id={'content-container-id'}>
           <TemplatesAlertGroupsList
+            templatePage={TEMPLATE_PAGE.Integrations}
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}
