@@ -93,7 +93,14 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+            "users": [
+                {
+                    "display_name": user.username,
+                    "pk": user.public_primary_key,
+                    "email": user.email,
+                    "avatar_full": user.avatar_full_url,
+                },
+            ],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
         }
@@ -114,7 +121,14 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
             "is_gap": False,
             "priority_level": None,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+            "users": [
+                {
+                    "display_name": user.username,
+                    "pk": user.public_primary_key,
+                    "email": user.email,
+                    "avatar_full": user.avatar_full_url,
+                },
+            ],
             "shift": {"pk": override.public_primary_key},
             "source": "api",
         }
@@ -179,7 +193,14 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+            "users": [
+                {
+                    "display_name": user.username,
+                    "pk": user.public_primary_key,
+                    "email": user.email,
+                    "avatar_full": user.avatar_full_url,
+                },
+            ],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
         },
@@ -689,7 +710,12 @@ def test_preview_shift(make_organization, make_user_for_organization, make_sched
             "priority_level": new_shift.priority_level,
             "missing_users": [],
             "users": [
-                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+                {
+                    "display_name": other_user.username,
+                    "pk": other_user.public_primary_key,
+                    "email": other_user.email,
+                    "avatar_full": other_user.avatar_full_url,
+                },
             ],
             "shift": {"pk": new_shift.public_primary_key},
             "source": "api",
@@ -784,7 +810,14 @@ def test_preview_shift_do_not_change_rotation_events(
             "is_gap": False,
             "priority_level": on_call_shift.priority_level,
             "missing_users": [],
-            "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+            "users": [
+                {
+                    "display_name": user.username,
+                    "pk": user.public_primary_key,
+                    "email": user.email,
+                    "avatar_full": user.avatar_full_url,
+                },
+            ],
             "shift": {"pk": on_call_shift.public_primary_key},
             "source": "api",
         }
@@ -912,7 +945,12 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
             "priority_level": None,
             "missing_users": [],
             "users": [
-                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+                {
+                    "display_name": other_user.username,
+                    "pk": other_user.public_primary_key,
+                    "email": other_user.email,
+                    "avatar_full": other_user.avatar_full_url,
+                },
             ],
             "shift": {"pk": new_shift.public_primary_key},
             "source": "api",

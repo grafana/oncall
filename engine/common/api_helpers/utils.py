@@ -1,5 +1,6 @@
 import datetime
 import re
+import typing
 from urllib.parse import urljoin
 
 import requests
@@ -9,6 +10,7 @@ from django.utils import dateparse, timezone
 from django.utils.regex_helper import _lazy_re_compile
 from icalendar import Calendar
 from rest_framework import serializers
+from rest_framework.request import Request
 
 from apps.schedules.ical_utils import fetch_ical_file
 from common.api_helpers.exceptions import BadRequest
@@ -125,12 +127,12 @@ def create_engine_url(path, override_base=None):
     return urljoin(base, trimmed_path)
 
 
-def get_date_range_from_request(request):
+def get_date_range_from_request(request: Request) -> typing.Tuple[str, datetime.date, int]:
     """Extract timezone, starting date and number of days params from request.
 
     Used mainly for schedules and shifts API.
     """
-    user_tz = request.query_params.get("user_tz", "UTC")
+    user_tz: str = request.query_params.get("user_tz", "UTC")
     raise_exception_if_not_valid_timezone(user_tz)
 
     date = timezone.now().date()
