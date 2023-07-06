@@ -15,8 +15,15 @@ import TemplateResult from 'containers/TemplateResult/TemplateResult';
 
 const cx = cn.bind(styles);
 
+interface Template {
+  value: string;
+  displayName: string;
+  description: string;
+  name: undefined;
+}
+
 interface WebhooksTemplateEditorProps {
-  template: any;
+  template: Template;
   onHide: () => void;
   handleSubmit: () => void;
 }
@@ -87,7 +94,7 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                   </HorizontalGroup>
                 </div>
                 <div className={cx('template-editor-block-content')}>
-                  <MonacoEditor value={''} data={undefined} showLineNumbers={true} height={`400px`} onChange={noop} />
+                  <MonacoEditor value={template.value} data={undefined} showLineNumbers={true} height={`400px`} onChange={noop} />
                 </div>
               </div>
             </>

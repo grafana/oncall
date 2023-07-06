@@ -41,7 +41,7 @@ export const WebhookTabs = {
 const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
-  const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+  const [templateFieldValue, setTemplateFieldValue] = useState<string>(undefined);
   const [activeTab, setActiveTab] = useState<string>(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
@@ -60,19 +60,19 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     [id]
   );
 
-  const getTemplateEditClickHandler = (formItem: FormItem) => {
+  const getTemplateEditClickHandler = (formItem: FormItem, values) => {
     return () => {
-      console.log('formItem', formItem);
-      setShowTemplateEditor(true);
+      const formValue = values[formItem.name];
+      setTemplateFieldValue(formValue);
     };
   };
 
-  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement) => {
+  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement, values) => {
     if (formItem.type === FormItemType.Monaco) {
       return (
         <div className={cx('form-row')}>
           <div className={cx('form-field')}>{renderedControl}</div>
-          <Button icon="edit" variant="secondary" onClick={getTemplateEditClickHandler(formItem)} />
+          <Button icon="edit" variant="secondary" onClick={getTemplateEditClickHandler(formItem, values)} />
         </div>
       );
     }
@@ -112,6 +112,9 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
 
   const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
 
+  // we'll most likely need to figure out these values as well in case we want to provide displayName/description/etc
+  const template = { value: templateFieldValue, displayName: undefined, description: undefined, name: undefined };
+
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
     // show just the creation form, not the tabs
     return (
@@ -119,8 +122,12 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
         <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
           {renderWebhookForm()}
         </Drawer>
-        {showTemplateEditor && (
-          <WebhooksTemplateEditor handleSubmit={noop} onHide={() => setShowTemplateEditor(false)} template={{}} />
+        {templateFieldValue !== undefined && (
+          <WebhooksTemplateEditor
+            handleSubmit={noop}
+            onHide={() => setTemplateFieldValue(undefined)}
+            template={template}
+          />
         )}
       </>
     );
@@ -164,8 +171,12 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
           formElement={formElement}
         />
       </Drawer>
-      {showTemplateEditor && (
-        <WebhooksTemplateEditor handleSubmit={noop} onHide={() => setShowTemplateEditor(false)} template={{}} />
+      {templateFieldValue !== undefined && (
+        <WebhooksTemplateEditor
+          handleSubmit={noop}
+          onHide={() => setTemplateFieldValue(undefined)}
+          template={template}
+        />
       )}
     </>
   );

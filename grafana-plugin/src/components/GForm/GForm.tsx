@@ -19,7 +19,7 @@ interface GFormProps {
   form: { name: string; fields: FormItem[] };
   data: any;
   onSubmit: (data: any) => void;
-  onFieldRender?: (formItem: FormItem, renderedControl: React.ReactElement) => React.ReactElement;
+  onFieldRender?: (formItem: FormItem, renderedControl: React.ReactElement, values: any) => React.ReactElement;
 }
 
 const nullNormalizer = (value: string) => {
@@ -166,7 +166,7 @@ class GForm extends React.Component<GFormProps, {}> {
                 error={formItem.label ? `${formItem.label} is required` : `${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
-                {onFieldRender ? onFieldRender(formItem, formControl) : formControl}
+                {onFieldRender ? onFieldRender(formItem, formControl, getValues()) : formControl}
               </Field>
             );
           };
