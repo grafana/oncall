@@ -32,7 +32,7 @@ import IntegrationInputField from 'components/IntegrationInputField/IntegrationI
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
-import { MONACO_DEFAULT_PAYLOAD_OPTIONS } from 'components/MonacoEditor/MonacoEditor.config';
+import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -672,7 +672,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
             useAutoCompleteList={false}
             language={MONACO_LANGUAGE.json}
             data={undefined}
-            monacoOptions={MONACO_DEFAULT_PAYLOAD_OPTIONS}
+            monacoOptions={MONACO_EDITABLE_CONFIG}
             showLineNumbers={false}
             onChange={onPayloadChangeDebounced}
           />

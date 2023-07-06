@@ -7,7 +7,7 @@ import cn from 'classnames/bind';
 import Collapse from 'components/Collapse/Collapse';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import { MONACO_DEFAULT_OPTIONS } from 'components/MonacoEditor/MonacoEditor.config';
+import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 
@@ -124,7 +124,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
                 {...field}
                 {...formItem.extra}
                 showLineNumbers={false}
-                monacoOptions={{ ...MONACO_DEFAULT_OPTIONS, readOnly: false }}
+                monacoOptions={MONACO_READONLY_CONFIG}
               />
             );
           }}

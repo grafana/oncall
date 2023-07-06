@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
-import { MONACO_DEFAULT_PAYLOAD_OPTIONS } from 'components/MonacoEditor/MonacoEditor.config';
+import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -133,7 +133,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               language={MONACO_LANGUAGE.json}
               data={templates}
               monacoOptions={{
-                ...MONACO_DEFAULT_PAYLOAD_OPTIONS,
+                ...MONACO_EDITABLE_CONFIG,
                 readOnly: false,
               }}
               height={getCodeEditorHeight()}
@@ -218,7 +218,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
             showLineNumbers
             useAutoCompleteList={false}
             language={MONACO_LANGUAGE.json}
-            monacoOptions={MONACO_DEFAULT_PAYLOAD_OPTIONS}
+            monacoOptions={MONACO_EDITABLE_CONFIG}
           />
         </div>
       </>
@@ -258,7 +258,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               useAutoCompleteList={false}
               language={MONACO_LANGUAGE.json}
               monacoOptions={{
-                ...MONACO_DEFAULT_PAYLOAD_OPTIONS,
+                ...MONACO_EDITABLE_CONFIG,
                 readOnly: true,
               }}
             />

@@ -1,6 +1,5 @@
 // Mostly used for input fields where we're hiding scrollbars
-
-export const MONACO_DEFAULT_OPTIONS = {
+export const MONACO_READONLY_CONFIG = {
   renderLineHighlight: false,
   readOnly: true,
   scrollbar: {
@@ -16,7 +15,7 @@ export const MONACO_DEFAULT_OPTIONS = {
   },
 };
 
-export const MONACO_DEFAULT_PAYLOAD_OPTIONS = {
+export const MONACO_EDITABLE_CONFIG = {
   renderLineHighlight: false,
   readOnly: false,
   hideCursorInOverviewRuler: true,

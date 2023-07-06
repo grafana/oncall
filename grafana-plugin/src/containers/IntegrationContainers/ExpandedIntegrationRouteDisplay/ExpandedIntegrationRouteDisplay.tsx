@@ -20,7 +20,7 @@ import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import { MONACO_DEFAULT_OPTIONS } from 'components/MonacoEditor/MonacoEditor.config';
+import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -165,7 +165,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                         height={MONACO_INPUT_HEIGHT_SMALL}
                         data={templates}
                         showLineNumbers={false}
-                        monacoOptions={MONACO_DEFAULT_OPTIONS}
+                        monacoOptions={MONACO_READONLY_CONFIG}
                       />
                     </div>
                     <Button
