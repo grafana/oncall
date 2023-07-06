@@ -83,8 +83,6 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
     return <LoadingPlaceholder text="Loading..." />;
   }
 
-  console.log(autoCompleteList());
-
   return (
     <CodeEditor
       monacoOptions={monacoOptions}
