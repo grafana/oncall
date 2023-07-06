@@ -6,13 +6,14 @@ import cn from 'classnames/bind';
 import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import IntegrationTemplateBlock from 'components/Integrations/IntegrationTemplateBlock';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import { MONACO_DEFAULT_OPTIONS } from 'components/MonacoEditor/MonacoEditor.config';
 import Text from 'components/Text/Text';
 import { templatesToRender } from 'containers/IntegrationContainers/IntegrationTemplatesList.config';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
-import { MONACO_INPUT_HEIGHT_TALL, MONACO_OPTIONS } from 'pages/integration/IntegrationCommon.config';
+import { MONACO_INPUT_HEIGHT_TALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
 
@@ -108,7 +109,7 @@ const IntegrationTemplateList: React.FC<IntegrationTemplateListProps> = ({
                           height={contents.height}
                           data={templates}
                           showLineNumbers={false}
-                          monacoOptions={MONACO_OPTIONS}
+                          monacoOptions={MONACO_DEFAULT_OPTIONS}
                         />
                       </div>
                     )}

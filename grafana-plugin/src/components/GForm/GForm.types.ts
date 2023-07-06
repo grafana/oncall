@@ -7,6 +7,7 @@ export enum FormItemType {
   'GSelect' = 'gselect',
   'Switch' = 'switch',
   'RemoteSelect' = 'remoteselect',
+  'Monaco' = 'monaco',
 }
 
 export interface FormItem {

@@ -7,9 +7,9 @@ import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
 import GForm from 'components/GForm/GForm';
+import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import Text from 'components/Text/Text';
 import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
-import WebhooksTemplateEditor from 'containers/WebhooksTemplatesEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks_2/OutgoingWebhooks2.types';
@@ -21,6 +21,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './OutgoingWebhook2Form.config';
 
 import styles from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form.module.css';
+import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 
 const cx = cn.bind(styles);
 
@@ -59,6 +60,26 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     [id]
   );
 
+  const getTemplateEditClickHandler = (formItem: FormItem) => {
+    return () => {
+      console.log('formItem', formItem);
+      setShowTemplateEditor(true);
+    };
+  };
+
+  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement) => {
+    if (formItem.type === FormItemType.Monaco) {
+      return (
+        <div className={cx('form-row')}>
+          <div className={cx('form-field')}>{renderedControl}</div>
+          <Button icon="edit" variant="secondary" onClick={getTemplateEditClickHandler(formItem)} />
+        </div>
+      );
+    }
+
+    return renderedControl;
+  };
+
   if (
     (action === WebhookFormActionType.EDIT_SETTINGS || action === WebhookFormActionType.VIEW_LAST_RUN) &&
     !outgoingWebhook2Store.items[id]
@@ -88,6 +109,8 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     // nothing to show if we open invalid ID for edit/last_run
     return null;
   }
+
+  const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
 
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
     // show just the creation form, not the tabs
@@ -144,6 +167,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
           onDelete={onDelete}
           onHide={onHide}
           onUpdate={onUpdate}
+          formElement={formElement}
         />
       </Drawer>
       {showTemplateEditor && (
@@ -189,6 +213,7 @@ interface WebhookTabsProps {
   onUpdate: () => void;
   onDelete: () => void;
   handleSubmit: (data: Partial<OutgoingWebhook2>) => void;
+  formElement: React.ReactElement;
 }
 
 const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
@@ -196,10 +221,10 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   action,
   activeTab,
   data,
-  handleSubmit,
   onHide,
   onUpdate,
   onDelete,
+  formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
 
@@ -212,7 +237,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
       {activeTab === WebhookTabs.Settings.key && (
         <>
           <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
-            <GForm form={form} data={data} onSubmit={handleSubmit} />
+            {formElement}
             <div className={cx('buttons')}>
               <HorizontalGroup justify={'flex-end'}>
                 <Button variant="secondary" onClick={onHide}>

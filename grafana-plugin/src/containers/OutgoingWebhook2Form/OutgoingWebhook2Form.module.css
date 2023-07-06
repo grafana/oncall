@@ -13,3 +13,13 @@
 .tabs__content {
   padding-top: 16px;
 }
+
+.form-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.form-field {
+  flex-grow: 1;
+}
