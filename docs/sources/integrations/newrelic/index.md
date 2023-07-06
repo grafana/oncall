@@ -37,5 +37,5 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}

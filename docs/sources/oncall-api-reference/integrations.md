@@ -317,5 +317,5 @@ curl "{{API_URL}}/api/v1/integrations/CFRPV98RPR1U8/" \
 
 {{% docs/reference %}}
 [alertmanager]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/alertmanager"
-[alertmanager]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/alertmanager"
+[alertmanager]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/alertmanager"
 {{% /docs/reference %}}

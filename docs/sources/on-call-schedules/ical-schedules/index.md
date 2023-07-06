@@ -102,5 +102,5 @@ maintains the default [L0] status, and would not receive notifications during th
 
 {{% docs/reference %}}
 [web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/web-schedule".
-[web-schedule]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/web-schedule".
+[web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/web-schedule".
 {{% /docs/reference %}}

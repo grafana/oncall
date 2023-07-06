@@ -30,7 +30,7 @@ Grafana OnCall is available both in Grafana Cloud and Grafana Open Source.
 
 OnCall is available in Grafana Cloud automatically:
 
-1. Create or log in into [Grafana Cloud account](https://grafana.com/auth/sign-up/create-user)
+1. Create or log in into [Grafana Cloud account](/auth/sign-up/create-user)
 2. Sign in to your Grafana stack
 3. Choose **Alerts and IRM** from the left menu
 4. Click **OnCall** to access Grafana OnCall
@@ -194,32 +194,32 @@ To integrate your on-call calendar with Grafana OnCall:
 
 {{% docs/reference %}}
 [escalation-chains-and-routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes"
-[escalation-chains-and-routes]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes"
+[escalation-chains-and-routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes"
 
 [escalation-chains]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes#escalation-chains"
-[escalation-chains]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes#escalation-chains"
+[escalation-chains]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes#escalation-chains"
 
 [integrations]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations"
-[integrations]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/integrations"
+[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations"
 
 [jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
-[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
+[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating"
 
 [notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify"
-[notify]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/notify"
+[notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify"
 
 [on-call-schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules"
-[on-call-schedules]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules"
+[on-call-schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules"
 
 [open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
-[open-source]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/open-source"
+[open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source"
 
 [routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes#routes"
-[routes]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes#routes"
+[routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes#routes"
 
 [slack]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify/slack/"
-[slack]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/notify/slack/"
+[slack]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack/"
 
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}

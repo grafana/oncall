@@ -120,5 +120,5 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 
 {{% docs/reference %}}
 [open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
-[open-source]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/open-source"
+[open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source"
 {{% /docs/reference %}}

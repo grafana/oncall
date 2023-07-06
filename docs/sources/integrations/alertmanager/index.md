@@ -116,5 +116,5 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
 
 {{% docs/reference %}}
 [complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
-[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
+[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
 {{% /docs/reference %}}

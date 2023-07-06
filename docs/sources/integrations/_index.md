@@ -146,17 +146,17 @@ To edit the name of an integration:
 
 {{% docs/reference %}}
 [appearance-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#appearance-template"
-[appearance-template]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#appearance-template"
+[appearance-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#appearance-template"
 
 [behavioral-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#behavioral-template"
-[behavioral-template]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#behavioral-template"
+[behavioral-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#behavioral-template"
 
 [jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
-[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
+[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating"
 
 [learn-alert-workflow]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/get-started#learn-alert-workflow"
-[learn-alert-workflow]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/get-started#learn-alert-workflow"
+[learn-alert-workflow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/get-started#learn-alert-workflow"
 
 [routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
-[routing-template]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
+[routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"
 {{% /docs/reference %}}

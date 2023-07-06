@@ -280,5 +280,5 @@ Actions performed with slack chatops integration:
 
 {{% docs/reference %}}
 [oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/oncall-api-reference"
-[oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/oncall-api-reference"
+[oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
 {{% /docs/reference %}}

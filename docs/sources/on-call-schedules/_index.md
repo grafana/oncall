@@ -47,11 +47,11 @@ To learn more, read our [Get started with Grafana OnCall and Terraform](
 
 {{% docs/reference %}}
 [ical-schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/ical-schedules"
-[ical-schedules]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/ical-schedules"
+[ical-schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/ical-schedules"
 
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
-[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 
 [web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
-[web-schedule]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
+[web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
 {{% /docs/reference %}}

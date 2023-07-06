@@ -105,8 +105,8 @@ affect all linked Integrations and Routes.
 
 {{% docs/reference %}}
 [notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify"
-[notify]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/notify"
+[notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify"
 
 [routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
-[routing-template]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
+[routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"
 {{% /docs/reference %}}
