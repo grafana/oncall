@@ -18,7 +18,7 @@ weight: 500
 The Zendesk integration for Grafana OnCall handles ticket events sent from Zendesk webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from Zendesk
 
@@ -64,3 +64,8 @@ Grafana OnCall provides grouping, auto-acknowledge and auto-resolve logic for th
 - Alert groups are auto-resolved when the ticket status is set to "Solved"
 
 To customize this behaviour, consider modifying alert templates in integration settings.
+
+{{% docs/reference %}}
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+{{% /docs/reference %}}

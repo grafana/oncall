@@ -59,7 +59,7 @@ receivers:
 ## Complete the Integration Configuration
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
-[this section]({{< relref "../../integrations/#complete-the-integration-configuration" >}})
+[this section][complete-the-integration-configuration]
 
 ## Configuring OnCall Heartbeats (optional)
 
@@ -113,3 +113,8 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
               send_resolved: false
         
         ```
+
+{{% docs/reference %}}
+[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
+[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
+{{% /docs/reference %}}

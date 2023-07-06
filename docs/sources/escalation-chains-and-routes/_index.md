@@ -11,7 +11,7 @@ Often alerts from monitoring systems need to be sent to different escalation cha
 ## Routes
 
 Routes are used to determine which escalation chain should be used for a specific alert
-group. A route's ["Routing Templates"]({{< relref "jinja2-templating#routing-template" >}})
+group. A route's ["Routing Templates"][routing-template]
 are evaluated for each alert and **the first matching route** is used to determine the
 escalation chain and chatops channels.
 
@@ -27,7 +27,7 @@ escalation chain and chatops channels.
 2. Click **Add route** button to create a new route
 3. Click **Edit** button to edit `Routing Template`. The routing template must evaluate to `True` for it to apply
 4. Select channels in **Publish to Chatops** section
-   > **Note:** If **Publish to Chatops** section does not exist, connect Chatops integrations first, see more in [docs]({{< relref notify >}})
+   > **Note:** If **Publish to Chatops** section does not exist, connect Chatops integrations first, see more in [docs][notify]
 5. Select **Escalation Chain** from the list
 6. If **Escalation Chain** does not exist, click **Add new escalation chain** button to create a new one, it will open in a new tab.
 7. Once created, **Reload list**, and select the new escalation chain
@@ -45,7 +45,7 @@ Users can create escalation chains to configure different type of escalation wor
 For example, you can create a chain that will notify on-call users with high priopity, and
 another chain that will only send a message into a Slack channel.
 
-Escalation chains determine Who and When to notify. [How to notify]({{< relref notify >}}) is set by the user, based on their own preferences.
+Escalation chains determine Who and When to notify. [How to notify][notify] is set by the user, based on their own preferences.
 
 ### Types of escalation steps
 
@@ -87,7 +87,7 @@ User can configure two types of personal notification chains:
 
 In the escalation step, user can select which type of notification to use.
 
-Check more information on [Personal Notification Preferences]({{< relref notify >}}) page.
+Check more information on [Personal Notification Preferences][notify] page.
 
 ### Manage Escalation Chains
 
@@ -102,3 +102,11 @@ Check more information on [Personal Notification Preferences]({{< relref notify 
 
 > **Important:** Linked Integrations and Routes are displayed in the right panel. Any change in the Escalation Chain will
 affect all linked Integrations and Routes.
+
+{{% docs/reference %}}
+[notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify"
+[notify]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/notify"
+
+[routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
+[routing-template]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
+{{% /docs/reference %}}

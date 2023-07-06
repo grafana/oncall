@@ -18,7 +18,7 @@ weight: 500
 The Amazon SNS integration for Grafana OnCall handles ticket events sent from Amazon SNS webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations
+> You must have the [role of Admin][user-and-team-management] to be able to create integrations
 in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from Amazon SNS
@@ -35,3 +35,8 @@ in Grafana OnCall.
 2. Open this topic, then create a new subscription
 3. Choose the protocol HTTPS
 4. Add the **OnCall Integration URL** to the Amazon SNS Endpoint
+
+{{% docs/reference %}}
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+{{% /docs/reference %}}

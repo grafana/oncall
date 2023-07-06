@@ -18,7 +18,7 @@ weight: 500
 The Sentry integration for Grafana OnCall handles ticket events sent from Sentry webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from Sentry
 
@@ -54,3 +54,8 @@ level, event frequency, or specific tags.
 8. Save the alert rule.
 
 Once the alert conditions are met, Sentry will trigger the webhook action and send a request to the Grafana OnCall.
+
+{{% docs/reference %}}
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+{{% /docs/reference %}}

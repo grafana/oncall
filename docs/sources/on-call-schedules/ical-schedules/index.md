@@ -20,7 +20,7 @@ OnCall as read-only schedules but can be leveraged similarly to a web-based sche
 > Unfortunately there is a known limitation with Google Calendar import and export.
 > Google may take up to 24h to import OnCall's calendar (OnCall -> Google) and sometimes our customers report delay in
 > exporting (Google Calendar -> OnCall). If actual calendar is critical for you, we suggest checking
-> [web-based scheduling]({{< relref "web-schedule" >}}).
+> [web-based scheduling]
 
 ## Before you begin
 
@@ -99,3 +99,8 @@ contain a level marker result in all overlapping users receiving notifications.
 For example, users AliceGrafana and BobGrafana have overlapping schedules but BobGrafana is the intended primary
 contact. The calendar events titles would be `[L1] BobGrafana` and `[L0] AliceGrafana` - In this case AliceGrafana
 maintains the default [L0] status, and would not receive notifications during the overlapping time with BobGrafana.
+
+{{% docs/reference %}}
+[web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/web-schedule".
+[web-schedule]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/web-schedule".
+{{% /docs/reference %}}

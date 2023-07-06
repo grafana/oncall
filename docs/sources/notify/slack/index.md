@@ -29,7 +29,7 @@ To install the Slack integration, you must have Admin permissions in your Grafan
 that you’d like to integrate with.
 
 For Open Source Grafana OnCall Slack installation guidance, refer to
-[Open Source Grafana OnCall]({{< relref "open-source" >}}).
+[Open Source Grafana OnCall][open-source].
 
 ## Install Slack integration for Grafana OnCall
 
@@ -117,3 +117,8 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 1. Hover over the message and select **More actions** from the menu options.
 1. Select **Add as resolution note**.
 1. The Grafana OnCall app will react to the message in Slack with the memo emoji and add the message to the alert group timeline.
+
+{{% docs/reference %}}
+[open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
+[open-source]: "/docs/grafana-cloud/ -> /docs/oncall/<ONCALL VERSION>/open-source"
+{{% /docs/reference %}}
