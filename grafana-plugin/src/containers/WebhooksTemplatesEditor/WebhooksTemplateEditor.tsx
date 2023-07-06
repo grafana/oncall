@@ -11,6 +11,7 @@ import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { noop } from 'lodash-es';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import TemplateResult from 'containers/TemplateResult/TemplateResult';
 
 const cx = cn.bind(styles);
 
@@ -92,16 +93,22 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
             </>
           )}
 
-          {/* <Result
-            alertReceiveChannelId={id}
-            template={template}
-            templateBody={changedTemplateBody}
-            isAlertGroupExisting={isRecentAlertGroupExisting}
-            chatOpsPermalink={chatOpsPermalink}
-            payload={alertGroupPayload}
-            error={resultError}
-            onSaveAndFollowLink={onSaveAndFollowLink}
-          /> */}
+          <TemplateResult
+            templateBody={''}
+            isAlertGroupExisting={true}
+            chatOpsPermalink={undefined}
+            payload={undefined}
+            error={undefined}
+            // this most likely is not needed for webhooks
+            onSaveAndFollowLink={noop}
+            template={{
+              description:
+                'Reduce noise, minimize duplication with Alert Grouping, based on time, alert content, and even multiple features at the same time.  Check the cheasheet to customize your template.',
+              displayName: 'Grouping',
+              name: 'grouping_id_template',
+              type: 'plain',
+            }}
+          />
         </div>
       </div>
     </Drawer>

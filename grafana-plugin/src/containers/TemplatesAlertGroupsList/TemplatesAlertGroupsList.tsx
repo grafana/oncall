@@ -55,8 +55,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
     });
   }, []);
 
-  console.log({ alertGroupsList });
-
   const getCodeEditorHeight = () => {
     const mainDiv = document.getElementById('alerts-content-container-id');
     const height = mainDiv?.getBoundingClientRect().height - HEADER_OF_CONTAINER_HEIGHT;
