@@ -99,6 +99,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
       return (alertGroup as any).alert_group.title;
     }
 
+    // Integrations page
     return alertGroup.inside_organization_number
       ? `#${alertGroup.inside_organization_number} ${alertGroup.render_for_web?.title}`
       : alertGroup.render_for_web?.title;

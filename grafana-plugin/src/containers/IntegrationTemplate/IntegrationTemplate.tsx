@@ -198,36 +198,7 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
             templates={templates}
             onLoadAlertGroupsList={onLoadAlertGroupsList}
           />
-          {isCheatSheetVisible ? (
-            <CheatSheet
-              cheatSheetName={template.displayName}
-              cheatSheetData={getCheatSheet(template.name)}
-              onClose={onCloseCheatSheet}
-            />
-          ) : (
-            <>
-              <div className={cx('template-block-codeeditor')}>
-                <div className={cx('template-editor-block-title')}>
-                  <HorizontalGroup justify="space-between" align="center" wrap>
-                    <Text>Template editor</Text>
-
-                    <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-                      Cheatsheet
-                    </Button>
-                  </HorizontalGroup>
-                </div>
-                <div className={cx('template-editor-block-content')}>
-                  <MonacoEditor
-                    value={changedTemplateBody}
-                    data={templates}
-                    showLineNumbers={true}
-                    height={editorHeight}
-                    onChange={getChangeHandler()}
-                  />
-                </div>
-              </div>
-            </>
-          )}
+          {renderCheatSheet()}
           <Result
             alertReceiveChannelId={id}
             template={template}
@@ -242,6 +213,43 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       </div>
     </Drawer>
   );
+
+  function renderCheatSheet() {
+    if (isCheatSheetVisible) {
+      return (
+        <CheatSheet
+          cheatSheetName={template.displayName}
+          cheatSheetData={getCheatSheet(template.name)}
+          onClose={onCloseCheatSheet}
+        />
+      );
+    }
+
+    return (
+      <>
+        <div className={cx('template-block-codeeditor')}>
+          <div className={cx('template-editor-block-title')}>
+            <HorizontalGroup justify="space-between" align="center" wrap>
+              <Text>Template editor</Text>
+
+              <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
+                Cheatsheet
+              </Button>
+            </HorizontalGroup>
+          </div>
+          <div className={cx('template-editor-block-content')}>
+            <MonacoEditor
+              value={changedTemplateBody}
+              data={templates}
+              showLineNumbers={true}
+              height={editorHeight}
+              onChange={getChangeHandler()}
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
 });
 
 interface ResultProps {
