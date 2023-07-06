@@ -283,8 +283,6 @@ jobs:
 
   mypy:
     name: "mypy"
-    # disable until we fix all the pre-existing errors (aka https://github.com/grafana/oncall/issues/2168 is marked as completed)
-    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -470,8 +468,12 @@ jobs:
           # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
           # to the OnCall API
           ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_USERNAME: oncall
-          GRAFANA_PASSWORD: oncall
+          GRAFANA_ADMIN_USERNAME: oncall
+          GRAFANA_ADMIN_PASSWORD: oncall
+          GRAFANA_EDITOR_USERNAME: editor
+          GRAFANA_EDITOR_PASSWORD: editor
+          GRAFANA_VIEWER_USERNAME: viewer
+          GRAFANA_VIEWER_PASSWORD: viewer
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
         run: yarn test:integration

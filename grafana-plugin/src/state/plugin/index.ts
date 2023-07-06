@@ -136,22 +136,75 @@ class PluginState {
     this.grafanaBackend.post(this.GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
 
   static readonly KEYS_BASE_URL = '/api/auth/keys';
+  static readonly ONCALL_KEY_NAME = 'OnCall';
+  static readonly SERVICE_ACCOUNTS_BASE_URL = '/api/serviceaccounts';
+  static readonly ONCALL_SERVICE_ACCOUNT_NAME = 'sa-autogen-OnCall';
+  static readonly SERVICE_ACCOUNTS_SEARCH_URL = `${PluginState.SERVICE_ACCOUNTS_BASE_URL}/search?query=${PluginState.ONCALL_SERVICE_ACCOUNT_NAME}`;
 
-  static getGrafanaToken = async () => {
-    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
-    return keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+  static getServiceAccount = async () => {
+    const serviceAccounts = await this.grafanaBackend.get(this.SERVICE_ACCOUNTS_SEARCH_URL);
+    return serviceAccounts.serviceAccounts.length > 0 ? serviceAccounts.serviceAccounts[0] : null;
   };
 
+  static getOrCreateServiceAccount = async () => {
+    const serviceAccount = await this.getServiceAccount();
+    if (serviceAccount) {
+      return serviceAccount;
+    }
+
+    return await this.grafanaBackend.post(this.SERVICE_ACCOUNTS_BASE_URL, {
+      name: this.ONCALL_SERVICE_ACCOUNT_NAME,
+      role: 'Admin',
+      isDisabled: false,
+    });
+  };
+
+  static getTokenFromServiceAccount = async (serviceAccount) => {
+    const tokens = await this.grafanaBackend.get(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`);
+    return tokens.find((key: { id: number; name: string; role: string }) => key.name === PluginState.ONCALL_KEY_NAME);
+  };
+
+  /**
+   * This will satisfy a check for an existing key regardless of if the key is an older api key or under a
+   * service account.
+   */
+  static getGrafanaToken = async () => {
+    const serviceAccount = await this.getServiceAccount();
+    if (serviceAccount) {
+      return await this.getTokenFromServiceAccount(serviceAccount);
+    }
+
+    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
+    const oncallApiKeys = keys.find(
+      (key: { id: number; name: string; role: string }) => key.name === PluginState.ONCALL_KEY_NAME
+    );
+    if (oncallApiKeys) {
+      return oncallApiKeys;
+    }
+
+    return null;
+  };
+
+  /**
+   * Create service account and api token belonging to it instead of using api keys
+   */
   static createGrafanaToken = async () => {
+    const serviceAccount = await this.getOrCreateServiceAccount();
+    const existingToken = await this.getTokenFromServiceAccount(serviceAccount);
+    if (existingToken) {
+      await this.grafanaBackend.delete(
+        `${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens/${existingToken.id}`
+      );
+    }
+
     const existingKey = await this.getGrafanaToken();
     if (existingKey) {
       await this.grafanaBackend.delete(`${this.KEYS_BASE_URL}/${existingKey.id}`);
     }
 
-    return await this.grafanaBackend.post(this.KEYS_BASE_URL, {
-      name: 'OnCall',
+    return await this.grafanaBackend.post(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`, {
+      name: PluginState.ONCALL_KEY_NAME,
       role: 'Admin',
-      secondsToLive: null,
     });
   };
 
@@ -207,24 +260,6 @@ class PluginState {
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginSyncStatusResponse | string> => {
     try {
-      /**
-       * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
-       * an API key on accident but leaves the plugin settings intact.
-       */
-      const existingKey = await this.getGrafanaToken();
-      if (!existingKey) {
-        try {
-          await this.installPlugin();
-        } catch (e) {
-          return this.getHumanReadableErrorFromOnCallError(
-            e,
-            onCallApiUrl,
-            'install',
-            onCallApiUrlIsConfiguredThroughEnvVar
-          );
-        }
-      }
-
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
       if (typeof startSyncResponse === 'string') {
         // an error occurred trying to initiate the sync
@@ -239,6 +274,23 @@ class PluginState {
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
     }
+  };
+
+  static checkTokenAndSyncDataWithOncall = async (onCallApiUrl: string): Promise<PluginSyncStatusResponse | string> => {
+    /**
+     * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
+     * an API key on accident but leaves the plugin settings intact.
+     */
+    const existingKey = await PluginState.getGrafanaToken();
+    if (!existingKey) {
+      try {
+        await PluginState.installPlugin();
+      } catch (e) {
+        return PluginState.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'install', false);
+      }
+    }
+
+    return await PluginState.syncDataWithOnCall(onCallApiUrl);
   };
 
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(

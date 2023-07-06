@@ -16,8 +16,14 @@ from apps.user_management.models import Organization
 
 
 class PluginAuthToken(BaseAuthToken):
+    objects: models.Manager["PluginAuthToken"]
+
     salt = models.CharField(max_length=constants.AUTH_TOKEN_CHARACTER_LENGTH, null=True)
-    organization = models.ForeignKey(to=Organization, on_delete=models.CASCADE)
+    organization = models.ForeignKey(
+        to=Organization,
+        on_delete=models.CASCADE,
+        related_name="plugin_auth_tokens",
+    )
 
     @classmethod
     def create_auth_token(cls, organization: Organization) -> Tuple["PluginAuthToken", str]:

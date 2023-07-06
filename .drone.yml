@@ -235,15 +235,16 @@ steps:
       - cat engine/settings/base.py | grep VERSION | head -1
 
   - name: build and push docker image
-    image: plugins/docker
-    environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
-      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
-      DOCKER_BUILDKIT: 1
+    image: thegeeklab/drone-docker-buildx:24.1.0
+    # From the docs (https://drone-plugin-index.geekdocs.de/plugins/drone-docker-buildx/) regarding privileged=true:
+    #
+    # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
+    # Docker daemon is not able to start.
+    privileged: true
     settings:
       repo: grafana/oncall
-      tags: ${DRONE_TAG}
-      platform: linux/arm64/v8,linux/amd64
+      tags: latest,${DRONE_TAG}
+      platforms: linux/arm64/v8,linux/amd64
       dockerfile: engine/Dockerfile
       target: prod
       context: engine/
@@ -333,6 +334,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 610fb051f4361baa2621f6aa41c18b3afee5160492b30f5a5f23fcecf86f1b0c
+hmac: be10373849d65e1f90bce64c7468d5cf5bac546285226ff8931a8b953163a752
 
 ...

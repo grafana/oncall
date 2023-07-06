@@ -23,6 +23,27 @@ exclude = [
     "tests/test_.*\\.py$",    # test files
     "migrations/\\d*.*\\.py",  # migration files
 ]
+disable_error_code = [
+    "abstract",
+    "annotation-unchecked",
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "call-arg",
+    "call-overload",
+    "has-type",
+    "import",
+    "index",
+    "misc",
+    "name-defined",
+    "no-redef",
+    "operator",
+    "return-value",
+    "typeddict-item",
+    "union-attr",
+    "valid-type",
+    "var-annotated",
+]
 
 # mypy per-module options
 [[tool.mypy.overrides]]

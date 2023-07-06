@@ -514,9 +514,14 @@ if SILK_PROFILER_ENABLED:
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
     SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
-    SILKY_MAX_RECORDED_REQUESTS = 10**4
     SILKY_PYTHON_PROFILER = True
     SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+
+    # see the following GitHub issue comment for why the following two settings are set the way they are
+    # https://github.com/jazzband/django-silk/issues/265#issuecomment-705482767
+    SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 0.01
+    SILKY_MAX_RECORDED_REQUESTS = 100_000
+
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
 
@@ -619,7 +624,7 @@ FCM_DJANGO_SETTINGS = {
     "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
-    "DELETE_INACTIVE_DEVICES": False,
+    "DELETE_INACTIVE_DEVICES": True,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
     "USER_MODEL": "user_management.User",
 }
@@ -682,7 +687,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
 ]
 
 if IS_OPEN_SOURCE:
-    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
@@ -725,4 +730,18 @@ PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
 }
+
+if IS_OPEN_SOURCE:
+    PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
+
 PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
+
+ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
+ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)
+ZVONOK_AUDIO_ID = os.getenv("ZVONOK_AUDIO_ID", None)
+ZVONOK_SPEAKER_ID = os.getenv("ZVONOK_SPEAKER_ID", "Salli")
+ZVONOK_POSTBACK_CALL_ID = os.getenv("ZVONOK_POSTBACK_CALL_ID", "call_id")
+ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign_id")
+ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
+ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
+ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)
