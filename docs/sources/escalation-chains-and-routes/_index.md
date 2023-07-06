@@ -59,14 +59,9 @@ from an on-call schedule.
 * `Notify whole slack channel` - send a notification to a slack channel (not recommended
 to use as it will spam the channel).
 * `Notify Slack User Group` - send a notification to a slack user group.
-* `Trigger outgoing webhook` - trigger an [outgoing webhook]({{< relref outgoing-webhooks
-
->}}).
-<https://en.wikipedia.org/>
-
+* `Trigger outgoing webhook` - trigger an [outgoing webhook][outgoing-webhooks].
 * `Notify users one by one (round robin)` - each notification will be sent to a group of
-users one by one, in sequential order in [round robin fashion](<https://en.wikipedia.org/>
-wiki/Round-robin_item_allocation).
+users one by one, in sequential order in [round robin fashion](https://en.wikipedia.org/wiki/Round-robin_item_allocation).
 * `Continue escalation if current time is in range` - continue escalation only if current
 time is in specified range. It will wait for the specfied time to continue escalation.
 Useful when you want to get escalation only during working hours
@@ -106,6 +101,9 @@ affect all linked Integrations and Routes.
 {{% docs/reference %}}
 [notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify"
 [notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify"
+
+[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks"
+[outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
 
 [routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
 [routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"

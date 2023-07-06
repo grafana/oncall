@@ -217,8 +217,8 @@ To integrate your on-call calendar with Grafana OnCall:
 [routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes#routes"
 [routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes#routes"
 
-[slack]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify/slack/"
-[slack]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack/"
+[slack]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify/slack"
+[slack]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack"
 
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
