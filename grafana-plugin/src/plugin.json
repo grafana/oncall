@@ -113,7 +113,6 @@
     {
       "type": "dashboard",
       "path": "dashboards/oncall_metrics_dashboard.json",
-      "addToNav": true,
       "name": "OnCall Metrics"
     }
   ],

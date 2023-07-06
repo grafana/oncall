@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- OnCall Metrics dashboard update ([#2400](https://github.com/grafana/oncall/pull/2400))
+
 ## v1.3.6 (2023-07-05)
 
 ### Fixed
