@@ -514,9 +514,14 @@ if SILK_PROFILER_ENABLED:
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
     SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
-    SILKY_MAX_RECORDED_REQUESTS = 10**4
     SILKY_PYTHON_PROFILER = True
     SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+
+    # see the following GitHub issue comment for why the following two settings are set the way they are
+    # https://github.com/jazzband/django-silk/issues/265#issuecomment-705482767
+    SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 0.01
+    SILKY_MAX_RECORDED_REQUESTS = 100_000
+
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
 
@@ -619,7 +624,7 @@ FCM_DJANGO_SETTINGS = {
     "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
-    "DELETE_INACTIVE_DEVICES": False,
+    "DELETE_INACTIVE_DEVICES": True,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
     "USER_MODEL": "user_management.User",
 }
