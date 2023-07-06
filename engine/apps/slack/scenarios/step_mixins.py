@@ -135,6 +135,7 @@ class AlertGroupActionsMixin:
                 continue
 
             return AlertGroup.all_objects.get(pk=alert_group_pk)
+        return None
 
     def _get_alert_group_from_slack_message_in_db(
         self, slack_team_identity: SlackTeamIdentity, payload: dict
