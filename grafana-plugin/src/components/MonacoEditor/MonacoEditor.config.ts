@@ -1,3 +1,5 @@
+// Mostly used for input fields where we're hiding scrollbars
+
 export const MONACO_DEFAULT_OPTIONS = {
   renderLineHighlight: false,
   readOnly: true,

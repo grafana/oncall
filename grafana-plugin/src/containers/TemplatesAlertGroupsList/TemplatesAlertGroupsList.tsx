@@ -5,12 +5,12 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MONACO_DEFAULT_PAYLOAD_OPTIONS } from 'components/MonacoEditor/MonacoEditor.config';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { MONACO_PAYLOAD_OPTIONS } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
@@ -105,7 +105,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   showLineNumbers
                   useAutoCompleteList={false}
                   language={MONACO_LANGUAGE.json}
-                  monacoOptions={MONACO_PAYLOAD_OPTIONS}
+                  monacoOptions={MONACO_DEFAULT_PAYLOAD_OPTIONS}
                 />
               </div>
             </>
@@ -141,7 +141,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                     useAutoCompleteList={false}
                     language={MONACO_LANGUAGE.json}
                     monacoOptions={{
-                      ...MONACO_PAYLOAD_OPTIONS,
+                      ...MONACO_DEFAULT_PAYLOAD_OPTIONS,
                       readOnly: true,
                     }}
                   />
@@ -171,7 +171,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
                   language={MONACO_LANGUAGE.json}
                   data={templates}
                   monacoOptions={{
-                    ...MONACO_PAYLOAD_OPTIONS,
+                    ...MONACO_DEFAULT_PAYLOAD_OPTIONS,
                     readOnly: false,
                   }}
                   height={getCodeEditorHeight()}
