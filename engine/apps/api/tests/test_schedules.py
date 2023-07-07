@@ -147,7 +147,7 @@ def test_get_list_schedules(
 def test_get_list_schedules_pagination(
     schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
 ):
-    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    user, token, calendar_schedule, ical_schedule, web_schedule, _ = schedule_internal_api_setup
 
     # setup escalation chain linked to web schedule
     escalation_chain = make_escalation_chain(user.organization)
@@ -219,7 +219,7 @@ def test_get_list_schedules_pagination(
     client = APIClient()
 
     schedule_list_url = reverse("api-internal:schedule-list")
-    absolute_url = create_engine_url(schedule_list_url, override_base="http://testserver")
+    absolute_url = create_engine_url(schedule_list_url)
     for p, schedule in enumerate(available_schedules, start=1):
         # patch oncall_users to check a paginated queryset is used
         def mock_oncall_now(qs, events_datetime):
