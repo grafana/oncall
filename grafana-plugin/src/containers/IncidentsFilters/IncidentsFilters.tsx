@@ -60,7 +60,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   async componentDidMount() {
     const { query, objectStore } = this.props;
 
-    const filterOptions = await makeRequest(objectStore.path + 'filters/', {});
+    const filterOptions = await makeRequest(objectStore.path + 'filters/');
 
     let { filters, values } = parseFilters(query, filterOptions);
 

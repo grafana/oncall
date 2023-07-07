@@ -54,7 +54,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
   const [activeTemplate, setActiveTemplate] = useState<Template>();
 
   useEffect(() => {
-    makeRequest('/preview_template_options/', {});
+    makeRequest('/preview_template_options/');
   }, []);
 
   const getChangeHandler = (templateName: string) => {

@@ -43,7 +43,7 @@ export function getAnims(oldStats: any, newStats: any, ids: number[]) {
   return anims;
 }
 
-export function move(arr: any[], old_index: number, new_index: number) {
+export function move<RT>(arr: RT[], old_index: number, new_index: number): RT[] {
   while (old_index < 0) {
     old_index += arr.length;
   }

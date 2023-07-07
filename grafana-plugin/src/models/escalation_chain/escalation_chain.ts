@@ -62,7 +62,7 @@ export class EscalationChainStore extends BaseStore {
 
   @action
   async updateEscalationChainDetails(id: EscalationChain['id']) {
-    const response = await makeRequest(`${this.path}${id}/details/`, {});
+    const response = await makeRequest(`${this.path}${id}/details/`);
 
     this.details = {
       ...this.details,

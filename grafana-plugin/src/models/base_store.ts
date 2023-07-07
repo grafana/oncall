@@ -33,7 +33,7 @@ export default class BaseStore {
   }
 
   @action
-  async getAll(query = '') {
+  async getAll<RT = any>(query = ''): Promise<void | RT> {
     return await makeRequest(`${this.path}`, {
       params: { search: query },
       method: 'GET',
@@ -41,24 +41,24 @@ export default class BaseStore {
   }
 
   @action
-  async getById(id: string, skipErrorHandling = false, fromOrganization = false) {
-    return await makeRequest(`${this.path}${id}`, {
+  async getById<RT = any>(id: string, skipErrorHandling = false, fromOrganization = false): Promise<void | RT> {
+    return await makeRequest<RT>(`${this.path}${id}`, {
       method: 'GET',
       params: { from_organization: fromOrganization },
     }).catch((error) => this.onApiError(error, skipErrorHandling));
   }
 
   @action
-  async create(data: any) {
-    return await makeRequest(this.path, {
+  async create<RT = any>(data: any): Promise<void | RT> {
+    return await makeRequest<RT>(this.path, {
       method: 'POST',
       data,
     }).catch(this.onApiError);
   }
 
   @action
-  async update(id: any, data: any, params: any = null) {
-    const result = await makeRequest(`${this.path}${id}/`, {
+  async update<RT = any>(id: any, data: any, params: any = null): Promise<void | RT> {
+    const result = await makeRequest<RT>(`${this.path}${id}/`, {
       method: 'PUT',
       data,
       params: params,
@@ -70,13 +70,12 @@ export default class BaseStore {
   }
 
   @action
-  async delete(id: any) {
-    const result = await makeRequest(`${this.path}${id}/`, {
+  async delete(id: any): Promise<void> {
+    await makeRequest<void>(`${this.path}${id}/`, {
       method: 'DELETE',
     }).catch(this.onApiError);
 
     // Update env_status field for current team
     await this.rootStore.teamStore.loadCurrentTeam();
-    return result;
   }
 }

@@ -5,17 +5,15 @@ import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 
+import { TablePaginationProps } from 'utils/pagination/types';
+
 import styles from './GTable.module.css';
 
 const cx = cn.bind(styles);
 
 export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   loading?: boolean;
-  pagination?: {
-    page: number;
-    total: number;
-    onChange: (page: number) => void;
-  };
+  pagination?: TablePaginationProps<RecordType>;
   rowSelection?: {
     selectedRowKeys: string[];
     onChange: (selectedRowKeys: string[]) => void;
@@ -31,20 +29,18 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   showHeader?: boolean;
 }
 
-const GTable: FC<Props> = (props) => {
-  const {
-    columns: columnsProp,
-    data,
-    className,
-    pagination,
-    loading,
-    rowSelection,
-    rowKey,
-    expandable,
-    showHeader = true,
-    ...restProps
-  } = props;
-
+const GTable = <RecordType extends {} = any>({
+  columns: columnsProp,
+  data,
+  className,
+  pagination,
+  loading,
+  rowSelection,
+  rowKey,
+  expandable,
+  showHeader = true,
+  ...restProps
+}: Props<RecordType>): ReturnType<FC<Props<RecordType>>> => {
   if (expandable) {
     expandable.expandIcon = (props: { expanded: boolean; record: any }) => {
       const { expanded, record } = props;
@@ -72,7 +68,7 @@ const GTable: FC<Props> = (props) => {
     };
   }
 
-  const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
+  const { current_page_number: page, total_pages: numberOfPages, onChange: onNavigate } = pagination || {};
 
   const getCheckboxClickHandler = useCallback(
     (id: string) => {

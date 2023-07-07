@@ -11,8 +11,8 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { Channel } from 'models/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy';
 import { NotifyBy } from 'models/notify_by';
+import { Choice } from 'models/types';
 import { User } from 'models/user/user.types';
-import { WaitDelay } from 'models/wait_delay';
 import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
 import { UserAction } from 'utils/authorization';
@@ -32,9 +32,8 @@ export interface NotificationPolicyProps {
   slackUserIdentity?: User['slack_user_identity'];
   onChange: (id: NotificationPolicyType['id'], value: NotificationPolicyType) => void;
   onDelete: (id: string) => void;
-  notificationChoices: any[];
-  channels?: any[];
-  waitDelays?: WaitDelay[];
+  notificationChoices: Choice[];
+  waitDelays?: Choice[];
   notifyByOptions?: NotifyBy[];
   telegramVerified: boolean;
   phoneStatus: number;
@@ -62,7 +61,10 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
               className={cx('select', 'control')}
               onChange={this._getOnChangeHandler('step')}
               value={step}
-              options={notificationChoices.map((option: any) => ({ label: option.display_name, value: option.value }))}
+              options={notificationChoices.map((option) => ({
+                label: option.display_name as string,
+                value: option.value,
+              }))}
             />
           </WithPermissionControlTooltip>
           {this._renderControls()}
@@ -178,8 +180,8 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
           // @ts-ignore
           value={wait_delay}
           onChange={this._getOnChangeHandler('wait_delay')}
-          options={waitDelays.map((waitDelay: WaitDelay) => ({
-            label: waitDelay.display_name,
+          options={waitDelays.map((waitDelay) => ({
+            label: waitDelay.display_name as string,
             value: waitDelay.value,
           }))}
         />

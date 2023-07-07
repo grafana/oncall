@@ -1,43 +1,85 @@
 import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
-import { get } from 'lodash-es';
 import { action, computed, observable } from 'mobx';
 
+import { UserAvailability } from 'containers/EscalationVariants/EscalationVariants.types';
 import BaseStore from 'models/base_store';
-import { NotificationPolicyType } from 'models/notification_policy';
+import { NotificationChoices, NotificationPolicyType, NotifyByOption } from 'models/notification_policy';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
 import { throttlingError } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PageNumberPaginatedApiResponse } from 'utils/pagination/types';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
 
+type UserId = User['pk'];
+type NotificationPolicyId = NotificationPolicyType['id'];
+
+type UserNotificationPolicies = NotificationPolicyType[];
+type NotifyByOptions = NotifyByOption[];
+
+type UserPayload = Partial<User>;
+
+type UserIdToUserMap = Record<UserId, User>;
+type UserIdToUserNotificationPolicyMap = Record<UserId, UserNotificationPolicies>;
+
+type PaginatedAPIResponse = PageNumberPaginatedApiResponse<User>;
+
+type NotificationPolicyOptionsAPIResponse = {
+  actions: {
+    POST: NotificationChoices;
+  };
+};
+
+type GetTelegramVerificationCodeAPIResponse = {
+  telegram_code: string;
+  bot_link: string;
+};
+
+type _BaseICalLinkAPIResponse = {
+  created_at: string;
+};
+
+type GetIcalLinkAPIResponse = _BaseICalLinkAPIResponse & {
+  revoked_at: string | null;
+  active: boolean;
+};
+
+type CreateIcalLinkAPIResponse = _BaseICalLinkAPIResponse & {
+  token: string;
+  export_url: string;
+};
+
 export class UserStore extends BaseStore {
   @observable.shallow
-  searchResult: { count?: number; results?: Array<User['pk']> } = {};
+  searchResult: PageNumberPaginatedApiResponse<UserId> = null;
 
   @observable.shallow
-  items: { [pk: string]: User } = {};
+  items: UserIdToUserMap = {};
 
-  itemsCurrentlyUpdating = {};
-
-  @observable
-  notificationPolicies: any = {};
+  itemsCurrentlyUpdating: Record<UserId, boolean> = {};
 
   @observable
-  notificationChoices: any = [];
+  notificationPolicies: UserIdToUserNotificationPolicyMap = {};
 
   @observable
-  notifyByOptions: any = [];
+  notificationChoices: NotificationChoices = null;
+
+  @observable
+  notifyByOptions: NotifyByOptions = [];
 
   @observable
   isTestCallInProgress = false;
 
   @observable
-  currentUserPk?: User['pk'];
+  currentUserPk?: UserId;
+
+  currentUserPath = '/user/';
+  notificationPoliciesPath = '/notification_policies/';
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -46,29 +88,34 @@ export class UserStore extends BaseStore {
   }
 
   @computed
-  get currentUser() {
+  get currentUser(): User {
     if (!this.currentUserPk) {
       return undefined;
     }
-    return this.items[this.currentUserPk as User['pk']];
+    return this.items[this.currentUserPk];
   }
 
   @action
-  async loadCurrentUser() {
-    const response = await makeRequest('/user/', {});
+  async loadCurrentUser(updateTimezone = true): Promise<void> {
+    const response = await makeRequest<User>(this.currentUserPath, {});
+    const { pk: currentUserPk } = response;
 
-    const timezone = await this.refreshTimezone(response.pk);
+    let timezone = response.timezone;
+
+    if (updateTimezone) {
+      timezone = await this.refreshTimezone(currentUserPk);
+    }
 
     this.items = {
       ...this.items,
-      [response.pk]: { ...response, timezone },
+      [currentUserPk]: { ...response, timezone },
     };
 
-    this.currentUserPk = response.pk;
+    this.currentUserPk = currentUserPk;
   }
 
   @action
-  async refreshTimezone(id: User['pk']) {
+  async refreshTimezone(id: UserId): Promise<string> {
     const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
     const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
     if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
@@ -80,124 +127,146 @@ export class UserStore extends BaseStore {
     return timezone;
   }
 
-  @action
-  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
-    const user = await this.getById(userPk, skipErrorHandling);
+  async _fetchUserWithDefaultTimezone(userPk: UserId, skipErrorHandling = false): Promise<User | void> {
+    const user = await this.getById<User>(userPk, skipErrorHandling);
 
-    this.items = {
-      ...this.items,
-      [user.pk]: { ...user, timezone: getTimezone(user) },
+    if (!user) {
+      return;
+    }
+
+    return {
+      ...user,
+      timezone: getTimezone(user),
     };
+  }
 
+  @action
+  async loadUser(userPk: UserId, skipErrorHandling = false): Promise<User | void> {
+    const user = await this._fetchUserWithDefaultTimezone(userPk, skipErrorHandling);
+
+    if (!user) {
+      return;
+    }
+
+    this.items = { ...this.items, [userPk]: user };
     return user;
   }
 
   @action
-  async updateItem(userPk: User['pk']) {
+  async updateItem(userPk: UserId): Promise<void> {
     if (this.itemsCurrentlyUpdating[userPk]) {
       return;
     }
 
     this.itemsCurrentlyUpdating[userPk] = true;
 
-    const user = await this.getById(userPk);
+    const user = await this._fetchUserWithDefaultTimezone(userPk);
+    if (!user) {
+      return;
+    }
 
-    this.items = {
-      ...this.items,
-      [user.pk]: { ...user, timezone: getTimezone(user) },
-    };
+    this.items = { ...this.items, [userPk]: user };
 
     delete this.itemsCurrentlyUpdating[userPk];
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1) {
-    return new Promise<void>(async (resolve) => {
-      const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-      const { searchTerm: search } = filters;
-      const { count, results } = await makeRequest(this.path, {
-        params: { search, page },
-      });
-
-      this.items = {
-        ...this.items,
-        ...results.reduce(
-          (acc: { [key: number]: User }, item: User) => ({
-            ...acc,
-            [item.pk]: {
-              ...item,
-              timezone: getTimezone(item),
-            },
-          }),
-          {}
-        ),
-      };
-
-      this.searchResult = {
-        count,
-        results: results.map((item: User) => item.pk),
-      };
-
-      resolve();
+  async updateItems(search = '', page = 1): Promise<void> {
+    const { results, ...pagination } = await makeRequest<PaginatedAPIResponse>(this.path, {
+      params: { search, page },
     });
+
+    this.items = {
+      ...this.items,
+      ...results.reduce(
+        (acc, item) => ({
+          ...acc,
+          [item.pk]: {
+            ...item,
+            timezone: getTimezone(item),
+          },
+        }),
+        {} as UserIdToUserMap
+      ),
+    };
+
+    this.searchResult = {
+      ...pagination,
+      results: results.map(({ pk }) => pk),
+    };
   }
 
-  getSearchResult() {
+  getSearchResult(): PaginatedAPIResponse | void {
+    const { searchResult } = this;
+
+    if (!searchResult) {
+      return;
+    }
+
     return {
-      count: this.searchResult.count,
-      results: this.searchResult.results && this.searchResult.results.map((userPk: User['pk']) => this.items?.[userPk]),
+      ...searchResult,
+      results: searchResult.results.map((userPk) => this.items[userPk]),
     };
   }
 
-  sendTelegramConfirmationCode = async (userPk: User['pk']) => {
-    return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
-  };
+  sendTelegramConfirmationCode = (userPk: UserId): Promise<GetTelegramVerificationCodeAPIResponse> =>
+    makeRequest<GetTelegramVerificationCodeAPIResponse>(`${this.path}${userPk}/get_telegram_verification_code/`, {});
 
   @action
-  unlinkSlack = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_slack/`, {
+  unlinkSlack = async (userPk: UserId): Promise<void> => {
+    await makeRequest<null>(`${this.path}${userPk}/unlink_slack/`, {
       method: 'POST',
     });
 
-    const user = await this.getById(userPk);
+    const user = await this._fetchUserWithDefaultTimezone(userPk);
+    if (!user) {
+      return;
+    }
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [userPk]: user,
     };
   };
 
   @action
-  unlinkTelegram = async (userPk: User['pk']) => {
-    await makeRequest(`/users/${userPk}/unlink_telegram/`, {
+  unlinkTelegram = async (userPk: UserId): Promise<void> => {
+    await makeRequest<null>(`${this.path}${userPk}/unlink_telegram/`, {
       method: 'POST',
     });
 
-    const user = await this.getById(userPk);
+    const user = await this._fetchUserWithDefaultTimezone(userPk);
+    if (!user) {
+      return;
+    }
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [userPk]: user,
     };
   };
 
-  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
-    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
+  sendBackendConfirmationCode = (userPk: UserId, backend: string): Promise<string> =>
+    makeRequest<string>(`${this.path}${userPk}/get_backend_verification_code?backend=${backend}`, {
       method: 'GET',
     });
 
   @action
-  unlinkBackend = async (userPk: User['pk'], backend: string) => {
-    await makeRequest(`/users/${userPk}/unlink_backend/?backend=${backend}`, {
+  unlinkBackend = async (userPk: UserId, backend: string): Promise<void> => {
+    await makeRequest<null>(`${this.path}${userPk}/unlink_backend/?backend=${backend}`, {
       method: 'POST',
     });
 
-    this.loadCurrentUser();
+    this.loadCurrentUser(false);
   };
 
   @action
-  async createUser(data: any) {
-    const user = await this.create(data);
+  async createUser(data: UserPayload): Promise<User | void> {
+    const user = await this.create<User>(data);
+
+    if (!user) {
+      return;
+    }
 
     this.items = {
       ...this.items,
@@ -208,80 +277,81 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateUser(data: Partial<User>) {
-    const user = await makeRequest(`/users/${data.pk}/`, {
+  async updateUser(data: UserPayload): Promise<void> {
+    const { pk: userPk } = data;
+
+    const user = await makeRequest<User>(`${this.path}${userPk}/`, {
       method: 'PUT',
       data: {
-        ...prepareForUpdate(this.items[data.pk as User['pk']]),
+        ...prepareForUpdate(this.items[userPk]),
         ...data,
       },
     });
 
-    if (data.pk === this.currentUserPk) {
-      this.rootStore.userStore.loadCurrentUser();
+    if (userPk === this.currentUserPk) {
+      this.loadCurrentUser(false);
     }
 
     this.items = {
       ...this.items,
-      [data.pk as User['pk']]: user,
+      [userPk]: user,
     };
   }
 
   @action
-  async updateCurrentUser(data: Partial<User>) {
-    const user = await makeRequest(`/user/`, {
+  async updateCurrentUser(data: UserPayload): Promise<void> {
+    const user = await makeRequest<User>(this.currentUserPath, {
       method: 'PUT',
       data: {
-        ...prepareForUpdate(this.items[this.currentUserPk as User['pk']]),
+        ...prepareForUpdate(this.items[this.currentUserPk]),
         ...data,
       },
     });
 
     this.items = {
       ...this.items,
-      [this.currentUserPk as User['pk']]: user,
+      [this.currentUserPk]: user,
     };
   }
 
   @action
-  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_code/`, {
+  async fetchVerificationCode(userPk: UserId, recaptchaToken: string): Promise<void> {
+    await makeRequest<null>(`${this.path}${userPk}/get_verification_code/`, {
       method: 'GET',
       headers: { 'X-OnCall-Recaptcha': recaptchaToken },
     }).catch(throttlingError);
   }
 
   @action
-  async fetchVerificationCall(userPk: User['pk'], recaptchaToken: string) {
-    await makeRequest(`/users/${userPk}/get_verification_call/`, {
+  async fetchVerificationCall(userPk: UserId, recaptchaToken: string): Promise<void> {
+    await makeRequest<null>(`${this.path}${userPk}/get_verification_call/`, {
       method: 'GET',
       headers: { 'X-OnCall-Recaptcha': recaptchaToken },
     }).catch(throttlingError);
   }
 
   @action
-  async verifyPhone(userPk: User['pk'], token: string) {
-    return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
+  async verifyPhone(userPk: UserId, token: string): Promise<void> {
+    return await makeRequest<null>(`${this.path}${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
     }).catch(throttlingError);
   }
 
   @action
-  async forgetPhone(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/forget_number/`, {
+  forgetPhone = (userPk: UserId): Promise<void> =>
+    makeRequest<null>(`${this.path}${userPk}/forget_number/`, {
       method: 'PUT',
     });
-  }
 
   @action
-  async updateNotificationPolicies(id: User['pk']) {
-    const importantEPs = await makeRequest('/notification_policies/', {
-      params: { user: id, important: true },
-    });
+  async updateNotificationPolicies(id: UserId): Promise<void> {
+    const _fetchNotificationPolicies = (important: boolean) =>
+      makeRequest<UserNotificationPolicies>(this.notificationPoliciesPath, {
+        params: { user: id, important },
+      });
 
-    const nonImportantEPs = await makeRequest('/notification_policies/', {
-      params: { user: id, important: false },
-    });
+    const importantEPs = await _fetchNotificationPolicies(true);
+    const nonImportantEPs = await _fetchNotificationPolicies(false);
 
     this.notificationPolicies = {
       ...this.notificationPolicies,
@@ -290,15 +360,23 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async moveNotificationPolicyToPosition(userPk: User['pk'], oldIndex: number, newIndex: number, offset: number) {
+  async moveNotificationPolicyToPosition(
+    userPk: UserId,
+    oldIndex: number,
+    newIndex: number,
+    offset: number
+  ): Promise<void> {
     Mixpanel.track('Move NotificationPolicy', null);
     const notificationPolicy = this.notificationPolicies[userPk][oldIndex + offset];
 
     this.notificationPolicies[userPk] = move(this.notificationPolicies[userPk], oldIndex + offset, newIndex + offset);
 
-    await makeRequest(`/notification_policies/${notificationPolicy.id}/move_to_position/?position=${newIndex}`, {
-      method: 'PUT',
-    });
+    await makeRequest<null>(
+      `${this.notificationPoliciesPath}${notificationPolicy.id}/move_to_position/?position=${newIndex}`,
+      {
+        method: 'PUT',
+      }
+    );
 
     this.updateNotificationPolicies(userPk);
 
@@ -306,8 +384,8 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async addNotificationPolicy(userPk: User['pk'], important: NotificationPolicyType['important']) {
-    await makeRequest(`/notification_policies/`, {
+  async addNotificationPolicy(userPk: UserId, important: NotificationPolicyType['important']): Promise<void> {
+    await makeRequest<NotificationPolicyType>(this.notificationPoliciesPath, {
       method: 'POST',
       data: { user: userPk, important },
     });
@@ -318,14 +396,7 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id'], value: NotificationPolicyType) {
-    this.notificationPolicies = {
-      ...this.notificationPolicies,
-      [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
-        id === policy.id ? { ...policy, ...value } : policy
-      ),
-    };
-
+  async updateNotificationPolicy(userPk: UserId, id: NotificationPolicyId, value: NotificationPolicyType) {
     const notificationPolicy = await makeRequest(`/notification_policies/${id}/`, {
       method: 'PUT',
       data: value,
@@ -333,7 +404,7 @@ export class UserStore extends BaseStore {
 
     this.notificationPolicies = {
       ...this.notificationPolicies,
-      [userPk]: this.notificationPolicies[userPk].map((policy: NotificationPolicyType) =>
+      [userPk]: this.notificationPolicies[userPk].map((policy) =>
         id === policy.id ? { ...policy, ...notificationPolicy } : policy
       ),
     };
@@ -342,10 +413,10 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async deleteNotificationPolicy(userPk: User['pk'], id: NotificationPolicyType['id']) {
+  async deleteNotificationPolicy(userPk: UserId, id: NotificationPolicyId): Promise<void> {
     Mixpanel.track('Delete NotificationPolicy', null);
 
-    await makeRequest(`/notification_policies/${id}`, { method: 'DELETE' });
+    await makeRequest(`${this.notificationPoliciesPath}${id}`, { method: 'DELETE' });
 
     this.updateNotificationPolicies(userPk);
 
@@ -353,35 +424,32 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateNotificationPolicyOptions() {
-    const response = await makeRequest('/notification_policies/', {
+  async updateNotificationPolicyOptions(): Promise<void> {
+    const response = await makeRequest<NotificationPolicyOptionsAPIResponse>(this.notificationPoliciesPath, {
       method: 'OPTIONS',
     });
 
-    this.notificationChoices = get(response, 'actions.POST', []);
+    this.notificationChoices = response.actions.POST;
   }
 
   @action
-  async sendTestPushNotification(userId: User['pk'], isCritical: boolean) {
-    return await makeRequest(`/users/${userId}/send_test_push`, {
+  sendTestPushNotification = (userId: UserId, isCritical: boolean): Promise<void> =>
+    makeRequest<null>(`${this.path}${userId}/send_test_push`, {
       method: 'POST',
       params: {
         critical: isCritical,
       },
     });
-  }
 
   @action
   async updateNotifyByOptions() {
-    const response = await makeRequest('/notification_policies/notify_by_options/', {});
-
-    this.notifyByOptions = response;
+    this.notifyByOptions = await makeRequest<NotifyByOptions>(`${this.notificationPoliciesPath}notify_by_options/`, {});
   }
 
-  async makeTestCall(userPk: User['pk']) {
+  async makeTestCall(userPk: UserId): Promise<void> {
     this.isTestCallInProgress = true;
 
-    return await makeRequest(`/users/${userPk}/make_test_call/`, {
+    await makeRequest<null>(`${this.path}${userPk}/make_test_call/`, {
       method: 'POST',
     })
       .catch(this.onApiError)
@@ -390,10 +458,10 @@ export class UserStore extends BaseStore {
       });
   }
 
-  async sendTestSms(userPk: User['pk']) {
+  async sendTestSms(userPk: UserId): Promise<void> {
     this.isTestCallInProgress = true;
 
-    return await makeRequest(`/users/${userPk}/send_test_sms/`, {
+    await makeRequest<null>(`${this.path}${userPk}/send_test_sms/`, {
       method: 'POST',
     })
       .catch(this.onApiError)
@@ -402,27 +470,23 @@ export class UserStore extends BaseStore {
       });
   }
 
-  async getiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
+  getiCalLink = (userPk: UserId): Promise<GetIcalLinkAPIResponse> =>
+    makeRequest<GetIcalLinkAPIResponse>(`${this.path}${userPk}/export_token/`, {
       method: 'GET',
     });
-  }
 
-  async createiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
+  createiCalLink = (userPk: UserId): Promise<CreateIcalLinkAPIResponse> =>
+    makeRequest<CreateIcalLinkAPIResponse>(`${this.path}${userPk}/export_token/`, {
       method: 'POST',
     });
-  }
 
-  async deleteiCalLink(userPk: User['pk']) {
-    await makeRequest(`/users/${userPk}/export_token/`, {
+  deleteiCalLink = (userPk: UserId): Promise<void> =>
+    makeRequest<null>(`${this.path}${userPk}/export_token/`, {
       method: 'DELETE',
     });
-  }
 
-  async checkUserAvailability(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/check_availability/`, {
+  checkUserAvailability = (userPk: UserId): Promise<UserAvailability> =>
+    makeRequest<UserAvailability>(`${this.path}${userPk}/check_availability/`, {
       method: 'GET',
     });
-  }
 }

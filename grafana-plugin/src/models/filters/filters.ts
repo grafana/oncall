@@ -40,7 +40,7 @@ export class FiltersStore extends BaseStore {
 
   @action
   public async updateOptionsForPage(page: string) {
-    const result = await makeRequest(`/${getApiPathByPage(page)}/filters/`, {});
+    const result = await makeRequest(`/${getApiPathByPage(page)}/filters/`);
 
     const allowFreeSearch = result.some((filter: FilterOption) => filter.name === 'search');
     if (!allowFreeSearch) {

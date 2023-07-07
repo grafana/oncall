@@ -10,7 +10,7 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';
-import { Cloud } from 'models/cloud/cloud.types';
+import { CloudUser } from 'models/cloud/cloud.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -23,7 +23,6 @@ import styles from './CloudPage.module.css';
 const cx = cn.bind(styles);
 
 interface CloudPageProps extends WithStoreProps, RouteComponentProps {}
-const ITEMS_PER_PAGE = 50;
 
 const CloudPage = observer((props: CloudPageProps) => {
   const store = useStore();
@@ -41,15 +40,23 @@ const CloudPage = observer((props: CloudPageProps) => {
 
   useEffect(() => {
     store.cloudStore.updateItems(page);
-    store.cloudStore.getCloudConnectionStatus().then((cloudStatus) => {
-      setCloudIsConnected(cloudStatus.cloud_connection_status);
-      setheartbeatEnabled(cloudStatus.cloud_heartbeat_enabled);
-      setheartbeatLink(cloudStatus.cloud_heartbeat_link);
-      setCloudNotificationsEnabled(cloudStatus.cloud_notifications_enabled);
-    });
+
+    const { cloud_connection_status, cloud_heartbeat_enabled, cloud_heartbeat_link, cloud_notifications_enabled } =
+      store.cloudStore.cloudConnectionStatus;
+
+    setCloudIsConnected(cloud_connection_status);
+    setheartbeatEnabled(cloud_heartbeat_enabled);
+    setheartbeatLink(cloud_heartbeat_link);
+    setCloudNotificationsEnabled(cloud_notifications_enabled);
   }, [cloudIsConnected, page, store.cloudStore]);
 
-  const { matched_users_count, results } = store.cloudStore.getSearchResult();
+  const userSearchResults = store.cloudStore.getSearchResult();
+
+  if (!userSearchResults) {
+    return null;
+  }
+
+  const { results, ...pagination } = userSearchResults;
 
   const handleChangePage = (page: number) => {
     setPage(page);
@@ -80,8 +87,10 @@ const CloudPage = observer((props: CloudPageProps) => {
         } else {
           setCloudIsConnected(true);
           syncUsers();
-          const heartbeatData: { link: string } = await store.cloudStore.getCloudHeartbeat();
-          setheartbeatLink(heartbeatData?.link);
+          const heartbeatData = await store.cloudStore.getCloudHeartbeat();
+          if ('link' in heartbeatData) {
+            setheartbeatLink(heartbeatData.link);
+          }
         }
         await store.cloudStore.loadCloudConnectionStatus();
       });
@@ -98,7 +107,7 @@ const CloudPage = observer((props: CloudPageProps) => {
     window.open(link, '_blank');
   };
 
-  const renderButtons = (user: Cloud) => {
+  const renderButtons = (user: CloudUser) => {
     switch (user?.cloud_data?.status) {
       case 0:
         return null;
@@ -132,7 +141,7 @@ const CloudPage = observer((props: CloudPageProps) => {
     }
   };
 
-  const renderStatus = (user: Cloud) => {
+  const renderStatus = (user: CloudUser) => {
     switch (user?.cloud_data?.status) {
       case 0:
         return <Text className={cx('error-message')}>Grafana Cloud is not synced</Text>;
@@ -148,7 +157,7 @@ const CloudPage = observer((props: CloudPageProps) => {
     }
   };
 
-  const renderStatusIcon = (user: Cloud) => {
+  const renderStatusIcon = (user: CloudUser) => {
     switch (user?.cloud_data?.status) {
       case 0:
         return (
@@ -176,7 +185,7 @@ const CloudPage = observer((props: CloudPageProps) => {
     }
   };
 
-  const renderEmail = (user: Cloud) => {
+  const renderEmail = (user: CloudUser) => {
     return <Text type="primary">{user.email}</Text>;
   };
 
@@ -266,7 +275,7 @@ const CloudPage = observer((props: CloudPageProps) => {
                 )} in order to be synced.`}
               </Text>
 
-              <GTable
+              <GTable<CloudUser>
                 className={cx('user-table')}
                 rowClassName={cx('user-row')}
                 showHeader={false}
@@ -274,11 +283,12 @@ const CloudPage = observer((props: CloudPageProps) => {
                 title={() => (
                   <div className={cx('table-title')}>
                     <HorizontalGroup justify="space-between">
-                      <Text type="secondary">
+                      {/* TODO: ?? */}
+                      {/* <Text type="secondary">
                         {matched_users_count ? matched_users_count : 0} user
                         {matched_users_count === 1 ? '' : 's'}
                         {` matched between OSS and Cloud OnCall`}
-                      </Text>
+                      </Text> */}
                       <Button variant="primary" onClick={syncUsers} icon="sync" disabled={syncingUsers}>
                         {syncingUsers ? 'Syncing...' : 'Sync users'}
                       </Button>
@@ -290,8 +300,7 @@ const CloudPage = observer((props: CloudPageProps) => {
                 columns={columns}
                 data={results}
                 pagination={{
-                  page,
-                  total: Math.ceil((matched_users_count || 0) / ITEMS_PER_PAGE),
+                  ...pagination,
                   onChange: handleChangePage,
                 }}
               />

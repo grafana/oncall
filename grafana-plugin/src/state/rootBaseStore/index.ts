@@ -267,7 +267,7 @@ export class RootBaseStore {
 
   @observable
   async updateFeatures() {
-    const response = await makeRequest('/features/', {});
+    const response = await makeRequest('/features/');
     this.features = response.reduce(
       (acc: any, key: string) => ({
         ...acc,

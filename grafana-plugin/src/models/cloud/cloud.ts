@@ -3,18 +3,54 @@ import { action, observable } from 'mobx';
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
+import { PageNumberPaginatedApiResponse } from 'utils/pagination/types';
 
-import { Cloud } from './cloud.types';
+import { CloudUser } from './cloud.types';
+
+type CloudUserId = CloudUser['id'];
+
+type CloudUserIdToCloudUserMap = Record<CloudUserId, CloudUser>;
+type CloudConnectionStatus = {
+  cloud_connection_status: boolean;
+  cloud_notifications_enabled: boolean;
+  cloud_heartbeat_enabled: boolean;
+  cloud_heartbeat_link: string | null;
+};
+
+type PaginatedAPIResponse = PageNumberPaginatedApiResponse<CloudUser>;
+
+type CloudUserSyncAPISuccessResponse = {
+  status: boolean;
+  error: string | null;
+};
+
+type CloudUserSyncAPIErrorResponse = {
+  detail: string;
+};
+
+type CloudUserSyncAPIResponse = CloudUserSyncAPISuccessResponse | CloudUserSyncAPIErrorResponse;
+
+type CloudHeartbeatAPISuccessResponse = {
+  link: string | null;
+};
+
+type CloudHeartbeatAPIErrorResponse = {
+  detail: string;
+};
+
+type CloudHeartbeatAPIResponse = CloudHeartbeatAPISuccessResponse | CloudHeartbeatAPIErrorResponse;
 
 export class CloudStore extends BaseStore {
   @observable.shallow
-  searchResult: { matched_users_count?: number; results?: Array<Cloud['id']> } = {};
+  searchResult: PageNumberPaginatedApiResponse<CloudUserId> = null;
 
   @observable.shallow
-  items: { [id: string]: Cloud } = {};
+  items: CloudUserIdToCloudUserMap = {};
 
   @observable
-  cloudConnectionStatus: { cloud_connection_status: boolean } = { cloud_connection_status: false };
+  cloudConnectionStatus: CloudConnectionStatus = { cloud_connection_status: false } as CloudConnectionStatus;
+
+  cloudConnectionPath = '/cloud_connection/';
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -23,61 +59,56 @@ export class CloudStore extends BaseStore {
   }
 
   @action
-  async updateItems(page = 1) {
-    const { matched_users_count, results } = await makeRequest(this.path, {
+  async updateItems(page = 1): Promise<void> {
+    const { results, ...pagination } = await makeRequest<PaginatedAPIResponse>(this.path, {
       params: { page },
     });
 
     this.items = {
       ...this.items,
       ...results.reduce(
-        (acc: { [key: number]: Cloud }, item: Cloud) => ({
+        (acc, item) => ({
           ...acc,
           [item.id]: item,
         }),
-        {}
+        {} as CloudUserIdToCloudUserMap
       ),
     };
 
     this.searchResult = {
-      matched_users_count,
-      results: results.map((item: Cloud) => item.id),
+      ...pagination,
+      results: results.map(({ id }) => id),
     };
   }
 
-  getSearchResult() {
+  getSearchResult(): PaginatedAPIResponse | void {
+    const { searchResult } = this;
+
+    if (!searchResult) {
+      return;
+    }
+
     return {
-      matched_users_count: this.searchResult.matched_users_count,
-      results: this.searchResult.results && this.searchResult.results.map((id: Cloud['id']) => this.items?.[id]),
+      ...searchResult,
+      results: searchResult.results.map((id) => this.items[id]),
     };
   }
 
-  async syncCloudUsers() {
-    return await makeRequest(`${this.path}`, { method: 'POST' });
-  }
+  syncCloudUsers = (): Promise<CloudUserSyncAPIResponse> =>
+    makeRequest<CloudUserSyncAPIResponse>(this.path, { method: 'POST' });
 
-  async syncCloudUser(id: string) {
-    return await makeRequest(`${this.path}${id}/sync/`, { method: 'POST' });
-  }
+  syncCloudUser = (id: string): Promise<CloudUserSyncAPIResponse> =>
+    makeRequest<CloudUserSyncAPIResponse>(`${this.path}${id}/sync/`, { method: 'POST' });
 
-  async getCloudHeartbeat() {
-    return await makeRequest(`/cloud_heartbeat/`, { method: 'POST' });
-  }
+  getCloudHeartbeat = (): Promise<CloudHeartbeatAPIResponse> =>
+    makeRequest<CloudHeartbeatAPIResponse>('/cloud_heartbeat/', { method: 'POST' });
 
-  async getCloudUser(id: string) {
-    return await makeRequest(`${this.path}${id}`, { method: 'GET' });
-  }
-
-  async loadCloudConnectionStatus() {
-    this.cloudConnectionStatus = await this.getCloudConnectionStatus();
-  }
-
-  async getCloudConnectionStatus() {
-    return await makeRequest(`/cloud_connection/`, { method: 'GET' });
-  }
+  getCloudUser = (id: string): Promise<CloudUser> => makeRequest<CloudUser>(`${this.path}${id}`, { method: 'GET' });
 
   @action
-  async disconnectToCloud() {
-    return await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
+  async loadCloudConnectionStatus(): Promise<void> {
+    this.cloudConnectionStatus = await makeRequest<CloudConnectionStatus>(this.cloudConnectionPath, { method: 'GET' });
   }
+
+  disconnectToCloud = (): Promise<void> => makeRequest<null>(this.cloudConnectionPath, { method: 'DELETE' });
 }

@@ -1,4 +1,4 @@
-export interface Cloud {
+export interface CloudUser {
   id: string;
   username: string;
   email: string;

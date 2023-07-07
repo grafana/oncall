@@ -22,12 +22,16 @@ export class HeartbeatStore extends BaseStore {
 
   @action
   async updateTimeoutOptions() {
-    this.timeoutOptions = await makeRequest(`${this.path}timeout_options/`, {});
+    this.timeoutOptions = await makeRequest(`${this.path}timeout_options/`);
   }
 
   @action
   async saveHeartbeat(id: Heartbeat['id'], data: Partial<Heartbeat>) {
-    const response: Heartbeat = await super.update(id, data);
+    const response = await super.update<Heartbeat>(id, data);
+
+    if (!response) {
+      return;
+    }
 
     this.items = {
       ...this.items,
@@ -37,10 +41,14 @@ export class HeartbeatStore extends BaseStore {
 
   @action
   async createHeartbeat(alertReceiveChannelId: AlertReceiveChannel['id'], data: Partial<Heartbeat>) {
-    const response: Heartbeat = await super.create({
+    const response = await super.create<Heartbeat>({
       alert_receive_channel: alertReceiveChannelId,
       ...data,
     });
+
+    if (!response) {
+      return;
+    }
 
     this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat = {
       ...this.rootStore.alertReceiveChannelStore.alertReceiveChannelToHeartbeat,

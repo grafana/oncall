@@ -140,12 +140,12 @@ export class AlertGroupStore extends BaseStore {
   }
 
   async getAlertsFromGroup(pk: Alert['pk']) {
-    return await makeRequest(`${this.path}${pk}`, {});
+    return await makeRequest(`${this.path}${pk}`);
   }
 
   @action
   async updateSilenceOptions() {
-    this.silenceOptions = await makeRequest(`${this.path}silence_options/`, {});
+    this.silenceOptions = await makeRequest(`${this.path}silence_options/`);
   }
 
   @action
@@ -194,7 +194,7 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   async updateBulkActions() {
-    const response = await makeRequest(`${this.path}bulk_action_options/`, {});
+    const response = await makeRequest(`${this.path}bulk_action_options/`);
 
     this.bulkActions = response.reduce(
       (acc: { [key: string]: boolean }, item: SelectOption) => ({
@@ -322,13 +322,13 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   getAlert(pk: Alert['pk']) {
-    return makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
+    return makeRequest(`${this.path}${pk}`).then((alert: Alert) => {
       this.alerts.set(pk, alert);
     });
   }
 
   async getPayloadForIncident(pk: Alert['pk']) {
-    return await makeRequest(`/alerts/${pk}`, {});
+    return await makeRequest(`/alerts/${pk}`);
   }
 
   @action
@@ -380,7 +380,7 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   async getAlertGroupsStats() {
-    this.alertGroupStats = await makeRequest('/alertgroups/stats/', {});
+    this.alertGroupStats = await makeRequest('/alertgroups/stats/');
   }
 
   @action

@@ -26,7 +26,7 @@ instance.interceptors.request.use(function (config) {
   };
 });
 
-interface RequestConfig {
+export interface RequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
   params?: any;
   data?: any;
@@ -39,7 +39,7 @@ interface RequestConfig {
 
 export const isNetworkError = axios.isAxiosError;
 
-export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
+export const makeRequest = async <RT = any>(path: string, config: RequestConfig = {}) => {
   const { method = 'GET', params, data, validateStatus, headers } = config;
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;

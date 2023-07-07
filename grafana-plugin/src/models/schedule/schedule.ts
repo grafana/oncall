@@ -364,7 +364,7 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateOncallShift(shiftId: Shift['id']) {
-    const response = await makeRequest(`/oncall_shifts/${shiftId}`, {});
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`);
 
     this.shifts = {
       ...this.shifts,

@@ -40,7 +40,6 @@ import styles from './Integrations.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 15;
 const MAX_LINE_LENGTH = 40;
 
 interface IntegrationsState extends PageBaseState {
@@ -122,15 +121,15 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { page, integrationsFilters } = this.state;
     LocationHelper.update({ p: page }, 'partial');
 
-    return store.alertReceiveChannelStore.updatePaginatedItems(integrationsFilters, page);
+    return store.alertReceiveChannelStore.updateItems(integrationsFilters, page);
   };
 
   render() {
     const { store, query } = this.props;
-    const { alertReceiveChannelId, page, confirmationModal } = this.state;
+    const { alertReceiveChannelId, confirmationModal } = this.state;
     const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore } = store;
 
-    const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
+    const { results, ...pagination } = alertReceiveChannelStore.getPaginatedSearchResult();
 
     const columns = [
       {
@@ -208,7 +207,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               grafanaTeamStore={store.grafanaTeamStore}
               onChange={this.handleIntegrationsFiltersChange}
             />
-            <GTable
+            <GTable<AlertReceiveChannel>
               emptyText={this.renderNotFound()}
               data-testid="integrations-table"
               rowKey="id"
@@ -217,8 +216,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               className={cx('integrations-table')}
               rowClassName={cx('integrations-table-row')}
               pagination={{
-                page,
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                ...pagination,
                 onChange: this.handleChangePage,
               }}
             />
@@ -471,18 +469,18 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   handleIntegrationsFiltersChange = (integrationsFilters: Filters) => {
-    this.setState({ integrationsFilters }, () => this.debouncedUpdateIntegrations());
+    this.setState({ integrationsFilters }, this.debouncedUpdateIntegrations);
   };
 
-  applyFilters = () => {
+  applyFilters = async () => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters } = this.state;
 
-    return alertReceiveChannelStore.updatePaginatedItems(integrationsFilters).then(() => {
-      this.setState({ page: 1 });
-      LocationHelper.update({ p: 1 }, 'partial');
-    });
+    await alertReceiveChannelStore.updateItems(integrationsFilters);
+
+    this.setState({ page: 1 });
+    LocationHelper.update({ p: 1 }, 'partial');
   };
 
   debouncedUpdateIntegrations = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);

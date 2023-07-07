@@ -50,7 +50,7 @@ const mockUseStore = (rest?: any, connected = false, cloud_connected = true) => 
       ...(rest ? rest : {}),
     } as unknown as UserStore,
     cloudStore: {
-      getCloudConnectionStatus: jest.fn().mockReturnValue({ cloud_connection_status: cloud_connected }),
+      loadCloudConnectionStatus: jest.fn().mockReturnValue({ cloud_connection_status: cloud_connected }),
       cloudConnectionStatus: { cloud_connection_status: cloud_connected },
     } as unknown as CloudStore,
     hasFeature: jest.fn().mockReturnValue(true),

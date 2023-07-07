@@ -36,7 +36,7 @@ export class EscalationPolicyStore extends BaseStore {
 
   @action
   async updateWebEscalationPolicyOptions() {
-    const response = await makeRequest('/escalation_policies/escalation_options/', {});
+    const response = await makeRequest('/escalation_policies/escalation_options/');
 
     this.webEscalationChoices = response;
   }
@@ -52,7 +52,7 @@ export class EscalationPolicyStore extends BaseStore {
 
   @action
   async updateNumMinutesInWindowOptions() {
-    const response = await makeRequest('/escalation_policies/num_minutes_in_window_options/', {});
+    const response = await makeRequest('/escalation_policies/num_minutes_in_window_options/');
 
     this.numMinutesInWindowOptions = response;
   }

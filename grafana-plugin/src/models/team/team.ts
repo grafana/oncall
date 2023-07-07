@@ -24,7 +24,7 @@ export class TeamStore extends BaseStore {
 
   @action
   async loadCurrentTeam() {
-    this.currentTeam = await makeRequest('/current_team/', {});
+    this.currentTeam = await makeRequest('/current_team/');
   }
 
   @action

@@ -36,16 +36,13 @@ const cx = cn.bind(styles);
 
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-const ITEMS_PER_PAGE = 100;
 const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
   page: number;
   isWrongTeam: boolean;
   userPkToEdit?: UserType['pk'] | 'new';
-  usersFilters?: {
-    searchTerm: string;
-  };
+  searchTerm: string;
   initialUsersLoaded: boolean;
 }
 
@@ -55,9 +52,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     page: 1,
     isWrongTeam: false,
     userPkToEdit: undefined,
-    usersFilters: {
-      searchTerm: '',
-    },
+    searchTerm: '',
 
     errorData: initErrorDataState(),
     initialUsersLoaded: false,
@@ -74,7 +69,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   updateUsers = async () => {
     const { store } = this.props;
-    const { usersFilters, page } = this.state;
+    const { searchTerm, page } = this.state;
     const { userStore } = store;
 
     if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
@@ -82,7 +77,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    await userStore.updateItems(usersFilters, page);
+    await userStore.updateItems(searchTerm, page);
 
     this.setState({ initialUsersLoaded: true });
   };
@@ -121,7 +116,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   render() {
-    const { usersFilters, userPkToEdit, page, errorData, initialUsersLoaded } = this.state;
+    const { searchTerm, userPkToEdit, errorData, initialUsersLoaded } = this.state;
     const {
       store,
       match: {
@@ -163,11 +158,17 @@ class Users extends React.Component<UsersProps, UsersState> {
     ];
 
     const handleClear = () =>
-      this.setState({ usersFilters: { searchTerm: '' } }, () => {
+      this.setState({ searchTerm: '' }, () => {
         this.debouncedUpdateUsers();
       });
 
-    const { count, results } = userStore.getSearchResult();
+    const userSearchResults = userStore.getSearchResult();
+
+    if (!userSearchResults) {
+      return null;
+    }
+
+    const { results, ...pagination } = userSearchResults;
 
     const authorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
 
@@ -210,7 +211,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     <div className={cx('user-filters-container')}>
                       <UsersFilters
                         className={cx('users-filters')}
-                        value={usersFilters}
+                        searchTerm={searchTerm}
                         onChange={this.handleUsersFiltersChange}
                       />
                       <Button
@@ -223,7 +224,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                       </Button>
                     </div>
 
-                    <GTable
+                    <GTable<UserType>
                       data-testid="users-table"
                       emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
                       rowKey="pk"
@@ -231,8 +232,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                       columns={columns}
                       rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
                       pagination={{
-                        page,
-                        total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                        ...pagination,
                         onChange: this.handleChangePage,
                       }}
                     />
@@ -399,8 +399,8 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   debouncedUpdateUsers = debounce(this.updateUsers, 500);
 
-  handleUsersFiltersChange = (usersFilters: any) => {
-    this.setState({ usersFilters, page: 1 }, () => {
+  handleUsersFiltersChange = (searchTerm: string) => {
+    this.setState({ searchTerm, page: 1 }, () => {
       this.debouncedUpdateUsers();
     });
   };

@@ -49,7 +49,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
   }, [isImportant, userPk, userStore]);
 
   const getNotificationPolicyUpdateHandler = useCallback(
-    (id: NotificationPolicyType['id'], data) => {
+    (id: NotificationPolicyType['id'], data: NotificationPolicyType) => {
       userStore.updateNotificationPolicy(userPk, id, data);
     },
     [userPk, userStore]
@@ -130,7 +130,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
         onSortEnd={getNotificationPolicySortEndHandler(offset)}
         useDragHandle
       >
-        {notificationPolicies.map((notificationPolicy: NotificationPolicyType, index: number) => (
+        {notificationPolicies.map((notificationPolicy, index) => (
           <NotificationPolicy
             // @ts-ignore
             userAction={userAction}

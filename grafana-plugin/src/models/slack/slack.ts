@@ -20,7 +20,7 @@ export class SlackStore extends BaseStore {
 
   @action
   async updateSlackSettings() {
-    this.slackSettings = await makeRequest('/slack_settings/', {});
+    this.slackSettings = await makeRequest('/slack_settings/');
   }
 
   @action
@@ -59,12 +59,12 @@ export class SlackStore extends BaseStore {
 
   @action
   async slackLogin() {
-    const url_for_redirect = await makeRequest('/login/slack-login/', {});
+    const url_for_redirect = await makeRequest('/login/slack-login/');
     window.location = url_for_redirect;
   }
 
   async installSlackIntegration() {
-    const url_for_redirect = await makeRequest('/login/slack-install-free/', {});
+    const url_for_redirect = await makeRequest('/login/slack-install-free/');
     window.location = url_for_redirect;
   }
 

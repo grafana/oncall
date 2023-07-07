@@ -6,6 +6,7 @@ import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
 
 import { ExpandIcon } from 'icons';
+import { TablePaginationProps } from 'utils/pagination/types';
 
 import styles from './Table.module.css';
 
@@ -13,11 +14,7 @@ const cx = cn.bind(styles);
 
 export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   loading?: boolean;
-  pagination?: {
-    page: number;
-    total: number;
-    onChange: (page: number) => void;
-  };
+  pagination?: TablePaginationProps<RecordType>;
   rowSelection?: {
     selectedRowKeys: string[];
     onChange: (selectedRowKeys: string[]) => void;
@@ -34,7 +31,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
 
 const GTable: FC<Props> = (props) => {
   const { columns, data, className, pagination, loading, rowKey, expandable, ...restProps } = props;
-  const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
+  const { current_page_number: page, total_pages: numberOfPages, onChange: onNavigate } = pagination || {};
 
   const expandableFn = useMemo(() => {
     return expandable

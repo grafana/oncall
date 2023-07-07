@@ -38,7 +38,6 @@ import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
-const ITEMS_PER_PAGE = 10;
 
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
@@ -68,33 +67,13 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   }
 
-  /* async componentDidMount() {
-    const {
-      store,
-      query: { p },
-    } = this.props;
-
-    const { filters, page } = this.state;
-
-    await store.scheduleStore.updateItems(filters, page, () => filters === this.state.filters);
-
-    this.setState({ page: p ? Number(p) : 1 }, this.updateSchedules);
-  } */
-
-  /* updateSchedules = async () => {
-    const { store } = this.props;
-    const { filters, page } = this.state;
-
-    await store.scheduleStore.updateItems(filters, page);
-  };
- */
   render() {
     const { store, query } = this.props;
 
     const { grafanaTeamStore } = store;
-    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
+    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
 
-    const { results, count } = store.scheduleStore.getSearchResult();
+    const { results, ...pagination } = store.scheduleStore.getSearchResult();
 
     const columns = [
       {
@@ -176,7 +155,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               columns={columns}
               data={results}
               loading={!results}
-              pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
+              pagination={{ ...pagination, onChange: this.handlePageChange }}
               rowKey="id"
               expandable={{
                 expandedRowKeys: expandedRowKeys,

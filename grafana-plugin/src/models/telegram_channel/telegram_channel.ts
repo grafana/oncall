@@ -26,7 +26,7 @@ export class TelegramChannelStore extends BaseStore {
 
   @action
   async updateTelegramChannels() {
-    const response = await makeRequest(this.path, {});
+    const response = await makeRequest(this.path);
 
     const items = response.reduce(
       (acc: any, telegramChannel: TelegramChannel) => ({

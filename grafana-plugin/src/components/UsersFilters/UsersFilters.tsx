@@ -8,24 +8,19 @@ import styles from './UsersFilters.module.css';
 const cx = cn.bind(styles);
 
 interface UsersFiltersProps {
-  value: any;
-  onChange: (filters: any) => void;
+  searchTerm: string;
+  onChange: (searchTerm: string) => void;
   className?: string;
 }
 
 const UsersFilters = (props: UsersFiltersProps) => {
-  const { value = { searchTerm: '' }, onChange, className } = props;
+  const { searchTerm = '', onChange, className } = props;
 
   const onSearchTermChangeCallback = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      const filters = {
-        ...value,
-        searchTerm: e.currentTarget.value,
-      };
-
-      onChange(filters);
+      onChange(e.currentTarget.value);
     },
-    [onChange, value]
+    [onChange, searchTerm]
   );
 
   return (
@@ -34,7 +29,7 @@ const UsersFilters = (props: UsersFiltersProps) => {
         prefix={<Icon name="search" />}
         className={cx('search', 'control')}
         placeholder="Search users..."
-        value={value.searchTerm}
+        value={searchTerm}
         onChange={onSearchTermChangeCallback}
       />
     </div>
