@@ -24,6 +24,7 @@
   flex-grow: 1;
 }
 
-.webhooks__drawerContent .cursor.monaco-mouse-cursor-text  {
+/* TODO: figure out why this is not picked */
+.webhooks__drawerContent .cursor.monaco-mouse-cursor-text {
   display: none !important;
 }

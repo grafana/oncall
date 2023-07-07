@@ -131,7 +131,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
                 showLineNumbers={false}
                 monacoOptions={{
                   ...MONACO_READONLY_CONFIG,
-                  readOnly: false,
+                  readOnly: formItem.isReadOnly,
                 }}
                 onChange={(value) => onChangeFn(field, value)}
               />

@@ -1,18 +1,18 @@
-import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
-import Text from 'components/Text/Text';
-import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import React, { useEffect, useState } from 'react';
-import { UserActions } from 'utils/authorization';
-import cn from 'classnames/bind';
 
-import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
+import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import cn from 'classnames/bind';
+import { noop, debounce } from 'lodash-es';
+
 import CheatSheet from 'components/CheatSheet/CheatSheet';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
-import { noop } from 'lodash-es';
-import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import Text from 'components/Text/Text';
+import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import TemplateResult from 'containers/TemplateResult/TemplateResult';
+import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { waitForElement } from 'utils/DOM';
-import { debounce } from 'lodash-es';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 

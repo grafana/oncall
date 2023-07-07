@@ -9,6 +9,7 @@ import GForm from 'components/GForm/GForm';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import Text from 'components/Text/Text';
 import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
+import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks_2/OutgoingWebhooks2.types';
@@ -20,7 +21,6 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './OutgoingWebhook2Form.config';
 
 import styles from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form.module.css';
-import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 
 const cx = cn.bind(styles);
 

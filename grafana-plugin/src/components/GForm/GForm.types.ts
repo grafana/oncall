@@ -14,6 +14,7 @@ export interface FormItem {
   name: string;
   label?: string;
   type: FormItemType;
+  isReadOnly?: boolean;
   description?: string;
   normalize?: (value: any) => any;
   isVisible?: (data: any) => any;
