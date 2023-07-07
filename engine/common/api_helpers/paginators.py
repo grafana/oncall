@@ -27,6 +27,10 @@ class TwentyFivePageSizePaginator(PathPrefixedPagination):
     page_size = 25
 
 
+class FifteenPageSizePaginator(PathPrefixedPagination):
+    page_size = 15
+
+
 class TwentyFiveCursorPaginator(PathPrefixedCursorPagination):
     page_size = 25
     max_page_size = 100
