@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `event.users.avatar_full` field to `GET /api/internal/v1/schedules/{schedule_id}/filter_events`
   payload by @joeyorlando ([#2459](https://github.com/grafana/oncall/pull/2459))
 
+### Changed
+
+- Modified DRF pagination class used by `GET /api/internal/v1/alert_receive_channels` and `GET /api/internal/v1/schedules`
+  endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
+  a reverse proxy by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ## v1.3.7 (2023-07-06)
 
 ### Changed

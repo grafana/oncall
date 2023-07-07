@@ -141,7 +141,7 @@ def test_integration_filter_by_maintenance(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+    assert len(response.json()["results"]) == 1
 
 
 @pytest.mark.django_db
@@ -165,7 +165,7 @@ def test_integration_filter_by_debug(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+    assert len(response.json()["results"]) == 1
 
 
 @pytest.mark.django_db
@@ -186,19 +186,19 @@ def test_integration_search(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 2
+    assert len(response.json()["results"]) == 2
 
     response = client.get(
         f"{url}?search=zabbix", content_type="application/json", **make_user_auth_headers(user, token)
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 0
+    assert len(response.json()["results"]) == 0
 
     response = client.get(f"{url}?search=prod", content_type="application/json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+    assert len(response.json()["results"]) == 1
 
 
 @pytest.mark.django_db
@@ -688,7 +688,8 @@ def test_get_alert_receive_channels_direct_paging_hidden_from_list(
 
     # Check no direct paging integrations in the response
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == []
+    assert response.json()["count"] == 0
+    assert len(response.json()["results"]) == 0
 
 
 @pytest.mark.django_db
@@ -706,7 +707,7 @@ def test_get_alert_receive_channels_direct_paging_present_for_filters(
 
     # Check direct paging integration is in the response
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()[0]["value"] == alert_receive_channel.public_primary_key
+    assert response.json()["results"][0]["value"] == alert_receive_channel.public_primary_key
 
 
 @pytest.mark.django_db
