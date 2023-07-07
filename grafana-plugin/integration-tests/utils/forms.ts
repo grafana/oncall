@@ -88,14 +88,7 @@ const chooseDropdownValue = async ({ page, value, optionExactMatch = true }: Sel
 
 export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<void> => {
   const selectElement = await openSelect(args);
-
-  /**
-   * use the select search to filter down the options
-   * TODO: get rid of the slice when we fix the GSelect component..
-   * without slicing this would fire off an API request for every key-stroke
-   */
-  await selectElement.type(args.value.slice(0, 5));
-
+  await selectElement.type(args.value);
   await chooseDropdownValue(args);
 };
 
