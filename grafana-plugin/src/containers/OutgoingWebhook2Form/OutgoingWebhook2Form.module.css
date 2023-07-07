@@ -23,3 +23,7 @@
 .form-field {
   flex-grow: 1;
 }
+
+.webhooks__drawerContent .cursor.monaco-mouse-cursor-text  {
+  display: none !important;
+}

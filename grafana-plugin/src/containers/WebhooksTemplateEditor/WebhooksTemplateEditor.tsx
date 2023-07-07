@@ -1,7 +1,7 @@
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserActions } from 'utils/authorization';
 import cn from 'classnames/bind';
 
@@ -10,8 +10,8 @@ import CheatSheet from 'components/CheatSheet/CheatSheet';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { noop } from 'lodash-es';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
-import { Alert } from 'models/alertgroup/alertgroup.types';
 import TemplateResult from 'containers/TemplateResult/TemplateResult';
+import { waitForElement } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
@@ -30,6 +30,16 @@ interface WebhooksTemplateEditorProps {
 
 const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, onHide, handleSubmit }) => {
   const [isCheatSheetVisible] = useState(false);
+  const [editorHeight, setEditorHeight] = useState<string>(undefined);
+  const [selectedAG, setSelectedAG] = useState(undefined);
+
+  useEffect(() => {
+    waitForElement('#content-container-id').then(() => {
+      const mainDiv = document.getElementById('content-container-id');
+      const height = mainDiv?.getBoundingClientRect().height - 59;
+      setEditorHeight(`${height}px`);
+    });
+  }, []);
 
   return (
     <Drawer
@@ -63,9 +73,10 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
       <div className={cx('container-wrapper')}>
         <div className={cx('container')} id={'content-container-id'}>
           <TemplatesAlertGroupsList
+            heading="Alert groups"
             templatePage={TEMPLATE_PAGE.Webhooks}
-            onEditPayload={(_payload: string) => {}}
-            onSelectAlertGroup={(_alertGroup: Alert) => {}}
+            onEditPayload={(_payload: string) => {}} // TODO: add handler
+            onSelectAlertGroup={setSelectedAG}
             templates={
               {
                 acknowledge_condition_template: null,
@@ -94,27 +105,27 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                   </HorizontalGroup>
                 </div>
                 <div className={cx('template-editor-block-content')}>
-                  <MonacoEditor value={template.value} data={undefined} showLineNumbers={true} height={`400px`} onChange={noop} />
+                  <MonacoEditor
+                    value={template.value}
+                    data={undefined}
+                    showLineNumbers={true}
+                    height={editorHeight}
+                    onChange={noop}
+                  />
                 </div>
               </div>
             </>
           )}
 
           <TemplateResult
-            templateBody={''}
+            templateBody={template.value}
             isAlertGroupExisting={true}
             chatOpsPermalink={undefined}
-            payload={undefined}
+            payload={selectedAG}
             error={undefined}
             // this most likely is not needed for webhooks
             onSaveAndFollowLink={noop}
-            template={{
-              description:
-                'Reduce noise, minimize duplication with Alert Grouping, based on time, alert content, and even multiple features at the same time.  Check the cheasheet to customize your template.',
-              displayName: 'Grouping',
-              name: 'grouping_id_template',
-              type: 'plain',
-            }}
+            template={{} as any} // todo: figure out a template config object?
           />
         </div>
       </div>

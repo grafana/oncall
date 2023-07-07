@@ -120,7 +120,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     return (
       <>
         <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
-          {renderWebhookForm()}
+          <div className="webhooks__drawerContent">{renderWebhookForm()}</div>
         </Drawer>
         {templateFieldValue !== undefined && (
           <WebhooksTemplateEditor
@@ -137,39 +137,41 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     // show tabbed drawer (edit/live_run)
     <>
       <Drawer scrollableContent title={'Outgoing webhook details'} onClose={onHide} closeOnMaskClick={false}>
-        <TabsBar>
-          <Tab
-            key={WebhookTabs.Settings.key}
-            onChangeTab={() => {
-              setActiveTab(WebhookTabs.Settings.key);
-              history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
-            }}
-            active={activeTab === WebhookTabs.Settings.key}
-            label={WebhookTabs.Settings.value}
-          />
+        <div className={cx('webhooks__drawerContent')}>
+          <TabsBar>
+            <Tab
+              key={WebhookTabs.Settings.key}
+              onChangeTab={() => {
+                setActiveTab(WebhookTabs.Settings.key);
+                history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
+              }}
+              active={activeTab === WebhookTabs.Settings.key}
+              label={WebhookTabs.Settings.value}
+            />
 
-          <Tab
-            key={WebhookTabs.LastRun.key}
-            onChangeTab={() => {
-              setActiveTab(WebhookTabs.LastRun.key);
-              history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`);
-            }}
-            active={activeTab === WebhookTabs.LastRun.key}
-            label={WebhookTabs.LastRun.value}
-          />
-        </TabsBar>
+            <Tab
+              key={WebhookTabs.LastRun.key}
+              onChangeTab={() => {
+                setActiveTab(WebhookTabs.LastRun.key);
+                history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`);
+              }}
+              active={activeTab === WebhookTabs.LastRun.key}
+              label={WebhookTabs.LastRun.value}
+            />
+          </TabsBar>
 
-        <WebhookTabsContent
-          id={id}
-          action={action}
-          activeTab={activeTab}
-          data={data}
-          handleSubmit={handleSubmit}
-          onDelete={onDelete}
-          onHide={onHide}
-          onUpdate={onUpdate}
-          formElement={formElement}
-        />
+          <WebhookTabsContent
+            id={id}
+            action={action}
+            activeTab={activeTab}
+            data={data}
+            handleSubmit={handleSubmit}
+            onDelete={onDelete}
+            onHide={onHide}
+            onUpdate={onUpdate}
+            formElement={formElement}
+          />
+        </div>
       </Drawer>
       {templateFieldValue !== undefined && (
         <WebhooksTemplateEditor

@@ -1,7 +1,7 @@
 import React from 'react';
-import { TemplateForEdit } from "components/AlertTemplates/CommonAlertTemplatesForm.config";
-import Block from "components/GBlock/Block";
-import { AlertReceiveChannel } from "models/alert_receive_channel/alert_receive_channel.types";
+import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
+import Block from 'components/GBlock/Block';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 

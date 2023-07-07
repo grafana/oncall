@@ -30,14 +30,22 @@ interface TemplatesAlertGroupsListProps {
   templatePage: TEMPLATE_PAGE;
   templates: AlertTemplatesDTO[];
   alertReceiveChannelId?: AlertReceiveChannel['id'];
+  heading?: string;
   onSelectAlertGroup?: (alertGroup: Alert) => void;
   onEditPayload?: (payload: string) => void;
   onLoadAlertGroupsList?: (isRecentAlertExising: boolean) => void;
 }
 
 const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
-  const { templatePage, alertReceiveChannelId, templates, onEditPayload, onSelectAlertGroup, onLoadAlertGroupsList } =
-    props;
+  const {
+    templatePage,
+    heading = 'Recent Alert groups',
+    alertReceiveChannelId,
+    templates,
+    onEditPayload,
+    onSelectAlertGroup,
+    onLoadAlertGroupsList,
+  } = props;
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
   const [selectedAlertPayload, setSelectedAlertPayload] = useState<string>(undefined);
@@ -81,8 +89,14 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
 
   const getAlertGroupPayload = async (id) => {
     if (templatePage === TEMPLATE_PAGE.Webhooks) {
+      const groupedAlert = alertGroupsList.find((ag) => ag.pk === id);
+      onSelectAlertGroup(groupedAlert);
+      setSelectedAlertPayload(groupedAlert);
+      onEditPayload(JSON.stringify(groupedAlert));
       return;
     }
+
+    debugger;
 
     const groupedAlert = await store.alertGroupStore.getAlertsFromGroup(id);
     const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(groupedAlert?.alerts[0]?.id);
@@ -146,7 +160,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
           <div className={cx('template-block-title')}>
             <HorizontalGroup justify="space-between" wrap>
               <HorizontalGroup>
-                <Text>Recent Alert groups</Text>
+                <Text>{heading}</Text>
                 <Tooltip content="Here will be information about alert groups" placement="top">
                   <Icon name="info-circle" />
                 </Tooltip>
@@ -164,8 +178,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   );
 
   function renderAlertGroupList() {
-    debugger;
-
     if (!alertGroupsList) {
       return <LoadingPlaceholder text="Loading alert groups..." />;
     }
