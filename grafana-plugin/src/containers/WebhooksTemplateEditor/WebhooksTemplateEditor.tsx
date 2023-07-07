@@ -115,7 +115,7 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                 <div className={cx('template-editor-block-content')}>
                   <MonacoEditor
                     value={template.value}
-                    data={undefined}
+                    data={{ payload_example: selectedAG }}
                     showLineNumbers={true}
                     height={editorHeight}
                     onChange={getChangeHandler()}
