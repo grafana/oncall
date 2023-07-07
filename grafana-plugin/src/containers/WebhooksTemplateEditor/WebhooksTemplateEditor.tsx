@@ -87,6 +87,7 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
             onSelectAlertGroup={setSelectedAG}
             templates={
               {
+                // TODO: this is just some dummy data, this will need replaced with an actual Webhook Template
                 acknowledge_condition_template: null,
                 acknowledge_condition_template_is_default: true,
               } as any
