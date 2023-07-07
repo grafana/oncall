@@ -702,6 +702,9 @@ def test_get_schedule_list(
                 "slack": {"channel_id": slack_channel_id, "user_group_id": user_group_id},
             },
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

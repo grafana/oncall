@@ -74,6 +74,9 @@ def test_get_list_integrations(
                 "maintenance_end_at": None,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
     url = reverse("api-public:integrations-list")
     response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
