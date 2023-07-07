@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 
 import { Button, ConfirmModal, ConfirmModalProps, Drawer, HorizontalGroup, Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
@@ -41,6 +40,7 @@ export const WebhookTabs = {
 const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
+  const [onFormChangeFn, setOnFormChangeFn] = useState<{ fn: (value: string) => void }>(undefined);
   const [templateFieldValue, setTemplateFieldValue] = useState<string>(undefined);
   const [activeTab, setActiveTab] = useState<string>(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
@@ -60,19 +60,24 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     [id]
   );
 
-  const getTemplateEditClickHandler = (formItem: FormItem, values) => {
+  const getTemplateEditClickHandler = (formItem: FormItem, values, setFormFieldValue) => {
     return () => {
       const formValue = values[formItem.name];
       setTemplateFieldValue(formValue);
+      setOnFormChangeFn({ fn: (value) => setFormFieldValue(value) });
     };
   };
 
-  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement, values) => {
+  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement, values, setFormFieldValue) => {
     if (formItem.type === FormItemType.Monaco) {
       return (
         <div className={cx('form-row')}>
           <div className={cx('form-field')}>{renderedControl}</div>
-          <Button icon="edit" variant="secondary" onClick={getTemplateEditClickHandler(formItem, values)} />
+          <Button
+            icon="edit"
+            variant="secondary"
+            onClick={getTemplateEditClickHandler(formItem, values, setFormFieldValue)}
+          />
         </div>
       );
     }
@@ -124,7 +129,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
         </Drawer>
         {templateFieldValue !== undefined && (
           <WebhooksTemplateEditor
-            handleSubmit={noop}
+            handleSubmit={(value) => onFormChangeFn?.fn(value)}
             onHide={() => setTemplateFieldValue(undefined)}
             template={template}
           />
@@ -175,7 +180,10 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
       </Drawer>
       {templateFieldValue !== undefined && (
         <WebhooksTemplateEditor
-          handleSubmit={noop}
+          handleSubmit={(value) => {
+            onFormChangeFn?.fn(value);
+            setTemplateFieldValue(undefined);
+          }}
           onHide={() => setTemplateFieldValue(undefined)}
           template={template}
         />

@@ -19,7 +19,12 @@ interface GFormProps {
   form: { name: string; fields: FormItem[] };
   data: any;
   onSubmit: (data: any) => void;
-  onFieldRender?: (formItem: FormItem, renderedControl: React.ReactElement, values: any) => React.ReactElement;
+  onFieldRender?: (
+    formItem: FormItem,
+    renderedControl: React.ReactElement,
+    values: any,
+    setValue: (value: string) => void
+  ) => React.ReactElement;
 }
 
 const nullNormalizer = (value: string) => {
@@ -124,7 +129,11 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
                 {...field}
                 {...formItem.extra}
                 showLineNumbers={false}
-                monacoOptions={MONACO_READONLY_CONFIG}
+                monacoOptions={{
+                  ...MONACO_READONLY_CONFIG,
+                  readOnly: false,
+                }}
+                onChange={(value) => onChangeFn(field, value)}
               />
             );
           }}
@@ -166,7 +175,9 @@ class GForm extends React.Component<GFormProps, {}> {
                 error={formItem.label ? `${formItem.label} is required` : `${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
-                {onFieldRender ? onFieldRender(formItem, formControl, getValues()) : formControl}
+                {onFieldRender
+                  ? onFieldRender(formItem, formControl, getValues(), (value) => setValue(formItem.name, value))
+                  : formControl}
               </Field>
             );
           };

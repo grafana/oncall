@@ -12,6 +12,7 @@ import { noop } from 'lodash-es';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import TemplateResult from 'containers/TemplateResult/TemplateResult';
 import { waitForElement } from 'utils/DOM';
+import { debounce } from 'lodash-es';
 
 const cx = cn.bind(styles);
 
@@ -25,11 +26,12 @@ interface Template {
 interface WebhooksTemplateEditorProps {
   template: Template;
   onHide: () => void;
-  handleSubmit: () => void;
+  handleSubmit: (template: string) => void;
 }
 
 const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, onHide, handleSubmit }) => {
   const [isCheatSheetVisible] = useState(false);
+  const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
   const [editorHeight, setEditorHeight] = useState<string>(undefined);
   const [selectedAG, setSelectedAG] = useState(undefined);
 
@@ -40,6 +42,12 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
       setEditorHeight(`${height}px`);
     });
   }, []);
+
+  const getChangeHandler = () => {
+    return debounce((value: string) => {
+      setChangedTemplateBody(value);
+    }, 500);
+  };
 
   return (
     <Drawer
@@ -58,7 +66,7 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                 </Button>
               </WithPermissionControlTooltip>
               <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
-                <Button variant="primary" onClick={handleSubmit}>
+                <Button variant="primary" onClick={() => handleSubmit(changedTemplateBody)}>
                   Save
                 </Button>
               </WithPermissionControlTooltip>
@@ -110,7 +118,7 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                     data={undefined}
                     showLineNumbers={true}
                     height={editorHeight}
-                    onChange={noop}
+                    onChange={getChangeHandler()}
                   />
                 </div>
               </div>

@@ -96,8 +96,6 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
       return;
     }
 
-    debugger;
-
     const groupedAlert = await store.alertGroupStore.getAlertsFromGroup(id);
     const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(groupedAlert?.alerts[0]?.id);
     setSelectedAlertName(getAlertGroupName(groupedAlert));
