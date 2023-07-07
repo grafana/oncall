@@ -824,7 +824,14 @@ def test_events_calendar(
                 "all_day": False,
                 "start": on_call_shift.start,
                 "end": on_call_shift.start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -890,7 +897,14 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": mon_start,
                 "end": mon_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -906,7 +920,14 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    }
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -989,7 +1010,14 @@ def test_filter_events_range_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -1076,6 +1104,7 @@ def test_filter_events_overrides(
                         "display_name": other_user.username,
                         "pk": other_user.public_primary_key,
                         "email": other_user.email,
+                        "avatar_full": other_user.avatar_full_url,
                     }
                 ],
                 "missing_users": [],

@@ -15,6 +15,7 @@ from rest_framework.fields import BooleanField
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -232,10 +233,10 @@ class ScheduleView(
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
-    def get_object(self):
+    def get_object(self) -> OnCallSchedule:
         # get the object from the whole organization if there is a flag `get_from_organization=true`
         # otherwise get the object from the current team
-        get_from_organization = self.request.query_params.get("from_organization", "false") == "true"
+        get_from_organization: bool = self.request.query_params.get("from_organization", "false") == "true"
         if get_from_organization:
             return self.get_object_from_organization()
         return super().get_object()
@@ -307,10 +308,10 @@ class ScheduleView(
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
-    def filter_events(self, request, pk):
+    def filter_events(self, request: Request, pk: str) -> Response:
         user_tz, starting_date, days = get_date_range_from_request(self.request)
 
-        filter_by = self.request.query_params.get("type")
+        filter_by: str | None = self.request.query_params.get("type")
         valid_filters = (EVENTS_FILTER_BY_ROTATION, EVENTS_FILTER_BY_OVERRIDE, EVENTS_FILTER_BY_FINAL)
         if filter_by is not None and filter_by not in valid_filters:
             raise BadRequest(detail="Invalid type value")

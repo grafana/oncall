@@ -1502,7 +1502,12 @@ def test_on_call_shift_preview(
             "priority_level": 2,
             "missing_users": [],
             "users": [
-                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+                {
+                    "display_name": other_user.username,
+                    "pk": other_user.public_primary_key,
+                    "email": other_user.email,
+                    "avatar_full": other_user.avatar_full_url,
+                },
             ],
             "source": "web",
         }
@@ -1791,7 +1796,12 @@ def test_on_call_shift_preview_update(
         "priority_level": 1,
         "missing_users": [],
         "users": [
-            {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            {
+                "display_name": other_user.username,
+                "pk": other_user.public_primary_key,
+                "email": other_user.email,
+                "avatar_full": other_user.avatar_full_url,
+            },
         ],
         "source": "web",
     }
@@ -1901,7 +1911,12 @@ def test_on_call_shift_preview_update_not_started_reuse_pk(
             "priority_level": 1,
             "missing_users": [],
             "users": [
-                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+                {
+                    "display_name": other_user.username,
+                    "pk": other_user.public_primary_key,
+                    "email": other_user.email,
+                    "avatar_full": other_user.avatar_full_url,
+                },
             ],
             "source": "web",
         },
