@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -13,12 +11,22 @@ from apps.oss_installation.serializers import CloudUserSerializer
 from apps.oss_installation.utils import cloud_user_identity_status
 from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
-from common.api_helpers.paginators import HundredPageSizePaginator
+from common.api_helpers.paginators import HundredPageSizePaginator, PaginatedData
 
 PERMISSIONS = [RBACPermission.Permissions.OTHER_SETTINGS_WRITE]
 
 
-class CloudUsersView(HundredPageSizePaginator, APIView):
+class CloudUsersPagination(HundredPageSizePaginator):
+    def get_paginated_response(self, data: PaginatedData, matched_users_count: int) -> Response:
+        return Response(
+            {
+                **self._get_paginated_response_data(data),
+                "matched_users_count": matched_users_count,
+            }
+        )
+
+
+class CloudUsersView(CloudUsersPagination, APIView):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -44,14 +52,14 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
         cloud_identities = list(CloudUserIdentity.objects.filter(email__in=emails))
         cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
 
-        response = []
+        data = []
 
         connector = CloudConnector.objects.first()
 
         for user in results:
             cloud_identity = cloud_identities.get(user.email, None)
             status, link = cloud_user_identity_status(connector, cloud_identity)
-            response.append(
+            data.append(
                 {
                     "id": user.public_primary_key,
                     "email": user.email,
@@ -60,20 +68,7 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
                 }
             )
 
-        return self.get_paginated_response_with_matched_users_count(response, len(cloud_identities))
-
-    def get_paginated_response_with_matched_users_count(self, data, matched_users_count):
-        return Response(
-            OrderedDict(
-                [
-                    ("count", self.page.paginator.count),
-                    ("matched_users_count", matched_users_count),
-                    ("next", self.get_next_link()),
-                    ("previous", self.get_previous_link()),
-                    ("results", data),
-                ]
-            )
-        )
+        return self.get_paginated_response(data, len(cloud_identities))
 
     def post(self, request):
         connector = CloudConnector.objects.first()

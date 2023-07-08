@@ -5,6 +5,21 @@ from rest_framework.response import Response
 
 from common.api_helpers.utils import create_engine_url
 
+PaginatedData = typing.List[typing.Any]
+
+
+class BasePaginatedResponseData(typing.TypedDict):
+    next: str | None
+    previous: str | None
+    results: PaginatedData
+    page_size: int
+
+
+class PageBasedPaginationResponseData(BasePaginatedResponseData):
+    count: int
+    current_page_number: int
+    total_pages: int
+
 
 class BasePathPrefixedPagination(BasePagination):
     max_page_size = 100
@@ -16,7 +31,7 @@ class BasePathPrefixedPagination(BasePagination):
         request.build_absolute_uri = lambda: create_engine_url(request.get_full_path())
         return super().paginate_queryset(queryset, request, view)
 
-    def _get_base_paginated_response(self, data: typing.List[typing.Any]) -> typing.Dict:
+    def _get_base_paginated_response_data(self, data: PaginatedData) -> BasePaginatedResponseData:
         return {
             "next": self.get_next_link(),
             "previous": self.get_previous_link(),
@@ -26,20 +41,21 @@ class BasePathPrefixedPagination(BasePagination):
 
 
 class PathPrefixedPagePagination(BasePathPrefixedPagination, PageNumberPagination):
-    def get_paginated_response(self, data: typing.List[typing.Any]) -> Response:
-        return Response(
-            {
-                **self._get_base_paginated_response(data),
-                "count": self.page.paginator.count,
-                "current_page_number": self.page.number,
-                "total_pages": self.page.paginator.num_pages,
-            }
-        )
+    def _get_paginated_response_data(self, data: PaginatedData) -> PageBasedPaginationResponseData:
+        return {
+            **self._get_base_paginated_response_data(data),
+            "count": self.page.paginator.count,
+            "current_page_number": self.page.number,
+            "total_pages": self.page.paginator.num_pages,
+        }
+
+    def get_paginated_response(self, data: PaginatedData) -> Response:
+        return Response(self._get_paginated_response_data(data))
 
 
 class PathPrefixedCursorPagination(BasePathPrefixedPagination, CursorPagination):
-    def get_paginated_response(self, data: typing.List[typing.Any]) -> Response:
-        return Response(self._get_base_paginated_response(data))
+    def get_paginated_response(self, data: PaginatedData) -> Response:
+        return Response(self._get_base_paginated_response_data(data))
 
 
 class HundredPageSizePaginator(PathPrefixedPagePagination):
