@@ -27,8 +27,8 @@ class BasePathPrefixedPagination(BasePagination):
     page_size_query_param = "perpage"
 
     def paginate_queryset(self, queryset, request, view=None):
-        self.request = request
         request.build_absolute_uri = lambda: create_engine_url(request.get_full_path())
+        self.request = request
         return super().paginate_queryset(queryset, request, view)
 
     def _get_base_paginated_response_data(self, data: PaginatedData) -> BasePaginatedResponseData:
