@@ -17,7 +17,9 @@ PERMISSIONS = [RBACPermission.Permissions.OTHER_SETTINGS_WRITE]
 
 
 class CloudUsersPagination(HundredPageSizePaginator):
-    def get_paginated_response(self, data: PaginatedData, matched_users_count: int) -> Response:
+    # the override ignore here is expected. The parent classes' get_paginated_response method does not
+    # take a matched_users_count argument. This is fine in this case
+    def get_paginated_response(self, data: PaginatedData, matched_users_count: int) -> Response:  # type: ignore[override]
         return Response(
             {
                 **self._get_paginated_response_data(data),
