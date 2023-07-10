@@ -1,18 +1,17 @@
 ---
 aliases:
-  - ../integrations/configure-outgoing-webhooks/integrate-servicenow/
-  - /docs/oncall/latest/outgoing-webhooks/integrate-servicenow/
-canonical: https://grafana.com/docs/oncall/latest/outgoing-webhooks/integrate-servicenow/
+  - servicenow/
+  - /docs/oncall/latest/integrations/available-integrations/configure-servicenow/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-jira/
 keywords:
   - Grafana Cloud
   - Alerts
   - Notifications
   - on-call
-  - amixr
   - webhooks
   - ServiceNow
-title: Integrate Grafana OnCall with ServiceNow
-weight: 300
+title: ServiceNow
+weight: 500
 ---
 
 # Integrate Grafana OnCall with ServiceNow

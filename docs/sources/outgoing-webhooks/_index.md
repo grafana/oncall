@@ -480,4 +480,8 @@ the `id` of that ticket to keep its status synchronized with the state changes b
 
 Integrate with third-party services:
 
+- [JIRA]({{< relref "../integrations/jira" >}})
+- [ServiceNow]({{< relref "../integrations/servicenow" >}})
+- [Zendesk]({{< relref "../integrations/zendesk" >}})
+
 {{< section >}}
