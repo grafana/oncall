@@ -36,7 +36,10 @@ The above command returns JSON structured in the following way:
         "telegram": "https://t.me/c/5354/1234?thread=1234"
       }
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

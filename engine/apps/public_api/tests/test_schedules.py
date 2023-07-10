@@ -915,6 +915,12 @@ def test_oncall_shifts_export(
     assert total_time_on_call[user2_public_primary_key] == expected_time_on_call
 
     # pagination parameters are mocked out for now
-    assert response_json["next"] is None
-    assert response_json["previous"] is None
-    assert response_json["count"] == len(shifts)
+    del response_json["results"]
+    assert response_json == {
+        "next": None,
+        "previous": None,
+        "count": len(shifts),
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
+    }
