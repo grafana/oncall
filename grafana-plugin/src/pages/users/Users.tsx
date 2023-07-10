@@ -224,6 +224,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     </div>
 
                     <GTable
+                      data-testid="users-table"
                       emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
                       rowKey="pk"
                       data={results}
@@ -246,6 +247,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                         profile
                       </>
                     }
+                    data-testid="view-users-missing-permission-message"
                     severity="info"
                   />
                 )}

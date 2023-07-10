@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Drawer, Label, VerticalGroup } from '@grafana/ui';
+import { Label, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -16,7 +16,6 @@ const cx = cn.bind(styles);
 
 interface OutgoingWebhook2StatusProps {
   id: OutgoingWebhook2['id'];
-  onHide: () => void;
   onUpdate: () => void;
 }
 
@@ -49,7 +48,7 @@ function format_response_field(str) {
 }
 
 const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => {
-  const { id, onHide } = props;
+  const { id } = props;
 
   const store = useStore();
 
@@ -58,76 +57,65 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
   const data = outgoingWebhook2Store.items[id];
 
   return (
-    <Drawer
-      scrollableContent
-      title={
-        <Text.Title className={cx('title')} level={4}>
-          Outgoing Webhook Status
-        </Text.Title>
-      }
-      onClose={onHide}
-      closeOnMaskClick
-    >
-      <div className={cx('content')}>
-        <VerticalGroup>
-          <Label>Webhook Name</Label>
-          <SourceCode showClipboardIconOnly>{data.name}</SourceCode>
-          <Label>Webhook ID</Label>
-          <SourceCode showClipboardIconOnly>{data.id}</SourceCode>
-          <Label>Trigger Type</Label>
-          <SourceCode showClipboardIconOnly>{data.trigger_type_name}</SourceCode>
+    <div className={cx('content')}>
+      <VerticalGroup>
+        <Label>Webhook Name</Label>
+        <SourceCode showClipboardIconOnly>{data.name}</SourceCode>
+        <Label>Webhook ID</Label>
+        <SourceCode showClipboardIconOnly>{data.id}</SourceCode>
+        <Label>Trigger Type</Label>
+        <SourceCode showClipboardIconOnly>{data.trigger_type_name}</SourceCode>
 
-          {data.last_response_log.timestamp ? (
-            <VerticalGroup>
-              <Label>Last Run Time</Label>
-              <SourceCode showClipboardIconOnly>{data.last_response_log.timestamp}</SourceCode>
+        {data.last_response_log.timestamp ? (
+          <VerticalGroup>
+            <Label>Last Run Time</Label>
+            <SourceCode showClipboardIconOnly>{data.last_response_log.timestamp}</SourceCode>
 
-              {data.last_response_log.url && (
-                <Debug title="URL" source={data.url} result={data.last_response_log.url}></Debug>
-              )}
-              {data.last_response_log.status_code && (
-                <VerticalGroup>
-                  <Label>Response Code</Label>
-                  <SourceCode showClipboardIconOnly>{data.last_response_log.status_code}</SourceCode>
-                </VerticalGroup>
-              )}
+            {data.last_response_log.url && (
+              <Debug title="URL" source={data.url} result={data.last_response_log.url}></Debug>
+            )}
+            {data.last_response_log.status_code && (
+              <VerticalGroup>
+                <Label>Response Code</Label>
+                <SourceCode showClipboardIconOnly>{data.last_response_log.status_code}</SourceCode>
+              </VerticalGroup>
+            )}
 
-              {data.last_response_log.content && (
-                <VerticalGroup>
-                  <Label>Response Body</Label>
-                  <SourceCode showClipboardIconOnly>{format_response_field(data.last_response_log.content)}</SourceCode>
-                </VerticalGroup>
-              )}
-              {data.last_response_log.request_trigger && (
-                <Debug
-                  title="Trigger Template"
-                  source={data.trigger_template}
-                  result={data.last_response_log.request_trigger}
-                ></Debug>
-              )}
-              {data.last_response_log.request_headers && (
-                <Debug
-                  title="Request Headers"
-                  source={data.headers}
-                  result={data.last_response_log.request_headers}
-                ></Debug>
-              )}
-              {data.last_response_log.request_data && (
-                <Debug
-                  title="Request Data"
-                  source={data.data}
-                  result={format_response_field(data.last_response_log.request_data)}
-                ></Debug>
-              )}
-            </VerticalGroup>
-          ) : (
-            <Text type="primary" size="medium">
-              An event triggering this webhook has not been sent yet!
-            </Text>
-          )}
-        </VerticalGroup>
-      </div>
-    </Drawer>
+            {data.last_response_log.content && (
+              <VerticalGroup>
+                <Label>Response Body</Label>
+                <SourceCode showClipboardIconOnly>{format_response_field(data.last_response_log.content)}</SourceCode>
+              </VerticalGroup>
+            )}
+            {data.last_response_log.request_trigger && (
+              <Debug
+                title="Trigger Template"
+                source={data.trigger_template}
+                result={data.last_response_log.request_trigger}
+              ></Debug>
+            )}
+            {data.last_response_log.request_headers && (
+              <Debug
+                title="Request Headers"
+                source={data.headers}
+                result={data.last_response_log.request_headers}
+              ></Debug>
+            )}
+            {data.last_response_log.request_data && (
+              <Debug
+                title="Request Data"
+                source={data.data}
+                result={format_response_field(data.last_response_log.request_data)}
+              ></Debug>
+            )}
+          </VerticalGroup>
+        ) : (
+          <Text type="primary" size="medium">
+            An event triggering this webhook has not been sent yet!
+          </Text>
+        )}
+      </VerticalGroup>
+    </div>
   );
 });
 
