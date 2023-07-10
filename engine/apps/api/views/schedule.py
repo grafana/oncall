@@ -13,8 +13,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.fields import BooleanField
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -43,6 +43,7 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
+from common.api_helpers.paginators import FifteenPageSizePaginator
 from common.api_helpers.utils import create_engine_url, get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.timezones import raise_exception_if_not_valid_timezone
@@ -54,13 +55,6 @@ EVENTS_FILTER_BY_FINAL = "final"
 SCHEDULE_TYPE_TO_CLASS = {
     str(num_type): cls for cls, num_type in PolymorphicScheduleSerializer.SCHEDULE_CLASS_TO_TYPE.items()
 }
-
-
-class SchedulePagination(PageNumberPagination):
-    page_size = 10
-    page_query_param = "page"
-    page_size_query_param = "perpage"
-    max_page_size = 50
 
 
 class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
@@ -112,7 +106,7 @@ class ScheduleView(
     create_serializer_class = PolymorphicScheduleCreateSerializer
     update_serializer_class = PolymorphicScheduleUpdateSerializer
     short_serializer_class = ScheduleFastSerializer
-    pagination_class = SchedulePagination
+    pagination_class = FifteenPageSizePaginator
 
     @cached_property
     def can_update_user_groups(self):
@@ -232,10 +226,10 @@ class ScheduleView(
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
-    def get_object(self):
+    def get_object(self) -> OnCallSchedule:
         # get the object from the whole organization if there is a flag `get_from_organization=true`
         # otherwise get the object from the current team
-        get_from_organization = self.request.query_params.get("from_organization", "false") == "true"
+        get_from_organization: bool = self.request.query_params.get("from_organization", "false") == "true"
         if get_from_organization:
             return self.get_object_from_organization()
         return super().get_object()
@@ -307,10 +301,10 @@ class ScheduleView(
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
-    def filter_events(self, request, pk):
+    def filter_events(self, request: Request, pk: str) -> Response:
         user_tz, starting_date, days = get_date_range_from_request(self.request)
 
-        filter_by = self.request.query_params.get("type")
+        filter_by: str | None = self.request.query_params.get("type")
         valid_filters = (EVENTS_FILTER_BY_ROTATION, EVENTS_FILTER_BY_OVERRIDE, EVENTS_FILTER_BY_FINAL)
         if filter_by is not None and filter_by not in valid_filters:
             raise BadRequest(detail="Invalid type value")

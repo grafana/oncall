@@ -98,7 +98,7 @@ The following commands assume you run them from the root of the project:
 ```bash
 touch ./dev/grafana.dev.ini
 # make desired changes to ./dev/grafana.dev.ini then run
-touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana.dev.ini .env
+touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana/grafana.dev.ini .env
 ```
 
 For example, if you would like to enable the `topnav` feature toggle, you can modify your `./dev/grafana.dev.ini` as
@@ -109,8 +109,14 @@ such:
 enable = top_nav
 ```
 
-The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana.dev.ini`
+The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana/grafana.dev.ini`
 volume mounted inside the container.
+
+#### Modifying Provisioning Configuration
+
+Files under `./dev/grafana/provisioning` are volume mounted into your Grafana container and allow you to easily
+modify the instance's provisioning configuration. See the Grafana docs [here](https://grafana.com/docs/grafana/latest/administration/provisioning/#:~:text=You%20can%20manage%20data%20sources,match%20the%20provisioned%20configuration%20file.)
+for more information.
 
 ### Enabling RBAC for OnCall for local development
 
