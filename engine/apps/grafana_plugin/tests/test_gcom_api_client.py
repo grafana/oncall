@@ -36,7 +36,7 @@ class TestIsRbacEnabledForStack:
             ({}, False),
             ({"config": {}}, False),
             ({"config": {"feature_toggles": {}}}, False),
-            ({"config": {"feature_toggles": {"enable": "foo bar baz"}}}, False),
+            ({"config": {"feature_toggles": {"enable": "foo,bar,baz"}}}, False),
             ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "false"}}}, False),
             # must be space separated
             ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE}baz"}}}, False),
@@ -53,8 +53,10 @@ class TestIsRbacEnabledForStack:
                 True,
             ),
             ({"config": {"feature_toggles": {"enable": f"foo bar baz", TEST_FEATURE_TOGGLE: "true"}}}, True),
-            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE} baz"}}}, True),
             ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "true"}}}, True),
+            # features enabled via feature_toggles.enable should be comma separated, not space separated
+            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE},baz"}}}, True),
+            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE} baz"}}}, False),
         ],
     )
     def test_feature_toggle_is_enabled(self, instance_info, expected) -> None:

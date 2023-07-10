@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
   a reverse proxy by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
 
+### Fixed
+
+- Address issue where we were improperly parsing Grafana feature flags that were enabled via the `feature_flags.enabled`
+  method by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+
 ## v1.3.7 (2023-07-06)
 
 ### Changed
