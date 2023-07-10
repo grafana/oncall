@@ -28,7 +28,13 @@ class BasePathPrefixedPagination(BasePagination):
 
     def paginate_queryset(self, queryset, request, view=None):
         request.build_absolute_uri = lambda: create_engine_url(request.get_full_path())
+
+        # we're setting the request object explicitly here because the way the paginate_quersey works
+        # between PageNumberPagination and CursorPagination is slightly different. In the latter class,
+        # it does not set self.request in the paginate_queryset method, whereas in the former it does.
+        # this leads to an issue in _get_base_paginated_response_data where the self.request would not be set
         self.request = request
+
         return super().paginate_queryset(queryset, request, view)
 
     def _get_base_paginated_response_data(self, data: PaginatedData) -> BasePaginatedResponseData:
