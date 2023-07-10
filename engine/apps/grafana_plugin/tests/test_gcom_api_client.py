@@ -38,14 +38,14 @@ class TestIsRbacEnabledForStack:
             ({"config": {"feature_toggles": {}}}, False),
             ({"config": {"feature_toggles": {"enable": "foo,bar,baz"}}}, False),
             ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "false"}}}, False),
-            # must be space separated
-            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE}baz"}}}, False),
+            # must be comma separated
+            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE}baz"}}}, False),
             # these cases will probably never happen, but lets account for them anyways
             (
                 {
                     "config": {
                         "feature_toggles": {
-                            "enable": f"foo bar baz {TEST_FEATURE_TOGGLE}",
+                            "enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE}",
                             TEST_FEATURE_TOGGLE: "false",
                         }
                     }
