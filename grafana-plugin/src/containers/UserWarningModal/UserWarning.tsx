@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
 import { UserAvailability } from 'containers/EscalationVariants/EscalationVariants.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { getTzOffsetString } from 'models/timezone';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 

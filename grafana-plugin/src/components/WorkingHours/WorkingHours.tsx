@@ -3,7 +3,7 @@ import React, { FC, useMemo } from 'react';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import { Timezone } from 'models/timezone/timezone.types';
+import { Timezone } from 'models/timezone';
 
 import { default_working_hours } from './WorkingHours.config';
 import { getNonWorkingMoments, getWorkingMoments } from './WorkingHours.helpers';

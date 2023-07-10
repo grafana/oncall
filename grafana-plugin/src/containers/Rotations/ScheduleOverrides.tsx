@@ -14,7 +14,7 @@ import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
+import { Timezone } from 'models/timezone';
 import { getStartOfDay } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';

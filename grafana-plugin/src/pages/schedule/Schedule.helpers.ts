@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event, Layer } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
+import { Timezone } from 'models/timezone';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 

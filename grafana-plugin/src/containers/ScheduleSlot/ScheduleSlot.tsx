@@ -10,8 +10,7 @@ import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Event, Schedule } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
+import { getTzOffsetString, Timezone } from 'models/timezone';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 

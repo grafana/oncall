@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-const tzs = [
+export const tzs = [
   'Africa/Abidjan',
   'Africa/Accra',
   'Africa/Addis_Ababa',
@@ -594,6 +594,8 @@ const tzs = [
   'WET',
   'Zulu',
 ];
+
+export type Timezone = (typeof tzs)[number];
 
 export const getRandomTimezone = () => {
   return tzs[Math.floor(Math.random() * tzs.length)];

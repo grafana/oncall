@@ -47,8 +47,7 @@ import TimeUnitSelector from 'containers/RotationForm/parts/TimeUnitSelector';
 import UserItem from 'containers/RotationForm/parts/UserItem';
 import { getShiftName } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
+import { getTzOffsetString, Timezone } from 'models/timezone';
 import { User } from 'models/user/user.types';
 import {
   getDateTime,

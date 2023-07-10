@@ -4,7 +4,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
-import { Timezone } from 'models/timezone/timezone.types';
+import { Timezone } from 'models/timezone';
 import { getNow } from 'pages/schedule/Schedule.helpers';
 
 import styles from './TimelineMarks.module.scss';

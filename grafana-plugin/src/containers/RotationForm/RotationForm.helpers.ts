@@ -1,6 +1,6 @@
 import dayjs, { ManipulateType } from 'dayjs';
 
-import { Timezone } from 'models/timezone/timezone.types';
+import { Timezone } from 'models/timezone';
 
 import { RepeatEveryPeriod } from './RotationForm.types';
 

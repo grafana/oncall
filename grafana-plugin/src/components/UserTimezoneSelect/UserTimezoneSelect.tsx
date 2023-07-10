@@ -5,8 +5,7 @@ import { Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
-import { Timezone, tzs } from 'models/timezone/timezone.types';
+import { getTzOffsetString, tzs, Timezone } from 'models/timezone';
 import { User } from 'models/user/user.types';
 
 import styles from './UserTimezoneSelect.module.css';

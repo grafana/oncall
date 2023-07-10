@@ -8,7 +8,7 @@ import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import Text from 'components/Text/Text';
 import { isInWorkingHours } from 'components/WorkingHours/WorkingHours.helpers';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { getTzOffsetString } from 'models/timezone';
 import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';

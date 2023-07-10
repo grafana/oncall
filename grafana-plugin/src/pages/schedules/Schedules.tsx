@@ -26,7 +26,7 @@ import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
-import { Timezone } from 'models/timezone/timezone.types';
+import { Timezone } from 'models/timezone';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
