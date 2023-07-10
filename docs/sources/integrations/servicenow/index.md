@@ -2,7 +2,7 @@
 aliases:
   - servicenow/
   - /docs/oncall/latest/integrations/available-integrations/configure-servicenow/
-canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-jira/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-servicenow/
 keywords:
   - Grafana Cloud
   - Alerts
