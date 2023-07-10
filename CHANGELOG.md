@@ -16,7 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Modified DRF pagination class used by `GET /api/internal/v1/alert_receive_channels` and `GET /api/internal/v1/schedules`
   endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
-  a reverse proxy by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+  a reverse proxy by @joeyorlando ([#2467](https://github.com/grafana/oncall/pull/2467))
+
+### Fixed
+
+- Address issue where we were improperly parsing Grafana feature flags that were enabled via the `feature_flags.enabled`
+  method by @joeyorlando ([#2477](https://github.com/grafana/oncall/pull/2477))
 
 ## v1.3.7 (2023-07-06)
 
