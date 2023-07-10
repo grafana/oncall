@@ -68,7 +68,7 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
           label="Assign to team"
           description="OnCall teams allow you to organize integrations so you can filter and set up access. "
         >
-          <GrafanaTeamSelect withoutModal onSelect={setSelectedTeam} />
+          <GrafanaTeamSelect withoutModal onSelect={setSelectedTeam} preselectedTeamId={user.current_team} />
         </Field>
       </div>
       <hr />

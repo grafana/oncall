@@ -164,8 +164,8 @@ class AlertReceiveChannelView(
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         # Hide direct paging integrations from the list view, but not from the filters
-        if not is_filters_request:
-            queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+        # if not is_filters_request:
+        #     queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
         return queryset
 
