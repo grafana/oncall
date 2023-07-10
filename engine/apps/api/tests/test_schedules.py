@@ -250,7 +250,7 @@ def test_get_list_schedules_pagination(
             "next": next_url,
             "previous": previous_url,
             "results": [schedule],
-            "current_page_number": 1,
+            "current_page_number": p,
             "page_size": 1,
             "total_pages": 3,
         }
