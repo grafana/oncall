@@ -103,7 +103,6 @@ export class RootBaseStore {
   alertGroupStore: AlertGroupStore = new AlertGroupStore(this);
   resolutionNotesStore: ResolutionNotesStore = new ResolutionNotesStore(this);
   apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
-  OrganizationLogStore: OrganizationLogStore = new OrganizationLogStore(this);
   globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
   filtersStore: FiltersStore = new FiltersStore(this);
   // stores
