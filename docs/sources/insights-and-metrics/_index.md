@@ -278,9 +278,7 @@ Actions performed with slack chatops integration:
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops` and chat_ops_type=`slack`
 ```
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/oncall-api-reference"
 [oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

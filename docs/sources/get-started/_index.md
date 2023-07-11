@@ -191,8 +191,6 @@ To integrate your on-call calendar with Grafana OnCall:
 
 [More information on on-call schedules.][on-call-schedules]
 
-
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [escalation-chains-and-routes]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/escalation-chains-and-routes"
 [escalation-chains-and-routes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/escalation-chains-and-routes"
@@ -224,4 +222,3 @@ To integrate your on-call calendar with Grafana OnCall:
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

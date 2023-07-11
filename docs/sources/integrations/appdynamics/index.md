@@ -107,7 +107,6 @@ Grafana OnCall provides grouping and auto-resolve logic for the AppDynamics inte
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
 [this section][complete-the-integration-configuration]
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
 [complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
@@ -115,4 +114,3 @@ Complete configuration by setting routes, templates, maintenances, etc. Read mor
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

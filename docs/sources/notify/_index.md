@@ -50,9 +50,7 @@ To configure a users notification policy:
 1. Click **Add notification step** and use the dropdowns to specify the notification method and frequency. Notification steps will be followed in the order they
 are listed.
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks"
 [outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

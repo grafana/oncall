@@ -60,9 +60,7 @@ POST Value (JSON Format):
 1. Click Checkbox next to Amixr Alert Contact (created in the previous step)
 1. Click Create Monitor
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
 [user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

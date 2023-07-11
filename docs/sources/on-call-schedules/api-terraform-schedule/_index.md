@@ -20,9 +20,7 @@ teams in the org, we suggest considering storing schedules as code.
 - [Grafana Terraform provider reference (OnCall resources are managed using this provider)](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/oncall_schedule)
 - [OnCall API][oncall-api-reference]
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/oncall-api-reference"
 [oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

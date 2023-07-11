@@ -98,7 +98,6 @@ Check more information on [Personal Notification Preferences][notify] page.
 > **Important:** Linked Integrations and Routes are displayed in the right panel. Any change in the Escalation Chain will
 affect all linked Integrations and Routes.
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify"
 [notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify"
@@ -109,4 +108,3 @@ affect all linked Integrations and Routes.
 [routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
 [routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

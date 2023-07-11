@@ -43,7 +43,6 @@ We're working hard to fix such cases, but kindly asking to test your personal no
 is able to notify you. Also we suggest to back up Phone Calls and SMS with other notification methods such as
 [Mobile App][mobile-app].
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [mobile-app]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/mobile-app"
 [mobile-app]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app"
@@ -51,4 +50,3 @@ is able to notify you. Also we suggest to back up Phone Calls and SMS with other
 [open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
 [open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source/"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->

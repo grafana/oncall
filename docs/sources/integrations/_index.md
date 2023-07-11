@@ -144,7 +144,6 @@ To edit the name of an integration:
 
 {{< section >}}
 
-<!-- markdownlint-disable MD033 -->
 {{% docs/reference %}}
 [appearance-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#appearance-template"
 [appearance-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#appearance-template"
@@ -161,4 +160,3 @@ To edit the name of an integration:
 [routing-template]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating#routing-template"
 [routing-template]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating#routing-template"
 {{% /docs/reference %}}
-<!-- markdownlint-enable MD033 -->
