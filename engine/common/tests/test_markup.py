@@ -1,4 +1,4 @@
-from common.utils import clean_markup
+from common.utils import clean_markup, convert_md_to_html
 
 
 def test_clean_code_blocks_name():
@@ -42,3 +42,15 @@ def test_clean_mailto():
     expected = "bob@example.com"
 
     assert clean_markup(original) == expected
+
+
+def test_convert_md_to_html_basic():
+    md = "This is a test, **This is bold**, *This is italic*"
+    expected = "<p>This is a test, <strong>This is bold</strong>, <em>This is italic</em></p>"
+    assert convert_md_to_html(md) == expected
+
+
+def test_convert_md_to_html_bad_cuddled_list():
+    md = "- - "
+    expected = "<p>- - </p>"
+    assert convert_md_to_html(md) == expected
