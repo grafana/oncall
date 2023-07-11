@@ -58,8 +58,8 @@ To learn more about RBAC for Grafana OnCall, refer to the following documentatio
 
 **Note**: granting any of the following roles will also grant the user the `plugins.app:access` action with a scope of
 `plugins:id:grafana-oncall-app` (ie. granting the user the ability to access the plugin). Additionally, all of the
-following RBAC roles do not currently support scopes. Consider using teams to further control which Grafana OnCall objects
-specific groups of users can see (see ["Manage Teams in Grafana OnCall"](#manage-teams-in-grafana-oncall))
+following RBAC roles do not currently support scopes. Consider using Grafana teams to further control which Grafana OnCall
+objects specific groups of users can see (see ["Manage Teams in Grafana OnCall"](#manage-teams-in-grafana-oncall)).
 
 <!-- markdownlint-disable MD033 -->
 
