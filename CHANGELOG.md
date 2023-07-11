@@ -111,7 +111,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed minor schedule preview issue missing last day ([#2316](https://github.com/grafana/oncall/pull/2316))
-- Fixed schedules slack notifications for deleted organizations ([#2493](https://github.com/grafana/oncall/pull/2493))
 
 ## v1.2.46 (2023-06-22)
 
