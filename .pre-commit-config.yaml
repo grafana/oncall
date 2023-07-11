@@ -108,4 +108,4 @@ repos:
         entry: markdownlint --fix --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
       - id: markdownlint
         name: markdownlint - docs/sources
-        entry: markdownlint --fix -c ./docs/.markdownlint.json ./docs/sources/**/*.md
+        entry: markdownlint --fix --ignore README.md -c ./docs/.markdownlint.json ./docs/sources/**/*.md
