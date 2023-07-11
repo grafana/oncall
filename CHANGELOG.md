@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Address issue where we were improperly parsing Grafana feature flags that were enabled via the `feature_flags.enabled`
   method by @joeyorlando ([#2477](https://github.com/grafana/oncall/pull/2477))
 - Fix cuddled list Markdown issue by @vadimkerr ([#2488](https://github.com/grafana/oncall/pull/2488))
+- Fixed schedules slack notifications for deleted organizations ([#2493](https://github.com/grafana/oncall/pull/2493))
 
 ## v1.3.7 (2023-07-06)
 
