@@ -597,10 +597,6 @@ export const tzs = [
 
 export type Timezone = (typeof tzs)[number];
 
-export const getRandomTimezone = () => {
-  return tzs[Math.floor(Math.random() * tzs.length)];
-};
-
 export const getTzOffsetString = (moment: dayjs.Dayjs) => {
   const userOffset = moment.utcOffset();
   const userOffsetHours = userOffset / 60;
