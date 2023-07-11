@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils import timezone
+from django_deprecate_fields import deprecate_field
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
@@ -237,7 +238,8 @@ class Organization(MaintainableObject):
     PRICING_CHOICES = ((FREE_PUBLIC_BETA_PRICING, "Free public beta"),)
     pricing_version = models.PositiveIntegerField(choices=PRICING_CHOICES, default=FREE_PUBLIC_BETA_PRICING)
 
-    is_amixr_migration_started = models.BooleanField(default=False)
+    # TODO: remove is_amixr_migration_started soon (aka shortly after July 11, 2023)
+    is_amixr_migration_started = deprecate_field(models.BooleanField(default=False))
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
 

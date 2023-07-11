@@ -1,7 +1,6 @@
 import datetime
 from dataclasses import asdict
 
-import humanize
 import pytz
 from django.apps import apps
 from django.utils import timezone
@@ -53,8 +52,6 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_team_identity",
             "maintenance_mode",
             "maintenance_till",
-            # "incident_retention_web_report",
-            # "number_of_employees",
             "slack_channel",
         ]
         read_only_fields = [
@@ -62,7 +59,6 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "slack_team_identity",
             "maintenance_mode",
             "maintenance_till",
-            # "incident_retention_web_report",
         ]
 
     def get_slack_channel(self, obj):
@@ -122,27 +118,8 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         phone_provider_config = get_phone_provider().flags
         return {
             "telegram_configured": telegram_configured,
-            "twilio_configured": phone_provider_config.configured,  # keep for backward compatibility
             "phone_provider": asdict(phone_provider_config),
         }
-
-    def get_stats(self, obj):
-        if isinstance(obj.cached_seconds_saved_by_amixr, int):
-            verbal_time_saved_by_amixr = humanize.naturaldelta(
-                datetime.timedelta(seconds=obj.cached_seconds_saved_by_amixr)
-            )
-        else:
-            verbal_time_saved_by_amixr = None
-
-        result = {
-            "grouped_percent": obj.cached_grouped_percent,
-            "alerts_count": obj.cached_alerts_count,
-            "noise_reduction": obj.cached_noise_reduction,
-            "average_response_time": humanize.naturaldelta(obj.cached_average_response_time),
-            "verbal_time_saved_by_amixr": verbal_time_saved_by_amixr,
-        }
-
-        return result
 
     def update(self, instance, validated_data):
         current_archive_date = instance.archive_alerts_from
