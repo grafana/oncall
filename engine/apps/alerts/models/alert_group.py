@@ -16,7 +16,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
-from django_deprecate_fields import deprecate_field
 
 from apps.alerts.constants import AlertGroupState
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
@@ -328,7 +327,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     )
 
     # TODO: remove cached_render_for_web in a subsequent release
-    cached_render_for_web = deprecate_field(models.JSONField(default=dict))
+    cached_render_for_web = models.JSONField(default=dict)
 
     # NOTE: we should probably migrate this field to models.UUIDField as it's ONLY ever being
     # set to the result of uuid.uuid1
