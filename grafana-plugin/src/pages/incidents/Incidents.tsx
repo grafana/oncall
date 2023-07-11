@@ -126,7 +126,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               <Text.Title level={3}>Alert Groups</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                 <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
-                  New alert group
+                  New manual alert group
                 </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>

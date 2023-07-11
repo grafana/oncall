@@ -26,6 +26,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
+import { openWarningNotification } from 'utils';
 
 import { manualAlertFormConfig } from './ManualAlertGroup.config';
 
@@ -44,15 +45,20 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   const [userResponders, setUserResponders] = useState([]);
   const [scheduleResponders, setScheduleResponders] = useState([]);
   const { onHide, onCreate, alertReceiveChannelStore } = props;
-  const data = { team: store.userStore.currentUser?.current_team };
 
   const [selectedTeamId, setSelectedTeam] = useState<GrafanaTeam['id']>();
   const [selectedTeamDirectPaging, setSelectedTeamDirectPaging] = useState<AlertReceiveChannel>();
   const [directPagingLoading, setdirectPagingLoading] = useState<boolean>();
 
+  const data = {};
+
   const handleFormSubmit = async (data) => {
+    if (selectedTeamId === undefined) {
+      openWarningNotification('Select team first');
+      return;
+    }
     store.directPagingStore
-      .createManualAlertRule(prepareForUpdate(userResponders, scheduleResponders, data))
+      .createManualAlertRule(prepareForUpdate(userResponders, scheduleResponders, { team: selectedTeamId, ...data }))
       .then(({ alert_group_id: id }: { alert_group_id: AlertType['pk'] }) => {
         onCreate(id);
       })
@@ -82,21 +88,43 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
     [userResponders, scheduleResponders]
   );
 
-  const warningTitle = (
-    <>
-      <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />{' '}
-      <Text>team doesn't have the the Direct Paging integration yet</Text>
-    </>
-  );
-
   const DirectPagingIntegrationVariants = observer(({ selectedTeamId, selectedTeamDirectPaging }) => {
+    const warningTitle = (
+      <>
+        <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />{' '}
+        <Text>team doesn't have the the Direct Paging integration yet</Text>
+      </>
+    );
+
     return (
       <VerticalGroup>
         {selectedTeamId &&
           (directPagingLoading ? (
             <LoadingPlaceholder text="Loading..." />
           ) : selectedTeamDirectPaging ? (
-            <DirectPagingIntegration data={selectedTeamDirectPaging} />
+            <VerticalGroup>
+              <Label>Team will be notified according to the integration settings:</Label>
+              <ul className={cx('responders-list')}>
+                <li>
+                  <HorizontalGroup justify="space-between">
+                    <Text>{selectedTeamDirectPaging.verbal_name}</Text>
+                    <HorizontalGroup>
+                      <Text type="secondary">Team:</Text>
+                      <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />
+                    </HorizontalGroup>
+                    <HorizontalGroup>
+                      <PluginLink target="_blank" query={{ page: 'integrations', id: selectedTeamDirectPaging.id }}>
+                        <IconButton
+                          tooltip="Open integration in new tab"
+                          style={{ color: 'var(--always-gray)' }}
+                          name="external-link-alt"
+                        />
+                      </PluginLink>
+                    </HorizontalGroup>
+                  </HorizontalGroup>
+                </li>
+              </ul>
+            </VerticalGroup>
           ) : (
             <Alert severity="warning" title={warningTitle}>
               <VerticalGroup>
@@ -111,76 +139,45 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
     );
   });
 
-  const DirectPagingIntegration = ({ data }) => {
-    return (
-      <VerticalGroup>
-        <Label>Team will be notified according to the integration settings:</Label>
-        <ul className={cx('responders-list')}>
-          <li>
-            <HorizontalGroup justify="space-between">
-              <Text>{data?.verbal_name}</Text>
-              <HorizontalGroup>
-                <PluginLink target="_blank" query={{ page: 'integrations', id: data.id }}>
-                  <IconButton
-                    tooltip="Open integration in new tab"
-                    style={{ color: 'var(--always-gray)' }}
-                    name="external-link-alt"
-                  />
-                </PluginLink>
-              </HorizontalGroup>
-            </HorizontalGroup>
-          </li>
-        </ul>
-      </VerticalGroup>
-    );
-  };
-
   return (
-    <>
-      <Drawer
-        scrollableContent
-        title="Create alert group (Direct Paging)"
-        onClose={onHide}
-        closeOnMaskClick={false}
-        width={'70%'}
-      >
-        <VerticalGroup>
-          <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
-          <Field label="Select team you want to notify">
-            <GrafanaTeamSelect withoutModal onSelect={onUpdateSelectedTeam} />
-          </Field>
-          <DirectPagingIntegrationVariants
-            selectedTeamId={selectedTeamId}
-            selectedTeamDirectPaging={selectedTeamDirectPaging}
-          />
-
-          <EscalationVariants
-            value={{ userResponders, scheduleResponders }}
-            onUpdateEscalationVariants={onUpdateEscalationVariants}
-            variant={
-              (selectedTeamId && selectedTeamDirectPaging) || userResponders.length || scheduleResponders.length
-                ? 'secondary'
-                : 'primary'
+    <Drawer
+      scrollableContent
+      title="Create manual alert group (Direct Paging)"
+      onClose={onHide}
+      closeOnMaskClick={false}
+      width={'70%'}
+    >
+      <VerticalGroup>
+        <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
+        <Field label="Select team you want to notify">
+          <GrafanaTeamSelect withoutModal onSelect={onUpdateSelectedTeam} />
+        </Field>
+        <DirectPagingIntegrationVariants
+          selectedTeamId={selectedTeamId}
+          selectedTeamDirectPaging={selectedTeamDirectPaging}
+        />
+        <EscalationVariants
+          value={{ userResponders, scheduleResponders }}
+          onUpdateEscalationVariants={onUpdateEscalationVariants}
+          variant={'secondary'}
+          withLabels={true}
+        />
+        <HorizontalGroup justify="flex-end">
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form={manualAlertFormConfig.name}
+            disabled={
+              !(selectedTeamId && (selectedTeamDirectPaging || userResponders.length || scheduleResponders.length))
             }
-            withLabels={true}
-          />
-          <HorizontalGroup justify="flex-end">
-            <Button variant="secondary" onClick={onHide}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              form={manualAlertFormConfig.name}
-              disabled={
-                !((selectedTeamId && selectedTeamDirectPaging) || userResponders.length || scheduleResponders.length)
-              }
-            >
-              Create
-            </Button>
-          </HorizontalGroup>
-        </VerticalGroup>
-      </Drawer>
-    </>
+          >
+            Create
+          </Button>
+        </HorizontalGroup>
+      </VerticalGroup>
+    </Drawer>
   );
 };
 

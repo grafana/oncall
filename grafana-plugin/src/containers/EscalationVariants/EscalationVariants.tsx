@@ -137,7 +137,7 @@ const EscalationVariants = observer(
                   setShowEscalationVariants(true);
                 }}
               >
-                Add responders
+                Invite additional responders
               </Button>
             </WithPermissionControlTooltip>
           </div>
