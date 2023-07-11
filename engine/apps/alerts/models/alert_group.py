@@ -163,7 +163,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         (USER, "user"),
         (NOT_YET, "not yet"),
         (LAST_STEP, "last escalation step"),
-        (ARCHIVED, "archived"),
+        (ARCHIVED, "archived"),  # deprecated. don't use
         (WIPED, "wiped"),
         (DISABLE_MAINTENANCE, "stop maintenance"),
         (NOT_YET_STOP_AUTORESOLVE, "not yet, autoresolve disabled"),
@@ -327,9 +327,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="dependent_alert_groups",
     )
 
-    # cached_render_for_web and active_cache_for_web_calculation_id are deprecated
-    cached_render_for_web = models.JSONField(default=dict)
-    active_cache_for_web_calculation_id = models.CharField(max_length=100, null=True, default=None)
+    # TODO: remove cached_render_for_web in a subsequent release
+    cached_render_for_web = deprecate_field(models.JSONField(default=dict))
 
     # NOTE: we should probably migrate this field to models.UUIDField as it's ONLY ever being
     # set to the result of uuid.uuid1
@@ -360,9 +359,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     maintenance_uuid = models.CharField(max_length=100, unique=True, null=True, default=None)
 
     raw_escalation_snapshot = JSONField(null=True, default=None)
-
-    # THIS FIELD IS DEPRECATED AND SHOULD EVENTUALLY BE REMOVED
-    estimate_escalation_finish_time = deprecate_field(models.DateTimeField(null=True, default=None))
 
     # This field is used for constraints so we can use get_or_create() in concurrent calls
     # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#get-or-create
@@ -714,38 +710,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
         for dependent_alert_group in self.dependent_alert_groups.all():
             dependent_alert_group.resolve_by_source()
-
-    # deprecated
-    def resolve_by_archivation(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        # if incident was silenced, unsilence it without starting escalation
-        if self.silenced:
-            self.un_silence()
-            self.log_records.create(
-                type=AlertGroupLogRecord.TYPE_UN_SILENCE,
-                silence_delay=None,
-                reason="Resolve by archivation",
-            )
-        self.archive()
-        self.stop_escalation()
-        if not self.resolved:
-            self.resolve(resolved_by=AlertGroup.ARCHIVED)
-
-            log_record = self.log_records.create(type=AlertGroupLogRecord.TYPE_RESOLVED)
-
-            logger.debug(
-                f"send alert_group_action_triggered_signal for alert_group {self.pk}, "
-                f"log record {log_record.pk} with type '{log_record.get_type_display()}', action source: archivation"
-            )
-
-            alert_group_action_triggered_signal.send(
-                sender=self.resolve_by_archivation,
-                log_record=log_record.pk,
-                action_source=None,
-            )
-
-        for dependent_alert_group in self.dependent_alert_groups.all():
-            dependent_alert_group.resolve_by_archivation()
 
     def resolve_by_last_step(self):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")

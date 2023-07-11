@@ -161,8 +161,6 @@ class Organization(MaintainableObject):
 
     is_resolution_note_required = models.BooleanField(default=False)
 
-    archive_alerts_from = models.DateField(default="1970-01-01")
-
     # TODO: this field is specific to slack and will be moved to a different model
     slack_team_identity = models.ForeignKey(
         "slack.SlackTeamIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="organizations"
@@ -238,8 +236,10 @@ class Organization(MaintainableObject):
     PRICING_CHOICES = ((FREE_PUBLIC_BETA_PRICING, "Free public beta"),)
     pricing_version = models.PositiveIntegerField(choices=PRICING_CHOICES, default=FREE_PUBLIC_BETA_PRICING)
 
-    # TODO: remove is_amixr_migration_started soon (aka shortly after July 11, 2023)
+    # TODO: remove is_amixr_migration_started and archive_alerts_from soon (aka shortly after July 11, 2023)
     is_amixr_migration_started = deprecate_field(models.BooleanField(default=False))
+    archive_alerts_from = deprecate_field(models.DateField(default="1970-01-01"))
+
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
 
@@ -295,7 +295,7 @@ class Organization(MaintainableObject):
 
     """
     Following methods:
-    phone_calls_left, sms_left, emails_left, notifications_limit_web_report
+    phone_calls_left, sms_left, emails_left
     serve for calculating notifications' limits and composed from self.subscription_strategy.
     """
 
@@ -308,9 +308,6 @@ class Organization(MaintainableObject):
     # todo: manage backend specific limits in messaging backend
     def emails_left(self, user):
         return self.subscription_strategy.emails_left(user)
-
-    def notifications_limit_web_report(self, user):
-        return self.subscription_strategy.notifications_limit_web_report(user)
 
     def set_general_log_channel(self, channel_id, channel_name, user):
         if self.general_log_channel_id != channel_id:
@@ -354,7 +351,6 @@ class Organization(MaintainableObject):
         return {
             "name": self.org_title,
             "is_resolution_note_required": self.is_resolution_note_required,
-            "archive_alerts_from": self.archive_alerts_from.isoformat(),
         }
 
     @property

@@ -1,28 +1,13 @@
-import datetime
 from dataclasses import asdict
 
-import pytz
 from django.apps import apps
-from django.utils import timezone
-from rest_framework import fields, serializers
+from rest_framework import serializers
 
 from apps.base.models import LiveSetting
 from apps.phone_notifications.phone_provider import get_phone_provider
 from apps.slack.models import SlackTeamIdentity
-from apps.slack.tasks import resolve_archived_incidents_for_organization, unarchive_incidents_for_organization
 from apps.user_management.models import Organization
 from common.api_helpers.mixins import EagerLoadingMixin
-
-
-class CustomDateField(fields.TimeField):
-    def to_internal_value(self, data):
-        try:
-            archive_datetime = datetime.datetime.fromisoformat(data).astimezone(pytz.UTC)
-        except (TypeError, ValueError):
-            raise serializers.ValidationError({"archive_alerts_from": ["Invalid date format"]})
-        if archive_datetime.date() >= timezone.now().date():
-            raise serializers.ValidationError({"archive_alerts_from": ["Invalid date. Date must be less than today."]})
-        return archive_datetime
 
 
 class FastSlackTeamIdentitySerializer(serializers.ModelSerializer):
@@ -36,7 +21,6 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_team_identity = FastSlackTeamIdentitySerializer(read_only=True)
 
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
-    # name_slug = serializers.CharField(required=False, allow_null=True, allow_blank=False)
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     slack_channel = serializers.SerializerMethodField()
 
@@ -47,15 +31,12 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         fields = [
             "pk",
             "name",
-            # "name_slug",
-            # "is_new_version",
             "slack_team_identity",
             "maintenance_mode",
             "maintenance_till",
             "slack_channel",
         ]
         read_only_fields = [
-            "is_new_version",
             "slack_team_identity",
             "maintenance_mode",
             "maintenance_till",
@@ -78,22 +59,18 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
 
 class CurrentOrganizationSerializer(OrganizationSerializer):
-    limits = serializers.SerializerMethodField()
     env_status = serializers.SerializerMethodField()
     banner = serializers.SerializerMethodField()
 
     class Meta(OrganizationSerializer.Meta):
         fields = [
             *OrganizationSerializer.Meta.fields,
-            "limits",
-            "archive_alerts_from",
             "is_resolution_note_required",
             "env_status",
             "banner",
         ]
         read_only_fields = [
             *OrganizationSerializer.Meta.read_only_fields,
-            "limits",
             "banner",
         ]
 
@@ -104,10 +81,6 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
             defaults={"json_value": {"title": None, "body": None}},
         )[0]
         return banner.json_value
-
-    def get_limits(self, obj):
-        user = self.context["request"].user
-        return obj.notifications_limit_web_report(user)
 
     def get_env_status(self, obj):
         # deprecated in favour of ConfigAPIView.
@@ -120,22 +93,6 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
             "telegram_configured": telegram_configured,
             "phone_provider": asdict(phone_provider_config),
         }
-
-    def update(self, instance, validated_data):
-        current_archive_date = instance.archive_alerts_from
-        archive_alerts_from = validated_data.get("archive_alerts_from")
-
-        result = super().update(instance, validated_data)
-        if archive_alerts_from is not None and current_archive_date != archive_alerts_from:
-            if current_archive_date > archive_alerts_from:
-                unarchive_incidents_for_organization.apply_async(
-                    (instance.pk,),
-                )
-            resolve_archived_incidents_for_organization.apply_async(
-                (instance.pk,),
-            )
-
-        return result
 
 
 class FastOrganizationSerializer(serializers.ModelSerializer):

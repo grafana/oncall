@@ -13,7 +13,6 @@ export interface Team {
     discussion_group_name: string;
   };
   name: string;
-  name_slug: string;
   slack_team_identity: {
     general_log_channel_id: string;
     general_log_channel_pk: string;
@@ -23,7 +22,6 @@ export interface Team {
   slack_channel: SlackChannel | null;
 
   // ex team settings
-  archive_alerts_from: string;
   is_resolution_note_required: boolean;
 
   env_status: {
