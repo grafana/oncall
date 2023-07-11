@@ -84,7 +84,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
 
     useEffect(() => {
       setIsLoading(true);
-      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateItems()]).then(() =>
+      Promise.all([escalationChainStore.updateItems(), telegramChannelStore.updateTelegramChannels()]).then(() =>
         setIsLoading(false)
       );
     }, []);
