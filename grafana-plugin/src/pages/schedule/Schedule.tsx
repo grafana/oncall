@@ -26,7 +26,7 @@ import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone';
+import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';

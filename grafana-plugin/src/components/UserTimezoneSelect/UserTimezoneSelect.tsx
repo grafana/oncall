@@ -5,7 +5,8 @@ import { Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import { getTzOffsetString, tzs, Timezone } from 'models/timezone';
+import { getTzOffsetString, allTimezones } from 'models/timezone/timezone.helpers';
+import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 
 import styles from './UserTimezoneSelect.module.css';
@@ -110,7 +111,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
   const handleCreateOption = useCallback(
     (value: string) => {
-      const matched = tzs.find((tz) => tz.toLowerCase().includes(value.toLowerCase()));
+      const matched = allTimezones.find((tz) => tz.toLowerCase().includes(value.toLowerCase()));
       if (matched) {
         const now = dayjs().tz(matched);
         const utcOffset = now.utcOffset();
@@ -149,7 +150,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
         allowCustomValue
         onCreateOption={handleCreateOption}
         formatCreateLabel={(input: string) => {
-          const matched = tzs.find((tz) => tz.toLowerCase().includes(input.toLowerCase()));
+          const matched = allTimezones.find((tz) => tz.toLowerCase().includes(input.toLowerCase()));
           const now = dayjs().tz(matched);
           if (matched) {
             return `Select ${getTzOffsetString(now)} (${matched})`;

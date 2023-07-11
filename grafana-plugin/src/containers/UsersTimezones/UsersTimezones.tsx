@@ -11,7 +11,7 @@ import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
 import { Schedule } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone';
+import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';

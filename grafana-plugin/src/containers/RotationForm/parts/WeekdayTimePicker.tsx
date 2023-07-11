@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 
 import Text from 'components/Text/Text';
 import { toDate } from 'containers/RotationForm/RotationForm.helpers';
-import { Timezone } from 'models/timezone';
+import { Timezone } from 'models/timezone/timezone.types';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/RotationForm/RotationForm.module.css';

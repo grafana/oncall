@@ -27,7 +27,7 @@ import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
 import { TeamStore } from 'models/team/team';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
-import { Timezone } from 'models/timezone';
+import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';

@@ -8,7 +8,7 @@ import hash from 'object-hash';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
 import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone';
+import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
 

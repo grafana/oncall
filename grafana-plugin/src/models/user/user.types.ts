@@ -1,5 +1,5 @@
 import { Team } from 'models/team/team.types';
-import { Timezone } from 'models/timezone';
+import { Timezone } from 'models/timezone/timezone.types';
 
 export interface MessagingBackends {
   [key: string]: any;

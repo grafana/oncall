@@ -15,7 +15,7 @@ import RotationForm from 'containers/RotationForm/RotationForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone';
+import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
