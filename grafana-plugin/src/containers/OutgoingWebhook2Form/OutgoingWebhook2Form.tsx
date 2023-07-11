@@ -41,7 +41,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
   const [onFormChangeFn, setOnFormChangeFn] = useState<{ fn: (value: string) => void }>(undefined);
-  const [templateFieldValue, setTemplateFieldValue] = useState<string>(undefined);
+  const [templateToEdit, setTemplateToEdit] = useState(undefined);
   const [activeTab, setActiveTab] = useState<string>(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
@@ -63,7 +63,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   const getTemplateEditClickHandler = (formItem: FormItem, values, setFormFieldValue) => {
     return () => {
       const formValue = values[formItem.name];
-      setTemplateFieldValue(formValue);
+      setTemplateToEdit({ value: formValue, displayName: undefined, description: undefined, name: formItem.name });
       setOnFormChangeFn({ fn: (value) => setFormFieldValue(value) });
     };
   };
@@ -117,9 +117,6 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
 
   const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
 
-  // we'll most likely need to figure out these values as well in case we want to provide displayName/description/etc
-  const template = { value: templateFieldValue, displayName: undefined, description: undefined, name: undefined };
-
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
     // show just the creation form, not the tabs
     return (
@@ -127,11 +124,12 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
         <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
           <div className="webhooks__drawerContent">{renderWebhookForm()}</div>
         </Drawer>
-        {templateFieldValue !== undefined && (
+        {templateToEdit && (
           <WebhooksTemplateEditor
+            id={id}
             handleSubmit={(value) => onFormChangeFn?.fn(value)}
-            onHide={() => setTemplateFieldValue(undefined)}
-            template={template}
+            onHide={() => setTemplateToEdit(undefined)}
+            template={templateToEdit}
           />
         )}
       </>
@@ -178,14 +176,15 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
           />
         </div>
       </Drawer>
-      {templateFieldValue !== undefined && (
+      {templateToEdit && (
         <WebhooksTemplateEditor
+          id={id}
           handleSubmit={(value) => {
             onFormChangeFn?.fn(value);
-            setTemplateFieldValue(undefined);
+            setTemplateToEdit(undefined);
           }}
-          onHide={() => setTemplateFieldValue(undefined)}
-          template={template}
+          onHide={() => setTemplateToEdit(undefined)}
+          template={templateToEdit}
         />
       )}
     </>

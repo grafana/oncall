@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Tooltip, Icon, IconButton, Badge, LoadingPlaceholder } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, Badge, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
@@ -11,9 +11,8 @@ import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { OutgoingWebhook2, OutgoingWebhook2Response } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { useStore } from 'state/useStore';
-
-import { WebhooksDefaultAlertGroup } from './WebhooksDefaultAlertGroup';
 
 import styles from './TemplatesAlertGroupsList.module.css';
 
@@ -30,8 +29,11 @@ interface TemplatesAlertGroupsListProps {
   templatePage: TEMPLATE_PAGE;
   templates: AlertTemplatesDTO[];
   alertReceiveChannelId?: AlertReceiveChannel['id'];
+  outgoingwebhookId?: OutgoingWebhook2['id'];
   heading?: string;
+
   onSelectAlertGroup?: (alertGroup: Alert) => void;
+
   onEditPayload?: (payload: string) => void;
   onLoadAlertGroupsList?: (isRecentAlertExising: boolean) => void;
 }
@@ -41,6 +43,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
     templatePage,
     heading = 'Recent Alert groups',
     alertReceiveChannelId,
+    outgoingwebhookId,
     templates,
     onEditPayload,
     onSelectAlertGroup,
@@ -48,19 +51,24 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   } = props;
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
-  const [selectedAlertPayload, setSelectedAlertPayload] = useState<string>(undefined);
-  const [selectedAlertName, setSelectedAlertName] = useState<string>(undefined);
+  const [outgoingWebhookLastResponses, setOutgoingWebhookLastResponses] =
+    useState<OutgoingWebhook2Response[]>(undefined);
+
+  const [selectedTitle, setSelectedTitle] = useState<string>(undefined);
+  const [selectedPayload, setSelectedPayload] = useState<string>(undefined);
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
-    if (!alertReceiveChannelId) {
-      setAlertGroupsList([WebhooksDefaultAlertGroup]);
-      return;
+    if (templatePage === TEMPLATE_PAGE.Webhooks) {
+      if (outgoingwebhookId !== 'new') {
+        store.outgoingWebhook2Store.getLastResponses(outgoingwebhookId).then(setOutgoingWebhookLastResponses);
+      }
+    } else if (templatePage === TEMPLATE_PAGE.Integrations) {
+      store.alertGroupStore.getAlertGroupsForIntegration(alertReceiveChannelId).then((result) => {
+        setAlertGroupsList(result.slice(0, 30));
+        onLoadAlertGroupsList(result.length > 0);
+      });
     }
-    store.alertGroupStore.getAlertGroupsForIntegration(alertReceiveChannelId).then((result) => {
-      setAlertGroupsList(result.slice(0, 30));
-      onLoadAlertGroupsList(result.length > 0);
-    });
   }, []);
 
   const getCodeEditorHeight = () => {
@@ -83,39 +91,41 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
 
   const returnToListView = () => {
     setIsEditMode(false);
-    setSelectedAlertPayload(undefined);
+    setSelectedPayload(undefined);
     onEditPayload(null);
   };
 
-  const getAlertGroupPayload = async (id) => {
-    if (templatePage === TEMPLATE_PAGE.Webhooks) {
-      const groupedAlert = alertGroupsList.find((ag) => ag.pk === id);
-      onSelectAlertGroup(groupedAlert);
-      setSelectedAlertPayload(groupedAlert);
-      onEditPayload(JSON.stringify(groupedAlert));
-      return;
-    }
+  // for Integrations
 
+  const getAlertGroupPayload = async (id) => {
     const groupedAlert = await store.alertGroupStore.getAlertsFromGroup(id);
     const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(groupedAlert?.alerts[0]?.id);
-    setSelectedAlertName(getAlertGroupName(groupedAlert));
-    setSelectedAlertPayload(currentIncidentRawResponse?.raw_request_data);
+    setSelectedTitle(getAlertGroupName(groupedAlert));
+    setSelectedPayload(currentIncidentRawResponse?.raw_request_data);
+
+    // ?
     onSelectAlertGroup(groupedAlert);
     onEditPayload(JSON.stringify(currentIncidentRawResponse?.raw_request_data));
   };
 
   const getAlertGroupName = (alertGroup: Alert) => {
-    if (templatePage === TEMPLATE_PAGE.Webhooks) {
-      return (alertGroup as any).alert_group.title;
-    }
-
     // Integrations page
     return alertGroup.inside_organization_number
       ? `#${alertGroup.inside_organization_number} ${alertGroup.render_for_web?.title}`
       : alertGroup.render_for_web?.title;
   };
 
-  if (selectedAlertPayload) {
+  // for Outgoing webhooks
+
+  const handleOutgoingWebhookResponseSelect = (response: OutgoingWebhook2Response) => {
+    setSelectedTitle(response.timestamp);
+
+    setSelectedPayload(JSON.parse(response.event_data));
+
+    onEditPayload(response.event_data);
+  };
+
+  if (selectedPayload) {
     // IF selected we either display it as ReadOnly or in EditMode
     return (
       <div className={cx('template-block-list')} id="alerts-content-container-id">
@@ -133,7 +143,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               <Text>Edit custom payload</Text>
 
               <HorizontalGroup>
-                <IconButton name="times" onClick={() => returnToListView()} />
+                <IconButton name="times" onClick={returnToListView} />
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
@@ -159,9 +169,9 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
             <HorizontalGroup justify="space-between" wrap>
               <HorizontalGroup>
                 <Text>{heading}</Text>
-                <Tooltip content="Here will be information about alert groups" placement="top">
+                {/* <Tooltip content="Here will be information about alert groups" placement="top">
                   <Icon name="info-circle" />
-                </Tooltip>
+                </Tooltip> */}
               </HorizontalGroup>
 
               <Button variant="secondary" fill="outline" onClick={() => setIsEditMode(true)} size="sm">
@@ -169,11 +179,49 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
               </Button>
             </HorizontalGroup>
           </div>
-          <div className={cx('alert-groups-list')}>{renderAlertGroupList()}</div>
+          <div className={cx('alert-groups-list')}>
+            {templatePage === TEMPLATE_PAGE.Webhooks ? renderOutgoingWebhookLastResponses() : renderAlertGroupList()}
+          </div>
         </>
       )}
     </div>
   );
+
+  function renderOutgoingWebhookLastResponses() {
+    if (!outgoingWebhookLastResponses) {
+      return <LoadingPlaceholder text="Loading last events..." />;
+    }
+
+    if (outgoingWebhookLastResponses.length) {
+      return outgoingWebhookLastResponses
+        .filter((response) => response.event_data)
+        .map((response) => {
+          return (
+            <div
+              key={response.timestamp}
+              onClick={() => handleOutgoingWebhookResponseSelect(response)}
+              className={cx('alert-groups-list-item')}
+            >
+              <Text type="link"> {response.timestamp}</Text>
+            </div>
+          );
+        });
+    } else {
+      return (
+        <Badge
+          color="blue"
+          text={
+            <div className={cx('no-alert-groups-badge')}>
+              <Icon name="info-circle" />
+              <Text>
+                This outgoing webhook did not receive any events yet. Use custom payload example to preview results.
+              </Text>
+            </div>
+          }
+        />
+      );
+    }
+  }
 
   function renderAlertGroupList() {
     if (!alertGroupsList) {
@@ -221,7 +269,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         </div>
         <div className={cx('alert-groups-editor')}>
           <MonacoEditor
-            value={JSON.stringify(selectedAlertPayload, null, 4)}
+            value={JSON.stringify(selectedPayload, null, 4)}
             data={templates}
             height={getCodeEditorHeight()}
             onChange={getChangeHandler()}
@@ -241,7 +289,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         <div className={cx('template-block-title')}>
           <div className={cx('selected-alert-name-container')}>
             <div className={cx('selected-alert-name')}>
-              <Text>{selectedAlertName}</Text>
+              <Text>{selectedTitle}</Text>
             </div>
             <div className={cx('title-action-icons')}>
               <IconButton name="edit" onClick={() => setIsEditMode(true)} />
@@ -252,7 +300,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
         <div className={cx('alert-groups-editor')}>
           <TooltipBadge
             borderType="primary"
-            text="Last alert payload"
+            text="Payload"
             tooltipTitle=""
             tooltipContent=""
             className={cx('alert-groups-last-payload-badge')}
@@ -260,7 +308,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
           <div className={cx('alert-groups-editor-withBadge')}>
             {/* Editor used for Editing Given Payload */}
             <MonacoEditor
-              value={JSON.stringify(selectedAlertPayload, null, 4)}
+              value={JSON.stringify(selectedPayload, null, 4)}
               data={undefined}
               disabled
               height={getCodeEditorHeightWithBadge()}

@@ -12,7 +12,7 @@ import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
-import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
+import TemplatePreview, { TEMPLATE_PAGE } from 'containers/TemplatePreview/TemplatePreview';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
@@ -131,13 +131,6 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
       setActiveTemplate(groups[activeGroup][0]);
     }
   }, [activeGroup]);
-
-  const getTemplatePreviewEditClickHandler = (templateName: string) => {
-    return () => {
-      const template = templatesToRender.find((template) => template.name === templateName);
-      setActiveTemplate(template);
-    };
-  };
 
   useEffect(() => {
     if (!activeTemplate && filteredTemplatesToRender.length) {
@@ -261,11 +254,10 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     <VerticalGroup style={{ width: '100%' }}>
                       {groups[activeGroup].map((template) => (
                         <TemplatePreview
-                          active={template.name === activeTemplate?.name}
+                          templatePage={TEMPLATE_PAGE.Integrations}
                           key={template.name}
                           templateName={template.name}
                           templateBody={tempValues[template.name] ?? templates[template.name]}
-                          onEditClick={getTemplatePreviewEditClickHandler(template.name)}
                           alertReceiveChannelId={alertReceiveChannelId}
                           alertGroupId={alertGroupId}
                         />

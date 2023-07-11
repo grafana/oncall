@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { noop, debounce } from 'lodash-es';
+import { debounce } from 'lodash-es';
 
 import CheatSheet from 'components/CheatSheet/CheatSheet';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
@@ -11,6 +11,7 @@ import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.sc
 import TemplateResult from 'containers/TemplateResult/TemplateResult';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { waitForElement } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
@@ -25,15 +26,17 @@ interface Template {
 
 interface WebhooksTemplateEditorProps {
   template: Template;
+  id: OutgoingWebhook2['id'];
   onHide: () => void;
   handleSubmit: (template: string) => void;
 }
 
-const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, onHide, handleSubmit }) => {
+const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
   const [isCheatSheetVisible] = useState(false);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
   const [editorHeight, setEditorHeight] = useState<string>(undefined);
-  const [selectedAG, setSelectedAG] = useState(undefined);
+  const [selectedPayload, setSelectedPayload] = useState(undefined);
+  const [resultError, setResultError] = useState<string>(undefined);
 
   useEffect(() => {
     waitForElement('#content-container-id').then(() => {
@@ -47,6 +50,25 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
     return debounce((value: string) => {
       setChangedTemplateBody(value);
     }, 500);
+  };
+
+  const onEditPayload = (alertPayload: string) => {
+    if (alertPayload !== null) {
+      try {
+        const jsonPayload = JSON.parse(alertPayload);
+        if (typeof jsonPayload === 'object') {
+          setResultError(undefined);
+          setSelectedPayload(JSON.parse(alertPayload));
+        } else {
+          setResultError('Please check your JSON format');
+        }
+      } catch (e) {
+        setResultError(e.message);
+      }
+    } else {
+      setResultError(undefined);
+      setSelectedPayload(undefined);
+    }
   };
 
   return (
@@ -76,15 +98,15 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
       }
       onClose={onHide}
       closeOnMaskClick={false}
-      width={'95%'}
+      width="95%"
     >
       <div className={cx('container-wrapper')}>
         <div className={cx('container')} id={'content-container-id'}>
           <TemplatesAlertGroupsList
-            heading="Alert groups"
+            heading="Last events"
             templatePage={TEMPLATE_PAGE.Webhooks}
-            onEditPayload={(_payload: string) => {}} // TODO: add handler
-            onSelectAlertGroup={setSelectedAG}
+            outgoingwebhookId={id}
+            onEditPayload={onEditPayload}
             templates={
               {
                 // TODO: this is just some dummy data, this will need replaced with an actual Webhook Template
@@ -108,40 +130,41 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                   <HorizontalGroup justify="space-between" align="center" wrap>
                     <Text>Template editor</Text>
 
-                    <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
+                    {/*  <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
                       Cheatsheet
-                    </Button>
+                    </Button> */}
                   </HorizontalGroup>
                 </div>
                 <div className={cx('template-editor-block-content')}>
                   <MonacoEditor
                     value={template.value}
-                    data={{ payload_example: selectedAG }}
+                    data={{ payload_example: selectedPayload }}
                     showLineNumbers={true}
                     height={editorHeight}
                     onChange={getChangeHandler()}
+                    suggestionPrefix=""
                   />
                 </div>
               </div>
             </>
           )}
-
           <TemplateResult
-            templateBody={template.value}
-            isAlertGroupExisting={true}
+            templatePage={TEMPLATE_PAGE.Webhooks}
+            outgoingWebhookId={id}
+            template={template}
+            templateBody={changedTemplateBody}
+            isAlertGroupExisting={false}
             chatOpsPermalink={undefined}
-            payload={selectedAG}
-            error={undefined}
-            // this most likely is not needed for webhooks
-            onSaveAndFollowLink={noop}
-            template={{} as any} // todo: figure out a template config object?
+            payload={selectedPayload}
+            error={resultError}
+            onSaveAndFollowLink={undefined}
           />
         </div>
       </div>
     </Drawer>
   );
 
-  function onShowCheatSheet() {}
+  // function onShowCheatSheet() {}
 
   function onCloseCheatSheet() {}
 
