@@ -132,6 +132,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
+        self.get_object()  # Check webhook exists
         template_body = request.data.get("template_body", None)
         template_name = request.data.get("template_name", None)
         payload = request.data.get("payload", None)
