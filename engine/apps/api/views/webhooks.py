@@ -124,9 +124,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     @action(methods=["get"], detail=True)
     def responses(self, request, pk):
         webhook = self.get_object()
-        queryset = WebhookResponse.objects.filter(
-            webhook_id=webhook.id,
-            trigger_type=webhook.trigger_type,
+        queryset = WebhookResponse.objects.filter(webhook_id=webhook.id, trigger_type=webhook.trigger_type).order_by(
+            "-timestamp"
         )[:RECENT_RESPONSE_LIMIT]
         response_serializer = WebhookResponseSerializer(queryset, many=True)
         return Response(response_serializer.data)
