@@ -1,0 +1,7 @@
+nodeSelector -> should use custom nodeSelector:
+  1: |
+    unittest: here
+  2: |
+    unittest: here
+  3: |
+    unittest: here
