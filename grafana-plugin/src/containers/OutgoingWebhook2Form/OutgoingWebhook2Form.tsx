@@ -6,8 +6,10 @@ import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
 
 import GForm from 'components/GForm/GForm';
+import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import Text from 'components/Text/Text';
 import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
+import WebhooksTemplateEditor from 'containers/WebhooksTemplateEditor/WebhooksTemplateEditor';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { WebhookFormActionType } from 'pages/outgoing_webhooks_2/OutgoingWebhooks2.types';
@@ -38,6 +40,8 @@ export const WebhookTabs = {
 const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
   const history = useHistory();
   const { id, action, onUpdate, onHide, onDelete } = props;
+  const [onFormChangeFn, setOnFormChangeFn] = useState<{ fn: (value: string) => void }>(undefined);
+  const [templateToEdit, setTemplateToEdit] = useState(undefined);
   const [activeTab, setActiveTab] = useState<string>(
     action === WebhookFormActionType.EDIT_SETTINGS ? WebhookTabs.Settings.key : WebhookTabs.LastRun.key
   );
@@ -55,6 +59,31 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     },
     [id]
   );
+
+  const getTemplateEditClickHandler = (formItem: FormItem, values, setFormFieldValue) => {
+    return () => {
+      const formValue = values[formItem.name];
+      setTemplateToEdit({ value: formValue, displayName: undefined, description: undefined, name: formItem.name });
+      setOnFormChangeFn({ fn: (value) => setFormFieldValue(value) });
+    };
+  };
+
+  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement, values, setFormFieldValue) => {
+    if (formItem.type === FormItemType.Monaco) {
+      return (
+        <div className={cx('form-row')}>
+          <div className={cx('form-field')}>{renderedControl}</div>
+          <Button
+            icon="edit"
+            variant="secondary"
+            onClick={getTemplateEditClickHandler(formItem, values, setFormFieldValue)}
+          />
+        </div>
+      );
+    }
+
+    return renderedControl;
+  };
 
   if (
     (action === WebhookFormActionType.EDIT_SETTINGS || action === WebhookFormActionType.VIEW_LAST_RUN) &&
@@ -86,51 +115,79 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     return null;
   }
 
+  const formElement = <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />;
+
   if (action === WebhookFormActionType.NEW || action === WebhookFormActionType.COPY) {
     // show just the creation form, not the tabs
     return (
-      <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
-        {renderWebhookForm()}
-      </Drawer>
+      <>
+        <Drawer scrollableContent title={'Create Outgoing Webhook'} onClose={onHide} closeOnMaskClick={false}>
+          <div className="webhooks__drawerContent">{renderWebhookForm()}</div>
+        </Drawer>
+        {templateToEdit && (
+          <WebhooksTemplateEditor
+            id={id}
+            handleSubmit={(value) => onFormChangeFn?.fn(value)}
+            onHide={() => setTemplateToEdit(undefined)}
+            template={templateToEdit}
+          />
+        )}
+      </>
     );
   }
 
   return (
     // show tabbed drawer (edit/live_run)
-    <Drawer scrollableContent title={'Outgoing webhook details'} onClose={onHide} closeOnMaskClick={false}>
-      <TabsBar>
-        <Tab
-          key={WebhookTabs.Settings.key}
-          onChangeTab={() => {
-            setActiveTab(WebhookTabs.Settings.key);
-            history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
-          }}
-          active={activeTab === WebhookTabs.Settings.key}
-          label={WebhookTabs.Settings.value}
-        />
+    <>
+      <Drawer scrollableContent title={'Outgoing webhook details'} onClose={onHide} closeOnMaskClick={false}>
+        <div className={cx('webhooks__drawerContent')}>
+          <TabsBar>
+            <Tab
+              key={WebhookTabs.Settings.key}
+              onChangeTab={() => {
+                setActiveTab(WebhookTabs.Settings.key);
+                history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
+              }}
+              active={activeTab === WebhookTabs.Settings.key}
+              label={WebhookTabs.Settings.value}
+            />
 
-        <Tab
-          key={WebhookTabs.LastRun.key}
-          onChangeTab={() => {
-            setActiveTab(WebhookTabs.LastRun.key);
-            history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`);
-          }}
-          active={activeTab === WebhookTabs.LastRun.key}
-          label={WebhookTabs.LastRun.value}
-        />
-      </TabsBar>
+            <Tab
+              key={WebhookTabs.LastRun.key}
+              onChangeTab={() => {
+                setActiveTab(WebhookTabs.LastRun.key);
+                history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`);
+              }}
+              active={activeTab === WebhookTabs.LastRun.key}
+              label={WebhookTabs.LastRun.value}
+            />
+          </TabsBar>
 
-      <WebhookTabsContent
-        id={id}
-        action={action}
-        activeTab={activeTab}
-        data={data}
-        handleSubmit={handleSubmit}
-        onDelete={onDelete}
-        onHide={onHide}
-        onUpdate={onUpdate}
-      />
-    </Drawer>
+          <WebhookTabsContent
+            id={id}
+            action={action}
+            activeTab={activeTab}
+            data={data}
+            handleSubmit={handleSubmit}
+            onDelete={onDelete}
+            onHide={onHide}
+            onUpdate={onUpdate}
+            formElement={formElement}
+          />
+        </div>
+      </Drawer>
+      {templateToEdit && (
+        <WebhooksTemplateEditor
+          id={id}
+          handleSubmit={(value) => {
+            onFormChangeFn?.fn(value);
+            setTemplateToEdit(undefined);
+          }}
+          onHide={() => setTemplateToEdit(undefined)}
+          template={templateToEdit}
+        />
+      )}
+    </>
   );
 
   function renderWebhookForm() {
@@ -170,6 +227,7 @@ interface WebhookTabsProps {
   onUpdate: () => void;
   onDelete: () => void;
   handleSubmit: (data: Partial<OutgoingWebhook2>) => void;
+  formElement: React.ReactElement;
 }
 
 const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
@@ -177,10 +235,10 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
   action,
   activeTab,
   data,
-  handleSubmit,
   onHide,
   onUpdate,
   onDelete,
+  formElement,
 }) => {
   const [confirmationModal, setConfirmationModal] = useState<ConfirmModalProps>(undefined);
 
@@ -193,7 +251,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
       {activeTab === WebhookTabs.Settings.key && (
         <>
           <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
-            <GForm form={form} data={data} onSubmit={handleSubmit} />
+            {formElement}
             <div className={cx('buttons')}>
               <HorizontalGroup justify={'flex-end'}>
                 <Button variant="secondary" onClick={onHide}>

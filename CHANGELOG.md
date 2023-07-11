@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Bring new Jinja editor to webhooks ([2344](https://github.com/grafana/oncall/issues/2344))
+
 ### Fixed
 
 - Add debounce on Select UI components to avoid making API search requests on each key-down event by
