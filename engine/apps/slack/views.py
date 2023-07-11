@@ -425,7 +425,7 @@ class SlackEventApiEndpointView(APIView):
                             step_was_found = True
 
         if not step_was_found:
-            logger.warning("No step found")
+            raise Exception("Step is undefined" + str(payload))
 
         return Response(status=200)
 
