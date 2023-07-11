@@ -31,14 +31,3 @@ declare module 'grafana/app/core/core' {
     accessControlEnabled(): boolean;
   };
 }
-
-// eslint-disable-next-line no-unused-vars
-declare namespace Intl {
-  /**
-   * TODO: can remove this when we upgrade typescript to >= 5.1.3
-   * https://github.com/microsoft/TypeScript/issues/49231
-   */
-  type Key = 'calendar' | 'collation' | 'currency' | 'numberingSystem' | 'timeZone' | 'unit';
-
-  export function supportedValuesOf(input: Key): string[];
-}
