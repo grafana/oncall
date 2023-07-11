@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `event.users.avatar_full` field to `GET /api/internal/v1/schedules/{schedule_id}/filter_events`
   payload by @joeyorlando ([#2459](https://github.com/grafana/oncall/pull/2459))
+- Bring new Jinja editor to webhooks ([2344](https://github.com/grafana/oncall/issues/2344))
 
 ### Changed
 
