@@ -5,12 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.8 (2023-07-11)
 
 ### Added
 
 - Add `event.users.avatar_full` field to `GET /api/internal/v1/schedules/{schedule_id}/filter_events`
   payload by @joeyorlando ([#2459](https://github.com/grafana/oncall/pull/2459))
+- Add `affinity` and `tolerations` for `celery` and `migrations` pods into helm chart + unit test for chart
 
 ### Changed
 
@@ -22,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Address issue where we were improperly parsing Grafana feature flags that were enabled via the `feature_flags.enabled`
   method by @joeyorlando ([#2477](https://github.com/grafana/oncall/pull/2477))
+- Fix cuddled list Markdown issue by @vadimkerr ([#2488](https://github.com/grafana/oncall/pull/2488))
+- Fixed schedules slack notifications for deleted organizations ([#2493](https://github.com/grafana/oncall/pull/2493))
 
 ## v1.3.7 (2023-07-06)
 

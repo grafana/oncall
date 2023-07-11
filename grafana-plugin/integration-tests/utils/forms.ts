@@ -86,7 +86,7 @@ const textMatchSelector = (optionExactMatch: boolean, value: string): string =>
 const chooseDropdownValue = async ({ page, value, optionExactMatch = true }: SelectDropdownValueArgs): Promise<void> =>
   page.locator(`div[id^="react-select-"][id$="-listbox"] >> ${textMatchSelector(optionExactMatch, value)}`).click();
 
-export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<void> => {
+export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<Locator> => {
   const selectElement = await openSelect(args);
 
   /**
@@ -97,6 +97,8 @@ export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promis
   await selectElement.type(args.value.slice(0, 5));
 
   await chooseDropdownValue(args);
+
+  return selectElement;
 };
 
 export const generateRandomValue = (): string => randomUUID();
