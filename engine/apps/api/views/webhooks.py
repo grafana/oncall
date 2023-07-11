@@ -21,7 +21,7 @@ from common.jinja_templater.apply_jinja_template import JinjaTemplateError, Jinj
 RECENT_RESPONSE_LIMIT = 20
 
 WEBHOOK_URL = "url"
-WEBHOOK_HEADERS = "message"
+WEBHOOK_HEADERS = "headers"
 WEBHOOK_TRIGGER_TEMPLATE = "trigger_template"
 WEBHOOK_TRIGGER_DATA = "data"
 
