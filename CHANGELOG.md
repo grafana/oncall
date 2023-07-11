@@ -7,10 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `event.users.avatar_full` field to `GET /api/internal/v1/schedules/{schedule_id}/filter_events`
+  payload by @joeyorlando ([#2459](https://github.com/grafana/oncall/pull/2459))
+
 ### Changed
 
+- Modified DRF pagination class used by `GET /api/internal/v1/alert_receive_channels` and `GET /api/internal/v1/schedules`
+  endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
+  a reverse proxy by @joeyorlando ([#2467](https://github.com/grafana/oncall/pull/2467))
 - Polish user settings and warnings ([#2425](https://github.com/grafana/oncall/pull/2425))
-- Removed url from sms notification, changed format ([2317](https://github.com/grafana/oncall/pull/2317))  
+
+### Fixed
+
+- Address issue where we were improperly parsing Grafana feature flags that were enabled via the `feature_flags.enabled`
+  method by @joeyorlando ([#2477](https://github.com/grafana/oncall/pull/2477))
+
+## v1.3.7 (2023-07-06)
+
+### Changed
+
+- OnCall Metrics dashboard update ([#2400](https://github.com/grafana/oncall/pull/2400))
 
 ## v1.3.6 (2023-07-05)
 
