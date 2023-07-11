@@ -23,9 +23,9 @@ class MaintenancePage extends React.Component<MaintenancePageProps> {
           // @ts-ignore
           title={
             <>
-              To be able to manage maintenance, please go to{' '}
-              <PluginLink query={{ page: 'integrations' }}> Integrations page</PluginLink> and select desirable
-              integration.
+              Maintenance mode is now controlled on the{' '}
+              <PluginLink query={{ page: 'integrations' }}> Integrations page</PluginLink>. This page is going to be
+              deprecated.
             </>
           }
         />
