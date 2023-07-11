@@ -326,9 +326,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="dependent_alert_groups",
     )
 
-    # TODO: remove cached_render_for_web in a subsequent release
-    cached_render_for_web = models.JSONField(default=dict)
-
     # NOTE: we should probably migrate this field to models.UUIDField as it's ONLY ever being
     # set to the result of uuid.uuid1
     last_unique_unacknowledge_process_id: UUID | None = models.CharField(max_length=100, null=True, default=None)

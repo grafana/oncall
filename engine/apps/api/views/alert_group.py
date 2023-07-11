@@ -364,9 +364,6 @@ class AlertGroupView(
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
         queryset = AlertGroup.all_objects.filter(pk__in=alert_group_pks).order_by("-pk")
 
-        # do not load cached_render_for_web as it's deprecated and can be very large
-        queryset = queryset.defer("cached_render_for_web")
-
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
 

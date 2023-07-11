@@ -20,9 +20,8 @@ class Migration(migrations.Migration):
             model_name='alertgroup',
             name='estimate_escalation_finish_time',
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
             model_name='alertgroup',
             name='cached_render_for_web',
-            field=models.JSONField(default=dict, null=True),
         ),
     ]
