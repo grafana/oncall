@@ -23,6 +23,7 @@ class AlertGroupSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     status = serializers.SerializerMethodField(source="get_status")
     link = serializers.CharField(read_only=True, source="web_link")
+    title = serializers.CharField(read_only=True, source="long_verbose_name_without_formatting")
     alerts = AlertSerializer(many=True, read_only=True)
 
     def get_status(self, obj):
@@ -35,4 +36,5 @@ class AlertGroupSerializer(serializers.ModelSerializer):
             "link",
             "status",
             "alerts",
+            "title",
         ]

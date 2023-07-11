@@ -75,9 +75,6 @@ celery:
     initialDelaySeconds: 30
     periodSeconds: 300
     timeoutSeconds: 10
-  ## Node labels for pod assignment
-  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
-  nodeSelector: {}
   resources: {}
     # limits:
     #   cpu: 100m
@@ -85,6 +82,18 @@ celery:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+
+  ## Affinity for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
 
 oncall:
   # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
@@ -178,13 +187,23 @@ oncall:
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
-  ## Node labels for pod assignment
-  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
-  nodeSelector: {}
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
   # use a helm hook to manage the migration job
   useHook: false
+
+  ## Affinity for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
 
 # Sets environment variables with name capitalized and prefixed with UWSGI_, and dashes are substituted with underscores.
 # see more: https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#environment-variables

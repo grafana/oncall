@@ -147,7 +147,7 @@ def test_get_list_schedules(
 def test_get_list_schedules_pagination(
     schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
 ):
-    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    user, token, calendar_schedule, ical_schedule, web_schedule, _ = schedule_internal_api_setup
 
     # setup escalation chain linked to web schedule
     escalation_chain = make_escalation_chain(user.organization)
@@ -219,7 +219,7 @@ def test_get_list_schedules_pagination(
     client = APIClient()
 
     schedule_list_url = reverse("api-internal:schedule-list")
-    absolute_url = create_engine_url(schedule_list_url, override_base="http://testserver")
+    absolute_url = create_engine_url(schedule_list_url)
     for p, schedule in enumerate(available_schedules, start=1):
         # patch oncall_users to check a paginated queryset is used
         def mock_oncall_now(qs, events_datetime):
@@ -824,7 +824,14 @@ def test_events_calendar(
                 "all_day": False,
                 "start": on_call_shift.start,
                 "end": on_call_shift.start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -890,7 +897,14 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": mon_start,
                 "end": mon_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -906,7 +920,14 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    }
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -989,7 +1010,14 @@ def test_filter_events_range_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key, "email": user.email}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -1076,6 +1104,7 @@ def test_filter_events_overrides(
                         "display_name": other_user.username,
                         "pk": other_user.public_primary_key,
                         "email": other_user.email,
+                        "avatar_full": other_user.avatar_full_url,
                     }
                 ],
                 "missing_users": [],
