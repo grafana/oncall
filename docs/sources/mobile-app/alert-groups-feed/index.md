@@ -26,7 +26,7 @@ Additionally, you can take action on the alert group directly from this page. Yo
 
 > **Note:** You need to have sufficient permission to take action on the alert group.
 > To learn more about Grafana OnCall user roles and permission,
-> refer to [this documentation]({{< relref "../user-and-team-management#user-roles-and-permissions" >}}).
+> refer to [this documentation]({{< relref "../../user-and-team-management#user-roles-and-permissions" >}}).
 
 <img src="/static/img/oncall/mobile-app-alertgroups.png" width="300px">
 <img src="/static/img/oncall/mobile-app-alertgroup.png" width="300px">
