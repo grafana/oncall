@@ -12,11 +12,10 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.webhooks.models import Webhook, WebhookResponse
-from apps.webhooks.utils import is_webhooks_enabled_for_organization
+from apps.webhooks.utils import apply_jinja_template_for_json, is_webhooks_enabled_for_organization
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
-from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 RECENT_RESPONSE_LIMIT = 20
@@ -46,6 +45,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         "update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "partial_update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
     }
 
     model = Webhook
@@ -121,16 +122,24 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         return Response(filter_options)
 
     @action(methods=["get"], detail=True)
-    def responses(self, request):
-        queryset = WebhookResponse.objects.filter(webhook_id=self.get_object().pk)[:RECENT_RESPONSE_LIMIT]
+    def responses(self, request, pk):
+        webhook = self.get_object()
+        queryset = WebhookResponse.objects.filter(
+            webhook_id=webhook.id,
+            trigger_type=webhook.trigger_type,
+        )[:RECENT_RESPONSE_LIMIT]
         response_serializer = WebhookResponseSerializer(queryset, many=True)
         return Response(response_serializer.data)
 
     @action(methods=["post"], detail=True)
-    def preview_template(self, request):
+    def preview_template(self, request, pk):
         template_body = request.data.get("template_body", None)
         template_name = request.data.get("template_name", None)
         payload = request.data.get("payload", None)
+
+        if not payload:
+            response = {"preview": template_body}
+            return Response(response, status=status.HTTP_200_OK)
 
         if template_body is None or template_name is None:
             response = {"preview": None}
@@ -140,7 +149,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
             raise BadRequest(detail={"template_name": "Unknown template name"})
 
         try:
-            result = apply_jinja_template(template_body, payload=payload)
+            result = apply_jinja_template_for_json(template_body, payload)
         except (JinjaTemplateError, JinjaTemplateWarning) as e:
             return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
 
