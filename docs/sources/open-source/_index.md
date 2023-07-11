@@ -85,6 +85,10 @@ features:
     display_name: <YOUR_BOT_NAME>
     always_online: true
   shortcuts:
+    - name: Create a new incident
+      type: message
+      callback_id: incident_create
+      description: Creates a new OnCall incident
     - name: Add to resolution note
       type: message
       callback_id: add_resolution_note
