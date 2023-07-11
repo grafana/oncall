@@ -104,8 +104,6 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     const { results } = await makeRequest(this.path, { params });
 
-    console.log('result', results);
-
     this.items = {
       ...this.items,
       ...results.reduce(
