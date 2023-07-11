@@ -127,7 +127,10 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
         {templateToEdit && (
           <WebhooksTemplateEditor
             id={id}
-            handleSubmit={(value) => onFormChangeFn?.fn(value)}
+            handleSubmit={(value) => {
+              onFormChangeFn?.fn(value);
+              setTemplateToEdit(undefined);
+            }}
             onHide={() => setTemplateToEdit(undefined)}
             template={templateToEdit}
           />
@@ -194,7 +197,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     return (
       <>
         <div className={cx('content')} data-testid="test__outgoingWebhook2EditForm">
-          <GForm form={form} data={data} onSubmit={handleSubmit} />
+          <GForm form={form} data={data} onSubmit={handleSubmit} onFieldRender={enrchField} />
           <div className={cx('buttons')}>
             <HorizontalGroup justify={'flex-end'}>
               <Button variant="secondary" onClick={onHide}>

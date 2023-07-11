@@ -188,11 +188,11 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   );
 
   function renderOutgoingWebhookLastResponses() {
-    if (!outgoingWebhookLastResponses) {
+    if (outgoingwebhookId !== 'new' && !outgoingWebhookLastResponses) {
       return <LoadingPlaceholder text="Loading last events..." />;
     }
 
-    if (outgoingWebhookLastResponses.length) {
+    if (outgoingWebhookLastResponses?.length) {
       return outgoingWebhookLastResponses
         .filter((response) => response.event_data)
         .map((response) => {
@@ -214,7 +214,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
             <div className={cx('no-alert-groups-badge')}>
               <Icon name="info-circle" />
               <Text>
-                This outgoing webhook did not receive any events yet. Use custom payload example to preview results.
+                This outgoing webhook did not receive any events. Use custom payload example to preview results.
               </Text>
             </div>
           }
