@@ -1,3 +1,5 @@
+import json
+
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django_filters import rest_framework as filters
 from rest_framework import status
@@ -140,6 +142,12 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         if not payload:
             response = {"preview": template_body}
             return Response(response, status=status.HTTP_200_OK)
+
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                raise BadRequest(detail={"payload": "Could not parse json"})
 
         if template_body is None or template_name is None:
             response = {"preview": None}

@@ -528,6 +528,7 @@ def test_get_webhook_responses(
         ("https://test.com", None, "https://test.com"),
         ("https://test.com", "", "https://test.com"),
         ("{{ name }}", {"name": "test_1"}, "test_1"),
+        ("{{ name }}", '{"name": "test_1"}', "test_1"),
     ],
 )
 def test_webhook_preview_template(
