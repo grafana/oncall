@@ -140,7 +140,7 @@ const UserWarning: FC<UserWarningProps> = (props) => {
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={getUserSelectHandler(user.pk)}>
+          <Button variant="primary" onClick={getUserSelectHandler(user.pk)} data-testid="user-warning-confirm-button">
             Confirm
           </Button>
         </HorizontalGroup>

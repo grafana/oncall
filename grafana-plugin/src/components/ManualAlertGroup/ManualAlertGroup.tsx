@@ -57,7 +57,12 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
             value={{ userResponders, scheduleResponders }}
             onUpdateEscalationVariants={onUpdateEscalationVariants}
           />
-          <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
+          <GForm
+            form={manualAlertFormConfig}
+            data={data}
+            onSubmit={handleFormSubmit}
+            data-testid="manual-alert-group-form"
+          />
           {store.teamStore.currentTeam.slack_team_identity && (
             <Block className={cx('info-block')}>
               <Icon name="info-circle" />{' '}

@@ -117,13 +117,13 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
 
 class GForm extends React.Component<GFormProps, {}> {
   render() {
-    const { form, data } = this.props;
+    const { form, data, ...rest } = this.props;
 
     const openFields = form.fields.filter((field) => !field.collapsed);
     const collapsedfields = form.fields.filter((field) => field.collapsed);
 
     return (
-      <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit}>
+      <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit} {...rest}>
         {({ register, errors, control, getValues, setValue }) => {
           const renderField = (formItem: FormItem, formIndex: number) => {
             if (formItem.isVisible && !formItem.isVisible(getValues())) {

@@ -125,7 +125,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-                <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                <Button icon="plus" onClick={this.handleOnClickEscalateTo} data-testid="new-manual-alert-group-button">
                   New alert group
                 </Button>
               </WithPermissionControlTooltip>

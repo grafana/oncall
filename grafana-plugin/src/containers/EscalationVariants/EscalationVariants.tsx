@@ -133,6 +133,7 @@ const EscalationVariants = observer(
                 onClick={() => {
                   setShowEscalationVariants(true);
                 }}
+                data-testid="assign-responders-button"
               >
                 Add responders
               </Button>

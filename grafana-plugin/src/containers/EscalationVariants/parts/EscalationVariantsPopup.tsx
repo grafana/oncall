@@ -143,7 +143,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
   });
 
   return (
-    <div ref={ref} className={cx('escalation-variants-dropdown')}>
+    <div ref={ref} className={cx('escalation-variants-dropdown')} data-testid="escalation-variants-popup">
       <RadioButtonGroup
         options={[
           { value: 'schedules', label: 'Schedules' },
@@ -165,6 +165,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
             // @ts-ignore
             width={'unset'}
             onChange={handleSetSchedulesSearchTerm}
+            data-testid="escalation-variants-schedule-input"
           />
           <GTable
             emptyText={store.scheduleStore.getSearchResult()?.results ? 'No schedules found' : 'Loading...'}
@@ -173,6 +174,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
             data={store.scheduleStore.getSearchResult()?.results}
             className={cx('table')}
             showHeader={false}
+            data-testid="escalation-variants-schedule-table"
           />
         </>
       )}
@@ -187,6 +189,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
             placeholder="Search users..."
             value={usersSearchTerm}
             onChange={handleSetUsersSearchTerm}
+            data-testid="escalation-variants-user-input"
           />
           <GTable
             emptyText={store.userStore.getSearchResult()?.results ? 'No users found' : 'Loading...'}
@@ -195,6 +198,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
             data={store.userStore.getSearchResult()?.results}
             className={cx('table')}
             showHeader={false}
+            data-testid="escalation-variants-user-table"
           />
         </>
       )}
