@@ -92,6 +92,8 @@ Create the name of the service account to use
   command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
   securityContext:
   {{ toYaml .Values.init.securityContext | nindent 4 }}
+  resources:
+  {{ toYaml .Values.init.securityContext | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
     {{- include "snippet.mysql.env" . | nindent 4 }}
@@ -106,6 +108,8 @@ Create the name of the service account to use
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
   securityContext:
+  {{ toYaml .Values.init.securityContext | nindent 4 }}
+  resources:
   {{ toYaml .Values.init.securityContext | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
