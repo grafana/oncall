@@ -53,6 +53,7 @@ To learn more about RBAC for Grafana OnCall, refer to the following documentatio
 
 - [Manage RBAC roles](https://grafana.com/docs/grafana/latest/administration/roles-and-permissions/access-control/manage-rbac-roles/#update-basic-role-permissions)
 - [RBAC permissions, actions, and scopes](https://grafana.com/docs/grafana/latest/administration/roles-and-permissions/access-control/custom-role-actions-scopes/)
+- [RBAC role definitions](https://grafana.com/docs/grafana/latest/administration/roles-and-permissions/access-control/rbac-fixed-basic-role-definitions/#grafana-oncall-roles-beta)
 
 #### Available Grafana OnCall RBAC roles + granted actions
 
