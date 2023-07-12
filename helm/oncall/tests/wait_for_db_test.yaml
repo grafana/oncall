@@ -9,7 +9,7 @@ chart:
 tests:
   - it: database.type=mysql -> should create initContainer for MySQL database (default)
     set:
-      resources:
+      init.resources:
         limits:
           cpu: 100m
           memory: 128Mi
@@ -34,7 +34,7 @@ tests:
     set:
       database.type: postgresql
       externalPostgresql.host: some-postgresql-host
-      resources:
+      init.resources:
         limits:
           cpu: 100m
           memory: 128Mi

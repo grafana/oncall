@@ -71,7 +71,13 @@ database.type=mysql -> should create initContainer for MySQL database (default):
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
-      resources: {}
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
       securityContext: {}
   2: |
     - command:
@@ -145,7 +151,13 @@ database.type=mysql -> should create initContainer for MySQL database (default):
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
-      resources: {}
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
       securityContext: {}
 database.type=postgresql -> should create initContainer for PostgreSQL database:
   1: |
@@ -222,7 +234,13 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
-      resources: {}
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
       securityContext: {}
   2: |
     - command:
@@ -298,5 +316,11 @@ database.type=postgresql -> should create initContainer for PostgreSQL database:
       image: grafana/oncall:v1.2.36
       imagePullPolicy: Always
       name: wait-for-db
-      resources: {}
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
       securityContext: {}
