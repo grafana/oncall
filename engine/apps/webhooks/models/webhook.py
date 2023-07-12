@@ -1,4 +1,5 @@
 import json
+import typing
 from json import JSONDecodeError
 
 import requests
@@ -22,6 +23,13 @@ from apps.webhooks.utils import (
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+
+WEBHOOK_FIELD_PLACEHOLDER = "****************"
 
 
 def generate_public_primary_key_for_webhook():
@@ -52,28 +60,32 @@ class WebhookManager(models.Manager):
 
 
 class Webhook(models.Model):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+
     objects = WebhookManager()
     objects_with_deleted = models.Manager()
 
     (
         TRIGGER_ESCALATION_STEP,
-        TRIGGER_NEW,
+        TRIGGER_ALERT_GROUP_CREATED,
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
         TRIGGER_UNSILENCE,
         TRIGGER_UNRESOLVE,
-    ) = range(7)
+        TRIGGER_UNACKNOWLEDGE,
+    ) = range(8)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
         (TRIGGER_ESCALATION_STEP, "Escalation step"),
-        (TRIGGER_NEW, "Triggered"),
+        (TRIGGER_ALERT_GROUP_CREATED, "Alert Group Created"),
         (TRIGGER_ACKNOWLEDGE, "Acknowledged"),
         (TRIGGER_RESOLVE, "Resolved"),
         (TRIGGER_SILENCE, "Silenced"),
         (TRIGGER_UNSILENCE, "Unsilenced"),
         (TRIGGER_UNRESOLVE, "Unresolved"),
+        (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
 
     public_primary_key = models.CharField(
@@ -99,7 +111,7 @@ class Webhook(models.Model):
     deleted_at = models.DateTimeField(blank=True, null=True)
     name = models.CharField(max_length=100, null=True, default=None)
     username = models.CharField(max_length=100, null=True, default=None)
-    password = mirage_fields.EncryptedCharField(max_length=200, null=True, default=None)
+    password = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
     authorization_header = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
     trigger_template = models.TextField(null=True, default=None)
     headers = models.TextField(null=True, default=None)
@@ -108,6 +120,9 @@ class Webhook(models.Model):
     forward_all = models.BooleanField(default=True)
     http_method = models.CharField(max_length=32, default="POST")
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
+    is_webhook_enabled = models.BooleanField(null=True, default=True)
+    integration_filter = models.JSONField(default=None, null=True, blank=True)
+    is_legacy = models.BooleanField(null=True, default=False)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -152,11 +167,19 @@ class Webhook(models.Model):
         if self.http_method in ["POST", "PUT"]:
             if self.forward_all:
                 request_kwargs["json"] = event_data
+                if self.is_legacy:
+                    request_kwargs["json"] = event_data["alert_payload"]
             elif self.data:
+                context_data = event_data
+                if self.is_legacy:
+                    context_data = {
+                        "alert_payload": event_data.get("alert_payload", {}),
+                        "alert_group_id": event_data.get("alert_group_id"),
+                    }
                 try:
                     rendered_data = apply_jinja_template_for_json(
                         self.data,
-                        event_data,
+                        context_data,
                     )
                     try:
                         request_kwargs["json"] = json.loads(rendered_data)
@@ -183,6 +206,11 @@ class Webhook(models.Model):
         parse_url(url)
 
         return url
+
+    def check_integration_filter(self, alert_group):
+        if not self.integration_filter:
+            return True
+        return alert_group.channel.public_primary_key in self.integration_filter
 
     def check_trigger(self, event_data):
         if not self.trigger_template:
@@ -265,6 +293,8 @@ class WebhookResponse(models.Model):
     url = models.TextField(null=True, default=None)
     status_code = models.IntegerField(default=None, null=True)
     content = models.TextField(null=True, default=None)
+    event_data = models.TextField(null=True, default=None)
 
     def json(self):
-        return json.loads(self.content)
+        if self.content:
+            return json.loads(self.content)

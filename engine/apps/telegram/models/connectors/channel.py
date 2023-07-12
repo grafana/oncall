@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+import typing
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -10,8 +10,14 @@ from telegram import error
 from apps.alerts.models import AlertGroup
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramMessage
-from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import ChannelFilter
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +37,8 @@ def generate_public_primary_key_for_telegram_to_at_connector() -> str:
 
 
 class TelegramToOrganizationConnector(models.Model):
+    channel_filter: "RelatedManager['ChannelFilter']"
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
@@ -60,7 +68,7 @@ class TelegramToOrganizationConnector(models.Model):
         return self.channel_chat_id is not None and self.discussion_group_chat_id is not None
 
     @classmethod
-    def get_channel_for_alert_group(cls, alert_group: AlertGroup) -> Optional["TelegramToOrganizationConnector"]:
+    def get_channel_for_alert_group(cls, alert_group: AlertGroup) -> typing.Optional["TelegramToOrganizationConnector"]:
         # TODO: add custom queryset
         dm_messages_exist = alert_group.telegram_messages.filter(
             ~Q(chat_id__startswith="-")
@@ -102,7 +110,7 @@ class TelegramToOrganizationConnector(models.Model):
         write_chatops_insight_log(
             author=author,
             event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
-            chatops_type=ChatOpsType.TELEGRAM,
+            chatops_type=ChatOpsTypePlug.TELEGRAM.value,
             prev_channel=old_default_channel.channel_name if old_default_channel else None,
             new_channel=self.channel_name,
         )

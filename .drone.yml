@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -62,17 +62,17 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.9
+    image: python:3.11.3
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
-      - pip install $(grep "pre-commit" engine/requirements.txt)
+      - pip install $(grep "pre-commit" engine/requirements-dev.txt)
       - pre-commit run isort --all-files
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.9
+    image: python:3.11.3
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -80,7 +80,7 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - pip install -r requirements.txt
+      - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
@@ -144,13 +144,13 @@ steps:
 # Services for Unit Test Backend
 services:
   - name: rabbit_test
-    image: rabbitmq:3.7.19
+    image: rabbitmq:3.12.0
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
 
   - name: mysql_test
-    image: mysql:5.7.25
+    image: mysql:8.0.32
     environment:
       MYSQL_DATABASE: oncall_local_dev
       MYSQL_ROOT_PASSWORD: local_dev_pwd
@@ -174,7 +174,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -185,7 +185,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.17.0-stretch
+    image: node:18.16.0-buster
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -224,10 +224,8 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: OSS engine release (amd64)
-platform:
-  os: linux
-  arch: amd64
+name: OSS engine release
+
 steps:
   - name: set engine version
     image: alpine
@@ -237,14 +235,16 @@ steps:
       - cat engine/settings/base.py | grep VERSION | head -1
 
   - name: build and push docker image
-    image: plugins/docker
-    environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
-      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
-      DOCKER_BUILDKIT: 1
+    image: thegeeklab/drone-docker-buildx:24.1.0
+    # From the docs (https://drone-plugin-index.geekdocs.de/plugins/drone-docker-buildx/) regarding privileged=true:
+    #
+    # Be aware that the this plugin requires privileged capabilities, otherwise the integrated
+    # Docker daemon is not able to start.
+    privileged: true
     settings:
       repo: grafana/oncall
-      tags: ${DRONE_TAG}-amd64-linux
+      tags: latest,${DRONE_TAG}
+      platforms: linux/arm64/v8,linux/amd64
       dockerfile: engine/Dockerfile
       target: prod
       context: engine/
@@ -254,90 +254,6 @@ steps:
         from_secret: docker_username
     depends_on:
       - set engine version
-
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-kind: pipeline
-type: docker
-name: OSS engine release (arm64)
-platform:
-  os: linux
-  arch: arm64
-steps:
-  - name: set engine version
-    image: alpine
-    commands:
-      - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
-      - cat engine/settings/base.py | grep VERSION | head -1
-
-  - name: build and push docker image
-    image: plugins/docker
-    environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
-      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
-      DOCKER_BUILDKIT: 1
-    settings:
-      repo: grafana/oncall
-      tags: ${DRONE_TAG}-arm64-linux
-      dockerfile: engine/Dockerfile
-      target: prod
-      context: engine/
-      password:
-        from_secret: docker_password
-      username:
-        from_secret: docker_username
-    depends_on:
-      - set engine version
-
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-depends_on:
-  - OSS engine release (amd64)
-  - OSS engine release (arm64)
-kind: pipeline
-type: docker
-name: manifest
-steps:
-  - name: manifest tag
-    image: plugins/manifest
-    settings:
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      target: "grafana/oncall:${DRONE_TAG}"
-      template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
-      platforms:
-        - linux/amd64
-        - linux/arm64
-
-  - name: manifest latest
-    image: plugins/manifest
-    settings:
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      target: "grafana/oncall:latest"
-      template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
-      platforms:
-        - linux/amd64
-        - linux/arm64
 
 trigger:
   event:
@@ -418,6 +334,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: cacc05e8af3506b2e63ef878eb145eaf567045d04bb0bc24c1ef777959e496ee
+hmac: be10373849d65e1f90bce64c7468d5cf5bac546285226ff8931a8b953163a752
 
 ...

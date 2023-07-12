@@ -1,0 +1,24 @@
+.integrationBlock__heading,
+.integrationBlock__content {
+  padding: 16px;
+}
+
+.integrationBlock__heading {
+  background-color: var(--background-secondary);
+  border: var(--border-medium) !important;
+  border-radius: 4px !important;
+
+  &--noBorderBottom {
+    border-bottom-left-radius: 0px !important;
+    border-bottom-right-radius: 0px !important;
+  }
+}
+
+.integrationBlock__content {
+  background: var(--background-primary);
+  border: var(--border-medium) !important;
+  
+  border-top: none !important;
+  border-bottom-left-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
+}

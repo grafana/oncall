@@ -4,6 +4,14 @@
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
 
+## Optionally specify an array of imagePullSecrets.
+## Secrets must be manually created in the namespace.
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+## e.g:
+## imagePullSecrets:
+##   - name: myRegistryKeySecretName
+imagePullSecrets: []
+
 image:
   # Grafana OnCall docker image repository
   repository: grafana/oncall
@@ -75,6 +83,18 @@ celery:
     #   cpu: 100m
     #   memory: 128Mi
 
+  ## Affinity for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
 oncall:
   # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
   # For existing installation, this should not be changed.
@@ -83,15 +103,15 @@ oncall:
   secrets:
     # Use existing secret. (secretKey and mirageSecretKey is required)
     existingSecret: ""
-    # the key in the secret containing secret key
+    # The key in the secret containing secret key
     secretKey: ""
-    # the key in the secret containing mirage secret key
+    # The key in the secret containing mirage secret key
     mirageSecretKey: ""
-  # slack configures the Grafana Oncall Slack ChatOps integration.
+  # Slack configures the Grafana Oncall Slack ChatOps integration.
   slack:
-    # enabled enable the Slack ChatOps integration for the Oncall Engine.
+    # Enable the Slack ChatOps integration for the Oncall Engine.
     enabled: false
-    # commandName sets the Slack bot slash-command
+    # Sets the Slack bot slash-command
     commandName: oncall
     # clientId configures the Slack app OAuth2 client ID.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client ID
@@ -99,18 +119,18 @@ oncall:
     # clientSecret configures the Slack app OAuth2 client secret.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client Secret
     clientSecret: ~
-    # signingSecret configures the Slack app signature secret used to sign
+    # signingSecret - configures the Slack app signature secret used to sign
     # requests comming from Slack.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Signing Secret
     signingSecret: ~
     # Use existing secret for clientId, clientSecret and signingSecret.
     # clientIdKey, clientSecretKey and signingSecretKey are required
     existingSecret: ""
-    # the key in the secret containing OAuth2 client ID
+    # The key in the secret containing OAuth2 client ID
     clientIdKey: ""
-    # the key in the secret containing OAuth2 client secret
+    # The key in the secret containing OAuth2 client secret
     clientSecretKey: ""
-    # the key in the secret containing the Slack app signature secret
+    # The key in the secret containing the Slack app signature secret
     signingSecretKey: ""
     # OnCall external URL
     redirectHost: ~
@@ -118,9 +138,9 @@ oncall:
     enabled: false
     token: ~
     webhookUrl: ~
-    # Use exsting secret. (tokenKey is required)
+    # Use existing secret. (tokenKey is required)
     existingSecret: ""
-    # the key in the secret containing Telegram token
+    # The key in the secret containing Telegram token
     tokenKey: ""
   smtp:
     enabled: false
@@ -130,6 +150,9 @@ oncall:
     password: ~
     tls: ~
     fromEmail: ~
+  exporter:
+    enabled: false
+    authToken: ~
   twilio:
     # Twilio account SID/username to allow OnCall to send SMSes and make phone calls
     accountSid: ""
@@ -144,12 +167,49 @@ oncall:
     apiKeySid: ""
     # Twilio API key secret/password to allow OnCall to send SMSes and make phone calls
     apiKeySecret: ""
+    # Use existing secret for authToken, phoneNumber, verifySid, apiKeySid and apiKeySecret.
+    existingSecret: ""
+    # Twilio password to allow OnCall to send SMSes and make calls
+    # The key in the secret containing the auth token
+    authTokenKey: ""
+    # The key in the secret containing the phone number
+    phoneNumberKey: ""
+    # The key in the secret containing verify service sid
+    verifySidKey: ""
+    # The key in the secret containing api key sid
+    apiKeySidKey: ""
+    # The key in the secret containing the api key secret
+    apiKeySecretKey: ""
+    # Phone notifications limit (the only non-secret value).
+    # TODO: rename to phoneNotificationLimit
+    limitPhone:
 
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
+  # use a helm hook to manage the migration job
+  useHook: false
+
+  ## Affinity for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+
+# Sets environment variables with name capitalized and prefixed with UWSGI_, and dashes are substituted with underscores.
+# see more: https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#environment-variables
+# Set null to disable all UWSGI environment variables
+uwsgi:
+  listen: 1024
 
 # Additional env variables to add to deployments
 env: {}
@@ -214,6 +274,7 @@ mariadb:
   enabled: true
   auth:
     database: oncall
+    existingSecret:
   primary:
     extraEnvVars:
       - name: MARIADB_COLLATE
@@ -235,6 +296,12 @@ externalMysql:
   db_name:
   user:
   password:
+  # Use an existing secret for the mysql password.
+  existingSecret:
+  # The key in the secret containing the mysql username
+  usernameKey:
+  # The key in the secret containing the mysql password
+  passwordKey:
 
 # PostgreSQL is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -243,18 +310,19 @@ postgresql:
   enabled: false
   auth:
     database: oncall
+    existingSecret:
 
 # Make sure to create the database with the following parameters:
-# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# CREATE DATABASE oncall WITH ENCODING UTF8;
 externalPostgresql:
   host:
   port:
   db_name:
   user:
   password:
-  # use an existing secret for the database password
-  existingSecret: ""
-  # the key in the secret containing the database password
+  # Use an existing secret for the database password
+  existingSecret:
+  # The key in the secret containing the database password
   passwordKey:
 
 # RabbitMQ is included into this release for the convenience.
@@ -262,6 +330,8 @@ externalPostgresql:
 # Set rabbitmq.enabled = false and configure externalRabbitmq
 rabbitmq:
   enabled: true
+  auth:
+    existingPasswordSecret:
 
 broker:
   type: rabbitmq
@@ -273,21 +343,27 @@ externalRabbitmq:
   password:
   protocol:
   vhost:
-  # use an existing secret for the rabbitmq password
-  existingSecret: ""
-  # the key in the secret containing the rabbitmq password
-  passwordKey: password
-  # the key in the secret containing the rabbitmq username
+  # Use an existing secret for the rabbitmq password
+  existingSecret:
+  # The key in the secret containing the rabbitmq password
+  passwordKey: ""
+  # The key in the secret containing the rabbitmq username
   usernameKey: username
 
 # Redis is included into this release for the convenience.
 # It is recommended to host it separately from this release
 redis:
   enabled: true
+  auth:
+    existingSecret:
 
 externalRedis:
   host:
   password:
+  # Use an existing secret for the redis password
+  existingSecret:
+  # The key in the secret containing the redis password
+  passwordKey:
 
 # Grafana is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -300,10 +376,14 @@ grafana:
       serve_from_sub_path: true
   persistence:
     enabled: true
+  # Disable psp as PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
+  rbac:
+    pspEnabled: false
   plugins:
     - grafana-oncall-app
 
 externalGrafana:
+  # Example: https://grafana.mydomain.com
   url:
 
 nameOverride: ""

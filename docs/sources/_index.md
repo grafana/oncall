@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/
 canonical: https://grafana.com/docs/oncall/latest/
 keywords:
   - Grafana Cloud
@@ -11,7 +9,8 @@ keywords:
   - OnCall
   - irm
 title: Grafana OnCall
-weight: 1000
+menuTitle: OnCall
+weight: 500
 ---
 
 # Grafana OnCall documentation

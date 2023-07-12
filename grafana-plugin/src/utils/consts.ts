@@ -4,14 +4,25 @@ import plugin from '../../package.json'; // eslint-disable-line
 export const APP_TITLE = 'Grafana OnCall';
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
 
+export const APP_VERSION = `${plugin?.version}`;
+
+export const CLOUD_VERSION_REGEX = new RegExp('r[\\d]+-v[\\d]+.[\\d]+.[\\d]+');
+
 // License
 export const GRAFANA_LICENSE_OSS = 'OpenSource';
+
+export const GRAFANA_LICENSE_CLOUD = 'Cloud';
+
+export const FALLBACK_LICENSE = CLOUD_VERSION_REGEX.test(APP_VERSION) ? GRAFANA_LICENSE_CLOUD : GRAFANA_LICENSE_OSS;
+
+// height of new Grafana sticky header with breadcrumbs
+export const GRAFANA_HEADER_HEIGTH = 80;
 
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;
 
 // Default redirect page
-export const DEFAULT_PAGE = 'incidents';
+export const DEFAULT_PAGE = 'alert-groups';
 
 export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 
@@ -28,8 +39,10 @@ export const FARO_ENDPOINT_OPS =
 export const FARO_ENDPOINT_PROD =
   'https://faro-collector-prod-us-central-0.grafana.net/collect/03a11ed03c3af04dcfc3be9755f2b053';
 
-export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup';
-export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/';
+export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/oncall/latest/open-source/#slack-setup';
+export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notify/telegram/';
 
 // Make sure if you chage max-width here you also change it in responsive.css
 export const TABLE_COLUMN_MAX_WIDTH = 1500;
+
+export const DATASOURCE_GRAFANA = 'grafana';

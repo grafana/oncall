@@ -1,10 +1,9 @@
 import { Page } from '@playwright/test';
-import { GRAFANA_USERNAME } from './constants';
-import { clickButton, fillInInput, selectDropdownValue, selectValuePickerValue } from './forms';
+import { clickButton, fillInInput, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
 import dayjs from 'dayjs';
 
-export const createOnCallSchedule = async (page: Page, scheduleName: string): Promise<void> => {
+export const createOnCallSchedule = async (page: Page, scheduleName: string, userName: string): Promise<void> => {
   // go to the schedules page
   await goToOnCallPage(page, 'schedules');
 
@@ -19,13 +18,12 @@ export const createOnCallSchedule = async (page: Page, scheduleName: string): Pr
   await clickButton({ page, buttonText: 'Create Schedule' });
 
   await clickButton({ page, buttonText: 'Add rotation' });
-  await selectValuePickerValue(page, 'New Layer');
 
   await selectDropdownValue({
     page,
     selectType: 'grafanaSelect',
     placeholderText: 'Add user',
-    value: GRAFANA_USERNAME,
+    value: userName,
   });
 
   await clickButton({ page, buttonText: 'Create' });

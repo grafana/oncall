@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/alerts/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/alerts/
 title: Alerts HTTP API
 weight: 100
@@ -26,7 +24,7 @@ The above command returns JSON structured in the following way:
     {
       "id": "AA74DN7T4JQB6",
       "alert_group_id": "I68T24C13IFW1",
-      "created_at": "2020-05-11T20:07:43Z",
+      "created_at": "2020-05-11T20:08:43Z",
       "payload": {
         "state": "alerting",
         "title": "[Alerting] Test notification",
@@ -76,7 +74,7 @@ The above command returns JSON structured in the following way:
     {
       "id": "AWJQSGEYYUFGH",
       "alert_group_id": "I68T24C13IFW1",
-      "created_at": "2020-05-11T20:07:58Z",
+      "created_at": "2020-05-11T20:06:58Z",
       "payload": {
         "state": "alerting",
         "title": "[Alerting] Test notification",

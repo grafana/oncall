@@ -30,12 +30,13 @@ export const verifyThatAlertGroupIsTriggered = async (
   await goToOnCallPage(page, 'incidents');
 
   // filter by integration
-  await selectDropdownValue({
+  const selectElement = await selectDropdownValue({
     page,
     selectType: 'grafanaSelect',
     placeholderText: 'Search or filter results...',
     value: 'Integration',
   });
+  await selectElement.type(integrationName);
   await selectValuePickerValue(page, integrationName, false);
 
   /**

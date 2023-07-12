@@ -1,0 +1,19 @@
+.blockItem {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 4px;
+  max-width: 100%;
+  margin-left: 16px;
+
+  &__content {
+    width: 100%;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  &__leftDelimitator {
+    border-left: var(--border-medium);
+    border-left-width: 3px;
+    margin-right: 16px;
+  }
+}

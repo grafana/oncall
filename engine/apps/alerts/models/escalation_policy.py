@@ -1,7 +1,8 @@
+import datetime
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.utils import timezone
 from ordered_model.models import OrderedModel
 
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -22,7 +23,6 @@ def generate_public_primary_key_for_escalation_policy():
 
 
 class EscalationPolicy(OrderedModel):
-
     order_with_respect_to = "escalation_chain"
 
     MAX_TIMES_REPEAT = 5
@@ -44,7 +44,8 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_MULTIPLE_USERS,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
-    ) = range(16)
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
+    ) = range(17)
 
     # Must be the same order as previous
     STEP_CHOICES = (
@@ -64,6 +65,7 @@ class EscalationPolicy(OrderedModel):
         (STEP_NOTIFY_MULTIPLE_USERS, "Notify multiple Users"),
         (STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT, "Notify multiple Users (Important)"),
         (STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW, "Continue escalation if >X alerts per Y minutes"),
+        (STEP_TRIGGER_CUSTOM_WEBHOOK, "Trigger Webhook"),
     )
 
     # Ordered step choices available for internal api.
@@ -79,6 +81,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_GROUP,
         # Other
         STEP_TRIGGER_CUSTOM_BUTTON,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
@@ -100,6 +103,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_MULTIPLE_USERS,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_TRIGGER_CUSTOM_BUTTON,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_REPEAT_ESCALATION_N_TIMES,
     ]
 
@@ -122,6 +126,7 @@ class EscalationPolicy(OrderedModel):
         ),
         # Other
         STEP_TRIGGER_CUSTOM_BUTTON: ("Trigger outgoing webhook {{custom_action}}", "Trigger outgoing webhook"),
+        STEP_TRIGGER_CUSTOM_WEBHOOK: ("Trigger webhook {{custom_webhook}}", "Trigger webhook"),
         STEP_NOTIFY_USERS_QUEUE: ("Round robin notification for {{users}}", "Notify users one by one (round-robin)"),
         STEP_NOTIFY_IF_TIME: (
             "Continue escalation if current time is in {{timerange}} ",
@@ -142,6 +147,7 @@ class EscalationPolicy(OrderedModel):
         STEP_FINAL_NOTIFYALL,
         STEP_FINAL_RESOLVE,
         STEP_TRIGGER_CUSTOM_BUTTON,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_REPEAT_ESCALATION_N_TIMES,
@@ -186,6 +192,7 @@ class EscalationPolicy(OrderedModel):
         STEP_FINAL_RESOLVE,
         STEP_FINAL_NOTIFYALL,
         STEP_TRIGGER_CUSTOM_BUTTON,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
@@ -202,6 +209,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_SCHEDULE: "notify_on_call_from_schedule",
         STEP_NOTIFY_SCHEDULE_IMPORTANT: "notify_on_call_from_schedule",
         STEP_TRIGGER_CUSTOM_BUTTON: "trigger_action",
+        STEP_TRIGGER_CUSTOM_WEBHOOK: "trigger_webhook",
         STEP_NOTIFY_USERS_QUEUE: "notify_person_next_each_time",
         STEP_NOTIFY_MULTIPLE_USERS: "notify_persons",
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT: "notify_persons",
@@ -221,7 +229,10 @@ class EscalationPolicy(OrderedModel):
         "alerts.EscalationChain", on_delete=models.CASCADE, related_name="escalation_policies"
     )
 
-    notify_to_users_queue = models.ManyToManyField("user_management.User")
+    notify_to_users_queue = models.ManyToManyField(
+        "user_management.User",
+        related_name="escalation_policy_notify_queues",
+    )
 
     last_notified_user = models.ForeignKey(
         "user_management.User",
@@ -236,6 +247,7 @@ class EscalationPolicy(OrderedModel):
     notify_to_group = models.ForeignKey(
         "slack.SlackUserGroup",
         on_delete=models.SET_NULL,
+        related_name="escalation_policies",
         default=None,
         null=True,
     )
@@ -256,13 +268,21 @@ class EscalationPolicy(OrderedModel):
         null=True,
     )
 
-    ONE_MINUTE = timezone.timedelta(minutes=1)
-    FIVE_MINUTES = timezone.timedelta(minutes=5)
-    FIFTEEN_MINUTES = timezone.timedelta(minutes=15)
-    THIRTY_MINUTES = timezone.timedelta(minutes=30)
-    HOUR = timezone.timedelta(minutes=60)
+    custom_webhook = models.ForeignKey(
+        "webhooks.Webhook",
+        on_delete=models.CASCADE,
+        related_name="escalation_policies",
+        default=None,
+        null=True,
+    )
 
-    DEFAULT_WAIT_DELAY = timezone.timedelta(minutes=5)
+    ONE_MINUTE = datetime.timedelta(minutes=1)
+    FIVE_MINUTES = datetime.timedelta(minutes=5)
+    FIFTEEN_MINUTES = datetime.timedelta(minutes=15)
+    THIRTY_MINUTES = datetime.timedelta(minutes=30)
+    HOUR = datetime.timedelta(minutes=60)
+
+    DEFAULT_WAIT_DELAY = datetime.timedelta(minutes=5)
 
     DURATION_CHOICES = (
         (ONE_MINUTE, "1 min"),
@@ -350,6 +370,10 @@ class EscalationPolicy(OrderedModel):
             if self.custom_button_trigger:
                 result["outgoing_webhook"] = self.custom_button_trigger.insight_logs_verbal
                 result["outgoing_webhook_id"] = self.custom_button_trigger.public_primary_key
+        elif self.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK:
+            if self.custom_button_trigger:
+                result["outgoing_webhook"] = self.custom_webhook.insight_logs_verbal
+                result["outgoing_webhook_id"] = self.custom_webhook.public_primary_key
         elif self.step in [
             EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,

@@ -35,10 +35,8 @@ from .views.slack_team_settings import (
     SlackTeamSettingsAPIView,
     UnAcknowledgeTimeoutOptionsAPIView,
 )
-from .views.subscription import SubscriptionView
 from .views.team import TeamViewSet
 from .views.telegram_channels import TelegramChannelViewSet
-from .views.test_insight_logs import TestInsightLogsAPIView
 from .views.user import CurrentUserView, UserView
 from .views.user_group import UserGroupViewSet
 from .views.webhooks import WebhooksView
@@ -84,7 +82,6 @@ urlpatterns = [
         GetChannelVerificationCode.as_view(),
         name="api-get-channel-verification-code",
     ),
-    optional_slash_path("current_subscription", SubscriptionView.as_view(), name="subscription"),
     optional_slash_path("terraform_file", TerraformGitOpsView.as_view(), name="terraform_file"),
     optional_slash_path("terraform_imports", TerraformStateView.as_view(), name="terraform_imports"),
     optional_slash_path("maintenance", MaintenanceAPIView.as_view(), name="maintenance"),
@@ -106,7 +103,6 @@ urlpatterns = [
         "preview_template_options", PreviewTemplateOptionsView.as_view(), name="preview_template_options"
     ),
     optional_slash_path("route_regex_debugger", RouteRegexDebuggerView.as_view(), name="route_regex_debugger"),
-    optional_slash_path("insight_logs_test", TestInsightLogsAPIView.as_view(), name="insight-logs-test"),
     re_path(r"^alerts/(?P<id>\w+)/?$", AlertDetailView.as_view(), name="alerts-detail"),
     optional_slash_path("direct_paging", DirectPagingAPIView.as_view(), name="direct_paging"),
 ]

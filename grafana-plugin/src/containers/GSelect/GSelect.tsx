@@ -7,14 +7,15 @@ import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import { useStore } from 'state/useStore';
+import { useDebouncedCallback } from 'utils/hooks';
 
-import styles from './GSelect.module.css';
-// import { debounce } from 'lodash';
+import styles from './GSelect.module.scss';
 
 const cx = cn.bind(styles);
 
 interface GSelectProps {
   placeholder: string;
+  isLoading?: boolean;
   value?: string | string[] | null;
   defaultValue?: string | string[] | null;
   onChange: (value: string, item: any) => void;
@@ -45,6 +46,7 @@ const GSelect = observer((props: GSelectProps) => {
     autoFocus,
     showSearch = false,
     allowClear = false,
+    isLoading,
     defaultOpen,
     placeholder,
     className,
@@ -88,30 +90,22 @@ const GSelect = observer((props: GSelectProps) => {
     [model, onChange]
   );
 
-  /**
-   * without debouncing this function when search is available
-   * we risk hammering the API endpoint for every single key stroke
-   * some context on 250ms as the choice here - https://stackoverflow.com/a/44755058/3902555
-   */
-  const loadOptions = (query: string) => {
-    return model.updateItems(query).then(() => {
+  const loadOptions = useDebouncedCallback((query: string, cb) => {
+    model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
       let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
       if (filterOptions) {
         items = items.filter((opt: any) => filterOptions(opt[valueField]));
       }
-
-      return items.map((item: any) => ({
+      const options = items.map((item: any) => ({
         value: item[valueField],
         label: get(item, displayField),
         imgUrl: item.avatar_url,
         description: getDescription && getDescription(item),
       }));
+      cb(options);
     });
-  };
-
-  // TODO: why doesn't this work properly?
-  // const loadOptions = debounce(_loadOptions, showSearch ? 250 : 0);
+  }, 250);
 
   const values = isMulti
     ? (value ? (value as string[]) : [])
@@ -145,7 +139,6 @@ const GSelect = observer((props: GSelectProps) => {
 
   return (
     <div className={cx('root', className)}>
-      {/*@ts-ignore*/}
       <Tag
         autoFocus={autoFocus}
         isSearchable={showSearch}
@@ -157,6 +150,7 @@ const GSelect = observer((props: GSelectProps) => {
         onChange={onChangeCallback}
         defaultOptions={!disabled}
         loadOptions={loadOptions}
+        isLoading={isLoading}
         // @ts-ignore
         value={values}
         defaultValue={defaultValue}

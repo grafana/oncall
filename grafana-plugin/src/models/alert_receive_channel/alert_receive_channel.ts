@@ -27,6 +27,9 @@ export class AlertReceiveChannelStore extends BaseStore {
   searchResult: Array<AlertReceiveChannel['id']>;
 
   @observable.shallow
+  paginatedSearchResult: { count?: number; results?: Array<AlertReceiveChannel['id']> } = {};
+
+  @observable.shallow
   items: { [id: string]: AlertReceiveChannel } = {};
 
   @observable.shallow
@@ -68,6 +71,21 @@ export class AlertReceiveChannelStore extends BaseStore {
     );
   }
 
+  getPaginatedSearchResult(_query = '') {
+    if (!this.paginatedSearchResult) {
+      return undefined;
+    }
+
+    return {
+      count: this.paginatedSearchResult.count,
+      results:
+        this.paginatedSearchResult.results &&
+        this.paginatedSearchResult.results.map(
+          (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
+        ),
+    };
+  }
+
   @action
   async loadItem(id: AlertReceiveChannel['id'], skipErrorHandling = false): Promise<AlertReceiveChannel> {
     const alertReceiveChannel = await this.getById(id, skipErrorHandling);
@@ -84,11 +102,11 @@ export class AlertReceiveChannelStore extends BaseStore {
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
-    const result = await makeRequest(this.path, { params });
+    const { results } = await makeRequest(this.path, { params });
 
     this.items = {
       ...this.items,
-      ...result.reduce(
+      ...results.reduce(
         (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
           ...acc,
           [item.id]: omit(item, 'heartbeat'),
@@ -97,9 +115,9 @@ export class AlertReceiveChannelStore extends BaseStore {
       ),
     };
 
-    this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
+    this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
 
-    const heartbeats = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const heartbeats = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.heartbeat.id] = alertReceiveChannel.heartbeat;
       }
@@ -112,7 +130,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...heartbeats,
     };
 
-    const alertReceiveChannelToHeartbeat = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const alertReceiveChannelToHeartbeat = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.id] = alertReceiveChannel.heartbeat.id;
       }
@@ -127,11 +145,63 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.updateCounters();
 
-    return result;
+    return results;
+  }
+
+  async updatePaginatedItems(query: any = '', page = 1) {
+    const filters = typeof query === 'string' ? { search: query } : query;
+    const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
+
+    this.items = {
+      ...this.items,
+      ...results.reduce(
+        (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
+          ...acc,
+          [item.id]: omit(item, 'heartbeat'),
+        }),
+        {}
+      ),
+    };
+
+    this.paginatedSearchResult = results.map((item: AlertReceiveChannel) => item.id);
+    this.paginatedSearchResult = {
+      count,
+      results: results.map((item: AlertReceiveChannel) => item.id),
+    };
+
+    const heartbeats = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+      if (alertReceiveChannel.heartbeat) {
+        acc[alertReceiveChannel.heartbeat.id] = alertReceiveChannel.heartbeat;
+      }
+
+      return acc;
+    }, {});
+
+    this.rootStore.heartbeatStore.items = {
+      ...this.rootStore.heartbeatStore.items,
+      ...heartbeats,
+    };
+
+    const alertReceiveChannelToHeartbeat = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+      if (alertReceiveChannel.heartbeat) {
+        acc[alertReceiveChannel.id] = alertReceiveChannel.heartbeat.id;
+      }
+
+      return acc;
+    }, {});
+
+    this.alertReceiveChannelToHeartbeat = {
+      ...this.alertReceiveChannelToHeartbeat,
+      ...alertReceiveChannelToHeartbeat,
+    };
+
+    this.updateCounters();
+
+    return results;
   }
 
   @action
-  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id']) {
+  async updateChannelFilters(alertReceiveChannelId: AlertReceiveChannel['id'], isOverwrite = false) {
     const response = await makeRequest(`/channel_filters/`, {
       params: { alert_receive_channel: alertReceiveChannelId },
     });
@@ -148,6 +218,13 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...this.channelFilters,
       ...channelFilters,
     };
+
+    if (isOverwrite) {
+      // This is needed because on Move Up/Down/Removal the store no longer reflects the correct state
+      this.channelFilters = {
+        ...channelFilters,
+      };
+    }
 
     this.channelFilterIds = {
       ...this.channelFilterIds,
@@ -206,7 +283,7 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     await makeRequest(`/channel_filters/${channelFilterId}/move_to_position/?position=${newIndex}`, { method: 'PUT' });
 
-    this.updateChannelFilters(alertReceiveChannelId);
+    this.updateChannelFilters(alertReceiveChannelId, true);
   }
 
   @action
@@ -224,7 +301,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       method: 'DELETE',
     });
 
-    this.updateChannelFilters(channelFilter.alert_receive_channel);
+    this.updateChannelFilters(channelFilter.alert_receive_channel, true);
   }
 
   @action
@@ -331,8 +408,18 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async sendDemoAlert(id: AlertReceiveChannel['id']) {
-    await makeRequest(`${this.path}${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
+  async sendDemoAlert(id: AlertReceiveChannel['id'], payload: string = undefined) {
+    const requestConfig: any = {
+      method: 'POST',
+    };
+
+    if (payload) {
+      requestConfig.data = {
+        demo_alert_payload: payload,
+      };
+    }
+
+    await makeRequest(`${this.path}${id}/send_demo_alert/`, requestConfig).catch(showApiError);
 
     Mixpanel.track('Send Demo Incident', null);
   }
@@ -341,10 +428,17 @@ export class AlertReceiveChannelStore extends BaseStore {
     await makeRequest(`/channel_filters/${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);
   }
 
-  async renderPreview(id: AlertReceiveChannel['id'], template_name: string, template_body: string) {
+  async convertRegexpTemplateToJinja2Template(id: ChannelFilter['id']) {
+    const result = await makeRequest(`/channel_filters/${id}/convert_from_regex_to_jinja2/`, { method: 'POST' }).catch(
+      showApiError
+    );
+    return result;
+  }
+
+  async renderPreview(id: AlertReceiveChannel['id'], template_name: string, template_body: string, payload: JSON) {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
-      data: { template_name, template_body },
+      data: { template_name, template_body, payload },
     });
   }
 

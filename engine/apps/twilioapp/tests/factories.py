@@ -1,13 +1,28 @@
 import factory
 
-from apps.twilioapp.models import PhoneCall, SMSMessage
+from apps.twilioapp.models.twilio_sender import (
+    TwilioAccount,
+    TwilioPhoneCallSender,
+    TwilioSmsSender,
+    TwilioVerificationSender,
+)
 
 
-class PhoneCallFactory(factory.DjangoModelFactory):
+class TwilioAccountFactory(factory.DjangoModelFactory):
     class Meta:
-        model = PhoneCall
+        model = TwilioAccount
 
 
-class SMSFactory(factory.DjangoModelFactory):
+class TwilioPhoneCallSenderFactory(factory.DjangoModelFactory):
     class Meta:
-        model = SMSMessage
+        model = TwilioPhoneCallSender
+
+
+class TwilioSmsSenderFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = TwilioSmsSender
+
+
+class TwilioVerificationSenderFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = TwilioVerificationSender

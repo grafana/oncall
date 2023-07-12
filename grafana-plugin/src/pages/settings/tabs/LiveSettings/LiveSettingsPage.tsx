@@ -166,7 +166,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
           onTextChange={this.getEditValueChangeHandler(item)}
           editable={isUserActionAllowed(UserActions.OtherSettingsWrite)}
           clearBeforeEdit={item.is_secret}
-          hidden={hideValues}
+          hidden={hideValues && item.is_secret}
         >
           {normalizeValue(item.value)}
         </Text>
@@ -208,7 +208,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
 
     return (
       <div style={{ wordWrap: 'break-word', wordBreak: 'break-word' }}>
-        <Text>{hideValues ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
+        <Text>{hideValues && item.is_secret ? PLACEHOLDER : normalizeValue(item.default_value)}</Text>
       </div>
     );
   };

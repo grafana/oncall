@@ -15,10 +15,11 @@ interface SourceCodeProps {
   showClipboardIconOnly?: boolean;
   showCopyToClipboard?: boolean;
   children?: any;
+  className?: string;
 }
 
 const SourceCode: FC<SourceCodeProps> = (props) => {
-  const { children, noMaxHeight = false, showClipboardIconOnly = false, showCopyToClipboard = true } = props;
+  const { children, noMaxHeight = false, showClipboardIconOnly = false, showCopyToClipboard = true, className } = props;
   const showClipboardCopy = showClipboardIconOnly || showCopyToClipboard;
 
   return (
@@ -48,9 +49,13 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
         </CopyToClipboard>
       )}
       <pre
-        className={cx('scroller', {
-          'scroller--maxHeight': !noMaxHeight,
-        })}
+        className={cx(
+          'scroller',
+          {
+            'scroller--maxHeight': !noMaxHeight,
+          },
+          className
+        )}
       >
         <code>{children}</code>
       </pre>

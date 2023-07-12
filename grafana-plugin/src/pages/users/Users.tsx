@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -16,6 +16,7 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -223,6 +224,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     </div>
 
                     <GTable
+                      data-testid="users-table"
                       emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
                       rowKey="pk"
                       data={results}
@@ -245,6 +247,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                         profile
                       </>
                     }
+                    data-testid="view-users-missing-permission-message"
                     severity="info"
                   />
                 )}
@@ -359,10 +362,23 @@ class Users extends React.Component<UsersProps, UsersState> {
       }
 
       return (
-        <div>
-          <Icon className={cx('warning-message-icon')} name="exclamation-triangle" />
-          {texts.join(', ')}
-        </div>
+        <HorizontalGroup>
+          <TooltipBadge
+            borderType="warning"
+            icon="exclamation-triangle"
+            text={texts.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {texts.map((warning, index) => (
+                  <Text type="primary" key={index}>
+                    {warning}
+                  </Text>
+                ))}
+              </VerticalGroup>
+            }
+          />
+        </HorizontalGroup>
       );
     }
 

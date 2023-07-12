@@ -120,7 +120,10 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
 
     def create(self, validated_data):
         self._validate_frequency_and_week_start(
-            validated_data["type"], validated_data.get("frequency"), validated_data.get("week_start")
+            validated_data["type"],
+            validated_data.get("frequency"),
+            validated_data.get("interval", 1),  # if field is missing, the default value will be used
+            validated_data.get("week_start"),
         )
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
         self._validate_start_rotation_from_user_index(
@@ -140,19 +143,6 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         for schedule in instance.schedules.all():
             instance.start_drop_ical_and_check_schedule_tasks(schedule)
         return instance
-
-    def validate_name(self, name):
-        organization = self.context["request"].auth.organization
-        if name is None:
-            return name
-        try:
-            obj = CustomOnCallShift.objects.get(organization=organization, name=name)
-        except CustomOnCallShift.DoesNotExist:
-            return name
-        if self.instance and obj.id == self.instance.id:
-            return name
-        else:
-            raise BadRequest(detail="On-call shift with this name already exists")
 
     def validate_by_day(self, by_day):
         if by_day:
@@ -196,12 +186,15 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             result.append(users_dict)
         return result
 
-    def _validate_frequency_and_week_start(self, event_type, frequency, week_start):
+    def _validate_frequency_and_week_start(self, event_type, frequency, interval, week_start):
         if event_type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
             if frequency is None:
                 raise BadRequest(detail="Field 'frequency' is required for this on-call shift type")
             elif frequency == CustomOnCallShift.FREQUENCY_WEEKLY and week_start is None:
                 raise BadRequest(detail="Field 'week_start' is required for frequency type 'weekly'")
+            # frequency is not None
+            if interval is None:
+                raise BadRequest(detail="Field 'interval' must be a positive integer")
 
     def _validate_frequency_daily(self, event_type, frequency, interval, by_day, by_monthday):
         if event_type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
@@ -337,6 +330,9 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
                 validated_data[field] = None
         if validated_data.get("start") is not None:
             validated_data["start"] = validated_data["start"].replace(tzinfo=None)
+        if validated_data.get("frequency") and validated_data.get("interval") is None:
+            # if there is frequency but no interval is given, default to 1
+            validated_data["interval"] = 1
 
         # Populate "rolling_users" field using "users" field for web overrides
         # This emulates the behavior of the web UI, which creates overrides populating the rolling_users field
@@ -359,7 +355,6 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
     name = serializers.CharField(required=False)
     start = serializers.DateTimeField(required=False)
     rotation_start = serializers.DateTimeField(required=False)
-    team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
 
     def update(self, instance, validated_data):
         event_type = validated_data.get("type", instance.type)
@@ -368,10 +363,10 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
             "start_rotation_from_user_index", instance.start_rotation_from_user_index
         )
         week_start = validated_data.get("week_start")
-        if frequency != instance.frequency:
-            self._validate_frequency_and_week_start(event_type, frequency, week_start)
-
         interval = validated_data.get("interval", instance.interval)
+        if frequency != instance.frequency:
+            self._validate_frequency_and_week_start(event_type, frequency, interval, week_start)
+
         by_day = validated_data.get("by_day", instance.by_day)
         by_monthday = validated_data.get("by_monthday", instance.by_monthday)
         self._validate_frequency_daily(event_type, frequency, interval, by_day, by_monthday)

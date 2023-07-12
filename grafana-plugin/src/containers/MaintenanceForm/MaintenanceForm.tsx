@@ -1,7 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { cloneDeep } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
@@ -9,7 +10,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { useStore } from 'state/useStore';
-import { showApiError } from 'utils';
+import { openNotification, showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import { form } from './MaintenanceForm.config';
@@ -22,6 +23,7 @@ interface MaintenanceFormProps {
   initialData: {
     type?: MaintenanceType;
     alert_receive_channel_id?: AlertReceiveChannel['id'];
+    disabled?: boolean;
   };
   onHide: () => void;
   onUpdate: () => void;
@@ -29,6 +31,7 @@ interface MaintenanceFormProps {
 
 const MaintenanceForm = observer((props: MaintenanceFormProps) => {
   const { onUpdate, onHide, initialData = {} } = props;
+  const maintenanceForm = useMemo(() => (initialData.disabled ? cloneDeep(form) : form), [initialData]);
 
   const store = useStore();
 
@@ -44,17 +47,29 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
       )
       .then(() => {
         onHide();
-
         onUpdate();
+
+        openNotification('Maintenance has been started');
       })
       .catch(showApiError);
   }, []);
 
+  if (initialData.disabled) {
+    const alertReceiveChannelIdField = maintenanceForm.fields.find((f) => f.name === 'alert_receive_channel_id');
+
+    if (alertReceiveChannelIdField) {
+      // Integration page requires this field to be preset and disabled, therefore we add extra field `disabled` for the cloned form
+      alertReceiveChannelIdField.extra.disabled = true;
+    }
+  }
+
   return (
-    <Drawer scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
+    <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
       <div className={cx('content')}>
         <VerticalGroup>
-          <GForm form={form} data={initialData} onSubmit={handleSubmit} />
+          Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
+          trigger false alarms.
+          <GForm form={maintenanceForm} data={initialData} onSubmit={handleSubmit} />
           <HorizontalGroup justify="flex-end">
             <Button variant="secondary" onClick={onHide}>
               Cancel

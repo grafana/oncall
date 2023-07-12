@@ -8,7 +8,6 @@ from apps.alerts.models import AlertGroupLogRecord, AlertReceiveChannel, Escalat
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.schedules.models import OnCallScheduleICal, OnCallScheduleWeb
 from apps.telegram.models import TelegramMessage
-from apps.twilioapp.constants import TwilioCallStatuses, TwilioMessageStatuses
 from apps.user_management.models import Organization
 
 
@@ -51,7 +50,6 @@ def test_organization_hard_delete(
     make_slack_team_identity,
     make_slack_user_identity,
     make_slack_message,
-    make_slack_action_record,
     make_schedule,
     make_custom_action,
     make_alert_receive_channel,
@@ -68,8 +66,8 @@ def test_organization_hard_delete(
     make_alert_group,
     make_alert_group_log_record,
     make_user_notification_policy_log_record,
-    make_sms,
-    make_phone_call,
+    make_sms_record,
+    make_phone_call_record,
     make_token_for_organization,
     make_public_api_token,
     make_invitation,
@@ -130,12 +128,10 @@ def test_organization_hard_delete(
         alert_group=alert_group,
     )
 
-    sms = make_sms(
-        receiver=user_1, status=TwilioMessageStatuses.SENT, represents_alert=alert, represents_alert_group=alert_group
-    )
+    sms_record = make_sms_record(receiver=user_1, represents_alert=alert, represents_alert_group=alert_group)
 
-    phone_call = make_phone_call(
-        receiver=user_1, status=TwilioCallStatuses.COMPLETED, represents_alert=alert, represents_alert_group=alert_group
+    phone_call_record = make_phone_call_record(
+        receiver=user_1, represents_alert=alert, represents_alert_group=alert_group
     )
 
     telegram_user_connector = make_telegram_user_connector(user=user_1)
@@ -147,7 +143,6 @@ def test_organization_hard_delete(
     telegram_message = make_telegram_message(alert_group=alert_group, message_type=TelegramMessage.ALERT_GROUP_MESSAGE)
 
     slack_message = make_slack_message(alert_group=alert_group)
-    slack_action_record = make_slack_action_record(organization=organization, user=user_1)
 
     plugin_token, _ = make_token_for_organization(organization)
     public_api_token, _ = make_public_api_token(user_1, organization)
@@ -181,15 +176,14 @@ def test_organization_hard_delete(
         alert,
         alert_group_log_record,
         user_notification_policy_log_record,
-        phone_call,
-        sms,
+        phone_call_record,
+        sms_record,
         telegram_message,
         telegram_user_connector,
         telegram_channel,
         telegram_verification_code,
         telegram_channel_verification_code,
         slack_message,
-        slack_action_record,
         plugin_token,
         public_api_token,
         invitation,

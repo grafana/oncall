@@ -22,10 +22,14 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         required=False,
     )
     slack_channel = serializers.SerializerMethodField()
+    # Duplicated telegram channel and telegram_channel_details field for backwards compatibility for old integration page
     telegram_channel = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=TelegramToOrganizationConnector.objects, filter_field="organization", allow_null=True, required=False
     )
+    telegram_channel_details = serializers.SerializerMethodField()
     order = serializers.IntegerField(required=False)
+    filtering_term_as_jinja2 = serializers.SerializerMethodField()
+    filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     SELECT_RELATED = ["escalation_chain", "alert_receive_channel"]
 
@@ -45,9 +49,14 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "notify_in_slack",
             "notify_in_telegram",
             "notification_backends",
+            "filtering_term_as_jinja2",
+            "telegram_channel_details",
         ]
-        read_only_fields = ["created_at", "is_default"]
-        extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
+        read_only_fields = [
+            "created_at",
+            "is_default",
+            "telegram_channel_details",
+        ]
 
     def validate(self, data):
         filtering_term = data.get("filtering_term")
@@ -74,6 +83,18 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "slack_id": obj.slack_channel_id,
             "id": obj.slack_channel_pk,
         }
+
+    def get_telegram_channel_details(self, obj) -> dict[str, any] | None:
+        if obj.telegram_channel_id is None:
+            return None
+        try:
+            telegram_channel = TelegramToOrganizationConnector.objects.get(pk=obj.telegram_channel_id)
+            return {
+                "display_name": telegram_channel.channel_name,
+                "id": telegram_channel.channel_chat_id,
+            }
+        except TelegramToOrganizationConnector.DoesNotExist:
+            return None
 
     def validate_slack_channel(self, slack_channel_id):
         SlackChannel = apps.get_model("slack", "SlackChannel")
@@ -107,10 +128,21 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             notification_backends = updated
         return notification_backends
 
+    def get_filtering_term_as_jinja2(self, obj):
+        """
+        Returns the regex filtering term as a jinja2, for the preview before migration from regex to jinja2"""
+        if obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
+            return obj.filtering_term
+        elif obj.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
+            # Four curly braces will result in two curly braces in the final string
+            # rf"..." is a raw f string, to keep original filtering_term
+            return rf'{{{{ payload | json_dumps | regex_search("{obj.filtering_term}") }}}}'
+
 
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):
     alert_receive_channel = OrganizationFilteredPrimaryKeyRelatedField(queryset=AlertReceiveChannel.objects)
     slack_channel = serializers.CharField(allow_null=True, required=False, source="slack_channel_id")
+    filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = ChannelFilter
@@ -130,7 +162,6 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "notification_backends",
         ]
         read_only_fields = ["created_at", "is_default"]
-        extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
 
     def to_representation(self, obj):
         """add correct slack channel data to result after instance creation/update"""

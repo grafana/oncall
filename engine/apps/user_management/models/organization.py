@@ -14,9 +14,22 @@ from apps.alerts.models import MaintainableObject
 from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
-from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.auth_token.models import (
+        ApiAuthToken,
+        PluginAuthToken,
+        ScheduleExportAuthToken,
+        UserScheduleExportAuthToken,
+    )
+    from apps.mobile_app.models import MobileAppAuthToken
+    from apps.schedules.models import OnCallSchedule
+    from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +49,6 @@ def generate_public_primary_key_for_organization():
 
 
 class ProvisionedPlugin(typing.TypedDict):
-    error: typing.Union[str, None]
     stackId: int
     orgId: int
     onCallToken: str
@@ -64,6 +76,13 @@ class OrganizationManager(models.Manager):
 
 
 class Organization(MaintainableObject):
+    auth_tokens: "RelatedManager['ApiAuthToken']"
+    mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
+    oncall_schedules: "RelatedManager['OnCallSchedule']"
+    plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+    users: "RelatedManager['User']"
 
     objects = OrganizationManager()
     objects_with_deleted = models.Manager()
@@ -133,12 +152,13 @@ class Organization(MaintainableObject):
 
     gcom_token = mirage_fields.EncryptedCharField(max_length=300, null=True, default=None)
     gcom_token_org_last_time_synced = models.DateTimeField(null=True, default=None)
+    gcom_org_contract_type = models.CharField(max_length=300, null=True, default=None)
+    gcom_org_irm_sku_subscription_start_date = models.DateTimeField(null=True, default=None)
+    gcom_org_oldest_admin_with_billing_privileges_user_id = models.PositiveIntegerField(null=True)
 
     last_time_synced = models.DateTimeField(null=True, default=None)
 
     is_resolution_note_required = models.BooleanField(default=False)
-
-    archive_alerts_from = models.DateField(default="1970-01-01")
 
     # TODO: this field is specific to slack and will be moved to a different model
     slack_team_identity = models.ForeignKey(
@@ -215,7 +235,6 @@ class Organization(MaintainableObject):
     PRICING_CHOICES = ((FREE_PUBLIC_BETA_PRICING, "Free public beta"),)
     pricing_version = models.PositiveIntegerField(choices=PRICING_CHOICES, default=FREE_PUBLIC_BETA_PRICING)
 
-    is_amixr_migration_started = models.BooleanField(default=False)
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
 
@@ -271,7 +290,7 @@ class Organization(MaintainableObject):
 
     """
     Following methods:
-    phone_calls_left, sms_left, emails_left, notifications_limit_web_report
+    phone_calls_left, sms_left, emails_left
     serve for calculating notifications' limits and composed from self.subscription_strategy.
     """
 
@@ -285,9 +304,6 @@ class Organization(MaintainableObject):
     def emails_left(self, user):
         return self.subscription_strategy.emails_left(user)
 
-    def notifications_limit_web_report(self, user):
-        return self.subscription_strategy.notifications_limit_web_report(user)
-
     def set_general_log_channel(self, channel_id, channel_name, user):
         if self.general_log_channel_id != channel_id:
             old_general_log_channel_id = self.slack_team_identity.cached_channels.filter(
@@ -299,7 +315,7 @@ class Organization(MaintainableObject):
             write_chatops_insight_log(
                 author=user,
                 event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
-                chatops_type=ChatOpsType.SLACK,
+                chatops_type=ChatOpsTypePlug.SLACK.value,
                 prev_channel=old_channel_name,
                 new_channel=channel_name,
             )
@@ -330,7 +346,6 @@ class Organization(MaintainableObject):
         return {
             "name": self.org_title,
             "is_resolution_note_required": self.is_resolution_note_required,
-            "archive_alerts_from": self.archive_alerts_from.isoformat(),
         }
 
     @property

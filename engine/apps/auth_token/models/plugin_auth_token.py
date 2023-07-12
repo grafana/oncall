@@ -1,6 +1,6 @@
 import binascii
 from hmac import compare_digest
-from typing import Optional, Tuple
+from typing import Tuple
 
 from django.db import models
 
@@ -16,8 +16,14 @@ from apps.user_management.models import Organization
 
 
 class PluginAuthToken(BaseAuthToken):
+    objects: models.Manager["PluginAuthToken"]
+
     salt = models.CharField(max_length=constants.AUTH_TOKEN_CHARACTER_LENGTH, null=True)
-    organization = models.ForeignKey(to=Organization, on_delete=models.CASCADE)
+    organization = models.ForeignKey(
+        to=Organization,
+        on_delete=models.CASCADE,
+        related_name="plugin_auth_tokens",
+    )
 
     @classmethod
     def create_auth_token(cls, organization: Organization) -> Tuple["PluginAuthToken", str]:
@@ -38,7 +44,7 @@ class PluginAuthToken(BaseAuthToken):
         return auth_token, token_string
 
     @classmethod
-    def validate_token_string(cls, token: str, *args, **kwargs) -> Optional["PluginAuthToken"]:
+    def validate_token_string(cls, token: str, *args, **kwargs) -> "PluginAuthToken":
         context = kwargs["context"]
         for auth_token in cls.objects.filter(token_key=token[: constants.TOKEN_KEY_LENGTH]):
             try:
@@ -51,3 +57,5 @@ class PluginAuthToken(BaseAuthToken):
                 raise InvalidToken
             if compare_digest(digest, auth_token.digest) and token == recreated_token:
                 return auth_token
+
+        raise InvalidToken

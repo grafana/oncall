@@ -9,7 +9,9 @@ const cx = cn.bind(styles);
 export interface TimelineItemProps {
   className?: string;
   contentClassName?: string;
-  color?: string;
+  isDisabled?: boolean;
+  backgroundColor?: string;
+  textColor?: string;
   number?: number;
   badge?: number;
   children?: any;
@@ -19,15 +21,21 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
   className,
   contentClassName,
   children,
-  color = '#3274D9',
+  isDisabled,
+  backgroundColor = '#3274D9',
+  textColor = '#ffffff',
   number,
-}) => (
-  <li className={cx('item', className)}>
-    <div className={cx('dot')} style={{ backgroundColor: color }}>
-      {number}
-    </div>
-    <div className={cx('content', contentClassName)}>{children}</div>
-  </li>
-);
+}) => {
+  return (
+    <li className={cx('item', className)}>
+      {!isDisabled && (
+        <div className={cx('dot')} style={{ backgroundColor, color: textColor }}>
+          {number}
+        </div>
+      )}
+      <div className={cx('content', contentClassName, { 'content--noMargin': isDisabled })}>{children}</div>
+    </li>
+  );
+};
 
 export default TimelineItem;

@@ -17,7 +17,6 @@ from common.utils import UniqueFaker
 
 
 class AlertReceiveChannelFactory(factory.DjangoModelFactory):
-
     # integration = AlertReceiveChannel.INTEGRATION_GRAFANA
     verbal_name = factory.Faker("sentence", nb_words=2)
 
@@ -58,7 +57,6 @@ class AlertGroupLogRecordFactory(factory.DjangoModelFactory):
 
 
 class ResolutionNoteFactory(factory.DjangoModelFactory):
-
     message_text = factory.Faker("sentence", nb_words=5)
 
     class Meta:
@@ -71,7 +69,6 @@ class ResolutionNoteSlackMessageFactory(factory.DjangoModelFactory):
 
 
 class CustomActionFactory(factory.DjangoModelFactory):
-
     webhook = factory.Faker("url")
     name = UniqueFaker("word")
 

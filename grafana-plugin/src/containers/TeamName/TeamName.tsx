@@ -18,7 +18,7 @@ interface TeamNameProps {
 }
 
 const TeamName = observer((props: TeamNameProps) => {
-  const { team, size } = props;
+  const { team, size = 'medium' } = props;
   if (!team) {
     return null;
   }
@@ -26,10 +26,10 @@ const TeamName = observer((props: TeamNameProps) => {
     return <Badge text={team.name} color={'blue'} tooltip={'Resource is not assigned to any team (ex General team)'} />;
   }
   return (
-    <Text type="secondary" size={size ? size : 'medium'}>
+    <Text type="secondary" size={size}>
       <Avatar size="small" src={team.avatar_url} className={cx('avatar')} />
       <Tooltip placement="top" content={'Resource is assigned to ' + team.name}>
-        <span>{team.name}</span>
+        <Text type="primary">{team.name}</Text>
       </Tooltip>
     </Text>
   );

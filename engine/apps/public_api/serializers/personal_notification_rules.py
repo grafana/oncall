@@ -43,14 +43,16 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         # that is why step key is used instead of type below
         if "wait_delay" in validated_data and validated_data["step"] != UserNotificationPolicy.Step.WAIT:
             raise exceptions.ValidationError({"duration": "Duration can't be set"})
-        user = validated_data.pop("user")
+
+        # Remove "manual_order" and "order" fields from validated_data, so they are not passed to create method.
+        # Policies are always created at the end of the list, and then moved to the desired position by _adjust_order.
         manual_order = validated_data.pop("manual_order")
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            instance = UserNotificationPolicy.objects.create(**validated_data, user=user)
-            self._change_position(order, instance)
-        else:
-            instance = UserNotificationPolicy.objects.create(**validated_data, user=user)
+        order = validated_data.pop("order", None)
+
+        instance = UserNotificationPolicy.objects.create(**validated_data)
+
+        if order is not None:
+            self._adjust_order(instance, manual_order, order, created=True)
 
         return instance
 
@@ -66,7 +68,6 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
-
         step = instance.step
         result = super().to_representation(instance)
 
@@ -118,14 +119,32 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
 
         raise exceptions.ValidationError({"type": "Invalid type"})
 
-    def _change_position(self, order, instance):
-        if order is not None:
-            if order >= 0:
-                instance.to(order)
-            elif order == -1:
-                instance.bottom()
-            else:
-                raise BadRequest(detail="Invalid value for position field")
+    @staticmethod
+    def _adjust_order(instance, manual_order, order, created):
+        # Passing order=-1 means that the policy should be moved to the end of the list.
+        if order == -1:
+            if created:
+                # The policy was just created, so it is already at the end of the list.
+                return
+
+            order = instance.max_order()
+            # max_order() can't be None here because at least one instance exists – the one we are moving.
+            assert order is not None
+
+        # Negative order is not allowed.
+        if order < 0:
+            raise BadRequest(detail="Invalid value for position field")
+
+        # manual_order=True is intended for use by Terraform provider only, and is not a documented feature.
+        # Orders are swapped instead of moved when using Terraform, because Terraform may issue concurrent requests
+        # to create / update / delete multiple policies. "Move to" operation is not deterministic in this case, and
+        # final order of policies may be different depending on the order in which requests are processed. On the other
+        # hand, the result of concurrent "swap" operations is deterministic and does not depend on the order in
+        # which requests are processed.
+        if manual_order:
+            instance.swap(order)
+        else:
+            instance.to(order)
 
 
 class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerializer):
@@ -146,10 +165,10 @@ class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerialize
             if "wait_delay" in validated_data and instance.step != UserNotificationPolicy.Step.WAIT:
                 raise exceptions.ValidationError({"duration": "Duration can't be set"})
 
+        # Remove "manual_order" and "order" fields from validated_data, so they are not passed to update method.
         manual_order = validated_data.pop("manual_order")
-
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            self._change_position(order, instance)
+        order = validated_data.pop("order", None)
+        if order is not None:
+            self._adjust_order(instance, manual_order, order, created=False)
 
         return super().update(instance, validated_data)

@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 
 import AlertTemplatesForm from 'components/AlertTemplates/AlertTemplatesForm';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';

@@ -1,0 +1,13 @@
+tolerations -> should use custom tolerations:
+  1: |
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/unittest
+      operator: Exists
+  2: |
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/unittest
+      operator: Exists
+  3: |
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/unittest
+      operator: Exists

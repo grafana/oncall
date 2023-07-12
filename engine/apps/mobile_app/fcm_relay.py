@@ -2,7 +2,6 @@ import logging
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from rest_framework import status
@@ -12,6 +11,7 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import ApiTokenAuthentication
+from apps.mobile_app.models import FCMDevice
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 task_logger = get_task_logger(__name__)

@@ -4,10 +4,10 @@ import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
@@ -38,12 +38,13 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
 
   return (
     <>
-      <div className={cx('root')}>
+      <div className={cx('root')} data-testid="schedule-quality">
         {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
-          <ScheduleCounter
-            type="link"
+          <TooltipBadge
+            borderType="success"
+            icon="link"
             addPadding
-            count={schedule.number_of_escalation_chains}
+            text={schedule.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
             tooltipContent={
               <VerticalGroup spacing="sm">
@@ -60,10 +61,11 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
         )}
 
         {schedule.warnings?.length > 0 && (
-          <ScheduleCounter
-            type="warning"
+          <TooltipBadge
+            borderType="warning"
+            icon="exclamation-triangle"
             addPadding
-            count={schedule.warnings.length}
+            text={schedule.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
               <VerticalGroup spacing="none">

@@ -1,18 +1,59 @@
-import { chromium, FullConfig, expect, Page } from '@playwright/test';
+import { test as setup, chromium, expect, Page, BrowserContext, FullConfig, APIRequestContext } from '@playwright/test';
 
-import { BASE_URL, GRAFANA_PASSWORD, GRAFANA_USERNAME, IS_OPEN_SOURCE, ONCALL_API_URL } from './utils/constants';
+import GrafanaAPIClient from './utils/clients/grafana';
+import {
+  GRAFANA_ADMIN_PASSWORD,
+  GRAFANA_ADMIN_USERNAME,
+  GRAFANA_EDITOR_PASSWORD,
+  GRAFANA_EDITOR_USERNAME,
+  GRAFANA_VIEWER_PASSWORD,
+  GRAFANA_VIEWER_USERNAME,
+  IS_CLOUD,
+  IS_OPEN_SOURCE,
+  ONCALL_API_URL,
+} from './utils/constants';
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
+import { VIEWER_USER_STORAGE_STATE, EDITOR_USER_STORAGE_STATE, ADMIN_USER_STORAGE_STATE } from '../playwright.config';
+import { OrgRole } from '@grafana/data';
 
-/**
- * go to config page and wait for plugin icon to be available on left-hand navigation
- */
-export const configureOnCallPlugin = async (page: Page): Promise<void> => {
-  // plugin configuration can safely be skipped for non open-source environments
-  if (!IS_OPEN_SOURCE) {
-    return;
+const grafanaApiClient = new GrafanaAPIClient(GRAFANA_ADMIN_USERNAME, GRAFANA_ADMIN_PASSWORD);
+
+type UserCreationSettings = {
+  adminAuthedRequest: APIRequestContext;
+  role: OrgRole;
+};
+
+const generateLoginStorageStateAndOptionallCreateUser = async (
+  config: FullConfig,
+  userName: string,
+  password: string,
+  storageStateFileLocation: string,
+  userCreationSettings?: UserCreationSettings,
+  closeContext = false
+): Promise<BrowserContext> => {
+  if (userCreationSettings !== undefined && IS_OPEN_SOURCE) {
+    const { adminAuthedRequest, role } = userCreationSettings;
+    await grafanaApiClient.idempotentlyCreateUserWithRole(adminAuthedRequest, userName, password, role);
   }
 
+  const { headless } = config.projects[0]!.use;
+  const browser = await chromium.launch({ headless, slowMo: headless ? 0 : 100 });
+  const browserContext = await browser.newContext();
+
+  await grafanaApiClient.login(browserContext.request, userName, password);
+  await browserContext.storageState({ path: storageStateFileLocation });
+
+  if (closeContext) {
+    await browserContext.close();
+  }
+  return browserContext;
+};
+
+/**
+ go to config page and wait for plugin icon to be available on left-hand navigation
+ */
+const configureOnCallPlugin = async (page: Page): Promise<void> => {
   /**
    * go to the oncall plugin configuration page and wait for the page to be loaded
    */
@@ -31,34 +72,69 @@ export const configureOnCallPlugin = async (page: Page): Promise<void> => {
     await clickButton({ page, buttonText: 'Connect' });
   }
 
-  // wait for the "Connected to OnCall" message to know that everything is properly configured
-  await expect(page.getByTestId('status-message-block')).toHaveText(/Connected to OnCall.*/);
+  /**
+   * wait for the "Connected to OnCall" message to know that everything is properly configured
+   *
+   * Regarding increasing the timeout for the "plugin configured" assertion:
+   * This is because it can sometimes take a bit longer for the backend sync to finish. The default assertion
+   * timeout is 5s, which is sometimes not enough if the backend is under load
+   */
+  await expect(page.getByTestId('status-message-block')).toHaveText(/Connected to OnCall.*/, { timeout: 25_000 });
 };
 
 /**
  * Borrowed from our friends on the Incident team
  * https://github.com/grafana/incident/blob/main/plugin/e2e/global-setup.ts
  */
-const globalSetup = async (config: FullConfig): Promise<void> => {
-  const { headless } = config.projects[0]!.use;
-  const browser = await chromium.launch({ headless, slowMo: headless ? 0 : 100 });
-  const browserContext = await browser.newContext();
+setup('Configure Grafana OnCall plugin', async ({ request }, { config }) => {
+  /**
+   * Unconditionally marks the setup as "slow", giving it triple the default timeout.
+   * This is mostly useful for the rare case for Cloud Grafana instances where the instance may be down/unavailable
+   * and we need to poll it until it is available
+   */
+  setup.slow();
 
-  const res = await browserContext.request.post(`${BASE_URL}/login`, {
-    data: {
-      user: GRAFANA_USERNAME,
-      password: GRAFANA_PASSWORD,
+  if (IS_CLOUD) {
+    await grafanaApiClient.pollInstanceUntilItIsHealthy(request);
+  }
+
+  const adminBrowserContext = await generateLoginStorageStateAndOptionallCreateUser(
+    config,
+    GRAFANA_ADMIN_USERNAME,
+    GRAFANA_ADMIN_PASSWORD,
+    ADMIN_USER_STORAGE_STATE
+  );
+  const adminPage = await adminBrowserContext.newPage();
+  const { request: adminAuthedRequest } = adminBrowserContext;
+
+  await generateLoginStorageStateAndOptionallCreateUser(
+    config,
+    GRAFANA_EDITOR_USERNAME,
+    GRAFANA_EDITOR_PASSWORD,
+    EDITOR_USER_STORAGE_STATE,
+    {
+      adminAuthedRequest,
+      role: OrgRole.Editor,
     },
-  });
+    true
+  );
 
-  expect(res.ok()).toBeTruthy();
-  await browserContext.storageState({ path: './storageState.json' });
+  await generateLoginStorageStateAndOptionallCreateUser(
+    config,
+    GRAFANA_VIEWER_USERNAME,
+    GRAFANA_VIEWER_PASSWORD,
+    VIEWER_USER_STORAGE_STATE,
+    {
+      adminAuthedRequest,
+      role: OrgRole.Viewer,
+    },
+    true
+  );
 
-  // make sure the plugin has been configured
-  const page = await browserContext.newPage();
-  await configureOnCallPlugin(page);
+  if (IS_OPEN_SOURCE) {
+    // plugin configuration can safely be skipped for cloud environments
+    await configureOnCallPlugin(adminPage);
+  }
 
-  await browserContext.close();
-};
-
-export default globalSetup;
+  await adminBrowserContext.close();
+});

@@ -1,7 +1,7 @@
 from django.db.models import Count, Q
 from django_filters import rest_framework as filters
 from emoji import emojize
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
@@ -15,6 +15,7 @@ from apps.api.serializers.escalation_chain import (
     FilterEscalationChainSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
+from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -119,15 +120,24 @@ class EscalationChainViewSet(
 
     @action(methods=["post"], detail=True)
     def copy(self, request, pk):
+        obj = self.get_object()
+
         name = request.data.get("name")
-        if name is None:
+        team_id = request.data.get("team")
+        if team_id == "null":
+            team_id = None
+
+        if not name:
             raise BadRequest(detail={"name": ["This field may not be null."]})
         else:
             if EscalationChain.objects.filter(organization=request.auth.organization, name=name).exists():
                 raise BadRequest(detail={"name": ["Escalation chain with this name already exists."]})
 
-        obj = self.get_object()
-        copy = obj.make_copy(name)
+        try:
+            team = request.user.available_teams.get(public_primary_key=team_id) if team_id else None
+        except Team.DoesNotExist:
+            return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
+        copy = obj.make_copy(name, team)
         serializer = self.get_serializer(copy)
         write_resource_insight_log(
             instance=copy,
@@ -156,7 +166,7 @@ class EscalationChainViewSet(
                 channel_filter["alert_receive_channel__public_primary_key"],
                 {
                     "id": channel_filter["alert_receive_channel__public_primary_key"],
-                    "display_name": emojize(channel_filter["alert_receive_channel__verbal_name"], use_aliases=True),
+                    "display_name": emojize(channel_filter["alert_receive_channel__verbal_name"], language="alias"),
                     "channel_filters": [],
                 },
             )["channel_filters"].append(channel_filter_data)

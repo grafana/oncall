@@ -39,7 +39,7 @@ export const clickButton = async ({
   dataTestId,
 }: ClickButtonArgs): Promise<void> => {
   const baseLocator = dataTestId ? `button[data-testid="${dataTestId}"]` : 'button';
-  const button = (startingLocator || page).locator(`${baseLocator} >> text=${buttonText}`);
+  const button = (startingLocator || page).locator(`${baseLocator}:not([disabled]) >> text=${buttonText}`);
 
   await button.waitFor({ state: 'visible' });
   await button.click();
@@ -86,17 +86,12 @@ const textMatchSelector = (optionExactMatch: boolean, value: string): string =>
 const chooseDropdownValue = async ({ page, value, optionExactMatch = true }: SelectDropdownValueArgs): Promise<void> =>
   page.locator(`div[id^="react-select-"][id$="-listbox"] >> ${textMatchSelector(optionExactMatch, value)}`).click();
 
-export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<void> => {
+export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<Locator> => {
   const selectElement = await openSelect(args);
-
-  /**
-   * use the select search to filter down the options
-   * TODO: get rid of the slice when we fix the GSelect component..
-   * without slicing this would fire off an API request for every key-stroke
-   */
-  await selectElement.type(args.value.slice(0, 5));
-
+  await selectElement.type(args.value);
   await chooseDropdownValue(args);
+
+  return selectElement;
 };
 
 export const generateRandomValue = (): string => randomUUID();

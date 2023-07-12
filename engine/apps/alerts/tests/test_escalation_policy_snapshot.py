@@ -170,7 +170,7 @@ def test_escalation_step_notify_on_call_schedule(
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     # create on_call_shift with user to notify
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -218,7 +218,7 @@ def test_escalation_step_notify_on_call_schedule_viewer_user(
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     # create on_call_shift with user to notify
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
@@ -429,6 +429,37 @@ def test_escalation_step_trigger_custom_button(
         custom_button_trigger=custom_button,
     )
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(trigger_custom_button_step)
+    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    result = escalation_policy_snapshot.execute(alert_group, reason)
+    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+        eta=result.eta,
+        stop_escalation=False,
+        pause_escalation=False,
+        start_from_beginning=False,
+    )
+    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
+    assert result == expected_result
+    assert mocked_execute_tasks.called
+
+
+@patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
+@pytest.mark.django_db
+def test_escalation_step_trigger_custom_webhook(
+    mocked_execute_tasks,
+    escalation_step_test_setup,
+    make_custom_webhook,
+    make_escalation_policy,
+):
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+
+    custom_webhook = make_custom_webhook(organization=organization)
+
+    trigger_custom_webhook_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+        custom_webhook=custom_webhook,
+    )
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(trigger_custom_webhook_step)
     expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
     result = escalation_policy_snapshot.execute(alert_group, reason)
     expected_result = EscalationPolicySnapshot.StepExecutionResultData(

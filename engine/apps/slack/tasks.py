@@ -1,6 +1,5 @@
 import logging
 import random
-import time
 
 from celery.utils.log import get_task_logger
 from django.apps import apps
@@ -135,91 +134,6 @@ def check_slack_message_exists_before_post_message_to_thread(
             ).save()
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
-def resolve_archived_incidents_for_organization(organization_id):
-    Organization = apps.get_model("user_management", "Organization")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-
-    organization = Organization.objects.get(pk=organization_id)
-
-    alert_groups_queryset = AlertGroup.unarchived_objects.filter(
-        channel__organization=organization,
-        started_at__date__lte=organization.archive_alerts_from,
-        resolved=False,
-    )
-
-    for alert_group in alert_groups_queryset:
-        try:
-            alert_group.resolve_by_archivation()
-        except SlackAPIException as e:
-            if e.response["error"] == "channel_not_found":  # Todo: investigate and remove this hack
-                print(e)
-            elif e.response["error"] == "rate_limited" or e.response["error"] == "ratelimited":
-                if "headers" in e.response and e.response["headers"].get("Retry-After") is not None:
-                    delay = int(e.response["headers"]["Retry-After"])
-                else:
-                    delay = random.randint(1, 10)
-                resolve_archived_incidents_for_organization.apply_async((organization_id,), countdown=delay)
-            else:
-                raise e
-
-
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
-def unarchive_incidents_for_organization(organization_id):
-    Organization = apps.get_model("user_management", "Organization")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    SlackMessage = apps.get_model("slack", "SlackMessage")
-
-    organization = Organization.objects.get(pk=organization_id)
-
-    alert_groups_queryset = AlertGroup.all_objects.filter(
-        channel__organization=organization,
-        started_at__date__gt=organization.archive_alerts_from,
-        is_archived=True,
-    )
-    # convert qs to list to prevent it from changing after qs update
-    alert_groups_with_slack_message = list(
-        alert_groups_queryset.select_related("slack_message").filter(slack_message__isnull=False)
-    )
-
-    alert_groups_queryset.update(is_archived=False)
-    slack_team_identity = organization.slack_team_identity
-    if slack_team_identity is not None:
-        sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
-        slack_messages_to_create = []
-
-        for alert_group_with_slack_message in alert_groups_with_slack_message:
-            try:
-                result = sc.api_call(
-                    "chat.postMessage",
-                    channel=alert_group_with_slack_message.slack_message.channel_id,
-                    thread_ts=alert_group_with_slack_message.slack_message.slack_id,
-                    text="Incident has been unarchived",
-                )
-            except SlackAPIException as e:
-                if e.response["error"] == "channel_not_found":
-                    print(e)
-                elif e.response["error"] == "rate_limited" or e.response["error"] == "ratelimited":
-                    if "headers" in e.response and e.response["headers"].get("Retry-After") is not None:
-                        delay = int(e.response["headers"]["Retry-After"])
-                    else:
-                        delay = random.randint(1, 10)
-                    time.sleep(delay)
-                else:
-                    raise e
-            else:
-                slack_message = SlackMessage(
-                    slack_id=result["ts"],
-                    organization=organization,
-                    _slack_team_identity=slack_team_identity,
-                    channel_id=alert_group_with_slack_message.slack_message.channel_id,
-                    alert_group_id=alert_group_with_slack_message.pk,
-                )
-                slack_messages_to_create.append(slack_message)
-
-        SlackMessage.objects.bulk_create(slack_messages_to_create, batch_size=5000)
-
-
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=1)
 def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_identity_pk, channel_id):
     """
@@ -239,43 +153,6 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     if bot_user_id not in members:
         text = f"Please invite <@{bot_user_id}> to this channel to make all features " f"available :wink:"
         AlertGroupSlackService(slack_team_identity, sc).publish_message_to_alert_group_thread(alert_group, text=text)
-
-
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=1)
-def send_debug_message_to_thread(alert_group_pk, slack_team_identity_pk):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
-    SlackMessage = apps.get_model("slack", "SlackMessage")
-
-    slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
-    current_alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
-    try:
-        channel_id = current_alert_group.slack_message.channel_id
-    except AttributeError:
-        print("SlackMessage object doesn't exist for the alert group")
-        return None
-
-    blocks = []
-    text = "Escalations are silenced due to Debug mode"
-    blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
-    sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
-
-    result = sc.api_call(
-        "chat.postMessage",
-        channel=channel_id,
-        text=text,
-        attachments=[],
-        thread_ts=current_alert_group.slack_message.slack_id,
-        mrkdwn=True,
-        blocks=blocks,
-    )
-    SlackMessage(
-        slack_id=result["ts"],
-        organization=current_alert_group.channel.organization,
-        _slack_team_identity=slack_team_identity,
-        channel_id=channel_id,
-        alert_group=current_alert_group,
-    ).save()
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
@@ -300,7 +177,6 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def populate_slack_user_identities(organization_pk):
-
     SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
 
     Organization = apps.get_model("user_management", "Organization")
@@ -313,7 +189,6 @@ def populate_slack_user_identities(organization_pk):
     slack_user_identities_to_update = []
 
     for member in slack_team_identity.members:
-
         profile = member.get("profile")
         email = profile.get("email", None)
 
@@ -381,60 +256,6 @@ def populate_slack_user_identities(organization_pk):
         "is_app_user",
     ]
     SlackUserIdentity.objects.bulk_update(slack_user_identities_to_update, fields_to_update, batch_size=5000)
-
-
-@shared_dedicated_queue_retry_task()
-def refresh_slack_user_identity_emails():
-    SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
-
-    qs = (
-        SlackUserIdentity.all_objects.filter(cached_slack_email="")
-        .exclude(deleted=True)
-        .exclude(cached_is_bot=True)
-        .exclude(
-            cached_name="user_not_found",
-        )
-        .exclude(slack_team_identity__cached_name="no_enough_permissions_to_retrieve")
-        .exclude(slack_team_identity__detected_token_revoked__isnull=False)
-    )
-
-    total = qs.count()
-    for index, slack_user_identity in enumerate(qs, start=1):
-        try:
-            sc = SlackClientWithErrorHandling(slack_user_identity.slack_team_identity.bot_access_token)
-            result = sc.api_call("users.info", user=slack_user_identity.slack_id)
-
-            if "email" in result.get("user").get("profile", None):
-                slack_user_identity.cached_slack_email = result["user"]["profile"]["email"]
-                slack_user_identity.save(update_fields=["cached_slack_email"])
-                logger.info(f"({index}/{total}). Email is found")
-            elif result.get("user").get("is_bot") is True or result.get("user").get("id") == SLACK_BOT_ID:
-                slack_user_identity.cached_is_bot = True
-                slack_user_identity.save(update_fields=["cached_is_bot"])
-                logger.info(f"({index}/{total}). Bot is found")
-            elif result.get("user").get("deleted") is True:
-                slack_user_identity.deleted = True
-                slack_user_identity.save(update_fields=["deleted"])
-                logger.info(f"({index}/{total}). Deleted is found")
-            elif result.get("user").get("is_stranger", False):
-                # case: strangers or external members,
-                # see https://api.slack.com/enterprise/shared-channels
-                slack_user_identity.is_stranger = True
-                slack_user_identity.save(update_fields=["is_stranger"])
-                logger.info(f"({index}/{total}). Stranger or external user detected.")
-            else:
-                logger.error(
-                    f"({index}/{total}). Error!!! Email definition error for SlackUserIdentity pk: "
-                    f"{slack_user_identity.pk}. It will be generated unknown_email."
-                )
-        except SlackAPIException as e:
-            # case: user_not_found
-            if e.response["error"] == "user_not_found":
-                slack_user_identity.is_not_found = True
-                slack_user_identity.save(update_fields=["is_not_found"])
-                logger.info(f"({index}/{total}). User_not_found detected.")
-            else:
-                logger.error(f"({index}/{total}). Error!!! Exception: {e}")
 
 
 @shared_dedicated_queue_retry_task(

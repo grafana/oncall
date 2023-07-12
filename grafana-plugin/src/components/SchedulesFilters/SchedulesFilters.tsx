@@ -24,6 +24,14 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
     },
     [value]
   );
+
+  const handleMineChange = useCallback(
+    (mine) => {
+      onChange({ ...value, mine });
+    },
+    [value]
+  );
+
   const handleStatusChange = useCallback(
     (used) => {
       onChange({ ...value, used });
@@ -53,6 +61,23 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
         </Field>
       </div>
       <div className={cx('right')}>
+        <Field label="Mine">
+          <RadioButtonGroup
+            options={[
+              { label: 'All', value: undefined },
+              {
+                label: 'Mine',
+                value: true,
+              },
+              {
+                label: 'Not mine',
+                value: false,
+              },
+            ]}
+            value={value.mine}
+            onChange={handleMineChange}
+          />
+        </Field>
         <Field label="Status">
           <RadioButtonGroup
             options={[
