@@ -11,13 +11,13 @@ from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 
-from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
+from .step_mixins import AlertGroupActionsMixin
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.ScenarioStep):
+class AddToResolutionNoteStep(scenario_step.ScenarioStep):
     callback_id = [
         "add_resolution_note",
         "add_resolution_note_staging",
@@ -60,9 +60,6 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                 f"Slack Message id: {slack_message.slack_id}"
             )
             raise e
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            return
 
         if payload["message"]["type"] == "message" and "user" in payload["message"]:
             message_ts = payload["message_ts"]
@@ -373,7 +370,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         return blocks
 
 
-class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
+class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
@@ -395,9 +392,6 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
         resolution_note_window_action = value.get("resolution_note_window_action", "") or value.get("action_value", "")
         action_resolve = value.get("action_resolve", False)
         channel_id = payload["channel"]["id"] if "channel" in payload else None
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            return
 
         blocks = []
 

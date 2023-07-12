@@ -1,0 +1,27 @@
+suite: test image and imagePullPolicy for deployments
+templates:
+  - celery/deployment-celery.yaml
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+release:
+  name: oncall
+tests:
+  - it: nodeSelector={} -> should set nodeSelector null
+    asserts:
+      - notExists:
+            path: spec.template.spec.nodeSelector
+
+  - it: nodeSelector -> should use custom nodeSelector
+    set:
+      migrate:
+        nodeSelector:
+          unittest: here
+      engine:
+        nodeSelector:
+          unittest: here
+      celery:
+        nodeSelector:
+          unittest: here
+    asserts:
+      - matchSnapshot:
+          path: spec.template.spec.nodeSelector
