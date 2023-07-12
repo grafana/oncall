@@ -290,7 +290,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
           </div>
           {data.is_legacy ? (
             <div className={cx('content')}>
-              <Text type="secondary">Legacy migrated webhooks are not editable.</Text>
+              <Text type="secondary">Legacy migrated webhooks are not editable. Make a copy to make changes.</Text>
             </div>
           ) : (
             ''

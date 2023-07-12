@@ -136,6 +136,12 @@ class EscalationPolicyView(
                 self.request.auth.organization.pk
             ):
                 continue
+
+            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and is_webhooks_enabled_for_organization(
+                self.request.auth.organization.pk
+            ):
+                continue
+
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
             can_change_importance = (
                 step in EscalationPolicy.IMPORTANT_STEPS_SET or step in EscalationPolicy.DEFAULT_STEPS_SET

@@ -60,7 +60,7 @@ class FeaturesAPIView(APIView):
             if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
                 enabled_features.append(FEATURE_WEB_SCHEDULES)
 
-        if is_webhooks_enabled_for_organization(request.auth.organization.pk):
+        if settings.FEATURE_WEBHOOKS_2_ENABLED or is_webhooks_enabled_for_organization(request.auth.organization.pk):
             enabled_features.append(FEATURE_WEBHOOKS2)
 
         return enabled_features
