@@ -15,18 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
-  within a single integration's page. by @Ukochka ([2497](https://github.com/grafana/oncall/issues/2497))
-  
+  within a single integration's page. by @Ukochka ([#2497](https://github.com/grafana/oncall/issues/2497))
+
 ### Fixed
 
-- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup [1002](https://github.com/grafana/oncall/issues/1002)
-- New schedules white theme issues [2356](https://github.com/grafana/oncall/issues/2356)
+- Fixed a bug in the integration maintenance mode workflow where a user could not start/stop an integration's
+  maintenance mode by @joeyorlando ([#2511](https://github.com/grafana/oncall/issues/2511))
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup [#1002](https://github.com/grafana/oncall/issues/1002)
+- New schedules white theme issues [#2356](https://github.com/grafana/oncall/issues/2356)
 
 ## v1.3.9 (2023-07-12)
 
 ### Added
 
-- Bring new Jinja editor to webhooks ([2344](https://github.com/grafana/oncall/issues/2344))
+- Bring new Jinja editor to webhooks ([#2344](https://github.com/grafana/oncall/issues/2344))
 
 ### Fixed
 
@@ -83,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - UI drawer updates for webhooks2 ([#2419](https://github.com/grafana/oncall/pull/2419))
-- Removed url from sms notification, changed format ([2317](https://github.com/grafana/oncall/pull/2317))
+- Removed url from sms notification, changed format ([#2317](https://github.com/grafana/oncall/pull/2317))
 
 ## v1.3.3 (2023-06-29)
 

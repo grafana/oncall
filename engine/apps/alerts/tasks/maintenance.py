@@ -16,7 +16,6 @@ from .task_logger import task_logger
 def disable_maintenance(*args, **kwargs):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     User = apps.get_model("user_management", "User")
-    Organization = apps.get_model("user_management", "Organization")
     user = None
     object_under_maintenance = None
     user_id = kwargs.get("user_id")
@@ -37,12 +36,6 @@ def disable_maintenance(*args, **kwargs):
                 task_logger.info(
                     f"AlertReceiveChannel for disable_maintenance does not exists. Id: {alert_receive_channel_id}"
                 )
-        elif "organization_id" in kwargs:
-            organization_id = kwargs["organization_id"]
-            try:
-                object_under_maintenance = Organization.objects.select_for_update().get(pk=organization_id)
-            except Organization.DoesNotExist:
-                task_logger.info(f"Organization for disable_maintenance does not exists. Id: {organization_id}")
 
         else:
             task_logger.info(f"Invalid instance id passed in disable_maintenance. Got: {kwargs}")
@@ -90,7 +83,6 @@ def disable_maintenance(*args, **kwargs):
 )
 def check_maintenance_finished(*args, **kwargs):
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    Organization = apps.get_model("user_management", "Organization")
     now = timezone.now()
     maintenance_finish_at = ExpressionWrapper(
         (F("maintenance_started_at") + F("maintenance_duration")), output_field=fields.DateTimeField()
@@ -106,16 +98,4 @@ def check_maintenance_finished(*args, **kwargs):
         disable_maintenance.apply_async(
             args=(),
             kwargs={"alert_receive_channel_id": id, "force": True},
-        )
-
-    organization_with_expired_maintenance_ids = (
-        Organization.objects.filter(maintenance_started_at__isnull=False)
-        .annotate(maintenance_finish_at=maintenance_finish_at)
-        .filter(maintenance_finish_at__lt=now)
-        .values_list("pk", flat=True)
-    )
-    for id in organization_with_expired_maintenance_ids:
-        disable_maintenance.apply_async(
-            args=(),
-            kwargs={"organization_id": id, "force": True},
         )
