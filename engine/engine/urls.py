@@ -65,6 +65,7 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
+        path("zvonok/", include("apps.zvonok.urls")),
     ]
 
 if settings.DEBUG:

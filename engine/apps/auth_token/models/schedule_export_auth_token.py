@@ -1,4 +1,4 @@
-from typing import Tuple
+import typing
 
 from django.db import models
 
@@ -9,6 +9,8 @@ from apps.user_management.models import Organization, User
 
 
 class ScheduleExportAuthToken(BaseAuthToken):
+    objects: models.Manager["ScheduleExportAuthToken"]
+
     class Meta:
         unique_together = ("user", "organization", "schedule")
 
@@ -25,8 +27,8 @@ class ScheduleExportAuthToken(BaseAuthToken):
 
     @classmethod
     def create_auth_token(
-        cls, user: User, organization: Organization, schedule: OnCallSchedule = None
-    ) -> Tuple["ScheduleExportAuthToken", str]:
+        cls, user: User, organization: Organization, schedule: typing.Optional[OnCallSchedule] = None
+    ) -> typing.Tuple["ScheduleExportAuthToken", str]:
         token_string = crypto.generate_schedule_token_string()
         digest = crypto.hash_token_string(token_string)
 

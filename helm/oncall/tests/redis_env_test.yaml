@@ -1,0 +1,145 @@
+suite: test Redis configs for deployments
+templates:
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+  - celery/deployment-celery.yaml
+  - secrets.yaml
+release:
+  name: oncall
+tests:
+  - it: redis.enabled=true -> should use default values from redis subchart
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: redis
+      redis.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: redis
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_HOST
+            value: oncall-redis-master
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PORT
+            value: "6379"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: redis-password
+                name: oncall-redis
+
+  - it: redis.enabled=true -> should use custom auth values from redis subchart
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: redis
+      redis.enabled: true
+      rabbitmq:
+        auth:
+          username: test_user
+          password: test_password
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: redis
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_HOST
+            value: oncall-redis-master
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PORT
+            value: "6379"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: redis-password
+                name: oncall-redis
+  
+  - it: redis.enabled=false -> should fail if host not set
+    set:
+      redis.enabled: false
+      externalRedis:
+        existingSecret: some-redis-secret
+    asserts:
+      - failedTemplate:
+          errorMessage: externalRedis.host is required if not redis.enabled
+        template: engine/job-migrate.yaml
+
+  - it: redis.enabled=false -> should fail if not externalRabbitmq.existingSecret or not externalRabbitmq.password
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: redis
+      rabbitmq.enabled: false
+      redis.enabled: false
+      asserts:
+        - failedTemplate:
+            errorMessage: externalRedis.password is required if not redis.enabled
+          template: secrets.yaml
+
+  - it: redis.enabled=false -> should use internal custom values
+    templates:
+      - engine/deployment.yaml
+      - engine/job-migrate.yaml
+      - celery/deployment-celery.yaml
+    set:
+      broker.type: redis
+      rabbitmq.enabled: false
+      redis.enabled: false
+      externalRedis:
+        host: custom-host
+        password: custom-password
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: BROKER_TYPE
+            value: redis
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_HOST
+            value: custom-host
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: redis-password
+                name: oncall-redis-external
+      - containsDocument:
+          kind: Secret
+          apiVersion: v1
+          name: oncall-redis-external
+        template: secrets.yaml
+      - equal:
+          path: data.redis-password
+          value: custom-password
+          decodeBase64: true
+        documentIndex: 1
+        template: secrets.yaml

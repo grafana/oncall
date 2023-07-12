@@ -268,7 +268,7 @@ class PhoneBackend:
         # additional cleaning, since message come from api call and wasn't cleaned by our renderer
         message = clean_markup(message).replace('"', "")
 
-        self.phone_provider.make_call(message, user.verified_phone_number)
+        self.phone_provider.make_call(user.verified_phone_number, message)
         # create PhoneCallRecord to track limits for calls from oss instances
         PhoneCallRecord.objects.create(
             receiver=user,
@@ -298,7 +298,7 @@ class PhoneBackend:
         elif sms_left < 3:
             message = self._add_sms_limit_warning(sms_left, message)
 
-        self.phone_provider.send_sms(message, user.verified_phone_number)
+        self.phone_provider.send_sms(user.verified_phone_number, message)
         SMSRecord.objects.create(
             receiver=user,
             exceeded_limit=False,

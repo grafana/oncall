@@ -9,8 +9,8 @@ import {
   Icon,
   Tooltip,
   ConfirmModal,
-  Select,
   LoadingPlaceholder,
+  Select,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -20,6 +20,7 @@ import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -33,16 +34,14 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration_2/Integration2.config';
-import IntegrationHelper from 'pages/integration_2/Integration2.helper';
+import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
+import IntegrationHelper from 'pages/integration/Integration.helper';
+import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
-
-const ACTIONS_LIST_WIDTH = 200;
-const ACTIONS_LIST_BORDER = 2;
 
 interface ExpandedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
@@ -97,31 +96,33 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
       return null;
     }
 
-    const escalationChainRedirectObj: any = { page: 'escalations' };
-    if (channelFilter.escalation_chain) {
-      escalationChainRedirectObj.id = channelFilter.escalation_chain;
-    }
-
+    const escalationChainRedirectObj: any = { page: 'escalations', id: channelFilter.escalation_chain || 'new' };
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
-    const isDefault = IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
+    const isDefault = CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex) === 'Default';
+    const channelFilterTemplate = channelFilter.filtering_term
+      ? IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)
+      : '{# Add Routing Template, e.g. {{ payload.severity == "critical" }} #}';
 
     if (isLoading) {
       return <LoadingPlaceholder text="Loading..." />;
     }
 
+    const escChainDisplayName = escalationChainStore.items[channelFilter.escalation_chain]?.name;
+
     return (
       <>
         <IntegrationBlock
-          hasCollapsedBorder
+          noContent={false}
           key={channelFilterId}
           heading={
             <HorizontalGroup justify={'space-between'}>
               <HorizontalGroup spacing={'md'}>
                 <TooltipBadge
                   borderType="success"
-                  text={IntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
-                  tooltipTitle={IntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
+                  text={CommonIntegrationHelper.getRouteConditionWording(channelFilterIds, routeIndex)}
+                  tooltipTitle={CommonIntegrationHelper.getRouteConditionTooltipWording(channelFilterIds, routeIndex)}
                   tooltipContent={undefined}
+                  className={cx('u-margin-right-xs')}
                 />
               </HorizontalGroup>
               <HorizontalGroup spacing={'xs'}>
@@ -130,6 +131,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                   channelFilterId={channelFilterId}
                   routeIndex={routeIndex}
                   setRouteIdForDeletion={() => setState({ routeIdForDeletion: channelFilterId })}
+                  openRouteTemplateEditor={() => handleEditRoutingTemplate(channelFilter, channelFilterId)}
                 />
               </HorizontalGroup>
             </HorizontalGroup>
@@ -140,8 +142,8 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                 <IntegrationBlockItem>
                   <VerticalGroup>
                     <Text type="secondary">
-                      If the Routing Template is True, group the alerts using the Grouping Template, publish them to
-                      messengers, and trigger the escalation chain.
+                      If the Routing Template is True, group alerts with the Grouping Template, send them to messengers,
+                      and trigger the escalation chain.
                     </Text>
                   </VerticalGroup>
                 </IntegrationBlockItem>
@@ -150,15 +152,20 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               {!isDefault && (
                 <IntegrationBlockItem>
                   <HorizontalGroup spacing="xs">
-                    <InlineLabel width={20}>Routing Template</InlineLabel>
+                    <InlineLabel
+                      width={20}
+                      tooltip="Routing Template should be True for the alert to go to this route."
+                    >
+                      Routing Template
+                    </InlineLabel>
                     <div className={cx('input', 'input--short')}>
                       <MonacoEditor
-                        value={IntegrationHelper.getFilteredTemplate(channelFilter.filtering_term, false)}
+                        value={channelFilterTemplate}
                         disabled={true}
                         height={MONACO_INPUT_HEIGHT_SMALL}
                         data={templates}
                         showLineNumbers={false}
-                        monacoOptions={MONACO_OPTIONS}
+                        monacoOptions={MONACO_READONLY_CONFIG}
                       />
                     </div>
                     <Button
@@ -183,7 +190,12 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
               <IntegrationBlockItem>
                 <VerticalGroup>
                   <HorizontalGroup spacing={'xs'}>
-                    <InlineLabel width={20}>Escalation chain</InlineLabel>
+                    <InlineLabel
+                      width={20}
+                      tooltip="The escalation chain determines who and when to notify when an alert group starts."
+                    >
+                      Escalation chain
+                    </InlineLabel>
                     <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Select
                         isSearchable
@@ -195,17 +207,18 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                         onChange={onEscalationChainChange}
                         options={Object.keys(escalationChainStore.items).map(
                           (eschalationChainId: EscalationChain['id']) => ({
-                            value: escalationChainStore.items[eschalationChainId].id,
+                            id: escalationChainStore.items[eschalationChainId].id,
+                            value: escalationChainStore.items[eschalationChainId].name,
                             label: escalationChainStore.items[eschalationChainId].name,
                           })
                         )}
-                        value={channelFilter.escalation_chain}
+                        value={escChainDisplayName}
                         getOptionLabel={(item: SelectableValue) => {
                           return (
                             <>
                               <Text>{item.label} </Text>
                               <TeamName
-                                team={grafanaTeamStore.items[escalationChainStore.items[item.value].team]}
+                                team={grafanaTeamStore.items[escalationChainStore.items[item.id].team]}
                                 size="small"
                               />
                             </>
@@ -214,13 +227,9 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                       ></Select>
                     </WithPermissionControlTooltip>
 
-                    <Button
-                      variant={'secondary'}
-                      tooltip={'Refresh Escalation Chains'}
-                      icon={'sync'}
-                      size={'md'}
-                      onClick={onEscalationChainsRefresh}
-                    />
+                    <Tooltip placement={'top'} content={'Reload list'}>
+                      <Button variant={'secondary'} icon={'sync'} size={'md'} onClick={onEscalationChainsRefresh} />
+                    </Tooltip>
 
                     <PluginLink className={cx('hover-button')} target="_blank" query={escalationChainRedirectObj}>
                       <Tooltip
@@ -245,7 +254,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                     )}
                   </HorizontalGroup>
 
-                  {isEscalationCollapsed && (
+                  {!isEscalationCollapsed && (
                     <ReadOnlyEscalationChain escalationChainId={channelFilter.escalation_chain} />
                   )}
                 </VerticalGroup>
@@ -270,16 +279,17 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
     async function onRouteDeleteConfirm() {
       setState({ routeIdForDeletion: undefined });
       await alertReceiveChannelStore.deleteChannelFilter(routeIdForDeletion);
+      openNotification('Route has been deleted');
     }
 
-    function onEscalationChainChange({ value }) {
+    function onEscalationChainChange({ id }) {
       alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
-          escalation_chain: value,
+          escalation_chain: id,
         })
         .then(() => {
           escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
-          escalationPolicyStore.updateEscalationPolicies(value);
+          escalationPolicyStore.updateEscalationPolicies(id);
         });
     }
 
@@ -308,6 +318,7 @@ interface RouteButtonsDisplayProps {
   channelFilterId: ChannelFilter['id'];
   routeIndex: number;
   setRouteIdForDeletion(): void;
+  openRouteTemplateEditor(): void;
 }
 
 export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
@@ -315,6 +326,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
   channelFilterId,
   routeIndex,
   setRouteIdForDeletion,
+  openRouteTemplateEditor,
 }) => {
   const { alertReceiveChannelStore } = useStore();
   const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
@@ -342,6 +354,10 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
         <WithContextMenu
           renderMenuItems={() => (
             <div className={cx('integrations-actionsList')}>
+              <div className={cx('integrations-actionItem')} onClick={openRouteTemplateEditor}>
+                <Text type="primary">Edit Template</Text>
+              </div>
+
               <CopyToClipboard text={channelFilter.id} onCopy={() => openNotification('Route ID is copied')}>
                 <div className={cx('integrations-actionItem')}>
                   <HorizontalGroup spacing={'xs'}>
@@ -352,7 +368,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
                 </div>
               </CopyToClipboard>
 
-              <div className="thin-line-break" />
+              <div className={cx('thin-line-break')} />
 
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={onDelete}>
@@ -370,8 +386,8 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           {({ openMenu }) => (
             <HamburgerMenu
               openMenu={openMenu}
-              listBorder={ACTIONS_LIST_BORDER}
-              listWidth={ACTIONS_LIST_WIDTH}
+              listBorder={2}
+              listWidth={200}
               className={'hamburgerMenu--small'}
               stopPropagation={true}
             />

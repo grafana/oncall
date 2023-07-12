@@ -4,9 +4,12 @@ import pytest
 from django.core.cache import cache
 from django.test import override_settings
 
+from apps.alerts.tasks import notify_user_task
+from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.metrics_exporter.helpers import (
     get_metric_alert_groups_response_time_key,
     get_metric_alert_groups_total_key,
+    get_metric_user_was_notified_of_alert_groups_key,
     metrics_bulk_update_team_label_cache,
 )
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
@@ -15,6 +18,7 @@ from apps.metrics_exporter.tests.conftest import (
     METRICS_TEST_INSTANCE_SLUG,
     METRICS_TEST_INTEGRATION_NAME,
     METRICS_TEST_ORG_ID,
+    METRICS_TEST_USER_USERNAME,
 )
 
 
@@ -450,3 +454,84 @@ def test_update_metrics_cache_on_update_team(
         ]:
             expected_result[alert_receive_channel.id].update(expected_result_delete_team)
         get_called_arg_index_and_compare_results()
+
+
+@patch("apps.alerts.tasks.notify_user.perform_notification")
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+@pytest.mark.django_db
+def test_update_metrics_cache_on_user_notification(
+    mocked_perform_notification_task,
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_notification_policy,
+    make_user_notification_policy_log_record,
+    make_user_was_notified_metrics_cache_params,
+    monkeypatch,
+    mock_get_metrics_cache,
+):
+    organization = make_organization(
+        org_id=METRICS_TEST_ORG_ID,
+        stack_slug=METRICS_TEST_INSTANCE_SLUG,
+        stack_id=METRICS_TEST_INSTANCE_ID,
+    )
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        verbal_name=METRICS_TEST_INTEGRATION_NAME,
+    )
+    user = make_user_for_organization(organization, username=METRICS_TEST_USER_USERNAME)
+
+    notification_policy_1 = make_user_notification_policy(user, step=UserNotificationPolicy.Step.NOTIFY)
+    make_user_notification_policy(user, step=UserNotificationPolicy.Step.NOTIFY)
+
+    alert_group_1 = make_alert_group(alert_receive_channel)
+    alert_group_2 = make_alert_group(alert_receive_channel)
+
+    make_user_notification_policy_log_record(
+        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED,
+        author=user,
+        alert_group=alert_group_1,
+    )
+
+    metrics_cache = make_user_was_notified_metrics_cache_params(user.id, organization.id)
+    monkeypatch.setattr(cache, "get", metrics_cache)
+
+    metric_user_was_notified_key = get_metric_user_was_notified_of_alert_groups_key(organization.id)
+
+    expected_result_metric_user_was_notified = {
+        user.id: {
+            "org_id": organization.org_id,
+            "slug": organization.stack_slug,
+            "id": organization.stack_id,
+            "user_username": METRICS_TEST_USER_USERNAME,
+            "counter": 1,
+        }
+    }
+
+    def get_called_arg_index_and_compare_results(cache_was_updated=False):
+        """find index for the metric argument, that was set in cache"""
+        for idx, called_arg in enumerate(mock_cache_set_called_args):
+            if idx >= arg_idx and called_arg.args[0] == metric_user_was_notified_key:
+                assert called_arg.args[1] == expected_result_metric_user_was_notified
+                return idx + 1
+        if cache_was_updated:
+            raise AssertionError
+        return arg_idx
+
+    with patch("apps.metrics_exporter.tasks.cache.set") as mock_cache_set:
+        arg_idx = 0
+        notify_user_task(user.id, alert_group_1.id)
+
+        # check user_was_notified_of_alert_groups metric cache, get called args
+        mock_cache_set_called_args = mock_cache_set.call_args_list
+        arg_idx = get_called_arg_index_and_compare_results()
+
+        # counter grows after the first notification of alert group
+        notify_user_task(user.id, alert_group_2.id)
+        expected_result_metric_user_was_notified[user.id]["counter"] += 1
+        arg_idx = get_called_arg_index_and_compare_results(cache_was_updated=True)
+
+        # counter doesn't grow after the second notification of alert group
+        notify_user_task(user.id, alert_group_2.id, previous_notification_policy_pk=notification_policy_1.id)
+        arg_idx = get_called_arg_index_and_compare_results()

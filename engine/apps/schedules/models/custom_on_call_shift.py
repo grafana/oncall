@@ -2,8 +2,7 @@ import copy
 import datetime
 import itertools
 import logging
-import random
-import string
+import typing
 from calendar import monthrange
 from uuid import uuid4
 
@@ -22,11 +21,18 @@ from recurring_ical_events import UnfoldableCalendar
 
 from apps.schedules.tasks import (
     drop_cached_ical_task,
+    refresh_ical_final_schedule,
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
 )
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.schedules.models import OnCallSchedule
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -47,6 +53,8 @@ def generate_public_primary_key_for_custom_oncall_shift():
 
 
 class CustomOnCallShift(models.Model):
+    schedules: "RelatedManager['OnCallSchedule']"
+
     (
         FREQUENCY_DAILY,
         FREQUENCY_WEEKLY,
@@ -172,8 +180,7 @@ class CustomOnCallShift(models.Model):
         null=True,
         default=None,
     )
-    name = models.CharField(max_length=200)
-    title = models.CharField(max_length=200, null=True, default=None)
+    name = models.CharField(max_length=200, null=True, default=None)
     time_zone = models.CharField(max_length=100, null=True, default=None)
     source = models.IntegerField(choices=SOURCE_CHOICES, default=SOURCE_API)
     users = models.ManyToManyField("user_management.User")  # users in single and recurrent events
@@ -213,9 +220,6 @@ class CustomOnCallShift(models.Model):
         related_name="parent_shift",
     )
 
-    class Meta:
-        unique_together = ("name", "organization")
-
     def delete(self, *args, **kwargs):
         schedules_to_update = list(self.schedules.all())
         if self.schedule:
@@ -237,6 +241,13 @@ class CustomOnCallShift(models.Model):
                     self.duration = delta
                     update_fields += ["duration"]
             self.save(update_fields=update_fields)
+        elif self.schedule:
+            # for web schedule shifts to be hard-deleted, update the rotation updated_shift links
+            previous_shift = self.schedule.custom_shifts.filter(updated_shift=self).first()
+            super().delete(*args, **kwargs)
+            if previous_shift:
+                previous_shift.updated_shift = self.updated_shift
+                previous_shift.save(update_fields=["updated_shift"])
         else:
             super().delete(*args, **kwargs)
 
@@ -323,12 +334,14 @@ class CustomOnCallShift(models.Model):
                     break
                 last_start = start
                 day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
-                if (user_group_id, day, i) in combinations:
-                    all_rotations_checked = True
-                    break
+                # double-check day is valid (when until is set, we may get unexpected days)
+                if day in self.by_day:
+                    if (user_group_id, day, i) in combinations:
+                        all_rotations_checked = True
+                        break
 
-                starting_dates.append(start)
-                combinations.append((user_group_id, day, i))
+                    starting_dates.append(start)
+                    combinations.append((user_group_id, day, i))
                 # get next event date following the original rule
                 event_ical = self.generate_ical(start, 1, None, 1, time_zone, custom_rrule=day_by_day_rrule)
                 start = self.get_rotation_date(event_ical, get_next_date=True, interval=1)
@@ -385,7 +398,10 @@ class CustomOnCallShift(models.Model):
             if self.frequency is not None and self.by_day and start is not None:
                 start_day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
                 if start_day not in self.by_day:
-                    expected_start_day = min(CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day)
+                    # when calculating first start date, make sure to sort days using week_start
+                    sorted_days = [i % 7 for i in range(self.week_start, self.week_start + 7)]
+                    selected_days = [CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day]
+                    expected_start_day = [d for d in sorted_days if d in selected_days][0]
                     delta = (expected_start_day - start.weekday()) % 7
                     start = start + datetime.timedelta(days=delta)
 
@@ -667,6 +683,14 @@ class CustomOnCallShift(models.Model):
         result %= len(self.rolling_users)
         return result
 
+    def refresh_schedule(self):
+        if not self.schedule:
+            # only trigger sync-refresh for web-created shifts
+            return
+        schedule = self.schedule.get_real_instance()
+        schedule.refresh_ical_file()
+        refresh_ical_final_schedule.apply_async((schedule.pk,))
+
     def start_drop_ical_and_check_schedule_tasks(self, schedule):
         drop_cached_ical_task.apply_async((schedule.pk,))
         schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
@@ -687,7 +711,7 @@ class CustomOnCallShift(models.Model):
         # prepare dict with params of existing instance with last updates and remove unique and m2m fields from it
         shift_to_update = self.last_updated_shift or self
         instance_data = model_to_dict(shift_to_update)
-        fields_to_remove = ["id", "public_primary_key", "uuid", "users", "updated_shift", "name"]
+        fields_to_remove = ["id", "public_primary_key", "uuid", "users", "updated_shift"]
         for field in fields_to_remove:
             instance_data.pop(field)
 
@@ -705,9 +729,6 @@ class CustomOnCallShift(models.Model):
 
         if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
             # create new shift
-            instance_data["name"] = CustomOnCallShift.generate_name(
-                self.schedule, instance_data["priority_level"], instance_data["type"]
-            )
             with transaction.atomic():
                 shift = CustomOnCallShift(**instance_data)
                 shift.save()
@@ -721,13 +742,6 @@ class CustomOnCallShift(models.Model):
             shift.save(update_fields=list(instance_data))
 
         return shift
-
-    @staticmethod
-    def generate_name(schedule, priority_level, shift_type):
-        shift_type_name = "override" if shift_type == CustomOnCallShift.TYPE_OVERRIDE else "rotation"
-        name = f"{schedule.name}-{shift_type_name}-{priority_level}-"
-        name += "".join(random.choice(string.ascii_lowercase) for _ in range(5))
-        return name
 
     # Insight logs
     @property

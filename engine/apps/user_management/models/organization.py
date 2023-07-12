@@ -18,6 +18,19 @@ from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insi
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.auth_token.models import (
+        ApiAuthToken,
+        PluginAuthToken,
+        ScheduleExportAuthToken,
+        UserScheduleExportAuthToken,
+    )
+    from apps.mobile_app.models import MobileAppAuthToken
+    from apps.schedules.models import OnCallSchedule
+    from apps.user_management.models import User
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,7 +49,6 @@ def generate_public_primary_key_for_organization():
 
 
 class ProvisionedPlugin(typing.TypedDict):
-    error: typing.Union[str, None]
     stackId: int
     orgId: int
     onCallToken: str
@@ -64,6 +76,14 @@ class OrganizationManager(models.Manager):
 
 
 class Organization(MaintainableObject):
+    auth_tokens: "RelatedManager['ApiAuthToken']"
+    mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
+    oncall_schedules: "RelatedManager['OnCallSchedule']"
+    plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+    users: "RelatedManager['User']"
+
     objects = OrganizationManager()
     objects_with_deleted = models.Manager()
 

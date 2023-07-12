@@ -46,6 +46,8 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
             return requests.delete(url, headers=headers)
         elif method == "OPTIONS":
             return requests.options(url, headers=headers)
+        elif method == "PATCH":
+            return requests.patch(url, data=body, headers=headers)
 
 
 class OrganizationDeletedMiddleware(MiddlewareMixin):

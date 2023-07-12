@@ -46,6 +46,13 @@ from apps.user_management.models import User
 from common.database import NON_POLYMORPHIC_CASCADE, NON_POLYMORPHIC_SET_NULL
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+    from apps.auth_token.models import ScheduleExportAuthToken
+
+
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
 RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?(\w+)")
 
@@ -67,16 +74,21 @@ class QualityReportOverloadedUser(typing.TypedDict):
     score: int
 
 
+QualityReportOverloadedUsers = typing.List[QualityReportOverloadedUser]
+QualityReportComments = typing.List[QualityReportComment]
+
+
 class QualityReport(typing.TypedDict):
     total_score: int
-    comments: typing.List[QualityReportComment]
-    overloaded_users: typing.List[QualityReportOverloadedUser]
+    comments: QualityReportComments
+    overloaded_users: QualityReportOverloadedUsers
 
 
 class ScheduleEventUser(typing.TypedDict):
     display_name: str
     pk: str
     email: str
+    avatar_full: str
 
 
 class ScheduleEventShift(typing.TypedDict):
@@ -89,9 +101,9 @@ class ScheduleEvent(typing.TypedDict):
     end: datetime.datetime
     users: typing.List[ScheduleEventUser]
     missing_users: typing.List[str]
-    priority_level: typing.Union[int, None]
-    source: typing.Union[str, None]
-    calendar_type: typing.Union[int, None]
+    priority_level: typing.Optional[int]
+    source: typing.Optional[str]
+    calendar_type: typing.Optional[int]
     is_empty: bool
     is_gap: bool
     is_override: bool
@@ -109,6 +121,7 @@ class ScheduleFinalShift(typing.TypedDict):
 ScheduleEvents = typing.List[ScheduleEvent]
 ScheduleEventIntervals = typing.List[typing.List[datetime.datetime]]
 ScheduleFinalShifts = typing.List[ScheduleFinalShift]
+DurationMap = typing.Dict[str, datetime.timedelta]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():
@@ -217,14 +230,14 @@ class OnCallSchedule(PolymorphicModel):
     has_empty_shifts = models.BooleanField(default=False)
     empty_shifts_report_sent_at = models.DateField(null=True, default=None)
 
-    def get_icalendars(self):
+    def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""
-        calendar_primary = None
-        calendar_overrides = None
+        calendar_primary: typing.Optional[icalendar.Calendar] = None
+        calendar_overrides: typing.Optional[icalendar.Calendar] = None
         # if self._ical_file_(primary|overrides) is None -> no cache, will trigger a refresh
         # if self._ical_file_(primary|overrides) == "" -> cached value for an empty schedule
         if self._ical_file_primary:
-            calendar_primary = icalendar.Calendar.from_ical(self._ical_file_primary)
+            calendar_primary: icalendar.Calendar = icalendar.Calendar.from_ical(self._ical_file_primary)
         if self._ical_file_overrides:
             calendar_overrides = icalendar.Calendar.from_ical(self._ical_file_overrides)
         return calendar_primary, calendar_overrides
@@ -260,9 +273,11 @@ class OnCallSchedule(PolymorphicModel):
         self._refresh_primary_ical_file()
         self._refresh_overrides_ical_file()
 
+    @property
     def _ical_file_primary(self):
         raise NotImplementedError
 
+    @property
     def _ical_file_overrides(self):
         raise NotImplementedError
 
@@ -335,6 +350,7 @@ class OnCallSchedule(PolymorphicModel):
                         "display_name": user.username,
                         "email": user.email,
                         "pk": user.public_primary_key,
+                        "avatar_full": user.avatar_full_url,
                     }
                     for user in shift["users"]
                 ],
@@ -468,7 +484,7 @@ class OnCallSchedule(PolymorphicModel):
         events = self.final_events(user_tz="UTC", starting_date=date, days=days)
 
         # an event is “good” if it's not a gap and not empty
-        good_events = [event for event in events if not event["is_gap"] and not event["is_empty"]]
+        good_events: ScheduleEvents = [event for event in events if not event["is_gap"] and not event["is_empty"]]
         if not good_events:
             return {
                 "total_score": 0,
@@ -476,7 +492,7 @@ class OnCallSchedule(PolymorphicModel):
                 "overloaded_users": [],
             }
 
-        def event_duration(ev: dict) -> datetime.timedelta:
+        def event_duration(ev: ScheduleEvent) -> datetime.timedelta:
             return ev["end"] - ev["start"]
 
         def timedelta_sum(deltas: typing.Iterable[datetime.timedelta]) -> datetime.timedelta:
@@ -485,9 +501,9 @@ class OnCallSchedule(PolymorphicModel):
         def score_to_percent(value: float) -> int:
             return round(value * 100)
 
-        def get_duration_map(evs: list[dict]) -> dict[str, datetime.timedelta]:
+        def get_duration_map(evs: ScheduleEvents) -> DurationMap:
             """Return a map of user PKs to total duration of events they are in."""
-            result = defaultdict(datetime.timedelta)
+            result: DurationMap = defaultdict(datetime.timedelta)
             for ev in evs:
                 for user in ev["users"]:
                     user_pk = user["pk"]
@@ -495,7 +511,7 @@ class OnCallSchedule(PolymorphicModel):
 
             return result
 
-        def get_balance_score_by_duration_map(dur_map: dict[str, datetime.timedelta]) -> float:
+        def get_balance_score_by_duration_map(dur_map: DurationMap) -> float:
             """
             Return a score between 0 and 1, based on how balanced the durations are in the duration map.
             The formula is taken from https://github.com/grafana/oncall/issues/118#issuecomment-1161787854.
@@ -503,7 +519,7 @@ class OnCallSchedule(PolymorphicModel):
             if len(dur_map) <= 1:
                 return 1
 
-            result = 0
+            result = 0.0
             for key_1, key_2 in itertools.combinations(dur_map, 2):
                 duration_1 = dur_map[key_1]
                 duration_2 = dur_map[key_2]
@@ -524,9 +540,10 @@ class OnCallSchedule(PolymorphicModel):
         balance_score = score_to_percent(balance_score)
 
         # calculate overloaded users
+        overloaded_users: QualityReportOverloadedUsers = []
+
         if balance_score >= 95:  # tolerate minor imbalance
             balance_score = 100
-            overloaded_users = []
         else:
             average_duration = timedelta_sum(duration_map.values()) / len(duration_map)
             overloaded_user_pks = [
@@ -540,7 +557,6 @@ class OnCallSchedule(PolymorphicModel):
                     "public_primary_key", "username"
                 )
             }
-            overloaded_users = []
             for user_pk in overloaded_user_pks:
                 score = score_to_percent(duration_map[user_pk] / average_duration) - 100
                 username = usernames.get(user_pk) or "unknown"  # fallback to "unknown" if user is not found
@@ -550,7 +566,7 @@ class OnCallSchedule(PolymorphicModel):
             overloaded_users.sort(key=lambda u: (-u["score"], u["username"]))
 
         # generate comments regarding gaps
-        comments = []
+        comments: QualityReportComments = []
         if good_event_score == 100:
             comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule has no gaps"})
         else:
@@ -628,8 +644,8 @@ class OnCallSchedule(PolymorphicModel):
         resolved: ScheduleEvents = []
         pending: ScheduleEvents = events
         current_interval_idx = 0  # current scheduled interval being checked
-        current_type = OnCallSchedule.TYPE_ICAL_OVERRIDES  # current calendar type
-        current_priority = None  # current priority level being resolved
+        current_type: typing.Optional[int] = OnCallSchedule.TYPE_ICAL_OVERRIDES  # current calendar type
+        current_priority: typing.Optional[int] = None  # current priority level being resolved
 
         while pending:
             ev = pending.pop(0)
@@ -764,22 +780,9 @@ class OnCallSchedule(PolymorphicModel):
 
         extra_shifts = [custom_shift]
         if updated_shift_pk is not None:
-            try:
-                update_shift = qs.get(public_primary_key=updated_shift_pk)
-            except CustomOnCallShift.DoesNotExist:
-                pass
-            else:
-                if update_shift.event_is_started:
-                    custom_shift.rotation_start = max(
-                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
-                    )
-                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
-                    update_shift.until = custom_shift.rotation_start
-                    extra_shifts.append(update_shift)
-                else:
-                    # only reuse PK for preview when updating a rotation that won't be started after the update
-                    custom_shift.public_primary_key = updated_shift_pk
-                qs = qs.exclude(public_primary_key=updated_shift_pk)
+            # only reuse PK for preview when updating a rotation that won't be started after the update
+            custom_shift.public_primary_key = updated_shift_pk
+            qs = qs.exclude(public_primary_key=updated_shift_pk)
 
         ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
 
@@ -791,7 +794,7 @@ class OnCallSchedule(PolymorphicModel):
         events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
         # return preview events for affected shifts
         updated_shift_pks = {s.public_primary_key for s in extra_shifts}
-        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
+        shift_events = [e.copy() for e in events if e["shift"]["pk"] in updated_shift_pks]
         final_events = self._resolve_schedule(events)
 
         _invalidate_cache(self, ical_property)
@@ -842,6 +845,10 @@ class OnCallSchedule(PolymorphicModel):
 
 
 class OnCallScheduleICal(OnCallSchedule):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+    objects: models.Manager["OnCallScheduleICal"]
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+
     # For the ical schedule both primary and overrides icals are imported via ical url
     ical_url_primary = models.CharField(max_length=500, null=True, default=None)
     ical_file_error_primary = models.CharField(max_length=200, null=True, default=None)
@@ -907,6 +914,10 @@ class OnCallScheduleICal(OnCallSchedule):
 
 
 class OnCallScheduleCalendar(OnCallSchedule):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+    objects: models.Manager["OnCallScheduleCalendar"]
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+
     # For the calendar schedule only overrides ical is imported via ical url.
     ical_url_overrides = models.CharField(max_length=500, null=True, default=None)
     ical_file_error_overrides = models.CharField(max_length=200, null=True, default=None)
@@ -1000,6 +1011,10 @@ class OnCallScheduleCalendar(OnCallSchedule):
 
 
 class OnCallScheduleWeb(OnCallSchedule):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+    objects: models.Manager["OnCallScheduleWeb"]
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+
     time_zone = models.CharField(max_length=100, default="UTC")
 
     def _generate_ical_file_primary(self):

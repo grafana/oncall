@@ -96,7 +96,7 @@ jobs:
       SLACK_CLIENT_OAUTH_ID: 1
     services:
       rabbit_test:
-        image: rabbitmq:3.7.19
+        image: rabbitmq:3.12.0
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -148,7 +148,7 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
-        image: rabbitmq:3.7.19
+        image: rabbitmq:3.12.0
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -192,7 +192,7 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
-        image: rabbitmq:3.7.19
+        image: rabbitmq:3.12.0
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -468,8 +468,12 @@ jobs:
           # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
           # to the OnCall API
           ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_USERNAME: oncall
-          GRAFANA_PASSWORD: oncall
+          GRAFANA_ADMIN_USERNAME: oncall
+          GRAFANA_ADMIN_PASSWORD: oncall
+          GRAFANA_EDITOR_USERNAME: editor
+          GRAFANA_EDITOR_PASSWORD: editor
+          GRAFANA_VIEWER_USERNAME: viewer
+          GRAFANA_VIEWER_PASSWORD: viewer
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
         run: yarn test:integration

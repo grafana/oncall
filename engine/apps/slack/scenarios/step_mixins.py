@@ -4,6 +4,7 @@ import logging
 from apps.alerts.models import AlertGroup
 from apps.api.permissions import user_is_authorized
 from apps.slack.models import SlackMessage, SlackTeamIdentity
+from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,8 @@ class AlertGroupActionsMixin:
     """
     Mixin for alert group actions (ack, resolve, etc.). Intended to be used as a mixin along with ScenarioStep.
     """
+
+    user: User | None
 
     REQUIRED_PERMISSIONS = []
 
@@ -132,6 +135,7 @@ class AlertGroupActionsMixin:
                 continue
 
             return AlertGroup.all_objects.get(pk=alert_group_pk)
+        return None
 
     def _get_alert_group_from_slack_message_in_db(
         self, slack_team_identity: SlackTeamIdentity, payload: dict

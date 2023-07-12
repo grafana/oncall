@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { VerticalGroup, HorizontalGroup, IconButton } from '@grafana/ui';
 import { arrayMoveImmutable } from 'array-move';
@@ -21,6 +21,7 @@ interface UserGroupsProps {
   isMultipleGroups: boolean;
   renderUser: (id: string) => React.ReactElement;
   showError?: boolean;
+  disabled?: boolean;
 }
 
 const cx = cn.bind(styles);
@@ -30,7 +31,9 @@ const DragHandle = () => <IconButton className={cx('icon')} name="draggabledots"
 const SortableHandleHoc = SortableHandle(DragHandle);
 
 const UserGroups = (props: UserGroupsProps) => {
-  const { value, onChange, isMultipleGroups, renderUser, showError } = props;
+  const { value, onChange, isMultipleGroups, renderUser, showError, disabled } = props;
+
+  const rootRef = useRef<HTMLDivElement>();
 
   const handleAddUserGroup = useCallback(() => {
     onChange([...value, []]);
@@ -62,12 +65,15 @@ const UserGroups = (props: UserGroupsProps) => {
 
       const newGroups = [...value];
       let lastGroup = newGroups[newGroups.length - 1];
-      if (!lastGroup) {
-        lastGroup = [];
-        newGroups.push(lastGroup);
+      if (!isMultipleGroups || (lastGroup && !lastGroup.length)) {
+        if (!lastGroup) {
+          lastGroup = [];
+          newGroups.push(lastGroup);
+        }
+        lastGroup.push(pk);
+      } else {
+        newGroups.push([pk]);
       }
-
-      lastGroup.push(pk);
 
       onChange(newGroups);
     },
@@ -91,32 +97,47 @@ const UserGroups = (props: UserGroupsProps) => {
     };
   };
 
+  useEffect(() => {
+    const container = rootRef.current.parentElement.parentElement.parentElement;
+    const containerParent = container.parentElement;
+
+    containerParent.scroll({
+      left: 0,
+      top: container.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [value]);
+
   const renderItem = (item: Item, index: number) => (
     <li className={cx('user')}>
       {renderUser(item.data)}
-      <div className={cx('user-buttons')}>
-        <HorizontalGroup>
-          <IconButton className={cx('icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
-          <SortableHandleHoc />
-        </HorizontalGroup>
-      </div>
+      {!disabled && (
+        <div className={cx('user-buttons')}>
+          <HorizontalGroup>
+            <IconButton className={cx('icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
+            <SortableHandleHoc />
+          </HorizontalGroup>
+        </div>
+      )}
     </li>
   );
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} ref={rootRef}>
       <VerticalGroup>
-        <RemoteSelect
-          key={items.length}
-          showSearch
-          placeholder="Add user"
-          href={`/users/?permission=${UserActions.NotificationsRead.permission}&filters=true`}
-          value={null}
-          onChange={handleUserAdd}
-          showError={showError}
-          maxMenuHeight={150}
-          requiredUserAction={UserActions.UserSettingsWrite}
-        />
+        {!disabled && (
+          <RemoteSelect
+            key={items.length}
+            showSearch
+            placeholder="Add user"
+            href={`/users/?permission=${UserActions.NotificationsRead.permission}&filters=true`}
+            value={null}
+            onChange={handleUserAdd}
+            showError={showError}
+            maxMenuHeight={150}
+            requiredUserAction={UserActions.UserSettingsWrite}
+          />
+        )}
         <SortableList
           renderItem={renderItem}
           axis="y"
@@ -128,6 +149,7 @@ const UserGroups = (props: UserGroupsProps) => {
           handleDeleteItem={handleDeleteUser}
           isMultipleGroups={isMultipleGroups}
           useDragHandle
+          allowCreate={!disabled}
         />
       </VerticalGroup>
     </div>
@@ -146,33 +168,36 @@ interface SortableListProps {
   handleDeleteItem: (index: number) => void;
   isMultipleGroups: boolean;
   renderItem: (item: Item, index: number) => React.ReactElement;
+  allowCreate?: boolean;
 }
 
-const SortableList = SortableContainer<SortableListProps>(({ items, handleAddGroup, isMultipleGroups, renderItem }) => {
-  return (
-    <ul className={cx('groups')}>
-      {items.map((item, index) =>
-        item.type === 'item' ? (
-          <SortableItem key={item.key} index={index}>
-            {renderItem(item, index)}
-          </SortableItem>
-        ) : isMultipleGroups ? (
-          <SortableItem key={item.key} index={index}>
-            <li className={cx('separator')}>
-              <Text type="secondary">{item.data.name}</Text>
+const SortableList = SortableContainer<SortableListProps>(
+  ({ items, handleAddGroup, isMultipleGroups, renderItem, allowCreate }) => {
+    return (
+      <ul className={cx('groups')}>
+        {items.map((item, index) =>
+          item.type === 'item' ? (
+            <SortableItem key={item.key} index={index}>
+              {renderItem(item, index)}
+            </SortableItem>
+          ) : isMultipleGroups ? (
+            <SortableItem key={item.key} index={index}>
+              <li className={cx('separator')}>
+                <Text type="secondary">{item.data.name}</Text>
+              </li>
+            </SortableItem>
+          ) : null
+        )}
+        {allowCreate && isMultipleGroups && items[items.length - 1]?.type === 'item' && (
+          <SortableItem disabled key="New Group" index={items.length + 1}>
+            <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
+              <Text type="primary">+ Add user group</Text>
             </li>
           </SortableItem>
-        ) : null
-      )}
-      {isMultipleGroups && items[items.length - 1]?.type === 'item' && (
-        <SortableItem disabled key="New Group" index={items.length + 1}>
-          <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
-            <Text type="secondary">Add user group +</Text>
-          </li>
-        </SortableItem>
-      )}
-    </ul>
-  );
-});
+        )}
+      </ul>
+    );
+  }
+);
 
 export default UserGroups;

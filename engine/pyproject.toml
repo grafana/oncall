@@ -12,6 +12,7 @@ target-version = ["py39"]
 force-exclude = "migrations"
 
 [tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/type_stubs"
 implicit_reexport = true
 plugins = [
     "mypy_django_plugin.main",
@@ -21,6 +22,27 @@ exclude = [
     # TOML's double-quoted strings require escaping backslashes
     "tests/test_.*\\.py$",    # test files
     "migrations/\\d*.*\\.py",  # migration files
+]
+disable_error_code = [
+    "abstract",
+    "annotation-unchecked",
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "call-arg",
+    "call-overload",
+    "has-type",
+    "import",
+    "index",
+    "misc",
+    "name-defined",
+    "no-redef",
+    "operator",
+    "return-value",
+    "typeddict-item",
+    "union-attr",
+    "valid-type",
+    "var-annotated",
 ]
 
 # mypy per-module options
@@ -39,7 +61,7 @@ module = [
     "fcm_django.*",
     "firebase_admin.*",
     "humanize.*",
-    "icalendar.*",
+    "ipware.*",
     "markdown2.*",
     "mirage.*",
     "ordered_model.*",
@@ -50,6 +72,7 @@ module = [
     "recurring_ical_events.*",
     "rest_polymorphic.*",
     "slackclient.*",
+    "slackviewer.*",
     "social_core.*",
     "social_django.*",
     "twilio.*",

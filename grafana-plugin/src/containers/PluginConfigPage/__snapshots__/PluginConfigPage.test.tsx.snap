@@ -19,16 +19,39 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
       ohhh nooo an error msg from self hosted install plugin
     </span>
   </pre>
-  <button
-    class="css-1ed0qk5-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
@@ -152,16 +175,39 @@ exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected r
       ohhh nooo a plugin connection error
     </span>
   </pre>
-  <button
-    class="css-1ed0qk5-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
@@ -173,14 +219,7 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
     Configure Grafana OnCall
   </legend>
   <p>
-    Plugin is connected! Continue to Grafana OnCall by clicking the
-     
-    <img
-      alt="Grafana OnCall Logo"
-      src="[object Object]"
-      width="18"
-    />
-     icon over there 👈
+    Plugin is connected! Continue to Grafana OnCall by clicking OnCall under Alerts & IRM in the navigation over there 👈
   </p>
   <pre
     data-testid="status-message-block"
@@ -204,7 +243,7 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
 <div>
   <legend
     class="css-11wqcat"
@@ -212,14 +251,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
     Configure Grafana OnCall
   </legend>
   <p>
-    Plugin is connected! Continue to Grafana OnCall by clicking the
-     
-    <img
-      alt="Grafana OnCall Logo"
-      src="[object Object]"
-      width="18"
-    />
-     icon over there 👈
+    Plugin is connected! Continue to Grafana OnCall by clicking OnCall under Alerts & IRM in the navigation over there 👈
   </p>
   <pre
     data-testid="status-message-block"
@@ -243,7 +275,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
 <div>
   <legend
     class="css-11wqcat"
@@ -251,14 +283,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
     Configure Grafana OnCall
   </legend>
   <p>
-    Plugin is connected! Continue to Grafana OnCall by clicking the
-     
-    <img
-      alt="Grafana OnCall Logo"
-      src="[object Object]"
-      width="18"
-    />
-     icon over there 👈
+    Plugin is connected! Continue to Grafana OnCall by clicking OnCall under Alerts & IRM in the navigation over there 👈
   </p>
   <pre
     data-testid="status-message-block"
@@ -283,7 +308,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall returns an error 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData returns an error 1`] = `
 <div>
   <legend
     class="css-11wqcat"
@@ -302,16 +327,39 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall returns an
       ohhh noooo a sync issue
     </span>
   </pre>
-  <button
-    class="css-z53gi5-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Retry Sync
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 
@@ -334,16 +382,39 @@ exports[`PluginConfigPage Plugin reset: successful - false 1`] = `
       There was an error resetting your plugin, try again.
     </span>
   </pre>
-  <button
-    class="css-1ed0qk5-button"
-    type="button"
+  <div
+    class="css-ve64a7-horizontal-group"
+    style="width: 100%; height: 100%;"
   >
-    <span
-      class="css-1mhnkuh"
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
     >
-      Remove current configuration
-    </span>
-  </button>
+      <button
+        class="css-z53gi5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Retry Sync
+        </span>
+      </button>
+    </div>
+    <div
+      class="css-cvef6c-layoutChildrenWrapper"
+    >
+      <button
+        class="css-1ed0qk5-button"
+        type="button"
+      >
+        <span
+          class="css-1mhnkuh"
+        >
+          Remove current configuration
+        </span>
+      </button>
+    </div>
+  </div>
 </div>
 `;
 

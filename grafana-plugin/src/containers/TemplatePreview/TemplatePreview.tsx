@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
@@ -19,35 +20,58 @@ const cx = cn.bind(styles);
 interface TemplatePreviewProps {
   templateName: string;
   templateBody: string | null;
+  templateType?: 'plain' | 'html' | 'image' | 'boolean';
+  templateIsRoute?: boolean;
   payload?: JSON;
   alertReceiveChannelId: AlertReceiveChannel['id'];
-  onEditClick?: () => void;
   alertGroupId?: Alert['pk'];
-  active?: boolean;
-  onResult?: (result) => void;
+  outgoingWebhookId?: OutgoingWebhook2['id'];
+  templatePage: TEMPLATE_PAGE;
+}
+interface ConditionalResult {
+  isResult?: boolean;
+  value?: string;
+}
+
+export enum TEMPLATE_PAGE {
+  Integrations,
+  Webhooks,
 }
 
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, payload, alertReceiveChannelId, alertGroupId } = props;
+  const {
+    templateName,
+    templateBody,
+    templateType,
+    payload,
+    alertReceiveChannelId,
+    outgoingWebhookId,
+    alertGroupId,
+    templateIsRoute,
+    templatePage,
+  } = props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
-  const [isCondition, setIsCondition] = useState(false);
-  // const [conditionalResult, setConditionalResult] = useState()
+  const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
-  const { alertReceiveChannelStore, alertGroupStore } = store;
+  const { alertReceiveChannelStore, alertGroupStore, outgoingWebhook2Store } = store;
 
   const handleTemplateBodyChange = useDebouncedCallback(() => {
-    (alertGroupId
+    (templatePage === TEMPLATE_PAGE.Webhooks
+      ? outgoingWebhook2Store.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
+      : alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
       : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )
       .then((data) => {
         setResult(data);
         if (data?.preview === 'True') {
-          setIsCondition(true);
+          setConditionalResult({ isResult: true, value: 'True' });
+        } else if (templateType === 'boolean') {
+          setConditionalResult({ isResult: true, value: 'False' });
         } else {
-          setIsCondition(false);
+          setConditionalResult({ isResult: false, value: undefined });
         }
       })
       .catch((err) => {
@@ -61,56 +85,104 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
 
   useEffect(handleTemplateBodyChange, [templateBody, payload]);
 
-  return result ? (
-    <>
-      {templateName.includes('condition_template') ? (
-        <Text type={isCondition ? 'success' : 'danger'}>
-          {isCondition ? (
-            <>
-              <Icon name="check" size="lg" /> True
-              <Text type="secondary">{`Selected alert will ${templateName.substring(
-                0,
-                templateName.indexOf('_')
-              )} alert group`}</Text>
-            </>
-          ) : (
-            <VerticalGroup>
-              <HorizontalGroup>
-                <Icon name="times-circle" size="lg" />
-                <div
-                  className={cx('message')}
-                  dangerouslySetInnerHTML={{
-                    __html: sanitize(result.preview || ''),
-                  }}
-                />
-              </HorizontalGroup>
-              <Text type="secondary">{`Selected alert will not ${templateName.substring(
-                0,
-                templateName.indexOf('_')
-              )} alert group`}</Text>
-            </VerticalGroup>
-          )}
+  const conditionalMessage = (success: boolean) => {
+    if (templateIsRoute) {
+      return (
+        <Text type="secondary">
+          Selected alert will {!success && <Text type="secondary">not</Text>} be matched with this route
         </Text>
-      ) : (
-        <>
-          {templateName.includes('image') ? (
-            <div className={cx('image-result')}>
-              <img src={result.preview} />
-            </div>
-          ) : (
-            <div
-              className={cx('message')}
-              dangerouslySetInnerHTML={{
-                __html: sanitize(result.preview.replace(/\n/g, '<br />') || ''),
-              }}
-            />
-          )}
-        </>
-      )}
-    </>
-  ) : (
-    <LoadingPlaceholder text="Loading..." />
-  );
+      );
+    } else {
+      return (
+        <Text type="secondary">
+          Selected alert will {!success && <Text type="secondary">not</Text>}{' '}
+          {`${templateName.substring(0, templateName.indexOf('_'))} alert group`}
+        </Text>
+      );
+    }
+  };
+
+  function renderResult() {
+    switch (templateType) {
+      case 'html': {
+        return renderHtmlResult();
+      }
+      case 'image': {
+        return renderImageResult();
+      }
+      case 'boolean': {
+        return renderBooleanResult();
+      }
+      case 'plain': {
+        return renderPlainResult();
+      }
+      default: {
+        return renderPlainResult();
+      }
+    }
+  }
+  function renderBooleanResult() {
+    return (
+      <Text type={conditionalResult.value === 'True' ? 'success' : 'danger'}>
+        {conditionalResult.value === 'True' ? (
+          <VerticalGroup>
+            <HorizontalGroup>
+              <Icon name="check" size="lg" /> {conditionalResult.value}
+            </HorizontalGroup>
+            {conditionalMessage(conditionalResult.value === 'True')}
+          </VerticalGroup>
+        ) : (
+          <VerticalGroup>
+            <HorizontalGroup>
+              <Icon name="times-circle" size="lg" />
+              <div
+                className={cx('message')}
+                dangerouslySetInnerHTML={{
+                  __html: sanitize(result.preview),
+                }}
+              />
+            </HorizontalGroup>
+            {conditionalMessage(conditionalResult.value === 'True')}
+          </VerticalGroup>
+        )}
+      </Text>
+    );
+  }
+  function renderHtmlResult() {
+    return (
+      <div
+        className={cx('message')}
+        dangerouslySetInnerHTML={{
+          __html: sanitize(result.preview),
+        }}
+      />
+    );
+  }
+  function renderPlainResult() {
+    return (
+      <div
+        className={cx('message', 'display-linebreak')}
+        dangerouslySetInnerHTML={{
+          __html: sanitize(result.preview),
+        }}
+      />
+    );
+  }
+  function renderImageResult() {
+    return (
+      <div className={cx('image-result')}>
+        <img
+          src={result.preview}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.alt = result.preview || 'No image found';
+          }}
+        />
+      </div>
+    );
+  }
+
+  return result ? <>{renderResult()}</> : <LoadingPlaceholder text="Loading..." />;
 });
 
 export default TemplatePreview;

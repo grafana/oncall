@@ -117,6 +117,9 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         default_route_data = validated_data.pop("default_route", None)
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
+        # hack to block alertmanager_v2 integration, will be removed
+        if integration == "alertmanager_v2":
+            raise BadRequest
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
