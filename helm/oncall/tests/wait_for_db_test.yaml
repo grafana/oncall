@@ -10,12 +10,12 @@ tests:
   - it: database.type=mysql -> should create initContainer for MySQL database (default)
     set:
       resources:
-            limits:
-              cpu: 100m
-              memory: 128Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+           cpu: 100m
+           memory: 128Mi
     asserts:
       - contains:
           path: spec.template.spec.initContainers
@@ -35,12 +35,12 @@ tests:
       database.type: postgresql
       externalPostgresql.host: some-postgresql-host
       resources:
-            limits:
-              cpu: 100m
-              memory: 128Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+           cpu: 100m
+           memory: 128Mi
     asserts:
       - contains:
           path: spec.template.spec.initContainers
