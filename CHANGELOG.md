@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- [Helm] Added ability to specify `resources` definition within the `wait-for-db` init container by @Shelestov7
+  ([#2501](https://github.com/grafana/oncall/pull/2501))
+
 ## v1.3.9 (2023-07-12)
 
 ### Added
@@ -15,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add debounce on Select UI components to avoid making API search requests on each key-down event by
   @maskin25 ([#2466](https://github.com/grafana/oncall/pull/2466))
-
-- Added 'resources limits' definition for wait-for-db in init container 
 
 ## v1.3.8 (2023-07-11)
 
