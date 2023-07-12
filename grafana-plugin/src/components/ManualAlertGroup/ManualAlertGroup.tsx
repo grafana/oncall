@@ -12,7 +12,6 @@ import {
   VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -88,7 +87,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
     [userResponders, scheduleResponders]
   );
 
-  const DirectPagingIntegrationVariants = observer(({ selectedTeamId, selectedTeamDirectPaging }) => {
+  const DirectPagingIntegrationVariants = ({ selectedTeamId, selectedTeamDirectPaging }) => {
     const warningTitle = (
       <>
         <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />{' '}
@@ -137,7 +136,12 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
           ))}
       </VerticalGroup>
     );
-  });
+  };
+
+  const submitButtonDisabled = !(
+    selectedTeamId &&
+    (selectedTeamDirectPaging || userResponders.length || scheduleResponders.length)
+  );
 
   return (
     <Drawer
@@ -145,7 +149,6 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
       title="Create manual alert group (Direct Paging)"
       onClose={onHide}
       closeOnMaskClick={false}
-      width={'70%'}
     >
       <VerticalGroup>
         <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
@@ -166,13 +169,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            form={manualAlertFormConfig.name}
-            disabled={
-              !(selectedTeamId && (selectedTeamDirectPaging || userResponders.length || scheduleResponders.length))
-            }
-          >
+          <Button type="submit" form={manualAlertFormConfig.name} disabled={submitButtonDisabled}>
             Create
           </Button>
         </HorizontalGroup>
