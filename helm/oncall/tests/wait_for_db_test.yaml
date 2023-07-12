@@ -8,6 +8,14 @@ chart:
   appVersion: v1.2.36
 tests:
   - it: database.type=mysql -> should create initContainer for MySQL database (default)
+    set:
+      resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
     asserts:
       - contains:
           path: spec.template.spec.initContainers
@@ -26,6 +34,13 @@ tests:
     set:
       database.type: postgresql
       externalPostgresql.host: some-postgresql-host
+      resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
     asserts:
       - contains:
           path: spec.template.spec.initContainers
