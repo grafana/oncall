@@ -108,7 +108,7 @@ test.describe('maintenance mode works', () => {
     return { escalationChainName, integrationName };
   };
 
-  test.only('debug mode', async ({ adminRolePage: { page, userName } }) => {
+  test('debug mode', async ({ adminRolePage: { page, userName } }) => {
     const { escalationChainName, integrationName } = await createIntegrationAndEscalationChainAndEnableMaintenanceMode(
       page,
       userName,
