@@ -29,10 +29,19 @@ const incidentTimelineContainsStep = async (page: Page, triggeredStepText: strin
   return true;
 };
 
+/**
+ * recursively refreshes the page waiting for the background celery workers to have done their job of
+ * creating the alert group
+ */
 export const filterAlertGroupsTableByIntegrationAndGoToDetailPage = async (
   page: Page,
-  integrationName: string
+  integrationName: string,
+  retryNum = 0
 ): Promise<void> => {
+  if (retryNum > MAX_RETRIES) {
+    throw new Error('we were not able to properly filter the alert groups table by integration');
+  }
+
   await goToOnCallPage(page, 'incidents');
 
   // filter by integration
@@ -46,10 +55,22 @@ export const filterAlertGroupsTableByIntegrationAndGoToDetailPage = async (
   await selectValuePickerValue(page, integrationName, false);
 
   /**
-   * wait for the alert groups to be filtered then
-   * click on the alert group and go to the individual alert group page
+   * wait for the alert groups to be filtered then by this particular integration (toBeVisible assertion),
+   * then click on the alert group and go to the individual alert group page
    */
-  await (await page.waitForSelector('table > tbody > tr > td:nth-child(4) a')).click();
+  const firstTableRow = page.locator('table > tbody > tr:first-child');
+
+  try {
+    /**
+     * wait for up to 5 seconds for the alert groups to be filtered, if the first row does not correspond
+     * to `integrationName` assume that the background workers have not created it yet and lets
+     * recursively retry this function
+     */
+    await firstTableRow.getByText(integrationName).waitFor({ state: 'visible', timeout: 5000 });
+    await firstTableRow.locator('td:nth-child(4) a').click();
+  } catch (err) {
+    return filterAlertGroupsTableByIntegrationAndGoToDetailPage(page, integrationName, (retryNum += 1));
+  }
 };
 
 export const verifyThatAlertGroupIsRoutedCorrectlyButNotEscalated = async (

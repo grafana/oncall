@@ -605,7 +605,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
 const DemoNotification: React.FC = () => {
   return (
-    <div>
+    <div data-testid="demo-alert-sent-notification">
       Demo alert was generated. Find it on the
       <PluginLink query={{ page: 'alert-groups' }}> "Alert Groups" </PluginLink>
       page and make sure it didn't freak out your colleagues 😉

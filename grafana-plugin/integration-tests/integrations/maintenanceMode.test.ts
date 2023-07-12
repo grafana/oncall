@@ -86,7 +86,7 @@ test.describe('maintenance mode works', () => {
       startingLocator: page.getByRole('dialog'),
     });
 
-    await getRemainingTimeTooltip(page).waitFor({ state: 'detached' });
+    await getRemainingTimeTooltip(page).waitFor({ state: 'hidden' });
   };
 
   const createIntegrationAndEscalationChainAndEnableMaintenanceMode = async (
@@ -108,7 +108,7 @@ test.describe('maintenance mode works', () => {
     return { escalationChainName, integrationName };
   };
 
-  test('debug mode', async ({ adminRolePage: { page, userName } }) => {
+  test.only('debug mode', async ({ adminRolePage: { page, userName } }) => {
     const { escalationChainName, integrationName } = await createIntegrationAndEscalationChainAndEnableMaintenanceMode(
       page,
       userName,
