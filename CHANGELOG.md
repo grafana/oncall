@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- [Helm] Added ability to specify `resources` definition within the `wait-for-db` init container by @Shelestov7
+  ([#2501](https://github.com/grafana/oncall/pull/2501))
+
 ### Changed
 
 - Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
