@@ -22,6 +22,7 @@ class WebhookResponseSerializer(serializers.ModelSerializer):
             "request_data",
             "status_code",
             "content",
+            "event_data",
         ]
 
 

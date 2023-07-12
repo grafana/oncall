@@ -35,7 +35,6 @@ from .views.slack_team_settings import (
     SlackTeamSettingsAPIView,
     UnAcknowledgeTimeoutOptionsAPIView,
 )
-from .views.subscription import SubscriptionView
 from .views.team import TeamViewSet
 from .views.telegram_channels import TelegramChannelViewSet
 from .views.user import CurrentUserView, UserView
@@ -83,7 +82,6 @@ urlpatterns = [
         GetChannelVerificationCode.as_view(),
         name="api-get-channel-verification-code",
     ),
-    optional_slash_path("current_subscription", SubscriptionView.as_view(), name="subscription"),
     optional_slash_path("terraform_file", TerraformGitOpsView.as_view(), name="terraform_file"),
     optional_slash_path("terraform_imports", TerraformStateView.as_view(), name="terraform_imports"),
     optional_slash_path("maintenance", MaintenanceAPIView.as_view(), name="maintenance"),

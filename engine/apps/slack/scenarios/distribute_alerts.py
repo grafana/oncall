@@ -35,7 +35,7 @@ from apps.slack.tasks import (
 from apps.slack.utils import get_cache_key_update_incident_slack_message
 from common.utils import clean_markup, is_string_with_visible_characters
 
-from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
+from .step_mixins import AlertGroupActionsMixin
 
 ATTACH_TO_ALERT_GROUPS_LIMIT = 20
 
@@ -216,11 +216,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         pass
 
 
-class InviteOtherPersonToIncident(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -232,9 +228,6 @@ class InviteOtherPersonToIncident(
             return
 
         selected_user = None
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            return
 
         try:
             # user selection
@@ -255,11 +248,7 @@ class InviteOtherPersonToIncident(
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class SilenceGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -275,19 +264,14 @@ class SilenceGroupStep(
             # Deprecated handler kept for backward compatibility (so older Slack messages can still be processed)
             silence_delay = int(value)
 
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
+        alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class UnSilenceGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -296,28 +280,20 @@ class UnSilenceGroupStep(
             self.open_unauthorized_warning(payload)
             return
 
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class SelectAttachGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
-            return
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
         blocks = []
@@ -455,11 +431,7 @@ class SelectAttachGroupStep(
         return blocks
 
 
-class AttachGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = []  # Permissions are handled in SelectAttachGroupStep
 
     def process_signal(self, log_record):
@@ -502,19 +474,11 @@ class AttachGroupStep(
 
             root_alert_group = AlertGroup.all_objects.get(pk=root_alert_group_pk)
             alert_group = self.get_alert_group(slack_team_identity, payload)
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group) and self.check_alert_is_unarchived(
-            slack_team_identity, payload, root_alert_group
-        ):
-            alert_group.attach_by_user(self.user, root_alert_group, action_source=ActionSource.SLACK)
-        else:
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+
+        alert_group.attach_by_user(self.user, root_alert_group, action_source=ActionSource.SLACK)
 
 
-class UnAttachGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -523,24 +487,20 @@ class UnAttachGroupStep(
             self.open_unauthorized_warning(payload)
             return
 
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            alert_group.un_attach_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_attach_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class StopInvitationProcess(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
+class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
-            return
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
         try:
@@ -556,11 +516,7 @@ class StopInvitationProcess(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin,
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
 
 
-class CustomButtonProcessStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -570,23 +526,22 @@ class CustomButtonProcessStep(
             self.open_unauthorized_warning(payload)
             return
 
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            custom_button_pk = payload["actions"][0]["name"].split("_")[1]
-            alert_group_pk = payload["actions"][0]["name"].split("_")[2]
-            try:
-                CustomButtom.objects.get(pk=custom_button_pk)
-            except CustomButtom.DoesNotExist:
-                warning_text = "Oops! This button was deleted"
-                self.open_warning_window(payload, warning_text=warning_text)
-                self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
-            else:
-                custom_button_result.apply_async(
-                    args=(
-                        custom_button_pk,
-                        alert_group_pk,
-                    ),
-                    kwargs={"user_pk": self.user.pk},
-                )
+        custom_button_pk = payload["actions"][0]["name"].split("_")[1]
+        alert_group_pk = payload["actions"][0]["name"].split("_")[2]
+        try:
+            CustomButtom.objects.get(pk=custom_button_pk)
+        except CustomButtom.DoesNotExist:
+            warning_text = "Oops! This button was deleted"
+            self.open_warning_window(payload, warning_text=warning_text)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        else:
+            custom_button_result.apply_async(
+                args=(
+                    custom_button_pk,
+                    alert_group_pk,
+                ),
+                kwargs={"user_pk": self.user.pk},
+            )
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
@@ -618,11 +573,7 @@ class CustomButtonProcessStep(
         )
 
 
-class ResolveGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -631,9 +582,6 @@ class ResolveGroupStep(
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
-            return
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
         if alert_group.is_maintenance_incident:
@@ -661,11 +609,7 @@ class ResolveGroupStep(
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class UnResolveGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -674,19 +618,14 @@ class UnResolveGroupStep(
             self.open_unauthorized_warning(payload)
             return
 
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class AcknowledgeGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -695,19 +634,14 @@ class AcknowledgeGroupStep(
             self.open_unauthorized_warning(payload)
             return
 
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-class UnAcknowledgeGroupStep(
-    CheckAlertIsUnarchivedMixin,
-    AlertGroupActionsMixin,
-    scenario_step.ScenarioStep,
-):
+class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -716,8 +650,7 @@ class UnAcknowledgeGroupStep(
             self.open_unauthorized_warning(payload)
             return
 
-        if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
+        alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
