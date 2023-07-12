@@ -135,7 +135,7 @@
     "react-string-replace": "^0.4.4",
     "react-transition-group": "^4.4.5",
     "sass-loader": "^13.0.2",
-    "stylelint": "^13.13.1",
+    "stylelint": "^15.10.1",
     "stylelint-config-standard": "^22.0.0",
     "throttle-debounce": "^2.1.0"
   }
