@@ -22,7 +22,6 @@ from .resolve_alert_group_by_source_if_needed import resolve_alert_group_by_sour
 from .resolve_by_last_step import resolve_by_last_step_task  # noqa: F401
 from .send_alert_group_signal import send_alert_group_signal  # noqa: F401
 from .send_update_log_report_signal import send_update_log_report_signal  # noqa: F401
-from .send_update_postmortem_signal import send_update_postmortem_signal  # noqa: F401
 from .send_update_resolution_note_signal import send_update_resolution_note_signal  # noqa: F401
 from .sync_grafana_alerting_contact_points import sync_grafana_alerting_contact_points  # noqa: F401
 from .unsilence import unsilence_task  # noqa: F401
