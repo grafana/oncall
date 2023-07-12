@@ -58,7 +58,6 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
-import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
@@ -727,7 +726,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { maintenanceStore, alertReceiveChannelStore, heartbeatStore } = useStore();
+  const { alertReceiveChannelStore, heartbeatStore } = useStore();
 
   const history = useHistory();
 
@@ -941,14 +940,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
   }
 
-  function onStopMaintenance() {
+  async function onStopMaintenance() {
     setConfirmModal(undefined);
 
-    maintenanceStore
-      .stopMaintenanceMode(MaintenanceType.alert_receive_channel, id)
-      .then(() => maintenanceStore.updateMaintenances())
-      .then(() => openNotification('Maintenance has been stopped'))
-      .then(() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id));
+    await alertReceiveChannelStore.stopMaintenanceMode(id);
+
+    openNotification('Maintenance has been stopped');
+    await alertReceiveChannelStore.updateItem(id);
   }
 };
 

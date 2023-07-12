@@ -8,7 +8,6 @@ import { observer } from 'mobx-react';
 import GForm from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { useStore } from 'state/useStore';
 import { openNotification, showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -21,7 +20,6 @@ const cx = cn.bind(styles);
 
 interface MaintenanceFormProps {
   initialData: {
-    type?: MaintenanceType;
     alert_receive_channel_id?: AlertReceiveChannel['id'];
     disabled?: boolean;
   };
@@ -35,23 +33,22 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
 
   const store = useStore();
 
-  const { maintenanceStore } = store;
+  const { alertReceiveChannelStore } = store;
 
-  const handleSubmit = useCallback((data) => {
-    maintenanceStore
-      .startMaintenanceMode(
-        MaintenanceType.alert_receive_channel,
+  const handleSubmit = useCallback(async (data) => {
+    try {
+      await alertReceiveChannelStore.startMaintenanceMode(
+        initialData.alert_receive_channel_id,
         data.mode,
-        data.duration,
-        data.alert_receive_channel_id
-      )
-      .then(() => {
-        onHide();
-        onUpdate();
+        data.duration
+      );
 
-        openNotification('Maintenance has been started');
-      })
-      .catch(showApiError);
+      onHide();
+      onUpdate();
+      openNotification('Maintenance has been started');
+    } catch (err) {
+      showApiError(err);
+    }
   }, []);
 
   if (initialData.disabled) {

@@ -15,7 +15,6 @@ from .views.features import FeaturesAPIView
 from .views.gitops import TerraformGitOpsView, TerraformStateView
 from .views.integration_heartbeat import IntegrationHeartBeatView
 from .views.live_setting import LiveSettingViewSet
-from .views.maintenance import MaintenanceAPIView, MaintenanceStartAPIView, MaintenanceStopAPIView
 from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
     CurrentOrganizationView,
@@ -84,9 +83,6 @@ urlpatterns = [
     ),
     optional_slash_path("terraform_file", TerraformGitOpsView.as_view(), name="terraform_file"),
     optional_slash_path("terraform_imports", TerraformStateView.as_view(), name="terraform_imports"),
-    optional_slash_path("maintenance", MaintenanceAPIView.as_view(), name="maintenance"),
-    optional_slash_path("start_maintenance", MaintenanceStartAPIView.as_view(), name="start_maintenance"),
-    optional_slash_path("stop_maintenance", MaintenanceStopAPIView.as_view(), name="stop_maintenance"),
     optional_slash_path("slack_settings", SlackTeamSettingsAPIView.as_view(), name="slack-settings"),
     optional_slash_path(
         "slack_settings/acknowledge_remind_options",
