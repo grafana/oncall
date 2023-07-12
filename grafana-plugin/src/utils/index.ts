@@ -6,6 +6,8 @@ import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 import qs from 'query-string';
 
+import { isNetworkError } from 'network';
+
 export class KeyValuePair<T = string | number> {
   key: T;
   value: string;
@@ -23,7 +25,7 @@ export const getTzOffsetHours = (): number => {
 };
 
 export function showApiError(error: any) {
-  if (error.response.status >= 400 && error.response.status < 500) {
+  if (isNetworkError(error) && error.response && error.response.status >= 400 && error.response.status < 500) {
     const payload = error.response.data;
     const text =
       typeof payload === 'string'
@@ -38,7 +40,7 @@ export function showApiError(error: any) {
 }
 
 export function refreshPageError(error: AxiosError) {
-  if (error.response?.status === 502) {
+  if (isNetworkError(error) && error.response?.status === 502) {
     const payload = error.response.data;
     const text = `Try to refresh the page. ${payload}`;
     openErrorNotification(text);
@@ -48,7 +50,7 @@ export function refreshPageError(error: AxiosError) {
 }
 
 export function throttlingError(error: AxiosError) {
-  if (error.response?.status === 429) {
+  if (isNetworkError(error) && error.response?.status === 429) {
     const seconds = Number(error.response?.headers['retry-after']);
     const minutes = Math.floor(seconds / 60);
     const text =

@@ -46,11 +46,8 @@ def send_alert_create_signal(alert_id):
 
     task_logger.debug(f"Started send_alert_create_signal task  for alert {alert_id}")
     alert = Alert.objects.get(pk=alert_id)
-    is_on_maintenace_mode = (
-        alert.group.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-        or alert.group.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-    )
-    if not is_on_maintenace_mode:
+
+    if alert.group.channel.maintenance_mode != AlertReceiveChannel.MAINTENANCE:
         alert_create_signal.send(
             sender=send_alert_create_signal,
             alert=alert_id,

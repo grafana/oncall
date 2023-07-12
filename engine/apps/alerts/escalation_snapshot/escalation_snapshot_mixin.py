@@ -231,9 +231,7 @@ class EscalationSnapshotMixin:
         """
         AlertGroup = apps.get_model("alerts", "AlertGroup")
 
-        is_on_maintenace_or_debug_mode = (
-            self.channel.maintenance_mode is not None or self.channel.organization.maintenance_mode is not None
-        )
+        is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
 
         if (
             self.is_restricted

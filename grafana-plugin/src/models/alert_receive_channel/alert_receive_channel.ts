@@ -20,6 +20,7 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
+  MaintenanceMode,
 } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore extends BaseStore {
@@ -456,4 +457,18 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.counters = counters;
   }
+
+  startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>
+    makeRequest<null>(`${this.path}${id}/start_maintenance/`, {
+      method: 'POST',
+      data: {
+        mode,
+        duration,
+      },
+    });
+
+  stopMaintenanceMode = (id: AlertReceiveChannel['id']) =>
+    makeRequest<null>(`${this.path}${id}/stop_maintenance/`, {
+      method: 'POST',
+    });
 }

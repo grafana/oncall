@@ -66,12 +66,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                 AlertGroup.all_objects.filter(pk=alert.group.pk).update(slack_message_sent=False)
                 raise e
 
-            is_on_debug_mode = (
-                alert.group.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-                or alert.group.channel.organization.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-            )
-
-            if is_on_debug_mode:
+            if alert.group.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE:
                 self._send_debug_mode_notice(alert.group, channel_id)
 
             if alert.group.is_maintenance_incident:
