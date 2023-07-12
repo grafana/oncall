@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
   within a single integration's page. by @Ukochka ([2497](https://github.com/grafana/oncall/issues/2497))
 
+### Fixed
+
+- Fixed a bug in the integration maintenance mode workflow where a user could not start/stop an integration's
+  maintenance mode by @joeyorlando ([2511](https://github.com/grafana/oncall/issues/2511))
+
 ## v1.3.9 (2023-07-12)
 
 ### Added

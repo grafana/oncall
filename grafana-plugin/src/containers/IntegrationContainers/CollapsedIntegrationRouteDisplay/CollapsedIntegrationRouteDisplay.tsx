@@ -145,7 +145,9 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                       <div className={cx('icon-exclamation')}>
                         <Icon name="exclamation-triangle" />
                       </div>
-                      <Text type="primary">Not selected</Text>
+                      <Text type="primary" data-testid="integration-escalation-chain-not-selected">
+                        Not selected
+                      </Text>
                     </div>
                   )}
                 </div>

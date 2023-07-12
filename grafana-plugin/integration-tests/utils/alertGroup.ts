@@ -1,10 +1,15 @@
-import { Page, expect } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 import { selectDropdownValue, selectValuePickerValue } from './forms';
 import { goToOnCallPage } from './navigation';
 
 const MAX_RETRIES = 5;
+const ALERT_GROUP_REGISTERED_TEXT = 'alert group registered';
 
-// const sleep = async (seconds: number) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+const getIncidentTimelineList = async (page: Page): Promise<Locator> => {
+  const incidentTimelineList = page.getByTestId('incident-timeline-list');
+  await incidentTimelineList.waitFor({ state: 'visible' });
+  return incidentTimelineList;
+};
 
 /**
  * recursively refreshes the page waiting for the background celery workers to have done their job of
@@ -15,17 +20,18 @@ const incidentTimelineContainsStep = async (page: Page, triggeredStepText: strin
     return Promise.resolve(false);
   }
 
-  if (!page.getByTestId('incident-timeline-list').getByText(triggeredStepText)) {
+  const incidentTimelineList = await getIncidentTimelineList(page);
+
+  if (!incidentTimelineList.getByText(triggeredStepText)) {
     await page.reload({ waitUntil: 'networkidle' });
     return incidentTimelineContainsStep(page, triggeredStepText, (retryNum += 1));
   }
   return true;
 };
 
-export const verifyThatAlertGroupIsTriggered = async (
+export const filterAlertGroupsTableByIntegrationAndGoToDetailPage = async (
   page: Page,
-  integrationName: string,
-  triggeredStepText: string
+  integrationName: string
 ): Promise<void> => {
   await goToOnCallPage(page, 'incidents');
 
@@ -44,6 +50,32 @@ export const verifyThatAlertGroupIsTriggered = async (
    * click on the alert group and go to the individual alert group page
    */
   await (await page.waitForSelector('table > tbody > tr > td:nth-child(4) a')).click();
+};
+
+export const verifyThatAlertGroupIsRoutedCorrectlyButNotEscalated = async (
+  page: Page,
+  integrationName: string,
+  routedText: string
+): Promise<void> => {
+  await filterAlertGroupsTableByIntegrationAndGoToDetailPage(page, integrationName);
+
+  /**
+   * incidentTimelineContainsStep recursively reloads the alert group page until the engine
+   * background workers have processed/escalated the alert group
+   */
+  expect(await incidentTimelineContainsStep(page, ALERT_GROUP_REGISTERED_TEXT)).toBe(true);
+
+  const incidentTimelineList = await getIncidentTimelineList(page);
+  expect(incidentTimelineList).toContainText(routedText);
+  expect(incidentTimelineList).not.toContainText('triggered step');
+};
+
+export const verifyThatAlertGroupIsTriggered = async (
+  page: Page,
+  integrationName: string,
+  triggeredStepText: string
+): Promise<void> => {
+  await filterAlertGroupsTableByIntegrationAndGoToDetailPage(page, integrationName);
 
   expect(await incidentTimelineContainsStep(page, triggeredStepText)).toBe(true);
 };

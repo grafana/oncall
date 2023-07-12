@@ -866,6 +866,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                         ),
                       });
                     }}
+                    data-testid="integration-stop-maintenance"
                   >
                     <Text type="primary">Stop Maintenance</Text>
                   </div>
