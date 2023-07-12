@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add debounce on Select UI components to avoid making API search requests on each key-down event by
   @maskin25 ([#2466](https://github.com/grafana/oncall/pull/2466))
 
+- Added 'resources limits' definition for wait-for-db in init container 
+
 ## v1.3.8 (2023-07-11)
 
 ### Added
