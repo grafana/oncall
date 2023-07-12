@@ -84,7 +84,8 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
       await alertReceiveChannelStore.updateChannelFilters(directPagingAlertReceiveChannel.id);
       await store.slackChannelStore.updateItems();
 
-      // Set unique available chatops channels
+      // The code below is used to get the unique available chotops channels for all routes in integraion
+      // This is the workaround for IntegrationHelper.getChatOpsChannels, it should be moved to the helper
       const filterIds = alertReceiveChannelStore.channelFilterIds[directPagingAlertReceiveChannel.id];
       let availableChannels = [];
       let channelKeys = new Set();
@@ -112,14 +113,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   );
 
   const DirectPagingIntegrationVariants = ({ selectedTeamId, selectedTeamDirectPaging, chatOpsAvailableChannels }) => {
-    const renderWarningTitle = (
-      <>
-        <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />{' '}
-        <Text>team doesn't have the the Direct Paging integration yet</Text>
-      </>
-    );
-
-    const integrationDoesNotHaveEscalationChains = selectedTeamDirectPaging?.connected_escalations_chains_count === 0;
+    const escalationChainsExist = selectedTeamDirectPaging?.connected_escalations_chains_count === 0;
 
     return (
       <VerticalGroup>
@@ -133,7 +127,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                 <li>
                   <HorizontalGroup justify="space-between">
                     <HorizontalGroup>
-                      {integrationDoesNotHaveEscalationChains && (
+                      {escalationChainsExist && (
                         <Tooltip content="Integration doesn't have connected escalation policies">
                           <Icon name="exclamation-triangle" style={{ color: 'var(--warning-text-color)' }} />
                         </Tooltip>
@@ -151,13 +145,13 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                           {chatOpsAvailableChannels.map(
                             (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
                               <div
-                                key={`${chatOpsChannel?.name}-${chatOpsIndex}`}
+                                key={`${chatOpsChannel.name}-${chatOpsIndex}`}
                                 className={cx({
                                   'u-margin-right-xs': chatOpsIndex !== chatOpsAvailableChannels.length,
                                 })}
                               >
-                                {chatOpsChannel?.icon && <Icon name={chatOpsChannel.icon} className={cx('icon')} />}
-                                <Text type="primary">{chatOpsChannel?.name || ''}</Text>
+                                {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} className={cx('icon')} />}
+                                <Text type="primary">{chatOpsChannel.name || ''}</Text>
                               </div>
                             )
                           )}
@@ -177,10 +171,10 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                 </li>
               </ul>
 
-              {(integrationDoesNotHaveEscalationChains || !chatOpsAvailableChannels) && (
+              {(escalationChainsExist || !chatOpsAvailableChannels) && (
                 <Alert severity="warning" title="Possible notification miss">
                   <VerticalGroup>
-                    {integrationDoesNotHaveEscalationChains && (
+                    {escalationChainsExist && (
                       <Text>
                         Integration doesn't have connected escalation policies. Consider adding responders manually by
                         user or by email
@@ -194,13 +188,13 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
               )}
             </VerticalGroup>
           ) : (
-            <Alert severity="warning" title={renderWarningTitle}>
-              <VerticalGroup>
+            <Alert severity="warning" title={"This team doesn't have the the Direct Paging integration yet"}>
+              <HorizontalGroup>
                 <Text>
                   Empty integration for this team will be created automatically. Consider selecting responders by
                   schedule or user below
                 </Text>
-              </VerticalGroup>
+              </HorizontalGroup>
             </Alert>
           ))}
       </VerticalGroup>
