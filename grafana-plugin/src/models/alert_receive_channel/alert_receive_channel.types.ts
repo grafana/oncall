@@ -49,7 +49,6 @@ export interface AlertReceiveChannel {
   connected_escalations_chains_count: number;
   allow_delete: boolean;
   deleted?: boolean;
-  connectet_chatops_channels: any;
 }
 
 export interface AlertReceiveChannelChoice {
