@@ -177,17 +177,10 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 title={() => (
                   <div className={cx('header')}>
                     <div className="header__title">
-                      <VerticalGroup spacing="sm">
-                        <LegacyNavHeading>
-                          <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
-                        </LegacyNavHeading>
-                        <Text type="secondary" className={cx('header__desc')}>
-                          <Icon name="exclamation-triangle"></Icon> Preview Functionality! Things will change and things
-                          will break! Do not use for critical production processes!
-                        </Text>
-                      </VerticalGroup>
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
+                      </LegacyNavHeading>
                     </div>
-
                     <div className="u-pull-right">
                       <PluginLink
                         query={{ page: 'outgoing_webhooks_2', id: 'new' }}
