@@ -178,7 +178,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                   <div className={cx('header')}>
                     <div className="header__title">
                       <LegacyNavHeading>
-                        <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
+                        <Text.Title level={3}>Outgoing Webhooks</Text.Title>
                       </LegacyNavHeading>
                     </div>
                     <div className="u-pull-right">
