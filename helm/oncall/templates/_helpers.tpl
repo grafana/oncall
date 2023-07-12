@@ -93,7 +93,7 @@ Create the name of the service account to use
   securityContext:
   {{ toYaml .Values.init.securityContext | nindent 4 }}
   resources:
-  {{ toYaml .Values.init.securityContext | nindent 4 }}
+  {{ toYaml .Values.init.resources | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
     {{- include "snippet.mysql.env" . | nindent 4 }}
@@ -110,7 +110,7 @@ Create the name of the service account to use
   securityContext:
   {{ toYaml .Values.init.securityContext | nindent 4 }}
   resources:
-  {{ toYaml .Values.init.securityContext | nindent 4 }}
+  {{ toYaml .Values.init.resources | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
     {{- include "snippet.postgresql.env" . | nindent 4 }}
