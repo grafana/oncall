@@ -13,7 +13,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.fields import BooleanField
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.views import Response
@@ -44,6 +43,7 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
+from common.api_helpers.paginators import FifteenPageSizePaginator
 from common.api_helpers.utils import create_engine_url, get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.timezones import raise_exception_if_not_valid_timezone
@@ -55,13 +55,6 @@ EVENTS_FILTER_BY_FINAL = "final"
 SCHEDULE_TYPE_TO_CLASS = {
     str(num_type): cls for cls, num_type in PolymorphicScheduleSerializer.SCHEDULE_CLASS_TO_TYPE.items()
 }
-
-
-class SchedulePagination(PageNumberPagination):
-    page_size = 10
-    page_query_param = "page"
-    page_size_query_param = "perpage"
-    max_page_size = 50
 
 
 class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
@@ -113,7 +106,7 @@ class ScheduleView(
     create_serializer_class = PolymorphicScheduleCreateSerializer
     update_serializer_class = PolymorphicScheduleUpdateSerializer
     short_serializer_class = ScheduleFastSerializer
-    pagination_class = SchedulePagination
+    pagination_class = FifteenPageSizePaginator
 
     @cached_property
     def can_update_user_groups(self):
