@@ -11,7 +11,7 @@ Often alerts from monitoring systems need to be sent to different escalation cha
 ## Routes
 
 Routes are used to determine which escalation chain should be used for a specific alert
-group. A route's ["Routing Templates"]({{< relref "jinja2-templating#routing-template" >}})
+group. A route's ["Routing Templates"](https://grafana.com/docs/oncall/latest/jinja2-templating/#routing-template)
 are evaluated for each alert and **the first matching route** is used to determine the
 escalation chain and chatops channels.
 
