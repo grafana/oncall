@@ -15,11 +15,7 @@ export const openCreateIntegrationModal = async (page: Page): Promise<void> => {
   await page.waitForSelector(CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR);
 };
 
-export const createIntegrationAndSendDemoAlert = async (
-  page: Page,
-  integrationName: string,
-  _escalationChainName: string
-): Promise<void> => {
+export const createIntegration = async (page: Page, integrationName: string): Promise<void> => {
   await openCreateIntegrationModal(page);
 
   // create a webhook integration
@@ -27,10 +23,20 @@ export const createIntegrationAndSendDemoAlert = async (
 
   // fill in the required inputs
   (await page.waitForSelector('input[name="verbal_name"]', { state: 'attached' })).fill(integrationName);
-  (await page.waitForSelector('textarea[name="description_short"]', { state: 'attached' })).fill("Here goes your integration description");
+  (await page.waitForSelector('textarea[name="description_short"]', { state: 'attached' })).fill(
+    'Here goes your integration description'
+  );
 
-  const grafanaUpdateBtn = page.getByTestId("update-integration-button");
+  const grafanaUpdateBtn = page.getByTestId('update-integration-button');
   await grafanaUpdateBtn.click();
+};
+
+export const createIntegrationAndSendDemoAlert = async (
+  page: Page,
+  integrationName: string,
+  _escalationChainName: string
+): Promise<void> => {
+  await createIntegration(page, integrationName);
 
   /*
    * TODO: This is slightly more complicated now, change this in next iteration */
@@ -47,5 +53,5 @@ export const createIntegrationAndSendDemoAlert = async (
 
   // send demo alert
   await clickButton({ page, buttonText: 'Send demo alert', dataTestId: 'send-demo-alert' });
-  await clickButton({ page, buttonText: 'Send Alert', dataTestId: "submit-send-alert" })
+  await clickButton({ page, buttonText: 'Send Alert', dataTestId: 'submit-send-alert' });
 };

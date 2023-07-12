@@ -814,6 +814,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         </WithPermissionControlTooltip>
 
         <WithContextMenu
+          data-testid="integration-settings-context-menu"
           renderMenuItems={() => (
             <div className={cx('integration__actionsList')} id="integration-menu-options">
               <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
@@ -830,7 +831,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {!alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div className={cx('integration__actionItem')} onClick={openStartMaintenance}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={openStartMaintenance}
+                    data-testid="integration-start-maintenance"
+                  >
                     <Text type="primary">Start Maintenance</Text>
                   </div>
                 </WithPermissionControlTooltip>
@@ -1061,6 +1066,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {alertReceiveChannel.maintenance_till && (
         <TooltipBadge
+          data-testid="maintenance-mode-remaining-time-tooltip"
           borderType="primary"
           icon="pause"
           text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}

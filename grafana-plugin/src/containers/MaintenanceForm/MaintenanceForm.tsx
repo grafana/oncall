@@ -62,7 +62,7 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
 
   return (
     <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
-      <div className={cx('content')}>
+      <div className={cx('content')} data-testid="maintenance-mode-drawer">
         <VerticalGroup>
           Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
           trigger false alarms.
@@ -72,7 +72,7 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
               Cancel
             </Button>
             <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-              <Button form={form.name} type="submit">
+              <Button form={form.name} type="submit" data-testid="create-maintenance-button">
                 Start
               </Button>
             </WithPermissionControlTooltip>
