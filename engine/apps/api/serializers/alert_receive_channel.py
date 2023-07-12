@@ -53,6 +53,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
+    connected_chatops_channels = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
@@ -92,6 +93,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "connected_chatops_channels",
         ]
         read_only_fields = [
             "created_at",
@@ -107,6 +109,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "connected_chatops_channels",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
@@ -117,8 +120,15 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise BadRequest(detail=connection_error)
+        for _integration in AlertReceiveChannel._config:
+            if _integration.slug == integration:
+                is_able_to_autoresolve = _integration.is_able_to_autoresolve
+
         instance = AlertReceiveChannel.create(
-            **validated_data, organization=organization, author=self.context["request"].user
+            **validated_data,
+            organization=organization,
+            author=self.context["request"].user,
+            allow_source_based_resolving=is_able_to_autoresolve,
         )
 
         return instance
@@ -172,8 +182,11 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         return obj.channel_filters.count()
 
     def get_connected_escalations_chains_count(self, obj) -> int:
-        return len(
-            set(ChannelFilter.objects.filter(alert_receive_channel=obj).values_list("escalation_chain", flat=True))
+        return (
+            ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
+            .values("escalation_chain")
+            .distinct()
+            .count()
         )
 
 

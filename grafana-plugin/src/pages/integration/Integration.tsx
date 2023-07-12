@@ -327,7 +327,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Autoresolve:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
+                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || 'disabled')}
                       </Text>
                     </div>
 
@@ -960,6 +960,17 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   const item = alertReceiveChannelStore.items[id];
   const url = item?.integration_url || item?.inbound_email;
 
+  const howToConnectTagName = (integration: string) => {
+    switch (integration) {
+      case 'direct_paging':
+        return 'Manual';
+      case 'email':
+        return 'Inbound Email';
+      default:
+        return 'HTTP Endpoint';
+    }
+  };
+
   return (
     <IntegrationBlock
       noContent={hasAlerts}
@@ -972,29 +983,50 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             className={cx('how-to-connect__tag')}
           >
             <Text type="primary" size="small" className={cx('radius')}>
-              {item?.inbound_email ? 'Inbound Email' : 'HTTP Endpoint'}
+              {howToConnectTagName(item?.integration)}
             </Text>
           </Tag>
-          {url && (
-            <IntegrationInputField
-              value={url}
-              className={cx('integration__input-field')}
-              showExternal={!!item?.integration_url}
-            />
+          {item?.integration === 'direct_paging' ? (
+            <>
+              <Text type="secondary">Alert Groups raised manually via Web or ChatOps</Text>
+              <a
+                href="https://grafana.com/docs/oncall/latest/integrations/manual"
+                target="_blank"
+                rel="noreferrer"
+                className={cx('u-pull-right')}
+              >
+                <Text type="link" size="small">
+                  <HorizontalGroup>
+                    How it works
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
+                </Text>
+              </a>
+            </>
+          ) : (
+            <>
+              {url && (
+                <IntegrationInputField
+                  value={url}
+                  className={cx('integration__input-field')}
+                  showExternal={!!item?.integration_url}
+                />
+              )}
+              <a
+                href="https://grafana.com/docs/oncall/latest/integrations/"
+                target="_blank"
+                rel="noreferrer"
+                className={cx('u-pull-right')}
+              >
+                <Text type="link" size="small">
+                  <HorizontalGroup>
+                    How to connect
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
+                </Text>
+              </a>
+            </>
           )}
-          <a
-            href="https://grafana.com/docs/oncall/latest/integrations/"
-            target="_blank"
-            rel="noreferrer"
-            className={cx('u-pull-right')}
-          >
-            <Text type="link" size="small">
-              <HorizontalGroup>
-                How to connect
-                <Icon name="external-link-alt" />
-              </HorizontalGroup>
-            </Text>
-          </a>
         </div>
       }
       content={hasAlerts ? null : renderContent()}
@@ -1002,12 +1034,20 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   );
 
   function renderContent() {
+    const callToAction = () => {
+      if (item?.integration === 'direct_paging') {
+        return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
+      } else {
+        return item.demo_alert_enabled && <Text type={'primary'}>; try to send a demo alert</Text>;
+      }
+    };
+
     return (
       <VerticalGroup justify={'flex-start'} spacing={'xs'}>
         {!hasAlerts && (
           <HorizontalGroup spacing={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-            <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
+            <Text type={'primary'}>No alerts yet;</Text> {callToAction()}
           </HorizontalGroup>
         )}
       </VerticalGroup>
