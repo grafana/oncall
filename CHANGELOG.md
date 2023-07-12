@@ -11,11 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Helm] Added ability to specify `resources` definition within the `wait-for-db` init container by @Shelestov7
   ([#2501](https://github.com/grafana/oncall/pull/2501))
+- Release new webhooks functionality by @mderynck @matiasb @maskin25 @teodosii @raphael-batte ([#1830](https://github.com/grafana/oncall/pull/1830))
 
 ### Changed
 
 - Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
   within a single integration's page. by @Ukochka ([#2497](https://github.com/grafana/oncall/issues/2497))
+- Custom button webhooks are deprecated, they will be automatically migrated to new webhooks. ([#1830](https://github.com/grafana/oncall/pull/1830))
 
 ### Fixed
 
