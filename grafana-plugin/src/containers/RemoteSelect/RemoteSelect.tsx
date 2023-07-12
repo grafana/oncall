@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import React, { useCallback, useMemo, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
@@ -6,6 +6,7 @@ import { inject, observer } from 'mobx-react';
 
 import { makeRequest, isNetworkError } from 'network';
 import { UserAction, generateMissingPermissionMessage } from 'utils/authorization';
+import { useDebouncedCallback } from 'utils/hooks';
 
 interface RemoteSelectProps {
   autoFocus?: boolean;
@@ -67,24 +68,20 @@ const RemoteSelect = inject('store')(
 
     const [options, setOptions] = useReducer(mergeOptions, []);
 
-    const loadOptionsCallback = useCallback(async (query?: string): Promise<SelectableValue[]> => {
+    const loadOptionsCallback = useDebouncedCallback(async (query: string, cb) => {
       try {
         const data = await makeRequest(href, { params: { search: query } });
         const options = getOptions(data.results || data);
         setOptions(options);
 
-        return options;
+        cb(options);
       } catch (e) {
         if (isNetworkError(e) && e.response.status === 403 && requiredUserAction) {
           setNoOptionsMessage(generateMissingPermissionMessage(requiredUserAction));
         }
-        return [];
+        cb([]);
       }
-    }, []);
-
-    useEffect(() => {
-      loadOptionsCallback();
-    }, []);
+    }, 250);
 
     const onChangeCallback = useCallback(
       (option) => {
@@ -127,7 +124,7 @@ const RemoteSelect = inject('store')(
         isSearchable={showSearch}
         value={value}
         onChange={onChangeCallback}
-        defaultOptions={options}
+        defaultOptions
         loadOptions={loadOptionsCallback}
         getOptionLabel={getOptionLabel}
         noOptionsMessage={noOptionsMessage}

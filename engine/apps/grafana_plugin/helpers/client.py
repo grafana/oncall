@@ -284,8 +284,8 @@ class GcomAPIClient(APIClient):
         if not instance_feature_toggles:
             return False
 
-        # features enabled via enable key are space separated
-        features_enabled_via_enable_key = instance_feature_toggles.get("enable", "").split(" ")
+        # features enabled via enable key are comma separated (https://github.com/grafana/grafana/issues/36511)
+        features_enabled_via_enable_key = instance_feature_toggles.get("enable", "").split(",")
         feature_enabled_via_enable_key = feature_name in features_enabled_via_enable_key
         feature_enabled_via_direct_key = instance_feature_toggles.get(feature_name, "false") == "true"
 
