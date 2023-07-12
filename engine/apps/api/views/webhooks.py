@@ -20,6 +20,8 @@ from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFi
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
+NEW_WEBHOOK_PK = "new"
+
 RECENT_RESPONSE_LIMIT = 20
 
 WEBHOOK_URL = "url"
@@ -125,6 +127,9 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
     @action(methods=["get"], detail=True)
     def responses(self, request, pk):
+        if pk == NEW_WEBHOOK_PK:
+            return Response([], status=status.HTTP_200_OK)
+
         webhook = self.get_object()
         queryset = WebhookResponse.objects.filter(webhook_id=webhook.id, trigger_type=webhook.trigger_type).order_by(
             "-timestamp"
@@ -134,7 +139,9 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
-        self.get_object()  # Check webhook exists
+        if pk != NEW_WEBHOOK_PK:
+            self.get_object()  # Check webhook exists
+
         template_body = request.data.get("template_body", None)
         template_name = request.data.get("template_name", None)
         payload = request.data.get("payload", None)
