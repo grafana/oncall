@@ -46,8 +46,6 @@ SECURE_HSTS_SECONDS = 360000
 CELERY_TASK_ROUTES = {
     # DEFAULT
     "apps.alerts.tasks.call_ack_url.call_ack_url": {"queue": "default"},
-    "apps.alerts.tasks.cache_alert_group_for_web.cache_alert_group_for_web": {"queue": "default"},
-    "apps.alerts.tasks.cache_alert_group_for_web.schedule_cache_for_alert_group": {"queue": "default"},
     "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
@@ -78,7 +76,6 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },
-    "engine.views.health_check_task": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
@@ -99,7 +96,6 @@ CELERY_TASK_ROUTES = {
     },
     "apps.alerts.tasks.resolve_by_last_step.resolve_by_last_step_task": {"queue": "critical"},
     "apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal": {"queue": "critical"},
-    "apps.alerts.tasks.send_update_postmortem_signal.send_update_postmortem_signal": {"queue": "critical"},
     "apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal": {"queue": "critical"},
     "apps.alerts.tasks.unsilence.unsilence_task": {"queue": "critical"},
     "apps.base.tasks.process_failed_to_invoke_celery_tasks": {"queue": "critical"},
