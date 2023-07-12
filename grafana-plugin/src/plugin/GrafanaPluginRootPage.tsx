@@ -173,7 +173,7 @@ export const Root = observer((props: AppRootProps) => {
               )}
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
-              <Maintenance query={query} />
+              <Maintenance />
             </Route>
             <Route path={getRoutesForPage('settings')} exact>
               <SettingsPage />

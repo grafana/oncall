@@ -16,13 +16,13 @@ interface WorkingHoursProps {
   startMoment: dayjs.Dayjs;
   duration: number; // in seconds
   className: string;
-  strong?: boolean;
+  light?: boolean;
 }
 
 const cx = cn.bind(styles);
 
 const WorkingHours: FC<WorkingHoursProps> = (props) => {
-  const { timezone, workingHours = default_working_hours, startMoment, duration, className, strong = false } = props;
+  const { timezone, workingHours = default_working_hours, startMoment, duration, className, light } = props;
 
   const endMoment = startMoment.add(duration, 'seconds');
 
@@ -38,10 +38,10 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     <svg version="1.1" width="100%" height="28px" xmlns="http://www.w3.org/2000/svg" className={className}>
       <defs>
         <pattern id="stripes" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
-          <line x1="0" y="0" x2="0" y2="10" stroke="rgba(17, 18, 23, 0.15)" strokeWidth="10" />
+          <line x1="0" y="0" x2="0" y2="10" stroke="var(--working-hours-shades-color)" strokeWidth="10" />
         </pattern>
-        <pattern id="stripes_strong" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
-          <line x1="0" y="0" x2="0" y2="10" stroke="rgba(17, 18, 23, 0.2)" strokeWidth="10" />
+        <pattern id="stripes_light" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+          <line x1="0" y="0" x2="0" y2="10" stroke="var(--working-hours-shades-color-light)" strokeWidth="10" />
         </pattern>
       </defs>
       {nonWorkingMoments &&
@@ -56,7 +56,7 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
               y={0}
               width={`${(diff * 100) / duration}%`}
               height="100%"
-              fill={`${strong ? 'url(#stripes_strong)' : 'url(#stripes)'}`}
+              fill={light ? 'url(#stripes_light)' : 'url(#stripes)'}
             />
           );
         })}

@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Helm] Added ability to specify `resources` definition within the `wait-for-db` init container by @Shelestov7
+  ([#2501](https://github.com/grafana/oncall/pull/2501))
+
+### Changed
+
+- Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
+  within a single integration's page. by @Ukochka ([2497](https://github.com/grafana/oncall/issues/2497))
+  
+### Fixed
+
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup [1002](https://github.com/grafana/oncall/issues/1002)
+- New schedules white theme issues [2356](https://github.com/grafana/oncall/issues/2356)
+
+## v1.3.9 (2023-07-12)
+
+### Added
+
 - Bring new Jinja editor to webhooks ([2344](https://github.com/grafana/oncall/issues/2344))
 
 ### Fixed
