@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup [1002](https://github.com/grafana/oncall/issues/1002)
+- New schedules white theme issues [2356](https://github.com/grafana/oncall/issues/2356)
+
 ### Added
 
 - Add `event.users.avatar_full` field to `GET /api/internal/v1/schedules/{schedule_id}/filter_events`
