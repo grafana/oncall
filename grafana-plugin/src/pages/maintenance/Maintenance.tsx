@@ -23,9 +23,9 @@ class MaintenancePage extends React.Component<MaintenancePageProps> {
           // @ts-ignore
           title={
             <>
-              Maintenance mode is now controlled on the{' '}
-              <PluginLink query={{ page: 'integrations' }}> Integrations page</PluginLink>. This page is going to be
-              deprecated.
+              Maintenance mode is now controlled at the{' '}
+              <PluginLink query={{ page: 'integrations' }}> Integration</PluginLink> level. This page will soon be
+              removed.
             </>
           }
         />
