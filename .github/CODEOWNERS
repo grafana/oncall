@@ -4,4 +4,4 @@
 CHANGELOG.md
 
 /grafana-plugin @grafana/grafana-oncall-frontend
-/docs @grafana/docs-oncall
+/docs @grafana/docs-gops

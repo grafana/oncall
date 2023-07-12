@@ -7,21 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
+  within a single integration's page. by @Ukochka ([2497](https://github.com/grafana/oncall/issues/2497))
+  
 ### Fixed
 
 - Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup [1002](https://github.com/grafana/oncall/issues/1002)
 - New schedules white theme issues [2356](https://github.com/grafana/oncall/issues/2356)
 
+## v1.3.9 (2023-07-12)
+
+### Added
+
+- Bring new Jinja editor to webhooks ([2344](https://github.com/grafana/oncall/issues/2344))
+
+### Fixed
+
+- Add debounce on Select UI components to avoid making API search requests on each key-down event by
+  @maskin25 ([#2466](https://github.com/grafana/oncall/pull/2466))
+
+## v1.3.8 (2023-07-11)
+
 ### Added
 
 - Add `event.users.avatar_full` field to `GET /api/internal/v1/schedules/{schedule_id}/filter_events`
   payload by @joeyorlando ([#2459](https://github.com/grafana/oncall/pull/2459))
+- Add `affinity` and `tolerations` for `celery` and `migrations` pods into helm chart + unit test for chart
 
 ### Changed
 
 - Modified DRF pagination class used by `GET /api/internal/v1/alert_receive_channels` and `GET /api/internal/v1/schedules`
   endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
-  a reverse proxy by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+  a reverse proxy by @joeyorlando ([#2467](https://github.com/grafana/oncall/pull/2467))
+
+### Fixed
+
+- Address issue where we were improperly parsing Grafana feature flags that were enabled via the `feature_flags.enabled`
+  method by @joeyorlando ([#2477](https://github.com/grafana/oncall/pull/2477))
+- Fix cuddled list Markdown issue by @vadimkerr ([#2488](https://github.com/grafana/oncall/pull/2488))
+- Fixed schedules slack notifications for deleted organizations ([#2493](https://github.com/grafana/oncall/pull/2493))
 
 ## v1.3.7 (2023-07-06)
 
