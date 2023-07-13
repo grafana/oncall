@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.db.models import Max
 from django.urls import reverse
 from django.utils.timezone import timedelta
@@ -96,7 +97,9 @@ def test_update_notify_multiple_users_step(escalation_policy_internal_api_setup,
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["step"] == EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS
-    assert response.json()["notify_to_users_queue"] == [first_user.public_primary_key, second_user.public_primary_key]
+    assert sorted(response.json()["notify_to_users_queue"]) == sorted(
+        [first_user.public_primary_key, second_user.public_primary_key]
+    )
 
 
 @pytest.mark.django_db
@@ -911,8 +914,9 @@ def test_escalation_policy_escalation_options_webhooks(
 
     url = reverse("api-internal:escalation_policy-escalation-options")
 
-    with patch("apps.api.views.escalation_policy.is_webhooks_enabled_for_organization", return_value=enabled):
-        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    settings.FEATURE_WEBHOOKS_2_ENABLED = enabled
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     returned_options = [option["value"] for option in response.json()]
     if enabled:

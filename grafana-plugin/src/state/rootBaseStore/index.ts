@@ -18,8 +18,6 @@ import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
-import { MaintenanceStore } from 'models/maintenance/maintenance';
-import { OrganizationLogStore } from 'models/organization_log/organization_log';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
@@ -98,13 +96,11 @@ export class RootBaseStore {
   slackStore: SlackStore = new SlackStore(this);
   slackChannelStore: SlackChannelStore = new SlackChannelStore(this);
   heartbeatStore: HeartbeatStore = new HeartbeatStore(this);
-  maintenanceStore: MaintenanceStore = new MaintenanceStore(this);
   scheduleStore: ScheduleStore = new ScheduleStore(this);
   userGroupStore: UserGroupStore = new UserGroupStore(this);
   alertGroupStore: AlertGroupStore = new AlertGroupStore(this);
   resolutionNotesStore: ResolutionNotesStore = new ResolutionNotesStore(this);
   apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
-  OrganizationLogStore: OrganizationLogStore = new OrganizationLogStore(this);
   globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
   filtersStore: FiltersStore = new FiltersStore(this);
   // stores

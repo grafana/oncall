@@ -155,20 +155,6 @@ def test_check_user_availability_on_call(
 
 
 @pytest.mark.django_db
-def test_direct_paging_no_one(make_organization, make_user_for_organization):
-    organization = make_organization()
-    from_user = make_user_for_organization(organization)
-
-    with patch("apps.alerts.paging.notify_user_task") as notify_task:
-        direct_paging(organization, None, from_user)
-
-    # no alert group
-    assert AlertGroup.all_objects.count() == 0
-    # no notifications
-    assert not notify_task.apply_async.called
-
-
-@pytest.mark.django_db
 def test_direct_paging_user(make_organization, make_user_for_organization):
     organization = make_organization()
     user = make_user_for_organization(organization)

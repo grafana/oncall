@@ -94,4 +94,17 @@ export class OutgoingWebhook2Store extends BaseStore {
 
     return this.searchResult[query].map((outgoingWebhook2Id: OutgoingWebhook2['id']) => this.items[outgoingWebhook2Id]);
   }
+
+  async getLastResponses(id: OutgoingWebhook2['id']) {
+    const result = await makeRequest(`${this.path}${id}/responses`, {});
+
+    return result;
+  }
+
+  async renderPreview(id: OutgoingWebhook2['id'], template_name: string, template_body: string, payload) {
+    return await makeRequest(`${this.path}${id}/preview_template/`, {
+      method: 'POST',
+      data: { template_name, template_body, payload },
+    });
+  }
 }

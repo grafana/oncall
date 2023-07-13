@@ -20,6 +20,7 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
+  MaintenanceMode,
 } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore extends BaseStore {
@@ -102,11 +103,11 @@ export class AlertReceiveChannelStore extends BaseStore {
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
-    const result = await makeRequest(this.path, { params });
+    const { results } = await makeRequest(this.path, { params });
 
     this.items = {
       ...this.items,
-      ...result.reduce(
+      ...results.reduce(
         (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
           ...acc,
           [item.id]: omit(item, 'heartbeat'),
@@ -115,9 +116,9 @@ export class AlertReceiveChannelStore extends BaseStore {
       ),
     };
 
-    this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
+    this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
 
-    const heartbeats = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const heartbeats = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.heartbeat.id] = alertReceiveChannel.heartbeat;
       }
@@ -130,7 +131,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...heartbeats,
     };
 
-    const alertReceiveChannelToHeartbeat = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const alertReceiveChannelToHeartbeat = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.id] = alertReceiveChannel.heartbeat.id;
       }
@@ -145,7 +146,7 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.updateCounters();
 
-    return result;
+    return results;
   }
 
   async updatePaginatedItems(query: any = '', page = 1) {
@@ -456,4 +457,18 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.counters = counters;
   }
+
+  startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>
+    makeRequest<null>(`${this.path}${id}/start_maintenance/`, {
+      method: 'POST',
+      data: {
+        mode,
+        duration,
+      },
+    });
+
+  stopMaintenanceMode = (id: AlertReceiveChannel['id']) =>
+    makeRequest<null>(`${this.path}${id}/stop_maintenance/`, {
+      method: 'POST',
+    });
 }

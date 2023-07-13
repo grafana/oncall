@@ -177,20 +177,13 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 title={() => (
                   <div className={cx('header')}>
                     <div className="header__title">
-                      <VerticalGroup spacing="sm">
-                        <LegacyNavHeading>
-                          <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
-                        </LegacyNavHeading>
-                        <Text type="secondary" className={cx('header__desc')}>
-                          <Icon name="exclamation-triangle"></Icon> Preview Functionality! Things will change and things
-                          will break! Do not use for critical production processes!
-                        </Text>
-                      </VerticalGroup>
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                      </LegacyNavHeading>
                     </div>
-
                     <div className="u-pull-right">
                       <PluginLink
-                        query={{ page: 'outgoing_webhooks_2', id: 'new' }}
+                        query={{ page: 'outgoing_webhooks', id: 'new' }}
                         disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                       >
                         <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
@@ -217,7 +210,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 onDelete={() => {
                   this.onDeleteClick(outgoingWebhook2Id).then(() => {
                     this.setState({ outgoingWebhook2Id: undefined, outgoingWebhook2Action: undefined });
-                    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2`);
+                    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
                   });
                 }}
               />
@@ -393,7 +386,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const { history } = this.props;
 
     this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.EDIT_SETTINGS }, () =>
-      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`)
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`)
     );
   };
 
@@ -401,7 +394,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const { history } = this.props;
 
     this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.COPY }, () =>
-      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/copy/${id}`)
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/copy/${id}`)
     );
   };
 
@@ -427,7 +420,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const { history } = this.props;
 
     this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN }, () =>
-      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`)
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`)
     );
   };
 
@@ -436,7 +429,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
     this.setState({ outgoingWebhook2Id: undefined, outgoingWebhook2Action: undefined });
 
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2`);
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
   };
 }
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, HorizontalGroup, Drawer, VerticalGroup, Icon } from '@grafana/ui';
+import { Button, HorizontalGroup, Drawer, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -12,11 +12,10 @@ import {
   slackMessageTemplateCheatSheet,
   genericTemplateCheatSheet,
 } from 'components/CheatSheet/CheatSheet.config';
-import Block from 'components/GBlock/Block';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
-import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
-import TemplatesAlertGroupsList from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
+import TemplateResult from 'containers/TemplateResult/TemplateResult';
+import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
@@ -188,43 +187,15 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       <div className={cx('container-wrapper')}>
         <div className={cx('container')} id={'content-container-id'}>
           <TemplatesAlertGroupsList
+            templatePage={TEMPLATE_PAGE.Integrations}
             alertReceiveChannelId={id}
             onEditPayload={onEditPayload}
             onSelectAlertGroup={onSelectAlertGroup}
             templates={templates}
             onLoadAlertGroupsList={onLoadAlertGroupsList}
           />
-          {isCheatSheetVisible ? (
-            <CheatSheet
-              cheatSheetName={template.displayName}
-              cheatSheetData={getCheatSheet(template.name)}
-              onClose={onCloseCheatSheet}
-            />
-          ) : (
-            <>
-              <div className={cx('template-block-codeeditor')}>
-                <div className={cx('template-editor-block-title')}>
-                  <HorizontalGroup justify="space-between" align="center" wrap>
-                    <Text>Template editor</Text>
-
-                    <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
-                      Cheatsheet
-                    </Button>
-                  </HorizontalGroup>
-                </div>
-                <div className={cx('template-editor-block-content')}>
-                  <MonacoEditor
-                    value={changedTemplateBody}
-                    data={templates}
-                    showLineNumbers={true}
-                    height={editorHeight}
-                    onChange={getChangeHandler()}
-                  />
-                </div>
-              </div>
-            </>
-          )}
-          <Result
+          {renderCheatSheet()}
+          <TemplateResult
             alertReceiveChannelId={id}
             template={template}
             templateBody={changedTemplateBody}
@@ -238,88 +209,43 @@ const IntegrationTemplate = observer((props: IntegrationTemplateProps) => {
       </div>
     </Drawer>
   );
-});
 
-interface ResultProps {
-  alertReceiveChannelId: AlertReceiveChannel['id'];
-  // templateName: string;
-  templateBody: string;
-  template: TemplateForEdit;
-  isAlertGroupExisting?: boolean;
-  chatOpsPermalink?: string;
-  payload?: JSON;
-  error?: string;
-  onSaveAndFollowLink?: (link: string) => void;
-  templateIsRoute?: boolean;
-}
+  function renderCheatSheet() {
+    if (isCheatSheetVisible) {
+      return (
+        <CheatSheet
+          cheatSheetName={template.displayName}
+          cheatSheetData={getCheatSheet(template.name)}
+          onClose={onCloseCheatSheet}
+        />
+      );
+    }
 
-const Result = (props: ResultProps) => {
-  const {
-    alertReceiveChannelId,
-    template,
-    templateBody,
-    chatOpsPermalink,
-    payload,
-    error,
-    isAlertGroupExisting,
-    onSaveAndFollowLink,
-  } = props;
+    return (
+      <>
+        <div className={cx('template-block-codeeditor')}>
+          <div className={cx('template-editor-block-title')}>
+            <HorizontalGroup justify="space-between" align="center" wrap>
+              <Text>Template editor</Text>
 
-  return (
-    <div className={cx('template-block-result')}>
-      <div className={cx('template-block-title')}>
-        <HorizontalGroup justify="space-between">
-          <Text>Result</Text>
-        </HorizontalGroup>
-      </div>
-      <div className={cx('result')}>
-        {payload || error ? (
-          <VerticalGroup spacing="lg">
-            {error ? (
-              <Block bordered fullWidth withBackground>
-                <Text>{error}</Text>
-              </Block>
-            ) : (
-              <Block bordered fullWidth withBackground>
-                <TemplatePreview
-                  key={template.name}
-                  templateName={template.name}
-                  templateBody={templateBody}
-                  templateType={template.type}
-                  templateIsRoute={template.isRoute}
-                  alertReceiveChannelId={alertReceiveChannelId}
-                  payload={payload}
-                />
-              </Block>
-            )}
-
-            {template?.additionalData?.additionalDescription && (
-              <Text type="secondary">{template?.additionalData.additionalDescription}</Text>
-            )}
-
-            {template?.additionalData?.chatOpsName && isAlertGroupExisting && (
-              <VerticalGroup>
-                <Button onClick={() => onSaveAndFollowLink(chatOpsPermalink)}>
-                  <HorizontalGroup spacing="xs" align="center">
-                    Save and open Alert Group in {template.additionalData.chatOpsDisplayName}{' '}
-                    <Icon name="external-link-alt" />
-                  </HorizontalGroup>
-                </Button>
-
-                {template.additionalData.data && <Text type="secondary">{template.additionalData.data}</Text>}
-              </VerticalGroup>
-            )}
-          </VerticalGroup>
-        ) : (
-          <div>
-            <Block bordered fullWidth className={cx('block-style')} withBackground>
-              <Text>← Select alert group or "Use custom payload"</Text>
-            </Block>
+              <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
+                Cheatsheet
+              </Button>
+            </HorizontalGroup>
           </div>
-        )}
-      </div>
-    </div>
-  );
-};
+          <div className={cx('template-editor-block-content')}>
+            <MonacoEditor
+              value={changedTemplateBody}
+              data={templates}
+              showLineNumbers={true}
+              height={editorHeight}
+              onChange={getChangeHandler()}
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
+});
 
 export default IntegrationTemplate;

@@ -51,6 +51,8 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+  max-height: calc(100vh - 600px);
+  overflow: scroll;
 }
 
 .user {
