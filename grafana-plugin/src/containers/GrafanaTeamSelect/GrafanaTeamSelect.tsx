@@ -18,15 +18,16 @@ interface GrafanaTeamSelectProps {
   onSelect: (id: GrafanaTeam['id']) => void;
   onHide?: () => void;
   withoutModal?: boolean;
+  defaultValue?: GrafanaTeam['id'];
 }
 
-const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal }: GrafanaTeamSelectProps) => {
+const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal, defaultValue }: GrafanaTeamSelectProps) => {
   const store = useStore();
 
   const { userStore, grafanaTeamStore } = store;
   const user = userStore.currentUser;
 
-  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(user.current_team);
+  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(defaultValue);
 
   const grafanaTeams = grafanaTeamStore.getSearchResult();
 

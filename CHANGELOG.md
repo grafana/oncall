@@ -9,15 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Release new webhooks functionality by @mderynck @matiasb @maskin25 @teodosii @raphael-batte ([#1830](https://github.com/grafana/oncall/pull/1830))
+
+### Changed
+
+- Custom button webhooks are deprecated, they will be automatically migrated to new webhooks. ([#1830](https://github.com/grafana/oncall/pull/1830))
+
+## v1.3.10 (2023-07-13)
+
+### Added
+
 - [Helm] Added ability to specify `resources` definition within the `wait-for-db` init container by @Shelestov7
   ([#2501](https://github.com/grafana/oncall/pull/2501))
-- Release new webhooks functionality by @mderynck @matiasb @maskin25 @teodosii @raphael-batte ([#1830](https://github.com/grafana/oncall/pull/1830))
+- Added index on `started_at` column in `alerts_alertgroup` table. This substantially speeds up query used by the `check_escalation_finished_task`
+  task. By @joeyorlando and @Konstantinov-Innokentii ([#2516](https://github.com/grafana/oncall/pull/2516)).
 
 ### Changed
 
 - Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
   within a single integration's page. by @Ukochka ([#2497](https://github.com/grafana/oncall/issues/2497))
-- Custom button webhooks are deprecated, they will be automatically migrated to new webhooks. ([#1830](https://github.com/grafana/oncall/pull/1830))
 
 ### Fixed
 
@@ -36,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add debounce on Select UI components to avoid making API search requests on each key-down event by
   @maskin25 ([#2466](https://github.com/grafana/oncall/pull/2466))
+- Make Direct paging integration configurable ([2483](https://github.com/grafana/oncall/pull/2483))
 
 ## v1.3.8 (2023-07-11)
 

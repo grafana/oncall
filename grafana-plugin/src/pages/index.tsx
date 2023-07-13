@@ -136,13 +136,6 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.OtherSettingsWrite,
   },
   {
-    icon: 'gf-logs',
-    id: 'organization-logs',
-    text: 'Org Logs',
-    hideFromTabs: true,
-    path: getPath('organization-logs'),
-  },
-  {
     icon: 'cog',
     id: 'test',
     text: 'Test',
@@ -178,7 +171,6 @@ export const ROUTES = {
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id', 'outgoing_webhooks/:action/:id'],
   maintenance: ['maintenance'],
   settings: ['settings'],
-  'organization-logs': ['organization-logs'],
   'chat-ops': ['chat-ops'],
   'live-settings': ['live-settings'],
   cloud: ['cloud'],

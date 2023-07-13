@@ -27,7 +27,6 @@ import Incidents from 'pages/incidents/Incidents';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
 import Maintenance from 'pages/maintenance/Maintenance';
-import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
 import Schedule from 'pages/schedule/Schedule';
@@ -37,7 +36,6 @@ import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import Users from 'pages/users/Users';
-import 'interceptors';
 import { rootStore } from 'state';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
@@ -177,9 +175,6 @@ export const Root = observer((props: AppRootProps) => {
             </Route>
             <Route path={getRoutesForPage('settings')} exact>
               <SettingsPage />
-            </Route>
-            <Route path={getRoutesForPage('organization-logs')} exact>
-              <OrganizationLogPage />
             </Route>
             <Route path={getRoutesForPage('chat-ops')} exact>
               <ChatOps query={query} />
