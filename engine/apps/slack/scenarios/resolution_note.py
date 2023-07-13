@@ -379,7 +379,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         if data:
             # Argument "data" is used when step is called from other step, e.g. AddRemoveThreadMessageStep
             AlertGroup = apps.get_model("alerts", "AlertGroup")
-            alert_group = AlertGroup.all_objects.get(pk=data["alert_group_pk"])
+            alert_group = AlertGroup.objects.get(pk=data["alert_group_pk"])
         else:
             # Handle "Add Resolution notes" button click
             alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -686,7 +686,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         slack_thread_message = None
         resolution_note = None
 
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
         if slack_message_pk is not None:
             slack_thread_message = ResolutionNoteSlackMessage.objects.get(pk=slack_message_pk)

@@ -105,7 +105,7 @@ def check_escalation_finished_task() -> None:
     now = timezone.now()
     two_days_ago = now - datetime.timedelta(days=2)
 
-    alert_groups = AlertGroup.all_objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(
+    alert_groups = AlertGroup.objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(
         ~Q(silenced=True, silenced_until__isnull=True),  # filter silenced forever alert_groups
         # here we should query maintenance_uuid rather than joining on channel__integration
         # and checking for something like ~Q(channel__integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE)

@@ -322,7 +322,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         return
 
     try:
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     except AlertGroup.DoesNotExist:
         logger.warning(f"Alert group {alert_group_pk} does not exist")
         return

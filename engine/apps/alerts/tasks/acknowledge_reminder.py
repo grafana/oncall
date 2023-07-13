@@ -21,9 +21,7 @@ def acknowledge_reminder_task(alert_group_pk, unacknowledge_process_id):
     task_logger.info(f"Starting a reminder task for acknowledgement timeout with process id {unacknowledge_process_id}")
     with transaction.atomic():
         try:
-            alert_group = AlertGroup.unarchived_objects.filter(pk=alert_group_pk).select_for_update()[
-                0
-            ]  # Lock alert_group:
+            alert_group = AlertGroup.objects.filter(pk=alert_group_pk).select_for_update()[0]  # Lock alert_group:
         except IndexError:
             return f"acknowledge_reminder_task: Alert group with pk {alert_group_pk} doesn't exist"
 
@@ -89,17 +87,12 @@ def unacknowledge_timeout_task(alert_group_pk, unacknowledge_process_id):
     )
     with transaction.atomic():
         try:
-            alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk).select_for_update()[0]  # Lock alert_group:
+            alert_group = AlertGroup.objects.filter(pk=alert_group_pk).select_for_update()[0]  # Lock alert_group:
         except IndexError:
             return f"unacknowledge_timeout_task: Alert group with pk {alert_group_pk} doesn't exist"
 
         if unacknowledge_process_id == alert_group.last_unique_unacknowledge_process_id:
-            if (
-                not alert_group.resolved
-                and not alert_group.is_archived
-                and alert_group.acknowledged
-                and alert_group.is_root_alert_group
-            ):
+            if not alert_group.resolved and alert_group.acknowledged and alert_group.is_root_alert_group:
                 if not alert_group.acknowledged_by_confirmed:
                     log_record = AlertGroupLogRecord(
                         type=AlertGroupLogRecord.TYPE_AUTO_UN_ACK,

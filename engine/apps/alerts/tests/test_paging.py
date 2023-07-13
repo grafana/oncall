@@ -167,7 +167,7 @@ def test_direct_paging_user(make_organization, make_user_for_organization):
         )
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     alert = ag.alerts.get()
@@ -200,7 +200,7 @@ def test_direct_paging_schedule(
         direct_paging(organization, None, from_user, schedules=[(schedule, False), (other_schedule, True)])
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     alert = ag.alerts.get()
@@ -231,7 +231,7 @@ def test_direct_paging_reusing_alert_group(
         direct_paging(organization, None, from_user, users=[(user, False)], alert_group=alert_group)
 
     # no new alert group is created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     assert_log_record(alert_group, f"{from_user.username} paged user {user.username}")
     # notifications sent
@@ -264,7 +264,7 @@ def test_direct_paging_custom_chain(
     direct_paging(organization, None, from_user, escalation_chain=custom_chain)
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     channel_filter = ag.channel_filter_with_respect_to_escalation_snapshot
@@ -284,7 +284,7 @@ def test_direct_paging_returns_alert_group(make_organization, make_user_for_orga
         alert_group = direct_paging(organization, None, from_user, title="Help!", message="Fire", users=[(user, False)])
 
     # check alert group returned by direct paging is the same as the one created
-    assert alert_group == AlertGroup.all_objects.get()
+    assert alert_group == AlertGroup.objects.get()
 
 
 @pytest.mark.django_db
@@ -333,7 +333,7 @@ def test_direct_paging_always_create_group(make_organization, make_user_for_orga
         direct_paging(organization, None, from_user, title="Help!", users=[(user, False)])
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 2
     # notifications sent
     assert notify_task.apply_async.called_with((user.pk, alert_groups[0].pk), {"important": False})

@@ -34,7 +34,7 @@ def custom_button_result(custom_button_pk, alert_group_pk, user_pk=None, escalat
         task_logger.info(f"Custom_button {custom_button_pk} for alert_group {alert_group_pk} does not exist")
         return
 
-    alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk)[0]
+    alert_group = AlertGroup.objects.filter(pk=alert_group_pk)[0]
     escalation_policy = EscalationPolicy.objects.filter(pk=escalation_policy_pk).first()
     task_logger.debug(
         f"Start getting data for request in custom_button_result task for alert_group {alert_group_pk}, "

@@ -86,7 +86,7 @@ def incident_public_api_setup(
 @pytest.mark.django_db
 def test_get_incidents(incident_public_api_setup):
     token, _, _, _ = incident_public_api_setup
-    incidents = AlertGroup.unarchived_objects.all().order_by("-started_at")
+    incidents = AlertGroup.objects.all().order_by("-started_at")
     client = APIClient()
     expected_response = construct_expected_response_from_incidents(incidents)
 
@@ -103,7 +103,7 @@ def test_get_incidents_filter_by_integration(
 ):
     token, incidents, integrations, _ = incident_public_api_setup
     formatted_webhook = integrations[1]
-    incidents = AlertGroup.unarchived_objects.filter(channel=formatted_webhook).order_by("-started_at")
+    incidents = AlertGroup.objects.filter(channel=formatted_webhook).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
     client = APIClient()
 
@@ -121,7 +121,7 @@ def test_get_incidents_filter_by_state_new(
     incident_public_api_setup,
 ):
     token, _, _, _ = incident_public_api_setup
-    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_new_state_filter()).order_by("-started_at")
+    incidents = AlertGroup.objects.filter(AlertGroup.get_new_state_filter()).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
     client = APIClient()
 
@@ -137,7 +137,7 @@ def test_get_incidents_filter_by_state_acknowledged(
     incident_public_api_setup,
 ):
     token, _, _, _ = incident_public_api_setup
-    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_acknowledged_state_filter()).order_by("-started_at")
+    incidents = AlertGroup.objects.filter(AlertGroup.get_acknowledged_state_filter()).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
     client = APIClient()
 
@@ -153,7 +153,7 @@ def test_get_incidents_filter_by_state_silenced(
     incident_public_api_setup,
 ):
     token, _, _, _ = incident_public_api_setup
-    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_silenced_state_filter()).order_by("-started_at")
+    incidents = AlertGroup.objects.filter(AlertGroup.get_silenced_state_filter()).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
     client = APIClient()
 
@@ -169,7 +169,7 @@ def test_get_incidents_filter_by_state_resolved(
     incident_public_api_setup,
 ):
     token, _, _, _ = incident_public_api_setup
-    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_resolved_state_filter()).order_by("-started_at")
+    incidents = AlertGroup.objects.filter(AlertGroup.get_resolved_state_filter()).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
     client = APIClient()
 
@@ -213,7 +213,7 @@ def test_get_incidents_filter_by_route(
 ):
     token, incidents, integrations, routes = incident_public_api_setup
     grafana_non_default_route = routes[1]
-    incidents = AlertGroup.unarchived_objects.filter(channel_filter=grafana_non_default_route).order_by("-started_at")
+    incidents = AlertGroup.objects.filter(channel_filter=grafana_non_default_route).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
     client = APIClient()
 
