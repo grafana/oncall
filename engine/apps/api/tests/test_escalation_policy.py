@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.db.models import Max
 from django.urls import reverse
 from django.utils.timezone import timedelta
@@ -8,7 +9,6 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-import settings.base
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
 
@@ -914,7 +914,7 @@ def test_escalation_policy_escalation_options_webhooks(
 
     url = reverse("api-internal:escalation_policy-escalation-options")
 
-    settings.base.FEATURE_WEBHOOKS_2_ENABLED = enabled
+    settings.FEATURE_WEBHOOKS_2_ENABLED = enabled
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
