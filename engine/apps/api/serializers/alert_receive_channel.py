@@ -53,7 +53,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
-    connected_chatops_channels = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
@@ -93,7 +92,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
-            "connected_chatops_channels",
         ]
         read_only_fields = [
             "created_at",
@@ -109,7 +107,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
-            "connected_chatops_channels",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
