@@ -3,17 +3,14 @@ from urllib.parse import urljoin
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponse
 from rest_framework import status
 from social_core.exceptions import AuthForbidden
 
 from apps.slack.tasks import populate_slack_channels_for_team, populate_slack_usergroups_for_team
 from apps.social_auth.exceptions import InstallMultiRegionSlackException
-from common.constants.slack_auth import (
-    REDIRECT_AFTER_SLACK_INSTALL,
-    SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR,
-    SLACK_AUTH_WRONG_WORKSPACE_ERROR,
-)
+from common.constants.slack_auth import SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR, SLACK_AUTH_WRONG_WORKSPACE_ERROR
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import check_slack_installation_possible, create_slack_connector
 
@@ -41,26 +38,24 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     slack_team_identity = organization.slack_team_identity
     slack_user_id = response["authed_user"]["id"]
 
+    redirect_to = "/a/grafana-oncall-app/users/me/"
+    base_url_to_redirect = urljoin(organization.grafana_url, redirect_to)
+
     if slack_team_identity is None:
         # means that organization doesn't have slack integration, so user cannot connect their account to slack
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
     if slack_team_identity.slack_id != response["team"]["id"]:
         # means that user authed in another slack workspace that is not connected to their organization
         # change redirect url to show user error message and save it in session param
-        url = urljoin(
-            strategy.session[REDIRECT_AFTER_SLACK_INSTALL],
-            f"?page=users&slack_error={SLACK_AUTH_WRONG_WORKSPACE_ERROR}",
-        )
-        strategy.session[REDIRECT_AFTER_SLACK_INSTALL] = url
+        url = base_url_to_redirect + f"?slack_error={SLACK_AUTH_WRONG_WORKSPACE_ERROR}"
+        strategy.session[REDIRECT_FIELD_NAME] = url
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     if organization.users.filter(slack_user_identity__slack_id=slack_user_id).exists():
         # means that slack user has already been connected to another user in current organization
-        url = urljoin(
-            strategy.session[REDIRECT_AFTER_SLACK_INSTALL],
-            f"?page=users&slack_error={SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR}",
-        )
-        strategy.session[REDIRECT_AFTER_SLACK_INSTALL] = url
+        url = base_url_to_redirect + f"?slack_error={SLACK_AUTH_SLACK_USER_ALREADY_CONNECTED_ERROR}"
+        strategy.session[REDIRECT_FIELD_NAME] = url
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     slack_user_identity, _ = SlackUserIdentity.objects.get_or_create(
