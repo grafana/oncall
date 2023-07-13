@@ -33,8 +33,6 @@ const SortableHandleHoc = SortableHandle(DragHandle);
 const UserGroups = (props: UserGroupsProps) => {
   const { value, onChange, isMultipleGroups, renderUser, showError, disabled } = props;
 
-  const rootRef = useRef<HTMLDivElement>();
-
   const handleAddUserGroup = useCallback(() => {
     onChange([...value, []]);
   }, [value]);
@@ -97,17 +95,6 @@ const UserGroups = (props: UserGroupsProps) => {
     };
   };
 
-  useEffect(() => {
-    const container = rootRef.current.parentElement.parentElement.parentElement;
-    const containerParent = container.parentElement;
-
-    containerParent.scroll({
-      left: 0,
-      top: container.scrollHeight,
-      behavior: 'smooth',
-    });
-  }, [value]);
-
   const renderItem = (item: Item, index: number) => (
     <li className={cx('user')}>
       {renderUser(item.data)}
@@ -123,7 +110,7 @@ const UserGroups = (props: UserGroupsProps) => {
   );
 
   return (
-    <div className={cx('root')} ref={rootRef}>
+    <div className={cx('root')}>
       <VerticalGroup>
         {!disabled && (
           <RemoteSelect
@@ -173,8 +160,20 @@ interface SortableListProps {
 
 const SortableList = SortableContainer<SortableListProps>(
   ({ items, handleAddGroup, isMultipleGroups, renderItem, allowCreate }) => {
+    const listRef = useRef<HTMLUListElement>();
+
+    useEffect(() => {
+      const container = listRef.current;
+
+      container.scroll({
+        left: 0,
+        top: container.scrollHeight,
+        behavior: 'smooth',
+      });
+    }, [items]);
+
     return (
-      <ul className={cx('groups')}>
+      <ul className={cx('groups')} ref={listRef}>
         {items.map((item, index) =>
           item.type === 'item' ? (
             <SortableItem key={item.key} index={index}>

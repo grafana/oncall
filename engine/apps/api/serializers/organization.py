@@ -21,7 +21,6 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     slack_team_identity = FastSlackTeamIdentitySerializer(read_only=True)
 
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
-    maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     slack_channel = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["slack_team_identity"]
@@ -32,14 +31,10 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "pk",
             "name",
             "slack_team_identity",
-            "maintenance_mode",
-            "maintenance_till",
             "slack_channel",
         ]
         read_only_fields = [
             "slack_team_identity",
-            "maintenance_mode",
-            "maintenance_till",
         ]
 
     def get_slack_channel(self, obj):

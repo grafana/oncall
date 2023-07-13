@@ -13,6 +13,10 @@ type SelectDropdownValueArgs = {
   startingLocator?: Locator;
   // if true, when selecting the dropdown option, use an exact match, otherwise use a substring contains match
   optionExactMatch?: boolean;
+
+  // if true, will press enter in the select dropdown. Some dropdowns don't show a list of options
+  // and instead the user must press enter to trigger the search
+  pressEnterInsteadOfSelectingOption?: boolean;
 };
 
 type ClickButtonArgs = {
@@ -87,9 +91,16 @@ const chooseDropdownValue = async ({ page, value, optionExactMatch = true }: Sel
   page.locator(`div[id^="react-select-"][id$="-listbox"] >> ${textMatchSelector(optionExactMatch, value)}`).click();
 
 export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<Locator> => {
+  const { page, value, pressEnterInsteadOfSelectingOption } = args;
+
   const selectElement = await openSelect(args);
-  await selectElement.type(args.value);
-  await chooseDropdownValue(args);
+  await selectElement.type(value);
+
+  if (pressEnterInsteadOfSelectingOption) {
+    await page.keyboard.press('Enter');
+  } else {
+    await chooseDropdownValue(args);
+  }
 
   return selectElement;
 };
