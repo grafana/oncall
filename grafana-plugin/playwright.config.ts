@@ -18,6 +18,10 @@ export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'integration-tests/
  */
 const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
+
+  /* Maximum time all the tests can run for. */
+  globalTimeout: 20 * 60 * 1000, // 20 minutes
+
   /* Maximum time one test can run for. */
   timeout: 60 * 1000,
   expect: {
