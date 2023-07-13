@@ -68,12 +68,19 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     };
   };
 
-  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement, values, setFormFieldValue) => {
+  const enrchField = (
+    formItem: FormItem,
+    disabled: boolean,
+    renderedControl: React.ReactElement,
+    values,
+    setFormFieldValue
+  ) => {
     if (formItem.type === FormItemType.Monaco) {
       return (
         <div className={cx('form-row')}>
           <div className={cx('form-field')}>{renderedControl}</div>
           <Button
+            disabled={disabled}
             icon="edit"
             variant="secondary"
             onClick={getTemplateEditClickHandler(formItem, values, setFormFieldValue)}
