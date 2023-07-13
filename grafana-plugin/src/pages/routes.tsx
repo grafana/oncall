@@ -3,7 +3,6 @@ import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
 import MaintenancePage from 'pages/maintenance/Maintenance';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
-import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
 import SchedulePage from 'pages/schedule/Schedule';
 import SchedulesPage from 'pages/schedules/Schedules';
 import SettingsPage from 'pages/settings/SettingsPage';
@@ -55,10 +54,6 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: OutgoingWebhooks,
     id: 'outgoing_webhooks',
-  },
-  {
-    component: OutgoingWebhooks2,
-    id: 'outgoing_webhooks_2',
   },
   {
     component: MaintenancePage,
