@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+import settings.base
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
 
@@ -913,8 +914,9 @@ def test_escalation_policy_escalation_options_webhooks(
 
     url = reverse("api-internal:escalation_policy-escalation-options")
 
-    with patch("apps.api.views.escalation_policy.is_webhooks_enabled_for_organization", return_value=enabled):
-        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    settings.base.FEATURE_WEBHOOKS_2_ENABLED = enabled
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     returned_options = [option["value"] for option in response.json()]
     if enabled:

@@ -7,6 +7,8 @@ from django.db import migrations
 from apps.alerts.models import EscalationPolicy
 from apps.webhooks.models import Webhook
 
+LEGACY_SUFFIX = " (Legacy)"
+
 logger = logging.getLogger(__name__)
 
 def convert_custom_button_to_webhook(apps, schema_editor):
@@ -18,7 +20,7 @@ def convert_custom_button_to_webhook(apps, schema_editor):
         webhook, _ = Webhooks.objects.get_or_create(
             organization=cb.organization,
             team=cb.team,
-            name=cb.name,
+            name=cb.name + LEGACY_SUFFIX,
             is_legacy=True,
             defaults=dict(
                 created_at=cb.created_at,
@@ -48,7 +50,7 @@ def undo_custom_button_to_webhook(apps, schema_editor):
 
     for webhook in Webhooks.objects.filter(is_legacy=True):
         try:
-            cb = CustomButton.objects.get(name=webhook.name, team=webhook.team, organization=webhook.organization)
+            cb = CustomButton.objects.get(name=webhook.name.removesuffix(LEGACY_SUFFIX), team=webhook.team, organization=webhook.organization)
         except ObjectDoesNotExist:
             logger.warning(f"Did not find matching custom button to revert {webhook.name} {webhook.organization.stack_slug}, skipping")
             continue
@@ -59,6 +61,7 @@ def undo_custom_button_to_webhook(apps, schema_editor):
         ).update(
             step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
             custom_button_trigger=cb,
+            custom_webhook=None,
         )
         webhook.delete()
 

@@ -14,7 +14,6 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicyUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
-from apps.webhooks.utils import is_webhooks_enabled_for_organization
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -132,14 +131,10 @@ class EscalationPolicyView(
     def escalation_options(self, request):
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
-            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK and not is_webhooks_enabled_for_organization(
-                self.request.auth.organization.pk
-            ):
+            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK and not settings.FEATURE_WEBHOOKS_2_ENABLED:
                 continue
 
-            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and is_webhooks_enabled_for_organization(
-                self.request.auth.organization.pk
-            ):
+            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and settings.FEATURE_WEBHOOKS_2_ENABLED:
                 continue
 
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
