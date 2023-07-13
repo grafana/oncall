@@ -12,17 +12,5 @@
   margin-bottom: 20px;
   width: 100%;
   background: var(--background-secondary);
-
-  & > li .hover-button {
-    display: none;
-  }
-
-  & > li:hover .hover-button {
-    display: inline-flex;
-  }
-
-  & > li {
-    padding: 10px 12px;
-    width: 100%;
-  }
+  padding: 10px 12px;
 }
