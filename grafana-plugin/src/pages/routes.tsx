@@ -2,7 +2,6 @@ import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
 import MaintenancePage from 'pages/maintenance/Maintenance';
-import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
 import SchedulePage from 'pages/schedule/Schedule';
@@ -72,10 +71,6 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: LiveSettingsPage,
     id: 'live-settings',
-  },
-  {
-    component: OrganizationLogPage,
-    id: 'organization-logs',
   },
   {
     component: CloudPage,
