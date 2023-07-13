@@ -426,7 +426,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return self.maintenance_uuid is not None
 
     def stop_maintenance(self, user: User) -> None:
-        Organization = apps.get_model("user_management", "Organization")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
         try:
@@ -434,13 +433,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             integration_on_maintenance.force_disable_maintenance(user)
             return
         except AlertReceiveChannel.DoesNotExist:
-            pass
-
-        try:
-            organization_on_maintenance = Organization.objects.get(maintenance_uuid=self.maintenance_uuid)
-            organization_on_maintenance.force_disable_maintenance(user)
-            return
-        except Organization.DoesNotExist:
             pass
 
         self.resolve_by_disable_maintenance()
