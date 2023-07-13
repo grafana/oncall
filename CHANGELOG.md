@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.11 (2023-07-13)
+
+### Added
+
+- Release new webhooks functionality by @mderynck @matiasb @maskin25 @teodosii @raphael-batte ([#1830](https://github.com/grafana/oncall/pull/1830))
+
+### Changed
+
+- Custom button webhooks are deprecated, they will be automatically migrated to new webhooks. ([#1830](https://github.com/grafana/oncall/pull/1830))
+
 ## v1.3.10 (2023-07-13)
 
 ### Added

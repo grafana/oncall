@@ -68,12 +68,19 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
     };
   };
 
-  const enrchField = (formItem: FormItem, renderedControl: React.ReactElement, values, setFormFieldValue) => {
+  const enrchField = (
+    formItem: FormItem,
+    disabled: boolean,
+    renderedControl: React.ReactElement,
+    values,
+    setFormFieldValue
+  ) => {
     if (formItem.type === FormItemType.Monaco) {
       return (
         <div className={cx('form-row')}>
           <div className={cx('form-field')}>{renderedControl}</div>
           <Button
+            disabled={disabled}
             icon="edit"
             variant="secondary"
             onClick={getTemplateEditClickHandler(formItem, values, setFormFieldValue)}
@@ -149,7 +156,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
               key={WebhookTabs.Settings.key}
               onChangeTab={() => {
                 setActiveTab(WebhookTabs.Settings.key);
-                history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
+                history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`);
               }}
               active={activeTab === WebhookTabs.Settings.key}
               label={WebhookTabs.Settings.value}
@@ -159,7 +166,7 @@ const OutgoingWebhook2Form = observer((props: OutgoingWebhook2FormProps) => {
               key={WebhookTabs.LastRun.key}
               onChangeTab={() => {
                 setActiveTab(WebhookTabs.LastRun.key);
-                history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/last_run/${id}`);
+                history.push(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`);
               }}
               active={activeTab === WebhookTabs.LastRun.key}
               label={WebhookTabs.LastRun.value}
@@ -290,7 +297,7 @@ const WebhookTabsContent: React.FC<WebhookTabsProps> = ({
           </div>
           {data.is_legacy ? (
             <div className={cx('content')}>
-              <Text type="secondary">Legacy migrated webhooks are not editable.</Text>
+              <Text type="secondary">Legacy migrated webhooks are not editable. Make a copy to make changes.</Text>
             </div>
           ) : (
             ''
