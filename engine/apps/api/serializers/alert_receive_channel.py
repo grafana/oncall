@@ -117,8 +117,15 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise BadRequest(detail=connection_error)
+        for _integration in AlertReceiveChannel._config:
+            if _integration.slug == integration:
+                is_able_to_autoresolve = _integration.is_able_to_autoresolve
+
         instance = AlertReceiveChannel.create(
-            **validated_data, organization=organization, author=self.context["request"].user
+            **validated_data,
+            organization=organization,
+            author=self.context["request"].user,
+            allow_source_based_resolving=is_able_to_autoresolve,
         )
 
         return instance
@@ -172,8 +179,11 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         return obj.channel_filters.count()
 
     def get_connected_escalations_chains_count(self, obj) -> int:
-        return len(
-            set(ChannelFilter.objects.filter(alert_receive_channel=obj).values_list("escalation_chain", flat=True))
+        return (
+            ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
+            .values("escalation_chain")
+            .distinct()
+            .count()
         )
 
 
@@ -192,8 +202,7 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         fields = ["id", "integration", "verbal_name", "deleted"]
 
     def get_deleted(self, obj):
-        # Treat direct paging integrations as deleted, so integration settings are disabled on the frontend
-        return obj.deleted_at is not None or obj.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        return obj.deleted_at is not None
 
 
 class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):

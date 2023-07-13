@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add debounce on Select UI components to avoid making API search requests on each key-down event by
   @maskin25 ([#2466](https://github.com/grafana/oncall/pull/2466))
+- Make Direct paging integration configurable ([2483](https://github.com/grafana/oncall/pull/2483))
 
 ## v1.3.8 (2023-07-11)
 
