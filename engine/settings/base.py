@@ -408,9 +408,7 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
-ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_ENABLED = getenv_boolean(
-    "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_ENABLED", default=True
-)
+ESCALATION_AUDITOR_ENABLED = getenv_boolean("ESCALATION_AUDITOR_ENABLED", default=True)
 ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
     "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
 )
@@ -492,7 +490,7 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-if ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_ENABLED:
+if ESCALATION_AUDITOR_ENABLED:
     CELERY_BEAT_SCHEDULE["check_escalations"] = {
         "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
         # the task should be executed a minute or two less than the integration's configured interval

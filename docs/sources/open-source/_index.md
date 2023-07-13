@@ -313,5 +313,5 @@ To configure this feature as such:
   would like to modify this, we recommend configuring this env variable to 1 or 2 minutes less than the value set for the
   integration's heartbeat expected time interval.
 
-Additionally, if you prefer to disable this feature, you can set the `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_ENABLED`
-environment variable to `False`.
+Additionally, if you prefer to disable this feature, you can set the `ESCALATION_AUDITOR_ENABLED` environment variable
+to `False`.
