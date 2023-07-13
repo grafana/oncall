@@ -62,8 +62,12 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
             .then((response) => {
               history.push(`${PLUGIN_ROOT}/integrations/${response.id}`);
             })
-            .catch(() => {
-              openErrorNotification('Something went wrong, please try again later.');
+            .catch((err) => {
+              if (err.response?.data?.length > 0) {
+                openErrorNotification(err.response.data);
+              } else {
+                openErrorNotification('Something went wrong, please try again later.');
+              }
             })
         : alertReceiveChannelStore.update(id, data)
       ).then(() => {

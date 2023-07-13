@@ -42,7 +42,7 @@ def _trigger_alert(
         deleted_at=None,
         defaults={
             "author": from_user,
-            "verbal_name": f"Direct paging ({team.name if team else 'General'} team)",
+            "verbal_name": "Direct paging",
         },
     )
     if alert_receive_channel.default_channel_filter is None:
@@ -149,8 +149,6 @@ def direct_paging(
     Otherwise, create a new alert using given title and message.
 
     """
-    if not users and not schedules and not escalation_chain:
-        return
 
     if users is None:
         users = []

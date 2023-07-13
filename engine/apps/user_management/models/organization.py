@@ -11,8 +11,6 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
-from apps.alerts.tasks import disable_maintenance
-from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
@@ -75,6 +73,9 @@ class OrganizationManager(models.Manager):
         return OrganizationQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
 
 
+# TODO: in a subsequent PR, remove the inheritance from MaintainableObject (plus generate the database migration file)
+# this will remove the maintenance related columns that're no longer used on the organization object
+# class Organization(models.Model):
 class Organization(MaintainableObject):
     auth_tokens: "RelatedManager['ApiAuthToken']"
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
@@ -254,39 +255,6 @@ class Organization(MaintainableObject):
     def revoke_plugin(self):
         token_model = apps.get_model("auth_token", "PluginAuthToken")
         token_model.objects.filter(organization=self).delete()
-
-    """
-    Following methods: start_disable_maintenance_task, force_disable_maintenance, get_organization, get_verbal serve for
-    MaintainableObject.
-    """
-
-    def start_disable_maintenance_task(self, countdown):
-        maintenance_uuid = disable_maintenance.apply_async(
-            args=(),
-            kwargs={
-                "organization_id": self.pk,
-            },
-            countdown=countdown,
-        )
-        return maintenance_uuid
-
-    def force_disable_maintenance(self, user):
-        disable_maintenance(organization_id=self.pk, force=True, user_id=user.pk)
-
-    def get_organization(self):
-        return self
-
-    def get_team(self):
-        return None
-
-    def get_verbal(self):
-        return self.org_title
-
-    def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
-        # TODO: this method should be refactored.
-        # It's binded to slack and sending maintenance notification only there.
-        if send_to_general_log_channel:
-            post_message_to_channel(self, self.general_log_channel_id, text)
 
     """
     Following methods:

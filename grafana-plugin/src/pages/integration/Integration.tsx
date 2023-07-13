@@ -58,7 +58,6 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
-import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
@@ -327,7 +326,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Autoresolve:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
+                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || 'disabled')}
                       </Text>
                     </div>
 
@@ -606,7 +605,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
 const DemoNotification: React.FC = () => {
   return (
-    <div>
+    <div data-testid="demo-alert-sent-notification">
       Demo alert was generated. Find it on the
       <PluginLink query={{ page: 'alert-groups' }}> "Alert Groups" </PluginLink>
       page and make sure it didn't freak out your colleagues 😉
@@ -727,7 +726,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { maintenanceStore, alertReceiveChannelStore, heartbeatStore } = useStore();
+  const { alertReceiveChannelStore, heartbeatStore } = useStore();
 
   const history = useHistory();
 
@@ -815,6 +814,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         </WithPermissionControlTooltip>
 
         <WithContextMenu
+          data-testid="integration-settings-context-menu"
           renderMenuItems={() => (
             <div className={cx('integration__actionsList')} id="integration-menu-options">
               <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
@@ -831,7 +831,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {!alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div className={cx('integration__actionItem')} onClick={openStartMaintenance}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={openStartMaintenance}
+                    data-testid="integration-start-maintenance"
+                  >
                     <Text type="primary">Start Maintenance</Text>
                   </div>
                 </WithPermissionControlTooltip>
@@ -862,6 +866,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                         ),
                       });
                     }}
+                    data-testid="integration-stop-maintenance"
                   >
                     <Text type="primary">Stop Maintenance</Text>
                   </div>
@@ -941,14 +946,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
   }
 
-  function onStopMaintenance() {
+  async function onStopMaintenance() {
     setConfirmModal(undefined);
 
-    maintenanceStore
-      .stopMaintenanceMode(MaintenanceType.alert_receive_channel, id)
-      .then(() => maintenanceStore.updateMaintenances())
-      .then(() => openNotification('Maintenance has been stopped'))
-      .then(() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id));
+    await alertReceiveChannelStore.stopMaintenanceMode(id);
+
+    openNotification('Maintenance has been stopped');
+    await alertReceiveChannelStore.updateItem(id);
   }
 };
 
@@ -959,6 +963,17 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
 
   const item = alertReceiveChannelStore.items[id];
   const url = item?.integration_url || item?.inbound_email;
+
+  const howToConnectTagName = (integration: string) => {
+    switch (integration) {
+      case 'direct_paging':
+        return 'Manual';
+      case 'email':
+        return 'Inbound Email';
+      default:
+        return 'HTTP Endpoint';
+    }
+  };
 
   return (
     <IntegrationBlock
@@ -972,29 +987,50 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             className={cx('how-to-connect__tag')}
           >
             <Text type="primary" size="small" className={cx('radius')}>
-              {item?.inbound_email ? 'Inbound Email' : 'HTTP Endpoint'}
+              {howToConnectTagName(item?.integration)}
             </Text>
           </Tag>
-          {url && (
-            <IntegrationInputField
-              value={url}
-              className={cx('integration__input-field')}
-              showExternal={!!item?.integration_url}
-            />
+          {item?.integration === 'direct_paging' ? (
+            <>
+              <Text type="secondary">Alert Groups raised manually via Web or ChatOps</Text>
+              <a
+                href="https://grafana.com/docs/oncall/latest/integrations/manual"
+                target="_blank"
+                rel="noreferrer"
+                className={cx('u-pull-right')}
+              >
+                <Text type="link" size="small">
+                  <HorizontalGroup>
+                    How it works
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
+                </Text>
+              </a>
+            </>
+          ) : (
+            <>
+              {url && (
+                <IntegrationInputField
+                  value={url}
+                  className={cx('integration__input-field')}
+                  showExternal={!!item?.integration_url}
+                />
+              )}
+              <a
+                href="https://grafana.com/docs/oncall/latest/integrations/"
+                target="_blank"
+                rel="noreferrer"
+                className={cx('u-pull-right')}
+              >
+                <Text type="link" size="small">
+                  <HorizontalGroup>
+                    How to connect
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
+                </Text>
+              </a>
+            </>
           )}
-          <a
-            href="https://grafana.com/docs/oncall/latest/integrations/"
-            target="_blank"
-            rel="noreferrer"
-            className={cx('u-pull-right')}
-          >
-            <Text type="link" size="small">
-              <HorizontalGroup>
-                How to connect
-                <Icon name="external-link-alt" />
-              </HorizontalGroup>
-            </Text>
-          </a>
         </div>
       }
       content={hasAlerts ? null : renderContent()}
@@ -1002,12 +1038,20 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   );
 
   function renderContent() {
+    const callToAction = () => {
+      if (item?.integration === 'direct_paging') {
+        return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
+      } else {
+        return item.demo_alert_enabled && <Text type={'primary'}>; try to send a demo alert</Text>;
+      }
+    };
+
     return (
       <VerticalGroup justify={'flex-start'} spacing={'xs'}>
         {!hasAlerts && (
           <HorizontalGroup spacing={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-            <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
+            <Text type={'primary'}>No alerts yet;</Text> {callToAction()}
           </HorizontalGroup>
         )}
       </VerticalGroup>
@@ -1063,6 +1107,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {alertReceiveChannel.maintenance_till && (
         <TooltipBadge
+          data-testid="maintenance-mode-remaining-time-tooltip"
           borderType="primary"
           icon="pause"
           text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
