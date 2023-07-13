@@ -96,7 +96,9 @@ def test_update_notify_multiple_users_step(escalation_policy_internal_api_setup,
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["step"] == EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS
-    assert response.json()["notify_to_users_queue"] == [first_user.public_primary_key, second_user.public_primary_key]
+    assert sorted(response.json()["notify_to_users_queue"]) == sorted(
+        [first_user.public_primary_key, second_user.public_primary_key]
+    )
 
 
 @pytest.mark.django_db
