@@ -123,7 +123,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         selected_organization = _get_selected_org_from_payload(
             payload, input_id_prefix, slack_team_identity, slack_user_identity
         )
-        selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
+        _, selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
         user = slack_user_identity.get_user(selected_organization)
 
         # Only pass users/schedules if additional responders checkbox is checked
@@ -214,13 +214,12 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         selected_organization = _get_selected_org_from_payload(
             payload, private_metadata["input_id_prefix"], slack_team_identity, slack_user_identity
         )
-        selected_team = _get_selected_team_from_payload(payload, private_metadata["input_id_prefix"])
         selected_user = _get_selected_user_from_payload(payload, private_metadata["input_id_prefix"])
         if selected_user is None:
             return
 
         # check availability
-        availability_warnings = check_user_availability(selected_user, selected_team)
+        availability_warnings = check_user_availability(selected_user)
         if availability_warnings:
             # display warnings and require additional confirmation
             view = _display_availability_warnings(payload, availability_warnings, selected_organization, selected_user)
@@ -359,7 +358,7 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
         new_private_metadata = private_metadata
         new_private_metadata["input_id_prefix"] = new_input_id_prefix
         selected_organization = available_organizations.first()
-        selected_team = None
+        is_team_selected, selected_team = False, None
         is_additional_responders_checked = False
     else:
         # setup form using data/state
@@ -369,15 +368,15 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
         selected_organization = _get_selected_org_from_payload(
             payload, old_input_id_prefix, slack_team_identity, slack_user_identity
         )
-        selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
+        is_team_selected, selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
         is_additional_responders_checked = _get_additional_responders_checked_from_payload(payload, old_input_id_prefix)
 
     # widgets
     team_select_blocks = _get_team_select_blocks(
-        slack_user_identity, selected_organization, selected_team, new_input_id_prefix
+        slack_user_identity, selected_organization, is_team_selected, selected_team, new_input_id_prefix
     )
     additional_responders_blocks = _get_additional_responders_blocks(
-        payload, selected_organization, selected_team, new_input_id_prefix, is_additional_responders_checked, error_msg
+        payload, selected_organization, new_input_id_prefix, is_additional_responders_checked, error_msg
     )
 
     # Add title and message inputs
@@ -481,7 +480,7 @@ def _get_selected_org_from_payload(payload, input_id_prefix, slack_team_identity
         return org
 
 
-def _get_team_select_blocks(slack_user_identity, organization, value, input_id_prefix):
+def _get_team_select_blocks(slack_user_identity, organization, is_selected, value, input_id_prefix):
     user = slack_user_identity.get_user(organization)  # TODO: handle None
     teams = user.available_teams
 
@@ -522,12 +521,17 @@ def _get_team_select_blocks(slack_user_identity, organization, value, input_id_p
         "element": {
             "type": "static_select",
             "action_id": OnPagingTeamChange.routing_uid(),
-            "placeholder": {"type": "plain_text", "text": "Team to notify", "emoji": True},
+            "placeholder": {"type": "plain_text", "text": "Select team", "emoji": True},
             "options": team_options,
-            "initial_option": team_options[initial_option_idx],
         },
         "dispatch_action": True,
     }
+
+    # No context block if no team selected
+    if not is_selected:
+        return [team_select]
+
+    team_select["element"]["initial_option"] = team_options[initial_option_idx]
 
     team_name = value.name if value else "No team"
     alert_receive_channel = AlertReceiveChannel.objects.filter(
@@ -549,12 +553,11 @@ def _get_team_select_blocks(slack_user_identity, organization, value, input_id_p
             }
         ],
     }
-
     return [team_select, context]
 
 
 def _get_additional_responders_blocks(
-    payload, organization, team, input_id_prefix, is_additional_responders_checked, error_msg
+    payload, organization, input_id_prefix, is_additional_responders_checked, error_msg
 ):
     checkbox_option = {
         "text": {
@@ -778,10 +781,15 @@ def _get_selected_team_from_payload(payload, input_id_prefix):
     selected_team_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingTeamChange.routing_uid(), DIRECT_PAGING_TEAM_SELECT_ID
     )
-    if selected_team_id is None or selected_team_id == DEFAULT_TEAM_VALUE:
-        return None
+
+    if selected_team_id is None:
+        return None, None
+
+    if selected_team_id == DEFAULT_TEAM_VALUE:
+        return selected_team_id, None
+
     team = Team.objects.filter(pk=selected_team_id).first()
-    return team
+    return selected_team_id, team
 
 
 def _get_additional_responders_checked_from_payload(payload, input_id_prefix):
