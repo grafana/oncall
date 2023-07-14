@@ -19,14 +19,14 @@ weight: 700
 - Users with Viewer role cannot receive alert notifications, therefore, cannot be on-call.
 
 For more information about permissions, refer to
-[Manage users and teams for Grafana OnCall]({{< relref "user-and-team-management" >}})
+[Manage users and teams for Grafana OnCall][user-and-team-management]
 
 ### Web-based schedule
 
 Configure and manage on-call schedules directly in the Grafana OnCall plugin. Easily configure and preview rotations,
 see teammates' time zones, and add overrides.
 
-Learn more about [Web-based schedules]({{< relref "web-schedule" >}})
+Learn more about [Web-based schedules][web-schedule]
 
 ### iCal import
 
@@ -34,7 +34,7 @@ Use any calendar service that uses the iCal format to manage and customize on-ca
 shifts from your calendar app to Grafana OnCall for widely accessible scheduling. iCal imports appear in Grafana
 OnCall as read-only schedules but can be leveraged similarly to a web-based schedule.
 
-Learn more about [iCal import schedules]({{< relref "ical-schedules" >}})
+Learn more about [iCal import schedules][ical-schedules]
 
 ### Terraform
 
@@ -44,3 +44,14 @@ read-only and cannot be edited from the UI.
 
 To learn more, read our [Get started with Grafana OnCall and Terraform](
 <https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/>) blog post.
+
+{{% docs/reference %}}
+[ical-schedules]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/ical-schedules"
+[ical-schedules]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/ical-schedules"
+
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+
+[web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
+[web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
+{{% /docs/reference %}}

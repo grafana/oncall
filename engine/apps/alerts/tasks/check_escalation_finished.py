@@ -1,7 +1,6 @@
 import datetime
 import typing
 
-import pytz
 import requests
 from celery import shared_task
 from django.apps import apps
@@ -96,38 +95,27 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     task_logger.info(f"{base_msg} passed the audit checks")
 
 
-def get_auditable_alert_groups_started_at_range() -> typing.Tuple[datetime.datetime, datetime.datetime]:
-    """
-    NOTE: this started_at__range is a bit of a hack..
-    we wanted to avoid performing a migration on the alerts_alertgroup table to update
-    alert groups where raw_escalation_snapshot was None. raw_escalation_snapshot being None is a legitimate case,
-    where the alert group's integration does not have an escalation chain associated with it.
-
-    However, we wanted a way to be able to differentiate between "actually None" and "there was an error writing to
-    raw_escalation_snapshot" (as this is performed async by a celery task).
-
-    This field was updated, in the commit that added this comment, to no longer be set to None by default.
-    As part of this celery task we do a check that this field is in fact not None, so if we were to check older
-    alert groups, whose integration did not have an escalation chain at the time the alert group was created
-    we would raise errors
-    """
-    return (datetime.datetime(2023, 3, 25, tzinfo=pytz.UTC), timezone.now() - datetime.timedelta(days=2))
-
-
-# don't retry this task as the AlertGroup DB query is rather expensive
 @shared_task
 def check_escalation_finished_task() -> None:
+    """
+    don't retry this task, the idea is to be alerted of failures
+    """
     AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+
+    now = timezone.now()
+    two_days_ago = now - datetime.timedelta(days=2)
 
     alert_groups = AlertGroup.all_objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(
-        ~Q(channel__integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE),
         ~Q(silenced=True, silenced_until__isnull=True),  # filter silenced forever alert_groups
+        # here we should query maintenance_uuid rather than joining on channel__integration
+        # and checking for something like ~Q(channel__integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE)
+        # this avoids an unnecessary join
+        maintenance_uuid__isnull=True,
         is_escalation_finished=False,
         resolved=False,
         acknowledged=False,
         root_alert_group=None,
-        started_at__range=get_auditable_alert_groups_started_at_range(),
+        started_at__range=(two_days_ago, now),
     )
 
     if not alert_groups.exists():

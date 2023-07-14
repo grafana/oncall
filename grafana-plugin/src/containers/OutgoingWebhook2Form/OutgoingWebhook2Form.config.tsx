@@ -141,14 +141,17 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'url',
       label: 'Webhook URL',
-      type: FormItemType.Input,
+      type: FormItemType.Monaco,
       validation: { required: true },
+      extra: {
+        height: 30,
+      },
     },
     {
       name: 'headers',
       label: 'Webhook Headers',
       description: 'Request headers should be in JSON format.',
-      type: FormItemType.TextArea,
+      type: FormItemType.Monaco,
       extra: {
         rows: 3,
       },
@@ -169,7 +172,7 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'trigger_template',
-      type: FormItemType.TextArea,
+      type: FormItemType.Monaco,
       description:
         'Trigger template is used to conditionally execute the webhook based on incoming data. The trigger template must be empty or evaluate to true or 1 for the webhook to be sent',
       extra: {
@@ -185,12 +188,10 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'data',
       getDisabled: (data) => Boolean(data?.forward_all),
-      type: FormItemType.TextArea,
+      type: FormItemType.Monaco,
       description:
         'Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}',
-      extra: {
-        rows: 9,
-      },
+      extra: {},
     },
   ],
 };

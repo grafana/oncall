@@ -5,8 +5,8 @@ whitenoise==5.3.0
 twilio~=6.37.0
 phonenumbers==8.10.0
 django-ordered-model==3.1.1
-celery[amqp,redis]==5.2.7
-redis==3.4.1
+celery[amqp,redis]==5.3.1
+redis==4.6.0
 humanize==0.5.1
 uwsgi==2.0.21
 django-cors-headers==3.7.0
@@ -14,7 +14,12 @@ django-debug-toolbar==4.1
 django-sns-view==0.1.2
 python-telegram-bot==13.13
 django-silk==5.0.3
-django-redis-cache==3.0.0
+# we need to use our own fork of django-redis-cache
+# reason being is that the "regular" repo (https://github.com/sebleier/django-redis-cache/)
+# has `redis` pinned @ <4.0
+# celery==5.3.1 complains about this
+# celery[amqp,redis] 5.3.1 depends on redis!=4.5.5 and >=4.5.2; extra == "redis"
+git+https://github.com/grafana/django-redis-cache.git@bump-redis-version-to-v4.6
 hiredis==1.0.0
 django-ratelimit==2.0.0
 django-filter==2.4.0
@@ -25,7 +30,6 @@ beautifulsoup4==4.12.2
 social-auth-app-django==5.0.0
 cryptography==38.0.4 # version 39.0.0 introduced an issue - https://stackoverflow.com/a/75053968/3902555
 factory-boy<3.0
-python-json-logger==2.0.1
 django-log-request-id==1.6.0
 django-polymorphic==3.0.0
 django-rest-polymorphic==0.1.9

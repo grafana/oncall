@@ -27,7 +27,7 @@ You must have an Admin role to create integrations in Grafana OnCall.
 ## Grouping and auto-resolve
 
 Alert groups will be grouped by email subject and auto-resolved if the email message text equals "OK".
- This behaviour can be modified via [custom templates]({{< relref "jinja2-templating" >}}).
+ This behaviour can be modified via [custom templates][jinja2-templating].
 
 Alerts from Inbound Email integration have the following payload:
 
@@ -38,3 +38,8 @@ Alerts from Inbound Email integration have the following payload:
    "sender": "<your_email_sender_address>"
 }
 ```
+
+{{% docs/reference %}}
+[jinja2-templating]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/jinja2-templating"
+[jinja2-templating]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/jinja2-templating"
+{{% /docs/reference %}}

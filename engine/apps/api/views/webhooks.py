@@ -1,5 +1,9 @@
+import json
+
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django_filters import rest_framework as filters
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
@@ -8,12 +12,25 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.webhook import WebhookSerializer
+from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
 from apps.auth_token.auth import PluginAuthentication
-from apps.webhooks.models import Webhook
-from apps.webhooks.utils import is_webhooks_enabled_for_organization
+from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.utils import apply_jinja_template_for_json
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+
+NEW_WEBHOOK_PK = "new"
+
+RECENT_RESPONSE_LIMIT = 20
+
+WEBHOOK_URL = "url"
+WEBHOOK_HEADERS = "headers"
+WEBHOOK_TRIGGER_TEMPLATE = "trigger_template"
+WEBHOOK_TRIGGER_DATA = "data"
+
+WEBHOOK_TEMPLATE_NAMES = [WEBHOOK_URL, WEBHOOK_HEADERS, WEBHOOK_TRIGGER_TEMPLATE, WEBHOOK_TRIGGER_DATA]
 
 
 class WebhooksFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
@@ -33,6 +50,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         "update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "partial_update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
         "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "responses": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "preview_template": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
     }
 
     model = Webhook
@@ -85,8 +104,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         instance.delete()
 
     def check_webhooks_2_enabled(self):
-        if not is_webhooks_enabled_for_organization(self.request.auth.organization.pk):
-            raise PermissionDenied("Webhooks 2 not enabled for organization. Permission denied.")
+        if not settings.FEATURE_WEBHOOKS_2_ENABLED:
+            raise PermissionDenied("Webhooks 2 not enabled. Permission denied.")
 
     @action(methods=["get"], detail=False)
     def filters(self, request):
@@ -106,3 +125,49 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
             filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
 
         return Response(filter_options)
+
+    @action(methods=["get"], detail=True)
+    def responses(self, request, pk):
+        if pk == NEW_WEBHOOK_PK:
+            return Response([], status=status.HTTP_200_OK)
+
+        webhook = self.get_object()
+        queryset = WebhookResponse.objects.filter(webhook_id=webhook.id, trigger_type=webhook.trigger_type).order_by(
+            "-timestamp"
+        )[:RECENT_RESPONSE_LIMIT]
+        response_serializer = WebhookResponseSerializer(queryset, many=True)
+        return Response(response_serializer.data)
+
+    @action(methods=["post"], detail=True)
+    def preview_template(self, request, pk):
+        if pk != NEW_WEBHOOK_PK:
+            self.get_object()  # Check webhook exists
+
+        template_body = request.data.get("template_body", None)
+        template_name = request.data.get("template_name", None)
+        payload = request.data.get("payload", None)
+
+        if not payload:
+            response = {"preview": template_body}
+            return Response(response, status=status.HTTP_200_OK)
+
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                raise BadRequest(detail={"payload": "Could not parse json"})
+
+        if template_body is None or template_name is None:
+            response = {"preview": None}
+            return Response(response, status=status.HTTP_200_OK)
+
+        if template_name not in WEBHOOK_TEMPLATE_NAMES:
+            raise BadRequest(detail={"template_name": "Unknown template name"})
+
+        try:
+            result = apply_jinja_template_for_json(template_body, payload)
+        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+            return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
+
+        response = {"preview": result}
+        return Response(response, status=status.HTTP_200_OK)

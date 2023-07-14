@@ -56,16 +56,11 @@ class DirectPagingSerializer(serializers.Serializer):
     def validate(self, attrs):
         organization = self.context["organization"]
 
-        users = attrs["users"]
-        schedules = attrs["schedules"]
         escalation_chain_id = attrs["escalation_chain_id"]
 
         alert_group_id = attrs["alert_group_id"]
         title = attrs["title"]
         message = attrs["message"]
-
-        if len(users) == 0 and len(schedules) == 0 and not escalation_chain_id:
-            raise serializers.ValidationError("Provide users, schedules, or an escalation chain")
 
         if alert_group_id and (title or message):
             raise serializers.ValidationError("alert_group_id and (title, message) are mutually exclusive")

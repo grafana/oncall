@@ -18,7 +18,7 @@ weight: 500
 The AppDynamics integration for Grafana OnCall handles health rule violation events sent from AppDynamics actions.
 The integration provides grouping and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from AppDynamics
 
@@ -105,4 +105,12 @@ Grafana OnCall provides grouping and auto-resolve logic for the AppDynamics inte
 ## Complete the Integration Configuration
 
 Complete configuration by setting routes, templates, maintenances, etc. Read more in
-[this section]({{< relref "../../integrations/#complete-the-integration-configuration" >}})
+[this section][complete-the-integration-configuration]
+
+{{% docs/reference %}}
+[complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
+[complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
+
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+{{% /docs/reference %}}
