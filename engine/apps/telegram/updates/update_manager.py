@@ -39,6 +39,7 @@ class UpdateManager:
             handler = handler_class(update)
             if handler.matches():
                 return handler
+        return None
 
     @classmethod
     def process_request(cls, request: Request) -> None:

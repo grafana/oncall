@@ -141,7 +141,7 @@ def test_integration_filter_by_maintenance(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+    assert len(response.json()["results"]) == 1
 
 
 @pytest.mark.django_db
@@ -165,7 +165,7 @@ def test_integration_filter_by_debug(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+    assert len(response.json()["results"]) == 1
 
 
 @pytest.mark.django_db
@@ -186,19 +186,19 @@ def test_integration_search(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 2
+    assert len(response.json()["results"]) == 2
 
     response = client.get(
         f"{url}?search=zabbix", content_type="application/json", **make_user_auth_headers(user, token)
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 0
+    assert len(response.json()["results"]) == 0
 
     response = client.get(f"{url}?search=prod", content_type="application/json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+    assert len(response.json()["results"]) == 1
 
 
 @pytest.mark.django_db
@@ -676,22 +676,6 @@ def test_alert_receive_channel_counters_per_integration_permissions(
 
 
 @pytest.mark.django_db
-def test_get_alert_receive_channels_direct_paging_hidden_from_list(
-    make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    make_alert_receive_channel(user.organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
-
-    client = APIClient()
-    url = reverse("api-internal:alert_receive_channel-list")
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-
-    # Check no direct paging integrations in the response
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == []
-
-
-@pytest.mark.django_db
 def test_get_alert_receive_channels_direct_paging_present_for_filters(
     make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
 ):
@@ -706,7 +690,7 @@ def test_get_alert_receive_channels_direct_paging_present_for_filters(
 
     # Check direct paging integration is in the response
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()[0]["value"] == alert_receive_channel.public_primary_key
+    assert response.json()["results"][0]["value"] == alert_receive_channel.public_primary_key
 
 
 @pytest.mark.django_db

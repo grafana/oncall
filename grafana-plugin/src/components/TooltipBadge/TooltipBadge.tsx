@@ -24,7 +24,10 @@ interface TooltipBadgeProps {
 const cx = cn.bind(styles);
 
 const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
-  const { borderType, text, tooltipTitle, tooltipContent, onHover, addPadding, icon, customIcon, className } = props;
+  const { borderType, text, tooltipTitle, tooltipContent, onHover, addPadding, icon, customIcon, className, ...rest } =
+    props;
+
+  const testId = rest['data-testid'];
 
   return (
     <Tooltip
@@ -48,10 +51,18 @@ const TooltipBadge: FC<TooltipBadgeProps> = (props) => {
           className
         )}
         onMouseEnter={onHover}
+        {...(testId ? { 'data-testid': testId } : {})}
       >
         <HorizontalGroup spacing="xs">
           {renderIcon()}
-          {text && <Text className={cx('element__text', { [`element__text--${borderType}`]: true })}>{text}</Text>}
+          {text && (
+            <Text
+              className={cx('element__text', { [`element__text--${borderType}`]: true })}
+              {...(testId ? { 'data-testid': `${testId}-text` } : {})}
+            >
+              {text}
+            </Text>
+          )}
         </HorizontalGroup>
       </div>
     </Tooltip>

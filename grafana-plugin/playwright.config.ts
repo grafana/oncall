@@ -7,15 +7,21 @@ import { devices } from '@playwright/test';
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(process.cwd(), 'integration-tests/.env') });
 
-export const STORAGE_STATE = path.join(__dirname, 'integration-tests/storageState.json');
+export const VIEWER_USER_STORAGE_STATE = path.join(__dirname, 'integration-tests/.auth/viewer.json');
+export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'integration-tests/.auth/editor.json');
+export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'integration-tests/.auth/admin.json');
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
+
+  /* Maximum time all the tests can run for. */
+  globalTimeout: 20 * 60 * 1000, // 20 minutes
+
   /* Maximum time one test can run for. */
   timeout: 60 * 1000,
   expect: {
@@ -36,7 +42,7 @@ const config: PlaywrightTestConfig = {
    * to flaky tests.. let's just retry failed tests. If the same test fails 3 times, you know something must be up
    */
   retries: !!process.env.CI ? 3 : 0,
-  workers: !!process.env.CI ? 2 : 1,
+  workers: 3,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -62,7 +68,6 @@ const config: PlaywrightTestConfig = {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
     },
@@ -70,7 +75,6 @@ const config: PlaywrightTestConfig = {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
     },
@@ -78,7 +82,6 @@ const config: PlaywrightTestConfig = {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
     },

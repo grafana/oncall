@@ -83,8 +83,9 @@ jobs:
         # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
         # that no refs to external content can be used as these refs will not resolve in the
         # docs-base image.
+        # Use alternative image (dbd975af06) until make-docs 3.0.0 is rolled out everywhere.
         run: |
-          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:dbd975af06 /bin/bash -c 'echo -e "---\\nredirectURL: /hugo/content/docs/oncall/latest/\\ntype: redirect\\nversioned: true\\n---\\n" > /hugo/content/docs/oncall/_index.md; make hugo'
 
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
@@ -468,8 +469,12 @@ jobs:
           # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
           # to the OnCall API
           ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_USERNAME: oncall
-          GRAFANA_PASSWORD: oncall
+          GRAFANA_ADMIN_USERNAME: oncall
+          GRAFANA_ADMIN_PASSWORD: oncall
+          GRAFANA_EDITOR_USERNAME: editor
+          GRAFANA_EDITOR_PASSWORD: editor
+          GRAFANA_VIEWER_USERNAME: viewer
+          GRAFANA_VIEWER_PASSWORD: viewer
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
         run: yarn test:integration

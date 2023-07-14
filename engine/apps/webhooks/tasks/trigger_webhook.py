@@ -110,6 +110,7 @@ def make_request(webhook, alert_group, data):
         "status_code": None,
         "content": None,
         "webhook": webhook,
+        "event_data": json.dumps(data),
     }
 
     exception = error = None

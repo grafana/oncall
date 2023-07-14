@@ -20,6 +20,7 @@ import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import IntegrationBlockItem from 'components/Integrations/IntegrationBlockItem';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
@@ -35,15 +36,12 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import CommonIntegrationHelper from 'pages/integration/CommonIntegration.helper';
 import IntegrationHelper from 'pages/integration/Integration.helper';
-import { MONACO_INPUT_HEIGHT_SMALL, MONACO_OPTIONS } from 'pages/integration/IntegrationCommon.config';
+import { MONACO_INPUT_HEIGHT_SMALL } from 'pages/integration/IntegrationCommon.config';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
-
-const ACTIONS_LIST_WIDTH = 200;
-const ACTIONS_LIST_BORDER = 2;
 
 interface ExpandedIntegrationRouteDisplayProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
@@ -167,7 +165,7 @@ const ExpandedIntegrationRouteDisplay: React.FC<ExpandedIntegrationRouteDisplayP
                         height={MONACO_INPUT_HEIGHT_SMALL}
                         data={templates}
                         showLineNumbers={false}
-                        monacoOptions={MONACO_OPTIONS}
+                        monacoOptions={MONACO_READONLY_CONFIG}
                       />
                     </div>
                     <Button
@@ -370,7 +368,7 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
                 </div>
               </CopyToClipboard>
 
-              <div className="thin-line-break" />
+              <div className={cx('thin-line-break')} />
 
               <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integrations-actionItem')} onClick={onDelete}>
@@ -388,8 +386,8 @@ export const RouteButtonsDisplay: React.FC<RouteButtonsDisplayProps> = ({
           {({ openMenu }) => (
             <HamburgerMenu
               openMenu={openMenu}
-              listBorder={ACTIONS_LIST_BORDER}
-              listWidth={ACTIONS_LIST_WIDTH}
+              listBorder={2}
+              listWidth={200}
               className={'hamburgerMenu--small'}
               stopPropagation={true}
             />

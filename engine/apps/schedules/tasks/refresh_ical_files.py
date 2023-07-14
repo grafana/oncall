@@ -16,7 +16,7 @@ def start_refresh_ical_files():
 
     task_logger.info("Start refresh ical files")
 
-    schedules = OnCallSchedule.objects.all()
+    schedules = OnCallSchedule.objects.filter(organization__deleted_at__isnull=True)
     for schedule in schedules:
         refresh_ical_file.apply_async((schedule.pk,))
 
@@ -30,7 +30,7 @@ def start_refresh_ical_final_schedules():
 
     task_logger.info("Start refresh ical final schedules")
 
-    schedules = OnCallSchedule.objects.all()
+    schedules = OnCallSchedule.objects.filter(organization__deleted_at__isnull=True)
     for schedule in schedules:
         refresh_ical_final_schedule.apply_async((schedule.pk,))
 
