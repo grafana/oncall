@@ -140,7 +140,9 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                             (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
                               <div key={`${chatOpsChannel.name}-${chatOpsIndex}`}>
                                 {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} />}
-                                <Text type="primary">{chatOpsChannel.name || ''}</Text>
+                                <Text type="primary" className={cx('u-margin-right-xs')}>
+                                  {chatOpsChannel.name || ''}
+                                </Text>
                               </div>
                             )
                           )}
