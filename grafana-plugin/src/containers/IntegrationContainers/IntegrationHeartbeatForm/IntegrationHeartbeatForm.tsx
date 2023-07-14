@@ -16,12 +16,12 @@ import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind({});
 
-interface IntegrationHearbeatFormProps {
+interface IntegrationHeartbeatFormProps {
   alertReceveChannelId: AlertReceiveChannel['id'];
   onClose?: () => void;
 }
 
-const IntegrationHearbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHearbeatFormProps) => {
+const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHeartbeatFormProps) => {
   const [interval, setInterval] = useState<number>(undefined);
 
   const { heartbeatStore, alertReceiveChannelStore } = useStore();
@@ -110,6 +110,6 @@ const IntegrationHearbeatForm = observer(({ alertReceveChannelId, onClose }: Int
   }
 });
 
-export default withMobXProviderContext(IntegrationHearbeatForm) as ({
+export default withMobXProviderContext(IntegrationHeartbeatForm) as ({
   alertReceveChannelId,
-}: IntegrationHearbeatFormProps) => JSX.Element;
+}: IntegrationHeartbeatFormProps) => JSX.Element;

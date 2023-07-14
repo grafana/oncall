@@ -43,7 +43,7 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHearbeatForm/IntegrationHeartbeatForm';
+import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
@@ -742,7 +742,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }>(undefined);
 
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
-  const [isHearbeatFormOpen, setIsHearbeatFormOpen] = useState(false);
+  const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
     disabled: boolean;
@@ -789,10 +789,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {isHearbeatFormOpen && (
+      {isHeartbeatFormOpen && (
         <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
-          onClose={() => setIsHearbeatFormOpen(false)}
+          onClose={() => setIsHeartbeatFormOpen(false)}
         />
       )}
 
@@ -827,7 +827,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
               </div>
 
               <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
+                <div className={cx('integration__actionItem')} onClick={() => setIsHeartbeatFormOpen(true)}>
                   {heartbeat ? 'Heartbeat Settings' : 'Create Heartbeat'}
                 </div>
               </WithPermissionControlTooltip>
@@ -1120,7 +1120,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         />
       )}
 
-      {renderHearbeat(alertReceiveChannel)}
+      {renderHeartbeat(alertReceiveChannel)}
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', marginLeft: '8px' }}>
         <div className={cx('headerTop__item')}>
@@ -1156,7 +1156,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     );
   }
 
-  function renderHearbeat(alertReceiveChannel: AlertReceiveChannel) {
+  function renderHeartbeat(alertReceiveChannel: AlertReceiveChannel) {
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
     const heartbeat = heartbeatStore.items[heartbeatId];
 
