@@ -4,7 +4,7 @@ from uuid import uuid4
 from django.apps import apps
 from django.conf import settings
 
-from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models import AlertReceiveChannel, EscalationChain
 from apps.alerts.paging import (
     USER_HAS_NO_NOTIFICATION_POLICY,
     USER_IS_NOT_ON_CALL,
@@ -412,7 +412,7 @@ def _get_form_view(routing_uid, blocks, private_metadata):
         },
         "submit": {
             "type": "plain_text",
-            "text": "Submit",
+            "text": "Create",
         },
         "blocks": blocks,
         "private_metadata": private_metadata,
@@ -532,17 +532,37 @@ def _get_team_select_blocks(slack_user_identity, organization, is_selected, valu
         return [team_select]
 
     team_select["element"]["initial_option"] = team_options[initial_option_idx]
+    return [team_select, _get_team_select_context(organization, value)]
 
-    team_name = value.name if value else "No team"
+
+def _get_team_select_context(organization, team):
+    team_name = team.name if team else "No team"
     alert_receive_channel = AlertReceiveChannel.objects.filter(
         organization=organization,
-        team=value,
+        team=team,
         integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
     ).first()
-    if alert_receive_channel:
-        context_text = f"Integration <{alert_receive_channel.web_link}|{alert_receive_channel.verbal_name} ({team_name})> will be used for notification."
+
+    escalation_chains_exist = EscalationChain.objects.filter(
+        channel_filters__alert_receive_channel=alert_receive_channel
+    ).exists()
+
+    if not alert_receive_channel:
+        context_text = (
+            ":warning: *Direct paging integration missing*\n"
+            "The selected team doesn't have a direct paging integration configured and will not be notified. "
+            "If you proceed with the alert group, an empty direct paging integration will be created automatically for the team. "
+            "<https://grafana.com/docs/oncall/latest/integrations/manual/|Learn more.>"
+        )
+    elif not escalation_chains_exist:
+        context_text = (
+            ":warning: *Direct paging integration not configured*\n"
+            "The direct paging integration for the selected team has no escalation chains configured. "
+            "If you proceed with the alert group, the team likely will not be notified. "
+            "<https://grafana.com/docs/oncall/latest/integrations/manual/|Learn more.>"
+        )
     else:
-        context_text = f':warning: Direct paging integration is not configured for team "{team_name}"'
+        context_text = f"Integration <{alert_receive_channel.web_link}|{alert_receive_channel.verbal_name} ({team_name})> will be used for notification."
 
     context = {
         "type": "context",
@@ -553,7 +573,7 @@ def _get_team_select_blocks(slack_user_identity, organization, is_selected, valu
             }
         ],
     }
-    return [team_select, context]
+    return context
 
 
 def _get_additional_responders_blocks(

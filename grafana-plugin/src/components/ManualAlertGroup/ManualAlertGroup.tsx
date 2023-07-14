@@ -177,7 +177,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                         rel="noreferrer"
                         className={cx('link')}
                       >
-                        <Text type="link">Learn more in the docs.</Text>
+                        <Text type="link">Learn more.</Text>
                       </a>
                     </Text>
                   </VerticalGroup>
@@ -197,7 +197,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                     rel="noreferrer"
                     className={cx('link')}
                   >
-                    <Text type="link">Learn more in the docs.</Text>
+                    <Text type="link">Learn more.</Text>
                   </a>
                 </Text>
               </HorizontalGroup>
