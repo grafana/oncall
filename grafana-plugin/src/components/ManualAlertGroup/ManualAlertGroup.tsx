@@ -174,8 +174,9 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
             <Alert severity="warning" title={'Direct paging integration missing'}>
               <HorizontalGroup>
                 <Text>
-                  The selected team doesn't have a direct paging integration configured and will not be notified. An
-                  empty direct paging integration will be created automatically if you proceed with the alert group.
+                  The selected team doesn't have a direct paging integration configured and will not be notified. <br />
+                  If you proceed with the alert group, an empty direct paging integration will be created automatically
+                  for the team.
                 </Text>
               </HorizontalGroup>
             </Alert>
@@ -183,11 +184,6 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
       </VerticalGroup>
     );
   };
-
-  const submitButtonDisabled = !(
-    selectedTeamId &&
-    (selectedTeamDirectPaging || userResponders.length || scheduleResponders.length)
-  );
 
   return (
     <Drawer scrollableContent title="Create Alert Group" onClose={onHide} closeOnMaskClick={false} width="70%">
@@ -211,7 +207,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button type="submit" form={manualAlertFormConfig.name} disabled={submitButtonDisabled}>
+          <Button type="submit" form={manualAlertFormConfig.name} disabled={!selectedTeamId}>
             Create
           </Button>
         </HorizontalGroup>
