@@ -10,7 +10,7 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG#v}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -179,7 +179,7 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG#v}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -334,6 +334,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 95e5d7a117c5ce0776d1a614aef1bf09f67c33caaf72554134caf5295cdc019c
+hmac: 28b2aecc443cfb232625cd8afc92e44a6cbf2d37cd991b0099b07521225855bf
 
 ...
