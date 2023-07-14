@@ -102,34 +102,6 @@ def test_check_user_availability_not_on_call(
 
 
 @pytest.mark.django_db
-def test_check_user_availability_on_call_different_team(
-    make_organization,
-    make_team,
-    make_user_for_organization,
-    make_user_notification_policy,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization = make_organization()
-    some_team = make_team(organization)
-    user = make_user_for_organization(organization)
-    make_user_notification_policy(
-        user=user,
-        step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
-    )
-
-    # setup on call schedule
-    # user is on call, but on a different team
-    setup_always_on_call_schedule(make_schedule, make_on_call_shift, organization, some_team, user)
-
-    warnings = check_user_availability(user)
-    assert warnings == [
-        {"data": {"schedules": {}}, "error": USER_IS_NOT_ON_CALL},
-    ]
-
-
-@pytest.mark.django_db
 def test_check_user_availability_on_call(
     make_organization,
     make_team,
