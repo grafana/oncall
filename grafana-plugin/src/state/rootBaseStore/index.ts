@@ -19,7 +19,6 @@ import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
-import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -86,8 +85,6 @@ export class RootBaseStore {
   grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
-
-  outgoingWebhook2Store: OutgoingWebhook2Store = new OutgoingWebhook2Store(this);
   alertReceiveChannelFiltersStore: AlertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
   escalationChainStore: EscalationChainStore = new EscalationChainStore(this);
   escalationPolicyStore: EscalationPolicyStore = new EscalationPolicyStore(this);

@@ -22,7 +22,6 @@ import {
 } from 'models/escalation_policy/escalation_policy.types';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
-import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
@@ -54,7 +53,6 @@ export interface EscalationPolicyProps extends ElementSortableProps {
   isSlackInstalled: boolean;
   teamStore: GrafanaTeamStore;
   outgoingWebhookStore: OutgoingWebhookStore;
-  outgoingWebhook2Store: OutgoingWebhook2Store;
   scheduleStore: ScheduleStore;
 }
 
@@ -413,7 +411,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderTriggerCustomWebhook() {
-    const { data, isDisabled, teamStore, outgoingWebhook2Store } = this.props;
+    const { data, isDisabled, teamStore, outgoingWebhookStore } = this.props;
     const { custom_webhook } = data;
 
     return (
@@ -425,7 +423,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         <GSelect
           showSearch
           disabled={isDisabled}
-          modelName="outgoingWebhook2Store"
+          modelName="outgoingWebhookStore"
           displayField="name"
           valueField="id"
           placeholder="Select Webhook"
@@ -433,7 +431,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={custom_webhook}
           onChange={this._getOnChangeHandler('custom_webhook')}
           getOptionLabel={(item: SelectableValue) => {
-            const team = teamStore.items[outgoingWebhook2Store.items[item.value].team];
+            const team = teamStore.items[outgoingWebhookStore.items[item.value].team];
             return (
               <>
                 <Text>{item.label} </Text>
@@ -443,7 +441,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           }}
           width={'auto'}
           filterOptions={(id) => {
-            const webhook = outgoingWebhook2Store.items[id];
+            const webhook = outgoingWebhookStore.items[id];
             return webhook.trigger_type_name === 'Escalation step';
           }}
         />

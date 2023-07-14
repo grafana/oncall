@@ -11,7 +11,7 @@ import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { OutgoingWebhook2, OutgoingWebhook2Response } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
+import { OutgoingWebhook, OutgoingWebhookResponse } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 
 import styles from './TemplatesAlertGroupsList.module.css';
@@ -29,7 +29,7 @@ interface TemplatesAlertGroupsListProps {
   templatePage: TEMPLATE_PAGE;
   templates: AlertTemplatesDTO[];
   alertReceiveChannelId?: AlertReceiveChannel['id'];
-  outgoingwebhookId?: OutgoingWebhook2['id'];
+  outgoingwebhookId?: OutgoingWebhook['id'];
   heading?: string;
 
   onSelectAlertGroup?: (alertGroup: Alert) => void;
@@ -52,7 +52,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   const store = useStore();
   const [alertGroupsList, setAlertGroupsList] = useState(undefined);
   const [outgoingWebhookLastResponses, setOutgoingWebhookLastResponses] =
-    useState<OutgoingWebhook2Response[]>(undefined);
+    useState<OutgoingWebhookResponse[]>(undefined);
 
   const [selectedTitle, setSelectedTitle] = useState<string>(undefined);
   const [selectedPayload, setSelectedPayload] = useState<string>(undefined);
@@ -61,7 +61,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
   useEffect(() => {
     if (templatePage === TEMPLATE_PAGE.Webhooks) {
       if (outgoingwebhookId !== 'new') {
-        store.outgoingWebhook2Store.getLastResponses(outgoingwebhookId).then(setOutgoingWebhookLastResponses);
+        store.outgoingWebhookStore.getLastResponses(outgoingwebhookId).then(setOutgoingWebhookLastResponses);
       }
     } else if (templatePage === TEMPLATE_PAGE.Integrations) {
       store.alertGroupStore.getAlertGroupsForIntegration(alertReceiveChannelId).then((result) => {
@@ -117,7 +117,7 @@ const TemplatesAlertGroupsList = (props: TemplatesAlertGroupsListProps) => {
 
   // for Outgoing webhooks
 
-  const handleOutgoingWebhookResponseSelect = (response: OutgoingWebhook2Response) => {
+  const handleOutgoingWebhookResponseSelect = (response: OutgoingWebhookResponse) => {
     setSelectedTitle(response.timestamp);
 
     setSelectedPayload(JSON.parse(response.event_data));

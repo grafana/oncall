@@ -18,7 +18,7 @@ export const WebhookTriggerType = {
 };
 
 export const form: { name: string; fields: FormItem[] } = {
-  name: 'OutgoingWebhook2',
+  name: 'OutgoingWebhook',
   fields: [
     {
       name: 'name',
