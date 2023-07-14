@@ -70,6 +70,11 @@ notify Slack user group:
 2. Click the dropdown for **Add escalation step**.
 3. Configure your escalation chain with automated Slack notifications.
 
+Note: 
+This will trigger only to the default channel configured previously during "Install Slack integration for Grafana OnCall" step. 
+If customer wants to trigger On-call notification to a different channel, not the default one, then this is configurable in  OnCall > Integration > Route "step 0"
+
+
 ### Configure user notifications with Slack mentions
 
 To be notified of alerts in Grafana OnCall via Slack mentions:
@@ -87,6 +92,8 @@ teams of their on-call shifts. Admins can configure shift notification behavior 
 1. When an on-call shift notification is sent to a person or channel, click the gear icon to
    access **Notifications preferences**.
 2. Configure on-call notifications for future shift notifications.
+
+
 
 ## Slack commands and message shortcuts
 
