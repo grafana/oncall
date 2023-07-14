@@ -46,8 +46,15 @@ def construct_expected_response_from_incidents(incidents):
                 },
             }
         )
-    expected_response = {"count": incidents.count(), "next": None, "previous": None, "results": results}
-    return expected_response
+    return {
+        "count": incidents.count(),
+        "next": None,
+        "previous": None,
+        "results": results,
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
+    }
 
 
 @pytest.fixture()
@@ -275,7 +282,7 @@ def test_pagination(settings, incident_public_api_setup):
 
     url = reverse("api-public:alert_groups-list")
 
-    with patch("common.api_helpers.paginators.PathPrefixedPagination.get_page_size", return_value=1):
+    with patch("common.api_helpers.paginators.PathPrefixedPagePagination.get_page_size", return_value=1):
         response = client.get(url, HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_200_OK

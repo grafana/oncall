@@ -25,6 +25,9 @@ def test_get_escalation_chains(make_organization_and_user_with_token):
                 "name": "test",
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

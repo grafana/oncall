@@ -105,7 +105,10 @@ The above command returns JSON structured in the following way:
       "type": "notify_person_next_each_time",
       "persons_to_notify_next_each_time": ["U4DNY931HHJS5"]
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

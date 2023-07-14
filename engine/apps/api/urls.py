@@ -12,7 +12,6 @@ from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
-from .views.gitops import TerraformGitOpsView, TerraformStateView
 from .views.integration_heartbeat import IntegrationHeartBeatView
 from .views.live_setting import LiveSettingViewSet
 from .views.on_call_shifts import OnCallShiftView
@@ -81,8 +80,6 @@ urlpatterns = [
         GetChannelVerificationCode.as_view(),
         name="api-get-channel-verification-code",
     ),
-    optional_slash_path("terraform_file", TerraformGitOpsView.as_view(), name="terraform_file"),
-    optional_slash_path("terraform_imports", TerraformStateView.as_view(), name="terraform_imports"),
     optional_slash_path("slack_settings", SlackTeamSettingsAPIView.as_view(), name="slack-settings"),
     optional_slash_path(
         "slack_settings/acknowledge_remind_options",

@@ -173,6 +173,9 @@ def test_list_users(
                 "cloud_connection_status": None,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
