@@ -103,6 +103,29 @@ const EscalationVariants = observer(
     return (
       <>
         <div className={cx('body')}>
+          {!hideSelected && Boolean(value.userResponders.length || value.scheduleResponders.length) && (
+            <>
+              <Label>Additional responders will be notified immediately:</Label>
+              <ul className={cx('responders-list')}>
+                {value.userResponders.map((responder, index) => (
+                  <UserResponder
+                    key={responder.data?.pk}
+                    onImportantChange={getUserResponderImportChangeHandler(index)}
+                    handleDelete={getUserResponderDeleteHandler(index)}
+                    {...responder}
+                  />
+                ))}
+                {value.scheduleResponders.map((responder, index) => (
+                  <ScheduleResponder
+                    onImportantChange={getScheduleResponderImportChangeHandler(index)}
+                    handleDelete={getScheduleResponderDeleteHandler(index)}
+                    key={responder.data.id}
+                    {...responder}
+                  />
+                ))}
+              </ul>
+            </>
+          )}
           <div className={cx('assign-responders-button')}>
             {withLabels && <Label>Additional responders</Label>}
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
@@ -127,29 +150,6 @@ const EscalationVariants = observer(
               setShowUserWarningModal={setShowUserWarningModal}
               setUserAvailability={setUserAvailability}
             />
-          )}
-          {!hideSelected && Boolean(value.userResponders.length || value.scheduleResponders.length) && (
-            <>
-              <Label>Additional responders will be notified immediately:</Label>
-              <ul className={cx('responders-list')}>
-                {value.userResponders.map((responder, index) => (
-                  <UserResponder
-                    key={responder.data?.pk}
-                    onImportantChange={getUserResponderImportChangeHandler(index)}
-                    handleDelete={getUserResponderDeleteHandler(index)}
-                    {...responder}
-                  />
-                ))}
-                {value.scheduleResponders.map((responder, index) => (
-                  <ScheduleResponder
-                    onImportantChange={getScheduleResponderImportChangeHandler(index)}
-                    handleDelete={getScheduleResponderDeleteHandler(index)}
-                    key={responder.data.id}
-                    {...responder}
-                  />
-                ))}
-              </ul>
-            </>
           )}
         </div>
         {showUserWarningModal && (
