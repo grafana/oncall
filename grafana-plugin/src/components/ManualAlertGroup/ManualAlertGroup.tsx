@@ -133,27 +133,21 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                       <Text type="secondary">Team:</Text>
                       <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />
                     </HorizontalGroup>
-                    <HorizontalGroup>
-                      {chatOpsAvailableChannels && (
-                        <>
-                          {chatOpsAvailableChannels.map(
-                            (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
-                              <div key={`${chatOpsChannel.name}-${chatOpsIndex}`}>
-                                {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} />}
-                                <Text type="primary" className={cx('u-margin-right-xs')}>
-                                  {chatOpsChannel.name || ''}
-                                </Text>
-                              </div>
-                            )
-                          )}
-                          {chatOpsAvailableChannels && (
-                            <Tooltip content="Alert group will be posted to these ChatOps channels">
-                              <Icon name="info-circle" />
-                            </Tooltip>
-                          )}
-                        </>
-                      )}
-                    </HorizontalGroup>
+                    {chatOpsAvailableChannels.length && (
+                      <HorizontalGroup>
+                        {chatOpsAvailableChannels.map(
+                          (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
+                            <div key={`${chatOpsChannel.name}-${chatOpsIndex}`}>
+                              {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} />}
+                              <Text type="primary">{chatOpsChannel.name || ''}</Text>
+                            </div>
+                          )
+                        )}
+                        <Tooltip content="Alert group will be posted to these ChatOps channels">
+                          <Icon name="info-circle" />
+                        </Tooltip>
+                      </HorizontalGroup>
+                    )}
                     <HorizontalGroup>
                       <PluginLink target="_blank" query={{ page: 'integrations', id: selectedTeamDirectPaging.id }}>
                         <IconButton
