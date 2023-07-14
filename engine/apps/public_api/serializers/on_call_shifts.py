@@ -337,7 +337,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         # Populate "rolling_users" field using "users" field for web overrides
         # This emulates the behavior of the web UI, which creates overrides populating the rolling_users field
         # Also set the "priority_level" to 99 and "rotation_start" to "start" so it's consistent with the web UI
-        # See apps.api.serializers.on_call_shifts.OnCallShiftSerializer for more info
+        # See apps.api.serializers.v1.on_call_shifts.OnCallShiftSerializer for more info
         if (
             event_type == CustomOnCallShift.TYPE_OVERRIDE
             and validated_data.get("source") == CustomOnCallShift.SOURCE_WEB

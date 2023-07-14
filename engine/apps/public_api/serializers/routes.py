@@ -2,7 +2,7 @@ from django.apps import apps
 from rest_framework import fields, serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
-from apps.api.serializers.alert_receive_channel import valid_jinja_template_for_serializer_method_field
+from apps.api.serializers.v1.alert_receive_channel import valid_jinja_template_for_serializer_method_field
 from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest

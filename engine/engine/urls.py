@@ -33,13 +33,14 @@ urlpatterns = [
     *paths_to_work_even_when_maintenance_mode_is_active,
     path(settings.ONCALL_DJANGO_ADMIN_PATH, admin.site.urls),
     path("api/gi/v1/", include("apps.api_for_grafana_incident.urls", namespace="api-gi")),
-    path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),
+    path("api/internal/v1/", include("apps.api.urls.v1", namespace="api-internal")),
     path("api/internal/v1/", include("social_django.urls", namespace="social")),
     path("api/internal/v1/plugin/", include("apps.grafana_plugin.urls", namespace="grafana-plugin")),
     path("twilioapp/", include("apps.twilioapp.urls")),
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
     path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
     path("api/internal/v1/mobile_app/", include("apps.mobile_app.urls", namespace="mobile_app_tmp")),
+    path("api/v2/", include("apps.api.urls.v2", namespace="api-v2")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.FEATURE_PROMETHEUS_EXPORTER_ENABLED:

@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.test import APIClient
 
-from apps.api.urls import router as internal_api_router
+from apps.api.urls.v1 import router as internal_api_router
 from apps.public_api.urls import router as public_api_router
 
 
