@@ -122,7 +122,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
             <LoadingPlaceholder text="Loading..." />
           ) : selectedTeamDirectPaging ? (
             <VerticalGroup>
-              <Label>Team will be notified according to the integration settings:</Label>
+              <Label>Integration to be used for notification</Label>
               <ul className={cx('responders-list')}>
                 <li>
                   <HorizontalGroup justify="space-between">
