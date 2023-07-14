@@ -42,7 +42,7 @@ def _trigger_alert(
         deleted_at=None,
         defaults={
             "author": from_user,
-            "verbal_name": "Direct paging",
+            "verbal_name": f"Direct paging ({team.name if team else 'No'} team)",
         },
     )
     if alert_receive_channel.default_channel_filter is None:
