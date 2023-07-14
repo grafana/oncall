@@ -17,14 +17,12 @@ from apps.slack.slack_client.exceptions import SlackAPIException
 
 DIRECT_PAGING_TEAM_SELECT_ID = "paging_team_select"
 DIRECT_PAGING_ORG_SELECT_ID = "paging_org_select"
-DIRECT_PAGING_ESCALATION_SELECT_ID = "paging_escalation_select"
 DIRECT_PAGING_USER_SELECT_ID = "paging_user_select"
 DIRECT_PAGING_SCHEDULE_SELECT_ID = "paging_schedule_select"
 DIRECT_PAGING_TITLE_INPUT_ID = "paging_title_input"
 DIRECT_PAGING_MESSAGE_INPUT_ID = "paging_message_input"
 DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID = "paging_additional_responders_input"
 
-DEFAULT_NO_ESCALATION_VALUE = "default_no_escalation"
 DEFAULT_TEAM_VALUE = "default_team"
 
 
@@ -139,7 +137,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
                 for s, p in get_current_items(payload, SCHEDULES_DATA_KEY, selected_organization.oncall_schedules)
             ]
 
-        # trigger direct paging to selected users/schedules/escalation
+        # trigger direct paging to selected team + users/schedules
         direct_paging(
             selected_organization,
             selected_team,
@@ -197,10 +195,6 @@ class OnPagingTeamChange(scenario_step.ScenarioStep):
             view=view,
             view_id=payload["view"]["id"],
         )
-
-
-class OnPagingEscalationChange(scenario_step.ScenarioStep):
-    """Set escalation chain."""
 
 
 class OnPagingCheckAdditionalResponders(OnPagingOrgChange):
@@ -609,55 +603,6 @@ def _get_additional_responders_blocks(
     return blocks
 
 
-def _get_escalation_select(organization, team, value, input_id_prefix):
-    escalations = organization.escalation_chains.filter(team=team)
-    # adding a default no-escalation option
-    initial_option_idx = 0
-    options = [
-        {
-            "text": {
-                "type": "plain_text",
-                "text": f"None",
-                "emoji": True,
-            },
-            "value": DEFAULT_NO_ESCALATION_VALUE,
-        }
-    ]
-    for idx, escalation in enumerate(escalations, start=1):
-        if escalation == value:
-            initial_option_idx = idx
-        options.append(
-            {
-                "text": {
-                    "type": "plain_text",
-                    "text": f"{escalation.name}",
-                    "emoji": True,
-                },
-                "value": f"{escalation.pk}",
-            }
-        )
-
-    if not options:
-        escalations_select = {
-            "type": "context",
-            "elements": [{"type": "mrkdwn", "text": "No escalation chains available"}],
-        }
-    else:
-        escalations_select = {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "Set escalation chain"},
-            "block_id": input_id_prefix + DIRECT_PAGING_ESCALATION_SELECT_ID,
-            "accessory": {
-                "type": "static_select",
-                "placeholder": {"type": "plain_text", "text": "Select an escalation", "emoji": True},
-                "options": options,
-                "action_id": OnPagingEscalationChange.routing_uid(),
-                "initial_option": options[initial_option_idx],
-            },
-        }
-    return escalations_select
-
-
 def _get_users_select(organization, input_id_prefix):
     users = organization.users.all()
 
@@ -839,17 +784,6 @@ def _get_additional_responders_checked_from_payload(payload, input_id_prefix):
     return len(selected_options) > 0
 
 
-def _get_selected_escalation_from_payload(payload, input_id_prefix):
-    EscalationChain = apps.get_model("alerts", "EscalationChain")
-    selected_escalation_id = _get_select_field_value(
-        payload, input_id_prefix, OnPagingEscalationChange.routing_uid(), DIRECT_PAGING_ESCALATION_SELECT_ID
-    )
-    if selected_escalation_id is None or selected_escalation_id == DEFAULT_NO_ESCALATION_VALUE:
-        return None
-    escalation = EscalationChain.objects.filter(pk=selected_escalation_id).first()
-    return escalation
-
-
 def _get_selected_user_from_payload(payload, input_id_prefix):
     User = apps.get_model("user_management", "User")
     selected_user_id = _get_select_field_value(
@@ -960,12 +894,6 @@ STEPS_ROUTING = [
         "block_action_type": scenario_step.BLOCK_ACTION_TYPE_CHECKBOXES,
         "block_action_id": OnPagingCheckAdditionalResponders.routing_uid(),
         "step": OnPagingCheckAdditionalResponders,
-    },
-    {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
-        "block_action_id": OnPagingEscalationChange.routing_uid(),
-        "step": OnPagingEscalationChange,
     },
     {
         "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
