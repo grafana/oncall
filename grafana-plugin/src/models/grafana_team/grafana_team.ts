@@ -2,6 +2,7 @@ import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
 export class GrafanaTeamStore extends BaseStore {
@@ -29,7 +30,9 @@ export class GrafanaTeamStore extends BaseStore {
 
   @action
   async updateItems(query = '') {
-    const result = await this.getAll();
+    const result = await makeRequest(`${this.path}`, {
+      params: { search: query },
+    });
 
     this.items = {
       ...this.items,

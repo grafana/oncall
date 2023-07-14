@@ -198,7 +198,6 @@ def test_resolution_notes_modal_closed_before_update(
     ResolutionNoteModalStep = ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
 
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)

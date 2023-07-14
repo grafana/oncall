@@ -31,8 +31,6 @@ paths_to_work_even_when_maintenance_mode_is_active = [
 
 urlpatterns = [
     *paths_to_work_even_when_maintenance_mode_is_active,
-    # path('slow/', SlowView.as_view()),
-    # path('exception/', ExceptionView.as_view()),
     path(settings.ONCALL_DJANGO_ADMIN_PATH, admin.site.urls),
     path("api/gi/v1/", include("apps.api_for_grafana_incident.urls", namespace="api-gi")),
     path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),

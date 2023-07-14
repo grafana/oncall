@@ -48,9 +48,6 @@ class IntegrationView(
         queryset = self.serializer_class.setup_eager_loading(queryset)
         queryset = queryset.annotate(alert_groups_count_annotated=Count("alert_groups", distinct=True))
 
-        # Hide direct paging integrations
-        queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
-
         return queryset
 
     def get_object(self):

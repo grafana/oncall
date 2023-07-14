@@ -36,8 +36,8 @@ import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import Users from 'pages/users/Users';
-import 'interceptors';
 import { rootStore } from 'state';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
 import loadJs from 'utils/loadJs';
@@ -164,13 +164,14 @@ export const Root = observer((props: AppRootProps) => {
               <Schedule query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-              <OutgoingWebhooks query={query} />
-            </Route>
-            <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
-              <OutgoingWebhooks2 query={query} />
+              {rootStore.hasFeature(AppFeature.Webhooks2) ? (
+                <OutgoingWebhooks2 query={query} />
+              ) : (
+                <OutgoingWebhooks query={query} />
+              )}
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
-              <Maintenance query={query} />
+              <Maintenance />
             </Route>
             <Route path={getRoutesForPage('settings')} exact>
               <SettingsPage />

@@ -208,6 +208,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             />
             <GTable
               emptyText={this.renderNotFound()}
+              data-testid="integrations-table"
               rowKey="id"
               data={results}
               columns={columns}

@@ -186,6 +186,9 @@ def notify_ical_schedule_shift(schedule_pk):
     if schedule.organization.slack_team_identity is None:
         task_logger.info(f"Trying to notify ical schedule shift with no slack team identity {schedule_pk}")
         return
+    elif schedule.organization.deleted_at:
+        task_logger.info(f"Trying to notify ical schedule shift from deleted organization {schedule_pk}")
+        return
 
     MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT = 3
 

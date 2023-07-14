@@ -64,6 +64,7 @@ FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", 
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
+FEATURE_WEBHOOKS_2_ENABLED = getenv_boolean("FEATURE_WEBHOOKS_2_ENABLED", default=True)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -408,6 +409,7 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
+ESCALATION_AUDITOR_ENABLED = getenv_boolean("ESCALATION_AUDITOR_ENABLED", default=True)
 ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
     "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
 )
@@ -416,15 +418,6 @@ CELERY_BEAT_SCHEDULE = {
     "restore_heartbeat_tasks": {
         "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
         "schedule": 10 * 60,
-        "args": (),
-    },
-    "check_escalations": {
-        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
-        # the task should be executed a minute or two less than the integration's configured interval
-        #
-        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
-        # to something like 13 * 60 (every 13 minutes)
-        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
         "args": (),
     },
     "start_refresh_ical_final_schedules": {
@@ -497,6 +490,17 @@ CELERY_BEAT_SCHEDULE = {
         "args": (),
     },
 }
+
+if ESCALATION_AUDITOR_ENABLED:
+    CELERY_BEAT_SCHEDULE["check_escalations"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
+        # the task should be executed a minute or two less than the integration's configured interval
+        #
+        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
+        # to something like 13 * 60 (every 13 minutes)
+        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "args": (),
+    }
 
 INTERNAL_IPS = ["127.0.0.1"]
 
