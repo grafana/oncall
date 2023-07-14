@@ -141,19 +141,18 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                     <HorizontalGroup>
                       {chatOpsAvailableChannels && (
                         <>
-                          <Text type="secondary">ChatOps:</Text>{' '}
                           {chatOpsAvailableChannels.map(
                             (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
-                              <div
-                                key={`${chatOpsChannel.name}-${chatOpsIndex}`}
-                                className={cx({
-                                  'u-margin-right-xs': chatOpsIndex !== chatOpsAvailableChannels.length,
-                                })}
-                              >
-                                {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} className={cx('icon')} />}
+                              <div key={`${chatOpsChannel.name}-${chatOpsIndex}`}>
+                                {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} />}
                                 <Text type="primary">{chatOpsChannel.name || ''}</Text>
                               </div>
                             )
+                          )}
+                          {chatOpsAvailableChannels && (
+                            <Tooltip content="Alert group will be posted to these chatops channels according to integration configuration">
+                              <Icon name="info-circle" />
+                            </Tooltip>
                           )}
                         </>
                       )}
