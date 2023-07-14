@@ -169,29 +169,13 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                   </HorizontalGroup>
                 </li>
               </ul>
-
-              {(escalationChainsExist || !chatOpsAvailableChannels) && (
-                <Alert severity="warning" title="Possible notification miss">
-                  <VerticalGroup>
-                    {escalationChainsExist && (
-                      <Text>
-                        Integration doesn't have connected escalation policies. Consider adding responders manually by
-                        user or by email
-                      </Text>
-                    )}
-                    {!chatOpsAvailableChannels && (
-                      <Text>Integration doesn't have connected ChatOps channels in messengers.</Text>
-                    )}
-                  </VerticalGroup>
-                </Alert>
-              )}
             </VerticalGroup>
           ) : (
-            <Alert severity="warning" title={"This team doesn't have the the Direct Paging integration yet"}>
+            <Alert severity="warning" title={'Direct paging integration missing'}>
               <HorizontalGroup>
                 <Text>
-                  Empty integration for this team will be created automatically. Consider selecting responders by
-                  schedule or user below
+                  The selected team doesn't have a direct paging integration configured and will not be notified. An
+                  empty direct paging integration will be created automatically if you proceed with the alert group.
                 </Text>
               </HorizontalGroup>
             </Alert>
