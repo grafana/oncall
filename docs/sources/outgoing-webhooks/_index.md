@@ -23,18 +23,18 @@ Jinja2 templates to customize the request being sent.
 
 ## Creating an outgoing webhook
 
-To create an outgoing webhook navigate to **Outgoing Webhooks** and click **+ Create**.  On this screen outgoing
-webhooks can be viewed, edited and deleted.  To create the outgoing webhook populate the required fields and
+To create an outgoing webhook navigate to **Outgoing Webhooks** and click **+ Create**. On this screen outgoing
+webhooks can be viewed, edited and deleted. To create the outgoing webhook populate the required fields and
 click **Create Webhook**
 
 ### Outgoing webhook fields
 
-The outgoing webhook is defined by the following fields.  For more information about template usage
+The outgoing webhook is defined by the following fields. For more information about template usage
 see [Outgoing webhook templates)](#outgoing-webhook-templates) section.
 
 #### ID
 
-This field is generated after an outgoing webhook has been created.  It is used to reference the responses of
+This field is generated after an outgoing webhook has been created. It is used to reference the responses of
 other webhooks, see [Advanced Usage - Using response data](#using-response-data) for more details.
 
 #### Name
@@ -42,16 +42,16 @@ other webhooks, see [Advanced Usage - Using response data](#using-response-data)
 Display name of the outgoing webhook.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ✔️    |                        ❌                         |    _Empty_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ✔️    |                        ❌                        |    _Empty_    |
 
 #### Enabled
 
 Controls whether the outgoing webhook will trigger or is ignored.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ✔️    |                        ❌                         |    _True_     |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ✔️    |                        ❌                        |    _True_     |
 
 #### Assign to Team
 
@@ -59,8 +59,8 @@ Sets which team owns the outgoing webhook for filtering and visibility.
 This setting does not restrict outgoing webhook execution to events from the selected team.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ❌                         |    _Empty_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ❌                        |    _Empty_    |
 
 #### Trigger Type
 
@@ -78,8 +78,8 @@ The type of event that will cause this outgoing webhook to execute. The types of
 For more details about types of triggers see [Event types](#event-types)
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ✔️    |                        ❌                         |    _None_     |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ✔️    |                        ❌                        |    _None_     |
 
 #### HTTP Method
 
@@ -87,8 +87,8 @@ The HTTP method used in the request made by the outgoing webhook. This should ma
 you are sending to.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ✔️    |                        ❌                         |    _POST_     |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ✔️    |                        ❌                        |    _POST_     |
 
 #### Integrations
 
@@ -96,15 +96,15 @@ Restricts the outgoing webhook to only trigger if the event came from a selected
 If no integrations are selected the outgoing webhook will trigger for any integration.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ❌                         |    _None_     |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ❌                        |    _None_     |
 
 #### Webhook URL
 
 The destination URL the outgoing webhook will make a request to. This must be a FQDN.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
+| :------: | :----------------------------------------------: | :-----------: |
 |    ✔️    |                        ✔️                        |    _Empty_    |
 
 #### Webhook Headers
@@ -112,32 +112,32 @@ The destination URL the outgoing webhook will make a request to. This must be a 
 Headers to add to the outgoing webhook request.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ✔️                        |    _Empty_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ✔️                        |    _Empty_    |
 
 #### Username
 
 Username to use when making the outgoing webhook request.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ❌                         |    _Empty_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ❌                        |    _Empty_    |
 
 #### Password
 
 Password to use when making the outgoing webhook request.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ❌                         |    _Empty_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ❌                        |    _Empty_    |
 
 #### Authorization Header
 
 Authorization header to use when making the outgoing webhook request.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ❌                         |    _None_     |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ❌                        |    _None_     |
 
 #### Trigger Template
 
@@ -145,29 +145,29 @@ A template used to dynamically determine whether the webhook should execute base
 If the template evaluates to Empty, True or 1 the webhook will execute.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ✔️                        |    _Empty_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ✔️                        |    _Empty_    |
 
 #### Data
 
 The main body of the request to be sent by the outgoing webhook.
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ✔️                        |    _Empty_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ✔️                        |    _Empty_    |
 
 #### Forward All
 
 Toggle to send the entire webhook payload instead of using the values in the **Data** field
 
 | Required | [Template Accepted](#outgoing-webhook-templates) | Default Value |
-|:--------:|:------------------------------------------------:|:-------------:|
-|    ❌     |                        ❌                         |    _False_    |
+| :------: | :----------------------------------------------: | :-----------: |
+|    ❌    |                        ❌                        |    _False_    |
 
 ## Outgoing webhook templates
 
 The fields that accept a Jinja2 template in outgoing webhooks are able to process data to customize the output.
-The following is an example of the data available to access from a template.  Some data depending on the timing
+The following is an example of the data available to access from a template. Some data depending on the timing
 of the webhook and the triggering event may not always be available,
 see [field descriptions](#outgoing-webhook-data-fields) specific details. The format you use to call the variables
 must match the structure of how the fields are nested in the data.
@@ -208,7 +208,6 @@ must match the structure of how the fields are nested in the data.
     },
     "status": "firing",
     "startsAt": "2018-12-25T15:47:47.377363608Z",
-    "amixr_demo": true,
     "annotations": {
       "description": "This alert was sent by user for the demonstration purposes"
     },
@@ -247,8 +246,8 @@ Context information about the event that triggered the outgoing webhook.
 
 #### `user`
 
-Information about the user if the source of the event was a user.  If a user acknowledges an alert group after
-receiving a notification this field will have that user's information.  If an alert group was auto-resolved based
+Information about the user if the source of the event was a user. If a user acknowledges an alert group after
+receiving a notification this field will have that user's information. If an alert group was auto-resolved based
 on criteria in the integration this field will be empty.
 
 - `{{ user.id }}` - [UID](#uid) of the user within Grafana OnCall
@@ -299,16 +298,16 @@ if notifications are still in progress. Access as `{{ notified_users[0].username
 
 #### `users_to_notify`
 
-Array of users that could potentially be notified based on the configured escalation chain.  Each user element in the array
+Array of users that could potentially be notified based on the configured escalation chain. Each user element in the array
 consists of `id`,`username`,`email`. Array elements are ordered based on the order users will be notified with the
-first element being the user that will be notified next.  Like `notified_users` depending on timing of notifications
+first element being the user that will be notified next. Like `notified_users` depending on timing of notifications
 a user in this array may have already been notified by the time this data is being processed. Access as
 `{{ users_to_notify[0].username }}` for example.
 
 #### `responses`
 
 The responses field is used to access the response data of other webhooks that are associated with this alert group.
-The keys inside responses are the [UID](#uid) of other outgoing webhooks.  The values inside each response is the latest
+The keys inside responses are the [UID](#uid) of other outgoing webhooks. The values inside each response is the latest
 response of the referenced webhook when it was executed on behalf of the current alert group.
 See [Advanced Usage - Using response data](#using-response-data) for more details. Access as
 `{{ responses["WHP936BM1GPVHQ"].content.message }}` for example
@@ -321,7 +320,7 @@ in the user interface to reference they can be found in the following places:
 - Outgoing Webhook - In the table there is an info icon, UID displayed on hover, click to copy to clipboard
 - Integration - In integrations beside the name is an info icon, UID displayed on hover, click to copy to clipboard
 - Routes - With an integration selected beside Send Demo Alert is an infor icon, UID displayed on hover,
-click to copy to clipboard
+  click to copy to clipboard
 - Alert group - When viewing an alert group UID is visible in the browser URL
 - User - When viewing a user's profile UID is visible in the browser URL
 
@@ -350,7 +349,7 @@ Take this template for example:
 
 ```json
 {
-  "labels" : "{{ alert_payload.labels }}"
+  "labels": "{{ alert_payload.labels }}"
 }
 ```
 
@@ -358,7 +357,7 @@ It will result in the following (Invalid JSON due to single quotes):
 
 ```json
 {
-  "labels": {'region': 'eu-1', 'alertname': 'TestAlert'}
+  "labels": { "region": "eu-1", "alertname": "TestAlert" }
 }
 ```
 
@@ -366,7 +365,7 @@ To fix change the template to:
 
 ```json
 {
-  "labels" : "{{ alert_payload.labels | tojson()}}"
+  "labels": "{{ alert_payload.labels | tojson()}}"
 }
 ```
 
@@ -440,7 +439,7 @@ In the outgoing webhooks table if a webhook is enabled **Last Run** will have th
 - Timestamp outgoing webhook was triggered
 - HTTP response code
 
-If more information is required you can click **Status** in the table.  The status drawer shows the following:
+If more information is required you can click **Status** in the table. The status drawer shows the following:
 
 - Webhook Name
 - Webhook UID
@@ -454,7 +453,7 @@ If more information is required you can click **Status** in the table.  The stat
 - Request Data
 
 In the status drawer if a field makes use of a template it will display both the template and the result
-otherwise it will only display the value.  Fields which are not used are not shown.
+otherwise it will only display the value. Fields which are not used are not shown.
 
 ## Advanced usage
 
@@ -462,14 +461,14 @@ otherwise it will only display the value.  Fields which are not used are not sho
 
 The [trigger template field](#trigger-type) can be used to provide control over whether a webhook will execute.  
 This is useful in situations where many different kinds of alerts are going to the same integration but only some of
-them should call the webhook.  To accomplish this the trigger template field can contain a template that will process
+them should call the webhook. To accomplish this the trigger template field can contain a template that will process
 data from the alert group and evaluate to empty, True or 1 if the webhook should execute, any other values will result
 in the webhook not executing.
 
 ### Using response data
 
 The `responses` section of the payload makes available the responses of other webhooks that have acted on the same
-alert group.  To access them `responses` uses the `id` of the webhook as a key.  The `id` can be found by hovering
+alert group. To access them `responses` uses the `id` of the webhook as a key. The `id` can be found by hovering
 over the info icon, clicking will copy the `id` to the clipboard. The response data of the most recent
 execution of the webhook for this same alert group can be accessed this way.
 

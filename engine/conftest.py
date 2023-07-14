@@ -146,7 +146,7 @@ def mock_slack_api_call(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_telegram_bot_username(monkeypatch):
     def mock_username(*args, **kwargs):
-        return "amixr_bot"
+        return "oncall_bot"
 
     monkeypatch.setattr(Bot, "username", mock_username)
 

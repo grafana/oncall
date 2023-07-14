@@ -33,7 +33,6 @@ def test_render_for_phone_call(
             "startsAt": "2018-12-25T15:47:47.377363608Z",
             "endsAt": "0001-01-01T00:00:00Z",
             "generatorURL": "",
-            "amixr_demo": True,
         },
     )
 
