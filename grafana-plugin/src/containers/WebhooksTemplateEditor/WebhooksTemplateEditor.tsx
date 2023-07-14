@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 
 import CheatSheet from 'components/CheatSheet/CheatSheet';
+import { genericTemplateCheatSheet } from 'components/CheatSheet/CheatSheet.config';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import Text from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
@@ -32,7 +33,7 @@ interface WebhooksTemplateEditorProps {
 }
 
 const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ template, id, onHide, handleSubmit }) => {
-  const [isCheatSheetVisible] = useState(false);
+  const [isCheatSheetVisible, setIsCheatSheetVisible] = useState<boolean>(false);
   const [changedTemplateBody, setChangedTemplateBody] = useState<string>(template.value);
   const [editorHeight, setEditorHeight] = useState<string>(undefined);
   const [selectedPayload, setSelectedPayload] = useState(undefined);
@@ -70,6 +71,14 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
       setSelectedPayload(undefined);
     }
   };
+
+  const onShowCheatSheet = useCallback(() => {
+    setIsCheatSheetVisible(true);
+  }, []);
+
+  const onCloseCheatSheet = useCallback(() => {
+    setIsCheatSheetVisible(false);
+  }, []);
 
   return (
     <Drawer
@@ -119,8 +128,8 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
 
           {isCheatSheetVisible ? (
             <CheatSheet
-              cheatSheetName={template.displayName}
-              cheatSheetData={getCheatSheet(template.name)}
+              cheatSheetName="Generic"
+              cheatSheetData={genericTemplateCheatSheet}
               onClose={onCloseCheatSheet}
             />
           ) : (
@@ -129,10 +138,9 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
                 <div className={cx('template-editor-block-title')}>
                   <HorizontalGroup justify="space-between" align="center" wrap>
                     <Text>Template editor</Text>
-
-                    {/*  <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
+                    <Button variant="secondary" fill="outline" onClick={onShowCheatSheet} icon="book" size="sm">
                       Cheatsheet
-                    </Button> */}
+                    </Button>
                   </HorizontalGroup>
                 </div>
                 <div className={cx('template-editor-block-content')}>
@@ -163,14 +171,6 @@ const WebhooksTemplateEditor: React.FC<WebhooksTemplateEditorProps> = ({ templat
       </div>
     </Drawer>
   );
-
-  // function onShowCheatSheet() {}
-
-  function onCloseCheatSheet() {}
-
-  function getCheatSheet(_templateName: string) {
-    return undefined;
-  }
 };
 
 export default WebhooksTemplateEditor;

@@ -21,6 +21,7 @@ interface GFormProps {
   onSubmit: (data: any) => void;
   onFieldRender?: (
     formItem: FormItem,
+    disabled: boolean,
     renderedControl: React.ReactElement,
     values: any,
     setValue: (value: string) => void
@@ -31,9 +32,16 @@ const nullNormalizer = (value: string) => {
   return value || null;
 };
 
-function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: (field, value) => void) {
+function renderFormControl(
+  formItem: FormItem,
+  register: any,
+  control: any,
+  disabled,
+  onChangeFn: (field, value) => void
+) {
   switch (formItem.type) {
     case FormItemType.Input:
+      console.log({ ...register(formItem.name, formItem.validation) });
       return (
         <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
       );
@@ -131,7 +139,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
                 showLineNumbers={false}
                 monacoOptions={{
                   ...MONACO_READONLY_CONFIG,
-                  readOnly: formItem.isReadOnly,
+                  readOnly: disabled,
                 }}
                 onChange={(value) => onChangeFn(field, value)}
               />
@@ -160,8 +168,13 @@ class GForm extends React.Component<GFormProps, {}> {
               setValue(formItem.name, undefined); // clear input value on hide
               return null;
             }
+            const disabled = formItem.disabled
+              ? true
+              : formItem.getDisabled
+              ? formItem.getDisabled(getValues())
+              : false;
 
-            const formControl = renderFormControl(formItem, register, control, (field, value) => {
+            const formControl = renderFormControl(formItem, register, control, disabled, (field, value) => {
               field?.onChange(value);
               this.forceUpdate();
             });
@@ -169,14 +182,16 @@ class GForm extends React.Component<GFormProps, {}> {
             return (
               <Field
                 key={formIndex}
-                disabled={formItem.getDisabled ? formItem.getDisabled(getValues()) : false}
+                disabled={disabled}
                 label={formItem.label || capitalCase(formItem.name)}
                 invalid={!!errors[formItem.name]}
                 error={formItem.label ? `${formItem.label} is required` : `${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
                 {onFieldRender
-                  ? onFieldRender(formItem, formControl, getValues(), (value) => setValue(formItem.name, value))
+                  ? onFieldRender(formItem, disabled, formControl, getValues(), (value) =>
+                      setValue(formItem.name, value)
+                    )
                   : formControl}
               </Field>
             );

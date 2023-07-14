@@ -88,14 +88,6 @@
     },
     {
       "type": "page",
-      "name": "Outgoing webhooks 2",
-      "path": "/a/grafana-oncall-app/outgoing_webhooks_2",
-      "role": "Viewer",
-      "action": "grafana-oncall-app.outgoing-webhooks:read",
-      "addToNav": false
-    },
-    {
-      "type": "page",
       "name": "Maintenance",
       "path": "/a/grafana-oncall-app/maintenance",
       "role": "Viewer",
