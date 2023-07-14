@@ -140,7 +140,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
             ]
 
         # trigger direct paging to selected team + users/schedules
-        direct_paging(
+        alert_group = direct_paging(
             selected_organization,
             selected_team,
             user,
@@ -150,12 +150,14 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
             selected_schedules,
         )
 
+        text = ":white_check_mark: Alert group *{}* created: {}".format(title, alert_group.web_link)
+
         try:
             self._slack_client.api_call(
                 "chat.postEphemeral",
                 channel=channel_id,
                 user=slack_user_identity.slack_id,
-                text=":white_check_mark: Alert *{}* successfully submitted".format(title),
+                text=text,
             )
         except SlackAPIException as e:
             if e.response["error"] == "channel_not_found":
@@ -163,7 +165,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
                     "chat.postEphemeral",
                     channel=slack_user_identity.im_channel_id,
                     user=slack_user_identity.slack_id,
-                    text=":white_check_mark: Alert *{}* successfully submitted".format(title),
+                    text=text,
                 )
             else:
                 raise e
