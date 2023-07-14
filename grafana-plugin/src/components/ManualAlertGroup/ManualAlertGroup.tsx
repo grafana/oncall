@@ -206,16 +206,10 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   );
 
   return (
-    <Drawer
-      scrollableContent
-      title="Create manual alert group (Direct Paging)"
-      onClose={onHide}
-      closeOnMaskClick={false}
-      width="70%"
-    >
+    <Drawer scrollableContent title="Create Alert Group" onClose={onHide} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
         <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
-        <Field label="Select team you want to notify">
+        <Field label="Team to notify">
           <GrafanaTeamSelect withoutModal onSelect={onUpdateSelectedTeam} />
         </Field>
         <DirectPagingIntegrationVariants

@@ -103,9 +103,34 @@ const EscalationVariants = observer(
     return (
       <>
         <div className={cx('body')}>
+          <div className={cx('assign-responders-button')}>
+            {withLabels && <Label>Additional responders</Label>}
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+              <Button
+                icon="users-alt"
+                variant={variant}
+                disabled={disabled}
+                onClick={() => {
+                  setShowEscalationVariants(true);
+                }}
+              >
+                Notify additional responders
+              </Button>
+            </WithPermissionControlTooltip>
+          </div>
+          {showEscalationVariants && (
+            <EscalationVariantsPopup
+              value={value}
+              onUpdateEscalationVariants={onUpdateEscalationVariants}
+              setShowEscalationVariants={setShowEscalationVariants}
+              setSelectedUser={setSelectedUser}
+              setShowUserWarningModal={setShowUserWarningModal}
+              setUserAvailability={setUserAvailability}
+            />
+          )}
           {!hideSelected && Boolean(value.userResponders.length || value.scheduleResponders.length) && (
             <>
-              <Label>Additional Responders will be notified immediately:</Label>
+              <Label>Additional responders will be notified immediately:</Label>
               <ul className={cx('responders-list')}>
                 {value.userResponders.map((responder, index) => (
                   <UserResponder
@@ -125,31 +150,6 @@ const EscalationVariants = observer(
                 ))}
               </ul>
             </>
-          )}
-          <div className={cx('assign-responders-button')}>
-            {withLabels && <Label>Assign additional responders from other teams (by user or by schedule)</Label>}
-            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-              <Button
-                icon="users-alt"
-                variant={variant}
-                disabled={disabled}
-                onClick={() => {
-                  setShowEscalationVariants(true);
-                }}
-              >
-                Invite additional responders
-              </Button>
-            </WithPermissionControlTooltip>
-          </div>
-          {showEscalationVariants && (
-            <EscalationVariantsPopup
-              value={value}
-              onUpdateEscalationVariants={onUpdateEscalationVariants}
-              setShowEscalationVariants={setShowEscalationVariants}
-              setSelectedUser={setSelectedUser}
-              setShowUserWarningModal={setShowUserWarningModal}
-              setUserAvailability={setUserAvailability}
-            />
           )}
         </div>
         {showUserWarningModal && (

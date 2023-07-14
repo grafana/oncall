@@ -12,8 +12,8 @@ export const manualAlertFormConfig: { name: string; fields: FormItem[] } = {
     {
       name: 'message',
       type: FormItemType.TextArea,
-      label: 'Description',
-      validation: { required: true },
+      label: 'Message',
+      validation: { required: false },
     },
   ],
 };
