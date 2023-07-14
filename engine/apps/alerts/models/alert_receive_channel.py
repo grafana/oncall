@@ -527,8 +527,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(heartbeat, self.INTEGRATIONS_TO_REVERSE_URL_MAP[self.integration], None)
 
     # Demo alerts
-    def send_demo_alert(self, force_route_id=None, payload=None):
-        logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
+    def send_demo_alert(self, payload=None):
+        logger.info(f"send_demo_alert integration={self.pk}")
 
         if not self.is_demo_alert_enabled:
             raise UnableToSendDemoAlert("Unable to send demo alert for this integration.")
@@ -543,9 +543,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                     "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
                 )
             for alert in alerts:
-                create_alertmanager_alerts.delay(
-                    alert_receive_channel_pk=self.pk, alert=alert, is_demo=True, force_route_id=force_route_id
-                )
+                create_alertmanager_alerts.delay(alert_receive_channel_pk=self.pk, alert=alert, is_demo=True)
         else:
             create_alert.delay(
                 title="Demo alert",
@@ -556,7 +554,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 integration_unique_data=None,
                 raw_request_data=payload,
                 is_demo=True,
-                force_route_id=force_route_id,
             )
 
     @property

@@ -37,6 +37,9 @@ def test_get_custom_actions(
                 "forward_whole_payload": custom_action.forward_whole_payload,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -74,6 +77,9 @@ def test_get_custom_actions_filter_by_name(
                 "forward_whole_payload": custom_action.forward_whole_payload,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -94,7 +100,15 @@ def test_get_custom_actions_filter_by_name_empty_result(
 
     response = client.get(f"{url}?name=NonExistentName", format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    expected_payload = {"count": 0, "next": None, "previous": None, "results": []}
+    expected_payload = {
+        "count": 0,
+        "next": None,
+        "previous": None,
+        "results": [],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
+    }
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == expected_payload

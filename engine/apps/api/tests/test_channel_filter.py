@@ -220,41 +220,6 @@ def test_channel_filter_move_to_position_permissions(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "role,expected_status",
-    [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
-    ],
-)
-def test_alert_receive_channel_send_demo_alert_permissions(
-    make_organization_and_user_with_plugin_token,
-    make_user_auth_headers,
-    make_alert_receive_channel,
-    make_channel_filter,
-    role,
-    expected_status,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
-    alert_receive_channel = make_alert_receive_channel(organization)
-    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
-    client = APIClient()
-
-    url = reverse("api-internal:channel_filter-send-demo-alert", kwargs={"pk": channel_filter.public_primary_key})
-
-    with patch(
-        "apps.api.views.channel_filter.ChannelFilterView.send_demo_alert",
-        return_value=Response(
-            status=status.HTTP_200_OK,
-        ),
-    ):
-        response = client.post(url, format="json", **make_user_auth_headers(user, token))
-
-    assert response.status_code == expected_status
-
-
-@pytest.mark.django_db
 def test_channel_filter_create_with_order(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `page_size`, `current_page_number`, and `total_pages` attributes to paginated API responses by @joeyorlando ([#2471](https://github.com/grafana/oncall/pull/2471))
+
 ## v1.3.11 (2023-07-13)
 
 ### Added
