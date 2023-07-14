@@ -18,7 +18,7 @@ weight: 500
 The Fabric integration for Grafana OnCall handles ticket events sent from Fabric webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from Fabric
 
@@ -35,3 +35,8 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 4. Enter URL: **OnCall Integration URL**
 5. Click Verify
 6. Choose "SEND IMPACT CHANGE ALERTS" and "ALSO SEND NON-FATAL ALERTS"
+
+{{% docs/reference %}}
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+{{% /docs/reference %}}
