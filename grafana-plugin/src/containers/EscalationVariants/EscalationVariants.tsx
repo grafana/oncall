@@ -127,7 +127,7 @@ const EscalationVariants = observer(
             </>
           )}
           <div className={cx('assign-responders-button')}>
-            {withLabels && <Label>Additional responders</Label>}
+            {withLabels && <Label>Additional responders (optional)</Label>}
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <Button
                 icon="users-alt"
