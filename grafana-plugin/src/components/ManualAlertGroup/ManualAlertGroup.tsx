@@ -113,7 +113,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   );
 
   const DirectPagingIntegrationVariants = ({ selectedTeamId, selectedTeamDirectPaging, chatOpsAvailableChannels }) => {
-    const escalationChainsExist = selectedTeamDirectPaging?.connected_escalations_chains_count === 0;
+    const escalationChainsExist = selectedTeamDirectPaging?.connected_escalations_chains_count !== 0;
 
     return (
       <VerticalGroup>
@@ -127,11 +127,6 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                 <li>
                   <HorizontalGroup justify="space-between">
                     <HorizontalGroup>
-                      {escalationChainsExist && (
-                        <Tooltip content="Integration doesn't have connected escalation policies">
-                          <Icon name="exclamation-triangle" style={{ color: 'var(--warning-text-color)' }} />
-                        </Tooltip>
-                      )}
                       <Text>{selectedTeamDirectPaging.verbal_name}</Text>
                     </HorizontalGroup>
                     <HorizontalGroup>
@@ -150,7 +145,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                             )
                           )}
                           {chatOpsAvailableChannels && (
-                            <Tooltip content="Alert group will be posted to these chatops channels according to integration configuration">
+                            <Tooltip content="Alert group will be posted to these ChatOps channels">
                               <Icon name="info-circle" />
                             </Tooltip>
                           )}
@@ -169,6 +164,25 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                   </HorizontalGroup>
                 </li>
               </ul>
+              {!escalationChainsExist && (
+                <Alert severity="warning" title="Direct paging integration not configured">
+                  <VerticalGroup>
+                    <Text>
+                      The direct paging integration for the selected team has no escalation chains configured.
+                      <br />
+                      If you proceed with the alert group, the team likely won't be notified. <br />
+                      <a
+                        href={'https://grafana.com/docs/oncall/latest/integrations/manual/'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={cx('link')}
+                      >
+                        <Text type="link">Learn more in the docs.</Text>
+                      </a>
+                    </Text>
+                  </VerticalGroup>
+                </Alert>
+              )}
             </VerticalGroup>
           ) : (
             <Alert severity="warning" title={'Direct paging integration missing'}>
@@ -176,7 +190,15 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                 <Text>
                   The selected team doesn't have a direct paging integration configured and will not be notified. <br />
                   If you proceed with the alert group, an empty direct paging integration will be created automatically
-                  for the team.
+                  for the team. <br />
+                  <a
+                    href={'https://grafana.com/docs/oncall/latest/integrations/manual/'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cx('link')}
+                  >
+                    <Text type="link">Learn more in the docs.</Text>
+                  </a>
                 </Text>
               </HorizontalGroup>
             </Alert>
