@@ -59,12 +59,12 @@ for backend_id, backend in get_messaging_backends():
 
 class IntegrationTypeField(fields.CharField):
     def to_representation(self, value):
-        return AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP[value]
+        return AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP[value]
 
     def to_internal_value(self, data):
         try:
             integration_type = [
-                key for key, value in AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP.items() if value == data
+                key for key, value in AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP.items() if value == data
             ][0]
         except IndexError:
             raise BadRequest(detail="Invalid integration type")

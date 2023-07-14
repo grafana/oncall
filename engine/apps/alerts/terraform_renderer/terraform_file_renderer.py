@@ -391,7 +391,6 @@ class TerraformFileRenderer:
         return result
 
     def render_integrations_related_resources_text(self):
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
         result = ""
         integrations = self.organization.alert_receive_channels.all().order_by("created_at")
         for integration in integrations:
@@ -404,7 +403,7 @@ class TerraformFileRenderer:
                 result += TerraformFileRenderer.INTEGRATION_RESOURCE_TEMPLATE_WITH_TEMPLATES.format(
                     integration_resource_name,
                     formatted_integration_name,
-                    AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP[integration.integration],
+                    integration.integration,
                     team_name_text,
                     templates,
                 )
@@ -412,7 +411,7 @@ class TerraformFileRenderer:
                 result += TerraformFileRenderer.INTEGRATION_RESOURCE_TEMPLATE.format(
                     integration_resource_name,
                     formatted_integration_name,
-                    AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP[integration.integration],
+                    integration.integration,
                     team_name_text,
                 )
             route_text = self.render_route_resource_text(integration, integration_resource_name)

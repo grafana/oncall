@@ -24,7 +24,7 @@ def test_integration_url(make_organization, make_alert_receive_channel, url, set
     alert_receive_channel = make_alert_receive_channel(organization)
 
     path = reverse(
-        f"integrations:{AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP[alert_receive_channel.integration]}",
+        f"integrations:{alert_receive_channel.integration}",
         kwargs={"alert_channel_key": alert_receive_channel.token},
     )
 
