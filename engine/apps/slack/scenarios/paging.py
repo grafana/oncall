@@ -120,7 +120,9 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         channel_id = private_metadata["channel_id"]
         input_id_prefix = private_metadata["input_id_prefix"]
-        selected_organization = _get_selected_org_from_payload(payload, input_id_prefix)
+        selected_organization = _get_selected_org_from_payload(
+            payload, input_id_prefix, slack_team_identity, slack_user_identity
+        )
         selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
         user = slack_user_identity.get_user(selected_organization)
 
@@ -209,7 +211,9 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         private_metadata = json.loads(payload["view"]["private_metadata"])
-        selected_organization = _get_selected_org_from_payload(payload, private_metadata["input_id_prefix"])
+        selected_organization = _get_selected_org_from_payload(
+            payload, private_metadata["input_id_prefix"], slack_team_identity, slack_user_identity
+        )
         selected_team = _get_selected_team_from_payload(payload, private_metadata["input_id_prefix"])
         selected_user = _get_selected_user_from_payload(payload, private_metadata["input_id_prefix"])
         if selected_user is None:
@@ -345,17 +349,16 @@ DIVIDER_BLOCK = {"type": "divider"}
 def render_dialog(slack_user_identity, slack_team_identity, payload, initial=False, error_msg=None):
     private_metadata = json.loads(payload["view"]["private_metadata"])
     submit_routing_uid = private_metadata.get("submit_routing_uid")
+
+    # Get organizations available to user
+    available_organizations = _get_available_organizations(slack_team_identity, slack_user_identity)
+
     if initial:
         # setup initial form
         new_input_id_prefix = _generate_input_id_prefix()
         new_private_metadata = private_metadata
         new_private_metadata["input_id_prefix"] = new_input_id_prefix
-        selected_organization = (
-            slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
-            .order_by("pk")
-            .distinct()
-            .first()
-        )
+        selected_organization = available_organizations.first()
         selected_team = None
         is_additional_responders_checked = False
     else:
@@ -363,14 +366,13 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
         old_input_id_prefix, new_input_id_prefix, new_private_metadata = _get_and_change_input_id_prefix_from_metadata(
             private_metadata
         )
-        selected_organization = _get_selected_org_from_payload(payload, old_input_id_prefix)
+        selected_organization = _get_selected_org_from_payload(
+            payload, old_input_id_prefix, slack_team_identity, slack_user_identity
+        )
         selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
         is_additional_responders_checked = _get_additional_responders_checked_from_payload(payload, old_input_id_prefix)
 
     # widgets
-    organization_select = _get_organization_select(
-        slack_team_identity, slack_user_identity, selected_organization, new_input_id_prefix
-    )
     team_select_blocks = _get_team_select_blocks(
         slack_user_identity, selected_organization, selected_team, new_input_id_prefix
     )
@@ -378,19 +380,25 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
         payload, selected_organization, selected_team, new_input_id_prefix, is_additional_responders_checked, error_msg
     )
 
-    blocks = [
-        _get_title_input(payload),
-        _get_message_input(payload),
-        organization_select,
-        *team_select_blocks,
-        *additional_responders_blocks,
-    ]
+    # Add title and message inputs
+    blocks = [_get_title_input(payload), _get_message_input(payload)]
+
+    # Add organization select if more than one organization available for user
+    if len(available_organizations) > 1:
+        organization_select = _get_organization_select(
+            available_organizations, selected_organization, new_input_id_prefix
+        )
+        blocks.append(organization_select)
+
+    # Add team select and additional responders blocks
+    blocks += team_select_blocks
+    blocks += additional_responders_blocks
 
     view = _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
     return view
 
 
-def _get_form_view(routing_uid, blocks, private_metatada):
+def _get_form_view(routing_uid, blocks, private_metadata):
     view = {
         "type": "modal",
         "callback_id": routing_uid,
@@ -408,16 +416,13 @@ def _get_form_view(routing_uid, blocks, private_metatada):
             "text": "Submit",
         },
         "blocks": blocks,
-        "private_metadata": private_metatada,
+        "private_metadata": private_metadata,
     }
 
     return view
 
 
-def _get_organization_select(slack_team_identity, slack_user_identity, value, input_id_prefix):
-    organizations = slack_team_identity.organizations.filter(
-        users__slack_user_identity=slack_user_identity,
-    ).distinct()
+def _get_organization_select(organizations, value, input_id_prefix):
     organizations_options = []
     initial_option_idx = 0
     for idx, org in enumerate(organizations):
@@ -455,17 +460,23 @@ def _get_organization_select(slack_team_identity, slack_user_identity, value, in
 
 
 def _get_select_field_value(payload, prefix_id, routing_uid, field_id):
-    field = payload["view"]["state"]["values"][prefix_id + field_id][routing_uid]["selected_option"]
+    try:
+        field = payload["view"]["state"]["values"][prefix_id + field_id][routing_uid]["selected_option"]
+    except KeyError:
+        return None
+
     if field:
         return field["value"]
 
 
-def _get_selected_org_from_payload(payload, input_id_prefix):
+def _get_selected_org_from_payload(payload, input_id_prefix, slack_team_identity, slack_user_identity):
     Organization = apps.get_model("user_management", "Organization")
     selected_org_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingOrgChange.routing_uid(), DIRECT_PAGING_ORG_SELECT_ID
     )
-    if selected_org_id is not None:
+    if selected_org_id is None:
+        return _get_available_organizations(slack_team_identity, slack_user_identity).first()
+    else:
         org = Organization.objects.filter(pk=selected_org_id).first()
         return org
 
@@ -868,6 +879,14 @@ def _get_message_from_payload(payload):
         or ""
     )
     return message
+
+
+def _get_available_organizations(slack_team_identity, slack_user_identity):
+    return (
+        slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
+        .order_by("pk")
+        .distinct()
+    )
 
 
 # _generate_input_id_prefix returns uniq str to not to preserve input's values between view update
