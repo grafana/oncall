@@ -170,7 +170,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                     <Text>
                       The direct paging integration for the selected team has no escalation chains configured.
                       <br />
-                      If you proceed with the alert group, the team likely won't be notified. <br />
+                      If you proceed with the alert group, the team likely will not be notified. <br />
                       <a
                         href={'https://grafana.com/docs/oncall/latest/integrations/manual/'}
                         target="_blank"
