@@ -242,7 +242,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     acknowledged_by_confirmed = models.DateTimeField(null=True, default=None)
 
     is_escalation_finished = models.BooleanField(default=False)
-    started_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     slack_message_sent = models.BooleanField(default=False)
 

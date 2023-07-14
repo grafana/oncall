@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django_filters import rest_framework as filters
 from rest_framework import status
@@ -14,7 +15,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookResponseSerializer, WebhookSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.webhooks.models import Webhook, WebhookResponse
-from apps.webhooks.utils import apply_jinja_template_for_json, is_webhooks_enabled_for_organization
+from apps.webhooks.utils import apply_jinja_template_for_json
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
@@ -103,8 +104,8 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         instance.delete()
 
     def check_webhooks_2_enabled(self):
-        if not is_webhooks_enabled_for_organization(self.request.auth.organization.pk):
-            raise PermissionDenied("Webhooks 2 not enabled for organization. Permission denied.")
+        if not settings.FEATURE_WEBHOOKS_2_ENABLED:
+            raise PermissionDenied("Webhooks 2 not enabled. Permission denied.")
 
     @action(methods=["get"], detail=False)
     def filters(self, request):
