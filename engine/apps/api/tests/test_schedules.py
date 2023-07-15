@@ -6,7 +6,6 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
 from rest_framework.test import APIClient
 
 from apps.alerts.models import EscalationPolicy
@@ -646,25 +645,6 @@ def test_create_web_schedule(schedule_internal_api_setup, make_user_auth_headers
     data["enable_web_overrides"] = True
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == data
-
-
-@pytest.mark.django_db
-def test_create_invalid_ical_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, _, _, _ = schedule_internal_api_setup
-    client = APIClient()
-    url = reverse("api-internal:custom_button-list")
-    with patch(
-        "apps.api.serializers.schedule_ical.ScheduleICalSerializer.validate_ical_url_primary",
-        side_effect=ValidationError("Ical download failed"),
-    ):
-        data = {
-            "ical_url_primary": ICAL_URL,
-            "ical_url_overrides": None,
-            "name": "created_ical_schedule",
-            "type": 1,
-        }
-        response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db

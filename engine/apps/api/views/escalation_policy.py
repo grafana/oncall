@@ -131,12 +131,6 @@ class EscalationPolicyView(
     def escalation_options(self, request):
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
-            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK and not settings.FEATURE_WEBHOOKS_2_ENABLED:
-                continue
-
-            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and settings.FEATURE_WEBHOOKS_2_ENABLED:
-                continue
-
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
             can_change_importance = (
                 step in EscalationPolicy.IMPORTANT_STEPS_SET or step in EscalationPolicy.DEFAULT_STEPS_SET

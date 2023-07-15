@@ -1,19 +1,15 @@
 import json
 import logging
-from contextlib import suppress
 from datetime import datetime
 
 from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
-from jinja2 import TemplateError
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertSlackRenderer
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
-from apps.alerts.tasks import custom_button_result
-from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
 from apps.slack.models import SlackMessage
@@ -509,63 +505,6 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
     def process_signal(self, log_record):
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
-
-
-class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        CustomButtom = apps.get_model("alerts", "CustomButton")
-        alert_group = self.get_alert_group(slack_team_identity, payload)
-        if not self.is_authorized(alert_group):
-            self.open_unauthorized_warning(payload)
-            return
-
-        custom_button_pk = payload["actions"][0]["name"].split("_")[1]
-        alert_group_pk = payload["actions"][0]["name"].split("_")[2]
-        try:
-            CustomButtom.objects.get(pk=custom_button_pk)
-        except CustomButtom.DoesNotExist:
-            warning_text = "Oops! This button was deleted"
-            self.open_warning_window(payload, warning_text=warning_text)
-            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
-        else:
-            custom_button_result.apply_async(
-                args=(
-                    custom_button_pk,
-                    alert_group_pk,
-                ),
-                kwargs={"user_pk": self.user.pk},
-            )
-
-    def process_signal(self, log_record):
-        alert_group = log_record.alert_group
-        result_message = log_record.reason
-        custom_button = log_record.custom_button
-        debug_message = ""
-        if not log_record.step_specific_info["is_request_successful"]:
-            with suppress(TemplateError, json.JSONDecodeError):
-                post_kwargs = custom_button.build_post_kwargs(log_record.alert_group.alerts.first())
-                curl_request = render_curl_command(log_record.custom_button.webhook, "POST", post_kwargs)
-                debug_message = f"```{curl_request}```"
-
-        if log_record.author is not None:
-            user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
-            text = (
-                f"{user_verbal} sent a request from an outgoing webhook `{log_record.custom_button.name}` "
-                f"with the result `{result_message}`"
-            )
-        else:
-            text = (
-                f"A request from an outgoing webhook `{log_record.custom_button.name}` was sent "
-                f"according to escalation policy with the result `{result_message}`"
-            )
-        attachments = [
-            {"callback_id": "alert", "text": debug_message},
-        ]
-        self.alert_group_slack_service.publish_message_to_alert_group_thread(
-            alert_group, attachments=attachments, text=text
-        )
 
 
 class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -1186,11 +1125,5 @@ STEPS_ROUTING = [
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": StopInvitationProcess.routing_uid(),
         "step": StopInvitationProcess,
-    },
-    {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
-        "action_name": CustomButtonProcessStep.routing_uid(),
-        "step": CustomButtonProcessStep,
     },
 ]

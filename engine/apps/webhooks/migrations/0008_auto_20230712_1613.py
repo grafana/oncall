@@ -11,6 +11,7 @@ LEGACY_SUFFIX = " (Legacy)"
 
 logger = logging.getLogger(__name__)
 
+
 def convert_custom_button_to_webhook(apps, schema_editor):
     CustomButton = apps.get_model("alerts", "CustomButton")
     Webhooks = apps.get_model("webhooks", "Webhook")
@@ -36,10 +37,10 @@ def convert_custom_button_to_webhook(apps, schema_editor):
         )
         # migrate related escalation policies
         EscalationPolicies.objects.filter(
-            step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+            step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
             custom_button_trigger=cb,
         ).update(
-            step=EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
+            step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
             custom_webhook=webhook,
         )
 
@@ -60,7 +61,7 @@ def undo_custom_button_to_webhook(apps, schema_editor):
             step=EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
             custom_webhook=webhook,
         ).update(
-            step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+            step=EscalationPolicy._DEPRECATED_STEP_TRIGGER_CUSTOM_BUTTON,
             custom_button_trigger=cb,
             custom_webhook=None,
         )

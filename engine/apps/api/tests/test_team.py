@@ -168,7 +168,6 @@ def test_team_permissions_wrong_team(
     make_user,
     make_escalation_chain,
     make_schedule,
-    make_custom_action,
     make_token_for_organization,
     make_user_auth_headers,
 ):
@@ -189,14 +188,12 @@ def test_team_permissions_wrong_team(
 
     escalation_chain = make_escalation_chain(organization, team=team_without_user)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, team=team_without_user)
-    webhook = make_custom_action(organization, team=team_without_user)
 
     for endpoint, instance in (
         ("alertgroup", alert_group),
         ("alert_receive_channel", alert_receive_channel),
         ("escalation_chain", escalation_chain),
         ("schedule", schedule),
-        ("custom_button", webhook),
     ):
         url = reverse(f"api-internal:{endpoint}-detail", kwargs={"pk": instance.public_primary_key})
 
@@ -215,7 +212,6 @@ def test_team_permissions_not_in_team(
     make_user,
     make_escalation_chain,
     make_schedule,
-    make_custom_action,
     make_token_for_organization,
     make_user_auth_headers,
 ):
@@ -238,14 +234,12 @@ def test_team_permissions_not_in_team(
 
     escalation_chain = make_escalation_chain(organization, team=team)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, team=team)
-    webhook = make_custom_action(organization, team=team)
 
     for endpoint, instance in (
         ("alertgroup", alert_group),
         ("alert_receive_channel", alert_receive_channel),
         ("escalation_chain", escalation_chain),
         ("schedule", schedule),
-        ("custom_button", webhook),
     ):
         url = reverse(f"api-internal:{endpoint}-detail", kwargs={"pk": instance.public_primary_key})
 
@@ -270,7 +264,6 @@ def test_team_permissions_right_team(
     make_user,
     make_escalation_chain,
     make_schedule,
-    make_custom_action,
     make_token_for_organization,
     make_user_auth_headers,
 ):
@@ -295,14 +288,12 @@ def test_team_permissions_right_team(
 
     escalation_chain = make_escalation_chain(organization, team=team)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar, team=team)
-    webhook = make_custom_action(organization, team=team)
 
     for endpoint, instance in (
         ("alertgroup", alert_group),
         ("alert_receive_channel", alert_receive_channel),
         ("escalation_chain", escalation_chain),
         ("schedule", schedule),
-        ("custom_button", webhook),
         ("user", another_user),
     ):
         url = reverse(f"api-internal:{endpoint}-detail", kwargs={"pk": instance.public_primary_key})

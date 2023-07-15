@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from django.conf import settings
 from django.db.models import Max
 from django.urls import reverse
 from django.utils.timezone import timedelta
@@ -653,7 +652,6 @@ def test_escalation_policy_can_not_create_with_non_step_type_related_data(
         (EscalationPolicy.STEP_NOTIFY_USERS_QUEUE, ["notify_to_users_queue"]),
         (EscalationPolicy.STEP_NOTIFY_IF_TIME, ["from_time", "to_time"]),
         (EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS, ["notify_to_users_queue"]),
-        (EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON, ["custom_button_trigger"]),
         (EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK, ["custom_webhook"]),
     ],
 )
@@ -692,7 +690,6 @@ def test_escalation_policy_update_drop_non_step_type_related_data(
         "notify_to_group",
         "from_time",
         "to_time",
-        "custom_button_trigger",
         "custom_webhook",
     ]
     for f in related_fields:
@@ -744,7 +741,6 @@ def test_escalation_policy_switch_importance(
         "num_alerts_in_window": None,
         "num_minutes_in_window": None,
         "slack_integration_required": escalation_policy.slack_integration_required,
-        "custom_button_trigger": None,
         "custom_webhook": None,
         "notify_schedule": None,
         "notify_to_group": None,
@@ -802,7 +798,6 @@ def test_escalation_policy_filter_by_user(
             "num_alerts_in_window": None,
             "num_minutes_in_window": None,
             "slack_integration_required": False,
-            "custom_button_trigger": None,
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
@@ -820,7 +815,6 @@ def test_escalation_policy_filter_by_user(
             "num_alerts_in_window": None,
             "num_minutes_in_window": None,
             "slack_integration_required": False,
-            "custom_button_trigger": None,
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
@@ -883,7 +877,6 @@ def test_escalation_policy_filter_by_slack_channel(
             "num_alerts_in_window": None,
             "num_minutes_in_window": None,
             "slack_integration_required": False,
-            "custom_button_trigger": None,
             "custom_webhook": None,
             "notify_schedule": None,
             "notify_to_group": None,
@@ -900,26 +893,3 @@ def test_escalation_policy_filter_by_slack_channel(
     assert response.status_code == status.HTTP_200_OK
 
     assert response.json() == expected_payload
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize("enabled", [True, False])
-def test_escalation_policy_escalation_options_webhooks(
-    make_organization_and_user_with_plugin_token,
-    make_user_auth_headers,
-    enabled,
-):
-    _, user, token = make_organization_and_user_with_plugin_token()
-    client = APIClient()
-
-    url = reverse("api-internal:escalation_policy-escalation-options")
-
-    settings.FEATURE_WEBHOOKS_2_ENABLED = enabled
-
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-
-    returned_options = [option["value"] for option in response.json()]
-    if enabled:
-        assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK in returned_options
-    else:
-        assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK not in returned_options

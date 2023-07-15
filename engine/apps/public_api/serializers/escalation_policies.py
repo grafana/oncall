@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.utils.functional import cached_property
 from rest_framework import fields, serializers
 
-from apps.alerts.models import CustomButton, EscalationChain, EscalationPolicy
+from apps.alerts.models import EscalationChain, EscalationPolicy
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
 from apps.user_management.models import User
@@ -62,11 +62,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
         source="notify_to_group",
         filter_field="slack_team_identity__organizations",
     )
-    action_to_trigger = OrganizationFilteredPrimaryKeyRelatedField(
-        queryset=CustomButton.objects,
-        required=False,
-        source="custom_button_trigger",
-    )
     manual_order = serializers.BooleanField(default=False, write_only=True)
     important = serializers.BooleanField(required=False)
     notify_if_time_from = CustomTimeField(required=False, source="from_time")
@@ -85,7 +80,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             "persons_to_notify_next_each_time",
             "notify_on_call_from_schedule",
             "group_to_notify",
-            "action_to_trigger",
             "manual_order",
             "notify_if_time_from",
             "notify_if_time_to",
@@ -111,12 +105,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             raise BadRequest(detail="Invalid escalation step type: step is Slack-specific")
 
         return step_type
-
-    def validate_action_to_trigger(self, action_to_trigger):
-        if action_to_trigger.team != self.escalation_chain.team:
-            raise BadRequest(detail="Action must be assigned to the same team as the escalation chain")
-
-        return action_to_trigger
 
     def validate_notify_on_call_from_schedule(self, schedule):
         if schedule.team != self.escalation_chain.team:
@@ -173,7 +161,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             "notify_on_call_from_schedule",
             "group_to_notify",
             "important",
-            "action_to_trigger",
             "notify_if_time_from",
             "notify_if_time_to",
             "num_alerts_in_window",
@@ -192,8 +179,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             fields_to_remove.remove("persons_to_notify_next_each_time")
         elif step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
             fields_to_remove.remove("group_to_notify")
-        elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
-            fields_to_remove.remove("action_to_trigger")
         elif step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
             fields_to_remove.remove("notify_if_time_from")
             fields_to_remove.remove("notify_if_time_to")
@@ -229,7 +214,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             "wait_delay",
             "notify_schedule",
             "notify_to_group",
-            "custom_button_trigger",
             "from_time",
             "to_time",
             "num_alerts_in_window",
@@ -250,8 +234,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             validated_data_fields_to_remove.remove("notify_to_users_queue")
         elif step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
             validated_data_fields_to_remove.remove("notify_to_group")
-        elif step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
-            validated_data_fields_to_remove.remove("custom_button_trigger")
         elif step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
             validated_data_fields_to_remove.remove("from_time")
             validated_data_fields_to_remove.remove("to_time")
@@ -301,8 +283,6 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                     instance.notify_to_users_queue.clear()
                 if step not in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
                     instance.notify_to_group = None
-                if step != EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
-                    instance.custom_button_trigger = None
                 if step != EscalationPolicy.STEP_NOTIFY_IF_TIME:
                     instance.from_time = None
                     instance.to_time = None

@@ -413,37 +413,6 @@ def test_escalation_step_notify_if_num_alerts_in_window(
 
 @patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
 @pytest.mark.django_db
-def test_escalation_step_trigger_custom_button(
-    mocked_execute_tasks,
-    escalation_step_test_setup,
-    make_custom_action,
-    make_escalation_policy,
-):
-    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
-
-    custom_button = make_custom_action(organization=organization)
-
-    trigger_custom_button_step = make_escalation_policy(
-        escalation_chain=channel_filter.escalation_chain,
-        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
-        custom_button_trigger=custom_button,
-    )
-    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(trigger_custom_button_step)
-    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
-    result = escalation_policy_snapshot.execute(alert_group, reason)
-    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
-        eta=result.eta,
-        stop_escalation=False,
-        pause_escalation=False,
-        start_from_beginning=False,
-    )
-    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
-    assert result == expected_result
-    assert mocked_execute_tasks.called
-
-
-@patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
-@pytest.mark.django_db
 def test_escalation_step_trigger_custom_webhook(
     mocked_execute_tasks,
     escalation_step_test_setup,
@@ -456,7 +425,7 @@ def test_escalation_step_trigger_custom_webhook(
 
     trigger_custom_webhook_step = make_escalation_policy(
         escalation_chain=channel_filter.escalation_chain,
-        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON,
+        escalation_policy_step=EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK,
         custom_webhook=custom_webhook,
     )
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(trigger_custom_webhook_step)
@@ -471,6 +440,13 @@ def test_escalation_step_trigger_custom_webhook(
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
     assert mocked_execute_tasks.called
+
+    with patch(
+        "apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._escalation_step_trigger_custom_webhook"
+    ) as mock_webhook_escalation_step:
+        escalation_policy_snapshot.execute(alert_group, reason)
+
+        mock_webhook_escalation_step.assert_called_once_with(alert_group, reason)
 
 
 @patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
@@ -589,7 +565,6 @@ def test_escalation_step_with_deleted_user(
         "to_time": None,
         "num_alerts_in_window": None,
         "num_minutes_in_window": None,
-        "custom_button_trigger": None,
         "notify_schedule": None,
         "notify_to_group": None,
         "escalation_counter": 0,

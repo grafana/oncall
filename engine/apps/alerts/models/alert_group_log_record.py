@@ -30,7 +30,7 @@ class AlertGroupLogRecord(models.Model):
         TYPE_SILENCE,
         TYPE_ATTACHED,
         TYPE_UNATTACHED,
-        TYPE_CUSTOM_BUTTON_TRIGGERED,
+        TYPE_CUSTOM_WEBHOOK_TRIGGERED,
         TYPE_AUTO_UN_ACK,
         TYPE_FAILED_ATTACHMENT,
         TYPE_RESOLVED,
@@ -57,7 +57,7 @@ class AlertGroupLogRecord(models.Model):
         TYPE_SILENCE,
         TYPE_ATTACHED,
         TYPE_UNATTACHED,
-        TYPE_CUSTOM_BUTTON_TRIGGERED,
+        TYPE_CUSTOM_WEBHOOK_TRIGGERED,
         TYPE_FAILED_ATTACHMENT,
         TYPE_RESOLVED,
         TYPE_UN_RESOLVED,
@@ -77,7 +77,7 @@ class AlertGroupLogRecord(models.Model):
         (TYPE_UN_SILENCE, "Unsilenced"),
         (TYPE_ATTACHED, "Attached"),
         (TYPE_UNATTACHED, "Unattached"),
-        (TYPE_CUSTOM_BUTTON_TRIGGERED, "Custom button triggered"),
+        (TYPE_CUSTOM_WEBHOOK_TRIGGERED, "Custom webhook triggered"),
         (TYPE_AUTO_UN_ACK, "Unacknowledged by timeout"),
         (TYPE_FAILED_ATTACHMENT, "Failed attachment"),
         (TYPE_RESOLVED, "Incident resolved"),
@@ -106,7 +106,7 @@ class AlertGroupLogRecord(models.Model):
         TYPE_UN_SILENCE: "un_silence",
         TYPE_ATTACHED: "attach",
         TYPE_UNATTACHED: "un_attach",
-        TYPE_CUSTOM_BUTTON_TRIGGERED: "custom_button_triggered",
+        TYPE_CUSTOM_WEBHOOK_TRIGGERED: "custom_webhook_triggered",
         TYPE_AUTO_UN_ACK: "auto_un_acknowledge",
         TYPE_FAILED_ATTACHMENT: "fail_attach",
         TYPE_RESOLVED: "resolve",
@@ -134,7 +134,7 @@ class AlertGroupLogRecord(models.Model):
         ERROR_ESCALATION_NOTIFY_GROUP_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_USER_GROUP_IS_EMPTY,
         ERROR_ESCALATION_USER_GROUP_DOES_NOT_EXIST,
-        ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED,
+        ERROR_ESCALATION_TRIGGER_WEBHOOK_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_NOTIFY_IN_SLACK,
         ERROR_ESCALATION_NOTIFY_IF_NUM_ALERTS_IN_WINDOW_STEP_IS_NOT_CONFIGURED,
         ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR,
@@ -440,7 +440,7 @@ class AlertGroupLogRecord(models.Model):
                         f"{self.dependent_alert_group.long_verbose_name} has been unattached from this alert"
                         f"{f' by {author_name}' if author_name else ''}"
                     )
-        elif self.type == AlertGroupLogRecord.TYPE_CUSTOM_BUTTON_TRIGGERED:
+        elif self.type == AlertGroupLogRecord.TYPE_CUSTOM_WEBHOOK_TRIGGERED:
             webhook_name = ""
             trigger = None
             if step_specific_info is not None:
@@ -493,7 +493,7 @@ class AlertGroupLogRecord(models.Model):
                 result += 'skipped escalation step "Notify Group" because it is not configured'
             elif (
                 self.escalation_error_code
-                == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_BUTTON_STEP_IS_NOT_CONFIGURED
+                == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_WEBHOOK_STEP_IS_NOT_CONFIGURED
             ):
                 result += 'skipped escalation step "Trigger Outgoing Webhook" because it is not configured'
             elif self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_TRIGGER_CUSTOM_WEBHOOK_ERROR:

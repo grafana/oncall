@@ -41,60 +41,6 @@ class EscalationSnapshotMixin:
         """
         Builds new escalation chain in a json serializable format (dict).
         Use this method to prepare escalation chain data for saving to alert group before start new escalation.
-
-        Example result:
-        {
-            'channel_filter_snapshot': {
-                'id': 1,
-                'notify_in_slack': True,
-                'str_for_clients': 'default',
-                'notify_in_telegram': True
-            },
-            'escalation_chain_snapshot': {
-                'id': 1,
-                'name': 'Test'
-            },
-            'escalation_policies_snapshots': [
-                {
-                    'id': 1,
-                    'step': 14,
-                    'order': 0,
-                    'to_time': None,
-                    'from_time': None,
-                    'num_alerts_in_window': None,
-                    'num_minutes_in_window': None,
-                    'wait_delay': None,
-                    'notify_schedule': None,
-                    'notify_to_group': None,
-                    'passed_last_time': None,
-                    'escalation_counter': 0,
-                    'last_notified_user': None,
-                    'custom_button_trigger': None,
-                    'notify_to_users_queue': [1,2,3]
-                },
-                {
-                    'id': 2,
-                    'step': 0,
-                    'order': 1,
-                    'to_time': None,
-                    'from_time': None,
-                    'num_alerts_in_window': None,
-                    'num_minutes_in_window': None,
-                    'wait_delay': '00:05:00',
-                    'notify_schedule': None,
-                    'notify_to_group': None,
-                    'passed_last_time': None,
-                    'escalation_counter': 0,
-                    'last_notified_user': None,
-                    'custom_button_trigger': None,
-                    'notify_to_users_queue': []
-                },
-            ],
-            'slack_channel_id': 'SLACK_CHANNEL_ID',
-            'last_active_escalation_policy_order': None,
-            'pause_escalation': False,
-            'next_step_eta': '2021-10-18T10:28:28.890369Z
-        }
         """
         data = {}
 

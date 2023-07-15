@@ -8,7 +8,6 @@ from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
 from .views.channel_filter import ChannelFilterView
-from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
@@ -54,7 +53,6 @@ router.register(
 )
 router.register(r"channel_filters", ChannelFilterView, basename="channel_filter")
 router.register(r"schedules", ScheduleView, basename="schedule")
-router.register(r"custom_buttons", CustomButtonView, basename="custom_button")
 router.register(r"webhooks", WebhooksView, basename="webhooks")
 router.register(r"resolution_notes", ResolutionNoteView, basename="resolution_note")
 router.register(r"telegram_channels", TelegramChannelViewSet, basename="telegram_channel")

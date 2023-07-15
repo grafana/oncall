@@ -5,6 +5,8 @@ from apps.slack.slack_client import SlackClientWithErrorHandling
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 
+# TODO: this appears to be not used anymore. there is no traffic on this task
+# this task + the code path that creates these tasks, can likely be removed
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=2)
 def call_ack_url(ack_url, alert_group_pk, channel, http_method="GET"):
     AlertGroup = apps.get_model("alerts", "AlertGroup")

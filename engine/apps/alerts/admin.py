@@ -8,7 +8,6 @@ from .models import (
     AlertGroupLogRecord,
     AlertReceiveChannel,
     ChannelFilter,
-    CustomButton,
     EscalationChain,
     EscalationPolicy,
     Invitation,
@@ -48,11 +47,6 @@ class AlertReceiveChannelAdmin(CustomModelAdmin):
 @admin.register(ChannelFilter)
 class ChannelFilterAdmin(CustomModelAdmin):
     list_display = ("id", "public_primary_key", "alert_receive_channel", "escalation_chain", "filtering_term", "order")
-
-
-@admin.register(CustomButton)
-class CustomButtonModelAdmin(CustomModelAdmin):
-    list_display = ("id", "public_primary_key", "name", "webhook")
 
 
 @admin.register(EscalationChain)

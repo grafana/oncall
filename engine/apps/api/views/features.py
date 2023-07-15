@@ -12,7 +12,6 @@ FEATURE_LIVE_SETTINGS = "live_settings"
 FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 FEATURE_WEB_SCHEDULES = "web_schedules"
-FEATURE_WEBHOOKS2 = "webhooks2"
 
 
 class FeaturesAPIView(APIView):
@@ -58,8 +57,5 @@ class FeaturesAPIView(APIView):
             )[0]
             if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
                 enabled_features.append(FEATURE_WEB_SCHEDULES)
-
-        if settings.FEATURE_WEBHOOKS_2_ENABLED:
-            enabled_features.append(FEATURE_WEBHOOKS2)
 
         return enabled_features

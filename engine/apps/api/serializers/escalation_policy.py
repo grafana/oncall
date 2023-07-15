@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from rest_framework import serializers
 
-from apps.alerts.models import CustomButton, EscalationChain, EscalationPolicy
+from apps.alerts.models import EscalationChain, EscalationPolicy
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
 from apps.user_management.models import User
@@ -22,7 +22,6 @@ FROM_TIME = "from_time"
 TO_TIME = "to_time"
 NUM_ALERTS_IN_WINDOW = "num_alerts_in_window"
 NUM_MINUTES_IN_WINDOW = "num_minutes_in_window"
-CUSTOM_BUTTON_TRIGGER = "custom_button_trigger"
 CUSTOM_WEBHOOK_TRIGGER = "custom_webhook"
 
 STEP_TYPE_TO_RELATED_FIELD_MAP = {
@@ -33,7 +32,6 @@ STEP_TYPE_TO_RELATED_FIELD_MAP = {
     EscalationPolicy.STEP_NOTIFY_GROUP: [NOTIFY_GROUP],
     EscalationPolicy.STEP_NOTIFY_IF_TIME: [FROM_TIME, TO_TIME],
     EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: [NUM_ALERTS_IN_WINDOW, NUM_MINUTES_IN_WINDOW],
-    EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON: [CUSTOM_BUTTON_TRIGGER],
     EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK: [CUSTOM_WEBHOOK_TRIGGER],
 }
 
@@ -68,12 +66,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         allow_null=True,
         filter_field="slack_team_identity__organizations",
     )
-    custom_button_trigger = OrganizationFilteredPrimaryKeyRelatedField(
-        queryset=CustomButton.objects,
-        required=False,
-        allow_null=True,
-        filter_field="organization",
-    )
     custom_webhook = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=Webhook.objects,
         required=False,
@@ -95,7 +87,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "num_alerts_in_window",
             "num_minutes_in_window",
             "slack_integration_required",
-            "custom_button_trigger",
             "custom_webhook",
             "notify_schedule",
             "notify_to_group",
@@ -107,7 +98,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         "escalation_chain",
         "notify_schedule",
         "notify_to_group",
-        "custom_button_trigger",
         "custom_webhook",
     ]
     PREFETCH_RELATED = ["notify_to_users_queue"]
@@ -122,7 +112,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             TO_TIME,
             NUM_ALERTS_IN_WINDOW,
             NUM_MINUTES_IN_WINDOW,
-            CUSTOM_BUTTON_TRIGGER,
             CUSTOM_WEBHOOK_TRIGGER,
         ]
 
@@ -231,7 +220,6 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
             TO_TIME,
             NUM_ALERTS_IN_WINDOW,
             NUM_MINUTES_IN_WINDOW,
-            CUSTOM_BUTTON_TRIGGER,
             CUSTOM_WEBHOOK_TRIGGER,
         ]
 
