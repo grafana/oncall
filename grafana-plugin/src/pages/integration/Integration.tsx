@@ -751,11 +751,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
   const { id } = alertReceiveChannel;
 
-  const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[id];
-  const heartbeat = heartbeatStore.items[heartbeatId];
-
-  console.log(heartbeat);
-
   return (
     <>
       {confirmModal && (
@@ -826,11 +821,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 <Text type="primary">Integration Settings</Text>
               </div>
 
-              <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                <div className={cx('integration__actionItem')} onClick={() => setIsHeartbeatFormOpen(true)}>
-                  {heartbeat ? 'Heartbeat Settings' : 'Create Heartbeat'}
-                </div>
-              </WithPermissionControlTooltip>
+              {showHeartbeatSettings() && (
+                <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
+                  <div className={cx('integration__actionItem')} onClick={() => setIsHeartbeatFormOpen(true)}>
+                    Heartbeat Settings
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
 
               {!alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
