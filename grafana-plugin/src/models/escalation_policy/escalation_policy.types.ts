@@ -1,6 +1,6 @@
-import { ActionDTO } from 'models/action';
 import { Channel } from 'models/channel';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { UserGroup } from 'models/user_group/user_group.types';
@@ -18,8 +18,7 @@ export interface EscalationPolicy {
   from_time: string | null;
   to_time: string | null;
   notify_to_channel: Channel['id'] | null;
-  custom_button_trigger: ActionDTO['id'] | null;
-  custom_webhook: ActionDTO['id'] | null;
+  custom_webhook: OutgoingWebhook['id'] | null;
   notify_to_group: UserGroup['id'] | null;
   notify_schedule: Schedule['id'] | null;
   important: boolean | null;
