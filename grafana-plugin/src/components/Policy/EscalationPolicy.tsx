@@ -109,8 +109,6 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         return this._renderNotifyUserGroup();
       case 'schedule':
         return this._renderNotifySchedule();
-      case 'custom_action':
-        return this._renderTriggerCustomAction();
       case 'custom_webhook':
         return this._renderTriggerCustomWebhook();
       case 'num_alerts_in_window':
@@ -373,37 +371,6 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={notify_to_group}
           onChange={this._getOnChangeHandler('notify_to_group')}
-          width={'auto'}
-        />
-      </WithPermissionControlTooltip>
-    );
-  }
-
-  private _renderTriggerCustomAction() {
-    const { data, isDisabled, teamStore, outgoingWebhookStore } = this.props;
-    const { custom_button_trigger } = data;
-
-    return (
-      <WithPermissionControlTooltip key="custom-button" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
-        <GSelect
-          showSearch
-          disabled={isDisabled}
-          modelName="outgoingWebhookStore"
-          displayField="name"
-          valueField="id"
-          placeholder="Select Webhook"
-          className={cx('select', 'control')}
-          value={custom_button_trigger}
-          onChange={this._getOnChangeHandler('custom_button_trigger')}
-          getOptionLabel={(item: SelectableValue) => {
-            const team = teamStore.items[outgoingWebhookStore.items[item.value].team];
-            return (
-              <>
-                <Text>{item.label} </Text>
-                <TeamName team={team} size="small" />
-              </>
-            );
-          }}
           width={'auto'}
         />
       </WithPermissionControlTooltip>
