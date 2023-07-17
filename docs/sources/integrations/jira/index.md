@@ -39,6 +39,7 @@ When creating a webhook in Jira, select the following events to be sent to Grafa
 1. Issue - created
 2. Issue - updated
 3. Issue - deleted
+
 After setting up the connection, you can test it by creating a new issue in Jira. You should see a new alert group in Grafana OnCall.
 
 ## Grouping, auto-acknowledge and auto-resolve

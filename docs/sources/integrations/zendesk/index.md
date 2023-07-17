@@ -32,9 +32,8 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 
 Create a new "Trigger or automation" webhook connection in Zendesk to send events to Grafana OnCall using the integration URL above.
 
-Refer to [Zendesk documentation]
-(<https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems>
-) for more information on how to create and manage webhooks.
+Refer to [Zendesk documentation](<https://support.zendesk.com/hc/en-us/articles/4408839108378-Creating-webhooks-to-interact-with-third-party-systems>)
+for more information on how to create and manage webhooks.
 
 After setting up a webhook in Zendesk, create a new trigger with the following condition:
 `Meet ANY of the following conditions: "Ticket Is Created", "Ticket status Changed"`
