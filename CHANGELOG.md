@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added `PHONE_PROVIDER` configuration check by @sreway ([#2523](https://github.com/grafana/oncall/pull/2523))
+- Deprecate `/oncall` Slack command, update direct paging functionality by @vadimkerr ([#2537](https://github.com/grafana/oncall/pull/2537))
+
+## v1.3.13 (2023-07-17)
+
+### Changed
+
 - Remove deprecated `heartbeat.HeartBeat` model/table by @joeyorlando ([#2534](https://github.com/grafana/oncall/pull/2534))
 
 ## v1.3.12 (2023-07-14)
@@ -77,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified DRF pagination class used by `GET /api/internal/v1/alert_receive_channels` and `GET /api/internal/v1/schedules`
   endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
   a reverse proxy by @joeyorlando ([#2467](https://github.com/grafana/oncall/pull/2467))
+- Polish user settings and warnings ([#2425](https://github.com/grafana/oncall/pull/2425))
 
 ### Fixed
 
