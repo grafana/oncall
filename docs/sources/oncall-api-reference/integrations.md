@@ -33,7 +33,7 @@ The above command returns JSON structured in the following way:
       "channel_id": "CH23212D"
     }
   },
-    "templates": {
+  "templates": {
     "grouping_key": null,
     "resolve_signal": null,
     "acknowledge_signal": null,
@@ -219,7 +219,10 @@ The above command returns JSON structured in the following way:
         }
       }
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

@@ -86,6 +86,9 @@ def test_get_routes_list(
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
         ],
+        "current_page_number": 1,
+        "page_size": 25,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -123,6 +126,9 @@ def test_get_routes_filter_by_integration_id(
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
         ],
+        "current_page_number": 1,
+        "page_size": 25,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
