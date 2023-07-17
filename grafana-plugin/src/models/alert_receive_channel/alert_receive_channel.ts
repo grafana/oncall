@@ -119,9 +119,9 @@ export class AlertReceiveChannelStore extends BaseStore {
       ),
     };
 
-    this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
-
     this.populateHearbeats(results);
+
+    this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
 
     this.updateCounters();
 
@@ -143,13 +143,12 @@ export class AlertReceiveChannelStore extends BaseStore {
       ),
     };
 
-    this.paginatedSearchResult = results.map((item: AlertReceiveChannel) => item.id);
+    this.populateHearbeats(results);
+
     this.paginatedSearchResult = {
       count,
       results: results.map((item: AlertReceiveChannel) => item.id),
     };
-
-    this.populateHearbeats(results);
 
     this.updateCounters();
 

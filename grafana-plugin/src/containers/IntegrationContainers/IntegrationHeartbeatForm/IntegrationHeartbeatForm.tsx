@@ -4,6 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, Field, HorizontalGroup, Select, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import Emoji from 'react-emoji-render';
 
 import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import Text from 'components/Text/Text';
@@ -14,7 +15,9 @@ import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
 
-const cx = cn.bind({});
+import styles from './IntegrationHeartbeatForm.module.scss';
+
+const cx = cn.bind(styles);
 
 interface IntegrationHeartbeatFormProps {
   alertReceveChannelId: AlertReceiveChannel['id'];
@@ -71,7 +74,7 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
               <IntegrationInputField value={heartbeat?.link} showEye={false} isMasked={false} />
             </Field>
           </div>
-          {/*  <p>
+          <p className={cx('instruction')}>
             To send periodic heartbeat alerts from <Emoji text={alertReceiveChannel?.verbal_name || ''} /> to OnCall, do
             the following:
             <span
@@ -79,17 +82,17 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
                 __html: heartbeat.instruction,
               }}
             />
-          </p> */}
+          </p>
         </VerticalGroup>
 
         <VerticalGroup style={{ marginTop: 'auto' }}>
           <HorizontalGroup className={cx('buttons')} justify="flex-end">
             <Button variant={'secondary'} onClick={onClose}>
-              {heartbeat ? 'Close' : 'Cancel'}
+              Close
             </Button>
             <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
               <Button variant="primary" onClick={onSave}>
-                {heartbeat ? 'Save' : 'Create'}
+                Update
               </Button>
             </WithPermissionControlTooltip>
           </HorizontalGroup>
