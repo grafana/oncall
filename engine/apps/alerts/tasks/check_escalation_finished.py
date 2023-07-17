@@ -34,13 +34,19 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     alert_group_id = alert_group.id
     base_msg = f"Alert group {alert_group_id}"
 
-    task_logger.info(f"yoyoyo {escalation_snapshot}")
+    if not alert_group.escalation_chain_exists:
+        task_logger.info(
+            f"{base_msg} does not have an escalation chain associated with it, and therefore it is expected "
+            "that it will not have an escalation snapshot, skipping further validation"
+        )
+        return
 
     if not escalation_snapshot:
-        task_logger.info("no escalation snapshot associated with this")
-        raise AlertGroupEscalationPolicyExecutionAuditException(
-            f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
-        )
+        msg = f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
+
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
     task_logger.info(f"{base_msg} has an escalation snapshot associated with it, auditing if it executed properly")
 
     escalation_policies_snapshots = escalation_snapshot.escalation_policies_snapshots
@@ -130,16 +136,16 @@ def check_escalation_finished_task() -> None:
     alert_group_ids_that_failed_audit: typing.List[str] = []
 
     for alert_group in alert_groups:
-        task_logger.info("yoyo")
         try:
             audit_alert_group_escalation(alert_group)
         except AlertGroupEscalationPolicyExecutionAuditException:
             alert_group_ids_that_failed_audit.append(str(alert_group.id))
 
     if alert_group_ids_that_failed_audit:
-        raise AlertGroupEscalationPolicyExecutionAuditException(
-            f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
-        )
-    task_logger.info("There were no alert groups that failed auditing")
+        msg = f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
 
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
+    task_logger.info("There were no alert groups that failed auditing")
     send_alert_group_escalation_auditor_task_heartbeat()
