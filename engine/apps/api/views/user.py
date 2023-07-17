@@ -266,14 +266,10 @@ class UserView(
                         context["cloud_identities"] = cloud_identities
                         context["connector"] = connector
             serializer = self.get_serializer(page, many=True, context=context)
-            # Sort by current user first
-            return self.get_paginated_response(
-                sorted(serializer.data, key=lambda item: (item["pk"] != request.user.public_primary_key))
-            )
+            return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
-        # Sort by current user first
-        return Response(sorted(serializer.data, key=lambda item: (item["pk"] != request.user.public_primary_key)))
+        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs) -> Response:
         context = {"request": self.request, "format": self.format_kwarg, "view": self}
