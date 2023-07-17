@@ -113,6 +113,28 @@
 {{- end }}
 {{- end }}
 
+{{- define "snippet.oncall.zvonok.env" -}}
+- name: PHONE_PROVIDER
+  value: {{ .Values.oncall.phoneProvider | toString | quote }}
+- name: ZVONOK_API_KEY
+  value: {{ .Values.oncall.zvonok.api_key | default "" | quote  }}
+- name: ZVONOK_CAMPAIGN_ID
+  value: {{ .Values.oncall.zvonok.campaign_id | default "" | quote }}
+- name: ZVONOK_AUDIO_ID
+  value: {{ .Values.oncall.zvonok.audo_id | default "" | quote }}
+- name: ZVONOK_SPEAKER_ID
+  value: {{ .Values.oncall.zvonok.speaker_id | default "Salli" | quote }}
+- name: ZVONOK_POSTBACK_CALL_ID
+  value: {{ .Values.oncall.zvonok.postback_call_id | default "" | quote }}
+- name: ZVONOK_POSTBACK_CAMPAIGN_ID
+  value: {{ .Values.oncall.zvonok.postback_campaign_id | default "" | quote }}
+- name: ZVONOK_POSTBACK_STATUS
+  value: {{ .Values.oncall.zvonok.postback_status | default "" | quote }}
+- name: ZVONOK_POSTBACK_USER_CHOICE
+  value: {{ .Values.oncall.zvonok.postback_user_choice | default "" | quote }}
+- name: ZVONOK_POSTBACK_USER_CHOICE_ACK
+  value: {{ .Values.oncall.zvonok.postback_user_choice_ack | default "" | quote }}
+{{- end }}
 {{- define "snippet.oncall.twilio.env" }}
 {{- with .Values.oncall.twilio }}
 {{- if .existingSecret }}
