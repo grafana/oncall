@@ -336,7 +336,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 ],
             )
         else:
-            rendered_description = None
+            rendered_description = self.config.description
         return rendered_description
 
     @classmethod
@@ -524,7 +524,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def heartbeat_module(self):
-        return getattr(heartbeat, self.INTEGRATIONS_TO_REVERSE_URL_MAP[self.integration], None)
+        return getattr(heartbeat, self.integration, None)
 
     # Demo alerts
     def send_demo_alert(self, payload=None):
