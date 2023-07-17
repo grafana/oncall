@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecate `/oncall` Slack command, update direct paging functionality by @vadimkerr ([#2537](https://github.com/grafana/oncall/pull/2537))
 - Change plugin version to drop the `v` prefix. ([#2540](https://github.com/grafana/oncall/pull/2540))
 
+### Fixed
+
+- Fixed rendering of slack connection errors ([#2526](https://github.com/grafana/oncall/pull/2526))
+
 ## v1.3.13 (2023-07-17)
 
 ### Changed
