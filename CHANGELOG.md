@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Make Slack "invite" feature use direct paging by @vadimkerr ([#2562](https://github.com/grafana/oncall/pull/2562))
+
 ## v1.3.14 (2023-07-17)
 
 ### Changed
