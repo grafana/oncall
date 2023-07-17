@@ -116,10 +116,10 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
       {activeTab === UserSettingsTab.UserInfo &&
         (isDesktopOrLaptop ? (
           <div className={cx('columns')}>
-            <Block shadowed bordered style={{ width: '30%' }} className={cx('col', 'left')}>
+            <Block shadowed bordered style={{ width: '40%' }} className={cx('col', 'left')}>
               <UserInfoTab id={id} onTabChange={onTabChange} />
             </Block>
-            <Block shadowed bordered style={{ width: '70%' }} className={cx('col', 'right')}>
+            <Block shadowed bordered style={{ width: '60%' }} className={cx('col', 'right')}>
               <NotificationSettingsTab id={id} />
             </Block>
           </div>
