@@ -231,7 +231,7 @@ steps:
     image: alpine
     commands:
       - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG#v}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
       - cat engine/settings/base.py | grep VERSION | head -1
 
   - name: build and push docker image
@@ -334,6 +334,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 28b2aecc443cfb232625cd8afc92e44a6cbf2d37cd991b0099b07521225855bf
+hmac: 1ca79af7b8ada54237e4fb78fffb9314babc00b3a8a4866ec454d32356bc067b
 
 ...
