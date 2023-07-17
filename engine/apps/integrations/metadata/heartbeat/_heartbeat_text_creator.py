@@ -34,10 +34,10 @@ class HeartBeatTextCreator:
     def _get_heartbeat_expired_message(self):
         heartbeat_docs_url = create_engine_url("/#/integrations/heartbeat", override_base=settings.DOCS_URL)
         heartbeat_expired_message = (
-            f"Amixr was waiting for a heartbeat from {self.integration_verbal}. "
-            f"Heartbeat is missing. That could happen because {self.integration_verbal} stopped or"
-            f" there are connectivity issues between Amixr and {self.integration_verbal}. "
-            f"Read more in Amixr docs: {heartbeat_docs_url}"
+            f"Grafana OnCall was waiting for a heartbeat from {self.integration_verbal} "
+            f"and one was not received. This can happen when {self.integration_verbal} has stopped or "
+            f"there are connectivity issues between Grafana OnCall and {self.integration_verbal}. "
+            f"You can read more in the Grafana OnCall docs here: {heartbeat_docs_url}"
         )
         return heartbeat_expired_message
 
@@ -46,7 +46,9 @@ class HeartBeatTextCreator:
         return heartbeat_expired_title
 
     def _get_heartbeat_restored_message(self):
-        heartbeat_expired_message = f"Amixr received a signal from {self.integration_verbal}. Heartbeat restored."
+        heartbeat_expired_message = (
+            f"Grafana OnCall received a signal from {self.integration_verbal}. Heartbeat has been restored."
+        )
         return heartbeat_expired_message
 
     def _get_heartbeat_instruction_template(self):
@@ -59,9 +61,9 @@ class HeartBeatTextCreatorForTitleGrouping(HeartBeatTextCreator):
     """
 
     def _get_heartbeat_expired_title(self):
-        heartbeat_expired_title = "Amixr heartbeat"
+        heartbeat_expired_title = "Grafana OnCall heartbeat"
         return heartbeat_expired_title
 
     def _get_heartbeat_restored_title(self):
-        heartbeat_expired_title = "Amixr heartbeat"
+        heartbeat_expired_title = "Grafana OnCall heartbeat"
         return heartbeat_expired_title

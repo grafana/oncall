@@ -62,6 +62,9 @@ def escalation_policies_setup():
                 escalation_policy_wait_payload,
                 escalation_policy_notify_persons_empty_payload,
             ],
+            "current_page_number": 1,
+            "page_size": 50,
+            "total_pages": 1,
         }
         return (
             escalation_chain,

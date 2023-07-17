@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Remove deprecated `heartbeat.HeartBeat` model/table by @joeyorlando ([#2534](https://github.com/grafana/oncall/pull/2534))
+
+## v1.3.12 (2023-07-14)
+
+### Added
+
+- Add `page_size`, `current_page_number`, and `total_pages` attributes to paginated API responses by @joeyorlando ([#2471](https://github.com/grafana/oncall/pull/2471))
+
+### Fixed
+
+- New webhooks incorrectly masking authorization header by @mderynck ([#2541](https://github.com/grafana/oncall/pull/2541))
+
 ## v1.3.11 (2023-07-13)
 
 ### Added

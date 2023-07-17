@@ -26,7 +26,9 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -343,7 +345,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  renderHeartbeat(item: AlertReceiveChannel, alertReceiveChannelStore, heartbeatStore) {
+  renderHeartbeat(
+    item: AlertReceiveChannel,
+    alertReceiveChannelStore: AlertReceiveChannelStore,
+    heartbeatStore: HeartbeatStore
+  ) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
 
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
