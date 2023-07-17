@@ -725,6 +725,7 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 
 # map of phone provider alias to importpath.
 # Used in get_phone_provider function to dynamically load current provider.
+DEFAULT_PHONE_PROVIDER = "twilio"
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
@@ -733,7 +734,7 @@ PHONE_PROVIDERS = {
 if IS_OPEN_SOURCE:
     PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
 
-PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
 
 ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
 ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)
