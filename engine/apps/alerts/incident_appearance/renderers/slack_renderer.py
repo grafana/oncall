@@ -213,15 +213,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     },
                 )
 
-                buttons.append(
-                    {
-                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
-                        "type": "button",
-                        "value": self._alert_group_action_value(),
-                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
-                    },
-                )
-
                 if not self.alert_group.silenced:
                     silence_options = [
                         {
@@ -247,6 +238,15 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                             "action_id": ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep").routing_uid(),
                         },
                     )
+
+                buttons.append(
+                    {
+                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
+                        "type": "button",
+                        "value": self._alert_group_action_value(),
+                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
+                    },
+                )
 
                 attach_button = {
                     "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
