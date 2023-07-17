@@ -415,11 +415,6 @@ ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
 )
 
 CELERY_BEAT_SCHEDULE = {
-    "restore_heartbeat_tasks": {
-        "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
-        "schedule": 10 * 60,
-        "args": (),
-    },
     "start_refresh_ical_final_schedules": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
         "schedule": crontab(minute=15, hour=0),
