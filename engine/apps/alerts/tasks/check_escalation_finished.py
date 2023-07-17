@@ -34,7 +34,10 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     alert_group_id = alert_group.id
     base_msg = f"Alert group {alert_group_id}"
 
+    task_logger.info(f"yoyoyo {escalation_snapshot}")
+
     if not escalation_snapshot:
+        task_logger.info("no escalation snapshot associated with this")
         raise AlertGroupEscalationPolicyExecutionAuditException(
             f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
         )
@@ -118,12 +121,16 @@ def check_escalation_finished_task() -> None:
         started_at__range=(two_days_ago, now),
     )
 
-    if not alert_groups.exists():
-        task_logger.info("There are no alert groups to audit, everything is good :)")
+    task_logger.info(
+        f"There are {len(alert_groups)} alert group(s) to audit"
+        if alert_groups.exists()
+        else "There are no alert groups to audit, everything is good :)"
+    )
 
     alert_group_ids_that_failed_audit: typing.List[str] = []
 
     for alert_group in alert_groups:
+        task_logger.info("yoyo")
         try:
             audit_alert_group_escalation(alert_group)
         except AlertGroupEscalationPolicyExecutionAuditException:
@@ -133,5 +140,6 @@ def check_escalation_finished_task() -> None:
         raise AlertGroupEscalationPolicyExecutionAuditException(
             f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
         )
+    task_logger.info("There were no alert groups that failed auditing")
 
     send_alert_group_escalation_auditor_task_heartbeat()
