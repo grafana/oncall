@@ -16,27 +16,27 @@ import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind({});
 
-interface IntegrationHearbeatFormProps {
+interface IntegrationHeartbeatFormProps {
   alertReceveChannelId: AlertReceiveChannel['id'];
   onClose?: () => void;
 }
 
-const IntegrationHearbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHearbeatFormProps) => {
+const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: IntegrationHeartbeatFormProps) => {
   const [interval, setInterval] = useState<number>(undefined);
 
   const { heartbeatStore, alertReceiveChannelStore } = useStore();
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceveChannelId];
-  const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
-  const heartbeat = heartbeatStore.items[heartbeatId];
 
   useEffect(() => {
     heartbeatStore.updateTimeoutOptions();
-  }, []);
+  }, [heartbeatStore]);
 
   useEffect(() => {
-    setInterval(heartbeat.timeout_seconds);
-  }, [heartbeat]);
+    if (alertReceiveChannel.heartbeat) {
+      setInterval(alertReceiveChannel.heartbeat.timeout_seconds);
+    }
+  }, [alertReceiveChannel]);
 
   const timeoutOptions = heartbeatStore.timeoutOptions;
 
@@ -66,30 +66,22 @@ const IntegrationHearbeatForm = observer(({ alertReceveChannelId, onClose }: Int
               </WithPermissionControlTooltip>
             </Field>
           </div>
+
           <div className={cx('u-width-100')}>
             <Field label="Endpoint" description="Use the following unique Grafana link to send GET and POST requests">
-              <IntegrationInputField value={heartbeat?.link} showEye={false} isMasked={false} />
+              <IntegrationInputField value={alertReceiveChannel?.integration_url} showEye={false} isMasked={false} />
             </Field>
           </div>
-          {/*  <p>
-            To send periodic heartbeat alerts from <Emoji text={alertReceiveChannel?.verbal_name || ''} /> to OnCall, do
-            the following:
-            <span
-              dangerouslySetInnerHTML={{
-                __html: heartbeat.instruction,
-              }}
-            />
-          </p> */}
         </VerticalGroup>
 
         <VerticalGroup style={{ marginTop: 'auto' }}>
           <HorizontalGroup className={cx('buttons')} justify="flex-end">
             <Button variant={'secondary'} onClick={onClose}>
-              {heartbeat ? 'Close' : 'Cancel'}
+              Cancel
             </Button>
             <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
               <Button variant="primary" onClick={onSave}>
-                {heartbeat ? 'Save' : 'Create'}
+                {alertReceiveChannel.heartbeat ? 'Save' : 'Create'}
               </Button>
             </WithPermissionControlTooltip>
           </HorizontalGroup>
@@ -99,17 +91,27 @@ const IntegrationHearbeatForm = observer(({ alertReceveChannelId, onClose }: Int
   );
 
   async function onSave() {
-    await heartbeatStore.saveHeartbeat(heartbeat.id, {
-      alert_receive_channel: heartbeat.alert_receive_channel,
-      timeout_seconds: interval,
-    });
+    const heartbeat = alertReceiveChannel.heartbeat;
 
-    onClose();
+    if (heartbeat) {
+      await heartbeatStore.saveHeartbeat(heartbeat.id, {
+        alert_receive_channel: heartbeat.alert_receive_channel,
+        timeout_seconds: interval,
+      });
 
-    await alertReceiveChannelStore.loadItem(alertReceveChannelId);
+      onClose();
+    } else {
+      await heartbeatStore.createHeartbeat(alertReceveChannelId, {
+        timeout_seconds: interval,
+      });
+
+      onClose();
+    }
+
+    await alertReceiveChannelStore.updateItem(alertReceveChannelId);
   }
 });
 
-export default withMobXProviderContext(IntegrationHearbeatForm) as ({
+export default withMobXProviderContext(IntegrationHeartbeatForm) as ({
   alertReceveChannelId,
-}: IntegrationHearbeatFormProps) => JSX.Element;
+}: IntegrationHeartbeatFormProps) => JSX.Element;

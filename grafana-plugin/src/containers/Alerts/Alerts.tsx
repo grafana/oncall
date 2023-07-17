@@ -62,6 +62,9 @@ export default function Alerts() {
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
+  const isDefaultNotificationsSet = currentUser?.notification_chain_verbal.default;
+  const isImportantNotificationsSet = currentUser?.notification_chain_verbal.important;
+
   if (!showSlackInstallAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
     return null;
   }
@@ -125,23 +128,18 @@ export default function Alerts() {
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
           className={cx('alert')}
           severity="warning"
-          title="Notification Warning"
+          title="Notification Warning! Possible notification miss."
         >
           {
             <>
-              {!isChatOpsConnected && (
-                <>
-                  No messenger connected. Possible notification miss. Connect messenger(s) in{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink> to receive all
-                  notifications.
-                </>
-              )}
-              {!isPhoneVerified && (
-                <>
-                  Your phone number is not verified. You can change your configuration in{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink>
-                </>
-              )}
+              {!isDefaultNotificationsSet && <>Default notification chain is not set. </>}
+              {!isImportantNotificationsSet && <>Important notification chain is not set. </>}
+              {!isChatOpsConnected && <>No messenger connected for ChatOps. </>}
+              {!isPhoneVerified && <>Your phone number is not verified. </>}
+              <>
+                You can change your configuration in{' '}
+                <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink>
+              </>
             </>
           }
         </Alert>

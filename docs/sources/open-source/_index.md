@@ -303,7 +303,7 @@ To configure this feature as such:
 
 1. Create a Webhook, or Formatted Webhook, Integration type.
 1. Under the "Heartbeat" tab in the Integration modal, copy the unique heartbeat URL that is shown.
-1. Set the hearbeat's expected time interval to 15 minutes (see note below regarding `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL`)
+1. Set the heartbeat's expected time interval to 15 minutes (see note below regarding `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL`)
 1. Configure the integration's escalation chain as necessary
 1. Populate the following env variables:
 

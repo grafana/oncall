@@ -1,17 +1,11 @@
 import React, { useCallback } from 'react';
 
-import { Button, Label } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 
-import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-
-import styles from './index.module.css';
-
-const cx = cn.bind(styles);
 
 interface TelegramConnectorProps {
   id: User['pk'];
@@ -26,7 +20,7 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
 
   const storeUser = userStore.items[id];
 
-  const isCurrent = id === store.userStore.currentUserPk;
+  const isCurrentUser = id === store.userStore.currentUserPk;
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.TelegramInfo);
@@ -37,32 +31,31 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
   }, []);
 
   return (
-    <div className={cx('user-item')}>
-      <Label>Telegram username:</Label>
-      <span className={cx('user-value')}>{storeUser.telegram_configuration?.telegram_nick_name || '—'}</span>
-      {storeUser.telegram_configuration && storeUser.pk === userStore.currentUserPk ? (
-        <div>
-          <Text type="secondary"> Telegram account is connected</Text>
-          {storeUser.pk === userStore.currentUserPk ? (
+    <div>
+      <InlineField label="Telegram" labelWidth={12} disabled={!isCurrentUser}>
+        {storeUser.telegram_configuration ? (
+          <HorizontalGroup spacing="xs">
+            <Input
+              disabled={true}
+              value={
+                storeUser.telegram_configuration?.telegram_nick_name
+                  ? '@' + storeUser.telegram_configuration?.telegram_nick_name
+                  : ''
+              }
+            />
             <WithConfirm title="Are you sure to disconnect your Telegram account?" confirmText="Disconnect">
-              <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkTelegramAccount}>
-                Unlink Telegram account
-              </Button>
+              <Button
+                onClick={handleUnlinkTelegramAccount}
+                variant="destructive"
+                icon="times"
+                disabled={!isCurrentUser}
+              />
             </WithConfirm>
-          ) : (
-            ''
-          )}
-        </div>
-      ) : (
-        <div>
-          <Text type="warning">Telegram account is not connected</Text>
-          {isCurrent && (
-            <Button size="sm" fill="text" onClick={handleConnectButtonClick}>
-              Connect
-            </Button>
-          )}
-        </div>
-      )}
+          </HorizontalGroup>
+        ) : (
+          <Button onClick={handleConnectButtonClick}>Connect account</Button>
+        )}
+      </InlineField>
     </div>
   );
 };
