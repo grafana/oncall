@@ -726,7 +726,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { alertReceiveChannelStore } = useStore();
+  const { alertReceiveChannelStore, heartbeatStore } = useStore();
 
   const history = useHistory();
 
@@ -927,7 +927,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   );
 
   function showHeartbeatSettings() {
-    return alertReceiveChannel.is_available_for_integration_heartbeat;
+    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
+    const heartbeat = heartbeatStore.items[heartbeatId];
+    return !!heartbeat?.last_heartbeat_time_verbal;
   }
 
   function deleteIntegration() {
@@ -1157,11 +1159,14 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
     const heartbeat = heartbeatStore.items[heartbeatId];
 
-    if (!alertReceiveChannel.is_available_for_integration_heartbeat || !heartbeat?.last_heartbeat_time_verbal) {
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
+    if (
+      !alertReceiveChannel.is_available_for_integration_heartbeat ||
+      !alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal
+    ) {
       return null;
     }
-
-    const heartbeatStatus = Boolean(heartbeat?.status);
 
     return (
       <TooltipBadge
@@ -1169,7 +1174,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
         customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
+        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
         tooltipContent={undefined}
       />
     );
