@@ -175,5 +175,8 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
                 "next": None,
                 "previous": None,
                 "results": data,
+                "current_page_number": 1,
+                "page_size": 50,
+                "total_pages": 1,
             }
         )

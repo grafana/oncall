@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.12 (2023-07-14)
+
+### Added
+
+- Add `page_size`, `current_page_number`, and `total_pages` attributes to paginated API responses by @joeyorlando ([#2471](https://github.com/grafana/oncall/pull/2471))
+
+### Fixed
+
+- New webhooks incorrectly masking authorization header by @mderynck ([#2541](https://github.com/grafana/oncall/pull/2541))
+
+## v1.3.11 (2023-07-13)
+
+### Added
+
+- Release new webhooks functionality by @mderynck @matiasb @maskin25 @teodosii @raphael-batte ([#1830](https://github.com/grafana/oncall/pull/1830))
+
+### Changed
+
+- Custom button webhooks are deprecated, they will be automatically migrated to new webhooks. ([#1830](https://github.com/grafana/oncall/pull/1830))
+
 ## v1.3.10 (2023-07-13)
 
 ### Added

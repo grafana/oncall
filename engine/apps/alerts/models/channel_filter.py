@@ -165,11 +165,6 @@ class ChannelFilter(OrderedModel):
             return str(self.filtering_term).replace("`", "")
         raise Exception("Unknown filtering term")
 
-    def send_demo_alert(self):
-        """Deprecated. May be used in the older versions of the plugin"""
-        integration = self.alert_receive_channel
-        integration.send_demo_alert(force_route_id=self.pk)
-
     # Insight logs
     @property
     def insight_logs_type_verbal(self):

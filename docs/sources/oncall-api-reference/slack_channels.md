@@ -25,7 +25,10 @@ The above command returns JSON structured in the following way:
       "name": "meow_channel",
       "slack_id": "MEOW_SLACK_ID"
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 
