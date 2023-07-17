@@ -659,11 +659,11 @@ def _get_users_select(organization, input_id_prefix, action_id):
 
     user_select = {
         "type": "section",
-        "text": {"type": "mrkdwn", "text": "Add users"},
+        "text": {"type": "mrkdwn", "text": "Notify user"},
         "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
         "accessory": {
             "type": "static_select",
-            "placeholder": {"type": "plain_text", "text": "Select a user", "emoji": True},
+            "placeholder": {"type": "plain_text", "text": "Select user", "emoji": True},
             "action_id": action_id,
         },
     }
@@ -706,11 +706,11 @@ def _get_schedules_select(organization, input_id_prefix, action_id):
     else:
         schedule_select = {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": "Add schedules"},
+            "text": {"type": "mrkdwn", "text": "Notify schedule"},
             "block_id": input_id_prefix + DIRECT_PAGING_SCHEDULE_SELECT_ID,
             "accessory": {
                 "type": "static_select",
-                "placeholder": {"type": "plain_text", "text": "Select a schedule", "emoji": True},
+                "placeholder": {"type": "plain_text", "text": "Select schedule", "emoji": True},
                 "options": schedule_options,
                 "action_id": action_id,
             },

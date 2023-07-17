@@ -7,6 +7,7 @@ from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_SCHEDULE_SELECT_ID,
     DIRECT_PAGING_USER_SELECT_ID,
+    DIVIDER_BLOCK,
     _generate_input_id_prefix,
     _get_availability_warnings_view,
     _get_schedules_select,
@@ -18,14 +19,14 @@ from apps.slack.scenarios.step_mixins import AlertGroupActionsMixin
 MANAGE_RESPONDERS_USER_SELECT_ID = "responders_user_select"
 MANAGE_RESPONDERS_SCHEDULE_SELECT_ID = "responders_schedule_select"
 
-SCHEDULE_DATA_KEY = "schedule"
 USER_DATA_KEY = "user"
+ALERT_GROUP_DATA_KEY = "alert_group_pk"
 
 # Slack scenario steps
 
 
 class StartManageResponders(AlertGroupActionsMixin, scenario_step.ScenarioStep):
-    """Handle slash command invocation and show initial dialog."""  # TODO
+    """Handle "Responders" button click."""
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -42,6 +43,8 @@ class StartManageResponders(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class ManageRespondersUserChange(scenario_step.ScenarioStep):
+    """Handle user selection in responders modal."""
+
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -56,7 +59,7 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
                 organization,
                 selected_user,
                 ManageRespondersConfirmUserChange.routing_uid(),
-                json.dumps({USER_DATA_KEY: selected_user.id, "alert_group_pk": alert_group.pk}),
+                json.dumps({USER_DATA_KEY: selected_user.id, ALERT_GROUP_DATA_KEY: alert_group.pk}),
             )
             self._slack_client.api_call(
                 "views.push",
@@ -64,6 +67,7 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
                 view=view,
             )
         else:
+            # no warnings, proceed with paging
             direct_paging(
                 organization=organization,
                 team=alert_group.channel.team,
@@ -81,6 +85,8 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
 
 
 class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
+    """Handle user confirmation on availability warnings modal."""
+
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -103,6 +109,8 @@ class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
 
 
 class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
+    """Handle schedule selection in responders modal."""
+
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         alert_group = _get_alert_group_from_payload(payload)
         selected_schedule = _get_selected_schedule_from_payload(payload)
@@ -124,6 +132,8 @@ class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
 
 
 class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
+    """Handle user removal in responders modal."""
+
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -141,12 +151,11 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
 
 # slack view/blocks rendering helpers
 
-DIVIDER_BLOCK = {"type": "divider"}
-
 
 def render_dialog(alert_group):
     blocks = []
 
+    # Show list of users that are currently paged
     paged_users = alert_group.get_paged_users()
     for user in alert_group.get_paged_users():
         blocks += [
@@ -164,8 +173,8 @@ def render_dialog(alert_group):
     if paged_users:
         blocks += [DIVIDER_BLOCK]
 
+    # Show user and schedule dropdowns
     input_id_prefix = _generate_input_id_prefix()
-
     blocks += [
         _get_users_select(alert_group.channel.organization, input_id_prefix, ManageRespondersUserChange.routing_uid())
     ]
@@ -179,10 +188,10 @@ def render_dialog(alert_group):
         "type": "modal",
         "title": {
             "type": "plain_text",
-            "text": "Add responders",
+            "text": "Additional responders",
         },
         "blocks": blocks,
-        "private_metadata": json.dumps({"alert_group_pk": alert_group.pk, "input_id_prefix": input_id_prefix}),
+        "private_metadata": json.dumps({ALERT_GROUP_DATA_KEY: alert_group.pk, "input_id_prefix": input_id_prefix}),
     }
     return view
 
@@ -191,11 +200,13 @@ def _get_selected_user_from_payload(payload):
     User = apps.get_model("user_management", "User")
 
     try:
-        selected_user_id = payload["actions"][0]["value"]
+        selected_user_id = payload["actions"][0]["value"]  # "remove" button
     except KeyError:
         try:
+            # "confirm" button on availability warnings modal
             selected_user_id = json.loads(payload["view"]["private_metadata"])[USER_DATA_KEY]
         except KeyError:
+            # user select dropdown
             input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
             selected_user_id = _get_select_field_value(
                 payload, input_id_prefix, ManageRespondersUserChange.routing_uid(), DIRECT_PAGING_USER_SELECT_ID
@@ -207,20 +218,17 @@ def _get_selected_user_from_payload(payload):
 def _get_selected_schedule_from_payload(payload):
     OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
 
-    try:
-        selected_schedule_id = json.loads(payload["view"]["private_metadata"])[SCHEDULE_DATA_KEY]
-    except KeyError:
-        input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
-        selected_schedule_id = _get_select_field_value(
-            payload, input_id_prefix, ManageRespondersScheduleChange.routing_uid(), DIRECT_PAGING_SCHEDULE_SELECT_ID
-        )
+    input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
+    selected_schedule_id = _get_select_field_value(
+        payload, input_id_prefix, ManageRespondersScheduleChange.routing_uid(), DIRECT_PAGING_SCHEDULE_SELECT_ID
+    )
 
     return OnCallSchedule.objects.get(pk=selected_schedule_id)
 
 
 def _get_alert_group_from_payload(payload):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
-    alert_group_pk = json.loads(payload["view"]["private_metadata"])["alert_group_pk"]
+    alert_group_pk = json.loads(payload["view"]["private_metadata"])[ALERT_GROUP_DATA_KEY]
     return AlertGroup.all_objects.get(pk=alert_group_pk)
 
 
