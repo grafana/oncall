@@ -603,7 +603,7 @@ class UserView(
         return Response(upcoming, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post", "delete"])
-    def export_token(self, request, pk) -> Response | None:
+    def export_token(self, request, pk) -> Response:
         user = self.get_object()
 
         if self.request.method == "GET":
@@ -642,6 +642,7 @@ class UserView(
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(detail=True, methods=["get"])
     def check_availability(self, request, pk) -> Response:
