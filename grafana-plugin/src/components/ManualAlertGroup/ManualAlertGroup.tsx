@@ -113,7 +113,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   );
 
   const DirectPagingIntegrationVariants = ({ selectedTeamId, selectedTeamDirectPaging, chatOpsAvailableChannels }) => {
-    const escalationChainsExist = selectedTeamDirectPaging?.connected_escalations_chains_count === 0;
+    const escalationChainsExist = selectedTeamDirectPaging?.connected_escalations_chains_count !== 0;
 
     return (
       <VerticalGroup>
@@ -122,41 +122,32 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
             <LoadingPlaceholder text="Loading..." />
           ) : selectedTeamDirectPaging ? (
             <VerticalGroup>
-              <Label>Team will be notified according to the integration settings:</Label>
+              <Label>Integration to be used for notification</Label>
               <ul className={cx('responders-list')}>
                 <li>
                   <HorizontalGroup justify="space-between">
                     <HorizontalGroup>
-                      {escalationChainsExist && (
-                        <Tooltip content="Integration doesn't have connected escalation policies">
-                          <Icon name="exclamation-triangle" style={{ color: 'var(--warning-text-color)' }} />
-                        </Tooltip>
-                      )}
                       <Text>{selectedTeamDirectPaging.verbal_name}</Text>
                     </HorizontalGroup>
                     <HorizontalGroup>
                       <Text type="secondary">Team:</Text>
                       <TeamName team={store.grafanaTeamStore.items[selectedTeamId]} />
                     </HorizontalGroup>
-                    <HorizontalGroup>
-                      {chatOpsAvailableChannels && (
-                        <>
-                          {chatOpsAvailableChannels.map(
-                            (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
-                              <div key={`${chatOpsChannel.name}-${chatOpsIndex}`}>
-                                {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} />}
-                                <Text type="primary">{chatOpsChannel.name || ''}</Text>
-                              </div>
-                            )
-                          )}
-                          {chatOpsAvailableChannels && (
-                            <Tooltip content="Alert group will be posted to these chatops channels according to integration configuration">
-                              <Icon name="info-circle" />
-                            </Tooltip>
-                          )}
-                        </>
-                      )}
-                    </HorizontalGroup>
+                    {chatOpsAvailableChannels.length && (
+                      <HorizontalGroup>
+                        {chatOpsAvailableChannels.map(
+                          (chatOpsChannel: { name: string; icon: IconName }, chatOpsIndex) => (
+                            <div key={`${chatOpsChannel.name}-${chatOpsIndex}`}>
+                              {chatOpsChannel.icon && <Icon name={chatOpsChannel.icon} />}
+                              <Text type="primary">{chatOpsChannel.name || ''}</Text>
+                            </div>
+                          )
+                        )}
+                        <Tooltip content="Alert group will be posted to these ChatOps channels">
+                          <Icon name="info-circle" />
+                        </Tooltip>
+                      </HorizontalGroup>
+                    )}
                     <HorizontalGroup>
                       <PluginLink target="_blank" query={{ page: 'integrations', id: selectedTeamDirectPaging.id }}>
                         <IconButton
@@ -169,29 +160,41 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                   </HorizontalGroup>
                 </li>
               </ul>
-
-              {(escalationChainsExist || !chatOpsAvailableChannels) && (
-                <Alert severity="warning" title="Possible notification miss">
+              {!escalationChainsExist && (
+                <Alert severity="warning" title="Direct paging integration not configured">
                   <VerticalGroup>
-                    {escalationChainsExist && (
-                      <Text>
-                        Integration doesn't have connected escalation policies. Consider adding responders manually by
-                        user or by email
-                      </Text>
-                    )}
-                    {!chatOpsAvailableChannels && (
-                      <Text>Integration doesn't have connected ChatOps channels in messengers.</Text>
-                    )}
+                    <Text>
+                      The direct paging integration for the selected team has no escalation chains configured.
+                      <br />
+                      If you proceed with the alert group, the team likely will not be notified. <br />
+                      <a
+                        href={'https://grafana.com/docs/oncall/latest/integrations/manual/'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={cx('link')}
+                      >
+                        <Text type="link">Learn more.</Text>
+                      </a>
+                    </Text>
                   </VerticalGroup>
                 </Alert>
               )}
             </VerticalGroup>
           ) : (
-            <Alert severity="warning" title={"This team doesn't have the the Direct Paging integration yet"}>
+            <Alert severity="warning" title={'Direct paging integration missing'}>
               <HorizontalGroup>
                 <Text>
-                  Empty integration for this team will be created automatically. Consider selecting responders by
-                  schedule or user below
+                  The selected team doesn't have a direct paging integration configured and will not be notified. <br />
+                  If you proceed with the alert group, an empty direct paging integration will be created automatically
+                  for the team. <br />
+                  <a
+                    href={'https://grafana.com/docs/oncall/latest/integrations/manual/'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cx('link')}
+                  >
+                    <Text type="link">Learn more.</Text>
+                  </a>
                 </Text>
               </HorizontalGroup>
             </Alert>
@@ -200,22 +203,11 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
     );
   };
 
-  const submitButtonDisabled = !(
-    selectedTeamId &&
-    (selectedTeamDirectPaging || userResponders.length || scheduleResponders.length)
-  );
-
   return (
-    <Drawer
-      scrollableContent
-      title="Create manual alert group (Direct Paging)"
-      onClose={onHide}
-      closeOnMaskClick={false}
-      width="70%"
-    >
+    <Drawer scrollableContent title="Create Alert Group" onClose={onHide} closeOnMaskClick={false} width="70%">
       <VerticalGroup>
         <GForm form={manualAlertFormConfig} data={data} onSubmit={handleFormSubmit} />
-        <Field label="Select team you want to notify">
+        <Field label="Team to notify">
           <GrafanaTeamSelect withoutModal onSelect={onUpdateSelectedTeam} />
         </Field>
         <DirectPagingIntegrationVariants
@@ -233,7 +225,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button type="submit" form={manualAlertFormConfig.name} disabled={submitButtonDisabled}>
+          <Button type="submit" form={manualAlertFormConfig.name} disabled={!selectedTeamId}>
             Create
           </Button>
         </HorizontalGroup>

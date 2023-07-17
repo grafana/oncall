@@ -20,6 +20,7 @@ DEFAULT_TEAM_VALUE = "default_team"
 class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
     """
     StartCreateIncidentFromSlashCommand triggers creation of a manual incident from the slack message via slash command
+    THIS FEATURE IS DEPRECATED AND WILL BE REMOVED IN A FUTURE RELEASE
     """
 
     command_name = [settings.SLACK_SLASH_COMMAND_NAME]
@@ -232,6 +233,18 @@ class OnRouteChange(scenario_step.ScenarioStep):
 
 
 def _get_manual_incident_form_view(routing_uid, blocks, private_metatada):
+    deprecation_blocks = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": f":no_entry: This command is deprecated and will be removed soon. Please use {settings.SLACK_DIRECT_PAGING_SLASH_COMMAND} command instead :no_entry:",
+                "emoji": True,
+            },
+        },
+        {"type": "divider"},
+    ]
+
     view = {
         "type": "modal",
         "callback_id": routing_uid,
@@ -248,7 +261,7 @@ def _get_manual_incident_form_view(routing_uid, blocks, private_metatada):
             "type": "plain_text",
             "text": "Submit",
         },
-        "blocks": blocks,
+        "blocks": deprecation_blocks + blocks,
         "private_metadata": private_metatada,
     }
 
