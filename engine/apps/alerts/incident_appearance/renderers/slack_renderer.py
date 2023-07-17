@@ -213,11 +213,14 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     },
                 )
 
-                if self.alert_group.invitations.filter(is_active=True).count() < 5:
-                    action_id = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident").routing_uid()
-                    text = "Invite..."
-                    invitation_element = self._get_select_user_element(action_id, text=text)
-                    buttons.append(invitation_element)
+                buttons.append(
+                    {
+                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
+                        "type": "button",
+                        "value": self._alert_group_action_value(),
+                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
+                    },
+                )
 
                 if not self.alert_group.silenced:
                     silence_options = [
