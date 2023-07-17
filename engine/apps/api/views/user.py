@@ -647,7 +647,7 @@ class UserView(
     @action(detail=True, methods=["get"])
     def check_availability(self, request, pk) -> Response:
         user = self.get_object()
-        warnings = check_user_availability(user=user, team=request.user.current_team)
+        warnings = check_user_availability(user=user)
         return Response(data={"warnings": warnings}, status=status.HTTP_200_OK)
 
 

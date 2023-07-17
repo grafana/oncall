@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.14 (2023-07-17)
+
+### Changed
+
+- Added `PHONE_PROVIDER` configuration check by @sreway ([#2523](https://github.com/grafana/oncall/pull/2523))
+- Deprecate `/oncall` Slack command, update direct paging functionality by @vadimkerr ([#2537](https://github.com/grafana/oncall/pull/2537))
+- Change plugin version to drop the `v` prefix. ([#2540](https://github.com/grafana/oncall/pull/2540))
+
 ## v1.3.13 (2023-07-17)
 
 ### Changed

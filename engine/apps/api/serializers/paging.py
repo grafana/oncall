@@ -49,7 +49,7 @@ class DirectPagingSerializer(serializers.Serializer):
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
 
     title = serializers.CharField(required=False, default=None)
-    message = serializers.CharField(required=False, default=None)
+    message = serializers.CharField(required=False, default=None, allow_null=True)
 
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
 
