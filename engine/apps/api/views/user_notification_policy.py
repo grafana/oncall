@@ -9,7 +9,6 @@ from apps.api.serializers.user_notification_policy import (
     UserNotificationPolicySerializer,
     UserNotificationPolicyUpdateSerializer,
 )
-from apps.api.views.ordered_model import OrderedModelViewSet
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
@@ -20,6 +19,7 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.ordered_model.viewset import OrderedModelViewSet
 
 
 class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):

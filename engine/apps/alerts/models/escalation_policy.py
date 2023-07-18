@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from common.ordered_model import OrderedModel
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 

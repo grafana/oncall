@@ -4,6 +4,8 @@ from common.api_helpers.exceptions import BadRequest
 
 
 class OrderedModelSerializer(serializers.ModelSerializer):
+    """Ordered model serializer to be used in public API."""
+
     position = serializers.IntegerField(required=False, source="order")
     # manual_order=True is intended for use by Terraform provider only, and is not a documented feature.
     manual_order = serializers.BooleanField(default=False, write_only=True)

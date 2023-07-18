@@ -11,7 +11,7 @@ from django.db.models import Q
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
-from common.ordered_model import OrderedModel
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 

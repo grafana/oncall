@@ -5,10 +5,10 @@ from rest_framework import exceptions, serializers
 
 from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import NotificationChannelPublicAPIOptions
-from apps.public_api.serializers.ordered_model import OrderedModelSerializer
 from common.api_helpers.custom_fields import UserIdField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
+from common.ordered_model.serializer import OrderedModelSerializer
 
 
 class PersonalNotificationRuleSerializer(EagerLoadingMixin, OrderedModelSerializer):

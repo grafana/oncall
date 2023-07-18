@@ -11,7 +11,6 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicySerializer,
     EscalationPolicyUpdateSerializer,
 )
-from apps.api.views.ordered_model import OrderedModelViewSet
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
@@ -20,6 +19,7 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.ordered_model.viewset import OrderedModelViewSet
 
 
 class EscalationPolicyView(

@@ -9,6 +9,8 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class OrderedModelViewSet(ModelViewSet):
+    """Ordered model viewset to be used in internal API."""
+
     @action(detail=True, methods=["put"])
     def move_to_position(self, request: Request, pk: int) -> Response:
         instance = self.get_object()
