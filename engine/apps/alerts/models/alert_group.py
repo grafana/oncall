@@ -309,9 +309,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         (SEVERITY_LOW, "low"),
         (SEVERITY_NONE, "none"),
     )
-    manual_severity = models.IntegerField(choices=SEVERITY_CHOICES, default=SEVERITY_NONE)
+    manual_severity = deprecate_field(models.IntegerField(choices=SEVERITY_CHOICES, default=SEVERITY_NONE))
 
-    resolution_note_ts = models.CharField(max_length=100, null=True, default=None)
+    resolution_note_ts = deprecate_field(models.CharField(max_length=100, null=True, default=None))
 
     root_alert_group = models.ForeignKey(
         "alerts.AlertGroup",
