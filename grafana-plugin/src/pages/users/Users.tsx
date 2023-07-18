@@ -141,7 +141,7 @@ class Users extends React.Component<UsersProps, UsersState> {
         width: '20%',
         title: 'Status',
         key: 'note',
-        render: this.renderNote,
+        render: this.renderStatus,
       },
       {
         width: '20%',
@@ -192,7 +192,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                         <Text type="secondary">
                           All Grafana users listed below to set notification preferences. To manage permissions or add
                           new users, please visit{' '}
-                          <a href="/org/users" target="_blank">
+                          <a href="/admin/users" target="_blank">
                             Grafana user management
                           </a>
                         </Text>
@@ -323,54 +323,68 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderNote = (user: UserType) => {
+  renderStatus = (user: UserType) => {
     const { store } = this.props;
     if (user.hidden_fields === true) {
       return null;
     }
-    let phone_verified = user.verified_phone_number !== null;
-    let phone_not_verified_message = 'Phone not verified';
 
+    let warnings = [];
+
+    // Show warnining if no notifications are set
+    if (!this.renderNotificationsChain(user)) {
+      warnings.push('No Default Notifications');
+    }
+
+    if (!this.renderImportantNotificationsChain(user)) {
+      warnings.push('No Important Notifications');
+    }
+
+    let phone_verified = user.verified_phone_number !== null;
     if (user.cloud_connection_status !== null) {
       phone_verified = false;
       switch (user.cloud_connection_status) {
         case 0:
-          phone_not_verified_message = 'Cloud is not synced';
+          // Cloud is not connected, no need to show warning to the user
           break;
         case 1:
-          phone_not_verified_message = 'User not matched with cloud';
+          warnings.push('User not matched with cloud');
           break;
         case 2:
-          phone_not_verified_message = 'Phone number is not verified in Grafana Cloud';
+          warnings.push('Phone number is not verified in Grafana Cloud');
           break;
         case 3:
+          // Phone is verified in Grafana Cloud, no need to show warning to the user
           phone_verified = true;
           break;
       }
+    } else {
+      if (!phone_verified) {
+        warnings.push('Phone not verified');
+      }
     }
 
-    if (!phone_verified || !user.slack_user_identity || !user.telegram_configuration) {
-      let texts = [];
-      if (!phone_verified) {
-        texts.push(phone_not_verified_message);
-      }
-      if (!user.slack_user_identity) {
-        texts.push('Slack not verified');
-      }
-      if (store.hasFeature(AppFeature.Telegram) && !user.telegram_configuration) {
-        texts.push('Telegram not verified');
-      }
+    if (store.teamStore.currentTeam.slack_team_identity && !user.slack_user_identity) {
+      warnings.push('Slack profile is not connected');
+    }
 
-      return (
+    let telegramChannelsExist = store.telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
+
+    if (store.hasFeature(AppFeature.Telegram) && telegramChannelsExist && !user.telegram_configuration) {
+      warnings.push('Telegram profile is not connected');
+    }
+
+    return (
+      warnings.length > 0 && (
         <HorizontalGroup>
           <TooltipBadge
             borderType="warning"
             icon="exclamation-triangle"
-            text={texts.length}
+            text={warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
               <VerticalGroup spacing="none">
-                {texts.map((warning, index) => (
+                {warnings.map((warning, index) => (
                   <Text type="primary" key={index}>
                     {warning}
                   </Text>
@@ -379,10 +393,8 @@ class Users extends React.Component<UsersProps, UsersState> {
             }
           />
         </HorizontalGroup>
-      );
-    }
-
-    return 'All contacts verified';
+      )
+    );
   };
 
   debouncedUpdateUsers = debounce(this.updateUsers, 500);
