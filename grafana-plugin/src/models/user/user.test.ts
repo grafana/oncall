@@ -51,6 +51,6 @@ describe('UserStore.unlinkBackend', () => {
     });
 
     expect(userStore.loadCurrentUser).toHaveBeenCalledTimes(1);
-    expect(userStore.loadCurrentUser).toHaveBeenCalledWith();
+    expect(userStore.loadCurrentUser).toHaveBeenCalledWith(false);
   });
 });

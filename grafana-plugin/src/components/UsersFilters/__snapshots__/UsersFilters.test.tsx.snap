@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UsersFilters it renders properly 1`] = `
+<div>
+  <div
+    class="root"
+  >
+    <div
+      class="css-xcstkt-input-wrapper search control"
+      data-testid="input-wrapper"
+    >
+      <div
+        class="css-1w5c5dq-input-inputWrapper"
+      >
+        <div
+          class="css-mrzmip-input-prefix"
+        >
+          <div
+            class="css-wf08df-Icon"
+          >
+            <svg
+              class="css-eyx4do"
+              height="16"
+              viewBox="0 0 24 24"
+              width="16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.71,20.29,18,16.61A9,9,0,1,0,16.61,18l3.68,3.68a1,1,0,0,0,1.42,0A1,1,0,0,0,21.71,20.29ZM11,18a7,7,0,1,1,7-7A7,7,0,0,1,11,18Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <input
+          class="css-1mlczho-input-input"
+          placeholder="Search users..."
+          style="padding-left: 12px;"
+          value="asdfasf"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
