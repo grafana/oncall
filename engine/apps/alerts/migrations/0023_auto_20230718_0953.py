@@ -3,6 +3,8 @@
 from django.db import migrations, models
 import django_migration_linter as linter
 
+# TODO: fix duplicates
+
 
 class Migration(migrations.Migration):
 
