@@ -299,6 +299,7 @@ def test_check_escalation_finished_task_filters_the_right_alert_groups(
         alert_receive_channel, is_escalation_finished=True
     )
 
+    restricted = make_alert_group_that_started_at_specific_date(alert_receive_channel, is_restricted=True)
     resolved = make_alert_group_that_started_at_specific_date(alert_receive_channel, is_escalation_finished=True)
     acknowledged = make_alert_group_that_started_at_specific_date(alert_receive_channel, is_escalation_finished=True)
 
@@ -320,6 +321,7 @@ def test_check_escalation_finished_task_filters_the_right_alert_groups(
     mocked_audit_alert_group_escalation.assert_not_called_with(escalation_finished)
 
     mocked_audit_alert_group_escalation.assert_not_called_with(silenced_forever)
+    mocked_audit_alert_group_escalation.assert_not_called_with(restricted)
     mocked_audit_alert_group_escalation.assert_not_called_with(resolved)
     mocked_audit_alert_group_escalation.assert_not_called_with(acknowledged)
 

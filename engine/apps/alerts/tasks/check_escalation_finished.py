@@ -123,6 +123,7 @@ def check_escalation_finished_task() -> None:
         is_escalation_finished=False,
         resolved=False,
         acknowledged=False,
+        is_restricted=False,
         root_alert_group=None,
         started_at__range=(two_days_ago, now),
     )
