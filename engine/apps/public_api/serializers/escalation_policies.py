@@ -122,6 +122,10 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
 
         return schedule
 
+    def create(self, validated_data):
+        validated_data = self._correct_validated_data(validated_data)
+        return super().create(validated_data)
+
     def to_representation(self, instance):
         step = instance.step
         result = super().to_representation(instance)

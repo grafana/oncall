@@ -174,6 +174,10 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
         fields += ["position", "manual_order"]  # fields from OrderedModelSerializer
         read_only_fields = ["is_the_last_route"]
 
+    def create(self, validated_data):
+        validated_data = self._correct_validated_data(validated_data)
+        return super().create(validated_data)
+
     def validate(self, data):
         filtering_term = data.get("routing_regex")
         filtering_term_type = data.get("routing_type")
