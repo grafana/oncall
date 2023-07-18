@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update Slack "invite" feature to use direct paging by @vadimkerr ([#2562](https://github.com/grafana/oncall/pull/2562))
+- Change "Current responders" to "Additional Responders" in web UI by @vadimkerr ([#2567](https://github.com/grafana/oncall/pull/2567))
 
 ## v1.3.14 (2023-07-17)
 
