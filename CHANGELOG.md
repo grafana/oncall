@@ -10,6 +10,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Deprecate `AlertGroup.is_archived` column. Column will be removed in a subsequent release. By @joeyorlando ([#2524](https://github.com/grafana/oncall/pull/2524)).
+- Update Slack "invite" feature to use direct paging by @vadimkerr ([#2562](https://github.com/grafana/oncall/pull/2562))
+
+## v1.3.14 (2023-07-17)
+
+### Changed
+
+- Added `PHONE_PROVIDER` configuration check by @sreway ([#2523](https://github.com/grafana/oncall/pull/2523))
+- Deprecate `/oncall` Slack command, update direct paging functionality by @vadimkerr ([#2537](https://github.com/grafana/oncall/pull/2537))
+- Change plugin version to drop the `v` prefix. ([#2540](https://github.com/grafana/oncall/pull/2540))
+
+## v1.3.13 (2023-07-17)
+
+### Changed
+
+- Remove deprecated `heartbeat.HeartBeat` model/table by @joeyorlando ([#2534](https://github.com/grafana/oncall/pull/2534))
+
+## v1.3.12 (2023-07-14)
+
+### Added
+
+- Add `page_size`, `current_page_number`, and `total_pages` attributes to paginated API responses by @joeyorlando ([#2471](https://github.com/grafana/oncall/pull/2471))
+
+### Fixed
+
+- New webhooks incorrectly masking authorization header by @mderynck ([#2541](https://github.com/grafana/oncall/pull/2541))
 
 ## v1.3.11 (2023-07-13)
 
@@ -67,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified DRF pagination class used by `GET /api/internal/v1/alert_receive_channels` and `GET /api/internal/v1/schedules`
   endpoints so that the `next` and `previous` pagination links are properly set when OnCall is run behind
   a reverse proxy by @joeyorlando ([#2467](https://github.com/grafana/oncall/pull/2467))
+- Polish user settings and warnings ([#2425](https://github.com/grafana/oncall/pull/2425))
 
 ### Fixed
 

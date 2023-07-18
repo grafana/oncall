@@ -82,6 +82,9 @@ def test_get_users_list(
                 "is_phone_number_verified": False,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -121,6 +124,9 @@ def test_get_users_list_short(
                 "is_phone_number_verified": False,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -170,6 +176,9 @@ def test_get_users_list_all_role_users(user_public_api_setup, make_user_for_orga
             }
             for user, role in expected_users
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

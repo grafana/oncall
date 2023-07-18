@@ -70,7 +70,7 @@ def test_check_user_availability_no_policies(make_organization, make_user_for_or
     organization = make_organization()
     user = make_user_for_organization(organization)
 
-    warnings = check_user_availability(user, None)
+    warnings = check_user_availability(user)
     assert warnings == [
         {"data": {}, "error": USER_HAS_NO_NOTIFICATION_POLICY},
         {"data": {"schedules": {}}, "error": USER_IS_NOT_ON_CALL},
@@ -95,37 +95,9 @@ def test_check_user_availability_not_on_call(
         make_schedule, make_on_call_shift, organization, None, other_user, extra_users=[user]
     )
 
-    warnings = check_user_availability(user, None)
+    warnings = check_user_availability(user)
     assert warnings == [
         {"data": {"schedules": {schedule.name: {other_user.public_primary_key}}}, "error": USER_IS_NOT_ON_CALL},
-    ]
-
-
-@pytest.mark.django_db
-def test_check_user_availability_on_call_different_team(
-    make_organization,
-    make_team,
-    make_user_for_organization,
-    make_user_notification_policy,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization = make_organization()
-    some_team = make_team(organization)
-    user = make_user_for_organization(organization)
-    make_user_notification_policy(
-        user=user,
-        step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
-    )
-
-    # setup on call schedule
-    # user is on call, but on a different team
-    setup_always_on_call_schedule(make_schedule, make_on_call_shift, organization, some_team, user)
-
-    warnings = check_user_availability(user, None)
-    assert warnings == [
-        {"data": {"schedules": {}}, "error": USER_IS_NOT_ON_CALL},
     ]
 
 
@@ -150,7 +122,7 @@ def test_check_user_availability_on_call(
     # setup on call schedule
     setup_always_on_call_schedule(make_schedule, make_on_call_shift, organization, some_team, user)
 
-    warnings = check_user_availability(user, some_team)
+    warnings = check_user_availability(user)
     assert warnings == []
 
 

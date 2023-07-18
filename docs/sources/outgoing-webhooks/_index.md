@@ -1,7 +1,4 @@
 ---
-aliases:
-  - ../integrations/configure-outgoing-webhooks/
-  - /docs/oncall/latest/outgoing-webhooks/
 canonical: https://grafana.com/docs/oncall/latest/outgoing-webhooks/
 keywords:
   - Grafana Cloud
@@ -14,7 +11,7 @@ title: Configure outgoing webhooks for Grafana OnCall
 weight: 500
 ---
 
-# Configure outgoing webhooks for Grafana OnCall
+# Outgoing Webhooks
 
 Outgoing webhooks are used by Grafana OnCall to send data to a URL in a flexible way. These webhooks can be
 triggered from a variety of event types and make use of Jinja2 to transform data into the format required at

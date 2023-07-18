@@ -12,7 +12,6 @@ from apps.api.serializers.channel_filter import (
     ChannelFilterSerializer,
     ChannelFilterUpdateSerializer,
 )
-from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
 from apps.slack.models import SlackChannel
 from common.api_helpers.exceptions import BadRequest
@@ -23,7 +22,6 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.serializers import get_move_to_position_param
-from common.exceptions import UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -41,7 +39,6 @@ class ChannelFilterView(
         "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "move_to_position": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_TEST],
         "convert_from_regex_to_jinja2": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
@@ -129,16 +126,6 @@ class ChannelFilterView(
             new_state=new_state,
         )
 
-        return Response(status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
-    def send_demo_alert(self, request, pk):
-        """Deprecated action. May be used in the older version of the plugin."""
-        instance = self.get_object()
-        try:
-            instance.send_demo_alert()
-        except UnableToSendDemoAlert as e:
-            raise BadRequest(detail=str(e))
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])

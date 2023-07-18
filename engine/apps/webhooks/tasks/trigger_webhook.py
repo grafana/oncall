@@ -96,9 +96,10 @@ def _build_payload(webhook, alert_group, user):
 
 
 def mask_authorization_header(headers):
-    if "Authorization" in headers:
-        headers["Authorization"] = WEBHOOK_FIELD_PLACEHOLDER
-    return headers
+    masked_headers = headers.copy()
+    if "Authorization" in masked_headers:
+        masked_headers["Authorization"] = WEBHOOK_FIELD_PLACEHOLDER
+    return masked_headers
 
 
 def make_request(webhook, alert_group, data):
@@ -123,8 +124,8 @@ def make_request(webhook, alert_group, data):
         if triggered:
             status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            headers = mask_authorization_header(request_kwargs.get("headers", {}))
-            status["request_headers"] = json.dumps(headers)
+            display_headers = mask_authorization_header(request_kwargs.get("headers", {}))
+            status["request_headers"] = json.dumps(display_headers)
             if "json" in request_kwargs:
                 status["request_data"] = json.dumps(request_kwargs["json"])
             else:

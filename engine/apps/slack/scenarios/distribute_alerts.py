@@ -212,6 +212,11 @@ class AlertShootingStep(scenario_step.ScenarioStep):
 
 
 class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.ScenarioStep):
+    """
+    THIS SCENARIO STEP IS DEPRECATED AND WILL BE REMOVED IN THE FUTURE.
+    Check out apps/slack/scenarios/manage_responders.py for the new version that uses direct paging.
+    """
+
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
@@ -490,6 +495,11 @@ class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
 
 class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
+    """
+    THIS SCENARIO STEP IS DEPRECATED AND WILL BE REMOVED IN THE FUTURE.
+    Check out apps/slack/scenarios/manage_responders.py for the new version that uses direct paging.
+    """
+
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):

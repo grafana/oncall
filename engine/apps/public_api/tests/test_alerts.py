@@ -90,6 +90,9 @@ def test_get_list_alerts(
                 },
             },
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
