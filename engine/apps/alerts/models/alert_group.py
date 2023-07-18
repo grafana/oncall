@@ -308,16 +308,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     )
     reason_to_skip_escalation = models.IntegerField(choices=REASONS_TO_SKIP_ESCALATIONS, default=NO_REASON)
 
-    SEVERITY_HIGH, SEVERITY_LOW, SEVERITY_NONE = range(3)
-    SEVERITY_CHOICES = (
-        (SEVERITY_HIGH, "high"),
-        (SEVERITY_LOW, "low"),
-        (SEVERITY_NONE, "none"),
-    )
-    manual_severity = models.IntegerField(choices=SEVERITY_CHOICES, default=SEVERITY_NONE)
-
-    resolution_note_ts = models.CharField(max_length=100, null=True, default=None)
-
     root_alert_group = models.ForeignKey(
         "alerts.AlertGroup",
         on_delete=models.SET_NULL,
