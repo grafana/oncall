@@ -67,7 +67,7 @@ To customize this behaviour, consider modifying alert templates in integration s
 
 ## Configuring Grafana OnCall to send data to Zendesk
 
-Grafana OnCall can automatically create and resolve tickets in Zendesk via [outgoing webhooks]({{< relref "_index.md" >}}).
+Grafana OnCall can automatically create and resolve tickets in Zendesk via [outgoing webhooks][outgoing-webhooks].
 This guide provides example webhook configurations for common use cases, as well as information on how to set up a user in Zendesk to be used by Grafana OnCall.
 
 ### Prerequisites
@@ -158,7 +158,7 @@ Use the following JSON template as webhook data:
 The examples above describe how to create outgoing webhooks in Grafana OnCall that will allow to automatically create and resolve tickets in Zendesk.
 
 Consider modifying example templates to fit your use case (e.g. to include more information on alert groups).
-Refer to [outgoing webhooks documentation]({{< relref "_index.md" >}}) for more information on available template variables and webhook configuration.
+Refer to [outgoing webhooks documentation][outgoing-webhooks] for more information on available template variables and webhook configuration.
 
 For more information on Zendesk API, refer to [Zendesk API documentation](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/).
 
