@@ -74,6 +74,9 @@ def test_get_list_integrations(
                 "maintenance_end_at": None,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
     url = reverse("api-public:integrations-list")
     response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
@@ -724,25 +727,6 @@ def test_set_default_messaging_backend_template(
     response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_200_OK
     assert response.data == expected_response
-
-
-@pytest.mark.django_db
-def test_get_list_integrations_direct_paging_hidden(
-    make_organization_and_user_with_token,
-    make_alert_receive_channel,
-    make_channel_filter,
-    make_integration_heartbeat,
-):
-    organization, user, token = make_organization_and_user_with_token()
-    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
-
-    client = APIClient()
-    url = reverse("api-public:integrations-list")
-    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    # Check no direct paging integrations in the response
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["results"] == []
 
 
 @pytest.mark.django_db

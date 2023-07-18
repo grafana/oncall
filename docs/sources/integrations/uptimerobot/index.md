@@ -18,7 +18,7 @@ weight: 500
 The UptimeRobot integration for Grafana OnCall handles ticket events sent from UptimeRobot webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from UptimeRobot
 
@@ -59,3 +59,8 @@ POST Value (JSON Format):
 1. Set URL to <http://devnull.amixr.io> or any other non-existent domain
 1. Click Checkbox next to Amixr Alert Contact (created in the previous step)
 1. Click Create Monitor
+
+{{% docs/reference %}}
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+{{% /docs/reference %}}

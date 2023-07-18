@@ -179,7 +179,7 @@ services:
   rabbitmq:
     container_name: rabbitmq
     labels: *oncall-labels
-    image: "rabbitmq:3.7.15-management"
+    image: "rabbitmq:3.12.0-management"
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
@@ -314,7 +314,7 @@ services:
     volumes:
       - grafanadata_dev:/var/lib/grafana
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
-      - ./provisioning:/etc/grafana/provisioning
+      - ./dev/grafana/provisioning:/etc/grafana/provisioning
       - ${GRAFANA_DEV_PROVISIONING:-/dev/null}:/etc/grafana/grafana.ini
     depends_on:
       postgres:

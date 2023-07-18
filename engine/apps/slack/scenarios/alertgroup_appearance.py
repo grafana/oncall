@@ -5,19 +5,16 @@ from django.apps import apps
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 
-from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
+from .step_mixins import AlertGroupActionsMixin
 
 
-class OpenAlertAppearanceDialogStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
+class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
-            return
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
         private_metadata = {
@@ -67,7 +64,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         alert_group_pk = private_metadata["alert_group_pk"]
 
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
         attachments = alert_group.render_slack_attachments()
         blocks = alert_group.render_slack_blocks()

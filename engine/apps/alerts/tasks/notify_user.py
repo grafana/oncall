@@ -36,7 +36,7 @@ def notify_user_task(
     UserHasNotification = apps.get_model("alerts", "UserHasNotification")
 
     try:
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     except AlertGroup.DoesNotExist:
         return f"notify_user_task: alert_group {alert_group_pk} doesn't exist"
 
@@ -127,11 +127,10 @@ def notify_user_task(
             if (
                 (alert_group.acknowledged and not notify_even_acknowledged)
                 or alert_group.resolved
-                or alert_group.is_archived
                 or alert_group.wiped_at
                 or alert_group.root_alert_group
             ):
-                return "Acknowledged, resolved, archived, attached or wiped."
+                return "Acknowledged, resolved, attached or wiped."
 
             if alert_group.silenced and not notify_anyway:
                 task_logger.info(

@@ -26,7 +26,9 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -40,8 +42,6 @@ const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
 const ITEMS_PER_PAGE = 15;
 const MAX_LINE_LENGTH = 40;
-const ACTIONS_LIST_WIDTH = 200;
-const ACTIONS_LIST_BORDER = 2;
 
 interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
@@ -210,6 +210,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             />
             <GTable
               emptyText={this.renderNotFound()}
+              data-testid="integrations-table"
               rowKey="id"
               data={results}
               columns={columns}
@@ -344,7 +345,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  renderHeartbeat(item: AlertReceiveChannel, alertReceiveChannelStore, heartbeatStore) {
+  renderHeartbeat(
+    item: AlertReceiveChannel,
+    alertReceiveChannelStore: AlertReceiveChannelStore,
+    heartbeatStore: HeartbeatStore
+  ) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
 
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
@@ -402,7 +407,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               </div>
             </WithPermissionControlTooltip>
 
-            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID is copied')}>
+            <CopyToClipboard text={item.id} onCopy={() => openNotification('Integration ID has been copied')}>
               <div className={cx('integrations-actionItem')}>
                 <HorizontalGroup spacing={'xs'}>
                   <Icon name="copy" />
@@ -412,7 +417,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               </div>
             </CopyToClipboard>
 
-            <div className="thin-line-break" />
+            <div className={cx('thin-line-break')} />
 
             <WithPermissionControlTooltip key="delete" userAction={UserActions.IntegrationsWrite}>
               <div className={cx('integrations-actionItem')}>
@@ -447,9 +452,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           </div>
         )}
       >
-        {({ openMenu }) => (
-          <HamburgerMenu openMenu={openMenu} listBorder={ACTIONS_LIST_BORDER} listWidth={ACTIONS_LIST_WIDTH} />
-        )}
+        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} />}
       </WithContextMenu>
     );
   };

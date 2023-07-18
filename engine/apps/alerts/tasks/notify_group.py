@@ -19,7 +19,7 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     EscalationDeliveryStep = scenario_step.ScenarioStep.get_step("escalation_delivery", "EscalationDeliveryStep")
 
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     # check alert group state before notifying all users in the group
     if alert_group.resolved or alert_group.acknowledged or alert_group.silenced:
         task_logger.info(f"alert_group {alert_group.pk} was resolved, acked or silenced. No need to notify group")

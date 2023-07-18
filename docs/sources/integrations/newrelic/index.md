@@ -18,7 +18,7 @@ weight: 500
 The New Relic integration for Grafana OnCall handles ticket events sent from New Relic webhooks.
 The integration provides grouping, auto-acknowledge and auto-resolve logic via customizable alert templates.
 
-> You must have the [role of Admin]({{< relref "user-and-team-management" >}}) to be able to create integrations in Grafana OnCall.
+> You must have the [role of Admin][user-and-team-management] to be able to create integrations in Grafana OnCall.
 
 ## Configuring Grafana OnCall to Receive Alerts from New Relic
 
@@ -34,3 +34,8 @@ The integration provides grouping, auto-acknowledge and auto-resolve logic via c
 3. Create "Webhook" notification channel.
 4. Set the following URL: **OnCall Integration URL**
 5. Check "Payload type" is JSON.
+
+{{% docs/reference %}}
+[user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
+[user-and-team-management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management"
+{{% /docs/reference %}}

@@ -28,7 +28,7 @@ ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
 
 def _trigger_alert(
     organization: Organization,
-    team: Team,
+    team: Team | None,
     title: str,
     message: str,
     from_user: User,
@@ -42,7 +42,7 @@ def _trigger_alert(
         deleted_at=None,
         defaults={
             "author": from_user,
-            "verbal_name": f"Direct paging ({team.name if team else 'General'} team)",
+            "verbal_name": f"Direct paging ({team.name if team else 'No'} team)",
         },
     )
     if alert_receive_channel.default_channel_filter is None:
@@ -90,7 +90,7 @@ def _trigger_alert(
     return alert.group
 
 
-def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
+def check_user_availability(user: User) -> list[dict[str, Any]]:
     """Check user availability to be paged.
 
     Return a warnings list indicating `error` and any additional related `data`.
@@ -108,7 +108,6 @@ def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
     schedules = OnCallSchedule.objects.filter(
         Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
         organization=user.organization,
-        team=team,
     )
     schedules_data = {}
     for s in schedules:
@@ -134,7 +133,7 @@ def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
 
 def direct_paging(
     organization: Organization,
-    team: Team,
+    team: Team | None,
     from_user: User,
     title: str = None,
     message: str = None,
@@ -149,8 +148,6 @@ def direct_paging(
     Otherwise, create a new alert using given title and message.
 
     """
-    if not users and not schedules and not escalation_chain:
-        return
 
     if users is None:
         users = []

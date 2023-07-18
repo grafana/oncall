@@ -23,6 +23,26 @@ exclude = [
     "tests/test_.*\\.py$",    # test files
     "migrations/\\d*.*\\.py",  # migration files
 ]
+disable_error_code = [
+    "abstract",
+    "annotation-unchecked",
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "call-arg",
+    "call-overload",
+    "has-type",
+    "index",
+    "misc",
+    "name-defined",
+    "no-redef",
+    "operator",
+    "return-value",
+    "typeddict-item",
+    "union-attr",
+    "valid-type",
+    "var-annotated",
+]
 
 # mypy per-module options
 [[tool.mypy.overrides]]
@@ -33,6 +53,7 @@ module = [
     # we can slowly either start to add library stubs ourselves, or try and upgrade these libraries to see if
     # a newer version includes type stubs
     "anymail.*",
+    "celery.utils.debug",
     "debug_toolbar.*",
     "django_deprecate_fields.*",
     "django_sns_view.*",
@@ -57,6 +78,7 @@ module = [
     "twilio.*",
     "uwsgidecorators.*",
     "whitenoise.*",
+    "uwsgi.*",
 ]
 ignore_missing_imports = true
 

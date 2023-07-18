@@ -1,6 +1,16 @@
 import React, { Component } from 'react';
 
-import { Alert, Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button } from '@grafana/ui';
+import {
+  Alert,
+  HorizontalGroup,
+  LoadingPlaceholder,
+  VerticalGroup,
+  Icon,
+  Button,
+  InlineField,
+  Input,
+  Legend,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -98,95 +108,87 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
     return (
       <div className={cx('root')}>
-        <div className={cx('title')}>
-          <Text.Title level={3}>Slack</Text.Title>
-        </div>
-        <div className={cx('slack-settings')}>
-          <HorizontalGroup justify="space-between">
-            <HorizontalGroup align="center">
-              <Field label="Slack Workspace">
-                <div className={cx('select', 'control', 'team_workspace')}>
-                  <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>
-                </div>
-              </Field>
-              <Field
-                label="Default channel for Slack notifications"
-                description="The selected channel will be used as a fallback in the event that a schedule or integration does not have a configured channel"
-              >
-                <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-                  <GSelect
-                    showSearch
-                    className={cx('select', 'control')}
-                    modelName="slackChannelStore"
-                    displayField="display_name"
-                    valueField="id"
-                    placeholder="Select Slack Channel"
-                    value={teamStore.currentTeam?.slack_channel?.id}
-                    onChange={this.handleSlackChannelChange}
-                    nullItemName={PRIVATE_CHANNEL_NAME}
-                  />
-                </WithPermissionControlTooltip>
-              </Field>
-            </HorizontalGroup>
-            <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
-              <WithConfirm
-                title="Remove Slack Integration for all of OnCall"
-                description={
-                  <Alert severity="error" title="WARNING">
-                    <p>Are you sure to delete this Slack Integration?</p>
-                    <p>
-                      Removing the integration will also irreverisbly remove the following data for your OnCall plugin:
-                    </p>
-                    <ul style={{ marginLeft: '20px' }}>
-                      <li>default organization Slack channel</li>
-                      <li>default Slack channels for OnCall Integrations</li>
-                      <li>Slack channels & Slack user groups for OnCall Schedules</li>
-                      <li>linked Slack usernames for OnCall Users</li>
-                    </ul>
-                    <br />
-                    <p>
-                      If you would like to instead remove your linked Slack username, please head{' '}
-                      <PluginLink query={{ page: 'users/me' }}>here</PluginLink>.
-                    </p>
-                  </Alert>
-                }
-                confirmationText="DELETE"
-              >
-                <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
-                  Disconnect
-                </Button>
-              </WithConfirm>
+        <Legend>Slack App settings</Legend>
+        <InlineField label="Slack Workspace" grow disabled>
+          <Input value={store.teamStore.currentTeam.slack_team_identity?.cached_name} />
+        </InlineField>
+        <InlineField
+          label="Default channel for Slack notifications"
+          tooltip="The selected channel will be used as a fallback in the event that a schedule or integration does not have a configured channel"
+        >
+          <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
+            <GSelect
+              showSearch
+              modelName="slackChannelStore"
+              displayField="display_name"
+              valueField="id"
+              placeholder="Select Slack Channel"
+              value={teamStore.currentTeam?.slack_channel?.id}
+              onChange={this.handleSlackChannelChange}
+              nullItemName={PRIVATE_CHANNEL_NAME}
+            />
+          </WithPermissionControlTooltip>
+        </InlineField>
+        <Alert
+          severity="info"
+          title="Tip: Create a separate channel for OnCall Slack App notifications (catch-all). Avoid using #general, etc."
+        />
+        <InlineField>
+          <WithPermissionControlTooltip userAction={UserActions.ChatOpsUpdateSettings}>
+            <WithConfirm
+              title="Remove Slack Integration for all of OnCall"
+              description={
+                <Alert severity="error" title="WARNING">
+                  <p>Are you sure to delete this Slack Integration?</p>
+                  <p>
+                    Removing the integration will also irreverisbly remove the following data for your OnCall plugin:
+                  </p>
+                  <ul style={{ marginLeft: '20px' }}>
+                    <li>default organization Slack channel</li>
+                    <li>default Slack channels for OnCall Integrations</li>
+                    <li>Slack channels & Slack user groups for OnCall Schedules</li>
+                    <li>linked Slack usernames for OnCall Users</li>
+                  </ul>
+                  <br />
+                  <p>
+                    If you would like to instead remove your linked Slack username, please head{' '}
+                    <PluginLink query={{ page: 'users/me' }}>here</PluginLink>.
+                  </p>
+                </Alert>
+              }
+              confirmationText="DELETE"
+            >
+              <Button variant="destructive" onClick={() => this.removeSlackIntegration()}>
+                Disconnect Slack App
+              </Button>
+            </WithConfirm>
+          </WithPermissionControlTooltip>
+        </InlineField>
+        <Legend>Additional settings</Legend>
+        <InlineField
+          label="Timeout for acknowledged alerts"
+          tooltip="Slack app will send reminders into alert group slack thread and unacknowledge alert group if no confirmation is received."
+        >
+          <HorizontalGroup spacing="xs">
+            <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
+              <RemoteSelect
+                showSearch={false}
+                href={'/slack_settings/acknowledge_remind_options/'}
+                value={slackStore.slackSettings?.acknowledge_remind_timeout}
+                onChange={this.getSlackSettingsChangeHandler('acknowledge_remind_timeout')}
+              />
+            </WithPermissionControlTooltip>
+            <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
+              <RemoteSelect
+                disabled={slackStore.slackSettings?.acknowledge_remind_timeout === 0}
+                showSearch={false}
+                href={'/slack_settings/unacknowledge_timeout_options/'}
+                value={slackStore.slackSettings?.unacknowledge_timeout}
+                onChange={this.getSlackSettingsChangeHandler('unacknowledge_timeout')}
+              />
             </WithPermissionControlTooltip>
           </HorizontalGroup>
-        </div>
-        <div className={cx('slack-settings')}>
-          <Text.Title level={5} className={cx('title')}>
-            Additional settings
-          </Text.Title>
-          <Field label="Timeout for acknowledged alerts">
-            <HorizontalGroup>
-              <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
-                <RemoteSelect
-                  className={cx('select')}
-                  showSearch={false}
-                  href={'/slack_settings/acknowledge_remind_options/'}
-                  value={slackStore.slackSettings?.acknowledge_remind_timeout}
-                  onChange={this.getSlackSettingsChangeHandler('acknowledge_remind_timeout')}
-                />
-              </WithPermissionControlTooltip>
-              <WithPermissionControlTooltip userAction={UserActions.ChatOpsWrite}>
-                <RemoteSelect
-                  className={cx('select')}
-                  disabled={slackStore.slackSettings?.acknowledge_remind_timeout === 0}
-                  showSearch={false}
-                  href={'/slack_settings/unacknowledge_timeout_options/'}
-                  value={slackStore.slackSettings?.unacknowledge_timeout}
-                  onChange={this.getSlackSettingsChangeHandler('unacknowledge_timeout')}
-                />
-              </WithPermissionControlTooltip>
-            </HorizontalGroup>
-          </Field>
-        </div>
+        </InlineField>
       </div>
     );
   };
@@ -257,7 +259,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
               <SlackNewIcon />
             </div>
             <Text className={cx('infoblock-text')}>
-              Slack connection will allow you to manage alert groups in your team Slack workspace.
+              Connecting Slack App will allow you to manage alert groups in your team Slack workspace.
             </Text>
             <Text className={cx('infoblock-text')}>
               After a basic workspace connection your team members need to connect their personal Slack accounts in

@@ -64,7 +64,7 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         logger.info("AlertGroupTelegramRepresentative UPDATE LOG REPORT SIGNAL")
         alert_group = kwargs["alert_group"]
         if not isinstance(alert_group, AlertGroup):
-            alert_group = AlertGroup.all_objects.get(pk=alert_group)
+            alert_group = AlertGroup.objects.get(pk=alert_group)
 
         messages_to_edit = alert_group.telegram_messages.filter(
             message_type__in=(

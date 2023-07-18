@@ -27,7 +27,7 @@ class AlertGroupAdmin(CustomModelAdmin):
     list_filter = ("started_at",)
 
     def get_queryset(self, request):
-        return AlertGroup.all_objects
+        return AlertGroup.objects
 
 
 @admin.register(AlertGroupLogRecord)

@@ -46,17 +46,13 @@ SECURE_HSTS_SECONDS = 360000
 CELERY_TASK_ROUTES = {
     # DEFAULT
     "apps.alerts.tasks.call_ack_url.call_ack_url": {"queue": "default"},
-    "apps.alerts.tasks.cache_alert_group_for_web.cache_alert_group_for_web": {"queue": "default"},
-    "apps.alerts.tasks.cache_alert_group_for_web.schedule_cache_for_alert_group": {"queue": "default"},
     "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
-    "apps.heartbeat.tasks.heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
-    "apps.heartbeat.tasks.restore_heartbeat_tasks": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_recalculation_for_new_metric": {"queue": "default"},
     "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
@@ -78,7 +74,6 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },
-    "engine.views.health_check_task": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
@@ -99,7 +94,6 @@ CELERY_TASK_ROUTES = {
     },
     "apps.alerts.tasks.resolve_by_last_step.resolve_by_last_step_task": {"queue": "critical"},
     "apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal": {"queue": "critical"},
-    "apps.alerts.tasks.send_update_postmortem_signal.send_update_postmortem_signal": {"queue": "critical"},
     "apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal": {"queue": "critical"},
     "apps.alerts.tasks.unsilence.unsilence_task": {"queue": "critical"},
     "apps.base.tasks.process_failed_to_invoke_celery_tasks": {"queue": "critical"},
@@ -135,12 +129,8 @@ CELERY_TASK_ROUTES = {
     "apps.slack.tasks.populate_slack_usergroups_for_team": {"queue": "slack"},
     "apps.slack.tasks.post_or_update_log_report_message_task": {"queue": "slack"},
     "apps.slack.tasks.post_slack_rate_limit_message": {"queue": "slack"},
-    "apps.slack.tasks.refresh_slack_user_identity_emails": {"queue": "slack"},
-    "apps.slack.tasks.resolve_archived_incidents_for_organization": {"queue": "slack"},
-    "apps.slack.tasks.send_debug_message_to_thread": {"queue": "slack"},
     "apps.slack.tasks.send_message_to_thread_if_bot_not_in_channel": {"queue": "slack"},
     "apps.slack.tasks.start_update_slack_user_group_for_schedules": {"queue": "slack"},
-    "apps.slack.tasks.unarchive_incidents_for_organization": {"queue": "slack"},
     "apps.slack.tasks.unpopulate_slack_user_identities": {"queue": "slack"},
     "apps.slack.tasks.update_incident_slack_message": {"queue": "slack"},
     "apps.slack.tasks.update_slack_user_group_for_schedules": {"queue": "slack"},

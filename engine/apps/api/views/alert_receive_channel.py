@@ -4,7 +4,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -19,6 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
 )
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
+from apps.user_management.models.team import Team
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -29,24 +29,9 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
+from common.api_helpers.paginators import FifteenPageSizePaginator
 from common.exceptions import MaintenanceCouldNotBeStartedError, TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
-
-
-class AlertReceiveChannelPagination(PageNumberPagination):
-    page_size = 15
-    page_query_param = "page"
-    page_size_query_param = "perpage"
-    max_page_size = 50
-
-    def paginate_queryset(self, queryset, request, view=None):
-        """Override to apply pagination only if ?page= is present in query params
-        Required for backwards compatibility with older versions
-        """
-        page_number = request.query_params.get(self.page_query_param, None)
-        if not page_number:
-            return None
-        return super().paginate_queryset(queryset, request, view)
 
 
 class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
@@ -98,7 +83,7 @@ class AlertReceiveChannelView(
     search_fields = ("verbal_name",)
 
     filterset_class = AlertReceiveChannelFilter
-    pagination_class = AlertReceiveChannelPagination
+    pagination_class = FifteenPageSizePaginator
 
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
@@ -120,10 +105,39 @@ class AlertReceiveChannelView(
     }
 
     def create(self, request, *args, **kwargs):
-        if request.data["integration"] is not None and (
-            request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES
-        ):
-            return super().create(request, *args, **kwargs)
+        organization = request.auth.organization
+        user = request.user
+        team_lookup = {}
+        if "team" in request.data:
+            team_public_pk = request.data.get("team", None)
+            if team_public_pk is not None:
+                try:
+                    team = user.available_teams.get(public_primary_key=team_public_pk)
+                    team_lookup = {"team": team}
+                except Team.DoesNotExist:
+                    return Response(data="invalid team", status=status.HTTP_400_BAD_REQUEST)
+            else:
+                team_lookup = {"team__isnull": True}
+
+        if request.data["integration"] is not None:
+            if request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
+                # Don't allow multiple Direct Paging integrations
+                if request.data["integration"] == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
+                    try:
+                        AlertReceiveChannel.objects.get(
+                            organization=organization,
+                            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
+                            deleted_at=None,
+                            **team_lookup,
+                        )
+                        return Response(
+                            data="Direct paging integration already exists for this team",
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    except AlertReceiveChannel.DoesNotExist:
+                        pass
+                return super().create(request, *args, **kwargs)
+
         return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
@@ -162,10 +176,6 @@ class AlertReceiveChannelView(
 
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
-
-        # Hide direct paging integrations from the list view, but not from the filters
-        if not is_filters_request:
-            queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
         return queryset
 

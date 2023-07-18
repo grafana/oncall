@@ -5,10 +5,9 @@ from unittest import mock
 import pytest
 from django.core.cache import cache
 from django.utils import timezone
-from fcm_django.models import FCMDevice
 
 from apps.mobile_app import tasks
-from apps.mobile_app.models import MobileAppUserSettings
+from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.models.on_call_schedule import ScheduleEvent
 

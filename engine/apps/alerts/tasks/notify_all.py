@@ -16,7 +16,7 @@ def notify_all_task(alert_group_pk, escalation_policy_snapshot_order=None):
     EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
     AlertGroup = apps.get_model("alerts", "AlertGroup")
 
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
     # check alert group state before notifying all users in the channel
     if alert_group.resolved or alert_group.acknowledged or alert_group.silenced:

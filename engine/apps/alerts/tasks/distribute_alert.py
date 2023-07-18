@@ -24,7 +24,7 @@ def distribute_alert(alert_id):
     send_alert_create_signal.apply_async((alert_id,))
     # If it's the first alert, let's launch the escalation!
     if alert.is_the_first_alert_in_group:
-        alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
+        alert_group = AlertGroup.objects.filter(pk=alert.group_id).get()
         alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
         alert_group_escalation_snapshot_built.send(sender=distribute_alert, alert_group=alert_group)
 
@@ -46,11 +46,8 @@ def send_alert_create_signal(alert_id):
 
     task_logger.debug(f"Started send_alert_create_signal task  for alert {alert_id}")
     alert = Alert.objects.get(pk=alert_id)
-    is_on_maintenace_mode = (
-        alert.group.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-        or alert.group.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-    )
-    if not is_on_maintenace_mode:
+
+    if alert.group.channel.maintenance_mode != AlertReceiveChannel.MAINTENANCE:
         alert_create_signal.send(
             sender=send_alert_create_signal,
             alert=alert_id,

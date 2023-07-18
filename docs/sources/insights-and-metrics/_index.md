@@ -246,7 +246,7 @@ Resource IDs are used a lot in insight logs. You can find them in web ui (exampl
 3. The URL looks like `https://<YOUR_STACK_SLUG>/a/grafana-oncall-app/integrations/C5VXMIFKKP67K`.
 4. Integration ID is `C5VXMIFKKP67K`.
 
-Alternatively you can find resource ID using public [API](https://grafana.com/docs/oncall/latest/oncall-api-reference/) or browser dev tools.
+Alternatively you can find resource ID using public [API][oncall-api-reference] or browser dev tools.
 
 Actions performed by user:
 
@@ -277,3 +277,8 @@ Actions performed with slack chatops integration:
 ```logql
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops` and chat_ops_type=`slack`
 ```
+
+{{% docs/reference %}}
+[oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/oncall-api-reference"
+[oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
+{{% /docs/reference %}}

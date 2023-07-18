@@ -1,18 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
-import { Button, Label } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, HorizontalGroup, InlineField, Input } from '@grafana/ui';
 
-import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-
-import styles from './index.module.css';
-
-const cx = cn.bind(styles);
+import { getPathFromQueryParams } from 'utils/url';
 
 interface SlackConnectorProps {
   id: User['pk'];
@@ -27,7 +21,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
 
   const storeUser = userStore.items[id];
 
-  const isCurrent = id === store.userStore.currentUserPk;
+  const isCurrentUser = id === store.userStore.currentUserPk;
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.SlackInfo);
@@ -37,43 +31,67 @@ const SlackConnector = (props: SlackConnectorProps) => {
     userStore.unlinkSlack(userStore.currentUserPk);
   }, []);
 
+  const chatOpsQuery = { page: 'chat-ops' };
+  const chatOpsPath = useMemo(() => getPathFromQueryParams(chatOpsQuery), [chatOpsQuery]);
+
   return (
-    <div className={cx('user-item')}>
-      <Label>Slack username:</Label>
-      <span className={cx('user-value')}>{storeUser.slack_user_identity?.name || '—'}</span>
+    <>
       {storeUser.slack_user_identity ? (
-        <div>
-          <Text type="secondary"> Slack account is connected</Text>
-          {storeUser.pk === userStore.currentUserPk ? (
-            <WithConfirm title="Are you sure to disconnect your Slack account?" confirmText="Disconnect">
-              <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkSlackAccount}>
-                Unlink Slack account
+        <>
+          <InlineField
+            label="Slack"
+            labelWidth={12}
+            tooltip={'Connected Slack user will receive mentions during escalations'}
+          >
+            <HorizontalGroup spacing="xs">
+              <Input
+                disabled={true}
+                value={
+                  storeUser.slack_user_identity?.slack_login ? '@' + storeUser.slack_user_identity?.slack_login : ''
+                }
+              />
+              <WithConfirm title="Are you sure to disconnect your Slack account?" confirmText="Disconnect">
+                <Button
+                  variant="destructive"
+                  icon="times"
+                  onClick={handleUnlinkSlackAccount}
+                  disabled={!isCurrentUser}
+                />
+              </WithConfirm>
+            </HorizontalGroup>
+          </InlineField>
+        </>
+      ) : teamStore.currentTeam?.slack_team_identity ? (
+        <>
+          <InlineField
+            label="Slack"
+            labelWidth={12}
+            disabled={!isCurrentUser}
+            tooltip={'To receive mentions for alert groups posted on Slack, connect your Slack profile.'}
+          >
+            <Button onClick={handleConnectButtonClick}>Connect account</Button>
+          </InlineField>
+        </>
+      ) : (
+        <>
+          <InlineField
+            label="Slack"
+            labelWidth={12}
+            tooltip={'To receive mentions for alert groups posted on Slack, connect your Slack profile.'}
+          >
+            <WithConfirm
+              title="Leave personal profile settings?"
+              confirmText="Continue"
+              description="OnCall Slack Application is not installed globally for this Grafana Organization Stack. Please install it in Organization Settings before connecting personal Slack Profile."
+            >
+              <Button onClick={() => window.open(chatOpsPath, '_blank')} icon="external-link-alt">
+                Install Slack App
               </Button>
             </WithConfirm>
-          ) : (
-            ''
-          )}
-        </div>
-      ) : teamStore.currentTeam?.slack_team_identity ? (
-        <div>
-          <Text type="warning">Slack account is not connected</Text>
-          {isCurrent && (
-            <Button size="sm" fill="text" onClick={handleConnectButtonClick}>
-              Connect
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div>
-          <Text type="warning">Slack Integration is not installed</Text>
-          <PluginLink query={{ page: 'chat-ops' }}>
-            <Button size="sm" fill="text">
-              Install
-            </Button>
-          </PluginLink>
-        </div>
+          </InlineField>
+        </>
       )}
-    </div>
+    </>
   );
 };
 

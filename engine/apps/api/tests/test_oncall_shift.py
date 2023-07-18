@@ -222,6 +222,9 @@ def test_list_on_call_shift(
                 "updated_shift": None,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -280,6 +283,9 @@ def test_list_on_call_shift_filter_schedule_id(
                 "updated_shift": None,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -290,6 +296,9 @@ def test_list_on_call_shift_filter_schedule_id(
         "next": None,
         "previous": None,
         "results": [],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     response = client.get(
@@ -1502,7 +1511,12 @@ def test_on_call_shift_preview(
             "priority_level": 2,
             "missing_users": [],
             "users": [
-                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+                {
+                    "display_name": other_user.username,
+                    "pk": other_user.public_primary_key,
+                    "email": other_user.email,
+                    "avatar_full": other_user.avatar_full_url,
+                },
             ],
             "source": "web",
         }
@@ -1791,7 +1805,12 @@ def test_on_call_shift_preview_update(
         "priority_level": 1,
         "missing_users": [],
         "users": [
-            {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+            {
+                "display_name": other_user.username,
+                "pk": other_user.public_primary_key,
+                "email": other_user.email,
+                "avatar_full": other_user.avatar_full_url,
+            },
         ],
         "source": "web",
     }
@@ -1901,7 +1920,12 @@ def test_on_call_shift_preview_update_not_started_reuse_pk(
             "priority_level": 1,
             "missing_users": [],
             "users": [
-                {"display_name": other_user.username, "pk": other_user.public_primary_key, "email": other_user.email}
+                {
+                    "display_name": other_user.username,
+                    "pk": other_user.public_primary_key,
+                    "email": other_user.email,
+                    "avatar_full": other_user.avatar_full_url,
+                },
             ],
             "source": "web",
         },

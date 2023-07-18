@@ -32,6 +32,7 @@ import IntegrationInputField from 'components/IntegrationInputField/IntegrationI
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
+import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -42,7 +43,7 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHearbeatForm/IntegrationHeartbeatForm';
+import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
@@ -57,7 +58,6 @@ import {
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
-import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { INTEGRATION_TEMPLATES_LIST } from 'pages/integration/Integration.config';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import styles from 'pages/integration/Integration.module.scss';
@@ -70,8 +70,6 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
-
-import { MONACO_PAYLOAD_OPTIONS } from './IntegrationCommon.config';
 
 const cx = cn.bind(styles);
 
@@ -88,8 +86,6 @@ interface IntegrationState extends PageBaseState {
   openRoutes: string[];
 }
 
-const ACTIONS_LIST_WIDTH = 200;
-const ACTIONS_LIST_BORDER = 2;
 const NEW_ROUTE_DEFAULT = '';
 
 @observer
@@ -330,7 +326,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Autoresolve:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || '')}
+                        {IntegrationHelper.truncateLine(templates['resolve_condition_template'] || 'disabled')}
                       </Text>
                     </div>
 
@@ -609,7 +605,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
 const DemoNotification: React.FC = () => {
   return (
-    <div>
+    <div data-testid="demo-alert-sent-notification">
       Demo alert was generated. Find it on the
       <PluginLink query={{ page: 'alert-groups' }}> "Alert Groups" </PluginLink>
       page and make sure it didn't freak out your colleagues 😉
@@ -675,7 +671,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
             useAutoCompleteList={false}
             language={MONACO_LANGUAGE.json}
             data={undefined}
-            monacoOptions={MONACO_PAYLOAD_OPTIONS}
+            monacoOptions={MONACO_EDITABLE_CONFIG}
             showLineNumbers={false}
             onChange={onPayloadChangeDebounced}
           />
@@ -685,7 +681,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
           <Button variant={'secondary'} onClick={onHideOrCancel}>
             Cancel
           </Button>
-          <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL copied!')}>
+          <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL has been copied')}>
             <Button variant={'secondary'}>Copy as CURL</Button>
           </CopyToClipboard>
           <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
@@ -730,7 +726,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { maintenanceStore, alertReceiveChannelStore, heartbeatStore } = useStore();
+  const { alertReceiveChannelStore, heartbeatStore } = useStore();
 
   const history = useHistory();
 
@@ -746,7 +742,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }>(undefined);
 
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
-  const [isHearbeatFormOpen, setIsHearbeatFormOpen] = useState(false);
+  const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
     disabled: boolean;
@@ -788,10 +784,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {isHearbeatFormOpen && (
+      {isHeartbeatFormOpen && (
         <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
-          onClose={() => setIsHearbeatFormOpen(false)}
+          onClose={() => setIsHeartbeatFormOpen(false)}
         />
       )}
 
@@ -818,6 +814,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         </WithPermissionControlTooltip>
 
         <WithContextMenu
+          data-testid="integration-settings-context-menu"
           renderMenuItems={() => (
             <div className={cx('integration__actionsList')} id="integration-menu-options">
               <div className={cx('integration__actionItem')} onClick={() => openIntegrationSettings()}>
@@ -826,7 +823,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                  <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
+                  <div className={cx('integration__actionItem')} onClick={() => setIsHeartbeatFormOpen(true)}>
                     Heartbeat Settings
                   </div>
                 </WithPermissionControlTooltip>
@@ -834,7 +831,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {!alertReceiveChannel.maintenance_till && (
                 <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-                  <div className={cx('integration__actionItem')} onClick={openStartMaintenance}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={openStartMaintenance}
+                    data-testid="integration-start-maintenance"
+                  >
                     <Text type="primary">Start Maintenance</Text>
                   </div>
                 </WithPermissionControlTooltip>
@@ -865,6 +866,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                         ),
                       });
                     }}
+                    data-testid="integration-stop-maintenance"
                   >
                     <Text type="primary">Stop Maintenance</Text>
                   </div>
@@ -884,7 +886,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 </div>
               </CopyToClipboard>
 
-              <div className="thin-line-break" />
+              <div className={cx('thin-line-break')} />
 
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <div className={cx('integration__actionItem')}>
@@ -918,14 +920,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
             </div>
           )}
         >
-          {({ openMenu }) => (
-            <HamburgerMenu
-              openMenu={openMenu}
-              listBorder={ACTIONS_LIST_BORDER}
-              listWidth={ACTIONS_LIST_WIDTH}
-              withBackground
-            />
-          )}
+          {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} withBackground />}
         </WithContextMenu>
       </div>
     </>
@@ -951,14 +946,13 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     setMaintenanceData({ disabled: true, alert_receive_channel_id: alertReceiveChannel.id });
   }
 
-  function onStopMaintenance() {
+  async function onStopMaintenance() {
     setConfirmModal(undefined);
 
-    maintenanceStore
-      .stopMaintenanceMode(MaintenanceType.alert_receive_channel, id)
-      .then(() => maintenanceStore.updateMaintenances())
-      .then(() => openNotification('Maintenance has been stopped'))
-      .then(() => alertReceiveChannelStore.updateItem(alertReceiveChannel.id));
+    await alertReceiveChannelStore.stopMaintenanceMode(id);
+
+    openNotification('Maintenance has been stopped');
+    await alertReceiveChannelStore.updateItem(id);
   }
 };
 
@@ -969,6 +963,17 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
 
   const item = alertReceiveChannelStore.items[id];
   const url = item?.integration_url || item?.inbound_email;
+
+  const howToConnectTagName = (integration: string) => {
+    switch (integration) {
+      case 'direct_paging':
+        return 'Manual';
+      case 'email':
+        return 'Inbound Email';
+      default:
+        return 'HTTP Endpoint';
+    }
+  };
 
   return (
     <IntegrationBlock
@@ -982,29 +987,50 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             className={cx('how-to-connect__tag')}
           >
             <Text type="primary" size="small" className={cx('radius')}>
-              {item?.inbound_email ? 'Inbound Email' : 'HTTP Endpoint'}
+              {howToConnectTagName(item?.integration)}
             </Text>
           </Tag>
-          {url && (
-            <IntegrationInputField
-              value={url}
-              className={cx('integration__input-field')}
-              showExternal={!!item?.integration_url}
-            />
+          {item?.integration === 'direct_paging' ? (
+            <>
+              <Text type="secondary">Alert Groups raised manually via Web or ChatOps</Text>
+              <a
+                href="https://grafana.com/docs/oncall/latest/integrations/manual"
+                target="_blank"
+                rel="noreferrer"
+                className={cx('u-pull-right')}
+              >
+                <Text type="link" size="small">
+                  <HorizontalGroup>
+                    How it works
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
+                </Text>
+              </a>
+            </>
+          ) : (
+            <>
+              {url && (
+                <IntegrationInputField
+                  value={url}
+                  className={cx('integration__input-field')}
+                  showExternal={!!item?.integration_url}
+                />
+              )}
+              <a
+                href="https://grafana.com/docs/oncall/latest/integrations/"
+                target="_blank"
+                rel="noreferrer"
+                className={cx('u-pull-right')}
+              >
+                <Text type="link" size="small">
+                  <HorizontalGroup>
+                    How to connect
+                    <Icon name="external-link-alt" />
+                  </HorizontalGroup>
+                </Text>
+              </a>
+            </>
           )}
-          <a
-            href="https://grafana.com/docs/oncall/latest/integrations/"
-            target="_blank"
-            rel="noreferrer"
-            className={cx('u-pull-right')}
-          >
-            <Text type="link" size="small">
-              <HorizontalGroup>
-                How to connect
-                <Icon name="external-link-alt" />
-              </HorizontalGroup>
-            </Text>
-          </a>
         </div>
       }
       content={hasAlerts ? null : renderContent()}
@@ -1012,12 +1038,20 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   );
 
   function renderContent() {
+    const callToAction = () => {
+      if (item?.integration === 'direct_paging') {
+        return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
+      } else {
+        return item.demo_alert_enabled && <Text type={'primary'}>; try to send a demo alert</Text>;
+      }
+    };
+
     return (
       <VerticalGroup justify={'flex-start'} spacing={'xs'}>
         {!hasAlerts && (
           <HorizontalGroup spacing={'xs'}>
             <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-            <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
+            <Text type={'primary'}>No alerts yet;</Text> {callToAction()}
           </HorizontalGroup>
         )}
       </VerticalGroup>
@@ -1073,6 +1107,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
       {alertReceiveChannel.maintenance_till && (
         <TooltipBadge
+          data-testid="maintenance-mode-remaining-time-tooltip"
           borderType="primary"
           icon="pause"
           text={IntegrationHelper.getMaintenanceText(alertReceiveChannel.maintenance_till)}
@@ -1084,7 +1119,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         />
       )}
 
-      {renderHearbeat(alertReceiveChannel)}
+      {renderHeartbeat(alertReceiveChannel)}
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', marginLeft: '8px' }}>
         <div className={cx('headerTop__item')}>
@@ -1120,7 +1155,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     );
   }
 
-  function renderHearbeat(alertReceiveChannel: AlertReceiveChannel) {
+  function renderHeartbeat(alertReceiveChannel: AlertReceiveChannel) {
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
     const heartbeat = heartbeatStore.items[heartbeatId];
 

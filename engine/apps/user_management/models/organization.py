@@ -11,8 +11,6 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
-from apps.alerts.tasks import disable_maintenance
-from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
@@ -21,6 +19,13 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from apps.auth_token.models import (
+        ApiAuthToken,
+        PluginAuthToken,
+        ScheduleExportAuthToken,
+        UserScheduleExportAuthToken,
+    )
+    from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
@@ -68,9 +73,17 @@ class OrganizationManager(models.Manager):
         return OrganizationQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
 
 
+# TODO: in a subsequent PR, remove the inheritance from MaintainableObject (plus generate the database migration file)
+# this will remove the maintenance related columns that're no longer used on the organization object
+# class Organization(models.Model):
 class Organization(MaintainableObject):
-    users: "RelatedManager['User']"
+    auth_tokens: "RelatedManager['ApiAuthToken']"
+    mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
+    plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+    users: "RelatedManager['User']"
 
     objects = OrganizationManager()
     objects_with_deleted = models.Manager()
@@ -148,8 +161,6 @@ class Organization(MaintainableObject):
 
     is_resolution_note_required = models.BooleanField(default=False)
 
-    archive_alerts_from = models.DateField(default="1970-01-01")
-
     # TODO: this field is specific to slack and will be moved to a different model
     slack_team_identity = models.ForeignKey(
         "slack.SlackTeamIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="organizations"
@@ -172,7 +183,7 @@ class Organization(MaintainableObject):
         ACKNOWLEDGE_REMIND_10H,
     ) = range(5)
     ACKNOWLEDGE_REMIND_CHOICES = (
-        (ACKNOWLEDGE_REMIND_NEVER, "Never remind about ack-ed incidents"),
+        (ACKNOWLEDGE_REMIND_NEVER, "Never remind"),
         (ACKNOWLEDGE_REMIND_1H, "Remind every 1 hour"),
         (ACKNOWLEDGE_REMIND_3H, "Remind every 3 hours"),
         (ACKNOWLEDGE_REMIND_5H, "Remind every 5 hours"),
@@ -225,7 +236,6 @@ class Organization(MaintainableObject):
     PRICING_CHOICES = ((FREE_PUBLIC_BETA_PRICING, "Free public beta"),)
     pricing_version = models.PositiveIntegerField(choices=PRICING_CHOICES, default=FREE_PUBLIC_BETA_PRICING)
 
-    is_amixr_migration_started = models.BooleanField(default=False)
     is_rbac_permissions_enabled = models.BooleanField(default=False)
     is_grafana_incident_enabled = models.BooleanField(default=False)
 
@@ -247,41 +257,8 @@ class Organization(MaintainableObject):
         token_model.objects.filter(organization=self).delete()
 
     """
-    Following methods: start_disable_maintenance_task, force_disable_maintenance, get_organization, get_verbal serve for
-    MaintainableObject.
-    """
-
-    def start_disable_maintenance_task(self, countdown):
-        maintenance_uuid = disable_maintenance.apply_async(
-            args=(),
-            kwargs={
-                "organization_id": self.pk,
-            },
-            countdown=countdown,
-        )
-        return maintenance_uuid
-
-    def force_disable_maintenance(self, user):
-        disable_maintenance(organization_id=self.pk, force=True, user_id=user.pk)
-
-    def get_organization(self):
-        return self
-
-    def get_team(self):
-        return None
-
-    def get_verbal(self):
-        return self.org_title
-
-    def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
-        # TODO: this method should be refactored.
-        # It's binded to slack and sending maintenance notification only there.
-        if send_to_general_log_channel:
-            post_message_to_channel(self, self.general_log_channel_id, text)
-
-    """
     Following methods:
-    phone_calls_left, sms_left, emails_left, notifications_limit_web_report
+    phone_calls_left, sms_left, emails_left
     serve for calculating notifications' limits and composed from self.subscription_strategy.
     """
 
@@ -294,9 +271,6 @@ class Organization(MaintainableObject):
     # todo: manage backend specific limits in messaging backend
     def emails_left(self, user):
         return self.subscription_strategy.emails_left(user)
-
-    def notifications_limit_web_report(self, user):
-        return self.subscription_strategy.notifications_limit_web_report(user)
 
     def set_general_log_channel(self, channel_id, channel_name, user):
         if self.general_log_channel_id != channel_id:
@@ -340,7 +314,6 @@ class Organization(MaintainableObject):
         return {
             "name": self.org_title,
             "is_resolution_note_required": self.is_resolution_note_required,
-            "archive_alerts_from": self.archive_alerts_from.isoformat(),
         }
 
     @property

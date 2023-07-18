@@ -1,34 +1,39 @@
 import React, { useCallback } from 'react';
 
-import { Button, Label } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, InlineField } from '@grafana/ui';
 
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-
-import styles from './index.module.css';
-
-const cx = cn.bind(styles);
+import { User } from 'models/user/user.types';
+import { useStore } from 'state/useStore';
 
 interface MobileAppConnectorProps {
+  id: User['pk'];
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
 const MobileAppConnector = (props: MobileAppConnectorProps) => {
-  const { onTabChange } = props;
+  const { onTabChange, id } = props;
+  const store = useStore();
+  const { userStore } = store;
 
   const handleClickConfirmMobileAppButton = useCallback(() => {
     onTabChange(UserSettingsTab.MobileAppConnection);
   }, [onTabChange]);
 
+  const user = userStore.items[id];
+  const isCurrentUser = id === store.userStore.currentUserPk;
+  const isMobileAppConnected = user.messaging_backends['MOBILE_APP']?.connected;
+
   return (
-    <div className={cx('user-item')}>
-      <Label>Mobile App:</Label>
-      <div>
-        <Button size="sm" fill="text" onClick={handleClickConfirmMobileAppButton}>
-          Click to add a mobile app
+    <InlineField label="Mobile App" labelWidth={12} disabled={!isCurrentUser}>
+      {isMobileAppConnected ? (
+        <Button variant="destructive" onClick={handleClickConfirmMobileAppButton}>
+          Disconnect
         </Button>
-      </div>
-    </div>
+      ) : (
+        <Button onClick={handleClickConfirmMobileAppButton}>Connect</Button>
+      )}
+    </InlineField>
   );
 };
 

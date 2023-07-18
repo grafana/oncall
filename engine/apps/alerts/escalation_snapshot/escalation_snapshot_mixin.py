@@ -231,9 +231,7 @@ class EscalationSnapshotMixin:
         """
         AlertGroup = apps.get_model("alerts", "AlertGroup")
 
-        is_on_maintenace_or_debug_mode = (
-            self.channel.maintenance_mode is not None or self.channel.organization.maintenance_mode is not None
-        )
+        is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
 
         if (
             self.is_restricted
@@ -258,7 +256,7 @@ class EscalationSnapshotMixin:
         )
         task_id = celery_uuid()
 
-        AlertGroup.all_objects.filter(pk=self.pk,).update(
+        AlertGroup.objects.filter(pk=self.pk,).update(
             active_escalation_id=task_id,
             is_escalation_finished=False,
             raw_escalation_snapshot=raw_escalation_snapshot,

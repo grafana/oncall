@@ -111,7 +111,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { showAddAlertGroupForm } = this.state;
     const {
       store,
-      store: { alertGroupStore },
+      store: { alertGroupStore, alertReceiveChannelStore },
     } = this.props;
 
     if (!alertGroupStore.irmPlan && !store.isOpenSource()) {
@@ -142,6 +142,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             onCreate={(id: Alert['pk']) => {
               history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
+            alertReceiveChannelStore={alertReceiveChannelStore}
           />
         )}
       </>

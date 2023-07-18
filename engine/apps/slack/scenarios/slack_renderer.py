@@ -31,9 +31,7 @@ class AlertGroupLogSlackRenderer:
         result = ""
 
         # check if escalation or invitation active
-        if not (
-            alert_group.resolved or alert_group.is_archived or alert_group.wiped_at or alert_group.root_alert_group
-        ):
+        if not (alert_group.resolved or alert_group.wiped_at or alert_group.root_alert_group):
             escalation_policies_plan = log_builder.get_incident_escalation_plan(for_slack=True)
             if escalation_policies_plan:
                 result += "\n:arrow_down: :arrow_down: :arrow_down: Plan:\n\n"

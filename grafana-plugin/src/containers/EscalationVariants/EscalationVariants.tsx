@@ -26,6 +26,7 @@ export interface EscalationVariantsProps {
   variant?: 'secondary' | 'primary';
   hideSelected?: boolean;
   disabled?: boolean;
+  withLabels?: boolean;
 }
 
 const EscalationVariants = observer(
@@ -35,6 +36,7 @@ const EscalationVariants = observer(
     variant = 'primary',
     hideSelected = false,
     disabled,
+    withLabels = false,
   }: EscalationVariantsProps) => {
     const [showEscalationVariants, setShowEscalationVariants] = useState(false);
 
@@ -103,7 +105,7 @@ const EscalationVariants = observer(
         <div className={cx('body')}>
           {!hideSelected && Boolean(value.userResponders.length || value.scheduleResponders.length) && (
             <>
-              <Label>Responders:</Label>
+              <Label>Additional responders will be notified immediately:</Label>
               <ul className={cx('responders-list')}>
                 {value.userResponders.map((responder, index) => (
                   <UserResponder
@@ -125,6 +127,7 @@ const EscalationVariants = observer(
             </>
           )}
           <div className={cx('assign-responders-button')}>
+            {withLabels && <Label>Additional responders (optional)</Label>}
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <Button
                 icon="users-alt"
@@ -134,7 +137,7 @@ const EscalationVariants = observer(
                   setShowEscalationVariants(true);
                 }}
               >
-                Add responders
+                Notify additional responders
               </Button>
             </WithPermissionControlTooltip>
           </div>
@@ -230,11 +233,11 @@ const UserResponder = ({ important, data, onImportantChange, handleDelete }) => 
                 }}
                 onChange={onImportantChange}
               />
-              <Text type="secondary">notification chain</Text>
+              <Text type="secondary">notification policies</Text>
             </HorizontalGroup>
           ) : (
             <HorizontalGroup>
-              <Tooltip content="User doesn't have configured notification chains">
+              <Tooltip content="User doesn't have configured notification policies">
                 <Icon name="exclamation-triangle" style={{ color: 'var(--error-text-color)' }} />
               </Tooltip>
             </HorizontalGroup>

@@ -49,23 +49,18 @@ class DirectPagingSerializer(serializers.Serializer):
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
 
     title = serializers.CharField(required=False, default=None)
-    message = serializers.CharField(required=False, default=None)
+    message = serializers.CharField(required=False, default=None, allow_null=True)
 
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
 
     def validate(self, attrs):
         organization = self.context["organization"]
 
-        users = attrs["users"]
-        schedules = attrs["schedules"]
         escalation_chain_id = attrs["escalation_chain_id"]
 
         alert_group_id = attrs["alert_group_id"]
         title = attrs["title"]
         message = attrs["message"]
-
-        if len(users) == 0 and len(schedules) == 0 and not escalation_chain_id:
-            raise serializers.ValidationError("Provide users, schedules, or an escalation chain")
 
         if alert_group_id and (title or message):
             raise serializers.ValidationError("alert_group_id and (title, message) are mutually exclusive")
@@ -75,7 +70,7 @@ class DirectPagingSerializer(serializers.Serializer):
 
         if alert_group_id:
             try:
-                attrs["alert_group"] = AlertGroup.unarchived_objects.get(
+                attrs["alert_group"] = AlertGroup.objects.get(
                     public_primary_key=alert_group_id, channel__organization=organization
                 )
             except ObjectDoesNotExist:

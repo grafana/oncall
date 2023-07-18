@@ -12,7 +12,6 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
-from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from requests import HTTPError
@@ -29,7 +28,7 @@ from common.l10n import format_localized_datetime, format_localized_time
 from common.timezones import is_valid_timezone
 
 if typing.TYPE_CHECKING:
-    from apps.mobile_app.models import MobileAppUserSettings
+    from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 
 
 MAX_RETRIES = 1 if settings.DEBUG else 10
@@ -64,7 +63,7 @@ def send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
 
 
 def _send_push_notification(
-    device_to_notify: FCMDevice, message: Message, error_cb: typing.Optional[typing.Callable[..., None]] = None
+    device_to_notify: "FCMDevice", message: Message, error_cb: typing.Optional[typing.Callable[..., None]] = None
 ) -> None:
     logger.debug(f"Sending push notification to device type {device_to_notify.type} with message: {message}")
 
@@ -105,7 +104,7 @@ def _send_push_notification(
 
 def _construct_fcm_message(
     message_type: MessageType,
-    device_to_notify: FCMDevice,
+    device_to_notify: "FCMDevice",
     thread_id: str,
     data: FCMMessageData,
     apns_payload: typing.Optional[APNSPayload] = None,
@@ -151,7 +150,7 @@ def _construct_fcm_message(
 
 
 def _get_alert_group_escalation_fcm_message(
-    alert_group: AlertGroup, user: User, device_to_notify: FCMDevice, critical: bool
+    alert_group: AlertGroup, user: User, device_to_notify: "FCMDevice", critical: bool
 ) -> Message:
     # avoid circular import
     from apps.mobile_app.models import MobileAppUserSettings
@@ -265,7 +264,7 @@ def _get_youre_going_oncall_notification_subtitle(
 def _get_youre_going_oncall_fcm_message(
     user: User,
     schedule: OnCallSchedule,
-    device_to_notify: FCMDevice,
+    device_to_notify: "FCMDevice",
     seconds_until_going_oncall: int,
     schedule_event: ScheduleEvent,
 ) -> Message:
@@ -314,6 +313,7 @@ def _get_youre_going_oncall_fcm_message(
 def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical):
     # avoid circular import
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.mobile_app.models import FCMDevice
 
     try:
         user = User.objects.get(pk=user_pk)
@@ -322,7 +322,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         return
 
     try:
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     except AlertGroup.DoesNotExist:
         logger.warning(f"Alert group {alert_group_pk} does not exist")
         return
@@ -347,7 +347,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             notification_channel=notification_policy.notify_by,
         )
 
-    device_to_notify = FCMDevice.objects.filter(user=user).first()
+    device_to_notify = FCMDevice.get_active_device_for_user(user)
 
     # create an error log in case user has no devices set up
     if not device_to_notify:
@@ -393,7 +393,7 @@ def should_we_send_going_oncall_push_notification(
 
     if not user_wants_to_receive_info_notifications:
         logger.info("not sending going oncall push notification because info_notifications_enabled is false")
-        return
+        return None
 
     # 14 minute window where the notification could be sent (7 mins before or 7 mins after)
     timing_window_lower = user_notification_timing_preference - NOTIFICATION_TIMING_BUFFER
@@ -421,6 +421,7 @@ def should_we_send_going_oncall_push_notification(
         logger.info(f"timing is right to send going oncall push notification\n{timing_logging_msg}")
         return seconds_until_shift_starts
     logger.info(f"timing is not right to send going oncall push notification\n{timing_logging_msg}")
+    return None
 
 
 def _generate_going_oncall_push_notification_cache_key(user_pk: str, schedule_event: ScheduleEvent) -> str:
@@ -430,11 +431,11 @@ def _generate_going_oncall_push_notification_cache_key(user_pk: str, schedule_ev
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk) -> None:
     # avoid circular import
-    from apps.mobile_app.models import MobileAppUserSettings
+    from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 
     PUSH_NOTIFICATION_TRACKING_CACHE_KEY_TTL = 60 * 60  # 60 minutes
     user_cache: typing.Dict[str, User] = {}
-    device_cache: typing.Dict[str, FCMDevice] = {}
+    device_cache: typing.Dict[str, "FCMDevice"] = {}
 
     logger.info(f"Start calculate_going_oncall_push_notifications_for_schedule for schedule {schedule_pk}")
 
@@ -472,7 +473,7 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 
             device_to_notify = device_cache.get(user_pk, None)
             if device_to_notify is None:
-                device_to_notify = FCMDevice.objects.filter(user=user).first()
+                device_to_notify = FCMDevice.get_active_device_for_user(user)
 
                 if not device_to_notify:
                     continue
