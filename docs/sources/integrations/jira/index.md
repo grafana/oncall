@@ -39,6 +39,7 @@ When creating a webhook in Jira, select the following events to be sent to Grafa
 1. Issue - created
 2. Issue - updated
 3. Issue - deleted
+
 After setting up the connection, you can test it by creating a new issue in Jira. You should see a new alert group in Grafana OnCall.
 
 ## Grouping, auto-acknowledge and auto-resolve
@@ -53,7 +54,7 @@ To customize this behaviour, consider modifying alert templates in integration s
 
 ## Configuring Grafana OnCall to send data to Jira
 
-Grafana OnCall can automatically create and resolve issues in Jira via [outgoing webhooks]({{< relref "_index.md" >}}).
+Grafana OnCall can automatically create and resolve issues in Jira via [outgoing webhooks][outgoing-webhooks].
 This guide provides example webhook configurations for common use cases, as well as information on how to set up a user in Jira to be used by Grafana OnCall.
 
 ### Prerequisites
@@ -167,7 +168,7 @@ to get the list of available transitions.
 The examples above describe how to create outgoing webhooks in Grafana OnCall that will allow to automatically create and resolve issues in Jira.
 
 Consider modifying example templates to fit your use case (e.g. to include more information on alert groups).
-Refer to [outgoing webhooks documentation]({{< relref "_index.md" >}}) for more information on available template variables and webhook configuration.
+Refer to [outgoing webhooks documentation][outgoing-webhooks] for more information on available template variables and webhook configuration.
 
 For more information on Jira REST API, refer to [Jira REST API documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues).
 
