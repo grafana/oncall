@@ -28,7 +28,7 @@ ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
 
 def _trigger_alert(
     organization: Organization,
-    team: Team,
+    team: Team | None,
     title: str,
     message: str,
     from_user: User,
@@ -133,7 +133,7 @@ def check_user_availability(user: User) -> list[dict[str, Any]]:
 
 def direct_paging(
     organization: Organization,
-    team: Team,
+    team: Team | None,
     from_user: User,
     title: str = None,
     message: str = None,
