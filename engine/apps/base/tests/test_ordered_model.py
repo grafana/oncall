@@ -4,7 +4,7 @@ import threading
 import pytest
 from django.db import models
 
-from apps.base.models.ordered_model import OrderedModel
+from common.ordered_model import OrderedModel
 
 
 class TestOrderedModel(OrderedModel):

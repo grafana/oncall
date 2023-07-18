@@ -14,6 +14,7 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicyUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -114,7 +115,10 @@ class EscalationPolicyView(
         position = get_move_to_position_param(request)
 
         prev_state = instance.insight_logs_serialized
-        instance.to(position)
+        try:
+            instance.to_index(position)
+        except IndexError:
+            raise BadRequest(detail="Invalid position")
         new_state = instance.insight_logs_serialized
 
         write_resource_insight_log(
