@@ -154,7 +154,7 @@ def test_create_escalation_policy_manual_order_duplicated_position(
     escalation_policies_setup,
 ):
     organization, user, token = make_organization_and_user_with_token()
-    escalation_chain, _, _ = escalation_policies_setup(organization, user)
+    escalation_chain, escalation_policies, _ = escalation_policies_setup(organization, user)
 
     data_for_create = {
         "escalation_chain_id": escalation_chain.public_primary_key,
@@ -168,7 +168,14 @@ def test_create_escalation_policy_manual_order_duplicated_position(
     url = reverse("api-public:escalation_policies-list")
     response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["position"] == 0
+
+    for escalation_policy in escalation_policies:
+        escalation_policy.refresh_from_db()
+
+    orders = [escalation_policy.order for escalation_policy in escalation_policies]
+    assert orders == [1, 2, 3]  # Check that neighboring steps were reordered
 
 
 @pytest.mark.django_db
@@ -265,4 +272,10 @@ def test_update_escalation_policy_manual_order_duplicated_position(
     data_to_change = {"position": 0, "manual_order": True}
     response = client.put(url, data=data_to_change, format="json", HTTP_AUTHORIZATION=token)
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_200_OK
+
+    for escalation_policy in escalation_policies:
+        escalation_policy.refresh_from_db()
+
+    orders = [escalation_policy.order for escalation_policy in escalation_policies]
+    assert orders == [1, 0, 2]  # Check that neighboring steps were reordered

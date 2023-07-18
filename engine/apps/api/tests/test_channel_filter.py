@@ -269,7 +269,7 @@ def test_move_to_position(
     url = reverse(
         "api-internal:channel_filter-move-to-position", kwargs={"pk": first_channel_filter.public_primary_key}
     )
-    url += f"?position=2"
+    url += f"?position=1"
     response = client.put(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
@@ -277,6 +277,30 @@ def test_move_to_position(
     second_channel_filter.refresh_from_db()
     assert first_channel_filter.order == 2
     assert second_channel_filter.order == 1
+
+
+@pytest.mark.django_db
+def test_move_to_position_invalid_index(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    # create default channel filter
+    make_channel_filter(alert_receive_channel, is_default=True, order=0)
+    first_channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False, order=1)
+    make_channel_filter(alert_receive_channel, filtering_term="b", is_default=False, order=2)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:channel_filter-move-to-position", kwargs={"pk": first_channel_filter.public_primary_key}
+    )
+    url += f"?position=2"
+    response = client.put(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db

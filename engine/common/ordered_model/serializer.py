@@ -49,8 +49,9 @@ class OrderedModelSerializer(serializers.ModelSerializer):
             # max_order() can't be None here because at least one instance exists – the one we are moving.
             assert order is not None
 
-        # Negative order is not allowed.
-        if order < 0:
+        # Check the order is in the valid range.
+        # https://docs.djangoproject.com/en/4.1/ref/models/fields/#positiveintegerfield
+        if order < 0 or order > 2147483647:
             raise BadRequest(detail="Invalid value for position field")
 
         # Orders are swapped instead of moved when using Terraform, because Terraform may issue concurrent requests

@@ -107,7 +107,7 @@ def test_move_to_position(escalation_policy_internal_api_setup, make_user_auth_h
     token, _, escalation_policy, user, _ = escalation_policy_internal_api_setup
     client = APIClient()
 
-    position_to_move = 1
+    position_to_move = 0
     url = reverse(
         "api-internal:escalation_policy-move-to-position", kwargs={"pk": escalation_policy.public_primary_key}
     )
@@ -117,6 +117,22 @@ def test_move_to_position(escalation_policy_internal_api_setup, make_user_auth_h
     escalation_policy.refresh_from_db()
     assert response.status_code == status.HTTP_200_OK
     assert escalation_policy.order == position_to_move
+
+
+@pytest.mark.django_db
+def test_move_to_position_invalid_index(escalation_policy_internal_api_setup, make_user_auth_headers):
+    token, _, escalation_policy, user, _ = escalation_policy_internal_api_setup
+    client = APIClient()
+
+    position_to_move = 1
+    url = reverse(
+        "api-internal:escalation_policy-move-to-position", kwargs={"pk": escalation_policy.public_primary_key}
+    )
+    response = client.put(
+        f"{url}?position={position_to_move}", content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    escalation_policy.refresh_from_db()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
