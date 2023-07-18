@@ -546,7 +546,14 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
         return
     collected_channels_key = f"SLACK_CHANNELS_TEAM_{slack_team_identity_id}"
     collected_channels = cache.get(collected_channels_key, set())
-
+    if cursor and not collected_channels:
+        # means the task was restarted after rate limit exception but collected channels were lost
+        logger.warning(
+            f"Restart slack channel sync for SlackTeamIdentity pk: {slack_team_identity_id} due to empty "
+            f"'collected_channels' after rate limit"
+        )
+        delay = 60
+        return start_populate_slack_channels_for_team(slack_team_identity_id, delay)
     try:
         response, cursor, rate_limited = sc.paginated_api_call_with_ratelimit(
             "conversations.list",
@@ -608,7 +615,7 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
         )
         if rate_limited:
             # save collected channels ids to cache and restart the task with the current pagination cursor
-            cache.set(collected_channels_key, collected_channels)
+            cache.set(collected_channels_key, collected_channels, timeout=3600)
             delay = random.randint(1, 3) * 60
             logger.warning(
                 f"'conversations.list' slack api error: rate_limited. SlackTeamIdentity pk: {slack_team_identity_id}. "
