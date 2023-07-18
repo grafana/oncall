@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fixed Slack channels sync by @Ferril ([#2571](https://github.com/grafana/oncall/pull/2571))
+
 ### Changed
 
 - Deprecate `AlertGroup.is_archived` column. Column will be removed in a subsequent release. By @joeyorlando ([#2524](https://github.com/grafana/oncall/pull/2524)).
