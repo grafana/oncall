@@ -34,7 +34,7 @@ def fix_duplicate_orders(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0023_auto_20230718_0953'),
+        ('alerts', '0024_auto_20230718_0953'),
     ]
 
     operations = [

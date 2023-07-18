@@ -32,7 +32,7 @@ def fix_duplicate_orders(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('alerts', '0022_alter_alertgroup_manual_severity'),
+        ('alerts', '0023_auto_20230718_0952'),
     ]
 
     operations = [
