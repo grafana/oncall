@@ -40,7 +40,8 @@ class OrderedModelSerializer(serializers.ModelSerializer):
     @staticmethod
     def _adjust_order(instance, manual_order, order, created):
         # Passing order=-1 means that the policy should be moved to the end of the list.
-        if order == -1:
+        # Works only for public API but not for Terraform provider.
+        if order == -1 and not manual_order:
             if created:
                 # The policy was just created, so it is already at the end of the list.
                 return
