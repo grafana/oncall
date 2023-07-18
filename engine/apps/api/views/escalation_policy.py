@@ -1,10 +1,8 @@
 from django.conf import settings
 from django.db.models import Q
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import RBACPermission
@@ -13,20 +11,23 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicySerializer,
     EscalationPolicyUpdateSerializer,
 )
+from apps.api.views.ordered_model import OrderedModelViewSet
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
-from common.api_helpers.serializers import get_move_to_position_param
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class EscalationPolicyView(
-    TeamFilteringMixin, PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+    TeamFilteringMixin,
+    PublicPrimaryKeyMixin,
+    CreateSerializerMixin,
+    UpdateSerializerMixin,
+    OrderedModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
@@ -108,28 +109,6 @@ class EscalationPolicyView(
             event=EntityEvent.DELETED,
         )
         instance.delete()
-
-    @action(detail=True, methods=["put"])
-    def move_to_position(self, request, pk):
-        instance = self.get_object()
-        position = get_move_to_position_param(request)
-
-        prev_state = instance.insight_logs_serialized
-        try:
-            instance.to_index(position)
-        except IndexError:
-            raise BadRequest(detail="Invalid position")
-        new_state = instance.insight_logs_serialized
-
-        write_resource_insight_log(
-            instance=instance,
-            author=self.request.user,
-            event=EntityEvent.UPDATED,
-            prev_state=prev_state,
-            new_state=new_state,
-        )
-
-        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):

@@ -3,7 +3,6 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import ChannelFilter
 from apps.api.permissions import RBACPermission
@@ -12,6 +11,7 @@ from apps.api.serializers.channel_filter import (
     ChannelFilterSerializer,
     ChannelFilterUpdateSerializer,
 )
+from apps.api.views.ordered_model import OrderedModelViewSet
 from apps.auth_token.auth import PluginAuthentication
 from apps.slack.models import SlackChannel
 from common.api_helpers.exceptions import BadRequest
@@ -21,12 +21,15 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
-from common.api_helpers.serializers import get_move_to_position_param
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class ChannelFilterView(
-    TeamFilteringMixin, PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+    TeamFilteringMixin,
+    PublicPrimaryKeyMixin,
+    CreateSerializerMixin,
+    UpdateSerializerMixin,
+    OrderedModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
@@ -109,24 +112,10 @@ class ChannelFilterView(
     @action(detail=True, methods=["put"])
     def move_to_position(self, request, pk):
         instance = self.get_object()
-        position = get_move_to_position_param(request)
-
         if instance.is_default:
             raise BadRequest(detail="Unable to change position for default filter")
 
-        prev_state = instance.insight_logs_serialized
-        instance.to(position)
-        new_state = instance.insight_logs_serialized
-
-        write_resource_insight_log(
-            instance=instance,
-            author=self.request.user,
-            event=EntityEvent.UPDATED,
-            prev_state=prev_state,
-            new_state=new_state,
-        )
-
-        return Response(status=status.HTTP_200_OK)
+        return super().move_to_position(request, pk)
 
     @action(detail=True, methods=["post"])
     def convert_from_regex_to_jinja2(self, request, pk):

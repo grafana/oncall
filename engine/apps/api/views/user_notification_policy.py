@@ -1,16 +1,15 @@
 from django.conf import settings
 from django.http import Http404
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import IsOwnerOrHasRBACPermissions, RBACPermission
 from apps.api.serializers.user_notification_policy import (
     UserNotificationPolicySerializer,
     UserNotificationPolicyUpdateSerializer,
 )
+from apps.api.views.ordered_model import OrderedModelViewSet
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
@@ -19,12 +18,11 @@ from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
-from common.api_helpers.serializers import get_move_to_position_param
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
+class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
@@ -137,18 +135,6 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
             prev_state=prev_state,
             new_state=new_state,
         )
-
-    @action(detail=True, methods=["put"])
-    def move_to_position(self, request, pk):
-        instance = self.get_object()
-        position = get_move_to_position_param(request)
-
-        try:
-            instance.to_index(position)
-        except IndexError:
-            raise BadRequest(detail="Invalid position")
-
-        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def delay_options(self, request):
