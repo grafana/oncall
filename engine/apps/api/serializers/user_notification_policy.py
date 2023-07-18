@@ -33,8 +33,7 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
 
     class Meta:
         model = UserNotificationPolicy
-        fields = ["id", "step", "order", "notify_by", "wait_delay", "important", "user"]
-        read_only_fields = ["order"]
+        fields = ["id", "step", "notify_by", "wait_delay", "important", "user"]
 
     def to_internal_value(self, data):
         if data.get("wait_delay", None):
@@ -100,7 +99,7 @@ class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerialize
     )
 
     class Meta(UserNotificationPolicyBaseSerializer.Meta):
-        read_only_fields = ["order", "user", "important"]
+        read_only_fields = ["user", "important"]
 
     def update(self, instance, validated_data):
         self_or_admin = instance.user.self_or_admin(

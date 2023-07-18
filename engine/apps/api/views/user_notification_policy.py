@@ -76,9 +76,7 @@ class UserNotificationPolicyView(UpdateSerializerMixin, OrderedModelViewSet):
 
             queryset = self.model.objects.filter(user=target_user, important=important)
 
-        queryset = self.serializer_class.setup_eager_loading(queryset)
-
-        return queryset.order_by("order")
+        return self.serializer_class.setup_eager_loading(queryset)
 
     def get_object(self):
         # we need overriden get object, because original one call get_queryset first and raise 404 trying to access
