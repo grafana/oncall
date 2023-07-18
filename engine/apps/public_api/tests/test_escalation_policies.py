@@ -204,7 +204,7 @@ def test_create_escalation_policy_no_manual_order_duplicated_position(
         escalation_policy.refresh_from_db()
 
     orders = [escalation_policy.order for escalation_policy in escalation_policies]
-    assert orders == [1, 2, 3]  # Check policies are moved down manual_order is True
+    assert orders == [1, 2, 3]  # Check policies are moved down manual_order is False
 
 
 @pytest.mark.django_db
