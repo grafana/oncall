@@ -16,6 +16,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django_deprecate_fields import deprecate_field
 
 from apps.alerts.constants import AlertGroupState
 from apps.alerts.escalation_snapshot import EscalationSnapshotMixin
@@ -314,9 +315,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         (SEVERITY_LOW, "low"),
         (SEVERITY_NONE, "none"),
     )
-    manual_severity = models.IntegerField(choices=SEVERITY_CHOICES, default=SEVERITY_NONE)
+    manual_severity = deprecate_field(models.IntegerField(choices=SEVERITY_CHOICES, default=SEVERITY_NONE))
 
-    resolution_note_ts = models.CharField(max_length=100, null=True, default=None)
+    resolution_note_ts = deprecate_field(models.CharField(max_length=100, null=True, default=None))
 
     root_alert_group = models.ForeignKey(
         "alerts.AlertGroup",
