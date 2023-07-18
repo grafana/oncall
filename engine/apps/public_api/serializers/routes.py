@@ -4,14 +4,14 @@ from rest_framework import fields, serializers
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
 from apps.api.serializers.alert_receive_channel import valid_jinja_template_for_serializer_method_field
 from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
+from apps.public_api.serializers.ordered_model import OrderedModelSerializer
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import OrderedModelSerializerMixin
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.utils import is_regex_valid
 
 
-class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSerializer):
+class BaseChannelFilterSerializer(OrderedModelSerializer):
     """Base Channel Filter serializer with validation methods"""
 
     def __init__(self, *args, **kwargs):
@@ -148,7 +148,6 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     telegram = serializers.DictField(required=False)
     routing_type = RoutingTypeField(allow_null=False, required=False, source="filtering_term_type")
     routing_regex = serializers.CharField(allow_null=False, required=True, source="filtering_term")
-    position = serializers.IntegerField(required=False, source="order")
     integration_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=AlertReceiveChannel.objects, source="alert_receive_channel"
     )
@@ -159,7 +158,6 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     )
 
     is_the_last_route = serializers.BooleanField(read_only=True, source="is_default")
-    manual_order = serializers.BooleanField(default=False, write_only=True)
 
     class Meta:
         model = ChannelFilter
@@ -169,29 +167,12 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
             "escalation_chain_id",
             "routing_type",
             "routing_regex",
-            "position",
             "is_the_last_route",
             "slack",
             "telegram",
-            "manual_order",
         ]
+        fields += ["position", "manual_order"]  # fields from OrderedModelSerializer
         read_only_fields = ["is_the_last_route"]
-
-    def create(self, validated_data):
-        validated_data = self._correct_validated_data(validated_data)
-        manual_order = validated_data.pop("manual_order")
-        if manual_order:
-            self._validate_manual_order(validated_data.get("order", None))
-            instance = super().create(validated_data)
-        else:
-            order = validated_data.pop("order", None)
-            alert_receive_channel_id = validated_data.get("alert_receive_channel")
-            # validate 'order' value before creation
-            self._validate_order(order, {"alert_receive_channel_id": alert_receive_channel_id, "is_default": False})
-            instance = super().create(validated_data)
-            self._change_position(order, instance)
-
-        return instance
 
     def validate(self, data):
         filtering_term = data.get("routing_regex")
@@ -224,18 +205,6 @@ class ChannelFilterUpdateSerializer(ChannelFilterSerializer):
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(validated_data)
-
-        manual_order = validated_data.pop("manual_order")
-        if manual_order:
-            self._validate_manual_order(validated_data.get("order", None))
-        else:
-            order = validated_data.pop("order", None)
-            self._validate_order(
-                order,
-                {"alert_receive_channel_id": instance.alert_receive_channel_id, "is_default": instance.is_default},
-            )
-            self._change_position(order, instance)
-
         if validated_data.get("notification_backends"):
             validated_data["notification_backends"] = self._update_notification_backends(
                 validated_data["notification_backends"]
