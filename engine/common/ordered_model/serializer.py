@@ -15,7 +15,7 @@ class OrderedModelSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Remove "manual_order" and "order" fields from validated_data, so they are not passed to create method.
-        manual_order = validated_data.pop("manual_order")
+        manual_order = validated_data.pop("manual_order", False)
         order = validated_data.pop("order", None)
 
         # Create the instance.
@@ -30,7 +30,7 @@ class OrderedModelSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # Remove "manual_order" and "order" fields from validated_data, so they are not passed to update method.
-        manual_order = validated_data.pop("manual_order")
+        manual_order = validated_data.pop("manual_order", False)
         order = validated_data.pop("order", None)
 
         # Adjust order of the instance if necessary.
