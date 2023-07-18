@@ -800,10 +800,11 @@ def test_create_integration_default_route(
 
 @pytest.mark.django_db
 def test_update_integration_default_route(
-    make_organization_and_user_with_token, make_escalation_chain, make_alert_receive_channel
+    make_organization_and_user_with_token, make_escalation_chain, make_alert_receive_channel, make_channel_filter
 ):
     organization, _, token = make_organization_and_user_with_token()
     integration = make_alert_receive_channel(organization)
+    make_channel_filter(integration, is_default=True)
     escalation_chain = make_escalation_chain(organization)
 
     client = APIClient()
