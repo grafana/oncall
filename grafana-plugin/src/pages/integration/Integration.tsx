@@ -1042,7 +1042,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       if (item?.integration === 'direct_paging') {
         return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
       } else {
-        return item.demo_alert_enabled && <Text type={'primary'}>; try to send a demo alert</Text>;
+        return item.demo_alert_enabled && <Text type={'primary'}>try to send a demo alert</Text>;
       }
     };
 
