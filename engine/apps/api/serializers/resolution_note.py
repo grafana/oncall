@@ -11,7 +11,7 @@ class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     alert_group = OrganizationFilteredPrimaryKeyRelatedField(
         filter_field="channel__organization",
-        queryset=AlertGroup.unarchived_objects,
+        queryset=AlertGroup.objects,
     )
     text = serializers.CharField(allow_null=False, source="message_text")
     author = FastUserSerializer(read_only=True)

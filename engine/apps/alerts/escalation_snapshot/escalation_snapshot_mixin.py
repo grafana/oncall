@@ -256,7 +256,7 @@ class EscalationSnapshotMixin:
         )
         task_id = celery_uuid()
 
-        AlertGroup.all_objects.filter(pk=self.pk,).update(
+        AlertGroup.objects.filter(pk=self.pk,).update(
             active_escalation_id=task_id,
             is_escalation_finished=False,
             raw_escalation_snapshot=raw_escalation_snapshot,

@@ -48,7 +48,7 @@ def update_incident_slack_message(slack_team_identity_pk, alert_group_pk):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
     if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:
         return "Skip message update in Slack due to rate limit"
@@ -73,7 +73,7 @@ def check_slack_message_exists_before_post_message_to_thread(
     AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
     EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
 
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     slack_team_identity = alert_group.channel.organization.slack_team_identity
     # get escalation policy object if it exists to save it in log record
     escalation_policy = EscalationPolicy.objects.filter(pk=escalation_policy_pk).first()
@@ -144,7 +144,7 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
     sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
 
@@ -268,7 +268,7 @@ def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_p
     UpdateLogReportMessageStep = ScenarioStep.get_step("distribute_alerts", "UpdateLogReportMessageStep")
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     step = UpdateLogReportMessageStep(slack_team_identity, alert_group.channel.organization)
 
     if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:

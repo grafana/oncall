@@ -87,7 +87,7 @@ def send_link_to_channel_message_or_fallback_to_full_alert_group(
 
     try:
         user_connector = TelegramToUserConnector.objects.get(pk=user_connector_pk)
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
         notification_policy = UserNotificationPolicy.objects.get(pk=notification_policy_pk)
 
         # probably telegram message just didn't appear in Telegram channel yet
