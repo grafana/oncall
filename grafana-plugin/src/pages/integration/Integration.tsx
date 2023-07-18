@@ -823,7 +823,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                  <div className={cx('integration__actionItem')} onClick={() => setIsHeartbeatFormOpen(true)}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={() => setIsHeartbeatFormOpen(true)}
+                    data-testid="integration-heartbeat-settings"
+                  >
                     Heartbeat Settings
                   </div>
                 </WithPermissionControlTooltip>
