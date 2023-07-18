@@ -6,6 +6,7 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.slack.scenarios.manage_responders import ManageRespondersUserChange
 from apps.slack.scenarios.paging import OnPagingTeamChange
 from apps.slack.scenarios.scenario_step import PAYLOAD_TYPE_BLOCK_ACTIONS
 
@@ -164,3 +165,35 @@ def test_organization_not_found_scenario_doesnt_break_direct_paging(
 
     assert response.status_code == status.HTTP_200_OK
     mock_on_paging_team_change.assert_called_once()
+
+
+@patch("apps.slack.views.SlackEventApiEndpointView.verify_signature", return_value=True)
+@patch.object(ManageRespondersUserChange, "process_scenario")
+@pytest.mark.django_db
+def test_organization_not_found_scenario_doesnt_break_manage_responders(
+    mock_process_scenario,
+    _,
+    make_organization,
+    make_slack_user_identity,
+    make_user,
+    slack_team_identity,
+):
+    """
+    Check ManageRespondersUserChange.process_scenario is called when user is notified in manage responders dialog.
+    """
+    organization = make_organization(slack_team_identity=slack_team_identity)
+    slack_user_identity = make_slack_user_identity(slack_team_identity=slack_team_identity, slack_id=SLACK_USER_ID)
+    make_user(organization=organization, slack_user_identity=slack_user_identity)
+
+    response = _make_request(
+        {
+            "team_id": SLACK_TEAM_ID,
+            "user_id": SLACK_USER_ID,
+            "type": "block_actions",
+            "actions": [{"action_id": ManageRespondersUserChange.routing_uid(), "type": "static_select"}],
+            "view": {"type": "modal"},
+        }
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_process_scenario.assert_called_once()

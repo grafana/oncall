@@ -1,8 +1,12 @@
+import logging
+
 from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.signals import alert_group_update_resolution_note_signal
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+
+logger = logging.getLogger(__name__)
 
 
 @shared_dedicated_queue_retry_task(
@@ -13,9 +17,9 @@ def send_update_resolution_note_signal(alert_group_pk, resolution_note_pk):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     ResolutionNote = apps.get_model("alerts", "ResolutionNote")
 
-    alert_group = AlertGroup.unarchived_objects.filter(pk=alert_group_pk).first()
+    alert_group = AlertGroup.objects.filter(pk=alert_group_pk).first()
     if alert_group is None:
-        print("Sent signal to update resolution note, but alert group is archived or does not exist")
+        logger.info("Sent signal to update resolution note, but alert group does not exist")
         return
 
     resolution_note = ResolutionNote.objects_with_deleted.get(pk=resolution_note_pk)

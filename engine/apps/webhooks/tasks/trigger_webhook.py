@@ -177,7 +177,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
         ).select_related("author")
         alert_group = (
-            AlertGroup.unarchived_objects.prefetch_related(
+            AlertGroup.objects.prefetch_related(
                 Prefetch("personal_log_records", queryset=personal_log_records, to_attr="sent_notifications")
             )
             .select_related("channel")
