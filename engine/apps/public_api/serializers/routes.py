@@ -161,7 +161,7 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
 
     class Meta:
         model = ChannelFilter
-        fields = [
+        fields = OrderedModelSerializer.Meta.fields + [
             "id",
             "integration_id",
             "escalation_chain_id",
@@ -171,7 +171,6 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
             "slack",
             "telegram",
         ]
-        fields += ["position", "manual_order"]  # fields from OrderedModelSerializer
         read_only_fields = ["is_the_last_route"]
 
     def create(self, validated_data):

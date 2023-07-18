@@ -29,8 +29,7 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, OrderedModelSerializ
 
     class Meta:
         model = UserNotificationPolicy
-        fields = ["id", "user_id", "type", "duration", "important"]
-        fields += ["position", "manual_order"]  # fields from OrderedModelSerializer
+        fields = OrderedModelSerializer.Meta.fields + ["id", "user_id", "type", "duration", "important"]
 
     def create(self, validated_data):
         if "type" not in validated_data:

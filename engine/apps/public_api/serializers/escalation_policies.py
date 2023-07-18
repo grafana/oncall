@@ -73,7 +73,7 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
 
     class Meta:
         model = EscalationPolicy
-        fields = [
+        fields = OrderedModelSerializer.Meta.fields + [
             "id",
             "escalation_chain_id",
             "type",
@@ -89,7 +89,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
             "num_alerts_in_window",
             "num_minutes_in_window",
         ]
-        fields += ["position", "manual_order"]  # fields from OrderedModelSerializer
 
     PREFETCH_RELATED = ["notify_to_users_queue"]
     SELECT_RELATED = ["escalation_chain"]

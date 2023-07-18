@@ -10,6 +10,9 @@ class OrderedModelSerializer(serializers.ModelSerializer):
     # manual_order=True is intended for use by Terraform provider only, and is not a documented feature.
     manual_order = serializers.BooleanField(default=False, write_only=True)
 
+    class Meta:
+        fields = ["position", "manual_order"]
+
     def create(self, validated_data):
         # Remove "manual_order" and "order" fields from validated_data, so they are not passed to create method.
         manual_order = validated_data.pop("manual_order")
