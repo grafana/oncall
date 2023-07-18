@@ -2,8 +2,33 @@
 
 from django.db import migrations, models
 import django_migration_linter as linter
+from django.db.models import Count
 
-# TODO: fix duplicates
+from common.database import get_random_readonly_database_key_if_present_otherwise_default
+
+
+def fix_duplicate_orders(apps, schema_editor):
+    ChannelFilter = apps.get_model('alerts', 'ChannelFilter')
+
+    # it should be safe to use a readonly database because duplicates are pretty infrequent
+    db = get_random_readonly_database_key_if_present_otherwise_default()
+
+    # find all (alert_receive_channel_id, is_default, order) tuples that have more than one entry (meaning duplicates)
+    items_with_duplicate_orders = ChannelFilter.objects.using(db).values(
+        "alert_receive_channel_id", "is_default", "order"
+    ).annotate(count=Count("order")).order_by().filter(count__gt=1)  # use order_by() to reset any existing ordering
+
+    # make sure we don't fix the same (alert_receive_channel_id, is_default) pair more than once
+    values_to_fix = set((item["alert_receive_channel_id"], item["is_default"]) for item in items_with_duplicate_orders)
+
+    for alert_receive_channel_id, is_default in values_to_fix:
+        channel_filters = ChannelFilter.objects.filter(
+            alert_receive_channel_id=alert_receive_channel_id, is_default=is_default
+        ).order_by("order", "id")
+        # assign correct sequential order for each route starting from 0
+        for idx, channel_filter in enumerate(channel_filters):
+            channel_filter.order = idx
+        ChannelFilter.objects.bulk_update(channel_filters, fields=["order"])
 
 
 class Migration(migrations.Migration):
@@ -23,6 +48,7 @@ class Migration(migrations.Migration):
             name='order',
             field=models.PositiveIntegerField(db_index=True, editable=False, null=True),
         ),
+        migrations.RunPython(fix_duplicate_orders, migrations.RunPython.noop),
         migrations.AddConstraint(
             model_name='channelfilter',
             constraint=models.UniqueConstraint(fields=('alert_receive_channel_id', 'is_default', 'order'), name='unique_channel_filter_order'),
