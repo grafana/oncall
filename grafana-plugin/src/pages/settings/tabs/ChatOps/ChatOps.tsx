@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { HorizontalGroup, Icon } from '@grafana/ui';
+import { Alert, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -9,6 +9,7 @@ import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/Vertica
 import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
+import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -21,7 +22,7 @@ export enum ChatOpsTab {
   Slack = 'Slack',
   Telegram = 'Telegram',
 }
-interface ChatOpsProps extends AppRootProps {}
+interface ChatOpsProps extends AppRootProps, WithStoreProps {}
 interface ChatOpsState {
   activeTab: ChatOpsTab;
 }
@@ -44,9 +45,17 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   render() {
     const { activeTab } = this.state;
+    const { store } = this.props;
 
     return (
       <div className={cx('root')}>
+        {!store.hasFeature(AppFeature.Slack) && !store.hasFeature(AppFeature.Telegram) && (
+          <div>
+            <Alert severity="warning" title="No chatops found">
+              Chatops is disabled because no chat integration is configured. Please check docs for open source!
+            </Alert>
+          </div>
+        )}
         <div className={cx('tabs')}>
           <Tabs activeTab={activeTab} onTabChange={(tab: ChatOpsTab) => this.handleChatopsTabChange(tab)} />
         </div>
@@ -105,6 +114,9 @@ const TabsContent = (props: TabsContentProps) => {
   const { activeTab } = props;
   const store = useStore();
 
+  console.log('FEATURES', store.features);
+  console.log('HAS SLACK', store.hasFeature(AppFeature.Slack));
+  console.log('HAS TELEGRAM', store.hasFeature(AppFeature.Telegram));
   return (
     <>
       {store.hasFeature(AppFeature.Slack) && activeTab === ChatOpsTab.Slack && (
