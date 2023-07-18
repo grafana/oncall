@@ -64,7 +64,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         alert_group_pk = private_metadata["alert_group_pk"]
 
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
         attachments = alert_group.render_slack_attachments()
         blocks = alert_group.render_slack_blocks()

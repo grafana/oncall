@@ -65,7 +65,7 @@ class ButtonPressHandler(UpdateHandler):
         args = CallbackQueryFactory.decode_data(data)
 
         alert_group_pk = args[0]
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
         action_value = args[1]
         try:

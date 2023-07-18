@@ -30,7 +30,7 @@ ACTION_TO_TRIGGER_TYPE = {
 )
 def alert_group_created(self, alert_group_id):
     try:
-        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+        alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:
         return
 
@@ -50,7 +50,7 @@ def alert_group_created(self, alert_group_id):
 )
 def alert_group_status_change(self, action_type, alert_group_id, user_id):
     try:
-        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+        alert_group = AlertGroup.objects.get(pk=alert_group_id)
     except AlertGroup.DoesNotExist:
         return
 

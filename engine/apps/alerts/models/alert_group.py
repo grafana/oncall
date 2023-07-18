@@ -47,7 +47,7 @@ def generate_public_primary_key_for_alert_group():
     new_public_primary_key = generate_public_primary_key(prefix)
 
     failure_counter = 0
-    while AlertGroup.all_objects.filter(public_primary_key=new_public_primary_key).exists():
+    while AlertGroup.objects.filter(public_primary_key=new_public_primary_key).exists():
         new_public_primary_key = increase_public_primary_key_length(
             failure_counter=failure_counter, prefix=prefix, model_name="AlertGroup"
         )
@@ -111,11 +111,6 @@ class AlertGroupQuerySet(models.QuerySet):
             raise
 
 
-class UnarchivedAlertGroupQuerySet(models.QuerySet):
-    def filter(self, *args, **kwargs):
-        return super().filter(*args, **kwargs, is_archived=False)
-
-
 class AlertGroupSlackRenderingMixin:
     """
     Ideally this mixin should not exist. Instead of this instance of AlertGroupSlackRenderer should be created and used
@@ -140,8 +135,7 @@ class AlertGroupSlackRenderingMixin:
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
     log_records: "RelatedManager['AlertGroupLogRecord']"
 
-    all_objects = AlertGroupQuerySet.as_manager()
-    unarchived_objects = UnarchivedAlertGroupQuerySet.as_manager()
+    objects = AlertGroupQuerySet.as_manager()
 
     (
         NEW,
@@ -330,7 +324,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # NOTE: we should probably migrate this field to models.UUIDField as it's ONLY ever being
     # set to the result of uuid.uuid1
     last_unique_unacknowledge_process_id: UUID | None = models.CharField(max_length=100, null=True, default=None)
-    is_archived = models.BooleanField(default=False)
+    is_archived = deprecate_field(models.BooleanField(default=False))
 
     wiped_at = models.DateTimeField(null=True, default=None)
     wiped_by = models.ForeignKey(
@@ -414,9 +408,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "is_open_for_grouping",
         ]
         indexes = [
-            models.Index(
-                fields=["channel_id", "resolved", "acknowledged", "silenced", "root_alert_group_id", "is_archived"]
-            ),
+            models.Index(fields=["channel_id", "resolved", "acknowledged", "silenced", "root_alert_group_id"]),
         ]
 
     def __str__(self):
@@ -1185,7 +1177,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "is_escalation_finished",
             "response_time",
         ]
-        AlertGroup.all_objects.bulk_update(alert_groups_to_acknowledge_list, fields=fields_to_update, batch_size=100)
+        AlertGroup.objects.bulk_update(alert_groups_to_acknowledge_list, fields=fields_to_update, batch_size=100)
 
         for alert_group in alert_groups_to_unresolve_before_acknowledge_list:
             alert_group.log_records.create(
@@ -1226,9 +1218,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         # Find all dependent alert_groups to update them in one query
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_to_acknowledge.values_list("pk", flat=True))
-        dependent_alert_groups_to_acknowledge = AlertGroup.unarchived_objects.filter(
-            root_alert_group__pk__in=root_alert_group_pks
-        )
+        dependent_alert_groups_to_acknowledge = AlertGroup.objects.filter(root_alert_group__pk__in=root_alert_group_pks)
         with transaction.atomic():
             AlertGroup._bulk_acknowledge(user, root_alert_groups_to_acknowledge)
             AlertGroup._bulk_acknowledge(user, dependent_alert_groups_to_acknowledge)
@@ -1273,7 +1263,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "is_escalation_finished",
             "response_time",
         ]
-        AlertGroup.all_objects.bulk_update(alert_groups_to_resolve_list, fields=fields_to_update, batch_size=100)
+        AlertGroup.objects.bulk_update(alert_groups_to_resolve_list, fields=fields_to_update, batch_size=100)
 
         for alert_group in alert_groups_to_unsilence_before_resolve_list:
             alert_group.log_records.create(
@@ -1315,7 +1305,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             )
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_to_resolve.values_list("pk", flat=True))
-        dependent_alert_groups_to_resolve = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
+        dependent_alert_groups_to_resolve = AlertGroup.objects.filter(root_alert_group__pk__in=root_alert_group_pks)
         with transaction.atomic():
             AlertGroup._bulk_resolve(user, root_alert_groups_to_resolve)
             AlertGroup._bulk_resolve(user, dependent_alert_groups_to_resolve)
@@ -1455,7 +1445,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         )
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_unack.values_list("pk", flat=True))
-        dependent_alert_groups_unack = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
+        dependent_alert_groups_unack = AlertGroup.objects.filter(root_alert_group__pk__in=root_alert_group_pks)
         with transaction.atomic():
             AlertGroup._bulk_restart_unack(user, root_alert_groups_unack)
             AlertGroup._bulk_restart_unack(user, dependent_alert_groups_unack)
@@ -1463,7 +1453,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         root_alert_groups_unresolve = alert_groups.filter(resolved=True, root_alert_group__isnull=True)
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_unresolve.values_list("pk", flat=True))
-        dependent_alert_groups_unresolve = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
+        dependent_alert_groups_unresolve = AlertGroup.objects.filter(root_alert_group__pk__in=root_alert_group_pks)
         with transaction.atomic():
             AlertGroup._bulk_restart_unresolve(user, root_alert_groups_unresolve)
             AlertGroup._bulk_restart_unresolve(user, dependent_alert_groups_unresolve)
@@ -1538,7 +1528,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "is_escalation_finished",
             "response_time",
         ]
-        AlertGroup.all_objects.bulk_update(alert_groups_to_silence_list, fields=fields_to_update, batch_size=100)
+        AlertGroup.objects.bulk_update(alert_groups_to_silence_list, fields=fields_to_update, batch_size=100)
 
         # create log records
         for alert_group in alert_groups_to_unresolve_before_silence_list:
@@ -1725,12 +1715,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             ]
         )
 
-    def archive(self):
-        if self.root_alert_group:
-            self.root_alert_group = None
-        self.is_archived = True
-        self.save(update_fields=["is_archived", "root_alert_group"])
-
     @property
     def long_verbose_name(self):
         title = str_or_backup(self.slack_templated_first_alert.title, DEFAULT_BACKUP_TITLE)
@@ -1747,8 +1731,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def get_resolve_text(self, mention_user=False):
         if self.resolved_by == AlertGroup.SOURCE:
             return "Resolved by alert source"
-        elif self.resolved_by == AlertGroup.ARCHIVED:
-            return "Resolved because alert has been archived"
         elif self.resolved_by == AlertGroup.LAST_STEP:
             return "Resolved automatically"
         elif self.resolved_by == AlertGroup.WIPED:

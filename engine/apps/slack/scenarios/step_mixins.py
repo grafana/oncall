@@ -104,7 +104,7 @@ class AlertGroupActionsMixin:
         except (KeyError, TypeError):
             return None
 
-        return AlertGroup.all_objects.get(pk=alert_group_pk)
+        return AlertGroup.objects.get(pk=alert_group_pk)
 
     def _get_alert_group_from_message(self, payload: dict) -> AlertGroup | None:
         """
@@ -134,7 +134,7 @@ class AlertGroupActionsMixin:
             except (KeyError, TypeError):
                 continue
 
-            return AlertGroup.all_objects.get(pk=alert_group_pk)
+            return AlertGroup.objects.get(pk=alert_group_pk)
         return None
 
     def _get_alert_group_from_slack_message_in_db(

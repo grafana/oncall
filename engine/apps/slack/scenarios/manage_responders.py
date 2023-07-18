@@ -229,7 +229,7 @@ def _get_selected_schedule_from_payload(payload):
 def _get_alert_group_from_payload(payload):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     alert_group_pk = json.loads(payload["view"]["private_metadata"])[ALERT_GROUP_DATA_KEY]
-    return AlertGroup.all_objects.get(pk=alert_group_pk)
+    return AlertGroup.objects.get(pk=alert_group_pk)
 
 
 STEPS_ROUTING = [
