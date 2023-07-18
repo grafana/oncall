@@ -406,7 +406,6 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       () => {
         alertReceiveChannelStore
           .createChannelFilter({
-            order: 0,
             alert_receive_channel: id,
             filtering_term: NEW_ROUTE_DEFAULT,
             filtering_term_type: 1, // non-regex
