@@ -622,8 +622,8 @@ def _get_additional_responders_blocks(
         ]
 
     if is_additional_responders_checked:
-        users_select = _get_users_select(organization, input_id_prefix)
-        schedules_select = _get_schedules_select(organization, input_id_prefix)
+        users_select = _get_users_select(organization, input_id_prefix, OnPagingUserChange.routing_uid())
+        schedules_select = _get_schedules_select(organization, input_id_prefix, OnPagingScheduleChange.routing_uid())
 
         blocks += [users_select, schedules_select]
         # selected items
@@ -639,7 +639,7 @@ def _get_additional_responders_blocks(
     return blocks
 
 
-def _get_users_select(organization, input_id_prefix):
+def _get_users_select(organization, input_id_prefix, action_id):
     users = organization.users.all()
 
     user_options = [
@@ -659,12 +659,12 @@ def _get_users_select(organization, input_id_prefix):
 
     user_select = {
         "type": "section",
-        "text": {"type": "mrkdwn", "text": "Add users"},
+        "text": {"type": "mrkdwn", "text": "Notify user"},
         "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
         "accessory": {
             "type": "static_select",
-            "placeholder": {"type": "plain_text", "text": "Select a user", "emoji": True},
-            "action_id": OnPagingUserChange.routing_uid(),
+            "placeholder": {"type": "plain_text", "text": "Select user", "emoji": True},
+            "action_id": action_id,
         },
     }
     MAX_STATIC_SELECT_OPTIONS = 100
@@ -687,7 +687,7 @@ def _get_users_select(organization, input_id_prefix):
     return user_select
 
 
-def _get_schedules_select(organization, input_id_prefix):
+def _get_schedules_select(organization, input_id_prefix, action_id):
     schedules = organization.oncall_schedules.all()
 
     schedule_options = [
@@ -706,13 +706,13 @@ def _get_schedules_select(organization, input_id_prefix):
     else:
         schedule_select = {
             "type": "section",
-            "text": {"type": "mrkdwn", "text": "Add schedules"},
+            "text": {"type": "mrkdwn", "text": "Notify schedule"},
             "block_id": input_id_prefix + DIRECT_PAGING_SCHEDULE_SELECT_ID,
             "accessory": {
                 "type": "static_select",
-                "placeholder": {"type": "plain_text", "text": "Select a schedule", "emoji": True},
+                "placeholder": {"type": "plain_text", "text": "Select schedule", "emoji": True},
                 "options": schedule_options,
-                "action_id": OnPagingScheduleChange.routing_uid(),
+                "action_id": action_id,
             },
         }
     return schedule_select
@@ -753,7 +753,25 @@ def _get_selected_entries_list(input_id_prefix, key, entries):
 
 def _display_availability_warnings(payload, warnings, organization, user):
     metadata = json.loads(payload["view"]["private_metadata"])
+    return _get_availability_warnings_view(
+        warnings,
+        organization,
+        user,
+        OnPagingConfirmUserChange.routing_uid(),
+        json.dumps(
+            {
+                "state": payload["view"]["state"],
+                "input_id_prefix": metadata["input_id_prefix"],
+                "channel_id": metadata["channel_id"],
+                "submit_routing_uid": metadata["submit_routing_uid"],
+                USERS_DATA_KEY: metadata[USERS_DATA_KEY],
+                SCHEDULES_DATA_KEY: metadata[SCHEDULES_DATA_KEY],
+            }
+        ),
+    )
 
+
+def _get_availability_warnings_view(warnings, organization, user, callback_id, private_metadata):
     messages = []
     for w in warnings:
         if w["error"] == USER_IS_NOT_ON_CALL:
@@ -772,7 +790,7 @@ def _display_availability_warnings(payload, warnings, organization, user):
 
     return {
         "type": "modal",
-        "callback_id": OnPagingConfirmUserChange.routing_uid(),
+        "callback_id": callback_id,
         "title": {"type": "plain_text", "text": "Are you sure?"},
         "submit": {"type": "plain_text", "text": "Confirm"},
         "blocks": [
@@ -785,16 +803,7 @@ def _display_availability_warnings(payload, warnings, organization, user):
             }
             for message in messages
         ],
-        "private_metadata": json.dumps(
-            {
-                "state": payload["view"]["state"],
-                "input_id_prefix": metadata["input_id_prefix"],
-                "channel_id": metadata["channel_id"],
-                "submit_routing_uid": metadata["submit_routing_uid"],
-                USERS_DATA_KEY: metadata[USERS_DATA_KEY],
-                SCHEDULES_DATA_KEY: metadata[SCHEDULES_DATA_KEY],
-            }
-        ),
+        "private_metadata": private_metadata,
     }
 
 

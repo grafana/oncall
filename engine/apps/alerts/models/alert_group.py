@@ -498,6 +498,23 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def happened_while_maintenance(self):
         return self.root_alert_group is not None and self.root_alert_group.maintenance_uuid is not None
 
+    def get_paged_users(self) -> QuerySet[User]:
+        from apps.alerts.models import AlertGroupLogRecord
+
+        users_ids = set()
+        for log_record in self.log_records.filter(
+            type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+        ):
+            # filter paging events, track still active escalations
+            info = log_record.get_step_specific_info()
+            user_id = info.get("user") if info else None
+            if user_id is not None:
+                users_ids.add(
+                    user_id
+                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else users_ids.discard(user_id)
+
+        return User.objects.filter(public_primary_key__in=users_ids)
+
     def _get_response_time(self):
         """Return response_time based on current alert group status."""
         response_time = None
