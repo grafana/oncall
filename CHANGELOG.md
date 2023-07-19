@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fix Slack direct paging issue when there are more than 100 schedules by @vadimkerr ([#2594](https://github.com/grafana/oncall/pull/2594))
+
 ## v1.3.15 (2023-07-19)
 
 ### Changed
