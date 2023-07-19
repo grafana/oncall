@@ -49,7 +49,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
     expect(heartbeatIntervalValue).toEqual(value);
   });
 
-  test.skip('"send heartbeat', async ({ adminRolePage: { page } }) => {
+  test('"send heartbeat', async ({ adminRolePage: { page } }) => {
     const integrationName = generateRandomValue();
     await createIntegration(page, integrationName);
 
