@@ -114,9 +114,6 @@ const TabsContent = (props: TabsContentProps) => {
   const { activeTab } = props;
   const store = useStore();
 
-  console.log('FEATURES', store.features);
-  console.log('HAS SLACK', store.hasFeature(AppFeature.Slack));
-  console.log('HAS TELEGRAM', store.hasFeature(AppFeature.Telegram));
   return (
     <>
       {store.hasFeature(AppFeature.Slack) && activeTab === ChatOpsTab.Slack && (
