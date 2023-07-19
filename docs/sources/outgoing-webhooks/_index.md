@@ -13,6 +13,15 @@ weight: 500
 
 # Outgoing Webhooks
 
+> ⚠️ A note about **(Legacy)** webhooks:  Webhooks that were created before version **v1.3.11** are marked as
+> **(Legacy)**.  Do not worry! It is still connected to any escalation chains and will continue to execute as it
+> always has.
+> <br/><br/>
+> The **(Legacy)** webhook is no longer editable due to changes to the internal representation. If you need to edit it
+> you must use the `Make a copy` action in the menu and make your changes there.  This will create the webhook in the
+> new format.  Be sure to change your escalation chains to point to the new copy otherwise it will not be active. The
+> **(Legacy)** webhook can then be deleted.
+
 Outgoing webhooks are used by Grafana OnCall to send data to a URL in a flexible way. These webhooks can be
 triggered from a variety of event types and make use of Jinja2 to transform data into the format required at
 the destination URL. Each outgoing webhook receives contextual data when executed which can be processed by
