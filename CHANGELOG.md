@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.15 (2023-07-19)
+
 ### Changed
 
 - Deprecate `AlertGroup.is_archived` column. Column will be removed in a subsequent release. By @joeyorlando ([#2524](https://github.com/grafana/oncall/pull/2524)).
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix duplicate orders on routes and escalation policies by @vadimkerr ([#2568](https://github.com/grafana/oncall/pull/2568))
 - Fixed Slack channels sync by @Ferril ([#2571](https://github.com/grafana/oncall/pull/2571))
+- Fixed rendering of slack connection errors ([#2526](https://github.com/grafana/oncall/pull/2526))
 
 ## v1.3.14 (2023-07-17)
 
@@ -25,10 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `PHONE_PROVIDER` configuration check by @sreway ([#2523](https://github.com/grafana/oncall/pull/2523))
 - Deprecate `/oncall` Slack command, update direct paging functionality by @vadimkerr ([#2537](https://github.com/grafana/oncall/pull/2537))
 - Change plugin version to drop the `v` prefix. ([#2540](https://github.com/grafana/oncall/pull/2540))
-
-### Fixed
-
-- Fixed rendering of slack connection errors ([#2526](https://github.com/grafana/oncall/pull/2526))
 
 ## v1.3.13 (2023-07-17)
 
