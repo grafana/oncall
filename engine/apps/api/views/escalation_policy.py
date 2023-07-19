@@ -1,10 +1,8 @@
 from django.conf import settings
 from django.db.models import Q
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import RBACPermission
@@ -20,12 +18,16 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
-from common.api_helpers.serializers import get_move_to_position_param
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.ordered_model.viewset import OrderedModelViewSet
 
 
 class EscalationPolicyView(
-    TeamFilteringMixin, PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+    TeamFilteringMixin,
+    PublicPrimaryKeyMixin,
+    CreateSerializerMixin,
+    UpdateSerializerMixin,
+    OrderedModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
@@ -107,25 +109,6 @@ class EscalationPolicyView(
             event=EntityEvent.DELETED,
         )
         instance.delete()
-
-    @action(detail=True, methods=["put"])
-    def move_to_position(self, request, pk):
-        instance = self.get_object()
-        position = get_move_to_position_param(request)
-
-        prev_state = instance.insight_logs_serialized
-        instance.to(position)
-        new_state = instance.insight_logs_serialized
-
-        write_resource_insight_log(
-            instance=instance,
-            author=self.request.user,
-            event=EntityEvent.UPDATED,
-            prev_state=prev_state,
-            new_state=new_state,
-        )
-
-        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):

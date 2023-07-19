@@ -9,7 +9,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     alert_group_id = OrganizationFilteredPrimaryKeyRelatedField(
-        queryset=AlertGroup.unarchived_objects,
+        queryset=AlertGroup.objects,
         source="alert_group",
         filter_field="channel__organization",
     )

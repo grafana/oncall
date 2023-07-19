@@ -22,7 +22,7 @@ def invite_user_to_join_incident(invitation_pk):
         except IndexError:
             return f"invite_user_to_join_incident: Invitation with pk {invitation_pk} doesn't exist"
 
-        if not invitation.is_active or invitation.alert_group.is_archived:
+        if not invitation.is_active:
             return None
         if invitation.attempts_left <= 0 or invitation.alert_group.resolved:
             invitation.is_active = False

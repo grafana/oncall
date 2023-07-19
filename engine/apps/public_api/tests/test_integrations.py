@@ -775,3 +775,45 @@ def test_get_list_integrations_link_and_inbound_email(
         else:
             assert integration_link == f"https://test.com/integrations/v1/{integration_type}/test123/"
             assert integration_inbound_email is None
+
+
+@pytest.mark.django_db
+def test_create_integration_default_route(
+    make_organization_and_user_with_token,
+    make_escalation_chain,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    data_for_create = {
+        "type": "grafana",
+        "name": "grafana_created",
+        "team_id": None,
+        "default_route": {"escalation_chain_id": escalation_chain.public_primary_key},
+    }
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["default_route"]["escalation_chain_id"] == escalation_chain.public_primary_key
+
+
+@pytest.mark.django_db
+def test_update_integration_default_route(
+    make_organization_and_user_with_token, make_escalation_chain, make_alert_receive_channel, make_channel_filter
+):
+    organization, _, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization)
+    make_channel_filter(integration, is_default=True)
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    data_for_update = {
+        "default_route": {"escalation_chain_id": escalation_chain.public_primary_key},
+    }
+
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["default_route"]["escalation_chain_id"] == escalation_chain.public_primary_key

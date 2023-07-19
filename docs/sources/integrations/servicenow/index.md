@@ -16,7 +16,7 @@ weight: 500
 
 # Integrate Grafana OnCall with ServiceNow
 
-Grafana OnCall can automatically create, assign and resolve incidents in ServiceNow via [outgoing webhooks]({{< relref "_index.md" >}}).
+Grafana OnCall can automatically create, assign and resolve incidents in ServiceNow via [outgoing webhooks][outgoing-webhooks].
 This guide provides example webhook configurations for common use cases, as well as information on how to set up a user in ServiceNow to be used by Grafana OnCall.
 
 ## Prerequisites
@@ -135,6 +135,11 @@ Use the following JSON template as webhook data:
 The examples above describe how to create outgoing webhooks in Grafana OnCall that will allow to automatically create, assign and resolve incidents in ServiceNow.
 
 Consider modifying example templates to fit your use case (e.g. to include more information on alert groups).
-Refer to [outgoing webhooks documentation]({{< relref "_index.md" >}}) for more information on available template variables and webhook configuration.
+Refer to [outgoing webhooks documentation][outgoing-webhooks] for more information on available template variables and webhook configuration.
 
 For more information on ServiceNow REST API, refer to [ServiceNow REST API documentation](https://developer.servicenow.com/dev.do#!/reference/api/sandiego/rest).
+
+{{% docs/reference %}}
+[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks"
+[outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
+{{% /docs/reference %}}
