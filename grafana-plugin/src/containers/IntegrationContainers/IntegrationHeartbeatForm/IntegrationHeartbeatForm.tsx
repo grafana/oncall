@@ -69,7 +69,6 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
                       value: timeoutOption.value,
                       label: timeoutOption.display_name,
                     }))}
-                    //options={[{ value: 121312, label: '1 day' }]}
                   />
                 </WithPermissionControlTooltip>
               </Field>
@@ -110,12 +109,14 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
   );
 
   async function onSave() {
-    await heartbeatStore
-      .saveHeartbeat(heartbeat.id, {
-        alert_receive_channel: heartbeat.alert_receive_channel,
-        timeout_seconds: interval,
-      })
-      .then(() => openNotification('Heartbeat settings have been updated'));
+    await heartbeatStore.saveHeartbeat(heartbeat.id, {
+      alert_receive_channel: heartbeat.alert_receive_channel,
+      timeout_seconds: interval,
+    });
+
+    onClose();
+
+    openNotification('Heartbeat settings have been updated');
 
     await alertReceiveChannelStore.loadItem(alertReceveChannelId);
   }
