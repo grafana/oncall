@@ -624,6 +624,7 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
             start_populate_slack_channels_for_team(slack_team_identity_id, delay, cursor)
         else:
             # delete excess channels
+            assert collected_channels
             channel_ids_to_delete = existing_channel_ids - collected_channels
             slack_team_identity.cached_channels.filter(slack_id__in=channel_ids_to_delete).delete()
             cache.delete(collected_channels_key)
