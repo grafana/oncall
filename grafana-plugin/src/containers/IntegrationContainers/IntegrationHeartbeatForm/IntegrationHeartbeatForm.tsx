@@ -64,10 +64,12 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
                     onChange={(value: SelectableValue) => setInterval(value.value)}
                     placeholder="Heartbeat Timeout"
                     value={interval}
-                    options={(timeoutOptions || []).map((timeoutOption: SelectOption) => ({
+                    isLoading={!timeoutOptions}
+                    options={timeoutOptions?.map((timeoutOption: SelectOption) => ({
                       value: timeoutOption.value,
                       label: timeoutOption.display_name,
                     }))}
+                    //options={[{ value: 121312, label: '1 day' }]}
                   />
                 </WithPermissionControlTooltip>
               </Field>

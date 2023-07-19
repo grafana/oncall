@@ -1169,6 +1169,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
 
     return (
       <TooltipBadge
+        data-testid="heartbeat-badge"
         text={undefined}
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
