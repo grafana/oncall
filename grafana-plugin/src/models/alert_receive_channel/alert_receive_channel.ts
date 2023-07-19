@@ -37,7 +37,7 @@ type OutgoingWebhooks = OutgoingWebhook[];
 type AlertReceiveChannelPayload = Partial<AlertReceiveChannel>;
 type ChannelFilterRequestPayload = Partial<ChannelFilter>;
 
-type AlertReceiveChannelIdToObjectMap = Record<AlertReceiveChannelId, AlertReceiveChannel>;
+export type AlertReceiveChannelIdToObjectMap = Record<AlertReceiveChannelId, AlertReceiveChannel>;
 type AlertReceiveChannelIdToAlertReceiveChannelCountersMap = Record<AlertReceiveChannelId, AlertReceiveChannelCounters>;
 type AlertReceiveChannelIdToHeartbeatIdMap = Record<AlertReceiveChannelId, HeartbeatId>;
 type AlertReceiveChannelIdToChannelFilterIdsMap = Record<AlertReceiveChannelId, ChannelFilterId[]>;
@@ -172,7 +172,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       }, {} as AlertReceiveChannelIdToHeartbeatIdMap),
     };
 
-    this.updateCounters();
+    await this.updateCounters();
 
     return results;
   }
@@ -206,7 +206,7 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   @action
   async updateChannelFilter(channelFilterId: ChannelFilterId): Promise<void> {
-    const response = await makeRequest<ChannelFilter>(`${this.channelFiltersPath}${channelFilterId}/`, {});
+    const response = await makeRequest<ChannelFilter>(`${this.channelFiltersPath}${channelFilterId}/`);
 
     this.channelFilters = {
       ...this.channelFilters,
@@ -215,9 +215,8 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   @action
-  createChannelFilter(data: ChannelFilterRequestPayload): Promise<ChannelFilter> {
-    return makeRequest<ChannelFilter>(this.channelFiltersPath, { method: 'POST', data });
-  }
+  createChannelFilter = (data: ChannelFilterRequestPayload): Promise<ChannelFilter> =>
+    makeRequest<ChannelFilter>(this.channelFiltersPath, { method: 'POST', data });
 
   @action
   async saveChannelFilter(channelFilterId: ChannelFilterId, data: ChannelFilterRequestPayload): Promise<ChannelFilter> {
@@ -275,12 +274,12 @@ export class AlertReceiveChannelStore extends BaseStore {
       method: 'DELETE',
     });
 
-    this.updateChannelFilters(alertReceiveChannelId, true);
+    await this.updateChannelFilters(alertReceiveChannelId, true);
   }
 
   @action
   async updateAlertReceiveChannelOptions(): Promise<void> {
-    const response = await makeRequest<AlertReceiveChannelOptions>(`${this.path}integration_options/`, {});
+    const response = await makeRequest<AlertReceiveChannelOptions>(`${this.path}integration_options/`);
     this.alertReceiveChannelOptions = response;
   }
 

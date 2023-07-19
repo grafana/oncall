@@ -97,7 +97,7 @@ export class UserStore extends BaseStore {
 
   @action
   async loadCurrentUser(updateTimezone = true): Promise<void> {
-    const response = await makeRequest<User>(this.currentUserPath, {});
+    const response = await makeRequest<User>(this.currentUserPath);
     const { pk: currentUserPk } = response;
 
     let timezone = response.timezone;
@@ -210,7 +210,7 @@ export class UserStore extends BaseStore {
   }
 
   sendTelegramConfirmationCode = (userPk: UserId): Promise<GetTelegramVerificationCodeAPIResponse> =>
-    makeRequest<GetTelegramVerificationCodeAPIResponse>(`${this.path}${userPk}/get_telegram_verification_code/`, {});
+    makeRequest<GetTelegramVerificationCodeAPIResponse>(`${this.path}${userPk}/get_telegram_verification_code/`);
 
   @action
   unlinkSlack = async (userPk: UserId): Promise<void> => {
@@ -443,7 +443,7 @@ export class UserStore extends BaseStore {
 
   @action
   async updateNotifyByOptions() {
-    this.notifyByOptions = await makeRequest<NotifyByOptions>(`${this.notificationPoliciesPath}notify_by_options/`, {});
+    this.notifyByOptions = await makeRequest<NotifyByOptions>(`${this.notificationPoliciesPath}notify_by_options/`);
   }
 
   async makeTestCall(userPk: UserId): Promise<void> {

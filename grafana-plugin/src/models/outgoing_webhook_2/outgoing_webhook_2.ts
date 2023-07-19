@@ -96,7 +96,7 @@ export class OutgoingWebhook2Store extends BaseStore {
   }
 
   async getLastResponses(id: OutgoingWebhook2['id']) {
-    const result = await makeRequest(`${this.path}${id}/responses`, {});
+    const result = await makeRequest(`${this.path}${id}/responses`);
 
     return result;
   }
