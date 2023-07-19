@@ -43,6 +43,9 @@ ITEM_ACTIONS = (
 SCHEDULES_DATA_KEY = "schedules"
 USERS_DATA_KEY = "users"
 
+# https://api.slack.com/reference/block-kit/block-elements#static_select
+MAX_STATIC_SELECT_OPTIONS = 100
+
 
 def add_or_update_item(payload, key, item_pk, policy):
     metadata = json.loads(payload["view"]["private_metadata"])
@@ -639,7 +642,7 @@ def _get_additional_responders_blocks(
     return blocks
 
 
-def _get_users_select(organization, input_id_prefix, action_id):
+def _get_users_select(organization, input_id_prefix, action_id, max_options_per_group=MAX_STATIC_SELECT_OPTIONS):
     users = organization.users.all()
 
     user_options = [
@@ -667,27 +670,16 @@ def _get_users_select(organization, input_id_prefix, action_id):
             "action_id": action_id,
         },
     }
-    MAX_STATIC_SELECT_OPTIONS = 100
-    if len(user_options) > MAX_STATIC_SELECT_OPTIONS:
-        # paginate user options in groups
-        max_length = MAX_STATIC_SELECT_OPTIONS
-        chunks = [user_options[x : x + max_length] for x in range(0, len(user_options), max_length)]
-        option_groups = [
-            {
-                "label": {"type": "plain_text", "text": f"({(i * max_length)+1}-{(i * max_length)+max_length})"},
-                "options": group,
-            }
-            for i, group in enumerate(chunks)
-        ]
-        user_select["accessory"]["option_groups"] = option_groups
 
+    if len(user_options) > max_options_per_group:
+        user_select["accessory"]["option_groups"] = _get_option_groups(user_options, max_options_per_group)
     else:
         user_select["accessory"]["options"] = user_options
 
     return user_select
 
 
-def _get_schedules_select(organization, input_id_prefix, action_id):
+def _get_schedules_select(organization, input_id_prefix, action_id, max_options_per_group=MAX_STATIC_SELECT_OPTIONS):
     schedules = organization.oncall_schedules.all()
 
     schedule_options = [
@@ -701,21 +693,44 @@ def _get_schedules_select(organization, input_id_prefix, action_id):
         }
         for schedule in schedules
     ]
+
     if not schedule_options:
-        schedule_select = {"type": "context", "elements": [{"type": "mrkdwn", "text": "No schedules available"}]}
+        return {"type": "context", "elements": [{"type": "mrkdwn", "text": "No schedules available"}]}
+
+    schedule_select = {
+        "type": "section",
+        "text": {"type": "mrkdwn", "text": "Notify schedule"},
+        "block_id": input_id_prefix + DIRECT_PAGING_SCHEDULE_SELECT_ID,
+        "accessory": {
+            "type": "static_select",
+            "placeholder": {"type": "plain_text", "text": "Select schedule", "emoji": True},
+            "action_id": action_id,
+        },
+    }
+
+    if len(schedule_options) > max_options_per_group:
+        schedule_select["accessory"]["option_groups"] = _get_option_groups(schedule_options, max_options_per_group)
     else:
-        schedule_select = {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "Notify schedule"},
-            "block_id": input_id_prefix + DIRECT_PAGING_SCHEDULE_SELECT_ID,
-            "accessory": {
-                "type": "static_select",
-                "placeholder": {"type": "plain_text", "text": "Select schedule", "emoji": True},
-                "options": schedule_options,
-                "action_id": action_id,
-            },
-        }
+        schedule_select["accessory"]["options"] = schedule_options
+
     return schedule_select
+
+
+def _get_option_groups(options, max_options_per_group):
+    chunks = [options[x : x + max_options_per_group] for x in range(0, len(options), max_options_per_group)]
+
+    option_groups = []
+    for idx, group in enumerate(chunks):
+        start = idx * max_options_per_group + 1
+        end = idx * max_options_per_group + max_options_per_group
+        option_groups.append(
+            {
+                "label": {"type": "plain_text", "text": f"({start}-{end})"},
+                "options": group,
+            }
+        )
+
+    return option_groups
 
 
 def _get_selected_entries_list(input_id_prefix, key, entries):
