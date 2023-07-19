@@ -52,7 +52,7 @@ services:
       dockerfile: Dockerfile.dev
       labels: *oncall-labels
     environment:
-      ONCALL_API_URL: http://host.docker.internal:8080
+      ONCALL_API_URL: http://host.docker.internal:{ENGINE_PORT:-8080}
       MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
@@ -75,7 +75,7 @@ services:
     volumes: *oncall-volumes
     extra_hosts: *oncall-extra-hosts
     ports:
-      - "8080:8080"
+      - ${ENGINE_PORT:-8080}:8080
     depends_on:
       oncall_db_migration:
         condition: service_completed_successfully
@@ -240,6 +240,7 @@ services:
         condition: service_healthy
     profiles:
       - mysql
+      - mysql_external
 
   postgres:
     container_name: postgres

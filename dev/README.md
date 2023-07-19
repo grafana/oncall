@@ -23,6 +23,8 @@
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
 - [How to write database migrations](#how-to-write-database-migrations)
+- [How to connect to external MySQL](#how-to-connect-to-external-mysql)
+- [How to change the exposed port of the backend](#how-to-change-the-exposed-port-of-the-backend)
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
@@ -75,6 +77,7 @@ The possible profiles values are:
 - `rabbitmq`
 - `postgres`
 - `mysql`
+- `mysql_external`
 
 The default is `engine,oncall_ui,redis,grafana`. This runs:
 
@@ -427,3 +430,13 @@ backwards compatible
 
 See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
 for the common mistakes and best practices
+
+## How to connect to external MySQL
+
+1. Add `mysql_external` to `COMPOSE_PROFILES` in `.env.dev` file
+    > NOTE: other db related profiles, such as `mysql` and `postgres` should be removed
+2. Edit `.env.mysql.dev` file with the correct credentials
+
+## How to change the exposed port of the backend
+
+1. Edit `.env.dev` file and change `ENGINE_PORT` variable
