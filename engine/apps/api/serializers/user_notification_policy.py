@@ -33,7 +33,11 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
 
     class Meta:
         model = UserNotificationPolicy
-        fields = ["id", "step", "order", "notify_by", "wait_delay", "important", "user"]
+        fields = ["id", "step", "notify_by", "wait_delay", "important", "user"]
+
+        # Field "order" is not consumed by the plugin frontend, but is used by the mobile app
+        # TODO: remove this field when the mobile app is updated
+        fields += ["order"]
         read_only_fields = ["order"]
 
     def to_internal_value(self, data):
@@ -100,7 +104,7 @@ class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerialize
     )
 
     class Meta(UserNotificationPolicyBaseSerializer.Meta):
-        read_only_fields = ["order", "user", "important"]
+        read_only_fields = UserNotificationPolicyBaseSerializer.Meta.read_only_fields + ["user", "important"]
 
     def update(self, instance, validated_data):
         self_or_admin = instance.user.self_or_admin(

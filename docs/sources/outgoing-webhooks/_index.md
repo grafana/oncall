@@ -7,7 +7,7 @@ keywords:
   - on-call
   - amixr
   - webhooks
-title: Configure outgoing webhooks for Grafana OnCall
+title: Outgoing Webhooks
 weight: 500
 ---
 
@@ -27,7 +27,7 @@ click **Create Webhook**
 ### Outgoing webhook fields
 
 The outgoing webhook is defined by the following fields.  For more information about template usage
-see [Outgoing webhook templates)](#outgoing-webhook-templates) section.
+see [Outgoing webhook templates](#outgoing-webhook-templates) section.
 
 #### ID
 

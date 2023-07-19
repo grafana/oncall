@@ -44,7 +44,7 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, PluginAuthToken
+from apps.auth_token.models import ApiAuthToken, PluginAuthToken, SlackAuthToken
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -208,6 +208,14 @@ def make_mobile_app_auth_token_for_user():
         return MobileAppAuthToken.create_auth_token(user, organization)
 
     return _make_mobile_app_auth_token_for_user
+
+
+@pytest.fixture
+def make_slack_token_for_user():
+    def _make_slack_token_for_user(user):
+        return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
+
+    return _make_slack_token_for_user
 
 
 @pytest.fixture

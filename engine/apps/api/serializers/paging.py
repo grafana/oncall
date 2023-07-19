@@ -70,7 +70,7 @@ class DirectPagingSerializer(serializers.Serializer):
 
         if alert_group_id:
             try:
-                attrs["alert_group"] = AlertGroup.unarchived_objects.get(
+                attrs["alert_group"] = AlertGroup.objects.get(
                     public_primary_key=alert_group_id, channel__organization=organization
                 )
             except ObjectDoesNotExist:

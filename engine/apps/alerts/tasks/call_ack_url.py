@@ -9,7 +9,7 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 def call_ack_url(ack_url, alert_group_pk, channel, http_method="GET"):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     SlackMessage = apps.get_model("slack", "SlackMessage")
-    alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk)[0]
+    alert_group = AlertGroup.objects.filter(pk=alert_group_pk)[0]
     is_successful, result_message = request_outgoing_webhook(ack_url, http_method)
 
     if is_successful:

@@ -406,7 +406,6 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       () => {
         alertReceiveChannelStore
           .createChannelFilter({
-            order: 0,
             alert_receive_channel: id,
             filtering_term: NEW_ROUTE_DEFAULT,
             filtering_term_type: 1, // non-regex
@@ -1044,7 +1043,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       if (item?.integration === 'direct_paging') {
         return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
       } else {
-        return item.demo_alert_enabled && <Text type={'primary'}>; try to send a demo alert</Text>;
+        return item.demo_alert_enabled && <Text type={'primary'}>try to send a demo alert</Text>;
       }
     };
 
