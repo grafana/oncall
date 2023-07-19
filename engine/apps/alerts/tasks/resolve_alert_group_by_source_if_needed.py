@@ -15,7 +15,7 @@ def resolve_alert_group_by_source_if_needed(alert_group_pk):
     AlertGroupForAlertManager = apps.get_model("alerts", "AlertGroupForAlertManager")
     AlertForAlertManager = apps.get_model("alerts", "AlertForAlertManager")
 
-    alert_group = AlertGroupForAlertManager.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroupForAlertManager.objects.get(pk=alert_group_pk)
 
     if not resolve_alert_group_by_source_if_needed.request.id == alert_group.active_resolve_calculation_id:
         return "Resolve calculation celery ID mismatch. Duplication or non-active. Active: {}".format(

@@ -68,15 +68,14 @@ export default function Alerts() {
   if (!showSlackInstallAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
     return null;
   }
-
   return (
     <div className={cx('alerts-container', { 'alerts-container--legacy': !isTopNavbar() })}>
       {showSlackInstallAlert && (
         <Alert
           className={cx('alert')}
           onRemove={handleCloseInstallSlackAlert}
-          severity="warning"
-          title="Slack integration warning"
+          severity="error"
+          title="Slack integration error"
         >
           {getSlackMessage(
             showSlackInstallAlert,

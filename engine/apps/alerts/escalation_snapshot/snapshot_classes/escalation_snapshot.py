@@ -88,9 +88,7 @@ class EscalationSnapshot:
         """
         if self.last_active_escalation_policy_order is None:
             return []
-        elif self.last_active_escalation_policy_order == 0:
-            return [self.escalation_policies_snapshots[0]]
-        return self.escalation_policies_snapshots[: self.last_active_escalation_policy_order]
+        return self.escalation_policies_snapshots[: self.last_active_escalation_policy_order + 1]
 
     def next_step_eta_is_valid(self) -> typing.Optional[bool]:
         """
@@ -147,7 +145,8 @@ class EscalationSnapshot:
             self.stop_escalation = execution_result.stop_escalation  # result of STEP_FINAL_RESOLVE
             self.pause_escalation = execution_result.pause_escalation  # result of STEP_NOTIFY_IF_NUM_ALERTS_IN_WINDOW
 
-            last_active_escalation_policy_order = escalation_policy_snapshot.order
+            # use the index of last escalation policy snapshot, since orders are not guaranteed to be sequential
+            last_active_escalation_policy_order = self.escalation_policies_snapshots.index(escalation_policy_snapshot)
 
             if execution_result.start_from_beginning:  # result of STEP_REPEAT_ESCALATION_N_TIMES
                 last_active_escalation_policy_order = None

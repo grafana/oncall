@@ -118,7 +118,7 @@ class MaintainableObject(models.Model):
             self.maintenance_started_at = _self.maintenance_started_at
             self.maintenance_author = _self.maintenance_author
             if mode == AlertReceiveChannel.MAINTENANCE:
-                group = AlertGroup.all_objects.create(
+                group = AlertGroup.objects.create(
                     distinction=uuid4(),
                     web_title_cache=f"Maintenance of {verbal} for {maintenance_duration}",
                     maintenance_uuid=maintenance_uuid,

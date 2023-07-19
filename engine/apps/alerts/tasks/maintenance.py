@@ -47,7 +47,7 @@ def disable_maintenance(*args, **kwargs):
             write_maintenance_insight_log(object_under_maintenance, user, MaintenanceEvent.FINISHED)
             if object_under_maintenance.maintenance_mode == object_under_maintenance.MAINTENANCE:
                 mode_verbal = "Maintenance"
-                maintenance_incident = AlertGroup.all_objects.get(
+                maintenance_incident = AlertGroup.objects.get(
                     maintenance_uuid=object_under_maintenance.maintenance_uuid
                 )
                 transaction.on_commit(maintenance_incident.resolve_by_disable_maintenance)
