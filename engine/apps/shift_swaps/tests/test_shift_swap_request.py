@@ -18,9 +18,7 @@ def ssr_setup(make_schedule, make_organization_and_user, make_user_for_organizat
         tomorrow = timezone.now() + datetime.timedelta(days=1)
         two_days_from_now = tomorrow + datetime.timedelta(days=1)
 
-        ssr = make_shift_swap_request(
-            schedule, beneficiary, time_zone="UTC", swap_start=tomorrow, swap_end=two_days_from_now
-        )
+        ssr = make_shift_swap_request(schedule, beneficiary, swap_start=tomorrow, swap_end=two_days_from_now)
 
         return ssr, beneficiary, benefactor
 

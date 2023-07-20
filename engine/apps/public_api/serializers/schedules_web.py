@@ -5,9 +5,8 @@ from apps.schedules.tasks import (
     schedule_notify_about_empty_shifts_in_schedule,
     schedule_notify_about_gaps_in_schedule,
 )
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UsersFilteredByOrganizationField
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField, UsersFilteredByOrganizationField
 from common.api_helpers.exceptions import BadRequest
-from common.timezones import TimeZoneField
 
 
 class ScheduleWebSerializer(ScheduleBaseSerializer):

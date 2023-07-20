@@ -60,21 +60,33 @@ class ShiftSwapRequest(models.Model):
         to="schedules.OnCallSchedule", null=False, on_delete=models.CASCADE, related_name="shift_swap_requests"
     )
 
-    time_zone = models.CharField(max_length=100)
-
     swap_start = models.DateTimeField()
+    """
+    so long as objects are created through the internal API, swap_start is guaranteed to be in UTC
+    (see the internal API serializer for more details)
+    """
+
     swap_end = models.DateTimeField()
+    """
+    so long as objects are created through the internal API, swap_end is guaranteed to be in UTC
+    (see the internal API serializer for more details)
+    """
 
     description = models.TextField(max_length=3000, default=None, null=True)
 
-    # beneficiary - the person who is relieved from (part of) their shift(s)
     beneficiary = models.ForeignKey(
         to="user_management.User", null=False, on_delete=models.CASCADE, related_name="created_shift_swap_requests"
     )
-    # benefactor - the person taking on shift workload from the beneficiary
+    """
+    the person who is relieved from (part of) their shift(s)
+    """
+
     benefactor = models.ForeignKey(
         to="user_management.User", null=True, on_delete=models.CASCADE, related_name="taken_shift_swap_requests"
     )
+    """
+    the person taking on shift workload from the beneficiary
+    """
 
     class Statuses(enum.StrEnum):
         OPEN = "open"
@@ -128,7 +140,6 @@ class ShiftSwapRequest(models.Model):
         return {
             "description": self.description,
             "schedule": self.schedule.name,
-            "time_zone": self.time_zone,
             "swap_start": self.swap_start,
             "swap_end": self.swap_end,
             "beneficiary": self.beneficiary.username,

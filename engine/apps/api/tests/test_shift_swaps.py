@@ -15,7 +15,6 @@ from apps.shift_swaps.models import ShiftSwapRequest
 from common.insight_log import EntityEvent
 
 description = "my shift swap request"
-time_zone = "Europe/Luxembourg"
 tomorrow = timezone.now() + datetime.timedelta(days=1)
 two_days_from_now = tomorrow + datetime.timedelta(days=1)
 
@@ -23,8 +22,9 @@ mock_success_response = Response(status=status.HTTP_200_OK)
 
 
 @pytest.fixture(autouse=True)
-def enable_feature_flag(settings):
+def enable_feature_flag(settings, reload_urls):
     settings.FEATURE_SHIFT_SWAPS_ENABLED = True
+    reload_urls()
 
 
 @pytest.fixture
@@ -36,30 +36,26 @@ def ssr_setup(
         benefactor = make_user_for_organization(organization, role=benefactor_role)
 
         schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-
-        ssr = make_shift_swap_request(
-            schedule, beneficiary, time_zone=time_zone, swap_start=tomorrow, swap_end=two_days_from_now, **kwargs
-        )
+        ssr = make_shift_swap_request(schedule, beneficiary, swap_start=tomorrow, swap_end=two_days_from_now, **kwargs)
 
         return ssr, beneficiary, token, benefactor
 
     return _ssr_setup
 
 
-def _convert_utc_time_to_zulu_format(dt: datetime.datetime) -> str:
+def _convert_dt_to_sr(dt: datetime.datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def _construct_serialized_object(ssr: ShiftSwapRequest, status="open", description=None, benefactor=None):
     return {
         "id": ssr.public_primary_key,
-        "created_at": _convert_utc_time_to_zulu_format(ssr.created_at),
-        "updated_at": _convert_utc_time_to_zulu_format(ssr.updated_at),
+        "created_at": _convert_dt_to_sr(ssr.created_at),
+        "updated_at": _convert_dt_to_sr(ssr.updated_at),
         "schedule": ssr.schedule.public_primary_key,
-        "swap_start": _convert_utc_time_to_zulu_format(ssr.swap_start),
-        "swap_end": _convert_utc_time_to_zulu_format(ssr.swap_end),
+        "swap_start": _convert_dt_to_sr(ssr.swap_start),
+        "swap_end": _convert_dt_to_sr(ssr.swap_end),
         "beneficiary": ssr.beneficiary.public_primary_key,
-        "time_zone": time_zone,
         "status": status,
         "benefactor": benefactor,
         "description": description,
@@ -170,7 +166,6 @@ def test_create(
 
     data = {
         "schedule": schedule.public_primary_key,
-        "time_zone": "Europe/Paris",
         "description": "hellooooo world",
         "swap_start": tomorrow,
         "swap_end": two_days_from_now,
@@ -179,14 +174,72 @@ def test_create(
     ssr = ShiftSwapRequest.objects.get(public_primary_key=response.json()["id"])
     expected_response = _construct_serialized_object(ssr) | {
         **data,
-        "swap_start": _convert_utc_time_to_zulu_format(tomorrow),
-        "swap_end": _convert_utc_time_to_zulu_format(two_days_from_now),
+        "swap_start": _convert_dt_to_sr(tomorrow),
+        "swap_end": _convert_dt_to_sr(two_days_from_now),
     }
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
 
     mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "swap_start,expected_persisted_value",
+    [
+        # UTC format
+        ("2285-07-20T12:00:00Z", "2285-07-20T12:00:00.000000Z"),
+        # UTC format w/ microseconds
+        ("2285-07-20T12:00:00.245652Z", "2285-07-20T12:00:00.245652Z"),
+        # UTC offset w/ colons + no microseconds
+        ("2285-07-20T12:00:00+07:00", "2285-07-20T05:00:00.000000Z"),
+        # UTC offset w/ colons + microseconds
+        ("2285-07-20T12:00:00.245652+07:00", "2285-07-20T05:00:00.245652Z"),
+        # UTC offset w/ no colons + no microseconds
+        ("2285-07-20T12:00:00+0700", "2285-07-20T05:00:00.000000Z"),
+        # UTC offset w/ no colons + microseconds
+        ("2285-07-20T12:00:00.245652+0700", "2285-07-20T05:00:00.245652Z"),
+        ("2285-07-20 12:00:00", None),
+        ("22850720T120000Z", None),
+    ],
+)
+def test_create_swap_start_and_swap_end_must_include_time_zone(
+    make_organization_and_user_with_plugin_token,
+    make_schedule,
+    make_user_auth_headers,
+    swap_start,
+    expected_persisted_value,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    client = APIClient()
+    url = reverse("api-internal:shift_swap-list")
+
+    start_year = "2285"
+    end_year = "2286"
+    swap_end = swap_start.replace(start_year, end_year)
+
+    data = {
+        "schedule": schedule.public_primary_key,
+        "description": "hellooooo world",
+        "swap_start": swap_start,
+        "swap_end": swap_end,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+
+    if expected_persisted_value:
+        ssr = ShiftSwapRequest.objects.get(public_primary_key=response.json()["id"])
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json() == _construct_serialized_object(ssr) | {
+            **data,
+            "swap_start": expected_persisted_value,
+            "swap_end": expected_persisted_value.replace(start_year, end_year),
+        }
+    else:
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @patch("apps.api.views.shift_swap.ShiftSwapViewSet.create", return_value=mock_success_response)
@@ -225,11 +278,10 @@ def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_heade
     auth_headers = make_user_auth_headers(beneficiary, token)
 
     data = {
-        "time_zone": "Europe/Paris",
         "description": "hellooooo world",
         "schedule": ssr.schedule.public_primary_key,
-        "swap_start": _convert_utc_time_to_zulu_format(ssr.swap_start),
-        "swap_end": _convert_utc_time_to_zulu_format(ssr.swap_end),
+        "swap_start": _convert_dt_to_sr(ssr.swap_start),
+        "swap_end": _convert_dt_to_sr(ssr.swap_end),
     }
 
     response = client.put(url, data=json.dumps(data), content_type="application/json", **auth_headers)
@@ -254,6 +306,61 @@ def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_heade
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
+    "swap_start,expected_persisted_value",
+    [
+        # UTC format
+        ("2285-07-20T12:00:00Z", "2285-07-20T12:00:00.000000Z"),
+        # UTC format w/ microseconds
+        ("2285-07-20T12:00:00.245652Z", "2285-07-20T12:00:00.245652Z"),
+        # UTC offset w/ colons + no microseconds
+        ("2285-07-20T12:00:00+07:00", "2285-07-20T05:00:00.000000Z"),
+        # UTC offset w/ colons + microseconds
+        ("2285-07-20T12:00:00.245652+07:00", "2285-07-20T05:00:00.245652Z"),
+        # UTC offset w/ no colons + no microseconds
+        ("2285-07-20T12:00:00+0700", "2285-07-20T05:00:00.000000Z"),
+        # UTC offset w/ no colons + microseconds
+        ("2285-07-20T12:00:00.245652+0700", "2285-07-20T05:00:00.245652Z"),
+        ("2285-07-20 12:00:00", None),
+        ("22850720T120000Z", None),
+    ],
+)
+def test_update_swap_start_and_swap_end_must_include_time_zone(
+    ssr_setup,
+    make_user_auth_headers,
+    swap_start,
+    expected_persisted_value,
+):
+    ssr, beneficiary, token, _ = ssr_setup()
+
+    client = APIClient()
+    url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
+
+    start_year = "2285"
+    end_year = "2286"
+    swap_end = swap_start.replace(start_year, end_year)
+
+    data = {
+        "schedule": ssr.schedule.public_primary_key,
+        "swap_start": swap_start,
+        "swap_end": swap_end,
+    }
+    response = client.put(url, data, format="json", **make_user_auth_headers(beneficiary, token))
+
+    if expected_persisted_value:
+        ssr = ShiftSwapRequest.objects.get(public_primary_key=response.json()["id"])
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == _construct_serialized_object(ssr) | {
+            **data,
+            "swap_start": expected_persisted_value,
+            "swap_end": expected_persisted_value.replace(start_year, end_year),
+        }
+    else:
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
@@ -267,11 +374,10 @@ def test_update_own_ssr_permissions(ssr_setup, make_user_auth_headers, role, exp
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
 
     data = {
-        "time_zone": "Europe/Paris",
         "description": "hellooooo world",
         "schedule": ssr.schedule.public_primary_key,
-        "swap_start": _convert_utc_time_to_zulu_format(ssr.swap_start),
-        "swap_end": _convert_utc_time_to_zulu_format(ssr.swap_end),
+        "swap_start": _convert_dt_to_sr(ssr.swap_start),
+        "swap_end": _convert_dt_to_sr(ssr.swap_end),
     }
 
     response = client.put(
@@ -334,12 +440,11 @@ def test_partial_update_time_related_fields(ssr_setup, make_user_auth_headers):
     auth_headers = make_user_auth_headers(beneficiary, token)
 
     # but if we do PATCH a time related field, we must specify all the time fields
-    tz = {"time_zone": "Europe/Brussels"}
-    swap_start = {"swap_start": _convert_utc_time_to_zulu_format(tomorrow + datetime.timedelta(days=5))}
-    swap_end = {"swap_end": _convert_utc_time_to_zulu_format(tomorrow + datetime.timedelta(days=10))}
-    valid = tz | swap_start | swap_end
+    swap_start = {"swap_start": _convert_dt_to_sr(tomorrow + datetime.timedelta(days=5))}
+    swap_end = {"swap_end": _convert_dt_to_sr(tomorrow + datetime.timedelta(days=10))}
+    valid = swap_start | swap_end
 
-    for case in [tz, swap_start, swap_end, (tz | swap_start), (tz | swap_end), (swap_start | swap_end)]:
+    for case in [swap_start, swap_end]:
         response = client.patch(url, data=json.dumps(case), content_type="application/json", **auth_headers)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -459,9 +564,7 @@ def test_take(ssr_setup, make_user_auth_headers):
 
     assert response.status_code == status.HTTP_200_OK
     assert response_json == expected_response
-    assert updated_at != _convert_utc_time_to_zulu_format(
-        ssr.updated_at
-    )  # validate that updated_at is auto-updated on take
+    assert updated_at != _convert_dt_to_sr(ssr.updated_at)  # validate that updated_at is auto-updated on take
 
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
     response = client.get(url, format="json", **auth_headers)

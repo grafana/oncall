@@ -20,11 +20,11 @@ class Migration(migrations.Migration):
             name='ShiftSwapRequest',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_primary_key', models.CharField(default=apps.shift_swaps.models.shift_swap_request.generate_public_primary_key_for_shift_swap_request, max_length=20, unique=True, validators=[django.core.validators.MinLengthValidator(13)])),
+                ('public_primary_key', models.CharField(default=apps.shift_swaps.models.shift_swap_request.generate_public_primary_key_for_shift_swap_request,
+                 max_length=20, unique=True, validators=[django.core.validators.MinLengthValidator(13)])),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('deleted_at', models.DateTimeField(null=True)),
-                ('time_zone', models.CharField(max_length=100)),
                 ('swap_start', models.DateTimeField()),
                 ('swap_end', models.DateTimeField()),
                 ('description', models.TextField(default=None, max_length=3000, null=True)),
