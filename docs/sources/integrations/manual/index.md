@@ -38,7 +38,7 @@ schedules. Here are the inputs you need to fill in:
 These could be any combination of users and schedules.
 For each additional responder (user or schedule), you can select a notification policy: [default or important][notify].
 
-> The same feature is also available as [**/escalate**][slack-commands] Slack command.
+> The same feature is also available as [**/escalate**][slack-escalate] Slack command.
 
 ## Add responders for an existing alert group
 
@@ -84,6 +84,6 @@ and select the same team for a test run.
 [notify]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify#configure-user-notification-policies"
 [notify]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify#configure-user-notification-policies"
 
-[slack-commands]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify/slack#slack-commands"
-[slack-commands]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack#slack-commands"
+[slack-escalate]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify/slack#slack-escalate-command"
+[slack-escalate]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack#slack-escalate-command"
 {{% /docs/reference %}}
