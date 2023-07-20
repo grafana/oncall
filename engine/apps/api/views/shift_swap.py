@@ -15,6 +15,7 @@ from apps.shift_swaps.models import ShiftSwapRequest
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,34 @@ class ShiftSwapView(PublicPrimaryKeyMixin, ModelViewSet):
 
     def get_queryset(self):
         return ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization)
+
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+        )
+
+    def perform_create(self, serializer):
+        serializer.save()
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
+        )
+
+    def perform_update(self, serializer):
+        prev_state = serializer.instance.insight_logs_serialized
+        serializer.save()
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
+        )
 
     @action(methods=["post"], detail=True)
     def take(self, request, pk) -> Response:

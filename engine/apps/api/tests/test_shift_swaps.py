@@ -12,6 +12,7 @@ from rest_framework.test import APIClient
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import OnCallScheduleWeb
 from apps.shift_swaps.models import ShiftSwapRequest
+from common.insight_log import EntityEvent
 
 description = "my shift swap request"
 time_zone = "Europe/Luxembourg"
@@ -151,8 +152,11 @@ def test_retrieve_permissions(
     assert response.status_code == expected_status
 
 
+@patch("apps.api.views.shift_swap.write_resource_insight_log")
 @pytest.mark.django_db
-def test_create(make_organization_and_user_with_plugin_token, make_schedule, make_user_auth_headers):
+def test_create(
+    mock_write_resource_insight_log, make_organization_and_user_with_plugin_token, make_schedule, make_user_auth_headers
+):
     organization, user, token = make_organization_and_user_with_plugin_token()
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
@@ -176,6 +180,8 @@ def test_create(make_organization_and_user_with_plugin_token, make_schedule, mak
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
+
+    mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
 
 
 @patch("apps.api.views.shift_swap.ShiftSwapView.create", return_value=mock_success_response)
@@ -203,9 +209,12 @@ def test_create_permissions(
     assert response.status_code == expected_status
 
 
+@patch("apps.api.views.shift_swap.write_resource_insight_log")
 @pytest.mark.django_db
-def test_update(ssr_setup, make_user_auth_headers):
+def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
     ssr, beneficiary, token, _ = ssr_setup(description=description)
+    insights_log_prev_state = ssr.insight_logs_serialized
+
     client = APIClient()
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
     auth_headers = make_user_auth_headers(beneficiary, token)
@@ -227,6 +236,15 @@ def test_update(ssr_setup, make_user_auth_headers):
     response = client.get(url, format="json", **auth_headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
+
+    ssr.refresh_from_db()
+    mock_write_resource_insight_log.assert_called_once_with(
+        instance=ssr,
+        author=beneficiary,
+        event=EntityEvent.UPDATED,
+        prev_state=insights_log_prev_state,
+        new_state=ssr.insight_logs_serialized,
+    )
 
 
 @pytest.mark.django_db
@@ -271,9 +289,12 @@ def test_update_others_ssr_permissions(ssr_setup, make_user_auth_headers):
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@patch("apps.api.views.shift_swap.write_resource_insight_log")
 @pytest.mark.django_db
-def test_partial_update(ssr_setup, make_user_auth_headers):
+def test_partial_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
     ssr, beneficiary, token, _ = ssr_setup(description=description)
+    insights_log_prev_state = ssr.insight_logs_serialized
+
     client = APIClient()
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
     auth_headers = make_user_auth_headers(beneficiary, token)
@@ -289,6 +310,15 @@ def test_partial_update(ssr_setup, make_user_auth_headers):
     response = client.get(url, format="json", **auth_headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
+
+    ssr.refresh_from_db()
+    mock_write_resource_insight_log.assert_called_once_with(
+        instance=ssr,
+        author=beneficiary,
+        event=EntityEvent.UPDATED,
+        prev_state=insights_log_prev_state,
+        new_state=ssr.insight_logs_serialized,
+    )
 
 
 @pytest.mark.django_db
@@ -357,8 +387,9 @@ def test_partial_update_others_ssr_permissions(ssr_setup, make_user_auth_headers
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
+@patch("apps.api.views.shift_swap.write_resource_insight_log")
 @pytest.mark.django_db
-def test_delete(ssr_setup, make_user_auth_headers):
+def test_delete(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
     ssr, beneficiary, token, _ = ssr_setup()
     client = APIClient()
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
@@ -369,6 +400,12 @@ def test_delete(ssr_setup, make_user_auth_headers):
 
     response = client.get(url, format="json", **auth_headers)
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    mock_write_resource_insight_log.assert_called_once_with(
+        instance=ssr,
+        author=beneficiary,
+        event=EntityEvent.DELETED,
+    )
 
 
 @pytest.mark.django_db
