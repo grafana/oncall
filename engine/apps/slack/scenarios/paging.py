@@ -557,14 +557,14 @@ def _get_team_select_context(organization, team):
             ":warning: *Direct paging integration missing*\n"
             "The selected team doesn't have a direct paging integration configured and will not be notified. "
             "If you proceed with the alert group, an empty direct paging integration will be created automatically for the team. "
-            "<https://grafana.com/docs/oncall/latest/integrations/manual/|Learn more.>"
+            "<https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings|Learn more.>"
         )
     elif not escalation_chains_exist:
         context_text = (
             ":warning: *Direct paging integration not configured*\n"
             "The direct paging integration for the selected team has no escalation chains configured. "
             "If you proceed with the alert group, the team likely will not be notified. "
-            "<https://grafana.com/docs/oncall/latest/integrations/manual/|Learn more.>"
+            "<https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings|Learn more.>"
         )
     else:
         context_text = f"Integration <{alert_receive_channel.web_link}|{alert_receive_channel.verbal_name} ({team_name})> will be used for notification."
