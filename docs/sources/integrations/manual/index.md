@@ -18,8 +18,8 @@ weight: 300
 
 Grafana OnCall relies on automated and pre-configured workflows, such as [integrations][integrations],
 [routes, and escalation chains][escalation-chains-and-routes] to handle most of the incident response process.
-However, sometimes you might need to page a team or request assistance from specific people that are not part of
-these pre-defined rules.
+However, sometimes you might need to page a [team][manage-teams] or request assistance from specific people that
+are not part of these pre-defined rules.
 
 For such ad-hoc scenarios, Grafana OnCall allows you to create an alert group, input necessary information, and decide
 who will be alerted – a team, a user, or an on-call user from a specific schedule.
@@ -86,4 +86,7 @@ and select the same team for a test run.
 
 [slack-escalate]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/notify/slack#slack-escalate-command"
 [slack-escalate]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/notify/slack#slack-escalate-command"
+
+[manage-teams]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management#manage-teams-in-grafana-oncall"
+[manage-teams]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/user-and-team-management#manage-teams-in-grafana-oncall"
 {{% /docs/reference %}}
