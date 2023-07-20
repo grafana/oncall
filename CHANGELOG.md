@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update direct paging docs by @vadimkerr ([#2600](https://github.com/grafana/oncall/pull/2600))
+- Remove unnecessary team checks in public API by @vadimkerr ([#2606](https://github.com/grafana/oncall/pull/2606))
 
 ### Fixed
 
