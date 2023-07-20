@@ -11,7 +11,7 @@ from apps.api.serializers.shift_swap import ShiftSwapRequestSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.shift_swaps import exceptions
-from apps.shift_swaps.models.shift_swap_request import ShiftSwapRequest, ShiftSwapRequestManager
+from apps.shift_swaps.models import ShiftSwapRequest
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -50,7 +50,7 @@ class ShiftSwapView(PublicPrimaryKeyMixin, ModelViewSet):
     serializer_class = ShiftSwapRequestSerializer
     pagination_class = FiftyPageSizePaginator
 
-    def get_queryset(self) -> ShiftSwapRequestManager:
+    def get_queryset(self):
         return ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization)
 
     @action(methods=["post"], detail=True)
