@@ -110,3 +110,29 @@ class ShiftSwapRequest(models.Model):
         self.save()
 
         # TODO: implement the actual override logic in https://github.com/grafana/oncall/issues/2590
+
+    # Insight logs
+    @property
+    def insight_logs_verbal(self):
+        return str(self)
+
+    @property
+    def insight_logs_type_verbal(self):
+        # TODO: add this resource type to the insight logs public docs
+        return "shift_swap_request"
+
+    @property
+    def insight_logs_serialized(self):
+        return {
+            "description": self.description,
+            "schedule": self.schedule.name,
+            "time_zone": self.time_zone,
+            "swap_start": self.swap_start,
+            "swap_end": self.swap_end,
+            "beneficiary_email": self.beneficiary.email,
+            "benefactor_email": self.benefactor.email if self.benefactor else None,
+        }
+
+    @property
+    def insight_logs_metadata(self):
+        return {}
