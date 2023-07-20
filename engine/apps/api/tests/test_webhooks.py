@@ -564,7 +564,8 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
     }
 
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    webhook = Webhook.objects.get(public_primary_key=response.json()["id"])
+    client_webhook = response.json()
+    webhook = Webhook.objects.get(public_primary_key=client_webhook["id"])
 
     expected_response = data | {
         "id": webhook.public_primary_key,
@@ -614,13 +615,14 @@ def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
         "authorization_header": "auth 1234",
     }
     response1 = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    get_url = reverse("api-internal:webhooks-detail", kwargs={"pk": response1.json()["id"]})
+    client_webhook = response1.json()
+    get_url = reverse("api-internal:webhooks-detail", kwargs={"pk": client_webhook["id"]})
     response2 = client.get(get_url, format="json", **make_user_auth_headers(user, token))
     to_copy = response2.json()
     to_copy["name"] = "copied_webhook"
     response3 = client.post(url, to_copy, format="json", **make_user_auth_headers(user, token))
-
-    webhook = Webhook.objects.get(public_primary_key=response3.json()["id"])
+    client_webhook = response3.json()
+    webhook = Webhook.objects.get(public_primary_key=client_webhook["id"])
 
     expected_response = data | {
         "id": webhook.public_primary_key,
