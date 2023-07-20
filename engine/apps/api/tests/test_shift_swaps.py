@@ -21,12 +21,6 @@ two_days_from_now = tomorrow + datetime.timedelta(days=1)
 mock_success_response = Response(status=status.HTTP_200_OK)
 
 
-@pytest.fixture(autouse=True)
-def enable_feature_flag(settings, reload_urls):
-    settings.FEATURE_SHIFT_SWAPS_ENABLED = True
-    reload_urls()
-
-
 @pytest.fixture
 def ssr_setup(
     make_schedule, make_organization_and_user_with_plugin_token, make_user_for_organization, make_shift_swap_request
