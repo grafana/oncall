@@ -43,36 +43,36 @@ def test_soft_delete(ssr_setup):
 @pytest.mark.django_db
 def test_status_open(ssr_setup) -> None:
     ssr, _, _ = ssr_setup()
-    assert ssr.status == ShiftSwapRequest.OPEN
+    assert ssr.status == ShiftSwapRequest.Statuses.OPEN
 
 
 @pytest.mark.django_db
 def test_status_taken(ssr_setup) -> None:
     ssr, _, benefactor = ssr_setup()
-    assert ssr.status == ShiftSwapRequest.OPEN
+    assert ssr.status == ShiftSwapRequest.Statuses.OPEN
 
     ssr.benefactor = benefactor
     ssr.save()
-    assert ssr.status == ShiftSwapRequest.TAKEN
+    assert ssr.status == ShiftSwapRequest.Statuses.TAKEN
 
 
 @pytest.mark.django_db
 def test_status_past_due(ssr_setup) -> None:
     ssr, _, _ = ssr_setup()
-    assert ssr.status == ShiftSwapRequest.OPEN
+    assert ssr.status == ShiftSwapRequest.Statuses.OPEN
 
     ssr.swap_start = ssr.swap_start - datetime.timedelta(days=5)
     ssr.save()
-    assert ssr.status == ShiftSwapRequest.PAST_DUE
+    assert ssr.status == ShiftSwapRequest.Statuses.PAST_DUE
 
 
 @pytest.mark.django_db
 def test_status_deleted(ssr_setup) -> None:
     ssr, _, _ = ssr_setup()
-    assert ssr.status == ShiftSwapRequest.OPEN
+    assert ssr.status == ShiftSwapRequest.Statuses.OPEN
 
     ssr.delete()
-    assert ssr.status == ShiftSwapRequest.DELETED
+    assert ssr.status == ShiftSwapRequest.Statuses.DELETED
 
 
 @pytest.mark.django_db
@@ -95,7 +95,7 @@ def test_take_only_works_for_open_requests(ssr_setup) -> None:
 
     ssr.benefactor = benefactor
     ssr.save()
-    assert ssr.status == ShiftSwapRequest.TAKEN
+    assert ssr.status == ShiftSwapRequest.Statuses.TAKEN
 
     with pytest.raises(exceptions.ShiftSwapRequestNotOpenForTaking):
         ssr.take(benefactor)
@@ -105,7 +105,7 @@ def test_take_only_works_for_open_requests(ssr_setup) -> None:
 
     ssr.swap_start = ssr.swap_start - datetime.timedelta(days=5)
     ssr.save()
-    assert ssr.status == ShiftSwapRequest.PAST_DUE
+    assert ssr.status == ShiftSwapRequest.Statuses.PAST_DUE
 
     with pytest.raises(exceptions.ShiftSwapRequestNotOpenForTaking):
         ssr.take(benefactor)
@@ -114,7 +114,7 @@ def test_take_only_works_for_open_requests(ssr_setup) -> None:
     ssr, _, benefactor = ssr_setup()
 
     ssr.delete()
-    assert ssr.status == ShiftSwapRequest.DELETED
+    assert ssr.status == ShiftSwapRequest.Statuses.DELETED
 
     with pytest.raises(exceptions.ShiftSwapRequestNotOpenForTaking):
         ssr.take(benefactor)

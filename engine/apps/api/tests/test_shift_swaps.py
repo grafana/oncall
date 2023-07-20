@@ -22,6 +22,11 @@ two_days_from_now = tomorrow + datetime.timedelta(days=1)
 mock_success_response = Response(status=status.HTTP_200_OK)
 
 
+@pytest.fixture(autouse=True)
+def enable_feature_flag(settings):
+    settings.FEATURE_SHIFT_SWAPS_ENABLED = True
+
+
 @pytest.fixture
 def ssr_setup(
     make_schedule, make_organization_and_user_with_plugin_token, make_user_for_organization, make_shift_swap_request
@@ -91,7 +96,7 @@ def test_list(ssr_setup, make_user_auth_headers):
     assert response.json() == expected_payload
 
 
-@patch("apps.api.views.shift_swap.ShiftSwapView.list", return_value=mock_success_response)
+@patch("apps.api.views.shift_swap.ShiftSwapViewSet.list", return_value=mock_success_response)
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
@@ -127,7 +132,7 @@ def test_retrieve(ssr_setup, make_user_auth_headers):
     assert response.json() == _construct_serialized_object(ssr, description=description)
 
 
-@patch("apps.api.views.shift_swap.ShiftSwapView.retrieve", return_value=mock_success_response)
+@patch("apps.api.views.shift_swap.ShiftSwapViewSet.retrieve", return_value=mock_success_response)
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
@@ -184,7 +189,7 @@ def test_create(
     mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
 
 
-@patch("apps.api.views.shift_swap.ShiftSwapView.create", return_value=mock_success_response)
+@patch("apps.api.views.shift_swap.ShiftSwapViewSet.create", return_value=mock_success_response)
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
@@ -514,7 +519,7 @@ def test_take_deleted_ssr(ssr_setup, make_user_auth_headers):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-@patch("apps.api.views.shift_swap.ShiftSwapView.take", return_value=mock_success_response)
+@patch("apps.api.views.shift_swap.ShiftSwapViewSet.take", return_value=mock_success_response)
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",

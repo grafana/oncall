@@ -1,3 +1,4 @@
+import enum
 import typing
 
 from django.conf import settings
@@ -75,15 +76,14 @@ class ShiftSwapRequest(models.Model):
         to="user_management.User", null=True, on_delete=models.CASCADE, related_name="taken_shift_swap_requests"
     )
 
-    OPEN = "open"
-    TAKEN = "taken"
-    PAST_DUE = "past_due"
-    DELETED = "deleted"
+    class Statuses(enum.StrEnum):
+        OPEN = "open"
+        TAKEN = "taken"
+        PAST_DUE = "past_due"
+        DELETED = "deleted"
 
     def __str__(self) -> str:
-        return (
-            f"{str(self.schedule.name)} {str(self.beneficiary.username)} {str(self.swap_start)} - {str(self.swap_end)}"
-        )
+        return f"{self.schedule.name} {self.beneficiary.username} {self.swap_start} - {self.swap_end}"
 
     def delete(self):
         self.deleted_at = timezone.now()
@@ -95,17 +95,17 @@ class ShiftSwapRequest(models.Model):
     @property
     def status(self) -> str:
         if self.deleted_at is not None:
-            return self.DELETED
+            return self.Statuses.DELETED
         elif self.benefactor is not None:
-            return self.TAKEN
+            return self.Statuses.TAKEN
         elif timezone.now() > self.swap_start:
-            return self.PAST_DUE
-        return self.OPEN
+            return self.Statuses.PAST_DUE
+        return self.Statuses.OPEN
 
     def take(self, benefactor: "User") -> None:
         if benefactor == self.beneficiary:
             raise exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest()
-        if self.status != self.OPEN:
+        if self.status != self.Statuses.OPEN:
             raise exceptions.ShiftSwapRequestNotOpenForTaking()
 
         self.benefactor = benefactor

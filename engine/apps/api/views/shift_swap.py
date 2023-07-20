@@ -20,7 +20,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 logger = logging.getLogger(__name__)
 
 
-class ShiftSwapView(PublicPrimaryKeyMixin, ModelViewSet):
+class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication, MobileAppAuthTokenAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
