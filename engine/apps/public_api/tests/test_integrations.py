@@ -817,3 +817,34 @@ def test_update_integration_default_route(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["default_route"]["escalation_chain_id"] == escalation_chain.public_primary_key
+
+
+@pytest.mark.django_db
+def test_create_integrations_direct_paging(
+    make_organization_and_user_with_token, make_team, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, _, token = make_organization_and_user_with_token()
+    team = make_team(organization)
+
+    client = APIClient()
+    url = reverse("api-public:integrations-list")
+
+    response_1 = client.post(url, data={"type": "direct_paging"}, format="json", HTTP_AUTHORIZATION=token)
+    response_2 = client.post(url, data={"type": "direct_paging"}, format="json", HTTP_AUTHORIZATION=token)
+
+    response_3 = client.post(
+        url, data={"type": "direct_paging", "team_id": team.public_primary_key}, format="json", HTTP_AUTHORIZATION=token
+    )
+    response_4 = client.post(
+        url, data={"type": "direct_paging", "team_id": team.public_primary_key}, format="json", HTTP_AUTHORIZATION=token
+    )
+
+    # Check direct paging integration for "No team" is created
+    assert response_1.status_code == status.HTTP_201_CREATED
+    # Check direct paging integration is not created, as it already exists for "No team"
+    assert response_2.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Check direct paging integration for team is created
+    assert response_3.status_code == status.HTTP_201_CREATED
+    # Check direct paging integration is not created, as it already exists for team
+    assert response_4.status_code == status.HTTP_400_BAD_REQUEST

@@ -124,6 +124,16 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
+
+        # Don't allow multiple Direct Paging integrations
+        if (
+            integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+            and organization.alert_receive_channels.filter(
+                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=validated_data.get("team")
+            ).exists()
+        ):
+            raise BadRequest(detail="Direct paging integration already exists for this team")
+
         with transaction.atomic():
             instance = AlertReceiveChannel.create(
                 **validated_data,

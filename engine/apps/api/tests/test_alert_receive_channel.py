@@ -694,7 +694,7 @@ def test_get_alert_receive_channels_direct_paging_present_for_filters(
 
 
 @pytest.mark.django_db
-def test_create_alert_receive_channels_direct_paging_create(
+def test_create_alert_receive_channels_direct_paging(
     make_organization_and_user_with_plugin_token, make_team, make_alert_receive_channel, make_user_auth_headers
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
