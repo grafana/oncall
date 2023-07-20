@@ -14,8 +14,8 @@ weight: 500
 # Outgoing Webhooks
 
 > ⚠️ A note about **(Legacy)** webhooks:  Webhooks that were created before version **v1.3.11** are marked as
-> **(Legacy)**.  Do not worry! It is still connected to any escalation chains and will continue to execute as it
-> always has.
+> **(Legacy)**.  Do not worry! They are still connected to their respective escalation chains and will continue to to
+> execute as they always have.
 > <br/><br/>
 > The **(Legacy)** webhook is no longer editable due to changes to the internal representation. If you need to edit it
 > you must use the `Make a copy` action in the menu and make your changes there.  This will create the webhook in the
