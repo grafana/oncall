@@ -260,7 +260,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         # Don't allow multiple Direct Paging integrations per team
         if (
             self.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-            and AlertReceiveChannel.objects.filter(integration=self.integration, team=self.team)
+            and AlertReceiveChannel.objects.filter(
+                organization=self.organization, team=self.team, integration=self.integration
+            )
             .exclude(pk=self.pk)
             .exists()
         ):
