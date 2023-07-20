@@ -119,26 +119,23 @@ class AlertReceiveChannelView(
             else:
                 team_lookup = {"team__isnull": True}
 
-        if request.data["integration"] is not None:
-            if request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
-                # Don't allow multiple Direct Paging integrations
-                if request.data["integration"] == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
-                    try:
-                        AlertReceiveChannel.objects.get(
-                            organization=organization,
-                            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
-                            deleted_at=None,
-                            **team_lookup,
-                        )
-                        return Response(
-                            data="Direct paging integration already exists for this team",
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
-                    except AlertReceiveChannel.DoesNotExist:
-                        pass
-                return super().create(request, *args, **kwargs)
+        integration = request.data["integration"]
+        if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
+            return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
+        # Don't allow multiple Direct Paging integrations
+        if (
+            integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+            and organization.alert_receive_channels.filter(
+                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, **team_lookup
+            ).exists()
+        ):
+            return Response(
+                data="Direct paging integration already exists for this team",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().create(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized
