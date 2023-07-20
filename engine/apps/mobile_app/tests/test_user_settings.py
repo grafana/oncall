@@ -32,6 +32,7 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
         "info_notifications_enabled": False,
         "going_oncall_notification_timing": 43200,
         "locale": None,
+        "time_zone": "UTC",
     }
 
 
@@ -69,6 +70,7 @@ def test_user_settings_put(
         "info_notifications_enabled": True,
         "going_oncall_notification_timing": going_oncall_notification_timing,
         "locale": "ca_FR",
+        "time_zone": "Europe/Paris",
     }
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=auth_token)
@@ -103,6 +105,7 @@ def test_user_settings_patch(make_organization_and_user_with_mobile_app_auth_tok
         "important_notification_volume_override": False,
         "important_notification_override_dnd": False,
         "info_notifications_enabled": True,
+        "time_zone": "Europe/Luxembourg",
     }
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=auth_token)
@@ -116,3 +119,24 @@ def test_user_settings_patch(make_organization_and_user_with_mobile_app_auth_tok
     assert response.status_code == status.HTTP_200_OK
     # all original settings should stay the same, only data set in PATCH call should get updated
     assert response.json() == {**original_settings, **patch_data}
+
+
+@pytest.mark.django_db
+def test_user_settings_time_zone_must_be_valid(make_organization_and_user_with_mobile_app_auth_token):
+    _, _, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+
+    valid_timezone = {"time_zone": "Europe/Luxembourg"}
+    invalid_timezone = {"time_zone": "asdflkjasdlkj"}
+    null_timezone = {"time_zone": None}
+
+    client = APIClient()
+    url = reverse("mobile_app:user_settings")
+
+    response = client.put(url, data=valid_timezone, format="json", HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_200_OK
+
+    response = client.put(url, data=invalid_timezone, format="json", HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    response = client.put(url, data=null_timezone, format="json", HTTP_AUTHORIZATION=auth_token)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
