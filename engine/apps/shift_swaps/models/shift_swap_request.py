@@ -62,13 +62,13 @@ class ShiftSwapRequest(models.Model):
 
     swap_start = models.DateTimeField()
     """
-    so long as objects are created through the internal API, swap_start is guaranteed to be in UTC
+    so long as objects are created through the internal API, `swap_start` is guaranteed to be in UTC
     (see the internal API serializer for more details)
     """
 
     swap_end = models.DateTimeField()
     """
-    so long as objects are created through the internal API, swap_end is guaranteed to be in UTC
+    so long as objects are created through the internal API, `swap_end` is guaranteed to be in UTC
     (see the internal API serializer for more details)
     """
 
