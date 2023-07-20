@@ -81,7 +81,9 @@ class ShiftSwapRequest(models.Model):
     DELETED = "deleted"
 
     def __str__(self) -> str:
-        return f"{str(self.schedule)} {str(self.beneficiary)} {str(self.swap_start)} - {str(self.swap_end)}"
+        return (
+            f"{str(self.schedule.name)} {str(self.beneficiary.username)} {str(self.swap_start)} - {str(self.swap_end)}"
+        )
 
     def delete(self):
         self.deleted_at = timezone.now()
@@ -129,8 +131,8 @@ class ShiftSwapRequest(models.Model):
             "time_zone": self.time_zone,
             "swap_start": self.swap_start,
             "swap_end": self.swap_end,
-            "beneficiary_email": self.beneficiary.email,
-            "benefactor_email": self.benefactor.email if self.benefactor else None,
+            "beneficiary": self.beneficiary.username,
+            "benefactor": self.benefactor.username if self.benefactor else None,
         }
 
     @property
