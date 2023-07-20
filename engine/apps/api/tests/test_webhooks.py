@@ -546,3 +546,112 @@ def test_webhook_preview_template(
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
     assert response.data["preview"] == expected_result
+
+
+@pytest.mark.django_db
+def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_headers):
+    user, token, webhook = webhook_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:webhooks-list")
+
+    data = {
+        "name": "the_webhook",
+        "url": TEST_URL,
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "team": None,
+        "password": "secret_password",
+        "authorization_header": "auth 1234",
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    webhook = Webhook.objects.get(public_primary_key=response.json()["id"])
+
+    expected_response = data | {
+        "id": webhook.public_primary_key,
+        "data": None,
+        "username": None,
+        "password": WEBHOOK_FIELD_PLACEHOLDER,
+        "authorization_header": WEBHOOK_FIELD_PLACEHOLDER,
+        "forward_all": True,
+        "headers": None,
+        "http_method": "POST",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
+            "url": "",
+            "event_data": "",
+        },
+        "trigger_template": None,
+        "trigger_type_name": "Alert Group Created",
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+    assert webhook.password == data["password"]
+    assert webhook.authorization_header == data["authorization_header"]
+    assert webhook.user == user
+
+
+@pytest.mark.django_db
+def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
+    user, token, webhook = webhook_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:webhooks-list")
+
+    data = {
+        "name": "the_webhook",
+        "url": TEST_URL,
+        "trigger_type": str(Webhook.TRIGGER_ALERT_GROUP_CREATED),
+        "team": None,
+        "password": "secret_password",
+        "authorization_header": "auth 1234",
+    }
+    response1 = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    get_url = reverse("api-internal:webhooks-detail", kwargs={"pk": response1.json()["id"]})
+    response2 = client.get(get_url, format="json", **make_user_auth_headers(user, token))
+    to_copy = response2.json()
+    to_copy["name"] = "copied_webhook"
+    response3 = client.post(url, to_copy, format="json", **make_user_auth_headers(user, token))
+
+    webhook = Webhook.objects.get(public_primary_key=response3.json()["id"])
+
+    expected_response = data | {
+        "id": webhook.public_primary_key,
+        "name": to_copy["name"],
+        "data": None,
+        "username": None,
+        "password": WEBHOOK_FIELD_PLACEHOLDER,
+        "authorization_header": WEBHOOK_FIELD_PLACEHOLDER,
+        "forward_all": True,
+        "headers": None,
+        "http_method": "POST",
+        "integration_filter": None,
+        "is_webhook_enabled": True,
+        "is_legacy": False,
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
+            "url": "",
+            "event_data": "",
+        },
+        "trigger_template": None,
+        "trigger_type_name": "Alert Group Created",
+    }
+
+    assert response3.status_code == status.HTTP_201_CREATED
+    assert response3.json() == expected_response
+    assert webhook.password == data["password"]
+    assert webhook.authorization_header == data["authorization_header"]
+    assert webhook.id != to_copy["id"]
+    assert webhook.user == user
