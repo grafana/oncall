@@ -109,18 +109,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
 
         return step_type
 
-    def validate_action_to_trigger(self, action_to_trigger):
-        if action_to_trigger.team != self.escalation_chain.team:
-            raise BadRequest(detail="Action must be assigned to the same team as the escalation chain")
-
-        return action_to_trigger
-
-    def validate_notify_on_call_from_schedule(self, schedule):
-        if schedule.team != self.escalation_chain.team:
-            raise BadRequest(detail="Schedule must be assigned to the same team as the escalation chain")
-
-        return schedule
-
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
         return super().create(validated_data)
