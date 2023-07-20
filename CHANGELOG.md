@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
   ([#2601](https://github.com/grafana/oncall/pull/2601))
 
+### Changed
+
+- Update direct paging docs by @vadimkerr ([#2600](https://github.com/grafana/oncall/pull/2600))
+
 ### Fixed
 
 - Fix Slack direct paging issue when there are more than 100 schedules by @vadimkerr ([#2594](https://github.com/grafana/oncall/pull/2594))
