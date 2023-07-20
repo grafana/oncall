@@ -104,6 +104,27 @@ def test_create_invalid_alert_receive_channel(alert_receive_channel_internal_api
 
 
 @pytest.mark.django_db
+def test_create_invalid_alert_receive_channel_type(alert_receive_channel_internal_api_setup, make_user_auth_headers):
+    user, token, _ = alert_receive_channel_internal_api_setup
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+
+    response_1 = client.post(
+        url,
+        data={"integration": "random123", "verbal_name": "Random 123"},
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    response_2 = client.post(
+        url, data={"verbal_name": "Random 123"}, format="json", **make_user_auth_headers(user, token)
+    )
+
+    assert response_1.status_code == status.HTTP_400_BAD_REQUEST
+    assert response_2.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_update_alert_receive_channel(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()

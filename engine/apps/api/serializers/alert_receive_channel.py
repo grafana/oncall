@@ -155,12 +155,6 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             if filter.is_default:
                 return filter.public_primary_key
 
-    def validate_team(self, team):
-        user = self.context["request"].user
-        if team and team not in user.available_teams:
-            raise BadRequest(detail="invalid team")
-        return team
-
     @staticmethod
     def validate_integration(integration):
         if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
