@@ -548,8 +548,9 @@ def test_webhook_preview_template(
     assert response.data["preview"] == expected_result
 
 
+@mock.patch("apps.api.views.webhooks.WebhooksView.check_webhooks_2_enabled")
 @pytest.mark.django_db
-def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_headers):
+def test_webhook_field_masking(mock_check_webhooks_2_enabled, webhook_internal_api_setup, make_user_auth_headers):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
@@ -599,8 +600,9 @@ def test_webhook_field_masking(webhook_internal_api_setup, make_user_auth_header
     assert webhook.user == user
 
 
+@mock.patch("apps.api.views.webhooks.WebhooksView.check_webhooks_2_enabled")
 @pytest.mark.django_db
-def test_webhook_copy(webhook_internal_api_setup, make_user_auth_headers):
+def test_webhook_copy(mock_check_webhooks_2_enabled, webhook_internal_api_setup, make_user_auth_headers):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
