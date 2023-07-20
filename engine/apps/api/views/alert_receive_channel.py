@@ -18,7 +18,6 @@ from apps.api.serializers.alert_receive_channel import (
 )
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.models.team import Team
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -103,39 +102,6 @@ class AlertReceiveChannelView(
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
-
-    def create(self, request, *args, **kwargs):
-        organization = request.auth.organization
-        user = request.user
-        team_lookup = {}
-        if "team" in request.data:
-            team_public_pk = request.data.get("team", None)
-            if team_public_pk is not None:
-                try:
-                    team = user.available_teams.get(public_primary_key=team_public_pk)
-                    team_lookup = {"team": team}
-                except Team.DoesNotExist:
-                    return Response(data="invalid team", status=status.HTTP_400_BAD_REQUEST)
-            else:
-                team_lookup = {"team__isnull": True}
-
-        integration = request.data["integration"]
-        if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
-            return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
-
-        # Don't allow multiple Direct Paging integrations
-        if (
-            integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-            and organization.alert_receive_channels.filter(
-                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, **team_lookup
-            ).exists()
-        ):
-            return Response(
-                data="Direct paging integration already exists for this team",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return super().create(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized

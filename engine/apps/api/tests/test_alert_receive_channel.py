@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
+from common.api_helpers.exceptions import DuplicateDirectPagingBadRequest
 
 
 @pytest.fixture()
@@ -732,6 +733,33 @@ def test_create_alert_receive_channels_direct_paging(
     assert response_3.status_code == status.HTTP_201_CREATED
     # Check direct paging integration is not created, as it already exists for team
     assert response_4.status_code == status.HTTP_400_BAD_REQUEST
+    assert response_4.json()["detail"] == DuplicateDirectPagingBadRequest.default_detail
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channels_direct_paging(
+    make_organization_and_user_with_plugin_token, make_team, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+    integration = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=None
+    )
+    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=team)
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
+
+    # Move direct paging integration from "No team" to team
+    response = client.put(
+        url,
+        data={"integration": "direct_paging", "team": team.public_primary_key},
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == DuplicateDirectPagingBadRequest.default_detail
 
 
 @pytest.mark.django_db

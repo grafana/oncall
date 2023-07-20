@@ -23,3 +23,12 @@ class Conflict(APIException):
     status_code = 409
     default_detail = "duplicate record found"
     default_code = "Conflict"
+
+
+class DuplicateDirectPagingBadRequest(BadRequest):
+    """
+    Only one direct paging integration is allowed per team.
+    See AlertReceiveChannel.DuplicateDirectPaging for more details.
+    """
+
+    default_detail = "Direct paging integration already exists for this team"

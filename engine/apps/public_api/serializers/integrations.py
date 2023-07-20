@@ -7,7 +7,7 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
-from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.exceptions import BadRequest, DuplicateDirectPagingBadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
 from common.jinja_templater import jinja_template_env
 from common.utils import timed_lru_cache
@@ -124,22 +124,15 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
-
-        # Don't allow multiple Direct Paging integrations
-        if (
-            integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-            and organization.alert_receive_channels.filter(
-                integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=validated_data.get("team")
-            ).exists()
-        ):
-            raise BadRequest(detail="Direct paging integration already exists for this team")
-
         with transaction.atomic():
-            instance = AlertReceiveChannel.create(
-                **validated_data,
-                author=self.context["request"].user,
-                organization=organization,
-            )
+            try:
+                instance = AlertReceiveChannel.create(
+                    **validated_data,
+                    author=self.context["request"].user,
+                    organization=organization,
+                )
+            except AlertReceiveChannel.DuplicateDirectPaging:
+                raise DuplicateDirectPagingBadRequest
             if default_route_data:
                 serializer = DefaultChannelFilterSerializer(
                     instance.default_channel_filter, default_route_data, context=self.context
@@ -147,6 +140,12 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
         return instance
+
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except AlertReceiveChannel.DuplicateDirectPaging:
+            raise DuplicateDirectPagingBadRequest
 
     def validate(self, attrs):
         organization = self.context["request"].auth.organization

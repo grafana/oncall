@@ -15,7 +15,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
-from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.exceptions import BadRequest, DuplicateDirectPagingBadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import apply_jinja_template, jinja_template_env
@@ -121,14 +121,23 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             if _integration.slug == integration:
                 is_able_to_autoresolve = _integration.is_able_to_autoresolve
 
-        instance = AlertReceiveChannel.create(
-            **validated_data,
-            organization=organization,
-            author=self.context["request"].user,
-            allow_source_based_resolving=is_able_to_autoresolve,
-        )
+        try:
+            instance = AlertReceiveChannel.create(
+                **validated_data,
+                organization=organization,
+                author=self.context["request"].user,
+                allow_source_based_resolving=is_able_to_autoresolve,
+            )
+        except AlertReceiveChannel.DuplicateDirectPaging:
+            raise DuplicateDirectPagingBadRequest
 
         return instance
+
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except AlertReceiveChannel.DuplicateDirectPaging:
+            raise DuplicateDirectPagingBadRequest
 
     def get_instructions(self, obj):
         if obj.integration in [AlertReceiveChannel.INTEGRATION_MAINTENANCE]:
@@ -145,6 +154,18 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
+
+    def validate_team(self, team):
+        user = self.context["request"].user
+        if team and team not in user.available_teams:
+            raise BadRequest(detail="invalid team")
+        return team
+
+    @staticmethod
+    def validate_integration(integration):
+        if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
+            raise BadRequest(detail="invalid integration")
+        return integration
 
     def validate_verbal_name(self, verbal_name):
         organization = self.context["request"].auth.organization
