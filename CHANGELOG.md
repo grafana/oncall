@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
   ([#2601](https://github.com/grafana/oncall/pull/2601))
+- Add filter integrations by type ([2609](https://github.com/grafana/oncall/pull/2609))
 
 ### Changed
 
