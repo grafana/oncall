@@ -24,12 +24,12 @@ interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
 const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const store = useStore();
-  const { userStore, teamStore } = store;
+  const { userStore, organizationStore } = store;
 
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();
 
-  const telegramConfigured = teamStore.currentTeam?.env_status.telegram_configured;
+  const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
   useEffect(() => {
     userStore.sendTelegramConfirmationCode(userStore.currentUserPk).then((res) => {

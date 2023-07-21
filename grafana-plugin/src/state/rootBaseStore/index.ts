@@ -18,13 +18,13 @@ import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
+import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
-import { TeamStore } from 'models/team/team';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
 import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
@@ -80,29 +80,29 @@ export class RootBaseStore {
 
   // --------------------------
 
-  userStore: UserStore = new UserStore(this);
-  cloudStore: CloudStore = new CloudStore(this);
-  directPagingStore: DirectPagingStore = new DirectPagingStore(this);
-  grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
-  alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
-  outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
+  userStore = new UserStore(this);
+  cloudStore = new CloudStore(this);
+  directPagingStore = new DirectPagingStore(this);
+  grafanaTeamStore = new GrafanaTeamStore(this);
+  alertReceiveChannelStore = new AlertReceiveChannelStore(this);
+  outgoingWebhookStore = new OutgoingWebhookStore(this);
 
-  outgoingWebhook2Store: OutgoingWebhook2Store = new OutgoingWebhook2Store(this);
-  alertReceiveChannelFiltersStore: AlertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
-  escalationChainStore: EscalationChainStore = new EscalationChainStore(this);
-  escalationPolicyStore: EscalationPolicyStore = new EscalationPolicyStore(this);
-  teamStore: TeamStore = new TeamStore(this);
-  telegramChannelStore: TelegramChannelStore = new TelegramChannelStore(this);
-  slackStore: SlackStore = new SlackStore(this);
-  slackChannelStore: SlackChannelStore = new SlackChannelStore(this);
-  heartbeatStore: HeartbeatStore = new HeartbeatStore(this);
-  scheduleStore: ScheduleStore = new ScheduleStore(this);
-  userGroupStore: UserGroupStore = new UserGroupStore(this);
-  alertGroupStore: AlertGroupStore = new AlertGroupStore(this);
-  resolutionNotesStore: ResolutionNotesStore = new ResolutionNotesStore(this);
-  apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
-  globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
-  filtersStore: FiltersStore = new FiltersStore(this);
+  outgoingWebhook2Store = new OutgoingWebhook2Store(this);
+  alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
+  escalationChainStore = new EscalationChainStore(this);
+  escalationPolicyStore = new EscalationPolicyStore(this);
+  organizationStore = new OrganizationStore(this);
+  telegramChannelStore = new TelegramChannelStore(this);
+  slackStore = new SlackStore(this);
+  slackChannelStore = new SlackChannelStore(this);
+  heartbeatStore = new HeartbeatStore(this);
+  scheduleStore = new ScheduleStore(this);
+  userGroupStore = new UserGroupStore(this);
+  alertGroupStore = new AlertGroupStore(this);
+  resolutionNotesStore = new ResolutionNotesStore(this);
+  apiTokenStore = new ApiTokenStore(this);
+  globalSettingStore = new GlobalSettingStore(this);
+  filtersStore = new FiltersStore(this);
   // stores
 
   async updateBasicData() {
@@ -117,7 +117,7 @@ export class RootBaseStore {
     };
 
     return Promise.all([
-      this.teamStore.loadCurrentTeam(),
+      this.organizationStore.loadCurrentOrganization(),
       this.grafanaTeamStore.updateItems(),
       updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),

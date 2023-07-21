@@ -21,6 +21,10 @@ from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
 
 
+class UserPermissionSerializer(serializers.Serializer):
+    action = serializers.CharField(read_only=True)
+
+
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
@@ -154,6 +158,17 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         if len(number) <= 4:
             SHOW_LAST_SYMBOLS = math.ceil(len(number) / 2)
         return f"{HIDE_SYMBOL * (len(number) - SHOW_LAST_SYMBOLS)}{number[-SHOW_LAST_SYMBOLS:]}"
+
+
+class CurrentUserSerializer(UserSerializer):
+    rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
+
+    class Meta:
+        model = User
+        fields = UserSerializer.Meta.fields + [
+            "rbac_permissions",
+        ]
+        read_only_fields = UserSerializer.Meta.read_only_fields
 
 
 class UserHiddenFieldsSerializer(UserSerializer):

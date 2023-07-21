@@ -69,6 +69,8 @@ urlpatterns = [
     path("", include(router.urls)),
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
+    optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
+    # TODO: remove current_team routes in future release
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
     optional_slash_path(
         "current_team/get_telegram_verification_code",
@@ -106,5 +108,3 @@ urlpatterns += [
     path(r"login/<backend>/", auth.overridden_login_slack_auth, name="slack-auth"),
     path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
 ]
-
-urlpatterns += router.urls
