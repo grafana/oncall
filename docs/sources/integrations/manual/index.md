@@ -42,9 +42,9 @@ For each additional responder (user or schedule), you can select a notification 
 
 ## Add responders for an existing alert group
 
-If you want to page more people for an existing alert group, you can do so using the "Notify additional responders"
+If you want to page more people for an existing alert group, you can do so using the **Notify additional responders**
 button on the specific alert group's page. Here you can select more users, or choose users who are on-call for specific
-schedules. The same functionality is available in Slack using the "Responders" button in the alert group's message.
+schedules. The same functionality is available in Slack using the **Responders** button in the alert group's message.
 
 Notifying additional responders doesn't disrupt or interfere with the escalation chain configured for the alert group;
 it simply adds more responders and notifies them immediately.
