@@ -70,9 +70,7 @@ urlpatterns = [
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
     optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
-    # TODO:
-    # Step 1. refactor UI to consume organization, instead of current_team endpoints
-    # Step 2. remove current_team routes
+    # TODO: remove current_team routes in future release
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
     optional_slash_path(
         "current_team/get_telegram_verification_code",
