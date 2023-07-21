@@ -9,5 +9,5 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 )
 def resolve_by_last_step_task(alert_group_pk):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     alert_group.resolve_by_last_step()

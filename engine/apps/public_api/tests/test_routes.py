@@ -444,7 +444,7 @@ def test_update_route_with_manual_ordering(
 
     url = reverse("api-public:routes-detail", kwargs={"pk": channel_filter.public_primary_key})
 
-    # Test negative value. Note, that for "manual_order"=False, -1 is valud option (It will move route to the bottom)
+    # Test negative value. Note, that for "manual_order"=False, -1 is valid option (It will move route to the bottom)
     data_to_update = {"position": -1, "manual_order": True}
 
     response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)

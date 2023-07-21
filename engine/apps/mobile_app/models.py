@@ -174,3 +174,4 @@ class MobileAppUserSettings(models.Model):
     )
 
     locale = models.CharField(max_length=50, null=True)
+    time_zone = models.CharField(max_length=100, default="UTC")

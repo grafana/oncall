@@ -85,7 +85,7 @@ def on_alert_group_action_triggered_async(log_record_id):
 )
 def on_alert_group_update_log_report_async(alert_group_id):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_id)
+    alert_group = AlertGroup.objects.get(pk=alert_group_id)
     logger.debug(f"Start on_alert_group_update_log_report for alert_group {alert_group_id}")
     organization = alert_group.channel.organization
     if alert_group.slack_message and organization.slack_team_identity:
@@ -164,7 +164,7 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
             alert_group_id = alert_group.pk
         else:
             alert_group_id = alert_group
-            alert_group = AlertGroup.all_objects.get(pk=alert_group_id)
+            alert_group = AlertGroup.objects.get(pk=alert_group_id)
 
         logger.debug(
             f"Received alert_group_update_log_report signal in SLACK representative for alert_group {alert_group_id}"

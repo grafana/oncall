@@ -7,11 +7,20 @@ keywords:
   - on-call
   - amixr
   - webhooks
-title: Configure outgoing webhooks for Grafana OnCall
+title: Outgoing Webhooks
 weight: 500
 ---
 
 # Outgoing Webhooks
+
+> ⚠️ A note about **(Legacy)** webhooks:  Webhooks that were created before version **v1.3.11** are marked as
+> **(Legacy)**.  Do not worry! They are still connected to their respective escalation chains and will continue to to
+> execute as they always have.
+> <br/><br/>
+> The **(Legacy)** webhook is no longer editable due to changes to the internal representation. If you need to edit it
+> you must use the `Make a copy` action in the menu and make your changes there.  This will create the webhook in the
+> new format.  Be sure to change your escalation chains to point to the new copy otherwise it will not be active. The
+> **(Legacy)** webhook can then be deleted.
 
 Outgoing webhooks are used by Grafana OnCall to send data to a URL in a flexible way. These webhooks can be
 triggered from a variety of event types and make use of Jinja2 to transform data into the format required at
@@ -27,7 +36,7 @@ click **Create Webhook**
 ### Outgoing webhook fields
 
 The outgoing webhook is defined by the following fields.  For more information about template usage
-see [Outgoing webhook templates)](#outgoing-webhook-templates) section.
+see [Outgoing webhook templates](#outgoing-webhook-templates) section.
 
 #### ID
 

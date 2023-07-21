@@ -120,7 +120,6 @@ def test_get_acknowledge_text(
     "source,expected_text",
     [
         (AlertGroup.SOURCE, "Resolved by alert source"),
-        (AlertGroup.ARCHIVED, "Resolved because alert has been archived"),
         (AlertGroup.LAST_STEP, "Resolved automatically"),
         (AlertGroup.WIPED, "Resolved by wipe"),
         (AlertGroup.DISABLE_MAINTENANCE, "Resolved by stop maintenance"),
