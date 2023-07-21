@@ -3,9 +3,8 @@ import datetime
 import pytest
 from django.utils import timezone
 
-from apps.schedules.models import OnCallScheduleWeb
-from apps.shift_swaps import exceptions
-from apps.shift_swaps.models import ShiftSwapRequest
+from apps.schedules import exceptions
+from apps.schedules.models import OnCallScheduleWeb, ShiftSwapRequest
 
 
 @pytest.fixture

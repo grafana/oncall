@@ -10,8 +10,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.schedules.models import OnCallScheduleWeb
-from apps.shift_swaps.models import ShiftSwapRequest
+from apps.schedules.models import OnCallScheduleWeb, ShiftSwapRequest
 from common.insight_log import EntityEvent
 
 description = "my shift swap request"
@@ -489,6 +488,62 @@ def test_partial_update_others_ssr_permissions(ssr_setup, make_user_auth_headers
         url, data=json.dumps({}), content_type="application/json", **make_user_auth_headers(benefactor, token)
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_benefactor_and_beneficiary_are_read_only_fields(ssr_setup, make_user_auth_headers):
+    ssr, beneficiary, token, benefactor = ssr_setup(description=description)
+
+    client = APIClient()
+    list_url = reverse("api-internal:shift_swap-list")
+    detail_url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
+    auth_headers = make_user_auth_headers(beneficiary, token)
+
+    base_data = {
+        "description": "hellooooo world",
+        "schedule": ssr.schedule.public_primary_key,
+        "swap_start": _convert_dt_to_sr(ssr.swap_start),
+        "swap_end": _convert_dt_to_sr(ssr.swap_end),
+    }
+
+    update_beneficiary = {"beneficiary": benefactor.public_primary_key}
+    update_benefactor = {"benefactor": beneficiary.public_primary_key}
+
+    def _assert_beneficiary_hasnt_changed(resp):
+        assert resp.json()["beneficiary"] == beneficiary.public_primary_key
+
+    def _assert_benefactor_is_still_none(resp):
+        assert resp.json()["benefactor"] is None
+
+    response = client.post(
+        list_url, data=json.dumps(base_data | update_beneficiary), content_type="application/json", **auth_headers
+    )
+    _assert_beneficiary_hasnt_changed(response)
+
+    response = client.post(
+        list_url, data=json.dumps(base_data | update_benefactor), content_type="application/json", **auth_headers
+    )
+    _assert_benefactor_is_still_none(response)
+
+    response = client.put(
+        detail_url, data=json.dumps(base_data | update_beneficiary), content_type="application/json", **auth_headers
+    )
+    _assert_beneficiary_hasnt_changed(response)
+
+    response = client.put(
+        detail_url, data=json.dumps(base_data | update_benefactor), content_type="application/json", **auth_headers
+    )
+    _assert_benefactor_is_still_none(response)
+
+    response = client.patch(
+        detail_url, data=json.dumps(base_data | update_beneficiary), content_type="application/json", **auth_headers
+    )
+    _assert_beneficiary_hasnt_changed(response)
+
+    response = client.patch(
+        detail_url, data=json.dumps(base_data | update_benefactor), content_type="application/json", **auth_headers
+    )
+    _assert_benefactor_is_still_none(response)
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")

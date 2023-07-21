@@ -6,7 +6,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils import timezone
 
-from apps.shift_swaps import exceptions
+from apps.schedules import exceptions
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:

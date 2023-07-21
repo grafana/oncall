@@ -65,8 +65,8 @@ from apps.schedules.tests.factories import (
     OnCallScheduleCalendarFactory,
     OnCallScheduleFactory,
     OnCallScheduleICalFactory,
+    ShiftSwapRequestFactory,
 )
-from apps.shift_swaps.tests.factories import ShiftSwapRequestFactory
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.tests.factories import (
     SlackChannelFactory,

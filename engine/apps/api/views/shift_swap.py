@@ -10,8 +10,8 @@ from apps.api.permissions import IsOwner, RBACPermission
 from apps.api.serializers.shift_swap import ShiftSwapRequestSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from apps.shift_swaps import exceptions
-from apps.shift_swaps.models import ShiftSwapRequest
+from apps.schedules import exceptions
+from apps.schedules.models import ShiftSwapRequest
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -52,23 +52,17 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
     pagination_class = FiftyPageSizePaginator
 
     def get_queryset(self):
-        return ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization)
+        queryset = ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization)
+        return self.serializer_class.setup_eager_loading(queryset)
 
     def perform_destroy(self, instance):
         super().perform_destroy(instance)
-        write_resource_insight_log(
-            instance=instance,
-            author=self.request.user,
-            event=EntityEvent.DELETED,
-        )
+        write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
 
     def perform_create(self, serializer):
-        serializer.save()
-        write_resource_insight_log(
-            instance=serializer.instance,
-            author=self.request.user,
-            event=EntityEvent.CREATED,
-        )
+        beneficiary = self.request.user
+        serializer.save(beneficiary=beneficiary)
+        write_resource_insight_log(instance=serializer.instance, author=beneficiary, event=EntityEvent.CREATED)
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized

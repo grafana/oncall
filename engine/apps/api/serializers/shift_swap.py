@@ -3,14 +3,12 @@ import datetime
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.schedules.models import OnCallSchedule
-from apps.shift_swaps.models import ShiftSwapRequest
-from apps.user_management.models import User
+from apps.schedules.models import OnCallSchedule, ShiftSwapRequest
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField, TimeZoneAwareDatetimeField
-from common.api_helpers.utils import CurrentUserDefault
+from common.api_helpers.mixins import EagerLoadingMixin
 
 
-class ShiftSwapRequestSerializer(serializers.ModelSerializer):
+class ShiftSwapRequestSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     schedule = OrganizationFilteredPrimaryKeyRelatedField(queryset=OnCallSchedule.objects)
 
@@ -20,8 +18,14 @@ class ShiftSwapRequestSerializer(serializers.ModelSerializer):
     swap_start = TimeZoneAwareDatetimeField()
     swap_end = TimeZoneAwareDatetimeField()
 
-    beneficiary = OrganizationFilteredPrimaryKeyRelatedField(queryset=User.objects, default=CurrentUserDefault())
-    benefactor = OrganizationFilteredPrimaryKeyRelatedField(queryset=User.objects, required=False, allow_null=True)
+    beneficiary = serializers.CharField(read_only=True, source="beneficiary.public_primary_key")
+    benefactor = serializers.SerializerMethodField(read_only=True)
+
+    SELECT_RELATED = [
+        "schedule",
+        "beneficiary",
+        "benefactor",
+    ]
 
     class Meta:
         model = ShiftSwapRequest
@@ -40,6 +44,9 @@ class ShiftSwapRequestSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "status",
         ]
+
+    def get_benefactor(self, obj) -> str | None:
+        return obj.benefactor.public_primary_key if obj.benefactor else None
 
     @staticmethod
     def validate_start_and_end_times(swap_start: datetime.datetime, swap_end: datetime.datetime) -> None:

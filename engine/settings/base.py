@@ -239,7 +239,6 @@ INSTALLED_APPS = [
     "fcm_django",
     "django_dbconn_retry",
     "apps.phone_notifications",
-    "apps.shift_swaps",
 ]
 
 REST_FRAMEWORK = {
