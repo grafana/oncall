@@ -26,7 +26,7 @@ who will be alerted – a team, a user, or an on-call user from a specific sched
 
 ## Page a team
 
-Click on "+ New alert group" on the "Alert groups" page to start creating a new alert group.
+Click on **+ New alert group** on the **Alert groups** page to start creating a new alert group.
 From there, you can configure the alert group to notify a particular team and optionally include additional users or
 schedules. Here are the inputs you need to fill in:
 
@@ -42,9 +42,9 @@ For each additional responder (user or schedule), you can select a notification 
 
 ## Add responders for an existing alert group
 
-If you want to page more people for an existing alert group, you can do so using the "Notify additional responders"
+If you want to page more people for an existing alert group, you can do so using the **Notify additional responders**
 button on the specific alert group's page. Here you can select more users, or choose users who are on-call for specific
-schedules. The same functionality is available in Slack using the "Responders" button in the alert group's message.
+schedules. The same functionality is available in Slack using the **Responders** button in the alert group's message.
 
 Notifying additional responders doesn't disrupt or interfere with the escalation chain configured for the alert group;
 it simply adds more responders and notifies them immediately.
@@ -65,9 +65,10 @@ Grafana OnCall will issue a warning. If this happens, consider
 
 ## Set up direct paging for a team
 
-To create a direct paging integration for a team, click "+ New alert group" on the "Alert groups" page, choose the team,
+To create a direct paging integration for a team, click **+ New alert group** on the **Alert groups** page, choose the team,
 and create an alert group, **regardless of any warnings**. This action automatically triggers Grafana OnCall to generate
-a [direct paging integration](#learn-the-flow-and-handle-warnings) for the chosen team.
+a [direct paging integration](#learn-the-flow-and-handle-warnings) for the chosen team. Alternatively, navigate to
+the **Integrations** page and create a new integration with type "Direct paging" from there, assigning it to the team.
 
 After setting up the integration, you can customize its settings, link it to an escalation chain,
 and configure associated ChatOps channels.
