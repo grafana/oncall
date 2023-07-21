@@ -88,7 +88,6 @@ class CurrentUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        logger.info("yoooooooo")
         context = {"request": self.request, "format": self.format_kwarg, "view": self}
 
         if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
@@ -105,8 +104,6 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
-        logger.info("yoooooooo homie")
-
         data = self.request.data
         serializer = CurrentUserSerializer(request.user, data=data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
