@@ -311,7 +311,8 @@ class Users extends React.Component<UsersProps, UsersState> {
           <WithPermissionControlTooltip userAction={action}>
             <Button
               className={cx({
-                'TEST-edit-my-own-settings-button': isCurrent,
+                'edit-my-profile-button': isCurrent,
+                'edit-other-profile-button': !isCurrent,
               })}
               fill="text"
             >
