@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
   ([#2601](https://github.com/grafana/oncall/pull/2601))
 - Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
-  response schema by @joeyorlando ([#TBD](https://github.com/grafana/oncall/pull/TBD))
+  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
 
 ### Changed
 
