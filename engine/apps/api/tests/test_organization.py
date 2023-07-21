@@ -10,6 +10,23 @@ from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("rbac_enabled", [True, False])
+def test_get_current_team_rbac_enabled(
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, rbac_enabled
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    organization.is_rbac_permissions_enabled = rbac_enabled
+    organization.save()
+
+    client = APIClient()
+    url = reverse("api-internal:api-current-team")
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["rbac_enabled"] == rbac_enabled
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [

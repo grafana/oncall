@@ -42,8 +42,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
 
-    rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
-
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
     class Meta:
@@ -56,7 +54,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "username",
             "name",
             "role",
-            "rbac_permissions",
             "avatar",
             "avatar_full",
             "timezone",
@@ -161,6 +158,17 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         if len(number) <= 4:
             SHOW_LAST_SYMBOLS = math.ceil(len(number) / 2)
         return f"{HIDE_SYMBOL * (len(number) - SHOW_LAST_SYMBOLS)}{number[-SHOW_LAST_SYMBOLS:]}"
+
+
+class CurrentUserSerializer(UserSerializer):
+    rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
+
+    class Meta:
+        model = User
+        fields = UserSerializer.Meta.fields + [
+            "rbac_permissions",
+        ]
+        read_only_fields = UserSerializer.Meta.read_only_fields
 
 
 class UserHiddenFieldsSerializer(UserSerializer):
