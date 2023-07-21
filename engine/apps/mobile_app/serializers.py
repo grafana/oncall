@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.mobile_app.models import MobileAppUserSettings
-from common.timezones import TimeZoneField
+from common.api_helpers.custom_fields import TimeZoneField
 
 
 class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
