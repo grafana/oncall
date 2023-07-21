@@ -168,7 +168,9 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                       <br />
                       If you proceed with the alert group, the team likely will not be notified. <br />
                       <a
-                        href={'https://grafana.com/docs/oncall/latest/integrations/manual/'}
+                        href={
+                          'https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings'
+                        }
                         target="_blank"
                         rel="noreferrer"
                         className={cx('link')}
@@ -188,7 +190,9 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
                   If you proceed with the alert group, an empty direct paging integration will be created automatically
                   for the team. <br />
                   <a
-                    href={'https://grafana.com/docs/oncall/latest/integrations/manual/'}
+                    href={
+                      'https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings'
+                    }
                     target="_blank"
                     rel="noreferrer"
                     className={cx('link')}
