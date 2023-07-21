@@ -9,7 +9,6 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
 from apps.api.permissions import LegacyAccessControlRole
-from common.api_helpers.exceptions import DuplicateDirectPagingBadRequest
 
 
 @pytest.fixture()
@@ -754,7 +753,7 @@ def test_create_alert_receive_channels_direct_paging(
     assert response_3.status_code == status.HTTP_201_CREATED
     # Check direct paging integration is not created, as it already exists for team
     assert response_4.status_code == status.HTTP_400_BAD_REQUEST
-    assert response_4.json()["detail"] == DuplicateDirectPagingBadRequest.default_detail
+    assert response_4.json()["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
 
 
 @pytest.mark.django_db
@@ -780,7 +779,7 @@ def test_update_alert_receive_channels_direct_paging(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json()["detail"] == DuplicateDirectPagingBadRequest.default_detail
+    assert response.json()["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
 
 
 @pytest.mark.django_db

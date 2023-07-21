@@ -7,7 +7,7 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
-from common.api_helpers.exceptions import BadRequest, DuplicateDirectPagingBadRequest
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
 from common.jinja_templater import jinja_template_env
 from common.utils import timed_lru_cache
@@ -131,8 +131,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                     author=self.context["request"].user,
                     organization=organization,
                 )
-            except AlertReceiveChannel.DuplicateDirectPaging:
-                raise DuplicateDirectPagingBadRequest
+            except AlertReceiveChannel.DuplicateDirectPagingError:
+                raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
             if default_route_data:
                 serializer = DefaultChannelFilterSerializer(
                     instance.default_channel_filter, default_route_data, context=self.context
@@ -144,8 +144,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     def update(self, *args, **kwargs):
         try:
             return super().update(*args, **kwargs)
-        except AlertReceiveChannel.DuplicateDirectPaging:
-            raise DuplicateDirectPagingBadRequest
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
     def validate(self, attrs):
         organization = self.context["request"].auth.organization

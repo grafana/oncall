@@ -5,7 +5,6 @@ from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.tests.messaging_backend import TestOnlyBackend
-from common.api_helpers.exceptions import DuplicateDirectPagingBadRequest
 
 TEST_MESSAGING_BACKEND_FIELD = TestOnlyBackend.backend_id.lower()
 
@@ -849,7 +848,7 @@ def test_create_integrations_direct_paging(
     assert response_3.status_code == status.HTTP_201_CREATED
     # Check direct paging integration is not created, as it already exists for team
     assert response_4.status_code == status.HTTP_400_BAD_REQUEST
-    assert response_4.data["detail"] == DuplicateDirectPagingBadRequest.default_detail
+    assert response_4.data["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
 
 
 @pytest.mark.django_db
@@ -871,4 +870,4 @@ def test_update_integrations_direct_paging(
     response = client.put(url, data={"team_id": team.public_primary_key}, format="json", HTTP_AUTHORIZATION=token)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["detail"] == DuplicateDirectPagingBadRequest.default_detail
+    assert response.data["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL

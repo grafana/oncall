@@ -15,7 +15,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
-from common.api_helpers.exceptions import BadRequest, DuplicateDirectPagingBadRequest
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import apply_jinja_template, jinja_template_env
@@ -128,16 +128,16 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
                 author=self.context["request"].user,
                 allow_source_based_resolving=is_able_to_autoresolve,
             )
-        except AlertReceiveChannel.DuplicateDirectPaging:
-            raise DuplicateDirectPagingBadRequest
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
         return instance
 
     def update(self, *args, **kwargs):
         try:
             return super().update(*args, **kwargs)
-        except AlertReceiveChannel.DuplicateDirectPaging:
-            raise DuplicateDirectPagingBadRequest
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
     def get_instructions(self, obj):
         if obj.integration in [AlertReceiveChannel.INTEGRATION_MAINTENANCE]:
