@@ -80,7 +80,7 @@ class AlertReceiveChannelView(
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ("verbal_name",)
+    search_fields = ("verbal_name", "integration")
 
     filterset_class = AlertReceiveChannelFilter
     pagination_class = FifteenPageSizePaginator
@@ -283,6 +283,12 @@ class AlertReceiveChannelView(
                 "type": "team_select",
                 "href": api_root + "teams/",
                 "global": True,
+            },
+            {
+                "name": "integration",
+                "display_name": "Type",
+                "type": "options",
+                "href": api_root + "alert_receive_channels/integration_options/",
             },
         ]
 
