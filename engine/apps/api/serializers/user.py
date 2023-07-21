@@ -21,6 +21,10 @@ from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
 
 
+class UserPermissionSerializer(serializers.Serializer):
+    action = serializers.CharField(read_only=True)
+
+
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
@@ -38,6 +42,8 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
 
+    rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
+
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
     class Meta:
@@ -50,6 +56,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "username",
             "name",
             "role",
+            "rbac_permissions",
             "avatar",
             "avatar_full",
             "timezone",
