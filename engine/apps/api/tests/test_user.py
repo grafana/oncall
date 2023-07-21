@@ -50,7 +50,7 @@ def test_current_user(make_organization_and_user_with_plugin_token, make_user_au
                 "user": user.username,
             }
         },
-        "cloud_connection_status": None,
+        "cloud_connection_status": 0,
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": user.avatar_url,
