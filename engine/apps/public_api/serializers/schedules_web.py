@@ -6,7 +6,6 @@ from apps.schedules.tasks import (
     schedule_notify_about_gaps_in_schedule,
 )
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UsersFilteredByOrganizationField
-from common.api_helpers.exceptions import BadRequest
 from common.timezones import TimeZoneField
 
 
@@ -30,16 +29,6 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
             "on_call_now",
             "shifts",
         ]
-
-    def validate_shifts(self, shifts):
-        # Get team_id from instance, if it exists, otherwise get it from initial data.
-        # Handle empty string instead of None. In this case change team_id value to None.
-        team_id = self.instance.team_id if self.instance else (self.initial_data.get("team_id") or None)
-        for shift in shifts:
-            if shift.team_id != team_id:
-                raise BadRequest(detail="Shifts must be assigned to the same team as the schedule")
-
-        return shifts
 
     def to_internal_value(self, data):
         if data.get("shifts", []) is None:  # handle a None value

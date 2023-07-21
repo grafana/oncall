@@ -115,21 +115,6 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
                 notification_backends[backend_id] = current.get(backend_id, {}) | notification_backends[backend_id]
         return notification_backends
 
-    def validate_escalation_chain_id(self, escalation_chain):
-        if escalation_chain is None:
-            return escalation_chain
-        if self.instance is not None:
-            alert_receive_channel = self.instance.alert_receive_channel
-        else:
-            alert_receive_channel = AlertReceiveChannel.objects.get(
-                public_primary_key=self.initial_data["integration_id"]
-            )
-
-        if escalation_chain.team != alert_receive_channel.team:
-            raise BadRequest(detail="Escalation chain must be assigned to the same team as the integration")
-
-        return escalation_chain
-
 
 class RoutingTypeField(fields.CharField):
     def to_representation(self, value):
