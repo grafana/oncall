@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -253,7 +252,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         extra_kwargs = {"integration": {"required": True}}
 
     def get_payload_example(self, obj):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         if "alert_group_id" in self.context["request"].query_params:
             alert_group_id = self.context["request"].query_params.get("alert_group_id")
             try:

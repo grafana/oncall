@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
@@ -9,7 +8,7 @@ class SlackUserGroupEventStep(scenario_step.ScenarioStep):
         """
         Triggered by action: creation user groups or changes in user groups except its members.
         """
-        SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
+        from apps.slack.models import SlackUserGroup
 
         slack_id = payload["event"]["subteam"]["id"]
         usergroup_name = payload["event"]["subteam"]["name"]
@@ -35,7 +34,7 @@ class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
         """
         Triggered by action: changed members in user group.
         """
-        SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
+        from apps.slack.models import SlackUserGroup
 
         slack_id = payload["event"]["subteam_id"]
         try:

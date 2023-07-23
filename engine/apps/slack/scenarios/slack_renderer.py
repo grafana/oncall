@@ -1,5 +1,4 @@
 import humanize
-from django.apps import apps
 
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 
@@ -7,8 +6,8 @@ from apps.alerts.incident_log_builder import IncidentLogBuilder
 class AlertGroupLogSlackRenderer:
     @staticmethod
     def render_incident_log_report_for_slack(alert_group):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+        from apps.base.models import UserNotificationPolicyLogRecord
 
         log_builder = IncidentLogBuilder(alert_group)
         all_log_records = log_builder.get_log_records_list()

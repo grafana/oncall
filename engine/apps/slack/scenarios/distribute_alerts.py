@@ -3,7 +3,6 @@ import logging
 from contextlib import suppress
 from datetime import datetime
 
-from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 from jinja2 import TemplateError
@@ -220,7 +219,7 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        User = apps.get_model("user_management", "User")
+        from apps.user_management.models import User
 
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
@@ -525,7 +524,8 @@ class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        CustomButtom = apps.get_model("alerts", "CustomButton")
+        from apps.alerts.models import CustomButton
+
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -534,8 +534,8 @@ class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         custom_button_pk = payload["actions"][0]["name"].split("_")[1]
         alert_group_pk = payload["actions"][0]["name"].split("_")[2]
         try:
-            CustomButtom.objects.get(pk=custom_button_pk)
-        except CustomButtom.DoesNotExist:
+            CustomButton.objects.get(pk=custom_button_pk)
+        except CustomButton.DoesNotExist:
             warning_text = "Oops! This button was deleted"
             self.open_warning_window(payload, warning_text=warning_text)
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
@@ -658,7 +658,8 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
         alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         alert_group = log_record.alert_group
         logger.debug(f"Started process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
 
@@ -711,7 +712,8 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
 
 class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         alert_group_id = payload["actions"][0]["value"].split("_")[1]
         alert_group = AlertGroup.objects.get(pk=alert_group_id)
         channel = payload["channel"]["id"]
@@ -762,8 +764,8 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             )
 
     def process_signal(self, log_record):
-        Organization = apps.get_model("user_management", "Organization")
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        from apps.slack.models import SlackMessage
+        from apps.user_management.models import Organization
 
         alert_group = log_record.alert_group
         channel_id = alert_group.slack_message.channel_id
@@ -939,7 +941,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
         self.update_log_message(alert_group)
 
     def post_log_message(self, alert_group):
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        from apps.slack.models import SlackMessage
 
         slack_message = alert_group.get_slack_message()
 

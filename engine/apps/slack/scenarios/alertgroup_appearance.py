@@ -1,7 +1,5 @@
 import json
 
-from django.apps import apps
-
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 
@@ -59,7 +57,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
 
 class UpdateAppearanceStep(scenario_step.ScenarioStep):
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
 
         private_metadata = json.loads(payload["view"]["private_metadata"])
         alert_group_pk = private_metadata["alert_group_pk"]

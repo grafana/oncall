@@ -1,5 +1,3 @@
-from django.apps import apps
-
 from apps.alerts.utils import render_curl_command, request_outgoing_webhook
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -7,8 +5,9 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=2)
 def call_ack_url(ack_url, alert_group_pk, channel, http_method="GET"):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    SlackMessage = apps.get_model("slack", "SlackMessage")
+    from apps.alerts.models import AlertGroup
+    from apps.slack.models import SlackMessage
+
     alert_group = AlertGroup.objects.filter(pk=alert_group_pk)[0]
     is_successful, result_message = request_outgoing_webhook(ack_url, http_method)
 

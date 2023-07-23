@@ -3,7 +3,6 @@ import typing
 import uuid
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -243,7 +242,8 @@ class Organization(MaintainableObject):
         unique_together = ("stack_id", "org_id")
 
     def provision_plugin(self) -> ProvisionedPlugin:
-        PluginAuthToken = apps.get_model("auth_token", "PluginAuthToken")
+        from apps.auth_token.models import PluginAuthToken
+
         _, token = PluginAuthToken.create_auth_token(organization=self)
         return {
             "stackId": self.stack_id,
@@ -253,8 +253,9 @@ class Organization(MaintainableObject):
         }
 
     def revoke_plugin(self):
-        token_model = apps.get_model("auth_token", "PluginAuthToken")
-        token_model.objects.filter(organization=self).delete()
+        from apps.auth_token.models import PluginAuthToken
+
+        PluginAuthToken.objects.filter(organization=self).delete()
 
     """
     Following methods:

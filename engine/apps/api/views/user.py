@@ -1,7 +1,6 @@
 import logging
 
 import pytz
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
@@ -526,7 +525,8 @@ class UserView(
     @action(detail=True, methods=["post"])
     def unlink_telegram(self, request, pk) -> Response:
         user = self.get_object()
-        TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
+        from apps.telegram.models import TelegramToUserConnector
+
         try:
             connector = TelegramToUserConnector.objects.get(user=user)
             connector.delete()

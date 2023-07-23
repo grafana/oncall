@@ -1,6 +1,5 @@
 from contextlib import suppress
 
-from django.apps import apps
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -58,7 +57,8 @@ class GetTelegramVerificationCode(APIView):
     def get(self, request):
         organization = request.auth.organization
         user = request.user
-        TelegramChannelVerificationCode = apps.get_model("telegram", "TelegramChannelVerificationCode")
+        from apps.telegram.models import TelegramChannelVerificationCode
+
         with suppress(TelegramChannelVerificationCode.DoesNotExist):
             existing_verification_code = organization.telegram_verification_code
             existing_verification_code.delete()
@@ -99,7 +99,8 @@ class SetGeneralChannel(APIView):
     }
 
     def post(self, request):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
+
         organization = request.auth.organization
         slack_team_identity = organization.slack_team_identity
         slack_channel_id = request.data["id"]
