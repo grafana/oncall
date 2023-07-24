@@ -61,7 +61,6 @@ IcalEvents = typing.List[IcalEvent]
 def users_in_ical(
     usernames_from_ical: typing.List[str],
     organization: "Organization",
-    include_viewers=False,
     users_to_filter: typing.Optional["UserQuerySet"] = None,
 ) -> typing.Sequence["User"]:
     """
@@ -94,11 +93,10 @@ def users_in_ical(
             }
         )
 
-    users_found_in_ical = organization.users
-    if not include_viewers:
-        users_found_in_ical = users_found_in_ical.filter(
-            **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
-        )
+    # users_found_in_ical = organization.users
+    users_found_in_ical = organization.users.filter(
+        **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
+    )
 
     users_found_in_ical = users_found_in_ical.filter(
         (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
@@ -338,7 +336,6 @@ def list_of_empty_shifts_in_schedule(
 def list_users_to_notify_from_ical(
     schedule: "OnCallSchedule",
     events_datetime: typing.Optional[datetime.datetime] = None,
-    include_viewers: bool = False,
     users_to_filter: typing.Optional["UserQuerySet"] = None,
 ) -> typing.Sequence["User"]:
     """
@@ -349,7 +346,6 @@ def list_users_to_notify_from_ical(
         schedule,
         events_datetime,
         events_datetime,
-        include_viewers=include_viewers,
         users_to_filter=users_to_filter,
     )
 
@@ -358,35 +354,15 @@ def list_users_to_notify_from_ical_for_period(
     schedule: "OnCallSchedule",
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
-    include_viewers=False,
     users_to_filter=None,
 ) -> typing.Sequence["User"]:
-    # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
-    # be the first
-    calendars = schedule.get_icalendars()
-    # reverse calendars to make overrides calendar the first, if schedule is iCal
-    calendars = calendars[::-1]
     users_found_in_ical: typing.Sequence["User"] = []
-    # at first check overrides calendar and return users from it if it exists and on-call users are found
-    for calendar in calendars:
-        if calendar is None:
-            continue
-        events = ical_events.get_events_from_ical_between(calendar, start_datetime, end_datetime)
+    events = schedule.final_events(start_datetime, end_datetime)
+    usernames = []
+    for event in events:
+        usernames += [u["email"] for u in event.get("users", [])]
 
-        parsed_ical_events: typing.Dict[int, typing.List[str]] = {}
-        for event in events:
-            current_usernames, current_priority = get_usernames_from_ical_event(event)
-            parsed_ical_events.setdefault(current_priority, []).extend(current_usernames)
-        # find users by usernames. if users are not found for shift, get users from lower priority
-        for _, usernames in sorted(parsed_ical_events.items(), reverse=True):
-            users_found_in_ical = users_in_ical(
-                usernames, schedule.organization, include_viewers=include_viewers, users_to_filter=users_to_filter
-            )
-            if users_found_in_ical:
-                break
-        if users_found_in_ical:
-            # if users are found in the overrides calendar, there is no need to check primary calendar
-            break
+    users_found_in_ical = users_in_ical(usernames, schedule.organization, users_to_filter=users_to_filter)
     return users_found_in_ical
 
 

@@ -149,9 +149,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         end_date = serializer.validated_data["end_date"]
         days_between_start_and_end = (end_date - start_date).days
 
-        datetime_start = datetime.datetime.combine(start_date, datetime.time.min, tzinfo=pytz.UTC) + datetime.timedelta(
-            milliseconds=1
-        )
+        datetime_start = datetime.datetime.combine(start_date, datetime.time.min, tzinfo=pytz.UTC)
         datetime_end = datetime_start + datetime.timedelta(
             days=days_between_start_and_end - 1, hours=23, minutes=59, seconds=59
         )
