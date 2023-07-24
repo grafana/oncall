@@ -45,17 +45,13 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   render() {
     const { activeTab } = this.state;
-    const { store } = this.props;
+
+    if (!this.isChatOpsConfigured()) {
+      return this.renderNoChatOpsBannerInfo();
+    }
 
     return (
       <div className={cx('root')}>
-        {!store.hasFeature(AppFeature.Slack) && !store.hasFeature(AppFeature.Telegram) && (
-          <div>
-            <Alert severity="warning" title="No chatops found">
-              Chatops is disabled because no chat integration is configured. Please check docs for open source!
-            </Alert>
-          </div>
-        )}
         <div className={cx('tabs')}>
           <Tabs activeTab={activeTab} onTabChange={(tab: ChatOpsTab) => this.handleChatopsTabChange(tab)} />
         </div>
@@ -64,6 +60,29 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
         </div>
       </div>
     );
+  }
+
+  renderNoChatOpsBannerInfo() {
+    return (
+      <div className={cx('root')}>
+        <Alert severity="warning" title="No ChatOps found">
+          ChatOps is disabled because no chat integration is configured. See{' '}
+          <a href="https://grafana.com/docs/oncall/latest/open-source/#telegram-setup" target="_blank" rel="noreferrer">
+            Telegram
+          </a>{' '}
+          and{' '}
+          <a href="https://grafana.com/docs/oncall/latest/open-source/#slack-setup" target="_blank" rel="noreferrer">
+            Slack
+          </a>{' '}
+          docs for more information.
+        </Alert>
+      </div>
+    );
+  }
+
+  isChatOpsConfigured(): boolean {
+    const { store } = this.props;
+    return store.hasFeature(AppFeature.Slack) || store.hasFeature(AppFeature.Telegram);
   }
 
   handleChatopsTabChange(tab: ChatOpsTab) {
