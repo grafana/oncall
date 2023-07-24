@@ -1,9 +1,12 @@
 from rest_framework import serializers
 
 from apps.mobile_app.models import MobileAppUserSettings
+from common.api_helpers.custom_fields import TimeZoneField
 
 
 class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
+    time_zone = TimeZoneField(required=False, allow_null=False)
+
     class Meta:
         model = MobileAppUserSettings
         fields = (
@@ -23,4 +26,5 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
             "info_notifications_enabled",
             "going_oncall_notification_timing",
             "locale",
+            "time_zone",
         )

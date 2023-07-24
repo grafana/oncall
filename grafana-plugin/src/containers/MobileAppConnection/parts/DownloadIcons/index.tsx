@@ -17,7 +17,7 @@ const DownloadIcons: FC = () => (
     <Text type="primary" strong>
       Download
     </Text>
-    <Text type="primary">The Grafana IRM app is available on both the App Store and Google Play Store.</Text>
+    <Text type="primary">The Grafana OnCall app is available on both the App Store and Google Play Store.</Text>
     <VerticalGroup>
       <a
         style={{ width: '100%' }}

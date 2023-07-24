@@ -34,7 +34,7 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
               <span
                 class="root text text--primary text--medium"
               >
-                The Grafana IRM app is available on both the App Store and Google Play Store.
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
             </div>
             <div
@@ -2388,7 +2388,7 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
               <span
                 class="root text text--primary text--medium"
               >
-                The Grafana IRM app is available on both the App Store and Google Play Store.
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
             </div>
             <div
@@ -2510,7 +2510,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
               <span
                 class="root text text--primary text--medium"
               >
-                The Grafana IRM app is available on both the App Store and Google Play Store.
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
             </div>
             <div
@@ -2632,7 +2632,7 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
               <span
                 class="root text text--primary text--medium"
               >
-                The Grafana IRM app is available on both the App Store and Google Play Store.
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
             </div>
             <div
@@ -2754,7 +2754,7 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
               <span
                 class="root text text--primary text--medium"
               >
-                The Grafana IRM app is available on both the App Store and Google Play Store.
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
             </div>
             <div
@@ -2976,7 +2976,7 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
               <span
                 class="root text text--primary text--medium"
               >
-                The Grafana IRM app is available on both the App Store and Google Play Store.
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
             </div>
             <div
@@ -3089,7 +3089,7 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
               <span
                 class="root text text--primary text--medium"
               >
-                The Grafana IRM app is available on both the App Store and Google Play Store.
+                The Grafana OnCall app is available on both the App Store and Google Play Store.
               </span>
             </div>
             <div

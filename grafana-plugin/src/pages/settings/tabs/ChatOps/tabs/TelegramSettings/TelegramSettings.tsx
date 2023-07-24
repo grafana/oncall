@@ -41,10 +41,10 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
 
   render() {
     const { store } = this.props;
-    const { telegramChannelStore, teamStore } = store;
+    const { telegramChannelStore, organizationStore } = store;
     const connectedChannels = telegramChannelStore.getSearchResult();
 
-    const telegramConfigured = teamStore.currentTeam?.env_status.telegram_configured;
+    const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
     if (!telegramConfigured && store.hasFeature(AppFeature.LiveSettings)) {
       return (

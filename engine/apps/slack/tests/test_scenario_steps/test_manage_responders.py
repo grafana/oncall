@@ -16,6 +16,7 @@ from apps.slack.scenarios.manage_responders import (
     ManageRespondersUserChange,
     StartManageResponders,
 )
+from apps.slack.scenarios.paging import _get_schedules_select, _get_users_select
 
 ORGANIZATION_ID = 12
 ALERT_GROUP_ID = 42
@@ -205,3 +206,41 @@ def test_remove_user(manage_responders_setup):
     assert mock_slack_api_call.call_args.args == ("views.update",)
     # check there's no list of users in the view
     assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["type"] != "button"
+
+
+@pytest.mark.django_db
+def test_get_users_select(make_organization, make_user):
+    organization = make_organization()
+    for _ in range(3):
+        make_user(organization=organization)
+
+    select_options = _get_users_select(organization=organization, input_id_prefix="test", action_id="test")
+    assert len(select_options["accessory"]["options"]) == 3
+    assert "option_groups" not in select_options["accessory"]
+
+    select_option_groups = _get_users_select(
+        organization=organization, input_id_prefix="test", action_id="test", max_options_per_group=2
+    )
+    assert len(select_option_groups["accessory"]["option_groups"]) == 2
+    assert len(select_option_groups["accessory"]["option_groups"][0]["options"]) == 2
+    assert len(select_option_groups["accessory"]["option_groups"][1]["options"]) == 1
+    assert "options" not in select_option_groups["accessory"]
+
+
+@pytest.mark.django_db
+def test_get_schedules_select(make_organization, make_schedule):
+    organization = make_organization()
+    for _ in range(3):
+        make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    select_options = _get_schedules_select(organization=organization, input_id_prefix="test", action_id="test")
+    assert len(select_options["accessory"]["options"]) == 3
+    assert "option_groups" not in select_options["accessory"]
+
+    select_option_groups = _get_schedules_select(
+        organization=organization, input_id_prefix="test", action_id="test", max_options_per_group=2
+    )
+    assert len(select_option_groups["accessory"]["option_groups"]) == 2
+    assert len(select_option_groups["accessory"]["option_groups"][0]["options"]) == 2
+    assert len(select_option_groups["accessory"]["option_groups"][1]["options"]) == 1
+    assert "options" not in select_option_groups["accessory"]
