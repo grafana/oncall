@@ -365,7 +365,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       }
     }
 
-    if (store.teamStore.currentTeam.slack_team_identity && !user.slack_user_identity) {
+    if (store.organizationStore.currentOrganization.slack_team_identity && !user.slack_user_identity) {
       warnings.push('Slack profile is not connected');
     }
 

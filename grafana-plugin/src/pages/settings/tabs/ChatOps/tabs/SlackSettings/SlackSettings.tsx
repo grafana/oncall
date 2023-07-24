@@ -92,25 +92,27 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   render() {
-    const { store } = this.props;
-    const { teamStore } = store;
+    const { currentOrganization } = this.props.store.organizationStore;
 
-    if (!teamStore.currentTeam) {
+    if (!currentOrganization) {
       return <LoadingPlaceholder text="Loading..." />;
     }
 
-    return teamStore.currentTeam?.slack_team_identity ? this.renderSlackIntegration() : this.renderSlackStub();
+    return currentOrganization?.slack_team_identity ? this.renderSlackIntegration() : this.renderSlackStub();
   }
 
   renderSlackIntegration = () => {
     const { store } = this.props;
-    const { teamStore, slackStore } = store;
+    const {
+      organizationStore: { currentOrganization },
+      slackStore,
+    } = store;
 
     return (
       <div className={cx('root')}>
         <Legend>Slack App settings</Legend>
         <InlineField label="Slack Workspace" grow disabled>
-          <Input value={store.teamStore.currentTeam.slack_team_identity?.cached_name} />
+          <Input value={currentOrganization.slack_team_identity?.cached_name} />
         </InlineField>
         <InlineField
           label="Default channel for Slack notifications"
@@ -123,7 +125,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
               displayField="display_name"
               valueField="id"
               placeholder="Select Slack Channel"
-              value={teamStore.currentTeam?.slack_channel?.id}
+              value={currentOrganization?.slack_channel?.id}
               onChange={this.handleSlackChannelChange}
               nullItemName={PRIVATE_CHANNEL_NAME}
             />
@@ -195,7 +197,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   renderSlackWorkspace = () => {
     const { store } = this.props;
-    return <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>;
+    return <Text>{store.organizationStore.currentOrganization.slack_team_identity?.cached_name}</Text>;
   };
 
   renderSlackChannels = () => {
@@ -209,7 +211,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           displayField="display_name"
           valueField="id"
           placeholder="Select Slack Channel"
-          value={store.teamStore.currentTeam?.slack_channel?.id}
+          value={store.organizationStore.currentOrganization?.slack_channel?.id}
           onChange={this.handleSlackChannelChange}
           nullItemName={PRIVATE_CHANNEL_NAME}
         />
@@ -222,7 +224,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
     store.slackStore
       .removeSlackIntegration()
       .then(() => {
-        store.teamStore.loadCurrentTeam();
+        store.organizationStore.loadCurrentOrganization();
       })
       .catch(showApiError);
   };
@@ -242,7 +244,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
     await slackStore.setGeneralLogChannelId(value);
 
-    store.teamStore.loadCurrentTeam();
+    store.organizationStore.loadCurrentOrganization();
   };
 
   renderSlackStub = () => {

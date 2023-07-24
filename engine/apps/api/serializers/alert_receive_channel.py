@@ -121,14 +121,23 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             if _integration.slug == integration:
                 is_able_to_autoresolve = _integration.is_able_to_autoresolve
 
-        instance = AlertReceiveChannel.create(
-            **validated_data,
-            organization=organization,
-            author=self.context["request"].user,
-            allow_source_based_resolving=is_able_to_autoresolve,
-        )
+        try:
+            instance = AlertReceiveChannel.create(
+                **validated_data,
+                organization=organization,
+                author=self.context["request"].user,
+                allow_source_based_resolving=is_able_to_autoresolve,
+            )
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
         return instance
+
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
     def get_instructions(self, obj):
         if obj.integration in [AlertReceiveChannel.INTEGRATION_MAINTENANCE]:
@@ -145,6 +154,12 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
+
+    @staticmethod
+    def validate_integration(integration):
+        if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
+            raise BadRequest(detail="invalid integration")
+        return integration
 
     def validate_verbal_name(self, verbal_name):
         organization = self.context["request"].auth.organization

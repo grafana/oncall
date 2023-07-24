@@ -92,19 +92,25 @@ teams of their on-call shifts. Admins can configure shift notification behavior 
 
 The Grafana OnCall Slack app includes helpful message shortcuts and slash commands.
 
-### Slack commands
+### Slack `/escalate` command
+
+Use `/escalate` to page a team (and additional responders) directly from Slack.
+
+1. Type `/escalate` in the message box of any Slack channel then click **Send**.
+1. Fill out the **Create Alert Group** form then click **Submit**.
+1. Once the Grafana OnCall app sends a Slack message with the newly created alert, the alert group is open and firing.
+
+It's also possible to page additional responders for an existing alert group. To do so, use the "Responders" button
+in the alert group message. [Learn more about paging people manually.][integrations-manual]
+
+### Slack `/oncall` command
+
+> **DEPRECATED: `/oncall` is deprecated and WILL BE REMOVED in a future release. Use `/escalate` instead.**
 
 Use the `/oncall` Slack command to create a new alert group directly from Slack targetting a team and/or route.
 
 1. Type `/oncall` in the message box of the desired Slack channel then click **Send**.
 1. Fill out the **Start New Escalation** creation form then click **Submit**.
-1. Once the Grafana OnCall app sends a Slack message with the newly created alert, the alert group is open and firing.
-
-Use the `/escalate` Slack command to create a new alert group directly from Slack and specifically paging a user or
-a schedule.
-
-1. Type `/escalate` in the message box of any Slack channel then click **Send**.
-1. Fill out the **Create alert group** form then click **Submit**.
 1. Once the Grafana OnCall app sends a Slack message with the newly created alert, the alert group is open and firing.
 
 ### Message shortcuts
@@ -121,4 +127,7 @@ Use message shortcuts to add resolution notes directly from Slack. Message short
 {{% docs/reference %}}
 [open-source]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/open-source"
 [open-source]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/open-source"
+
+[integrations-manual]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/manual"
+[integrations-manual]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/manual"
 {{% /docs/reference %}}

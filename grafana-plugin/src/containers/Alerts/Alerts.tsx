@@ -53,11 +53,10 @@ export default function Alerts() {
   }, []);
 
   const store = useStore();
-
-  const { userStore, teamStore } = store;
-
-  const { currentTeam } = teamStore;
-  const { currentUser } = userStore;
+  const {
+    userStore: { currentUser },
+    organizationStore: { currentOrganization },
+  } = store;
 
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
@@ -77,23 +76,19 @@ export default function Alerts() {
           severity="error"
           title="Slack integration error"
         >
-          {getSlackMessage(
-            showSlackInstallAlert,
-            store.teamStore.currentTeam,
-            store.hasFeature(AppFeature.LiveSettings)
-          )}
+          {getSlackMessage(showSlackInstallAlert, currentOrganization, store.hasFeature(AppFeature.LiveSettings))}
         </Alert>
       )}
       {showBannerTeam() && (
         <Alert
           className={cx('alert')}
           severity="success"
-          title={currentTeam.banner.title}
-          onRemove={getRemoveAlertHandler(currentTeam?.banner.title)}
+          title={currentOrganization.banner.title}
+          onRemove={getRemoveAlertHandler(currentOrganization?.banner.title)}
         >
           <div
             dangerouslySetInnerHTML={{
-              __html: sanitize(currentTeam?.banner.body),
+              __html: sanitize(currentOrganization?.banner.body),
             }}
           />
         </Alert>
@@ -147,7 +142,7 @@ export default function Alerts() {
   );
 
   function showBannerTeam(): boolean {
-    return currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title);
+    return currentOrganization?.banner.title != null && !getItem(currentOrganization?.banner.title);
   }
 
   function showMismatchWarning(): boolean {
@@ -162,7 +157,7 @@ export default function Alerts() {
 
   function showChannelWarnings(): boolean {
     return Boolean(
-      currentTeam &&
+      currentOrganization &&
         currentUser &&
         isUserActionAllowed(UserActions.UserSettingsWrite) &&
         (!isPhoneVerified || !isChatOpsConnected) &&

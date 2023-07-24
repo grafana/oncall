@@ -65,6 +65,7 @@ from apps.schedules.tests.factories import (
     OnCallScheduleCalendarFactory,
     OnCallScheduleFactory,
     OnCallScheduleICalFactory,
+    ShiftSwapRequestFactory,
 )
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.tests.factories import (
@@ -96,6 +97,7 @@ register(EscalationPolicyFactory)
 register(OnCallScheduleICalFactory)
 register(OnCallScheduleCalendarFactory)
 register(CustomOnCallShiftFactory)
+register(ShiftSwapRequestFactory)
 register(AlertFactory)
 register(AlertGroupFactory)
 register(AlertGroupLogRecordFactory)
@@ -880,3 +882,11 @@ def make_organization_and_user_with_token(make_organization_and_user, make_publi
         return organization, user, token
 
     return _make_organization_and_user_with_token
+
+
+@pytest.fixture
+def make_shift_swap_request():
+    def _make_shift_swap_request(schedule, beneficiary, **kwargs):
+        return ShiftSwapRequestFactory(schedule=schedule, beneficiary=beneficiary, **kwargs)
+
+    return _make_shift_swap_request

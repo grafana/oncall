@@ -265,7 +265,9 @@ class RBACPermission(permissions.BasePermission):
             for permission_class, actions in rbac_object_permissions.items():
                 if action in actions:
                     return permission_class.has_object_permission(request, view, obj)
-            return False
+
+            # Note: if an endpoint is not found within the rbac_object_permissions dictionary,
+            # that means object permissions are not relevant to this endpoint. Return True (authorized)
 
         # has_object_permission is called after has_permission, so return True if in view there is not
         # RBAC_OBJECT_PERMISSIONS_ATTR attr which mean no additional check involving object required
