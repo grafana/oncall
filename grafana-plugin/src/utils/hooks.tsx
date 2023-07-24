@@ -25,23 +25,10 @@ export function useOnClickOutside(ref, handler) {
   }, [ref, handler]);
 }
 
-export function usePrevious(value: any) {
-  const ref = useRef();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
-
 export function useQueryParams(): URLSearchParams {
   const { search } = useLocation();
 
   return React.useMemo(() => new URLSearchParams(search), [search]);
-}
-
-export function useQueryPath(): string {
-  const location = useLocation();
-  return React.useMemo(() => location.pathname, [location]);
 }
 
 export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {
