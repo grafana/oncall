@@ -120,6 +120,8 @@ class AlertReceiveChannelView(
                 team_lookup = {"team__isnull": True}
 
         if request.data["integration"] is not None:
+            if request.data["integration"].startswith("legacy_"):
+                raise BadRequest("This integration type is deprecated")
             if request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
                 # Don't allow multiple Direct Paging integrations
                 if request.data["integration"] == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:

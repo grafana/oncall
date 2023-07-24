@@ -59,16 +59,15 @@ for backend_id, backend in get_messaging_backends():
 
 class IntegrationTypeField(fields.CharField):
     def to_representation(self, value):
-        return AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP[value]
+        value = value.removeprefix("legacy_")
+        return value
 
     def to_internal_value(self, data):
-        try:
-            integration_type = [
-                key for key, value in AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP.items() if value == data
-            ][0]
-        except IndexError:
+        if data not in AlertReceiveChannel.INTEGRATION_TYPES:
             raise BadRequest(detail="Invalid integration type")
-        return integration_type
+        if data.startswith("legacy_"):
+            raise BadRequest("This integration type is deprecated")
+        return data
 
 
 class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, MaintainableObjectSerializerMixin):
@@ -117,10 +116,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         default_route_data = validated_data.pop("default_route", None)
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
-        # hack to block alertmanager_v2 integration, will be removed
-        if integration == "alertmanager_v2":
-            raise BadRequest
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
+            # TODO: probably only needs to check if unified alerting is on
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
