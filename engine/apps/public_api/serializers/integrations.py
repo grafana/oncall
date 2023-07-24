@@ -6,6 +6,7 @@ from rest_framework import fields, serializers
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
+from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
@@ -59,13 +60,13 @@ for backend_id, backend in get_messaging_backends():
 
 class IntegrationTypeField(fields.CharField):
     def to_representation(self, value):
-        value = value.removeprefix("legacy_")
+        value = remove_legacy_prefix(value)
         return value
 
     def to_internal_value(self, data):
         if data not in AlertReceiveChannel.INTEGRATION_TYPES:
             raise BadRequest(detail="Invalid integration type")
-        if data.startswith("legacy_"):
+        if has_legacy_prefix(data):
             raise BadRequest("This integration type is deprecated")
         return data
 

@@ -14,6 +14,7 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
+from apps.integrations.legacy_prefix import has_legacy_prefix
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
@@ -54,6 +55,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
+    is_legacy = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -179,6 +181,9 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
 
     def get_routes_count(self, obj) -> int:
         return obj.channel_filters.count()
+
+    def get_is_legacy(self, obj) -> bool:
+        return has_legacy_prefix(obj.integration)
 
     def get_connected_escalations_chains_count(self, obj) -> int:
         return (

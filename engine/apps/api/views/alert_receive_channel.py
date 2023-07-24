@@ -18,6 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
 )
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
+from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.user_management.models.team import Team
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
@@ -120,7 +121,7 @@ class AlertReceiveChannelView(
                 team_lookup = {"team__isnull": True}
 
         if request.data["integration"] is not None:
-            if request.data["integration"].startswith("legacy_"):
+            if has_legacy_prefix(request.data["integration"]):
                 raise BadRequest("This integration type is deprecated")
             if request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
                 # Don't allow multiple Direct Paging integrations

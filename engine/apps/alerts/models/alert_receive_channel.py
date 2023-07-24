@@ -22,6 +22,7 @@ from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
+from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.metrics_exporter.helpers import (
@@ -340,10 +341,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             rendered_description = self.config.description
         return rendered_description
 
-    @property
-    def is_legacy(self):
-        return self.integration.startswith("legacy_")
-
     @classmethod
     def get_or_create_manual_integration(cls, defaults, **kwargs):
         try:
@@ -406,7 +403,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
             return None
-        slug = self.config.slug.removeprefix("legacy_")
+        slug = remove_legacy_prefix(self.config.slug)
         return create_engine_url(f"integrations/v1/{slug}/{self.token}/")
 
     @property
