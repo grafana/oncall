@@ -45,8 +45,9 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   render() {
     const { activeTab } = this.state;
+    const { store } = this.props;
 
-    if (!this.isChatOpsConfigured()) {
+    if (!this.isChatOpsConfigured() && store.isOpenSource()) {
       return this.renderNoChatOpsBannerInfo();
     }
 
@@ -64,9 +65,9 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   renderNoChatOpsBannerInfo() {
     return (
-      <div className={cx('root')}>
+      <div className={cx('root')} data-testid="chatops-banner">
         <Alert severity="warning" title="No ChatOps found">
-          ChatOps is disabled because no chat integration is configured. See{' '}
+          ChatOps is disabled because no chat integration is enabled. See{' '}
           <a href="https://grafana.com/docs/oncall/latest/open-source/#telegram-setup" target="_blank" rel="noreferrer">
             Telegram
           </a>{' '}
