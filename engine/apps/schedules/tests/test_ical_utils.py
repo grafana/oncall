@@ -173,17 +173,26 @@ def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_
 
     day_to_check_iso = "2021-01-27T15:27:14.448059+00:00"
     parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
-    requested_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
-    shifts = list_of_oncall_shifts_from_ical(schedule, requested_date, days=3, with_empty_shifts=True)
+    requested_datetime = parsed_iso_day_to_check - timezone.timedelta(days=1)
+    datetime_end = requested_datetime + timezone.timedelta(days=2)
+    shifts = list_of_oncall_shifts_from_ical(schedule, requested_datetime, datetime_end, with_empty_shifts=True)
     assert len(shifts) == 5
     for s in shifts:
-        start = s["start"].date() if isinstance(s["start"], datetime.datetime) else s["start"]
-        end = s["end"].date() if isinstance(s["end"], datetime.datetime) else s["end"]
+        start = (
+            s["start"]
+            if isinstance(s["start"], datetime.datetime)
+            else datetime.datetime.combine(s["start"], datetime.time.min, tzinfo=pytz.UTC)
+        )
+        end = (
+            s["end"]
+            if isinstance(s["end"], datetime.datetime)
+            else datetime.datetime.combine(s["start"], datetime.time.max, tzinfo=pytz.UTC)
+        )
         # event started in the given period, or ended in that period, or is happening during the period
         assert (
-            requested_date <= start <= requested_date + timezone.timedelta(days=3)
-            or requested_date <= end <= requested_date + timezone.timedelta(days=3)
-            or start <= requested_date <= end
+            requested_datetime <= start <= requested_datetime + timezone.timedelta(days=2)
+            or requested_datetime <= end <= requested_datetime + timezone.timedelta(days=2)
+            or start <= requested_datetime <= end
         )
 
 
@@ -197,7 +206,8 @@ def test_shifts_dict_from_cached_final(
     organization = make_organization()
     u1 = make_user_for_organization(organization)
 
-    yesterday = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timezone.timedelta(days=1)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    yesterday = today - timezone.timedelta(days=1)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     data = {
         "start": yesterday + timezone.timedelta(hours=10),
@@ -227,7 +237,7 @@ def test_shifts_dict_from_cached_final(
 
     shifts = [
         (s["calendar_type"], s["start"], list(s["users"]))
-        for s in list_of_oncall_shifts_from_ical(schedule, yesterday, days=1, from_cached_final=True)
+        for s in list_of_oncall_shifts_from_ical(schedule, yesterday, today, from_cached_final=True)
     ]
     expected_events = [
         (OnCallSchedule.PRIMARY, on_call_shift.start, [u1]),

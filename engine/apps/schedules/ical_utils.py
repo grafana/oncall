@@ -118,11 +118,10 @@ def memoized_users_in_ical(
 # used for display schedule events on web
 def list_of_oncall_shifts_from_ical(
     schedule: "OnCallSchedule",
-    date: datetime.date,
-    user_timezone: str = "UTC",
+    datetime_start: datetime.datetime,
+    datetime_end: datetime.datetime,
     with_empty_shifts: bool = False,
     with_gaps: bool = False,
-    days: int = 1,
     filter_by: str | None = None,
     from_cached_final: bool = False,
 ):
@@ -151,16 +150,6 @@ def list_of_oncall_shifts_from_ical(
         calendars = (Calendar.from_ical(schedule.cached_ical_final_schedule),)
     else:
         calendars = schedule.get_icalendars()
-
-    # TODO: Review offset usage
-    pytz_tz = pytz.timezone(user_timezone)
-
-    # utcoffset can technically return None, but we're confident it is a timedelta here
-    user_timezone_offset: datetime.timedelta = datetime.datetime.now().astimezone(pytz_tz).utcoffset()  # type: ignore[assignment]
-
-    datetime_min = datetime.datetime.combine(date, datetime.time.min) + datetime.timedelta(milliseconds=1)
-    datetime_start = (datetime_min - user_timezone_offset).astimezone(pytz.UTC)
-    datetime_end = datetime_start + datetime.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
 
     result_datetime = []
     result_date = []
@@ -204,6 +193,7 @@ def list_of_oncall_shifts_from_ical(
             )
 
     def event_start_cmp_key(e):
+        pytz_tz = pytz.timezone("UTC")
         return (
             datetime.datetime.combine(e["start"], datetime.datetime.min.time(), tzinfo=pytz_tz)
             if type(e["start"]) == datetime.date
