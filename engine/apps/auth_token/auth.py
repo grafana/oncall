@@ -87,6 +87,12 @@ class PluginAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
+        # TODO: decide if we want to add this check instead of doing in plugin sync
+        if auth_token.organization.api_token_status == Organization.API_TOKEN_STATUS_FAILED:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+        if auth_token.organization.api_token_status != Organization.API_TOKEN_STATUS_OK:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+
         user = self._get_user(request, auth_token.organization)
         return user, auth_token
 

@@ -11,6 +11,8 @@ export type UpdateGrafanaPluginSettingsProps = {
 
 export type PluginStatusResponseBase = Pick<OnCallPluginMetaJSONData, 'license'> & {
   version: string;
+  recaptcha_site_key: string;
+  currently_undergoing_maintenance_message: string;
 };
 
 export type PluginSyncStatusResponse = PluginStatusResponseBase & {
@@ -396,7 +398,7 @@ class PluginState {
   ): Promise<PluginConnectedStatusResponse | string> => {
     try {
       return await makeRequest<PluginConnectedStatusResponse>(`${this.ONCALL_BASE_URL}/status`, {
-        method: 'GET',
+        method: 'POST',
       });
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(

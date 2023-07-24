@@ -35,14 +35,9 @@ const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => 
 const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
   const store = useStore();
   const setupPlugin = useCallback(() => store.setupPlugin(props.meta), [props.meta]);
-
   useEffect(() => {
     setupPlugin();
   }, [setupPlugin]);
-
-  if (store.appLoading) {
-    return <PluginSetupWrapper text="Initializing plugin..." />;
-  }
 
   if (store.initializationError) {
     return (
@@ -62,7 +57,6 @@ const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...p
       </PluginSetupWrapper>
     );
   }
-
   return <InitializedComponent {...props} />;
 });
 

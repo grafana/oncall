@@ -38,9 +38,6 @@ import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENS
 
 export class RootBaseStore {
   @observable
-  appLoading = true;
-
-  @observable
   currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
   @observable
@@ -130,7 +127,6 @@ export class RootBaseStore {
   }
 
   setupPluginError(errorMsg: string) {
-    this.appLoading = false;
     this.initializationError = errorMsg;
   }
 
@@ -150,7 +146,6 @@ export class RootBaseStore {
    * Finally, try to load the current user from the OnCall backend
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
-    this.appLoading = true;
     this.initializationError = null;
     this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
 
@@ -159,27 +154,28 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    const maintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode(this.onCallApiUrl);
-    if (typeof maintenanceMode === 'string') {
-      return this.setupPluginError(maintenanceMode);
-    } else if (maintenanceMode.currently_undergoing_maintenance_message) {
-      this.currentlyUndergoingMaintenance = true;
-      return this.setupPluginError(`🚧 ${maintenanceMode.currently_undergoing_maintenance_message} 🚧`);
-    }
-
     // at this point we know the plugin is provisioned
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
     }
 
+    // Check if the plugin is currently undergoing maintenance
+    if (pluginConnectionStatus.currently_undergoing_maintenance_message) {
+      this.currentlyUndergoingMaintenance = true;
+      return this.setupPluginError(`🚧 ${pluginConnectionStatus.currently_undergoing_maintenance_message} 🚧`);
+    }
+
     const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
 
+    // Anonymous users are not allowed to use the plugin
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
-    } else if (!is_installed || !token_ok) {
+    }
+    // If the plugin is not installed in the OnCall backend, or token is not valid, then we need to install it
+    if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
@@ -211,16 +207,10 @@ export class RootBaseStore {
         }
       }
     } else {
-      const syncDataResponse = await PluginState.syncDataWithOnCall(this.onCallApiUrl);
-
-      if (typeof syncDataResponse === 'string') {
-        return this.setupPluginError(syncDataResponse);
-      }
-
       // everything is all synced successfully at this point..
-      this.backendVersion = syncDataResponse.version;
-      this.backendLicense = syncDataResponse.license;
-      this.recaptchaSiteKey = syncDataResponse.recaptcha_site_key;
+      this.backendVersion = pluginConnectionStatus.version;
+      this.backendLicense = pluginConnectionStatus.license;
+      this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
     }
 
     try {
@@ -228,8 +218,6 @@ export class RootBaseStore {
     } catch (e) {
       return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
     }
-
-    this.appLoading = false;
   }
 
   checkMissingSetupPermissions() {

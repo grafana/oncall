@@ -24,7 +24,9 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
         org_id = self.instance_context["org_id"]
         is_installed = False
         allow_signup = True
+
         try:
+            # Check if organization is in OnCall database
             organization = Organization.objects.get(stack_id=stack_id, org_id=org_id)
             if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
                 is_installed = True
@@ -56,6 +58,7 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
         )
 
     def get(self, _request: Request) -> Response:
+        """Deprecated"""
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
         token_ok = False
