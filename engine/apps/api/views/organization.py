@@ -9,12 +9,16 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.organization import CurrentOrganizationSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.telegram.client import TelegramClient
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class CurrentOrganizationView(APIView):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {

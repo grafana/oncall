@@ -24,7 +24,12 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.serializers.user import (
+    CurrentUserSerializer,
+    FilterUserSerializer,
+    UserHiddenFieldsSerializer,
+    UserSerializer,
+)
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
@@ -78,10 +83,7 @@ UPCOMING_SHIFTS_MAX_DAYS = 65
 
 
 class CurrentUserView(APIView):
-    authentication_classes = (
-        MobileAppAuthTokenAuthentication,
-        PluginAuthentication,
-    )
+    authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -97,12 +99,12 @@ class CurrentUserView(APIView):
                 context["cloud_identities"] = cloud_identities
                 context["connector"] = connector
 
-        serializer = UserSerializer(request.user, context=context)
+        serializer = CurrentUserSerializer(request.user, context=context)
         return Response(serializer.data)
 
     def put(self, request):
         data = self.request.data
-        serializer = UserSerializer(request.user, data=data, context={"request": self.request})
+        serializer = CurrentUserSerializer(request.user, data=data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
