@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
   by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
 
+### Added
+
+- Added banner on the ChatOps screen for OSS to let the user know if no chatops integration is enabled
+  ([#1735](https://github.com/grafana/oncall/issues/1735))
+
 ## v1.3.16 (2023-07-21)
 
 ### Added
