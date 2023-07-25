@@ -11,8 +11,8 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
-from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
 from apps.webhooks.utils import (
+    OUTGOING_WEBHOOK_TIMEOUT,
     InvalidWebhookData,
     InvalidWebhookHeaders,
     InvalidWebhookTrigger,
