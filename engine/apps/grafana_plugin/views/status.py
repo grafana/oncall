@@ -40,9 +40,6 @@ class StatusView(GrafanaHeadersMixin, APIView):
         # Check if organization is in OnCall database
         if organization := Organization.objects.get(stack_id=stack_id, org_id=org_id):
             is_installed = True
-            # _, resp = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token).check_token()
-            # token_ok = resp["connected"]
-            # TODO: Consider checking from OnCall db instead of Grafana to make it faster:
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
         else:
             DynamicSetting = apps.get_model("base", "DynamicSetting")
