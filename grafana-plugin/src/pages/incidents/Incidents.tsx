@@ -563,7 +563,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTitle = (record: AlertType) => {
-    const { store } = this.props;
+    const { store, query } = this.props;
     const {
       pagination: { start },
     } = this.state;
@@ -580,6 +580,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               cursor: incidentsCursor,
               perpage: incidentsItemsPerPage,
               start,
+              ...query,
             }}
           >
             <Tooltip placement="top" content={record.render_for_web.title}>

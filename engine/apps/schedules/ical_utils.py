@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 import pytz
 import requests
-from django.apps import apps
 from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
@@ -38,7 +37,7 @@ This is a hack to allow us to load models for type checking without circular dep
 This module likely needs to refactored to be part of the OnCallSchedule module.
 """
 if TYPE_CHECKING:
-    from apps.schedules.models import CustomOnCallShift, OnCallSchedule
+    from apps.schedules.models import OnCallSchedule
     from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
     from apps.user_management.models import Organization, User
     from apps.user_management.models.user import UserQuerySet
@@ -142,7 +141,7 @@ def list_of_oncall_shifts_from_ical(
         }
     ]
     """
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
@@ -279,7 +278,7 @@ def list_of_empty_shifts_in_schedule(
 ) -> EmptyShifts:
     # Calculate lookup window in schedule's tz
     # If we can't get tz from ical use UTC
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     calendars = schedule.get_icalendars()
     empty_shifts: EmptyShifts = []
@@ -495,8 +494,9 @@ def parse_event_uid(string: str):
 
     if source is not None:
         source = int(source)
-        OnCallShift: "CustomOnCallShift" = apps.get_model("schedules", "CustomOnCallShift")
-        source_verbal = OnCallShift.SOURCE_CHOICES[source][1]
+        from apps.schedules.models import CustomOnCallShift
+
+        source_verbal = CustomOnCallShift.SOURCE_CHOICES[source][1]
 
     return pk, source_verbal
 

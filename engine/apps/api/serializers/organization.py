@@ -1,6 +1,5 @@
 from dataclasses import asdict
 
-from django.apps import apps
 from rest_framework import serializers
 
 from apps.base.models import LiveSetting
@@ -42,7 +41,8 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_slack_channel(self, obj):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
+
         if obj.general_log_channel_id is None or obj.slack_team_identity is None:
             return None
         try:
@@ -74,7 +74,8 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         ]
 
     def get_banner(self, obj):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         banner = DynamicSetting.objects.get_or_create(
             name="banner",
             defaults={"json_value": {"title": None, "body": None}},

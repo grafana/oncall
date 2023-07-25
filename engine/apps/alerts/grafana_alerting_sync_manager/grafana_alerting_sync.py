@@ -2,7 +2,6 @@ import copy
 import logging
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from django.apps import apps
 from rest_framework import status
 
 from apps.alerts.tasks import schedule_create_contact_points_for_datasource
@@ -357,7 +356,8 @@ class GrafanaAlertingSyncManager:
 
         receiver_config = self._get_receiver_config(is_grafana_datasource, payload)
 
-        GrafanaAlertingContactPoint = apps.get_model("alerts", "GrafanaAlertingContactPoint")
+        from apps.alerts.models import GrafanaAlertingContactPoint
+
         contact_point = GrafanaAlertingContactPoint(
             alert_receive_channel=self.alert_receive_channel,
             name=receiver_config["name"],

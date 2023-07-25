@@ -1,7 +1,6 @@
 import logging
 from typing import Optional, Tuple
 
-from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
 
@@ -45,7 +44,8 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
         raise InvalidToken
 
     if not organization:
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         allow_signup = DynamicSetting.objects.get_or_create(
             name="allow_plugin_organization_signup", defaults={"boolean_value": True}
         )[0].boolean_value
