@@ -25,7 +25,7 @@ class IntegrationOptionsMixin:
     for integration_config in _config:
         vars()[f"INTEGRATION_{integration_config.slug.upper()}"] = integration_config.slug
 
-    INTEGRATION_TYPES = set(integration_config.slug for integration_config in _config)
+    INTEGRATION_TYPES = {integration_config.slug for integration_config in _config}
 
     INTEGRATION_CHOICES = tuple(
         (
