@@ -6,7 +6,7 @@ module.exports = {
   plugins: ['rulesdir', 'import'],
   settings: {
     'import/internal-regex':
-      '^assets|^components|^containers|^icons|^img|^models|^network|^pages|^services|^state|^utils|^plugin',
+      '^assets|^components|^containers|^icons|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
   rules: {
     eqeqeq: 'warn',
