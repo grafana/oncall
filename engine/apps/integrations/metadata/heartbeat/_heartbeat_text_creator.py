@@ -11,7 +11,6 @@ class IntegrationHeartBeatText:
     heartbeat_expired_message: str = "heartbeat_expired"
     heartbeat_restored_title: str = "heartbeat_restored"
     heartbeat_restored_message: str = "heartbeat_restored"
-    heartbeat_instruction_template: str = None
 
 
 class HeartBeatTextCreator:
@@ -24,7 +23,6 @@ class HeartBeatTextCreator:
             heartbeat_expired_message=self._get_heartbeat_expired_message(),
             heartbeat_restored_title=self._get_heartbeat_restored_title(),
             heartbeat_restored_message=self._get_heartbeat_restored_message(),
-            heartbeat_instruction_template=self._get_heartbeat_instruction_template(),
         )
 
     def _get_heartbeat_expired_title(self):
@@ -50,9 +48,6 @@ class HeartBeatTextCreator:
             f"Grafana OnCall received a signal from {self.integration_verbal}. Heartbeat has been restored."
         )
         return heartbeat_expired_message
-
-    def _get_heartbeat_instruction_template(self):
-        return f"heartbeat_instructions/{self.integration_verbal.lower()}.html"
 
 
 class HeartBeatTextCreatorForTitleGrouping(HeartBeatTextCreator):
