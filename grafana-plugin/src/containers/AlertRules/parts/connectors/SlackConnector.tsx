@@ -26,7 +26,10 @@ const SlackConnector = (props: SlackConnectorProps) => {
   const { channelFilterId } = props;
 
   const store = useStore();
-  const { teamStore, alertReceiveChannelStore } = store;
+  const {
+    organizationStore: { currentOrganization },
+    alertReceiveChannelStore,
+  } = store;
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
@@ -61,7 +64,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
             displayField="display_name"
             valueField="id"
             placeholder="Select Slack Channel"
-            value={channelFilter.slack_channel?.id || teamStore.currentTeam?.slack_channel?.id}
+            value={channelFilter.slack_channel?.id || currentOrganization?.slack_channel?.id}
             onChange={handleSlackChannelChange}
             nullItemName={PRIVATE_CHANNEL_NAME}
           />
@@ -69,12 +72,11 @@ const SlackConnector = (props: SlackConnectorProps) => {
         <HorizontalGroup>
           {Boolean(
             channelFilter.slack_channel?.id &&
-              teamStore.currentTeam?.slack_channel?.id &&
-              channelFilter.slack_channel?.id !== teamStore.currentTeam?.slack_channel?.id
+              currentOrganization?.slack_channel?.id &&
+              channelFilter.slack_channel?.id !== currentOrganization?.slack_channel?.id
           ) ? (
             <Text type="secondary">
-              default slack channel is{' '}
-              <Text strong>#{getSlackChannelName(store.teamStore.currentTeam?.slack_channel)}</Text>{' '}
+              default slack channel is <Text strong>#{getSlackChannelName(currentOrganization?.slack_channel)}</Text>{' '}
               <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button
                   variant="primary"
@@ -82,8 +84,8 @@ const SlackConnector = (props: SlackConnectorProps) => {
                   fill="text"
                   onClick={() => {
                     handleSlackChannelChange(
-                      teamStore.currentTeam?.slack_channel?.id,
-                      teamStore.currentTeam?.slack_channel
+                      currentOrganization?.slack_channel?.id,
+                      currentOrganization?.slack_channel
                     );
                   }}
                 >
@@ -91,7 +93,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
                 </Button>
               </WithPermissionControlTooltip>
             </Text>
-          ) : teamStore.currentTeam?.slack_channel?.id ? (
+          ) : currentOrganization?.slack_channel?.id ? (
             <Text type="secondary">
               This is the default slack channel{' '}
               <PluginLink query={{ page: 'chat-ops' }} disabled={!isUserActionAllowed(UserActions.ChatOpsWrite)}>

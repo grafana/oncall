@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.signals import alert_group_update_log_report_signal
@@ -11,8 +10,7 @@ from .task_logger import task_logger
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def send_update_log_report_signal(log_record_pk=None, alert_group_pk=None):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    from apps.alerts.models import AlertGroup, AlertReceiveChannel
 
     alert_group = AlertGroup.objects.get(id=alert_group_pk)
     if alert_group.is_maintenance_incident:

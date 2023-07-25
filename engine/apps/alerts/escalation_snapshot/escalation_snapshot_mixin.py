@@ -5,7 +5,6 @@ import typing
 import pytz
 from celery import uuid as celery_uuid
 from dateutil.parser import parse
-from django.apps import apps
 from django.utils.functional import cached_property
 from rest_framework.exceptions import ValidationError
 
@@ -229,7 +228,7 @@ class EscalationSnapshotMixin:
         """
         :type self:AlertGroup
         """
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
 
         is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
 

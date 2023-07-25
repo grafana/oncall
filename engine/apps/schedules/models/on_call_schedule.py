@@ -7,7 +7,6 @@ from enum import Enum
 
 import icalendar
 import pytz
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -819,7 +818,8 @@ class OnCallSchedule(PolymorphicModel):
             result["team"] = "General"
         if self.organization.slack_team_identity:
             if self.channel:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
+                from apps.slack.models import SlackChannel
+
                 sti = self.organization.slack_team_identity
                 slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.channel).first()
                 if slack_channel:

@@ -8,8 +8,6 @@ import requests
 
 from apps.base.utils import live_settings
 
-OUTGOING_WEBHOOK_TIMEOUT = 10
-
 
 def render_relative_timeline(log_created_at, alert_group_started_at):
     time_delta = log_created_at - alert_group_started_at
@@ -27,6 +25,7 @@ def render_relative_timeline(log_created_at, alert_group_started_at):
         return "%ds" % (seconds,)
 
 
+# TODO: remove this function when we remove CustomButton model
 def render_curl_command(webhook_url, http_request_type, post_kwargs):
     if http_request_type == "POST":
         curl_request = "curl -X POST"
@@ -44,7 +43,9 @@ def render_curl_command(webhook_url, http_request_type, post_kwargs):
     return curl_request
 
 
+# TODO: remove this function when we remove CustomButton model
 def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs={}) -> Tuple[bool, str]:
+    OUTGOING_WEBHOOK_TIMEOUT = 10
     if http_request_type not in ["POST", "GET"]:
         raise Exception(f"Wrong http_method parameter: {http_request_type}")
 

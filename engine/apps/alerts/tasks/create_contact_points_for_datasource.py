@@ -1,7 +1,6 @@
 import logging
 
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.core.cache import cache
 from rest_framework import status
 
@@ -43,7 +42,7 @@ def create_contact_points_for_datasource(alert_receive_channel_id, datasource_li
     if cached_task_id is not None and current_task_id != cached_task_id:
         return
 
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    from apps.alerts.models import AlertReceiveChannel
 
     alert_receive_channel = AlertReceiveChannel.objects.filter(pk=alert_receive_channel_id).first()
     if not alert_receive_channel:

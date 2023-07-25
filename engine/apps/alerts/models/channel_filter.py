@@ -2,7 +2,6 @@ import json
 import logging
 import re
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -186,7 +185,8 @@ class ChannelFilter(OrderedModel):
         }
         if self.slack_channel_id:
             if self.slack_channel_id:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
+                from apps.slack.models import SlackChannel
+
                 sti = self.alert_receive_channel.organization.slack_team_identity
                 slack_channel = SlackChannel.objects.filter(
                     slack_team_identity=sti, slack_id=self.slack_channel_id

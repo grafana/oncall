@@ -1,5 +1,4 @@
 import pytz
-from rest_framework import serializers
 
 from common.api_helpers.exceptions import BadRequest
 
@@ -20,11 +19,3 @@ def raise_exception_if_not_valid_timezone(timezone, exception_class=BadRequest):
     """
     if not is_valid_timezone(timezone):
         raise exception_class(detail="Invalid timezone")
-
-
-class TimeZoneField(serializers.CharField):
-    def _validator(self, value: str):
-        raise_exception_if_not_valid_timezone(value, serializers.ValidationError)
-
-    def __init__(self, **kwargs):
-        super().__init__(validators=[self._validator], **kwargs)

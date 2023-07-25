@@ -1,6 +1,5 @@
 import time
 
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -29,11 +28,9 @@ def notify_user_task(
     important=False,
     notify_anyway=False,
 ):
-    UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-    User = apps.get_model("user_management", "User")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    UserHasNotification = apps.get_model("alerts", "UserHasNotification")
+    from apps.alerts.models import AlertGroup, UserHasNotification
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.user_management.models import User
 
     try:
         alert_group = AlertGroup.objects.get(pk=alert_group_pk)
@@ -235,9 +232,9 @@ def notify_user_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def perform_notification(log_record_pk):
-    UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-    TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.telegram.models import TelegramToUserConnector
+
     log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
 
     user = log_record.author
@@ -376,7 +373,8 @@ def perform_notification(log_record_pk):
 def send_user_notification_signal(log_record_pk):
     start_time = time.time()
 
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
+
     task_logger.debug(f"LOG RECORD PK: {log_record_pk}")
     task_logger.debug(f"LOG RECORD LAST: {UserNotificationPolicyLogRecord.objects.last()}")
 

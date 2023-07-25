@@ -3,8 +3,8 @@ import React, { FC } from 'react';
 import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import AppleLogoSVG from 'assets/img/brand/apple-logo.svg';
-import PlayStoreLogoSVG from 'assets/img/brand/play-store-logo.svg';
+import AppleLogoSVG from 'assets/img/apple-logo.svg';
+import PlayStoreLogoSVG from 'assets/img/play-store-logo.svg';
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 

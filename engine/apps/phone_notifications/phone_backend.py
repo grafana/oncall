@@ -2,7 +2,6 @@ import logging
 from typing import Optional
 
 import requests
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
@@ -40,7 +39,8 @@ class PhoneBackend:
         notify_by_call makes a notification call to a user using configured phone provider or cloud notifications.
         It handles all business logic related to the call.
         """
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicyLogRecord
+
         log_record_error_code = None
 
         renderer = AlertGroupPhoneCallRenderer(alert_group)
@@ -145,7 +145,8 @@ class PhoneBackend:
         SMS itself is handled by phone provider.
         """
 
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicyLogRecord
+
         log_record_error_code = None
 
         renderer = AlertGroupSmsRenderer(alert_group)

@@ -17,7 +17,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
   const { id, onTabChange } = props;
 
   const store = useStore();
-  const { userStore, teamStore } = store;
+  const { userStore, organizationStore } = store;
 
   const storeUser = userStore.items[id];
 
@@ -61,7 +61,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
             </HorizontalGroup>
           </InlineField>
         </>
-      ) : teamStore.currentTeam?.slack_team_identity ? (
+      ) : organizationStore.currentOrganization?.slack_team_identity ? (
         <>
           <InlineField
             label="Slack"

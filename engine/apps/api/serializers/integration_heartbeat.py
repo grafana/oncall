@@ -1,6 +1,4 @@
 import humanize
-from django.conf import settings
-from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -8,8 +6,6 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.heartbeat.models import IntegrationHeartBeat
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
-
-NO_INSTRUCTION_MESSAGE = "No instruction"
 
 
 class IntegrationHeartBeatSerializer(EagerLoadingMixin, serializers.ModelSerializer):
@@ -49,14 +45,8 @@ class IntegrationHeartBeatSerializer(EagerLoadingMixin, serializers.ModelSeriali
         return self._last_heartbeat_time_verbal(obj) if obj.last_heartbeat_time else None
 
     def get_instruction(self, obj):
-        rendered_instruction = render_to_string(
-            obj.alert_receive_channel.heartbeat_instruction_template,
-            {
-                "heartbeat_url": obj.link,
-                "service_url": settings.BASE_URL,
-            },
-        )
-        return rendered_instruction
+        # Deprecated. Kept for API backward compatibility.
+        return ""
 
     @staticmethod
     def _last_heartbeat_time_verbal(instance):

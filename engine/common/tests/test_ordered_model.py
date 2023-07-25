@@ -8,6 +8,8 @@ from common.ordered_model.ordered_model import OrderedModel
 
 
 class TestOrderedModel(OrderedModel):
+    __test__ = False
+
     test_field = models.CharField(max_length=255)
     extra_field = models.IntegerField(null=True, default=None)
     order_with_respect_to = ["test_field"]
