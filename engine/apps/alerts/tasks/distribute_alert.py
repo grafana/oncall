@@ -14,17 +14,18 @@ def distribute_alert(alert_id):
     """
     We need this task to make task processing async and to make sure the task is delivered.
     """
-    from apps.alerts.models import Alert, AlertGroup
+    from apps.alerts.models import Alert
 
     alert = Alert.objects.get(pk=alert_id)
     task_logger.debug(f"Start distribute_alert for alert {alert_id} from alert_group {alert.group_id}")
 
     send_alert_create_signal.apply_async((alert_id,))
-    # If it's the first alert, let's launch the escalation!
+
+    if alert.is_the_first_alert_in_group or alert.group.pause_escalation:
+        alert.group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+
     if alert.is_the_first_alert_in_group:
-        alert_group = AlertGroup.objects.filter(pk=alert.group_id).get()
-        alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
-        alert_group_escalation_snapshot_built.send(sender=distribute_alert, alert_group=alert_group)
+        alert_group_escalation_snapshot_built.send(sender=distribute_alert, alert_group=alert.group)
 
     updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
     if updated_rows != 1:
