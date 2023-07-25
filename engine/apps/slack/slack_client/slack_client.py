@@ -1,7 +1,6 @@
 import logging
 from typing import Optional, Tuple
 
-from django.apps import apps
 from django.utils import timezone
 from slackclient import SlackClient
 from slackclient.exceptions import TokenRefreshError
@@ -89,7 +88,7 @@ class SlackClientWithErrorHandling(SlackClient):
         return cumulative_response, cursor, rate_limited
 
     def api_call(self, *args, **kwargs):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
 
         simulate_slack_downtime = DynamicSetting.objects.get_or_create(
             name="simulate_slack_downtime", defaults={"boolean_value": False}

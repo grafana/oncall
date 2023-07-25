@@ -1,4 +1,4 @@
-from .alert import Alert, listen_for_alert_model_save  # noqa: F401
+from .alert import Alert  # noqa: F401
 from .alert_group import AlertGroup  # noqa: F401
 from .alert_group_counter import AlertGroupCounter  # noqa: F401
 from .alert_group_log_record import AlertGroupLogRecord, listen_for_alertgrouplogrecord  # noqa: F401

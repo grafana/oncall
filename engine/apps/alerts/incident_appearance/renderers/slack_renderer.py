@@ -1,6 +1,5 @@
 import json
 
-from django.apps import apps
 from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
@@ -167,7 +166,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return attachment
 
     def _get_buttons_blocks(self):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         buttons = []
         if not self.alert_group.is_maintenance_incident:
             if not self.alert_group.resolved:
@@ -319,7 +319,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return blocks
 
     def _get_invitation_attachment(self):
-        Invitation = apps.get_model("alerts", "Invitation")
+        from apps.alerts.models import Invitation
+
         invitations = Invitation.objects.filter(is_active=True, alert_group=self.alert_group).all()
         if len(invitations) == 0:
             return []

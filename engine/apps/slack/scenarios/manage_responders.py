@@ -1,7 +1,5 @@
 import json
 
-from django.apps import apps
-
 from apps.alerts.paging import check_user_availability, direct_paging, unpage_user
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.paging import (
@@ -197,7 +195,7 @@ def render_dialog(alert_group):
 
 
 def _get_selected_user_from_payload(payload):
-    User = apps.get_model("user_management", "User")
+    from apps.user_management.models import User
 
     try:
         selected_user_id = payload["actions"][0]["value"]  # "remove" button
@@ -216,7 +214,7 @@ def _get_selected_user_from_payload(payload):
 
 
 def _get_selected_schedule_from_payload(payload):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
     selected_schedule_id = _get_select_field_value(
@@ -227,7 +225,8 @@ def _get_selected_schedule_from_payload(payload):
 
 
 def _get_alert_group_from_payload(payload):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
+
     alert_group_pk = json.loads(payload["view"]["private_metadata"])[ALERT_GROUP_DATA_KEY]
     return AlertGroup.objects.get(pk=alert_group_pk)
 

@@ -1,6 +1,5 @@
 import pytz
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 
@@ -14,7 +13,7 @@ task_logger = get_task_logger(__name__)
 
 @shared_dedicated_queue_retry_task()
 def start_check_empty_shifts_in_schedule():
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info("Start start_notify_about_empty_shifts_in_schedule")
 
@@ -28,7 +27,7 @@ def start_check_empty_shifts_in_schedule():
 
 @shared_dedicated_queue_retry_task()
 def check_empty_shifts_in_schedule(schedule_pk):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info(f"Start check_empty_shifts_in_schedule {schedule_pk}")
 
@@ -46,13 +45,13 @@ def check_empty_shifts_in_schedule(schedule_pk):
 
 @shared_dedicated_queue_retry_task()
 def start_notify_about_empty_shifts_in_schedule():
-    OnCallSchedule = apps.get_model("schedules", "OnCallScheduleICal")
+    from apps.schedules.models import OnCallScheduleICal
 
     task_logger.info("Start start_notify_about_empty_shifts_in_schedule")
 
     today = timezone.now().date()
     week_ago = today - timezone.timedelta(days=7)
-    schedules = OnCallSchedule.objects.filter(
+    schedules = OnCallScheduleICal.objects.filter(
         empty_shifts_report_sent_at__lte=week_ago,
         channel__isnull=False,
     )
@@ -65,7 +64,7 @@ def start_notify_about_empty_shifts_in_schedule():
 
 @shared_dedicated_queue_retry_task()
 def notify_about_empty_shifts_in_schedule(schedule_pk):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info(f"Start notify_about_empty_shifts_in_schedule {schedule_pk}")
 

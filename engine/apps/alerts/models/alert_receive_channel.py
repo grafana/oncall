@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 
 import emoji
 from celery import uuid as celery_uuid
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
@@ -199,8 +198,11 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    # TODO: remove this field after AlertGroup.is_restricted change has been released
-    restricted_at = models.DateTimeField(null=True, default=None)
+    # TODO: in a subsequent release, write a manual django migration to run the following
+    # migrations.RunSQL(
+    #  sql = "ALTER TABLE alerts_alertreceivechannel DROP COLUMN restricted_at",
+    #  reverse_sql = migrations.RunSQL.noop
+    # )
 
     class Meta:
         constraints = [
@@ -325,7 +327,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def alerts_count(self):
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert
+
         return Alert.objects.filter(group__channel=self).count()
 
     @property
@@ -538,10 +541,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(self.heartbeat_module, "heartbeat_expired_payload")
 
     @property
-    def heartbeat_instruction_template(self):
-        return getattr(self.heartbeat_module, "heartbeat_instruction_template")
-
-    @property
     def heartbeat_module(self):
         return getattr(heartbeat, self.integration, None)
 
@@ -635,8 +634,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 def listen_for_alertreceivechannel_model_save(
     sender: AlertReceiveChannel, instance: AlertReceiveChannel, created: bool, *args, **kwargs
 ) -> None:
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-    IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
+    from apps.alerts.models import ChannelFilter
+    from apps.heartbeat.models import IntegrationHeartBeat
 
     if created:
         write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)

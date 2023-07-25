@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import fields, serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
@@ -81,7 +80,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
         return validated_data
 
     def _validate_slack_channel_id(self, slack_channel_id):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         if slack_channel_id is not None:
             slack_channel_id = slack_channel_id.upper()
@@ -94,7 +93,8 @@ class BaseChannelFilterSerializer(OrderedModelSerializer):
         return slack_channel_id
 
     def _validate_telegram_channel(self, telegram_channel_id):
-        TelegramToOrganizationConnector = apps.get_model("telegram", "TelegramToOrganizationConnector")
+        from apps.telegram.models import TelegramToOrganizationConnector
+
         if telegram_channel_id is not None:
             organization = self.context["request"].auth.organization
             try:
