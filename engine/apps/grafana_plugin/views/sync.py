@@ -20,6 +20,7 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
     permission_classes = (PluginTokenVerified,)
 
     def post(self, request: Request) -> Response:
+        """Deprecated. May be used for the plugins with versions < 1.3.17"""
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
         is_installed = False
@@ -58,7 +59,7 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
         )
 
     def get(self, _request: Request) -> Response:
-        """Deprecated"""
+        """Deprecated. May be used for the plugins with versions < 1.3.17"""
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
         token_ok = False
