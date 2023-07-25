@@ -19,7 +19,6 @@ from apps.alerts.models import (
     AlertReceiveChannel,
     MaintainableObject,
     ResolutionNote,
-    listen_for_alert_model_save,
     listen_for_alertgrouplogrecord,
     listen_for_alertreceivechannel_model_save,
 )
@@ -610,9 +609,7 @@ def make_resolution_note_slack_message():
 @pytest.fixture
 def make_alert():
     def _make_alert(alert_group, raw_request_data, **kwargs):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = AlertFactory(group=alert_group, raw_request_data=raw_request_data, **kwargs)
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert
@@ -630,7 +627,6 @@ def make_alert_with_custom_create_method():
         raw_request_data,
         **kwargs,
     ):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = Alert.create(
             title,
             message,
@@ -641,7 +637,6 @@ def make_alert_with_custom_create_method():
             raw_request_data,
             **kwargs,
         )
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert_with_custom_create_method
