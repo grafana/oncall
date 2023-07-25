@@ -6,9 +6,9 @@ import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { Team } from 'models/team/team.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
@@ -428,7 +428,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async changeTeam(id: AlertReceiveChannel['id'], teamId: Team['pk']) {
+  async changeTeam(id: AlertReceiveChannel['id'], teamId: GrafanaTeam['id']) {
     return await makeRequest(`${this.path}${id}/change_team`, {
       params: { team_id: String(teamId) },
       method: 'PUT',

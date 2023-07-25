@@ -9,7 +9,6 @@ def test_heartbeat_metadata_presence():
         "heartbeat_restored_title",
         "heartbeat_restored_message",
         "heartbeat_restored_payload",
-        "heartbeat_instruction_template",
     ]
     modules = [x for x in dir(heartbeat) if not x.startswith("_") and x != "apps"]
     for m in modules:

@@ -286,6 +286,25 @@ class TestRBACPermission:
         assert RBACPermission().has_object_permission(request, apiview, None) is True
         assert RBACPermission().has_object_permission(request, viewset, None) is True
 
+    def test_has_object_permission_returns_true_if_action_omitted_from_rbac_object_permissions(self) -> None:
+        action1 = "hello"
+        action2 = "world"
+
+        class MockedPermissionClass:
+            def has_object_permission(self, _req, _view, _obj) -> None:
+                return True
+
+        rbac_object_permissions = {MockedPermissionClass(): (action1,)}
+
+        # only action1 is specified in rbac_object_permissions, lets make a request with action2
+        # we should get back authorized
+        request = MockedRequest(None, action2)
+        apiview = MockedAPIView(rbac_object_permissions=rbac_object_permissions)
+        viewset = MockedViewSet(action2, rbac_object_permissions=rbac_object_permissions)
+
+        assert RBACPermission().has_object_permission(request, apiview, None) is True
+        assert RBACPermission().has_object_permission(request, viewset, None) is True
+
     def test_has_object_permission_works_when_permission_class_specified_for_action(self) -> None:
         action = "hello"
         mocked_permission_class_response = "asdfasdfasdf"

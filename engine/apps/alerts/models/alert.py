@@ -7,7 +7,6 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField
-from django.db.models.signals import post_save
 
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
@@ -82,6 +81,10 @@ class Alert(models.Model):
         channel_filter=None,
         force_route_id=None,
     ):
+        """
+        Creates an alert and a group if needed.
+        """
+        # This import is here to avoid circular imports
         ChannelFilter = apps.get_model("alerts", "ChannelFilter")
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
@@ -124,6 +127,16 @@ class Alert(models.Model):
         )
 
         alert.save()
+
+        # Store exact alert which resolved group.
+        if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
+            group.resolved_by_alert = alert
+            group.save(update_fields=["resolved_by_alert"])
+
+        if settings.DEBUG:
+            distribute_alert(alert.pk)
+        else:
+            distribute_alert.apply_async((alert.pk,), countdown=TASK_DELAY_SECONDS)
 
         if group_created:
             # all code below related to maintenance mode
@@ -255,32 +268,3 @@ class Alert(models.Model):
             distinction = str(uuid4())
 
         return distinction
-
-
-def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    """
-    Here we invoke AlertShootingStep by model saving action.
-    """
-    if created:
-        # RFCT - why additinal save ?
-        instance.save()
-
-        group = instance.group
-        # Store exact alert which resolved group.
-        if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
-            group.resolved_by_alert = instance
-            group.save(update_fields=["resolved_by_alert"])
-
-        if settings.DEBUG:
-            distribute_alert(instance.pk)
-        else:
-            distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
-
-
-# Connect signal to  base Alert class
-post_save.connect(listen_for_alert_model_save, Alert)
-
-# And subscribe for events from child classes
-for subclass in Alert.__subclasses__():
-    post_save.connect(listen_for_alert_model_save, subclass)

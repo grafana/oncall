@@ -7,12 +7,12 @@ from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
     RollingUsersField,
     TeamPrimaryKeyRelatedField,
+    TimeZoneField,
     UsersFilteredByOrganizationField,
 )
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault
-from common.timezones import TimeZoneField
 
 
 class CustomOnCallShiftTypeField(fields.CharField):

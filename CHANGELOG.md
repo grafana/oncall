@@ -10,6 +10,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bring heartbeats back to UI
+- Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
+  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
+  by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
+
+### Added
+
+- Added banner on the ChatOps screen for OSS to let the user know if no chatops integration is enabled
+  ([#1735](https://github.com/grafana/oncall/issues/1735))
+
+## v1.3.16 (2023-07-21)
+
+### Added
+
+- Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
+  ([#2601](https://github.com/grafana/oncall/pull/2601))
+- Add filter integrations by type ([2609](https://github.com/grafana/oncall/pull/2609))
+- Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
+  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
+
+### Changed
+
+- Update direct paging docs by @vadimkerr ([#2600](https://github.com/grafana/oncall/pull/2600))
+- Improve APIs for creating/updating direct paging integrations by @vadimkerr ([#2603](https://github.com/grafana/oncall/pull/2603))
+- Remove unnecessary team checks in public API by @vadimkerr ([#2606](https://github.com/grafana/oncall/pull/2606))
+
+### Fixed
+
+- Fix Slack direct paging issue when there are more than 100 schedules by @vadimkerr ([#2594](https://github.com/grafana/oncall/pull/2594))
+- Fix webhooks unable to be copied if they contain password or authorization header ([#2608](https://github.com/grafana/oncall/pull/2608))
 
 ## v1.3.15 (2023-07-19)
 
