@@ -48,7 +48,7 @@ class CloudConnector(models.Model):
                     error_msg = f"Non-200 HTTP code. Got {r.status_code}"
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Unable to sync with cloud. Request exception {str(e)}")
-                error_msg = f"Unable to sync with cloud"
+                error_msg = "Unable to sync with cloud"
 
         return sync_status, error_msg
 
@@ -86,7 +86,7 @@ class CloudConnector(models.Model):
                     fetch_next_page = False
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Unable to sync users with cloud. Request exception {str(e)}")
-                error_msg = f"Unable to sync with cloud"
+                error_msg = "Unable to sync with cloud"
                 users_fetched = False
                 break
 
@@ -146,7 +146,7 @@ class CloudConnector(models.Model):
                         error_msg = f"User with email not found {user.email}"
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Unable to sync_user_with cloud user_id {user.id}. Request exception {str(e)}")
-                error_msg = f"Unable to sync with cloud"
+                error_msg = "Unable to sync with cloud"
 
         return sync_status, error_msg
 
