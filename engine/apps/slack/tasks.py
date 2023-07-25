@@ -4,7 +4,6 @@ from typing import Optional
 
 from celery import uuid as celery_uuid
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
@@ -50,8 +49,8 @@ def update_incident_slack_message(slack_team_identity_pk, alert_group_pk):
             f" doesn't equal to cached task_id ({cached_task_id}) for alert_group {alert_group_pk}"
         )
 
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
+    from apps.slack.models import SlackTeamIdentity
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
@@ -75,9 +74,7 @@ def check_slack_message_exists_before_post_message_to_thread(
     Check if slack message for current alert group exists before before posting a message to a thread in slack.
     If it does not exist - restart task every 10 seconds for 24 hours.
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-    EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
 
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     slack_team_identity = alert_group.channel.organization.slack_team_identity
@@ -146,8 +143,8 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     Send message to alert group's thread if bot is not in current channel
     """
 
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
+    from apps.alerts.models import AlertGroup
+    from apps.slack.models import SlackTeamIdentity
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)
@@ -163,8 +160,7 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
-    User = apps.get_model("user_management", "User")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization, User
 
     organization = Organization.objects.get(pk=organization_pk)
 
@@ -183,9 +179,8 @@ def unpopulate_slack_user_identities(organization_pk, force=False, ts=None):
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=0)
 def populate_slack_user_identities(organization_pk):
-    SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
-
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.slack.models import SlackUserIdentity
+    from apps.user_management.models import Organization
 
     organization = Organization.objects.get(pk=organization_pk)
     unpopulate_slack_user_identities(organization_pk)
@@ -269,8 +264,9 @@ def populate_slack_user_identities(organization_pk):
 )
 def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_pk, update=False):
     logger.debug(f"Start post_or_update_log_report_message_task for alert_group {alert_group_pk}")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
+    from apps.alerts.models import AlertGroup
+    from apps.slack.models import SlackTeamIdentity
+
     UpdateLogReportMessageStep = ScenarioStep.get_step("distribute_alerts", "UpdateLogReportMessageStep")
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_pk)
@@ -291,7 +287,7 @@ def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_p
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def post_slack_rate_limit_message(integration_id):
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    from apps.alerts.models import AlertReceiveChannel
 
     try:
         integration = AlertReceiveChannel.objects.get(pk=integration_id)
@@ -321,7 +317,7 @@ def post_slack_rate_limit_message(integration_id):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def populate_slack_usergroups():
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
+    from apps.slack.models import SlackTeamIdentity
 
     slack_team_identities = SlackTeamIdentity.objects.filter(
         detected_token_revoked__isnull=True,
@@ -343,8 +339,7 @@ def populate_slack_usergroups():
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def populate_slack_usergroups_for_team(slack_team_identity_id):
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
-    SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
+    from apps.slack.models import SlackTeamIdentity, SlackUserGroup
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_id)
     sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
@@ -465,7 +460,7 @@ def populate_slack_usergroups_for_team(slack_team_identity_id):
 
 @shared_dedicated_queue_retry_task()
 def start_update_slack_user_group_for_schedules():
-    SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
+    from apps.slack.models import SlackUserGroup
 
     user_group_pks = (
         SlackUserGroup.objects.filter(oncall_schedules__isnull=False).distinct().values_list("pk", flat=True)
@@ -477,7 +472,7 @@ def start_update_slack_user_group_for_schedules():
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
 def update_slack_user_group_for_schedules(user_group_pk):
-    SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
+    from apps.slack.models import SlackUserGroup
 
     try:
         user_group = SlackUserGroup.objects.get(pk=user_group_pk)
@@ -492,7 +487,7 @@ def update_slack_user_group_for_schedules(user_group_pk):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def populate_slack_channels():
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
+    from apps.slack.models import SlackTeamIdentity
 
     slack_team_identities = SlackTeamIdentity.objects.filter(
         detected_token_revoked__isnull=True,
@@ -529,8 +524,7 @@ def populate_slack_channels_for_team(slack_team_identity_id: int, cursor: Option
     ids in cache and restart the task with the last successful pagination cursor to avoid any data loss during delay
     time.
     """
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
-    SlackChannel = apps.get_model("slack", "SlackChannel")
+    from apps.slack.models import SlackChannel, SlackTeamIdentity
 
     slack_team_identity = SlackTeamIdentity.objects.get(pk=slack_team_identity_id)
     sc = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
@@ -636,8 +630,9 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     This task removes binding to slack (e.g ChannelFilter's slack channel) for a given organization.
     It is used when user changes slack integration.
     """
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.alerts.models import ChannelFilter
+    from apps.schedules.models import OnCallSchedule
+
     logger.info(f"Start clean slack leftovers for organization {organization_id}")
     ChannelFilter.objects.filter(alert_receive_channel__organization_id=organization_id).update(slack_channel_id=None)
     logger.info(f"Cleaned ChannelFilters slack_channel_id for organization {organization_id}")
@@ -651,9 +646,9 @@ def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
     """
     This task removes binding to slack channel after channel arcived or deleted in slack.
     """
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.alerts.models import ChannelFilter
+    from apps.slack.models import SlackTeamIdentity
+    from apps.user_management.models import Organization
 
     try:
         sti = SlackTeamIdentity.objects.get(id=slack_team_identity_id)

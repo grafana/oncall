@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
@@ -95,7 +94,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return None
 
     def validate_slack_channel(self, slack_channel_id):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         if slack_channel_id is not None:
             slack_channel_id = slack_channel_id.upper()

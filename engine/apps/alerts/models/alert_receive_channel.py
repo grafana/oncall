@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 
 import emoji
 from celery import uuid as celery_uuid
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
@@ -325,7 +324,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def alerts_count(self):
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert
+
         return Alert.objects.filter(group__channel=self).count()
 
     @property
@@ -631,8 +631,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 def listen_for_alertreceivechannel_model_save(
     sender: AlertReceiveChannel, instance: AlertReceiveChannel, created: bool, *args, **kwargs
 ) -> None:
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-    IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
+    from apps.alerts.models import ChannelFilter
+    from apps.heartbeat.models import IntegrationHeartBeat
 
     if created:
         write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)

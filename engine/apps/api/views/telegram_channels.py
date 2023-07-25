@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -32,7 +31,8 @@ class TelegramChannelViewSet(
     serializer_class = TelegramToOrganizationConnectorSerializer
 
     def get_queryset(self):
-        TelegramToOrganizationConnector = apps.get_model("telegram", "TelegramToOrganizationConnector")
+        from apps.telegram.models import TelegramToOrganizationConnector
+
         return TelegramToOrganizationConnector.objects.filter(organization=self.request.user.organization)
 
     @action(detail=True, methods=["post"])

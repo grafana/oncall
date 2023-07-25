@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 
 from apps.slack.scenarios import scenario_step
@@ -13,10 +12,9 @@ from .task_logger import task_logger
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-    UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-    EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
+    from apps.base.models import UserNotificationPolicy
+
     EscalationDeliveryStep = scenario_step.ScenarioStep.get_step("escalation_delivery", "EscalationDeliveryStep")
 
     alert_group = AlertGroup.objects.get(pk=alert_group_pk)

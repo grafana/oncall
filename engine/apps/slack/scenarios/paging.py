@@ -1,7 +1,6 @@
 import json
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.models import AlertReceiveChannel, EscalationChain
@@ -474,7 +473,8 @@ def _get_select_field_value(payload, prefix_id, routing_uid, field_id):
 
 
 def _get_selected_org_from_payload(payload, input_id_prefix, slack_team_identity, slack_user_identity):
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization
+
     selected_org_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingOrgChange.routing_uid(), DIRECT_PAGING_ORG_SELECT_ID
     )
@@ -823,7 +823,8 @@ def _get_availability_warnings_view(warnings, organization, user, callback_id, p
 
 
 def _get_selected_team_from_payload(payload, input_id_prefix):
-    Team = apps.get_model("user_management", "Team")
+    from apps.user_management.models import Team
+
     selected_team_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingTeamChange.routing_uid(), DIRECT_PAGING_TEAM_SELECT_ID
     )
@@ -850,7 +851,8 @@ def _get_additional_responders_checked_from_payload(payload, input_id_prefix):
 
 
 def _get_selected_user_from_payload(payload, input_id_prefix):
-    User = apps.get_model("user_management", "User")
+    from apps.user_management.models import User
+
     selected_user_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingUserChange.routing_uid(), DIRECT_PAGING_USER_SELECT_ID
     )
@@ -860,7 +862,8 @@ def _get_selected_user_from_payload(payload, input_id_prefix):
 
 
 def _get_selected_schedule_from_payload(payload, input_id_prefix):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
+
     selected_schedule_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingScheduleChange.routing_uid(), DIRECT_PAGING_SCHEDULE_SELECT_ID
     )

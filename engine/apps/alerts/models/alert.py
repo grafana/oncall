@@ -2,7 +2,6 @@ import hashlib
 import logging
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -85,10 +84,7 @@ class Alert(models.Model):
         Creates an alert and a group if needed.
         """
         # This import is here to avoid circular imports
-        ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, ChannelFilter
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
         if channel_filter is None:
@@ -186,7 +182,7 @@ class Alert(models.Model):
 
     @classmethod
     def render_group_data(cls, alert_receive_channel, raw_request_data, is_demo=False):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
 
         template_manager = TemplateLoader()
 

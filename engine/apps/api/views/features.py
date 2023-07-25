@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -27,7 +26,8 @@ class FeaturesAPIView(APIView):
         return Response(self._get_enabled_features(request))
 
     def _get_enabled_features(self, request):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         enabled_features = []
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
