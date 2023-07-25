@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Update the direct paging feature to page for acknowledged & silenced alert groups,
+  and show a warning for resolved alert groups by @vadimkerr ([#2639](https://github.com/grafana/oncall/pull/2639))
+
 ## v1.3.17 (2023-07-25)
 
 ### Added
