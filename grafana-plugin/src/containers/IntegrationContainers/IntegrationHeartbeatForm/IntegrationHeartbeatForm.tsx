@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, Field, HorizontalGroup, Select, VerticalGroup } from '@grafana/ui';
+import { Button, Drawer, Field, HorizontalGroup, Icon, Select, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import Emoji from 'react-emoji-render';
 
-import Collapse from 'components/Collapse/Collapse';
 import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -78,17 +76,18 @@ const IntegrationHeartbeatForm = observer(({ alertReceveChannelId, onClose }: In
                 <IntegrationInputField value={heartbeat?.link} showEye={false} isMasked={false} />
               </Field>
             </div>
-            <Collapse isOpen={false} label="Instruction">
-              <p className={cx('instruction')}>
-                To send periodic heartbeat alerts from <Emoji text={alertReceiveChannel?.verbal_name || ''} /> to
-                OnCall, do the following:
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: heartbeat.instruction,
-                  }}
-                />
-              </p>
-            </Collapse>
+            <a
+              href="https://grafana.com/docs/oncall/latest/integrations/alertmanager/#configuring-oncall-heartbeats-optional"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Text type="link" size="small">
+                <HorizontalGroup>
+                  How to configure heartbeats
+                  <Icon name="external-link-alt" />
+                </HorizontalGroup>
+              </Text>
+            </a>
           </VerticalGroup>
 
           <VerticalGroup style={{ marginTop: 'auto' }}>

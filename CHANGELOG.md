@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Bring heartbeats back to UI
+
 ## v1.3.15 (2023-07-19)
 
 ### Changed
