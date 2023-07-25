@@ -201,7 +201,7 @@ npx playwright install  # install playwright dependencies
 cp ./grafana-plugin/integration-tests/.env.example ./grafana-plugin/integration-tests/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
 cd grafana-plugin
-yarn test:integration
+yarn test:e2e
 ```
 
 ## Useful `make` commands

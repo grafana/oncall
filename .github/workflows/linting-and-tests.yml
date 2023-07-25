@@ -476,7 +476,7 @@ jobs:
           GRAFANA_VIEWER_PASSWORD: viewer
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
-        run: yarn test:integration
+        run: yarn test:e2e
 
       # spit out the engine, celery, and grafana logs, if the the e2e tests have failed
       # can be helpful for debugging failing tests
