@@ -56,6 +56,9 @@ def test_distribute_alert_escalate_alert_group(
     make_escalation_chain,
     make_escalation_policy,
 ):
+    """
+    Check escalate_alert_group is called for the first alert in the group and not called for the second alert in the group.
+    """
     organization = make_organization()
     escalation_chain = make_escalation_chain(organization)
     make_escalation_policy(
@@ -97,6 +100,10 @@ def test_distribute_alert_escalate_alert_group_when_escalation_paused(
     make_escalation_chain,
     make_escalation_policy,
 ):
+    """
+    Check escalate_alert_group is called for the first alert in the group and for the second alert in the group when
+    escalation is paused.
+    """
     organization = make_organization()
     escalation_chain = make_escalation_chain(organization)
     make_escalation_policy(
