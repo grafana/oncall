@@ -439,7 +439,8 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
         return
 
     now = timezone.now()
-    schedule_final_events = schedule.final_events("UTC", now, days=7)
+    datetime_end = now + datetime.timedelta(days=7)
+    schedule_final_events = schedule.final_events(now, datetime_end)
 
     relevant_cache_keys = [
         _generate_going_oncall_push_notification_cache_key(user["pk"], schedule_event)

@@ -275,7 +275,7 @@ class EscalationPolicySnapshot:
                 escalation_policy_step=self.step,
             )
         else:
-            notify_to_users_list = list_users_to_notify_from_ical(on_call_schedule, include_viewers=True)
+            notify_to_users_list = list_users_to_notify_from_ical(on_call_schedule)
             if notify_to_users_list is None:
                 log_record = AlertGroupLogRecord(
                     type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED,
