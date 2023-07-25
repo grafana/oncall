@@ -25,6 +25,14 @@ export function useOnClickOutside(ref, handler) {
   }, [ref, handler]);
 }
 
+export function usePrevious(value: any) {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 export function useQueryParams(): URLSearchParams {
   const { search } = useLocation();
 
