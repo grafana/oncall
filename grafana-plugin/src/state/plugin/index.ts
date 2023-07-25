@@ -205,6 +205,25 @@ class PluginState {
     });
   };
 
+  static checkTokenAndIfPluginIsConnected = async (
+    onCallApiUrl: string
+  ): Promise<PluginSyncStatusResponse | string> => {
+    /**
+     * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
+     * an API key on accident but leaves the plugin settings intact.
+     */
+    const existingKey = await PluginState.getGrafanaToken();
+    if (!existingKey) {
+      try {
+        await PluginState.installPlugin();
+      } catch (e) {
+        return PluginState.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'install', false);
+      }
+    }
+
+    return await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+  };
+
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(
     selfHosted = false
   ): Promise<InstallPluginResponse<RT>> => {
