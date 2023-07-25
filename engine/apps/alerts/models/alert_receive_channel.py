@@ -252,6 +252,25 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def hard_delete(self):
         super(AlertReceiveChannel, self).delete()
 
+    class DuplicateDirectPagingError(Exception):
+        """Only one Direct Paging integration is allowed per team."""
+
+        DETAIL = "Direct paging integration already exists for this team"  # Returned in BadRequest responses
+
+    def save(self, *args, **kwargs):
+        # Don't allow multiple Direct Paging integrations per team
+        if (
+            self.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+            and AlertReceiveChannel.objects.filter(
+                organization=self.organization, team=self.team, integration=self.integration
+            )
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise self.DuplicateDirectPagingError
+
+        return super().save(*args, **kwargs)
+
     def change_team(self, team_id, user):
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
@@ -520,10 +539,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     @property
     def heartbeat_expired_payload(self):
         return getattr(self.heartbeat_module, "heartbeat_expired_payload")
-
-    @property
-    def heartbeat_instruction_template(self):
-        return getattr(self.heartbeat_module, "heartbeat_instruction_template")
 
     @property
     def heartbeat_module(self):

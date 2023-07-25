@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
@@ -27,6 +28,7 @@ from .views.public_api_tokens import PublicApiTokenView
 from .views.resolution_note import ResolutionNoteView
 from .views.route_regex_debugger import RouteRegexDebuggerView
 from .views.schedule import ScheduleView
+from .views.shift_swap import ShiftSwapViewSet
 from .views.slack_channel import SlackChannelView
 from .views.slack_team_settings import (
     AcknowledgeReminderOptionsAPIView,
@@ -65,10 +67,15 @@ router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
 
+if settings.FEATURE_SHIFT_SWAPS_ENABLED:
+    router.register(r"shift_swaps", ShiftSwapViewSet, basename="shift_swap")
+
 urlpatterns = [
     path("", include(router.urls)),
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
+    optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
+    # TODO: remove current_team routes in future release
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
     optional_slash_path(
         "current_team/get_telegram_verification_code",
@@ -106,5 +113,3 @@ urlpatterns += [
     path(r"login/<backend>/", auth.overridden_login_slack_auth, name="slack-auth"),
     path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
 ]
-
-urlpatterns += router.urls

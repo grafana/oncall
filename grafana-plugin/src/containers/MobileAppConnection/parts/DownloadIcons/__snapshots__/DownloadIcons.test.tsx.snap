@@ -21,7 +21,7 @@ exports[`DownloadIcons it renders properly 1`] = `
       <span
         class="root text text--primary text--medium"
       >
-        The Grafana IRM app is available on both the App Store and Google Play Store.
+        The Grafana OnCall app is available on both the App Store and Google Play Store.
       </span>
     </div>
     <div

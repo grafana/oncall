@@ -18,8 +18,6 @@ from apps.api.serializers.alert_receive_channel import (
 )
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
-from apps.integrations.legacy_prefix import has_legacy_prefix
-from apps.user_management.models.team import Team
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -81,7 +79,7 @@ class AlertReceiveChannelView(
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ("verbal_name",)
+    search_fields = ("verbal_name", "integration")
 
     filterset_class = AlertReceiveChannelFilter
     pagination_class = FifteenPageSizePaginator
@@ -104,44 +102,6 @@ class AlertReceiveChannelView(
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
-
-    def create(self, request, *args, **kwargs):
-        organization = request.auth.organization
-        user = request.user
-        team_lookup = {}
-        if "team" in request.data:
-            team_public_pk = request.data.get("team", None)
-            if team_public_pk is not None:
-                try:
-                    team = user.available_teams.get(public_primary_key=team_public_pk)
-                    team_lookup = {"team": team}
-                except Team.DoesNotExist:
-                    return Response(data="invalid team", status=status.HTTP_400_BAD_REQUEST)
-            else:
-                team_lookup = {"team__isnull": True}
-
-        if request.data["integration"] is not None:
-            if has_legacy_prefix(request.data["integration"]):
-                raise BadRequest("This integration type is deprecated")
-            if request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
-                # Don't allow multiple Direct Paging integrations
-                if request.data["integration"] == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING:
-                    try:
-                        AlertReceiveChannel.objects.get(
-                            organization=organization,
-                            integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
-                            deleted_at=None,
-                            **team_lookup,
-                        )
-                        return Response(
-                            data="Direct paging integration already exists for this team",
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
-                    except AlertReceiveChannel.DoesNotExist:
-                        pass
-                return super().create(request, *args, **kwargs)
-
-        return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized
@@ -286,6 +246,12 @@ class AlertReceiveChannelView(
                 "type": "team_select",
                 "href": api_root + "teams/",
                 "global": True,
+            },
+            {
+                "name": "integration",
+                "display_name": "Type",
+                "type": "options",
+                "href": api_root + "alert_receive_channels/integration_options/",
             },
         ]
 

@@ -41,9 +41,6 @@ class IntegrationOptionsMixin:
     WEB_INTEGRATION_CHOICES = [
         integration_config.slug for integration_config in _config if integration_config.is_displayed_on_web
     ]
-    INTEGRATIONS_TO_INSTRUCTIONS_WEB = {
-        integration_config.slug: f"html/integration_{integration_config.slug}.html" for integration_config in _config
-    }
     INTEGRATION_SHORT_DESCRIPTION = {
         integration_config.slug: integration_config.short_description for integration_config in _config
     }

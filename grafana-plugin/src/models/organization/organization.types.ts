@@ -1,15 +1,15 @@
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 
-export interface Team {
+export interface Organization {
   pk: string;
   banner: {
     title: string;
     body: string;
   };
   telegram_configuration: {
-    channel_chat_id: number;
+    channel_chat_id: string;
     channel_name: string;
-    discussion_group_chat_id: number; // TODO check if string
+    discussion_group_chat_id: string;
     discussion_group_name: string;
   };
   name: string;
@@ -18,12 +18,8 @@ export interface Team {
     general_log_channel_pk: string;
     cached_name: string;
   };
-
   slack_channel: SlackChannel | null;
-
-  // ex team settings
   is_resolution_note_required: boolean;
-
   env_status: {
     telegram_configured: boolean;
     phone_provider: {

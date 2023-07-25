@@ -37,8 +37,8 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   }
 
   render() {
-    const { store } = this.props;
-    const { teamStore } = store;
+    const { organizationStore } = this.props.store;
+    const { currentOrganization } = organizationStore;
     const { apiUrl } = this.state;
 
     return (
@@ -54,15 +54,15 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             Resolution Note
           </Text.Title>
           <Field
-            loading={!teamStore.currentTeam}
+            loading={!currentOrganization}
             label="Require a resolution note when resolving Alert Groups"
             description={`Once user clicks "Resolve" for an Alert Group, they will be required to fill in a resolution note about the Alert Group`}
           >
             <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
               <Switch
-                value={teamStore.currentTeam?.is_resolution_note_required}
+                value={currentOrganization?.is_resolution_note_required}
                 onChange={(event) => {
-                  teamStore.saveCurrentTeam({
+                  organizationStore.saveCurrentOrganization({
                     is_resolution_note_required: event.currentTarget.checked,
                   });
                 }}
