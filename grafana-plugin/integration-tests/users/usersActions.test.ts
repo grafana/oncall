@@ -20,7 +20,7 @@ test.describe('Users screen actions', () => {
     await expect(page.getByTestId('users-table')).not.toBeVisible();
   });
 
-  test('Viewer cannot access tabs from View My Profile', async ({ viewerRolePage }) => {
+  test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
 
     await goToOnCallPage(page, 'users');
