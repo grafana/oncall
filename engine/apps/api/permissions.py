@@ -60,8 +60,6 @@ class Resources(enum.Enum):
     MAINTENANCE = "maintenance"
     API_KEYS = "api-keys"
     NOTIFICATIONS = "notifications"
-
-    NOTIFICATION_SETTINGS = "notification-settings"
     USER_SETTINGS = "user-settings"
     OTHER_SETTINGS = "other-settings"
 

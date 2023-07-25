@@ -233,9 +233,6 @@
 
           { "action": "grafana-oncall-app.notifications:read" },
 
-          { "action": "grafana-oncall-app.notification-settings:read" },
-          { "action": "grafana-oncall-app.notification-settings:write" },
-
           { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.user-settings:write" },
           { "action": "grafana-oncall-app.user-settings:admin" },
@@ -276,9 +273,6 @@
 
           { "action": "grafana-oncall-app.notifications:read" },
 
-          { "action": "grafana-oncall-app.notification-settings:read" },
-          { "action": "grafana-oncall-app.notification-settings:write" },
-
           { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.user-settings:write" },
 
@@ -301,7 +295,6 @@
           { "action": "grafana-oncall-app.chatops:read" },
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
           { "action": "grafana-oncall-app.maintenance:read" },
-          { "action": "grafana-oncall-app.notification-settings:read" },
           { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.other-settings:read" }
         ]
@@ -339,7 +332,6 @@
           { "action": "grafana-oncall-app.chatops:read" },
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
           { "action": "grafana-oncall-app.maintenance:read" },
-          { "action": "grafana-oncall-app.notification-settings:read" },
           { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.other-settings:read" }
         ]
@@ -529,29 +521,6 @@
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.api-keys:read" },
           { "action": "grafana-oncall-app.api-keys:write" }
-        ]
-      },
-      "grants": []
-    },
-    {
-      "role": {
-        "name": "Notification Settings Reader",
-        "description": "Read-only access to OnCall Notification Settings",
-        "permissions": [
-          { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
-          { "action": "grafana-oncall-app.notification-settings:read" }
-        ]
-      },
-      "grants": []
-    },
-    {
-      "role": {
-        "name": "Notification Settings Editor",
-        "description": "Read/write access to OnCall Notification Settings",
-        "permissions": [
-          { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
-          { "action": "grafana-oncall-app.notification-settings:read" },
-          { "action": "grafana-oncall-app.notification-settings:write" }
         ]
       },
       "grants": []
