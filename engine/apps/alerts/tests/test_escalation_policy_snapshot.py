@@ -246,7 +246,7 @@ def test_escalation_step_notify_on_call_schedule_viewer_user(
     )
     assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
     assert result == expected_result
-    assert not notify_schedule_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
+    assert notify_schedule_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_FAILED).exists()
     assert list(escalation_policy_snapshot.notify_to_users_queue) == []
     assert mocked_execute_tasks.called
 
