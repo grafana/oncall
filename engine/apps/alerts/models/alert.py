@@ -257,15 +257,12 @@ class Alert(models.Model):
         return distinction
 
 
-def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
+def listen_for_alert_model_save(sender: Alert, instance: Alert, created: bool, *args, **kwargs):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     """
     Here we invoke AlertShootingStep by model saving action.
     """
     if created:
-        # RFCT - why additinal save ?
-        instance.save()
-
         group = instance.group
         # Store exact alert which resolved group.
         if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
@@ -278,7 +275,7 @@ def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
             distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
 
 
-# Connect signal to  base Alert class
+# Connect signal to base Alert class
 post_save.connect(listen_for_alert_model_save, Alert)
 
 # And subscribe for events from child classes
