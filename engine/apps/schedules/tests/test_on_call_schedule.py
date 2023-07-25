@@ -81,8 +81,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
     override.add_rolling_users([[user]])
 
     # filter primary non-empty shifts only
-    end_date = start_date + timezone.timedelta(days=3)
-    events = schedule.filter_events(start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY)
+    events = schedule.filter_events("UTC", start_date, days=3, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY)
     expected = [
         {
             "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
@@ -110,8 +109,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
     assert events == expected
 
     # filter overrides only
-    end_date = start_date + timezone.timedelta(days=3)
-    events = schedule.filter_events(start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_OVERRIDES)
+    events = schedule.filter_events("UTC", start_date, days=3, filter_by=OnCallSchedule.TYPE_ICAL_OVERRIDES)
     expected_override = [
         {
             "calendar_type": OnCallSchedule.TYPE_ICAL_OVERRIDES,
@@ -138,8 +136,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
     assert events == expected_override
 
     # no type filter
-    end_date = start_date + timezone.timedelta(days=3)
-    events = schedule.filter_events(start_date, end_date)
+    events = schedule.filter_events("UTC", start_date, days=3)
     assert events == expected_override + expected
 
 
@@ -168,12 +165,13 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
     )
     on_call_shift.add_rolling_users([[user]])
 
-    end_date = start_date + timezone.timedelta(days=1)
-    events = schedule.filter_events(start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY, with_gap=True)
+    events = schedule.filter_events(
+        "UTC", start_date, days=1, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY, with_gap=True
+    )
     expected = [
         {
             "calendar_type": None,
-            "start": start_date,
+            "start": start_date + timezone.timedelta(milliseconds=1),
             "end": on_call_shift.start,
             "all_day": False,
             "is_override": False,
@@ -209,7 +207,7 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
         {
             "calendar_type": None,
             "start": on_call_shift.start + on_call_shift.duration,
-            "end": on_call_shift.start + timezone.timedelta(hours=14),
+            "end": on_call_shift.start + timezone.timedelta(hours=13, minutes=59, seconds=59, milliseconds=1),
             "all_day": False,
             "is_override": False,
             "is_empty": False,
@@ -249,8 +247,9 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
     )
     on_call_shift.add_rolling_users([[user]])
 
-    end_date = start_date + timezone.timedelta(days=1)
-    events = schedule.filter_events(start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY, with_empty=True)
+    events = schedule.filter_events(
+        "UTC", start_date, days=1, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY, with_empty=True
+    )
     expected = [
         {
             "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
@@ -283,10 +282,9 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
 
     day_to_check_iso = "2021-01-27T15:27:14.448059+00:00"
     parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
-    datetime_start = parsed_iso_day_to_check - timezone.timedelta(days=1)
-    datetime_end = datetime_start + datetime.timedelta(days=1, hours=23, minutes=59, seconds=59)
+    start_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
 
-    events = schedule.final_events(datetime_start, datetime_end)
+    events = schedule.final_events("UTC", start_date, days=2)
     expected_events = [
         # all_day, users, start, end
         (
@@ -312,12 +310,6 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
             ["@Bob"],
             datetime.datetime(2021, 1, 27, 8, 0, tzinfo=pytz.UTC),
             datetime.datetime(2021, 1, 27, 17, 0, tzinfo=pytz.UTC),
-        ),
-        (
-            False,
-            ["@Bernard Desruisseaux"],
-            datetime.datetime(2021, 1, 28, 8, 0, tzinfo=pytz.UTC),
-            datetime.datetime(2021, 1, 28, 17, 0, tzinfo=pytz.UTC),
         ),
     ]
     expected = [
@@ -396,8 +388,7 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
         )
         on_call_shift.add_rolling_users([[user]])
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    returned_events = schedule.final_events(start_date, datetime_end)
+    returned_events = schedule.final_events("UTC", start_date, days=1)
 
     expected = (
         # start (h), duration (H), user, priority, is_gap, is_override
@@ -423,7 +414,7 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
             "is_gap": is_gap,
             "is_override": is_override,
             "priority_level": priority,
-            "start": start_date + timezone.timedelta(hours=start),
+            "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
             "user": user,
         }
         for start, duration, user, priority, is_gap, is_override in expected
@@ -491,8 +482,7 @@ def test_final_schedule_override_no_priority_shift(
     )
     override.add_rolling_users([[user_b]])
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    returned_events = schedule.final_events(start_date, datetime_end)
+    returned_events = schedule.final_events("UTC", start_date, days=1)
 
     expected = (
         # start (h), duration (H), user, priority, is_override
@@ -562,8 +552,7 @@ def test_final_schedule_splitting_events(
         )
         on_call_shift.add_rolling_users([[user]])
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    returned_events = schedule.final_events(start_date, datetime_end)
+    returned_events = schedule.final_events("UTC", start_date, days=1)
 
     expected = (
         # start (h), duration (H), user, priority
@@ -632,8 +621,7 @@ def test_final_schedule_splitting_same_time_events(
         )
         on_call_shift.add_rolling_users([[user]])
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    returned_events = schedule.final_events(start_date, datetime_end)
+    returned_events = schedule.final_events("UTC", start_date, days=1)
 
     expected = (
         # start (h), duration (H), user, priority
@@ -707,8 +695,7 @@ def test_preview_shift(make_organization, make_user_for_organization, make_sched
         rolling_users=[{other_user.pk: other_user.public_primary_key}],
     )
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    rotation_events, final_events = schedule.preview_shift(new_shift, start_date, datetime_end)
+    rotation_events, final_events = schedule.preview_shift(new_shift, "UTC", start_date, days=1)
 
     # check rotation events
     expected_rotation_events = [
@@ -809,8 +796,7 @@ def test_preview_shift_do_not_change_rotation_events(
     )
     other_shift.add_rolling_users([[other_user]])
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    rotation_events, final_events = schedule.preview_shift(on_call_shift, start_date, datetime_end)
+    rotation_events, final_events = schedule.preview_shift(on_call_shift, "UTC", start_date, days=1)
 
     # check rotation events
     expected_rotation_events = [
@@ -866,8 +852,7 @@ def test_preview_shift_no_user(make_organization, make_user_for_organization, ma
         rolling_users=[],
     )
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    rotation_events, final_events = schedule.preview_shift(new_shift, start_date, datetime_end)
+    rotation_events, final_events = schedule.preview_shift(new_shift, "UTC", start_date, days=1)
 
     # check rotation events
     expected_rotation_events = [
@@ -945,8 +930,7 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
         rolling_users=[{other_user.pk: other_user.public_primary_key}],
     )
 
-    datetime_end = start_date + timezone.timedelta(days=1)
-    rotation_events, final_events = schedule.preview_shift(new_shift, start_date, datetime_end)
+    rotation_events, final_events = schedule.preview_shift(new_shift, "UTC", start_date, days=1)
 
     # check rotation events
     expected_rotation_events = [
@@ -1105,8 +1089,7 @@ def test_filter_events_none_cache_unchanged(
     # schedule is removed from db
     schedule.delete()
 
-    end_date = start_date + timezone.timedelta(days=5)
-    events = schedule.filter_events(start_date, end_date, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY)
+    events = schedule.filter_events("UTC", start_date, days=5, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY)
     expected = []
     assert events == expected
 
@@ -1289,8 +1272,7 @@ def test_api_schedule_preview_requires_override(make_organization, make_schedule
     )
 
     with pytest.raises(ValueError):
-        datetime_end = now + timezone.timedelta(days=1)
-        schedule.preview_shift(non_override_shift, now, datetime_end)
+        schedule.preview_shift(non_override_shift, "UTC", now, 1)
 
 
 @pytest.mark.django_db
@@ -1835,5 +1817,4 @@ def test_event_until_non_utc(make_organization, make_schedule):
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
     # check this works without raising exception
-    datetime_end = now + timezone.timedelta(days=7)
-    schedule.final_events(now, datetime_end)
+    schedule.final_events("UTC", now, days=7)

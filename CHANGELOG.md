@@ -23,10 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
   by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
 
-### Changed
-
-- Update checking on-call users to use schedule final events ([#2625](https://github.com/grafana/oncall/pull/2625))
-
 ## v1.3.16 (2023-07-21)
 
 ### Added
