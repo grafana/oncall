@@ -725,7 +725,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { alertReceiveChannelStore, heartbeatStore } = useStore();
+  const { alertReceiveChannelStore } = useStore();
 
   const history = useHistory();
 
@@ -822,7 +822,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                  <div className={cx('integration__actionItem')} onClick={() => setIsHeartbeatFormOpen(true)}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={() => setIsHeartbeatFormOpen(true)}
+                    data-testid="integration-heartbeat-settings"
+                  >
                     Heartbeat Settings
                   </div>
                 </WithPermissionControlTooltip>
@@ -926,9 +930,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   );
 
   function showHeartbeatSettings() {
-    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
-    const heartbeat = heartbeatStore.items[heartbeatId];
-    return !!heartbeat?.last_heartbeat_time_verbal;
+    return alertReceiveChannel.is_available_for_integration_heartbeat;
   }
 
   function deleteIntegration() {
@@ -1158,22 +1160,20 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
     const heartbeat = heartbeatStore.items[heartbeatId];
 
-    const heartbeatStatus = Boolean(heartbeat?.status);
-
-    if (
-      !alertReceiveChannel.is_available_for_integration_heartbeat ||
-      !alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal
-    ) {
+    if (!alertReceiveChannel.is_available_for_integration_heartbeat || !heartbeat?.last_heartbeat_time_verbal) {
       return null;
     }
 
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
     return (
       <TooltipBadge
+        data-testid="heartbeat-badge"
         text={undefined}
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
         customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
+        tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
         tooltipContent={undefined}
       />
     );
