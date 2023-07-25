@@ -135,11 +135,6 @@ def notify_user_task(
                 )
                 return
 
-            active_invitations_count = alert_group.invitations.filter(invitee=user, is_active=True).count()
-            if (notify_even_acknowledged or notify_anyway) and active_invitations_count == 0:
-                task_logger.info(f"notify_user_task: skip notification user {user.pk} invitation exceeded")
-                return
-
             if notification_policy.step == UserNotificationPolicy.Step.WAIT:
                 if notification_policy.wait_delay is not None:
                     delay_in_seconds = notification_policy.wait_delay.total_seconds()
