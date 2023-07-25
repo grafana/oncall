@@ -21,6 +21,9 @@ def distribute_alert(alert_id):
 
     send_alert_create_signal.apply_async((alert_id,))
 
+    # Launch escalation for the group if it's the first alert, or if the group is paused.
+    # "paused" means that the current escalation step is "Continue escalation if >X alerts per Y minutes" and there are
+    # not enough alerts to trigger the escalation further.
     if alert.is_the_first_alert_in_group or alert.group.pause_escalation:
         alert.group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
 
