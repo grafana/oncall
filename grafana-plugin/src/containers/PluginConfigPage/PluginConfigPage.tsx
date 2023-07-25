@@ -82,12 +82,12 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     resetMessages();
     setSyncingPlugin(true);
 
-    const syncDataResponse = await PluginState.checkTokenAndSyncDataWithOncall(onCallApiUrl);
+    const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
 
-    if (typeof syncDataResponse === 'string') {
-      setSyncError(syncDataResponse);
+    if (typeof pluginConnectionStatus === 'string') {
+      setSyncError(pluginConnectionStatus);
     } else {
-      const { token_ok, ...versionLicenseInfo } = syncDataResponse;
+      const { token_ok, ...versionLicenseInfo } = pluginConnectionStatus;
       setPluginIsConnected(versionLicenseInfo);
       reloadPageWithPluginConfiguredQueryParams(versionLicenseInfo, pluginIsEnabled);
     }

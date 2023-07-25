@@ -57,6 +57,8 @@ class StatusView(GrafanaHeadersMixin, APIView):
         # If user is not present in OnCall database, set token_ok to False, which will trigger reinstall
         if not user_is_present_in_org:
             token_ok = False
+            organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
+            organization.save(update_fields=["api_token_status"])
 
         # Start task to refresh organization data in OnCall database with Grafana
         plugin_sync_organization_async.apply_async((organization.pk,))

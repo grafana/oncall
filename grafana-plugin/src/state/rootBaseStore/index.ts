@@ -33,6 +33,7 @@ import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
 import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import FaroHelper from 'utils/faro';
 
 // ------ Dashboard ------ //
 
@@ -131,23 +132,31 @@ export class RootBaseStore {
   }
 
   /**
+   * This function is called in the background when the plugin is loaded.
+   * It will check the status of the plugin and
+   * rerender the screen with the appropriate message if the plugin is not setup correctly.
+   *
    * First check to see if the plugin has been provisioned (plugin's meta jsonData has an onCallApiUrl saved)
    * If not, tell the user they first need to configure/provision the plugin.
    *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
+   * - OnCall api should not be under maintenance
    * - plugin must be considered installed by the OnCall API
    * - token_ok must be true
    *   - This represents the status of the Grafana API token. It can be false in the event that either the token
    *   hasn't been created, or if the API token was revoked in Grafana.
    * - user must be not "anonymous" (this is determined by the plugin-proxy)
    * - the OnCall API must be currently allowing signup
-   * - the user must have an Admin role
-   * If these conditions are all met then trigger a data sync w/ the OnCall backend and poll its response
+   * - the user must have an Admin role and necessary permissions
    * Finally, try to load the current user from the OnCall backend
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
     this.initializationError = null;
     this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
+
+    if (!FaroHelper.faro) {
+      FaroHelper.initializeFaro(this.onCallApiUrl);
+    }
 
     if (!this.onCallApiUrl) {
       // plugin is not provisioned
