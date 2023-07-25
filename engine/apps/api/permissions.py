@@ -190,13 +190,6 @@ class RBACPermission(permissions.BasePermission):
             Resources.NOTIFICATIONS, Actions.READ, LegacyAccessControlRole.EDITOR
         )
 
-        NOTIFICATION_SETTINGS_READ = LegacyAccessControlCompatiblePermission(
-            Resources.NOTIFICATION_SETTINGS, Actions.READ, LegacyAccessControlRole.VIEWER
-        )
-        NOTIFICATION_SETTINGS_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.NOTIFICATION_SETTINGS, Actions.WRITE, LegacyAccessControlRole.EDITOR
-        )
-
         USER_SETTINGS_READ = LegacyAccessControlCompatiblePermission(
             Resources.USER_SETTINGS, Actions.READ, LegacyAccessControlRole.VIEWER
         )

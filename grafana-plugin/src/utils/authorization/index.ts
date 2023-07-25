@@ -20,7 +20,6 @@ export enum Resource {
   API_KEYS = 'api-keys',
   NOTIFICATIONS = 'notifications',
 
-  NOTIFICATION_SETTINGS = 'notification-settings',
   USER_SETTINGS = 'user-settings',
   OTHER_SETTINGS = 'other-settings',
 
@@ -57,8 +56,6 @@ type Actions =
   | 'APIKeysRead'
   | 'APIKeysWrite'
   | 'NotificationsRead'
-  | 'NotificationSettingsRead'
-  | 'NotificationSettingsWrite'
   | 'UserSettingsRead'
   | 'UserSettingsWrite'
   | 'UserSettingsAdmin'
@@ -148,9 +145,6 @@ export const UserActions: { [action in Actions]: UserAction } = {
   APIKeysWrite: constructAction(Resource.API_KEYS, Action.WRITE, OrgRole.Admin),
 
   NotificationsRead: constructAction(Resource.NOTIFICATIONS, Action.READ, OrgRole.Editor),
-
-  NotificationSettingsRead: constructAction(Resource.NOTIFICATION_SETTINGS, Action.READ, OrgRole.Viewer),
-  NotificationSettingsWrite: constructAction(Resource.NOTIFICATION_SETTINGS, Action.WRITE, OrgRole.Editor),
 
   UserSettingsRead: constructAction(Resource.USER_SETTINGS, Action.READ, OrgRole.Viewer),
   UserSettingsWrite: constructAction(Resource.USER_SETTINGS, Action.WRITE, OrgRole.Editor),
