@@ -13,7 +13,7 @@ logger = get_task_logger(__name__)
 def delete_alert_group(alert_group_pk, user_pk):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     User = apps.get_model("user_management", "User")
-    alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk).first()
+    alert_group = AlertGroup.objects.filter(pk=alert_group_pk).first()
     if not alert_group:
         logger.debug("Alert group not found, skipping delete_alert_group")
         return

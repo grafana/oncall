@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 title: Outgoing webhooks HTTP API
 weight: 700
@@ -31,7 +29,10 @@ The above command returns JSON structured in the following way:
       "id": "KGEFG74LU1D8L",
       "name": "Publish alert group notification to JIRA"
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

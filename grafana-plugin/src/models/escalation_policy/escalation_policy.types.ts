@@ -8,8 +8,7 @@ import { UserGroup } from 'models/user_group/user_group.types';
 export interface EscalationPolicy {
   id: string;
   notify_to_user: User['pk'] | null;
-  order: number;
-  //  is't option value from api/internal/v1/escalation_policies/escalation_options/
+  //  it's option value from api/internal/v1/escalation_policies/escalation_options/
   step: EscalationPolicyOption['value'];
   wait_delay: string | null;
   is_final: boolean;

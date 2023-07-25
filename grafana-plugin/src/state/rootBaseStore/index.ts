@@ -1,3 +1,5 @@
+import { OrgRole } from '@grafana/data';
+import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
@@ -16,15 +18,13 @@ import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
-import { MaintenanceStore } from 'models/maintenance/maintenance';
-import { OrganizationLogStore } from 'models/organization_log/organization_log';
+import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
-import { TeamStore } from 'models/team/team';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
 import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
@@ -32,8 +32,7 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 // ------ Dashboard ------ //
 
@@ -81,31 +80,29 @@ export class RootBaseStore {
 
   // --------------------------
 
-  userStore: UserStore = new UserStore(this);
-  cloudStore: CloudStore = new CloudStore(this);
-  directPagingStore: DirectPagingStore = new DirectPagingStore(this);
-  grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
-  alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
-  outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
+  userStore = new UserStore(this);
+  cloudStore = new CloudStore(this);
+  directPagingStore = new DirectPagingStore(this);
+  grafanaTeamStore = new GrafanaTeamStore(this);
+  alertReceiveChannelStore = new AlertReceiveChannelStore(this);
+  outgoingWebhookStore = new OutgoingWebhookStore(this);
 
-  outgoingWebhook2Store: OutgoingWebhook2Store = new OutgoingWebhook2Store(this);
-  alertReceiveChannelFiltersStore: AlertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
-  escalationChainStore: EscalationChainStore = new EscalationChainStore(this);
-  escalationPolicyStore: EscalationPolicyStore = new EscalationPolicyStore(this);
-  teamStore: TeamStore = new TeamStore(this);
-  telegramChannelStore: TelegramChannelStore = new TelegramChannelStore(this);
-  slackStore: SlackStore = new SlackStore(this);
-  slackChannelStore: SlackChannelStore = new SlackChannelStore(this);
-  heartbeatStore: HeartbeatStore = new HeartbeatStore(this);
-  maintenanceStore: MaintenanceStore = new MaintenanceStore(this);
-  scheduleStore: ScheduleStore = new ScheduleStore(this);
-  userGroupStore: UserGroupStore = new UserGroupStore(this);
-  alertGroupStore: AlertGroupStore = new AlertGroupStore(this);
-  resolutionNotesStore: ResolutionNotesStore = new ResolutionNotesStore(this);
-  apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
-  OrganizationLogStore: OrganizationLogStore = new OrganizationLogStore(this);
-  globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
-  filtersStore: FiltersStore = new FiltersStore(this);
+  outgoingWebhook2Store = new OutgoingWebhook2Store(this);
+  alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
+  escalationChainStore = new EscalationChainStore(this);
+  escalationPolicyStore = new EscalationPolicyStore(this);
+  organizationStore = new OrganizationStore(this);
+  telegramChannelStore = new TelegramChannelStore(this);
+  slackStore = new SlackStore(this);
+  slackChannelStore = new SlackChannelStore(this);
+  heartbeatStore = new HeartbeatStore(this);
+  scheduleStore = new ScheduleStore(this);
+  userGroupStore = new UserGroupStore(this);
+  alertGroupStore = new AlertGroupStore(this);
+  resolutionNotesStore = new ResolutionNotesStore(this);
+  apiTokenStore = new ApiTokenStore(this);
+  globalSettingStore = new GlobalSettingStore(this);
+  filtersStore = new FiltersStore(this);
   // stores
 
   async updateBasicData() {
@@ -120,7 +117,7 @@ export class RootBaseStore {
     };
 
     return Promise.all([
-      this.teamStore.loadCurrentTeam(),
+      this.organizationStore.loadCurrentOrganization(),
       this.grafanaTeamStore.updateItems(),
       updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),
@@ -162,13 +159,15 @@ export class RootBaseStore {
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    const isInMaintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode();
-    if (isInMaintenanceMode !== null) {
+    const maintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode(this.onCallApiUrl);
+    if (typeof maintenanceMode === 'string') {
+      return this.setupPluginError(maintenanceMode);
+    } else if (maintenanceMode.currently_undergoing_maintenance_message) {
       this.currentlyUndergoingMaintenance = true;
-      return this.setupPluginError(`🚧 ${isInMaintenanceMode} 🚧`);
+      return this.setupPluginError(`🚧 ${maintenanceMode.currently_undergoing_maintenance_message} 🚧`);
     }
 
-    // at this point we know the plugin is provionsed
+    // at this point we know the plugin is provisioned
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
@@ -178,28 +177,38 @@ export class RootBaseStore {
 
     if (is_user_anonymous) {
       return this.setupPluginError(
-        '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
+        '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
     } else if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
-
-      if (!isUserActionAllowed(UserActions.PluginsInstall)) {
-        return this.setupPluginError(
-          '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
-        );
-      }
-
-      try {
-        /**
-         * this will install AND sync the necessary data
-         * the sync is done automatically by the /plugin/install OnCall API endpoint
-         * therefore there is no need to trigger an additional/separate sync, nor poll a status
-         */
-        await PluginState.installPlugin();
-      } catch (e) {
-        return this.setupPluginError(PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install'));
+      const missingPermissions = this.checkMissingSetupPermissions();
+      if (missingPermissions.length === 0) {
+        try {
+          /**
+           * this will install AND sync the necessary data
+           * the sync is done automatically by the /plugin/install OnCall API endpoint
+           * therefore there is no need to trigger an additional/separate sync, nor poll a status
+           */
+          await PluginState.installPlugin();
+        } catch (e) {
+          return this.setupPluginError(
+            PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
+          );
+        }
+      } else {
+        if (contextSrv.accessControlEnabled()) {
+          return this.setupPluginError(
+            '🚫 User is missing permission(s) ' +
+              missingPermissions.join(', ') +
+              ' to setup OnCall before it can be used'
+          );
+        } else {
+          return this.setupPluginError(
+            '🚫 User with Admin permissions in your organization must sign on and setup OnCall before it can be used'
+          );
+        }
       }
     } else {
       const syncDataResponse = await PluginState.syncDataWithOnCall(this.onCallApiUrl);
@@ -223,13 +232,37 @@ export class RootBaseStore {
     this.appLoading = false;
   }
 
+  checkMissingSetupPermissions() {
+    const fallback = contextSrv.user.orgRole === OrgRole.Admin && !contextSrv.accessControlEnabled();
+    const setupRequiredPermissions = [
+      'plugins:write',
+      'org.users:read',
+      'teams:read',
+      'apikeys:create',
+      'apikeys:delete',
+    ];
+    return setupRequiredPermissions.filter(function (permission) {
+      return !contextSrv.hasAccess(permission, fallback);
+    });
+  }
+
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only
     return this.features?.[feature];
   }
 
+  get license() {
+    if (this.backendLicense) {
+      return this.backendLicense;
+    }
+    if (CLOUD_VERSION_REGEX.test(APP_VERSION)) {
+      return GRAFANA_LICENSE_CLOUD;
+    }
+    return GRAFANA_LICENSE_OSS;
+  }
+
   isOpenSource(): boolean {
-    return this.backendLicense === GRAFANA_LICENSE_OSS;
+    return this.license === GRAFANA_LICENSE_OSS;
   }
 
   @observable

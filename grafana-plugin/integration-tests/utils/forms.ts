@@ -13,6 +13,10 @@ type SelectDropdownValueArgs = {
   startingLocator?: Locator;
   // if true, when selecting the dropdown option, use an exact match, otherwise use a substring contains match
   optionExactMatch?: boolean;
+
+  // if true, will press enter in the select dropdown. Some dropdowns don't show a list of options
+  // and instead the user must press enter to trigger the search
+  pressEnterInsteadOfSelectingOption?: boolean;
 };
 
 type ClickButtonArgs = {
@@ -86,17 +90,19 @@ const textMatchSelector = (optionExactMatch: boolean, value: string): string =>
 const chooseDropdownValue = async ({ page, value, optionExactMatch = true }: SelectDropdownValueArgs): Promise<void> =>
   page.locator(`div[id^="react-select-"][id$="-listbox"] >> ${textMatchSelector(optionExactMatch, value)}`).click();
 
-export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<void> => {
+export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<Locator> => {
+  const { page, value, pressEnterInsteadOfSelectingOption } = args;
+
   const selectElement = await openSelect(args);
+  await selectElement.type(value);
 
-  /**
-   * use the select search to filter down the options
-   * TODO: get rid of the slice when we fix the GSelect component..
-   * without slicing this would fire off an API request for every key-stroke
-   */
-  await selectElement.type(args.value.slice(0, 5));
+  if (pressEnterInsteadOfSelectingOption) {
+    await page.keyboard.press('Enter');
+  } else {
+    await chooseDropdownValue(args);
+  }
 
-  await chooseDropdownValue(args);
+  return selectElement;
 };
 
 export const generateRandomValue = (): string => randomUUID();

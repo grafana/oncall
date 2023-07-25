@@ -1,0 +1,118 @@
+suite: test MySQL envs for deployments
+templates:
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+  - celery/deployment-celery.yaml
+release:
+  name: oncall
+tests:
+  - it: mariadb.enabled=false -> external MySQL default settings
+    set:
+      mariadb.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DATABASE_TYPE
+        not: true
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_DB_NAME
+            value: oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_PORT
+            value: "3306"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_USER
+            value: root
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_HOST
+            value: oncall-mariadb
+
+  - it: externalMysql -> use external MySQL custom settings
+    set:
+      mariadb.enabled: false
+      externalMysql:
+        host: test-host
+        port: 5555
+        db_name: grafana_oncall
+        user: test_user
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_DB_NAME
+            value: grafana_oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_PORT
+            value: "5555"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_USER
+            value: test_user
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_HOST
+            value: test-host
+
+  - it: mariadb.enabled=true -> internal MySQL default settings
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_DB_NAME
+            value: oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_PORT
+            value: "3306"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_USER
+            value: root
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_HOST
+            value: oncall-mariadb
+
+  - it: mariadb.auth -> internal MySQL custom settings
+    set:
+      mariadb:
+        auth:
+          database: grafana_oncall
+          username: grafana_oncall
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_DB_NAME
+            value: grafana_oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_PORT
+            value: "3306"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_USER
+            value: grafana_oncall
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MYSQL_HOST
+            value: oncall-mariadb

@@ -96,7 +96,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           )}
         </div>
 
-        <div className="thin-line-break" />
+        <div className={cx('thin-line-break')} />
 
         <div className={cx('container', 'container--withTopPadding', 'container--withLateralPadding')}>
           <HorizontalGroup justify="space-between">
@@ -112,11 +112,12 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             <Text type="primary" className={cx('text')}>
               The next 52 weeks (~1 year) are taken into account when generating the quality report. Refer to the{' '}
               <a
-                href={'https://grafana.com/docs/oncall/latest/calendar-schedules/web-schedule/#schedule-quality-report'}
+                href={'https://grafana.com/docs/oncall/latest/on-call-schedules/web-schedule/#schedule-quality-report'}
                 target="_blank"
                 rel="noreferrer"
+                className={cx('link')}
               >
-                documentation
+                <Text type="link">documentation</Text>
               </a>{' '}
               for more details.
             </Text>

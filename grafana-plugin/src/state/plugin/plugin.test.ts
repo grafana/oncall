@@ -179,38 +179,59 @@ describe('PluginState.updateGrafanaPluginSettings', () => {
 });
 
 describe('PluginState.createGrafanaToken', () => {
-  test.each([true, false])('it calls the proper methods - existing key: %s', async (onCallKeyExists) => {
-    const baseUrl = '/api/auth/keys';
-    const onCallKeyId = 12345;
-    const onCallKeyName = 'OnCall';
-    const onCallKey = { name: onCallKeyName, id: onCallKeyId };
-    const existingKeys = [{ name: 'foo', id: 9595 }];
+  const cases = [
+    [true, true, false],
+    [true, false, false],
+    [false, true, true],
+    [false, true, false],
+    [false, false, false],
+  ];
 
-    PluginState.grafanaBackend.get = jest
-      .fn()
-      .mockResolvedValueOnce(onCallKeyExists ? [...existingKeys, onCallKey] : existingKeys);
-    PluginState.grafanaBackend.delete = jest.fn();
-    PluginState.grafanaBackend.post = jest.fn();
+  test.each(cases)(
+    'it calls the proper methods - existing key: %s, existing sa: %s, existing token: %s',
+    async (apiKeyExists, saExists, apiTokenExists) => {
+      const baseUrl = PluginState.KEYS_BASE_URL;
+      const serviceAccountBaseUrl = PluginState.SERVICE_ACCOUNTS_BASE_URL;
+      const apiKeyId = 12345;
+      const apiKeyName = PluginState.ONCALL_KEY_NAME;
+      const apiKey = { name: apiKeyName, id: apiKeyId };
+      const saId = 33333;
+      const serviceAccount = { id: saId };
 
-    await PluginState.createGrafanaToken();
+      PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce(apiKeyExists ? apiKey : null);
+      PluginState.grafanaBackend.delete = jest.fn();
+      PluginState.grafanaBackend.post = jest.fn();
 
-    expect(PluginState.grafanaBackend.get).toHaveBeenCalledTimes(1);
-    expect(PluginState.grafanaBackend.get).toHaveBeenCalledWith(baseUrl);
+      PluginState.getServiceAccount = jest.fn().mockReturnValueOnce(saExists ? serviceAccount : null);
+      PluginState.getOrCreateServiceAccount = jest.fn().mockReturnValueOnce(serviceAccount);
+      PluginState.getTokenFromServiceAccount = jest.fn().mockReturnValueOnce(apiTokenExists ? apiKey : null);
 
-    if (onCallKeyExists) {
-      expect(PluginState.grafanaBackend.delete).toHaveBeenCalledTimes(1);
-      expect(PluginState.grafanaBackend.delete).toHaveBeenCalledWith(`${baseUrl}/${onCallKeyId}`);
-    } else {
-      expect(PluginState.grafanaBackend.delete).not.toHaveBeenCalled();
+      await PluginState.createGrafanaToken();
+
+      expect(PluginState.getGrafanaToken).toHaveBeenCalledTimes(1);
+
+      if (apiKeyExists) {
+        expect(PluginState.grafanaBackend.delete).toHaveBeenCalledTimes(1);
+        expect(PluginState.grafanaBackend.delete).toHaveBeenCalledWith(`${baseUrl}/${apiKey.id}`);
+      } else if (apiTokenExists) {
+        expect(PluginState.grafanaBackend.delete).toHaveBeenCalledTimes(1);
+        expect(PluginState.grafanaBackend.delete).toHaveBeenCalledWith(
+          `${serviceAccountBaseUrl}/${serviceAccount.id}/tokens/${apiKey.id}`
+        );
+      } else {
+        expect(PluginState.grafanaBackend.delete).not.toHaveBeenCalled();
+      }
+
+      expect(PluginState.grafanaBackend.post).toHaveBeenCalledTimes(1);
+      expect(PluginState.grafanaBackend.post).toHaveBeenCalledWith(
+        `${serviceAccountBaseUrl}/${serviceAccount.id}/tokens`,
+        {
+          name: apiKeyName,
+          role: 'Admin',
+        }
+      );
     }
-
-    expect(PluginState.grafanaBackend.post).toHaveBeenCalledTimes(1);
-    expect(PluginState.grafanaBackend.post).toHaveBeenCalledWith(baseUrl, {
-      name: onCallKeyName,
-      role: 'Admin',
-      secondsToLive: null,
-    });
-  });
+  );
 });
 
 describe('PluginState.getPluginSyncStatus', () => {
@@ -383,6 +404,7 @@ describe('PluginState.syncDataWithOnCall', () => {
     const errorMsg = 'asdfasdf';
 
     makeRequest.mockResolvedValueOnce(errorMsg);
+    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
     PluginState.pollOnCallDataSyncStatus = jest.fn();
 
     // test
@@ -403,6 +425,7 @@ describe('PluginState.syncDataWithOnCall', () => {
     const mockedPollOnCallDataSyncStatusResponse = 'dfjkdfjdf';
 
     makeRequest.mockResolvedValueOnce(mockedResponse);
+    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
     PluginState.pollOnCallDataSyncStatus = jest.fn().mockResolvedValueOnce(mockedPollOnCallDataSyncStatusResponse);
 
     // test
@@ -427,6 +450,7 @@ describe('PluginState.syncDataWithOnCall', () => {
     const mockedHumanReadableError = 'asdfjkdfjkdfjk';
 
     makeRequest.mockRejectedValueOnce(mockedError);
+    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
     PluginState.pollOnCallDataSyncStatus = jest.fn();
     PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(mockedHumanReadableError);
 
@@ -663,13 +687,14 @@ describe('PluginState.checkIfBackendIsInMaintenanceMode', () => {
     // mocks
     const maintenanceModeMsg = 'asdfljkadsjlfkajsdf';
     const mockedResp = { currently_undergoing_maintenance_message: maintenanceModeMsg };
+    const onCallApiUrl = 'http://hello.com';
     makeRequest.mockResolvedValueOnce(mockedResp);
 
     // test
-    const response = await PluginState.checkIfBackendIsInMaintenanceMode();
+    const response = await PluginState.checkIfBackendIsInMaintenanceMode(onCallApiUrl);
 
     // assertions
-    expect(response).toEqual(maintenanceModeMsg);
+    expect(response).toEqual(mockedResp);
     expect(makeRequest).toHaveBeenCalledTimes(1);
     expect(makeRequest).toHaveBeenCalledWith('/maintenance-mode-status', { method: 'GET' });
   });

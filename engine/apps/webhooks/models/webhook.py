@@ -1,4 +1,5 @@
 import json
+import typing
 from json import JSONDecodeError
 
 import requests
@@ -10,8 +11,8 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
-from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
 from apps.webhooks.utils import (
+    OUTGOING_WEBHOOK_TIMEOUT,
     InvalidWebhookData,
     InvalidWebhookHeaders,
     InvalidWebhookTrigger,
@@ -22,6 +23,13 @@ from apps.webhooks.utils import (
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+
+WEBHOOK_FIELD_PLACEHOLDER = "****************"
 
 
 def generate_public_primary_key_for_webhook():
@@ -52,6 +60,8 @@ class WebhookManager(models.Manager):
 
 
 class Webhook(models.Model):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+
     objects = WebhookManager()
     objects_with_deleted = models.Manager()
 
@@ -283,6 +293,7 @@ class WebhookResponse(models.Model):
     url = models.TextField(null=True, default=None)
     status_code = models.IntegerField(default=None, null=True)
     content = models.TextField(null=True, default=None)
+    event_data = models.TextField(null=True, default=None)
 
     def json(self):
         if self.content:

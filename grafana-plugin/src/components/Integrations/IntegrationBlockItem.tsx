@@ -12,7 +12,7 @@ interface IntegrationBlockItemProps {
 
 const IntegrationBlockItem: React.FC<IntegrationBlockItemProps> = (props) => {
   return (
-    <div className={cx('blockItem')}>
+    <div className={cx('blockItem')} data-testid="integration-block-item">
       <div className={cx('blockItem__leftDelimitator')} />
       <div className={cx('blockItem__content')}>{props.children}</div>
     </div>

@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/jinja2-templating/
 canonical: https://grafana.com/docs/oncall/latest/jinja2-templating/
 title: Jinja2 templating
 weight: 1000
@@ -8,10 +6,12 @@ weight: 1000
 
 ## Jinja2 templating
 
-Grafana OnCall can integrate with any monitoring systems that can send alerts using webhooks with JSON payloads. By
-default, webhooks deliver raw JSON payloads. When Grafana OnCall receives an alert and parses its payload, a default
-pre-configured alert template is applied to modify the alert payload to be more human-readable. These alert templates
-are customizable for any integration.
+Grafana OnCall can integrate with any monitoring system that can send alerts via
+webhooks with JSON payloads. By default, webhooks deliver raw JSON payloads. When Grafana
+OnCall receives an alert and parses its payload, a default pre-configured alert template
+is applied to modify the alert payload to be more human-readable. These alert templates
+are customizable for any integration. Templates are also used to notify different
+escalation chains based on the content of the alert payload.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/S6Is8hhyCos" title="YouTube video player"
 frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;
@@ -19,8 +19,9 @@ web-share" allowfullscreen></iframe>
 
 ## Alert payload
 
-Alerts received by Grafana OnCall contain metadata as keys and values in a JSON object. The following is an example of
-an alert received by Grafana OnCall initiated by Grafana Alerting:
+Alerts received by Grafana OnCall contain metadata as keys and values in a JSON object.
+The following is an example of an alert which was initiated by Grafana Alerting, and
+received by Grafana OnCall:
 
 ```json
 {
@@ -47,65 +48,106 @@ an alert received by Grafana OnCall initiated by Grafana Alerting:
 }
 ```
 
-In Grafana OnCall every alert and alert group has the following fields:
+In Grafana OnCall every alert and alert group have the following fields:
 
-- `Title`, `message` and `image url`
-- `Grouping Id`
-- `Resolve Signal`
+- `Title`, `Message` and `Image Url` for each notification method (Web, Slack, Ms Teams, SMS, Phone, Email, etc.)
+- `Grouping Id` - unique identifier for each non-resolved alert group
+- `Resolved by source`
+- `Acknowledged by source`
+- `Source link`
 
-The JSON payload is converted. For example:
+The JSON payload is converted to OnCall fields. For example:
 
-- `{{ payload.title }}` -> Title
-- `{{ payload.message }}` -> Message
-- `{{ payload.imageUrl }}` -> Image Url
+- `{{ payload.title }}` -> `Title`
+- `{{ payload.message }}` -> `Message`
+- `{{ payload.imageUrl }}` -> `Image Url`
 
-The result is that each field of the alert in OnCall is now mapped to the JSON payload keys. This also true for the
+The result is that each field of the alert in OnCall is now mapped to the JSON payload
+keys. This also true for the
 alert behavior:
 
 - `{{ payload.ruleId }}` -> Grouping Id
 - `{{ 1 if payload.state == 'OK' else 0 }}` -> Resolve Signal
 
-Grafana OnCall provides a pre configured default Jinja template for supported integrations. If your monitoring system is
-not in the Grafana OnCall integrations list, you can create a generic `webhook` integration, send an alert, and configure
+Grafana OnCall provides pre-configured default Jinja templates for supported
+integrations. If your monitoring system is
+not in the Grafana OnCall integrations list, you can create a generic `webhook`
+integration, send an alert, and configure
 your templates.
 
-## Customize alerts with alert templates
+## Types of templates
 
-Alert templates allow you to format any alert fields recognized by Grafana OnCall. You can customize default alert
-templates for all the different ways you receive your alerts such as web, slack, SMS, and email. For more advanced
+Alert templates allow you to format any alert fields recognized by Grafana OnCall. You can
+customize default alert
+templates for all the different notification methods. For more advanced
 customization, use Jinja templates.
 
-As a best practice, add _Playbooks_, _Useful links_, or _Checklists_ to the alert message.
+### Routing template
 
-To customize alert templates in Grafana OnCall:
+- `Routing Template` - used to route alerts to different Escalation Chains based on alert content (conditional template, output should be `True`)
 
-1. Navigate to the **Integrations** tab, select the integration, then click **Change alert template and grouping**.
+   > **Note:** For conditional templates, the output should be `True` to be applied, for example `{{ True if payload.state == 'OK' else False }}`
 
-2. In Alert Templates, select a template from the **Edit template for** dropdown.
+#### Appearance templates
 
-3. Edit the Appearances template as needed:
+How alerts are displayed in the UI, messengers, and notifications
 
-   - `Title`, `Message`, `Image url` for Web
-   - `Title`, `Message`, `Image url` for Slack
-   - `Title` used for SMS
-   - `Title` used for Phone
-   - `Title`, `Message` used for Email
+- `Title`, `Message`, `Image url` for Web
+- `Title`, `Message`, `Image url` for Slack
+- `Title`, `Message`, `Image url` for MS Teams
+- `Title`, `Message`, `Image url` for Telegram
+- `Title` for SMS
+- `Title` for Phone Call
+- `Title`, `Message` for Email
 
-4. Edit the alert behavior as needed:
-   - `Grouping Id` - This output groups other alerts into a single alert group.
-   - `Acknowledge Condition` - The output should be `ok`, `true`, or `1` to auto-acknowledge the alert group.
-     For example, `{{ 1 if payload.state == 'OK' else 0 }}`.
-   - `Resolve Condition` - The output should be `ok`, `true` or `1` to auto-resolve the alert group.
-     For example, `{{ 1 if payload.state == 'OK' else 0 }}`.
-   - `Source Link` - Used to customize the URL link to provide as the "source" of the alert.
+#### Behavioral templates
+
+- `Grouping Id` - applied to every incoming alert payload after the `Routing Template`. It
+can be based on time, alert content, or both. If the resulting grouping id matches an
+existing non-resolved alert group grouping id, the alert will be grouped accordingly.
+Otherwise, a new alert group will be created
+- `Autoresolution` - used to auto-resolve alert groups with status `Resolved by source`
+(Conditional template, output should be `True`)
+- `Auto acknowledge` - used to auto-acknowledge alert groups with status `Acknowledged by
+source` (Conditional template, output should be `True`)
+- `Source link` - Used to customize the URL link to provide as the "source" of the alert.
+
+   > **Note:** For conditional templates, the output should be `True` to be applied, for
+   example `{{ True if payload.state == 'OK' else False }}`
+
+> **Pro Tip:** As a best practice, add _Playbooks_, _Useful links_, or _Checklists_ to the
+alert message.
+
+#### How to edit templates
+
+1. Open the **Integration** page for the integration you want to edit
+1`. Click the **Edit** button for the Templates Section. Now you can see previews of all
+templates for the Integration
+1. Select the template you want to edit and click the **Edit** button to the right to the template
+name. The template editor will open. The first column is the example alert payload, second
+column is the Template itself, and third column is used to view rendered result.
+1. Select one of the **Recent Alert groups** for the integration to see its `latest alert
+payload`. If you want to edit this payload, click the **Edit** button right to the Alert Group
+Name.
+1. Alternatively, you can click **Use custom payload** and write your own payload to see
+how it will be rendered
+1. Press `Control + Enter` in the editor to see suggestions
+1. Click **Cheatsheet** in the second column to get some inspiration.
+1. If you edit Messenger templates, click **Save and open Alert Group in ChatOps** to see
+how the alert will be rendered in the messenger, right in the messenger (Only works for
+an Alert Group that exists in the messenger)
+1. Click **Save** to save the template
 
 ## Advanced Jinja templates
 
-Grafana OnCall uses [Jinja templating language](http://jinja.pocoo.org/docs/2.10/) to format alert groups for the Web,
-Slack, phone calls, SMS messages, and more because the JSON format is not easily readable by humans. As a result, you
-can decide what you want to see when an alert group is triggered as well as how it should be presented.
+Grafana OnCall uses the [Jinja templating language](http://jinja.pocoo.org/docs/2.10/) to
+format alert groups for the Web,
+Slack, phone calls, SMS messages, and more. As a result, you
+can decide what you want to see when an alert group is triggered, as well as how it should
+be presented.
 
-Jinja2 offers simple but multi-faceted functionality by using loops, conditions, functions, and more.
+Jinja2 offers simple but multi-faceted functionality by using loops, conditions,
+functions, and more.
 
 > **NOTE:** Every alert from a monitoring system comes in the key/value format.
 
@@ -113,7 +155,8 @@ Grafana OnCall has rules about which of the keys match to: `__title`, `message`,
 
 ### Loops
 
-Monitoring systems can send an array of values. In this example, you can use Jinja to iterate and format the alert
+Monitoring systems can send an array of values. In this example, you can use Jinja to
+iterate and format the alert
 using a Grafana example:
 
 ```.jinja2

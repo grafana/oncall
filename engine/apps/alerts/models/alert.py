@@ -94,7 +94,7 @@ class Alert(models.Model):
         if channel_filter is None:
             channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
 
-        group, group_created = AlertGroup.all_objects.get_or_create_grouping(
+        group, group_created = AlertGroup.objects.get_or_create_grouping(
             channel=alert_receive_channel,
             channel_filter=channel_filter,
             group_data=group_data,
@@ -141,15 +141,13 @@ class Alert(models.Model):
         if group_created:
             # all code below related to maintenance mode
             maintenance_uuid = None
-            if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-                maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
 
-            elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+            if alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
                 maintenance_uuid = alert_receive_channel.maintenance_uuid
 
             if maintenance_uuid is not None:
                 try:
-                    maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
+                    maintenance_incident = AlertGroup.objects.get(maintenance_uuid=maintenance_uuid)
                     group.root_alert_group = maintenance_incident
                     group.save(update_fields=["root_alert_group"])
                     log_record_for_root_incident = maintenance_incident.log_records.create(

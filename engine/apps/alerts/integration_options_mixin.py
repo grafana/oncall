@@ -36,19 +36,19 @@ class IntegrationOptionsMixin:
     )
 
     # Following attributes are generated from _config for backwards compatibility and used across the codebase
-    INTEGRATIONS_TO_REVERSE_URL_MAP = {
-        integration_config.slug: integration_config.slug for integration_config in _config
-    }
     WEB_INTEGRATION_CHOICES = [
         integration_config.slug for integration_config in _config if integration_config.is_displayed_on_web
     ]
-    INTEGRATIONS_TO_INSTRUCTIONS_WEB = {
-        integration_config.slug: f"html/integration_{integration_config.slug}.html" for integration_config in _config
-    }
+    PUBLIC_API_INTEGRATION_MAP = {integration_config.slug: integration_config.slug for integration_config in _config}
     INTEGRATION_SHORT_DESCRIPTION = {
         integration_config.slug: integration_config.short_description for integration_config in _config
     }
     INTEGRATION_FEATURED = [integration_config.slug for integration_config in _config if integration_config.is_featured]
+    INTEGRATION_FEATURED_TAG_NAME = {
+        integration_config.slug: integration_config.featured_tag_name
+        for integration_config in _config
+        if hasattr(integration_config, "featured_tag_name")
+    }
 
     # The following attributes dynamically generated and used by apps.alerts.incident_appearance.renderers, templaters
     # e.g. INTEGRATION_TO_DEFAULT_SLACK_TITLE_TEMPLATE, INTEGRATION_TO_DEFAULT_SLACK_MESSAGE_TEMPLATE, etc...

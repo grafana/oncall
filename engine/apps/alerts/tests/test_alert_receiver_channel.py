@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from apps.alerts.models import AlertReceiveChannel
 from common.api_helpers.utils import create_engine_url
+from common.exceptions import UnableToSendDemoAlert
 
 
 @pytest.mark.django_db
@@ -23,7 +24,7 @@ def test_integration_url(make_organization, make_alert_receive_channel, url, set
     alert_receive_channel = make_alert_receive_channel(organization)
 
     path = reverse(
-        f"integrations:{AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP[alert_receive_channel.integration]}",
+        f"integrations:{alert_receive_channel.integration}",
         kwargs={"alert_channel_key": alert_receive_channel.token},
     )
 
@@ -109,7 +110,6 @@ def test_send_demo_alert(mocked_create_alert, make_organization, make_alert_rece
         mocked_create_alert.call_args.args[1]["raw_request_data"] == payload
         or alert_receive_channel.config.example_payload
     )
-    assert mocked_create_alert.call_args.args[1]["force_route_id"] is None
 
 
 @mock.patch("apps.integrations.tasks.create_alertmanager_alerts.apply_async", return_value=None)
@@ -142,7 +142,21 @@ def test_send_demo_alert_alertmanager_payload_shape(
         if payload
         else alert_receive_channel.config.example_payload["alerts"][0]
     )
-    assert mocked_create_alert.call_args.args[1]["force_route_id"] is None
+
+
+@mock.patch("apps.integrations.tasks.create_alert.apply_async", return_value=None)
+@pytest.mark.parametrize(
+    "integration", [config.slug for config in AlertReceiveChannel._config if not config.is_demo_alert_enabled]
+)
+@pytest.mark.django_db
+def test_send_demo_alert_not_enabled(mocked_create_alert, make_organization, make_alert_receive_channel, integration):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization, integration=integration)
+
+    with pytest.raises(UnableToSendDemoAlert):
+        alert_receive_channel.send_demo_alert()
+
+    assert not mocked_create_alert.called
 
 
 @pytest.mark.django_db

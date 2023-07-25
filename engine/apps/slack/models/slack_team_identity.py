@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class SlackTeamIdentity(models.Model):
-
     id = models.AutoField(primary_key=True)
     slack_id = models.CharField(max_length=100)
     cached_name = models.CharField(max_length=100, null=True, default=None)

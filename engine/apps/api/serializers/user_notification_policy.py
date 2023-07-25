@@ -7,7 +7,7 @@ from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import NotificationChannelAPIOptions
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
-from common.api_helpers.exceptions import BadRequest, Forbidden
+from common.api_helpers.exceptions import Forbidden
 from common.api_helpers.mixins import EagerLoadingMixin
 
 
@@ -33,7 +33,12 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
 
     class Meta:
         model = UserNotificationPolicy
-        fields = ["id", "step", "order", "notify_by", "wait_delay", "important", "user"]
+        fields = ["id", "step", "notify_by", "wait_delay", "important", "user"]
+
+        # Field "order" is not consumed by the plugin frontend, but is used by the mobile app
+        # TODO: remove this field when the mobile app is updated
+        fields += ["order"]
+        read_only_fields = ["order"]
 
     def to_internal_value(self, data):
         if data.get("wait_delay", None):
@@ -67,7 +72,6 @@ class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelS
 
 
 class UserNotificationPolicySerializer(UserNotificationPolicyBaseSerializer):
-    prev_step = serializers.CharField(required=False, write_only=True, allow_null=True)
     user = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=User.objects,
         required=False,
@@ -80,40 +84,19 @@ class UserNotificationPolicySerializer(UserNotificationPolicyBaseSerializer):
         default=NotificationChannelAPIOptions.DEFAULT_NOTIFICATION_CHANNEL,
     )
 
-    class Meta(UserNotificationPolicyBaseSerializer.Meta):
-        fields = [*UserNotificationPolicyBaseSerializer.Meta.fields, "prev_step"]
-        read_only_fields = ("order",)
-
     def create(self, validated_data):
-        prev_step = validated_data.pop("prev_step", None)
-
-        user = validated_data.get("user")
+        user = validated_data.get("user") or self.context["request"].user
         organization = self.context["request"].auth.organization
-
-        if not user:
-            user = self.context["request"].user
 
         self_or_admin = user.self_or_admin(user_to_check=self.context["request"].user, organization=organization)
         if not self_or_admin:
             raise Forbidden()
 
-        if prev_step is not None:
-            try:
-                prev_step = UserNotificationPolicy.objects.get(public_primary_key=prev_step)
-            except UserNotificationPolicy.DoesNotExist:
-                raise BadRequest(detail="Prev step does not exist")
-            if prev_step.user != user or prev_step.important != validated_data.get("important", False):
-                raise BadRequest(detail="UserNotificationPolicy can be created only with the same user and importance")
-            instance = UserNotificationPolicy.objects.create(**validated_data)
-            instance.to(prev_step.order + 1)
-            return instance
-        else:
-            instance = UserNotificationPolicy.objects.create(**validated_data)
-            return instance
+        instance = UserNotificationPolicy.objects.create(**validated_data)
+        return instance
 
 
 class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerializer):
-
     user = OrganizationFilteredPrimaryKeyRelatedField(
         many=False,
         read_only=True,
@@ -121,7 +104,7 @@ class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerialize
     )
 
     class Meta(UserNotificationPolicyBaseSerializer.Meta):
-        read_only_fields = ("order", "user", "important")
+        read_only_fields = UserNotificationPolicyBaseSerializer.Meta.read_only_fields + ["user", "important"]
 
     def update(self, instance, validated_data):
         self_or_admin = instance.user.self_or_admin(

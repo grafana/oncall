@@ -11,7 +11,6 @@ def test_get_custom_actions(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -38,6 +37,9 @@ def test_get_custom_actions(
                 "forward_whole_payload": custom_action.forward_whole_payload,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -49,7 +51,6 @@ def test_get_custom_actions_filter_by_name(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -76,6 +77,9 @@ def test_get_custom_actions_filter_by_name(
                 "forward_whole_payload": custom_action.forward_whole_payload,
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -87,7 +91,6 @@ def test_get_custom_actions_filter_by_name_empty_result(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -97,7 +100,15 @@ def test_get_custom_actions_filter_by_name_empty_result(
 
     response = client.get(f"{url}?name=NonExistentName", format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    expected_payload = {"count": 0, "next": None, "previous": None, "results": []}
+    expected_payload = {
+        "count": 0,
+        "next": None,
+        "previous": None,
+        "results": [],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
+    }
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == expected_payload
@@ -108,7 +119,6 @@ def test_get_custom_action(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -136,7 +146,6 @@ def test_get_custom_action(
 
 @pytest.mark.django_db
 def test_create_custom_action(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -169,7 +178,6 @@ def test_create_custom_action(make_organization_and_user_with_token):
 
 @pytest.mark.django_db
 def test_create_custom_action_nested_data(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -207,7 +215,6 @@ def test_create_custom_action_nested_data(make_organization_and_user_with_token)
 
 @pytest.mark.django_db
 def test_create_custom_action_valid_after_render(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -245,7 +252,6 @@ def test_create_custom_action_valid_after_render(make_organization_and_user_with
 
 @pytest.mark.django_db
 def test_create_custom_action_valid_after_render_use_all_data(make_organization_and_user_with_token):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -285,7 +291,6 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
 def test_create_custom_action_invalid_data(
     make_organization_and_user_with_token,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -348,7 +353,6 @@ def test_update_custom_action(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
@@ -387,7 +391,6 @@ def test_delete_custom_action(
     make_organization_and_user_with_token,
     make_custom_action,
 ):
-
     organization, user, token = make_organization_and_user_with_token()
     client = APIClient()
 

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { action, observable } from 'mobx';
 
-import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
+import { RemoteFiltersType } from 'containers/RemoteFilters/RemoteFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { makeRequest } from 'network';
@@ -121,7 +121,7 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateItems(
-    f: SchedulesFiltersType | string = { searchTerm: '', type: undefined, used: undefined, mine: undefined },
+    f: RemoteFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
     page = 1,
     shouldUpdateFn: () => boolean = undefined
   ) {
@@ -224,7 +224,7 @@ export class ScheduleStore extends BaseStore {
     const response = await makeRequest(`/oncall_shifts/`, {
       data: { type, schedule: scheduleId, ...params },
       method: 'POST',
-    }).catch(this.onApiError);
+    });
 
     this.shifts = {
       ...this.shifts,
@@ -241,24 +241,30 @@ export class ScheduleStore extends BaseStore {
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
-    fromString: string,
+    startMoment: dayjs.Dayjs,
     isOverride: boolean,
     params: Partial<Shift>
   ) {
     const type = isOverride ? 3 : 2;
 
+    const fromString = getFromString(startMoment);
+
+    const dayBefore = startMoment.subtract(1, 'day');
+
     const response = await makeRequest(`/oncall_shifts/preview/`, {
-      params: { date: fromString },
+      params: { date: getFromString(dayBefore), days: 8 },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
-    }).catch(this.onApiError);
+    });
 
     if (isOverride) {
-      this.overridePreview = enrichOverrides(
+      const overridePreview = enrichOverrides(
         [...(this.events[scheduleId]?.['override']?.[fromString] as Array<{ shiftId: string; events: Event[] }>)],
         response.rotation,
         shiftId
       );
+
+      this.overridePreview = { ...this.overridePreview, [fromString]: overridePreview };
     } else {
       const layers = enrichLayers(
         [...(this.events[scheduleId]?.['rotation']?.[fromString] as Layer[])],
@@ -267,10 +273,10 @@ export class ScheduleStore extends BaseStore {
         params.priority_level
       );
 
-      this.rotationPreview = layers;
+      this.rotationPreview = { ...this.rotationPreview, [fromString]: layers };
     }
 
-    this.finalPreview = splitToShiftsAndFillGaps(response.final);
+    this.finalPreview = { ...this.finalPreview, [fromString]: splitToShiftsAndFillGaps(response.final) };
   }
 
   @action
@@ -283,9 +289,24 @@ export class ScheduleStore extends BaseStore {
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
+      params: { force: true },
       data: { ...params },
       method: 'PUT',
-    }).catch(this.onApiError);
+    });
+
+    this.shifts = {
+      ...this.shifts,
+      [response.id]: response,
+    };
+
+    return response;
+  }
+
+  async updateRotationAsNew(shiftId: Shift['id'], params: Partial<Shift>) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
+      data: { ...params },
+      method: 'PUT',
+    });
 
     this.shifts = {
       ...this.shifts,
@@ -353,9 +374,22 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  async deleteOncallShift(shiftId: Shift['id']) {
+  @action
+  async saveOncallShift(shiftId: Shift['id'], data: Partial<Shift>) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, { method: 'PUT', data });
+
+    this.shifts = {
+      ...this.shifts,
+      [shiftId]: response,
+    };
+
+    return response;
+  }
+
+  async deleteOncallShift(shiftId: Shift['id'], force?: boolean) {
     return await makeRequest(`/oncall_shifts/${shiftId}`, {
       method: 'DELETE',
+      params: { force },
     }).catch(this.onApiError);
   }
 

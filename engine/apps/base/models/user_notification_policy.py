@@ -1,17 +1,17 @@
+import datetime
 from enum import unique
 from typing import Tuple
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
-from django.db import models
-from django.db.models import Q, QuerySet
-from django.utils import timezone
-from ordered_model.models import OrderedModel
+from django.db import IntegrityError, models
+from django.db.models import Q
 
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -67,9 +67,11 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicyQuerySet(models.QuerySet):
-    def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
-        model = self.model
+    def create_default_policies_for_user(self, user: User) -> None:
+        if user.notification_policies.filter(important=False).exists():
+            return
 
+        model = self.model
         policies_to_create = (
             model(
                 user=user,
@@ -77,16 +79,20 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
                 notify_by=NotificationChannelOptions.DEFAULT_NOTIFICATION_CHANNEL,
                 order=0,
             ),
-            model(user=user, step=model.Step.WAIT, wait_delay=timezone.timedelta(minutes=15), order=1),
+            model(user=user, step=model.Step.WAIT, wait_delay=datetime.timedelta(minutes=15), order=1),
             model(user=user, step=model.Step.NOTIFY, notify_by=model.NotificationChannel.PHONE_CALL, order=2),
         )
 
-        super().bulk_create(policies_to_create)
-        return user.notification_policies.filter(important=False)
+        try:
+            super().bulk_create(policies_to_create)
+        except IntegrityError:
+            pass
 
-    def create_important_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
+    def create_important_policies_for_user(self, user: User) -> None:
+        if user.notification_policies.filter(important=True).exists():
+            return
+
         model = self.model
-
         policies_to_create = (
             model(
                 user=user,
@@ -97,13 +103,15 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
             ),
         )
 
-        super().bulk_create(policies_to_create)
-        return user.notification_policies.filter(important=True)
+        try:
+            super().bulk_create(policies_to_create)
+        except IntegrityError:
+            pass
 
 
 class UserNotificationPolicy(OrderedModel):
     objects = UserNotificationPolicyQuerySet.as_manager()
-    order_with_respect_to = ("user", "important")
+    order_with_respect_to = ("user_id", "important")
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -125,11 +133,11 @@ class UserNotificationPolicy(OrderedModel):
     NotificationChannel = _notification_channels
     notify_by = models.PositiveSmallIntegerField(default=0, validators=[validate_channel_choice])
 
-    ONE_MINUTE = timezone.timedelta(minutes=1)
-    FIVE_MINUTES = timezone.timedelta(minutes=5)
-    FIFTEEN_MINUTES = timezone.timedelta(minutes=15)
-    THIRTY_MINUTES = timezone.timedelta(minutes=30)
-    HOUR = timezone.timedelta(minutes=60)
+    ONE_MINUTE = datetime.timedelta(minutes=1)
+    FIVE_MINUTES = datetime.timedelta(minutes=5)
+    FIFTEEN_MINUTES = datetime.timedelta(minutes=15)
+    THIRTY_MINUTES = datetime.timedelta(minutes=30)
+    HOUR = datetime.timedelta(minutes=60)
 
     DURATION_CHOICES = (
         (ONE_MINUTE, "1 min"),
@@ -145,12 +153,17 @@ class UserNotificationPolicy(OrderedModel):
 
     class Meta:
         ordering = ("order",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_id", "important", "order"], name="unique_user_notification_policy_order"
+            )
+        ]
 
     def __str__(self):
         return f"{self.pk}: {self.short_verbal}"
 
     @classmethod
-    def get_short_verbals_for_user(cls, user: User) -> Tuple[Tuple[str], Tuple[str]]:
+    def get_short_verbals_for_user(cls, user: User) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
         is_wait_step = Q(step=cls.Step.WAIT)
         is_wait_step_configured = Q(wait_delay__isnull=False)
 

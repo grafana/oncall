@@ -28,7 +28,9 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       # following 2 steps - need to install the frontend dependencies for the eslint/prettier/stylelint steps
       - uses: actions/setup-node@v3
         with:
@@ -82,7 +84,7 @@ jobs:
         # that no refs to external content can be used as these refs will not resolve in the
         # docs-base image.
         run: |
-          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'echo -e "---\\nredirectURL: /hugo/content/docs/oncall/latest/\\ntype: redirect\\nversioned: true\\n---\\n" > /hugo/content/docs/oncall/_index.md; make hugo'
 
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
@@ -94,7 +96,7 @@ jobs:
       SLACK_CLIENT_OAUTH_ID: 1
     services:
       rabbit_test:
-        image: rabbitmq:3.7.19
+        image: rabbitmq:3.12.0
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -113,12 +115,24 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Lint migrations
         working-directory: engine
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           python manage.py lintmigrations
+
+  unit-test-helm-chart:
+    name: "Helm Chart Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: d3adb5/helm-unittest-action@v2
+        with:
+          helm-version: v3.8.0
+          charts: ./helm/oncall
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -134,7 +148,7 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
-        image: rabbitmq:3.7.19
+        image: rabbitmq:3.12.0
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -153,12 +167,14 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Unit Test Backend
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           ./wait_for_test_mysql_start.sh && pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
@@ -176,7 +192,7 @@ jobs:
       ONCALL_TESTING_RBAC_ENABLED: ${{ matrix.rbac_enabled }}
     services:
       rabbit_test:
-        image: rabbitmq:3.7.19
+        image: rabbitmq:3.12.0
         env:
           RABBITMQ_DEFAULT_USER: rabbitmq
           RABBITMQ_DEFAULT_PASS: rabbitmq
@@ -201,11 +217,13 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Unit Test Backend
         working-directory: engine
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           pytest -x
 
   unit-test-backend-sqlite-redis:
@@ -237,12 +255,14 @@ jobs:
         with:
           python-version: "3.11.3"
           cache: "pip"
-          cache-dependency-path: engine/requirements.txt
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
       - name: Unit Test Backend
         working-directory: engine
         run: |
           apt-get update && apt-get install -y netcat
-          pip install -r requirements.txt
+          pip install -r requirements.txt -r requirements-dev.txt
           pytest -x
 
   unit-test-pd-migrator:
@@ -260,6 +280,24 @@ jobs:
         run: |
           pip install -r requirements.txt
           pytest -x
+
+  mypy:
+    name: "mypy"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.3"
+          cache: "pip"
+          cache-dependency-path: |
+            engine/requirements.txt
+            engine/requirements-dev.txt
+      - name: mypy Static Type Checking
+        working-directory: engine
+        run: |
+          pip install -r requirements.txt -r requirements-dev.txt
+          mypy .
 
   end-to-end-tests:
     # default "ubuntu-latest" runners only provide 2 CPU cores + 7GB of RAM. this seems to lead to HTTP 504s from
@@ -378,7 +416,6 @@ jobs:
             --set grafana.env.GF_FEATURE_TOGGLES_ENABLE=topnav \
             --set grafana.env.GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=grafana-oncall-app \
             --set-json "grafana.plugins=[]" \
-            --set-json 'grafana.securityContext={"runAsUser": 0, "runAsGroup": 0, "fsGroup": 0}' \
             --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
 
@@ -431,8 +468,12 @@ jobs:
           # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
           # to the OnCall API
           ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_USERNAME: oncall
-          GRAFANA_PASSWORD: oncall
+          GRAFANA_ADMIN_USERNAME: oncall
+          GRAFANA_ADMIN_PASSWORD: oncall
+          GRAFANA_EDITOR_USERNAME: editor
+          GRAFANA_EDITOR_PASSWORD: editor
+          GRAFANA_VIEWER_USERNAME: viewer
+          GRAFANA_VIEWER_PASSWORD: viewer
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
         run: yarn test:integration

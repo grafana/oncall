@@ -50,8 +50,7 @@ class ButtonPressHandler(UpdateHandler):
             telegram_chat_id=self.update.effective_user.id,
             user__organization=action_context.alert_group.channel.organization,
         ).last()
-        if connector is not None:
-            return connector.user
+        return connector.user if connector is not None else None
 
     @staticmethod
     def _check_permission(user: Optional[User], alert_group: AlertGroup) -> bool:
@@ -66,7 +65,7 @@ class ButtonPressHandler(UpdateHandler):
         args = CallbackQueryFactory.decode_data(data)
 
         alert_group_pk = args[0]
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
         action_value = args[1]
         try:

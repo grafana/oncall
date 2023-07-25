@@ -22,23 +22,11 @@
   --tag-primary: #299c46;
   --tag-secondary: #464c54;
   --tag-secondary-transparent: rgba(204, 204, 220, 0.07);
-  --tag-background-primary: rgba(56, 113, 220, 0.2);
-  --tag-border-primary: rgba(56, 113, 220, 0.2);
-  --tag-background-danger: rgba(242, 73, 92, 0.15);
-  --tag-text-primary: rgba(110, 159, 255, 1);
-  --tag-border-danger: rgb(151, 11, 27);
-  --tag-text-danger: rgb(247, 144, 156);
-  --tag-border-warning: rgb(150, 75, 0);
-  --tag-background-warning: rgba(245, 183, 61, 0.18);
-  --tag-text-warning: rgb(255, 190, 124);
-  --tag-border-success: rgb(49, 100, 43);
   --tag-border-link: rgba(56, 113, 220, 0.2);
-  --tag-background-success: rgba(27, 133, 94, 0.15);
-  --tag-text-success: rgb(165, 214, 159);
 }
 
 .theme-light {
-  --cards-background: var(--blue-2);
+  --cards-background: rgba(244, 245, 245);
   --highlighted-row-bg: var(--cyan-1);
   --disabled-button-color: #bdbdbd;
   --primary-background: rgb(255, 255, 255);
@@ -64,6 +52,23 @@
   --shadows-z1: 0 1px 2px rgba(24, 26, 27, 0.2);
   --shadows-z2: 0 4px 8px rgba(24, 26, 27, 0.2);
   --shadows-z3: 0 13px 20px 1px rgba(24, 26, 27, 0.18);
+  --tag-background-primary: rgba(50, 116, 217, 0.15);
+  --tag-border-primary: rgb(136, 174, 233);
+  --tag-text-primary: rgb(26, 71, 139);
+  --tag-background-warning: rgba(255, 120, 10, 0.15);
+  --tag-border-warning: rgb(255, 176, 112);
+  --tag-text-warning: rgb(163, 73, 0);
+  --tag-background-success: rgba(86, 166, 75, 0.15);
+  --tag-border-success: rgb(148, 203, 140);
+  --tag-text-success: rgb(50, 96, 43);
+  --tag-background-danger: rgba(224, 47, 68, 0.15);
+  --tag-border-danger: rgb(237, 136, 148);
+  --tag-text-danger: rgb(147, 22, 37);
+  --button-background: rgba(36, 41, 46, 0.08);
+  --button-hover-background: rgba(36, 41, 46, 0.15);
+  --box-background: rgba(244, 245, 245);
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.04);
 }
 
 .theme-dark {
@@ -95,4 +100,21 @@
   --shadows-z1: 0 1px 2px rgba(24, 26, 27, 0.75);
   --shadows-z2: 0 4px 8px rgba(24, 26, 27, 0.75);
   --shadows-z3: 0 8px 24px rgb(1, 4, 9);
+  --tag-background-primary: rgba(87, 148, 242, 0.15);
+  --tag-border-primary: rgb(13, 72, 163);
+  --tag-text-primary: rgb(158, 193, 247);
+  --tag-background-warning: rgba(255, 152, 48, 0.15);
+  --tag-border-warning: rgb(150, 75, 0);
+  --tag-text-warning: rgb(255, 190, 124);
+  --tag-background-success: rgba(115, 191, 105, 0.15);
+  --tag-border-success: rgb(49, 100, 43);
+  --tag-text-success: rgb(165, 214, 159);
+  --tag-background-danger: rgba(242, 73, 92, 0.15);
+  --tag-border-danger: rgb(151, 11, 27);
+  --tag-text-danger: rgb(247, 144, 156);
+  --button-background: rgba(204, 204, 220, 0.1);
+  --button-hover-background: rgba(204, 204, 220, 0.14);
+  --box-background: rgba(10, 10, 10, 0.4);
+  --working-hours-shades-color: rgba(17, 18, 23, 0.15);
+  --working-hours-shades-color-light: rgba(17, 18, 23, 0.1);
 }

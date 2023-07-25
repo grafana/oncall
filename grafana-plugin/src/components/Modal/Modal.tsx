@@ -17,12 +17,13 @@ export interface ModalProps {
   width: string;
   contentElement?: (props, children: React.ReactNode) => React.ReactNode;
   isOpen: boolean;
+  top?: string;
 }
 
 const cx = cn.bind(styles);
 
 const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
-  const { title, children, onDismiss, width = '600px', contentElement, isOpen = true } = props;
+  const { title, children, onDismiss, width = '600px', contentElement, isOpen = true, top, className } = props;
 
   return (
     <ReactModal
@@ -31,13 +32,14 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
         overlay: {},
         content: {
           width,
+          top,
         },
       }}
       isOpen={isOpen}
       onAfterOpen={() => {}}
       onRequestClose={onDismiss}
       contentLabel={title}
-      className={cx('root')}
+      className={cx('root', className)}
       overlayClassName={cx('overlay')}
       overlayElement={(_props, contentElement) => contentElement} // render without overlay to allow body scroll
       contentElement={contentElement}

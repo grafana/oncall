@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import typing
 from random import randrange
 
 from celery.schedules import crontab
@@ -62,6 +63,9 @@ FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_EN
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
+FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
+FEATURE_WEBHOOKS_2_ENABLED = getenv_boolean("FEATURE_WEBHOOKS_2_ENABLED", default=True)
+FEATURE_SHIFT_SWAPS_ENABLED = getenv_boolean("FEATURE_SHIFT_SWAPS_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -87,9 +91,12 @@ DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", defaul
 WEBHOOK_RESPONSE_LIMIT = 50000
 
 # Multiregion settings
-ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
-ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN")
+ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL", "")
+ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN", "")
 ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+
+# Prometheus exporter metrics endpoint auth
+PROMETHEUS_EXPORTER_SECRET = os.environ.get("PROMETHEUS_EXPORTER_SECRET")
 
 
 # Database
@@ -121,7 +128,9 @@ assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, Database
 
 DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
 
-DATABASE_CONFIGS = {
+DatabaseConfig = typing.Dict[str, typing.Dict[str, typing.Any]]
+
+DATABASE_CONFIGS: DatabaseConfig = {
     DatabaseTypes.SQLITE3: {
         "ENGINE": DATABASE_ENGINE,
         "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
@@ -148,6 +157,7 @@ DATABASE_CONFIGS = {
     },
 }
 
+READONLY_DATABASES: DatabaseConfig = {}
 DATABASES = {
     "default": DATABASE_CONFIGS[DATABASE_TYPE],
 }
@@ -244,7 +254,6 @@ MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
     "engine.middlewares.RequestTimeLoggingMiddleware",
     "engine.middlewares.BanAlertConsumptionBasedOnSettingsMiddleware",
-    "engine.middlewares.RequestBodyReadingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
@@ -401,25 +410,12 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
+ESCALATION_AUDITOR_ENABLED = getenv_boolean("ESCALATION_AUDITOR_ENABLED", default=True)
 ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
     "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
 )
 
 CELERY_BEAT_SCHEDULE = {
-    "restore_heartbeat_tasks": {
-        "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
-        "schedule": 10 * 60,
-        "args": (),
-    },
-    "check_escalations": {
-        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
-        # the task should be executed a minute or two less than the integration's configured interval
-        #
-        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
-        # to something like 13 * 60 (every 13 minutes)
-        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
-        "args": (),
-    },
     "start_refresh_ical_final_schedules": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
         "schedule": crontab(minute=15, hour=0),
@@ -491,6 +487,17 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+if ESCALATION_AUDITOR_ENABLED:
+    CELERY_BEAT_SCHEDULE["check_escalations"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
+        # the task should be executed a minute or two less than the integration's configured interval
+        #
+        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
+        # to something like 13 * 60 (every 13 minutes)
+        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "args": (),
+    }
+
 INTERNAL_IPS = ["127.0.0.1"]
 
 SELF_IP = os.environ.get("SELF_IP")
@@ -507,9 +514,14 @@ if SILK_PROFILER_ENABLED:
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
     SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
-    SILKY_MAX_RECORDED_REQUESTS = 10**4
     SILKY_PYTHON_PROFILER = True
     SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+
+    # see the following GitHub issue comment for why the following two settings are set the way they are
+    # https://github.com/jazzband/django-silk/issues/265#issuecomment-705482767
+    SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 0.01
+    SILKY_MAX_RECORDED_REQUESTS = 100_000
+
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
 
@@ -567,7 +579,7 @@ SOCIAL_AUTH_PIPELINE = (
     "apps.social_auth.pipeline.delete_slack_auth_token",
 )
 
-SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = []
+SOCIAL_AUTH_FIELDS_STORED_IN_SESSION: typing.List[str] = []
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = getenv_boolean("SOCIAL_AUTH_REDIRECT_IS_HTTPS", default=True)
 SOCIAL_AUTH_SLUGIFY_USERNAMES = True
 
@@ -612,7 +624,7 @@ FCM_DJANGO_SETTINGS = {
     "DEFAULT_FIREBASE_APP": initialize_app(credential=credential, options={"projectId": FCM_PROJECT_ID}),
     "APP_VERBOSE_NAME": "OnCall",
     "ONE_DEVICE_PER_USER": True,
-    "DELETE_INACTIVE_DEVICES": False,
+    "DELETE_INACTIVE_DEVICES": True,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
     "USER_MODEL": "user_management.User",
 }
@@ -657,6 +669,7 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
+    "config_integrations.alertmanager_v2",
     "config_integrations.alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",
@@ -674,7 +687,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
 ]
 
 if IS_OPEN_SOURCE:
-    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+    INSTALLED_APPS += ["apps.oss_installation", "apps.zvonok"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
         "task": "apps.oss_installation.tasks.send_usage_stats_report",
@@ -713,8 +726,23 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 
 # map of phone provider alias to importpath.
 # Used in get_phone_provider function to dynamically load current provider.
+DEFAULT_PHONE_PROVIDER = "twilio"
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
 }
-PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
+
+if IS_OPEN_SOURCE:
+    PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
+
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
+
+ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
+ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)
+ZVONOK_AUDIO_ID = os.getenv("ZVONOK_AUDIO_ID", None)
+ZVONOK_SPEAKER_ID = os.getenv("ZVONOK_SPEAKER_ID", "Salli")
+ZVONOK_POSTBACK_CALL_ID = os.getenv("ZVONOK_POSTBACK_CALL_ID", "call_id")
+ZVONOK_POSTBACK_CAMPAIGN_ID = os.getenv("ZVONOK_POSTBACK_CAMPAIGN_ID", "campaign_id")
+ZVONOK_POSTBACK_STATUS = os.getenv("ZVONOK_POSTBACK_STATUS", "status")
+ZVONOK_POSTBACK_USER_CHOICE = os.getenv("ZVONOK_POSTBACK_USER_CHOICE", None)
+ZVONOK_POSTBACK_USER_CHOICE_ACK = os.getenv("ZVONOK_POSTBACK_USER_CHOICE_ACK", None)

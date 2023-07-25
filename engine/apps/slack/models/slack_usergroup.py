@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import requests
 from django.conf import settings
@@ -12,6 +13,13 @@ from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.user_management.models.user import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+    from apps.schedules.models import OnCallSchedule
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +39,8 @@ def generate_public_primary_key_for_slack_user_group():
 
 
 class SlackUserGroup(models.Model):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
+    oncall_schedules: "RelatedManager['OnCallSchedule']"
 
     public_primary_key = models.CharField(
         max_length=20,

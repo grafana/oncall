@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, Icon, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
@@ -8,6 +8,7 @@ import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDetails';
 import Text from 'components/Text/Text';
+import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { IsOncallIcon } from 'icons';
 import { Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -35,6 +36,7 @@ const jLimit = 24 / hoursToSplit;
 
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
   const store = useStore();
+  const { userStore } = store;
 
   const { userIds, tz, onTzChange, onCallNow, scheduleId, startMoment } = props;
 
@@ -74,55 +76,75 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 
   return (
     <div className={cx('root')}>
-      <div className={cx('header')}>
-        <HorizontalGroup justify="space-between">
-          <HorizontalGroup>
-            <div className={cx('title')}>
-              <Text.Title level={4} type="primary">
-                Schedule team and timezones
-              </Text.Title>
+      <WorkingHours
+        light
+        startMoment={currentMoment.startOf('day')}
+        duration={24 * 60 * 60}
+        timezone={userStore.currentUser.timezone}
+        workingHours={userStore.currentUser.working_hours}
+        className={cx('working-hours')}
+      />
+      {/*  <div className={cx('shades', 'shades--left')} />
+      <div className={cx('shades', 'shades--right')} /> */}
+      <div className={cx('content')}>
+        <div className={cx('header')}>
+          <HorizontalGroup justify="space-between">
+            <HorizontalGroup>
+              <div className={cx('title')}>
+                <Text.Title level={4} type="primary">
+                  Schedule team and timezones
+                </Text.Title>
+              </div>
+            </HorizontalGroup>
+            <div className={cx('timezone-select')}>
+              <Text type="secondary">
+                Current timezone: {tz}, local time: {currentMoment.format('HH:mm')}
+              </Text>
             </div>
           </HorizontalGroup>
-          <div className={cx('timezone-select')}>
-            <Text type="secondary">
-              Current timezone: {tz}, local time: {currentMoment.format('HH:mm')}
-            </Text>
-          </div>
-        </HorizontalGroup>
-      </div>
-      <div className={cx('users')}>
-        <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
-        <UserAvatars
-          users={users}
-          onCallNow={onCallNow}
-          onTzChange={onTzChange}
-          currentMoment={currentMoment}
-          startMoment={startMoment}
-          scheduleId={scheduleId}
-        />
-      </div>
-      <div className={cx('time-stripe')}>
-        <div className={cx('current-user-stripe')} />
-        <div className={cx('time-marks')}>
-          {momentsToRender.map((mm, index) => (
-            <div key={index} className={cx('time-mark')} style={{ width: `${100 / jLimit}%` }}>
-              <span
-                className={cx('time-mark-text', {
-                  'time-mark-text__translated': index > 0,
-                })}
-              >
+        </div>
+        <div className={cx('users')}>
+          <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
+          {users && users.length ? (
+            <UserAvatars
+              users={users}
+              onCallNow={onCallNow}
+              onTzChange={onTzChange}
+              currentMoment={currentMoment}
+              startMoment={startMoment}
+              scheduleId={scheduleId}
+            />
+          ) : (
+            <HorizontalGroup justify="center" align="flex-start">
+              <HorizontalGroup>
+                <Icon className={cx('icon')} name="users-alt" />
+                <Text type="secondary">Add rotation to see users</Text>
+              </HorizontalGroup>
+            </HorizontalGroup>
+          )}
+        </div>
+        <div className={cx('time-marks-wrapper')}>
+          <div className={cx('time-marks')}>
+            {momentsToRender.map((mm, index) => (
+              <div key={index} className={cx('time-mark')} style={{ width: `${100 / jLimit}%` }}>
+                <span
+                  className={cx('time-mark-text', {
+                    'time-mark-text__translated': index > 0,
+                  })}
+                >
+                  <Text type="secondary" size="small">
+                    {mm.format('HH:mm')}
+                  </Text>
+                </span>
+              </div>
+            ))}
+            <div key={jLimit} className={cx('time-mark')}>
+              <span className={cx('time-mark-text')}>
                 <Text type="secondary" size="small">
-                  {mm.format('HH:mm')}
+                  24:00
                 </Text>
               </span>
             </div>
-          ))}
-          <div key={jLimit} className={cx('time-mark')}>
-            <span className={cx('time-mark-text')}>
-              <Text type="secondary" size="small">
-                24:00
-              </Text>
-            </span>
           </div>
         </div>
       </div>
@@ -140,7 +162,7 @@ interface UserAvatarsProps {
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment } = props;
+  const { users, currentMoment, onCallNow, scheduleId, startMoment } = props;
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
@@ -182,7 +204,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
             activeUtcOffset={activeUtcOffset}
             utcOffset={group.utcOffset}
             onSetActiveUtcOffset={setActiveUtcOffset}
-            onTzChange={onTzChange}
+            // onTzChange={onTzChange}
             xPos={xPos}
             users={group.users}
             startMoment={startMoment}
@@ -205,7 +227,7 @@ interface AvatarGroupProps {
   scheduleId: Schedule['id'];
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
-  onTzChange: (timezone: Timezone) => void;
+  onTzChange?: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 

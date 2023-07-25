@@ -110,7 +110,7 @@ def test_user_cant_create_notification_policy_for_user(
 
 
 @pytest.mark.django_db
-def test_create_notification_policy_from_step(
+def test_create_notification_policy_order_is_ignored(
     user_notification_policy_internal_api_setup,
     make_user_auth_headers,
 ):
@@ -121,7 +121,7 @@ def test_create_notification_policy_from_step(
     url = reverse("api-internal:notification_policy-list")
 
     data = {
-        "prev_step": wait_notification_step.public_primary_key,
+        "position": 2023,
         "step": UserNotificationPolicy.Step.NOTIFY,
         "notify_by": UserNotificationPolicy.NotificationChannel.SLACK,
         "wait_delay": None,
@@ -130,26 +130,19 @@ def test_create_notification_policy_from_step(
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.data["order"] == 1
+    assert response.data["order"] == 2
 
 
 @pytest.mark.django_db
-def test_create_invalid_notification_policy(user_notification_policy_internal_api_setup, make_user_auth_headers):
+def test_move_to_position_position_error(user_notification_policy_internal_api_setup, make_user_auth_headers):
     token, steps, users = user_notification_policy_internal_api_setup
-    wait_notification_step, _, _, _ = steps
     admin, _ = users
+    step = steps[0]
     client = APIClient()
-    url = reverse("api-internal:notification_policy-list")
+    url = reverse("api-internal:notification_policy-move-to-position", kwargs={"pk": step.public_primary_key})
 
-    data = {
-        "prev_step": wait_notification_step.public_primary_key,
-        "step": UserNotificationPolicy.Step.NOTIFY,
-        "notify_by": UserNotificationPolicy.NotificationChannel.SLACK,
-        "wait_delay": None,
-        "important": True,
-        "user": admin.public_primary_key,
-    }
-    response = client.post(url, data, format="json", **make_user_auth_headers(admin, token))
+    # position value only can be 0 or 1 for this test setup, because there are only 2 steps
+    response = client.put(f"{url}?position=2", content_type="application/json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -221,7 +214,7 @@ def test_admin_can_move_user_step(user_notification_policy_internal_api_setup, m
         "api-internal:notification_policy-move-to-position", kwargs={"pk": second_user_step.public_primary_key}
     )
 
-    response = client.put(f"{url}?position=1", content_type="application/json", **make_user_auth_headers(admin, token))
+    response = client.put(f"{url}?position=0", content_type="application/json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
 
 

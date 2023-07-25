@@ -8,6 +8,13 @@ class TestOnlyTemplater(AlertWebTemplater):
 
 
 class TestOnlyBackend(BaseMessagingBackend):
+    """
+    set a __test__ = False attribute in classes that pytest should ignore otherwise we end up getting the following:
+    PytestCollectionWarning: cannot collect test class 'TestOnlyBackend' because it has a __init__ constructor
+    """
+
+    __test__ = False
+
     backend_id = "TESTONLY"
     label = "Test Only Backend"
     short_label = "Test"

@@ -24,6 +24,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     shift_start = serializers.DateTimeField(source="start")
     shift_end = serializers.SerializerMethodField()
     by_day = serializers.ListField(required=False, allow_null=True)
+    week_start = serializers.CharField(required=False, allow_null=True)
     rolling_users = RollingUsersField(
         allow_null=True,
         required=False,
@@ -32,13 +33,15 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ),  # todo: filter by team?
     )
     updated_shift = serializers.CharField(read_only=True, allow_null=True, source="updated_shift.public_primary_key")
+    # Name is optional to keep backward compatibility with older frontends
+    name = serializers.CharField(required=False)
 
     class Meta:
         model = CustomOnCallShift
         fields = [
             "id",
             "organization",
-            "title",
+            "name",
             "type",
             "schedule",
             "priority_level",
@@ -49,6 +52,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "frequency",
             "interval",
             "by_day",
+            "week_start",
             "source",
             "rolling_users",
             "updated_shift",
@@ -62,6 +66,11 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def get_shift_end(self, obj):
         return obj.start + obj.duration
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["week_start"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[instance.week_start]
+        return ret
 
     def to_internal_value(self, data):
         data["source"] = CustomOnCallShift.SOURCE_WEB
@@ -77,6 +86,15 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 if day not in CustomOnCallShift.WEB_WEEKDAY_MAP:
                     raise serializers.ValidationError(["Invalid day value."])
         return by_day
+
+    def validate_week_start(self, week_start):
+        if week_start is None:
+            week_start = CustomOnCallShift.MONDAY
+
+        if week_start not in CustomOnCallShift.WEB_WEEKDAY_MAP:
+            raise serializers.ValidationError(["Invalid week start value."])
+
+        return CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[week_start]
 
     def validate_interval(self, interval):
         if interval is not None:
@@ -118,8 +136,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"frequency": ["Cannot set 'frequency' for shifts with type 'override'"]}
                 )
-            if frequency not in (CustomOnCallShift.FREQUENCY_WEEKLY, CustomOnCallShift.FREQUENCY_DAILY) and by_day:
-                raise serializers.ValidationError({"by_day": ["Cannot set days value for this frequency type"]})
             if interval is None:
                 raise serializers.ValidationError(
                     {"interval": ["If frequency is set, interval must be a positive integer"]}
@@ -171,18 +187,24 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         if validated_data.get("schedule"):
             validated_data["team"] = validated_data["schedule"].team
 
-        validated_data["week_start"] = CustomOnCallShift.MONDAY
+        validated_data["week_start"] = validated_data.get("week_start", CustomOnCallShift.MONDAY)
 
         return validated_data
 
+    def _require_users(self, validated_data):
+        users = validated_data.get("rolling_users")
+        if not users:
+            raise serializers.ValidationError({"rolling_users": ["User(s) are required"]})
+
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data["type"], validated_data)
-        validated_data["name"] = CustomOnCallShift.generate_name(
-            validated_data["schedule"], validated_data["priority_level"], validated_data["type"]
-        )
+        # before creation, require users set
+        self._require_users(validated_data)
         instance = super().create(validated_data)
 
-        instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
+        # refresh related schedule ical files
+        instance.refresh_schedule()
+
         return instance
 
 
@@ -191,19 +213,20 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
     type = serializers.ReadOnlyField()
 
     class Meta(OnCallShiftSerializer.Meta):
-        read_only_fields = ("schedule", "type")
+        read_only_fields = ["schedule", "type"]
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(instance.type, validated_data)
-        change_only_title = True
+        change_only_name = True
         create_or_update_last_shift = False
+        force_update = validated_data.pop("force_update", True)
 
         for field in validated_data:
-            if field != "title" and validated_data[field] != getattr(instance, field):
-                change_only_title = False
+            if field != "name" and validated_data[field] != getattr(instance, field):
+                change_only_name = False
                 break
 
-        if not change_only_title:
+        if not change_only_name:
             if instance.type != CustomOnCallShift.TYPE_OVERRIDE:
                 if instance.event_is_started:
                     create_or_update_last_shift = True
@@ -211,10 +234,15 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
             elif instance.event_is_finished:
                 raise serializers.ValidationError(["This event cannot be updated"])
 
-        if create_or_update_last_shift:
+        # before update, require users set
+        self._require_users(validated_data)
+
+        if not force_update and create_or_update_last_shift:
             result = instance.create_or_update_last_shift(validated_data)
         else:
             result = super().update(instance, validated_data)
 
-        instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
+        # refresh related schedule ical files
+        instance.refresh_schedule()
+
         return result

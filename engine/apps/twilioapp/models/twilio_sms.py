@@ -58,6 +58,7 @@ class TwilioSMS(ProviderSMS, models.Model):
     sid = models.CharField(
         blank=True,
         max_length=50,
+        db_index=True,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

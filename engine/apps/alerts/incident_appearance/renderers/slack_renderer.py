@@ -107,7 +107,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                                 "name": ScenarioStep.get_step("distribute_alerts", "UnAttachGroupStep").routing_uid(),
                                 "text": "Unattach",
                                 "type": "button",
-                                "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                                "value": self._alert_group_action_value(),
                             }
                         ],
                     }
@@ -180,7 +180,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                                 "emoji": True,
                             },
                             "type": "button",
-                            "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                            "value": self._alert_group_action_value(),
                             "action_id": ScenarioStep.get_step(
                                 "distribute_alerts",
                                 "AcknowledgeGroupStep",
@@ -196,7 +196,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                                 "emoji": True,
                             },
                             "type": "button",
-                            "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                            "value": self._alert_group_action_value(),
                             "action_id": ScenarioStep.get_step(
                                 "distribute_alerts",
                                 "UnAcknowledgeGroupStep",
@@ -208,20 +208,17 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         "text": {"type": "plain_text", "text": "Resolve", "emoji": True},
                         "type": "button",
                         "style": "primary",
-                        "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                        "value": self._alert_group_action_value(),
                         "action_id": ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
                     },
                 )
 
-                if self.alert_group.invitations.filter(is_active=True).count() < 5:
-                    action_id = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident").routing_uid()
-                    text = "Invite..."
-                    invitation_element = self._get_select_user_element(action_id, text=text)
-                    buttons.append(invitation_element)
-
                 if not self.alert_group.silenced:
                     silence_options = [
-                        {"text": {"type": "plain_text", "text": text, "emoji": True}, "value": str(value)}
+                        {
+                            "text": {"type": "plain_text", "text": text, "emoji": True},
+                            "value": self._alert_group_action_value(delay=value),
+                        }
                         for value, text in AlertGroup.SILENCE_DELAY_OPTIONS
                     ]
                     buttons.append(
@@ -230,7 +227,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                             "type": "static_select",
                             "options": silence_options,
                             "action_id": ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
-                            # "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
                         }
                     )
                 else:
@@ -238,21 +234,25 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         {
                             "text": {"type": "plain_text", "text": "Unsilence", "emoji": True},
                             "type": "button",
-                            "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                            "value": self._alert_group_action_value(),
                             "action_id": ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep").routing_uid(),
                         },
                     )
+
+                buttons.append(
+                    {
+                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
+                        "type": "button",
+                        "value": self._alert_group_action_value(),
+                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
+                    },
+                )
 
                 attach_button = {
                     "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
                     "type": "button",
                     "action_id": ScenarioStep.get_step("distribute_alerts", "SelectAttachGroupStep").routing_uid(),
-                    "value": json.dumps(
-                        {
-                            "alert_group_pk": self.alert_group.pk,
-                            "organization_id": self.alert_group.channel.organization_id,
-                        }
-                    ),
+                    "value": self._alert_group_action_value(),
                 }
                 buttons.append(attach_button)
             else:
@@ -260,7 +260,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     {
                         "text": {"type": "plain_text", "text": "Unresolve", "emoji": True},
                         "type": "button",
-                        "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                        "value": self._alert_group_action_value(),
                         "action_id": ScenarioStep.get_step("distribute_alerts", "UnResolveGroupStep").routing_uid(),
                     },
                 )
@@ -270,12 +270,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     {
                         "text": {"type": "plain_text", "text": ":mag: Format Alert", "emoji": True},
                         "type": "button",
-                        "value": json.dumps(
-                            {
-                                "alert_group_pk": str(self.alert_group.pk),
-                                "organization_id": self.alert_group.channel.organization_id,
-                            }
-                        ),
+                        "value": self._alert_group_action_value(),
                         "action_id": ScenarioStep.get_step(
                             "alertgroup_appearance", "OpenAlertAppearanceDialogStep"
                         ).routing_uid(),
@@ -292,13 +287,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 },
                 "type": "button",
                 "action_id": ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep").routing_uid(),
-                "value": json.dumps(
-                    {
-                        "resolution_note_window_action": "edit",
-                        "alert_group_pk": self.alert_group.pk,
-                        "organization_id": self.alert_group.channel.organization_id,
-                    }
-                ),
+                "value": self._alert_group_action_value(resolution_note_window_action="edit"),
             }
             if resolution_notes_count == 0:
                 resolution_notes_button["style"] = "primary"
@@ -322,7 +311,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                         "text": {"type": "plain_text", "text": "Resolve", "emoji": True},
                         "type": "button",
                         "style": "primary",
-                        "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                        "value": self._alert_group_action_value(),
                         "action_id": ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
                     },
                 )
@@ -339,13 +328,11 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             invitee_name = invitation.invitee.get_username_with_slack_verbal()
             buttons.append(
                 {
-                    "name": "{}_{}".format(
-                        ScenarioStep.get_step("distribute_alerts", "StopInvitationProcess").routing_uid(), invitation.pk
-                    ),
+                    "name": ScenarioStep.get_step("distribute_alerts", "StopInvitationProcess").routing_uid(),
                     "text": "Stop inviting {}".format(invitee_name),
                     "type": "button",
                     "style": "primary",
-                    "value": json.dumps({"organization_id": self.alert_group.channel.organization_id}),
+                    "value": self._alert_group_action_value(invitation_id=invitation.pk),
                 },
             )
         return [
@@ -359,6 +346,13 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def _get_select_user_element(
         self, action_id, multi_select=False, initial_user=None, initial_users_list=None, text=None
     ):
+        def get_action_value(user_id):
+            """
+            In contrast to other buttons and select menus, self._alert_group_action_value is not used here.
+            It's because there could be a lot of users, and we don't want to increase the payload size too much.
+            """
+            return json.dumps({"user_id": user_id})
+
         MAX_STATIC_SELECT_OPTIONS = 100
 
         if not text:
@@ -382,7 +376,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             user_verbal = f"{user.get_username_with_slack_verbal()}"
             if len(user_verbal) > 75:
                 user_verbal = user_verbal[:72] + "..."
-            option = {"text": {"type": "plain_text", "text": user_verbal}, "value": json.dumps({"user_id": user.pk})}
+            option = {"text": {"type": "plain_text", "text": user_verbal}, "value": get_action_value(user.pk)}
             options.append(option)
 
         if users_count > MAX_STATIC_SELECT_OPTIONS:
@@ -397,7 +391,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         elif users_count == 0:  # strange case when there are no users to select
             option = {
                 "text": {"type": "plain_text", "text": "No users to select"},
-                "value": json.dumps({"user_id": None}),
+                "value": get_action_value(None),
             }
             options.append(option)
             element["options"] = options
@@ -413,7 +407,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     user_verbal = f"{user.get_username_with_slack_verbal()}"
                     option = {
                         "text": {"type": "plain_text", "text": user_verbal},
-                        "value": json.dumps({"user_id": user.pk}),
+                        "value": get_action_value(user.pk),
                     }
                     initial_options.append(option)
                 element["initial_options"] = initial_options
@@ -421,8 +415,22 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             user_verbal = f"{initial_user.get_username_with_slack_verbal()}"
             initial_option = {
                 "text": {"type": "plain_text", "text": user_verbal},
-                "value": json.dumps({"user_id": initial_user.pk}),
+                "value": get_action_value(initial_user.pk),
             }
             element["initial_option"] = initial_option
 
         return element
+
+    def _alert_group_action_value(self, **kwargs):
+        """
+        Store organization and alert group IDs in Slack button or select menu values.
+        alert_group_pk is used in apps.slack.scenarios.step_mixins.AlertGroupActionsMixin to get the right alert group
+        when handling AG actions in Slack.
+        """
+
+        data = {
+            "organization_id": self.alert_group.channel.organization_id,
+            "alert_group_pk": self.alert_group.pk,
+            **kwargs,
+        }
+        return json.dumps(data)  # Slack block elements allow to pass value as string only (max 2000 chars)

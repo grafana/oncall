@@ -6,9 +6,9 @@ import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { Heartbeat } from 'models/heartbeat/heartbeat.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { Team } from 'models/team/team.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
@@ -20,6 +20,7 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
+  MaintenanceMode,
 } from './alert_receive_channel.types';
 
 export class AlertReceiveChannelStore extends BaseStore {
@@ -69,15 +70,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     return this.searchResult.map(
       (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
     );
-
-    // return {
-    //   count: this.searchResult.count,
-    //   results:
-    //     this.searchResult.results &&
-    //     this.searchResult.results.map(
-    //       (alertReceiveChannelId: AlertReceiveChannel['id']) => this.items?.[alertReceiveChannelId]
-    //     ),
-    // };
   }
 
   getPaginatedSearchResult(_query = '') {
@@ -111,11 +103,11 @@ export class AlertReceiveChannelStore extends BaseStore {
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
-    const result = await makeRequest(this.path, { params });
+    const { results } = await makeRequest(this.path, { params });
 
     this.items = {
       ...this.items,
-      ...result.reduce(
+      ...results.reduce(
         (acc: { [key: number]: AlertReceiveChannel }, item: AlertReceiveChannel) => ({
           ...acc,
           [item.id]: omit(item, 'heartbeat'),
@@ -124,9 +116,9 @@ export class AlertReceiveChannelStore extends BaseStore {
       ),
     };
 
-    this.searchResult = result.map((item: AlertReceiveChannel) => item.id);
+    this.searchResult = results.map((item: AlertReceiveChannel) => item.id);
 
-    const heartbeats = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const heartbeats = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.heartbeat.id] = alertReceiveChannel.heartbeat;
       }
@@ -139,7 +131,7 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...heartbeats,
     };
 
-    const alertReceiveChannelToHeartbeat = result.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
+    const alertReceiveChannelToHeartbeat = results.reduce((acc: any, alertReceiveChannel: AlertReceiveChannel) => {
       if (alertReceiveChannel.heartbeat) {
         acc[alertReceiveChannel.id] = alertReceiveChannel.heartbeat.id;
       }
@@ -154,13 +146,12 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.updateCounters();
 
-    return result;
+    return results;
   }
 
   async updatePaginatedItems(query: any = '', page = 1) {
     const filters = typeof query === 'string' ? { search: query } : query;
-    const { search } = filters;
-    const { count, results } = await makeRequest(this.path, { params: { search, page } });
+    const { count, results } = await makeRequest(this.path, { params: { ...filters, page } });
 
     this.items = {
       ...this.items,
@@ -452,7 +443,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async changeTeam(id: AlertReceiveChannel['id'], teamId: Team['pk']) {
+  async changeTeam(id: AlertReceiveChannel['id'], teamId: GrafanaTeam['id']) {
     return await makeRequest(`${this.path}${id}/change_team`, {
       params: { team_id: String(teamId) },
       method: 'PUT',
@@ -466,4 +457,18 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.counters = counters;
   }
+
+  startMaintenanceMode = (id: AlertReceiveChannel['id'], mode: MaintenanceMode, duration: number): Promise<void> =>
+    makeRequest<null>(`${this.path}${id}/start_maintenance/`, {
+      method: 'POST',
+      data: {
+        mode,
+        duration,
+      },
+    });
+
+  stopMaintenanceMode = (id: AlertReceiveChannel['id']) =>
+    makeRequest<null>(`${this.path}${id}/stop_maintenance/`, {
+      method: 'POST',
+    });
 }

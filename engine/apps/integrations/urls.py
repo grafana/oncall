@@ -8,10 +8,10 @@ from common.api_helpers.optional_slash_router import optional_slash_path
 
 from .views import (
     AlertManagerAPIView,
+    AlertManagerV2View,
     AmazonSNS,
     GrafanaAlertingAPIView,
     GrafanaAPIView,
-    HeartBeatAPIView,
     IntegrationHeartBeatAPIView,
     UniversalAPIView,
 )
@@ -32,7 +32,7 @@ urlpatterns = [
     path("grafana_alerting/<str:alert_channel_key>/", GrafanaAlertingAPIView.as_view(), name="grafana_alerting"),
     path("alertmanager/<str:alert_channel_key>/", AlertManagerAPIView.as_view(), name="alertmanager"),
     path("amazon_sns/<str:alert_channel_key>/", AmazonSNS.as_view(), name="amazon_sns"),
-    path("heartbeat/<str:alert_channel_key>/", HeartBeatAPIView.as_view(), name="heartbeat"),
+    path("alertmanager_v2/<str:alert_channel_key>/", AlertManagerV2View.as_view(), name="alertmanager_v2"),
     path("<str:integration_type>/<str:alert_channel_key>/", UniversalAPIView.as_view(), name="universal"),
 ]
 

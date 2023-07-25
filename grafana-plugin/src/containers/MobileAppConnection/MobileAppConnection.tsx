@@ -187,41 +187,36 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   }
 
   return (
-    <WithPermissionControlDisplay
-      userAction={UserActions.UserSettingsWrite}
-      message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
-    >
-      <VerticalGroup>
-        <div className={cx('container')}>
-          <Block shadowed bordered withBackground className={cx('container__box')}>
-            <DownloadIcons />
-          </Block>
-          <Block shadowed bordered withBackground className={cx('container__box')}>
-            {content}
-          </Block>
+    <VerticalGroup>
+      <div className={cx('container')}>
+        <Block shadowed bordered withBackground className={cx('container__box')}>
+          <DownloadIcons />
+        </Block>
+        <Block shadowed bordered withBackground className={cx('container__box')}>
+          {content}
+        </Block>
+      </div>
+      {mobileAppIsCurrentlyConnected && isCurrentUser && (
+        <div className={cx('notification-buttons')}>
+          <HorizontalGroup spacing={'md'} justify={'flex-end'}>
+            <Button
+              variant="secondary"
+              onClick={() => onSendTestNotification()}
+              disabled={isAttemptingTestNotification}
+            >
+              Send Test Push
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => onSendTestNotification(true)}
+              disabled={isAttemptingTestNotification}
+            >
+              Send Test Push Important
+            </Button>
+          </HorizontalGroup>
         </div>
-        {store.hasFeature(AppFeature.MobileTestPush) && mobileAppIsCurrentlyConnected && isCurrentUser && (
-          <div className={cx('notification-buttons')}>
-            <HorizontalGroup spacing={'md'} justify={'flex-end'}>
-              <Button
-                variant="secondary"
-                onClick={() => onSendTestNotification()}
-                disabled={isAttemptingTestNotification}
-              >
-                Send Test Push notification
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => onSendTestNotification(true)}
-                disabled={isAttemptingTestNotification}
-              >
-                Send Critical Test Push notification
-              </Button>
-            </HorizontalGroup>
-          </div>
-        )}
-      </VerticalGroup>
-    </WithPermissionControlDisplay>
+      )}
+    </VerticalGroup>
   );
 
   async function onSendTestNotification(isCritical = false) {
@@ -229,7 +224,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
 
     try {
       await userStore.sendTestPushNotification(userPk, isCritical);
-      openNotification('Notification was sent');
+      openNotification(isCritical ? 'Push Important Notification has been sent' : 'Push Notification has been sent');
     } catch (ex) {
       if (ex.response?.status === 429) {
         openWarningNotification('Too much attempts, try again later');

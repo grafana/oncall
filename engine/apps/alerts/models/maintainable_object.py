@@ -1,3 +1,4 @@
+import datetime
 from uuid import uuid4
 
 import humanize
@@ -14,11 +15,11 @@ class MaintainableObject(models.Model):
     class Meta:
         abstract = True
 
-    DURATION_ONE_HOUR = timezone.timedelta(hours=1)
-    DURATION_THREE_HOURS = timezone.timedelta(hours=3)
-    DURATION_SIX_HOURS = timezone.timedelta(hours=6)
-    DURATION_TWELVE_HOURS = timezone.timedelta(hours=12)
-    DURATION_TWENTY_FOUR_HOURS = timezone.timedelta(hours=24)
+    DURATION_ONE_HOUR = datetime.timedelta(hours=1)
+    DURATION_THREE_HOURS = datetime.timedelta(hours=3)
+    DURATION_SIX_HOURS = datetime.timedelta(hours=6)
+    DURATION_TWELVE_HOURS = datetime.timedelta(hours=12)
+    DURATION_TWENTY_FOUR_HOURS = datetime.timedelta(hours=24)
 
     MAINTENANCE_DURATION_CHOICES = (
         (DURATION_ONE_HOUR, "1 hour"),
@@ -97,7 +98,7 @@ class MaintainableObject(models.Model):
 
             maintenance_uuid = _self.start_disable_maintenance_task(maintenance_duration)
 
-            _self.maintenance_duration = timezone.timedelta(seconds=maintenance_duration)
+            _self.maintenance_duration = datetime.timedelta(seconds=maintenance_duration)
             _self.maintenance_uuid = maintenance_uuid
             _self.maintenance_mode = mode
             _self.maintenance_started_at = timezone.now()
@@ -117,7 +118,7 @@ class MaintainableObject(models.Model):
             self.maintenance_started_at = _self.maintenance_started_at
             self.maintenance_author = _self.maintenance_author
             if mode == AlertReceiveChannel.MAINTENANCE:
-                group = AlertGroup.all_objects.create(
+                group = AlertGroup.objects.create(
                     distinction=uuid4(),
                     web_title_cache=f"Maintenance of {verbal} for {maintenance_duration}",
                     maintenance_uuid=maintenance_uuid,

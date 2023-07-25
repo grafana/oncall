@@ -1,5 +1,6 @@
 import json
 import math
+import typing
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
@@ -7,6 +8,7 @@ from django.utils.functional import cached_property
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.alerts.incident_appearance.templaters import (
@@ -139,38 +141,6 @@ class RateLimitHeadersMixin:
         return super().handle_exception(exc)
 
 
-class OrderedModelSerializerMixin:
-    def _change_position(self, order, instance):
-        if order is not None:
-            if order >= 0:
-                instance.to(order)
-            elif order == -1:
-                instance.bottom()
-            else:
-                raise BadRequest(detail="Invalid value for position field")
-
-    def _validate_order(self, order, filter_kwargs):
-        if order is not None and (self.instance is None or self.instance.order != order):
-            last_instance = self.Meta.model.objects.filter(**filter_kwargs).order_by("order").last()
-            max_order = last_instance.order if last_instance else -1
-            if self.instance is None:
-                max_order += 1
-            if order > max_order:
-                raise BadRequest(detail="Invalid value for position field")
-
-    def _validate_manual_order(self, order):
-        """
-        For manual ordering validate just that order is valid PositiveIntegrer.
-        User of manual ordering is responsible for correct ordering.
-        However, manual ordering not intended for use somewhere, except terraform provider.
-        """
-
-        # https://docs.djangoproject.com/en/4.1/ref/models/fields/#positiveintegerfield
-        MAX_POSITIVE_INTEGER = 2147483647
-        if order is not None and order < 0 or order > MAX_POSITIVE_INTEGER:
-            raise BadRequest(detail="Invalid value for position field")
-
-
 class PublicPrimaryKeyMixin:
     def get_object(self):
         pk = self.kwargs["pk"]
@@ -300,6 +270,13 @@ class PreviewTemplateMixin:
         template_name = request.data.get("template_name", None)
         payload = request.data.get("payload", None)
 
+        try:
+            alert_to_template = self.get_alert_to_template(payload=payload)
+            if alert_to_template is None:
+                raise BadRequest(detail="Alert to preview does not exist")
+        except PreviewTemplateException as e:
+            raise BadRequest(detail=str(e))
+
         if template_body is None or template_name is None:
             response = {"preview": None}
             return Response(response, status=status.HTTP_200_OK)
@@ -314,13 +291,6 @@ class PreviewTemplateMixin:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
-
-        try:
-            alert_to_template = self.get_alert_to_template(payload=payload)
-            if alert_to_template is None:
-                raise BadRequest(detail="Alert to preview does not exist")
-        except PreviewTemplateException as e:
-            raise BadRequest(detail=str(e))
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
@@ -377,11 +347,25 @@ class PreviewTemplateMixin:
         return destination, attr_name
 
 
+class GrafanaContext(typing.TypedDict):
+    IsAnonymous: bool
+
+
+class InstanceContext(typing.TypedDict):
+    stack_id: int
+    org_id: int
+    grafana_token: str
+
+
 class GrafanaHeadersMixin:
-    @cached_property
-    def grafana_context(self) -> dict:
-        return json.loads(self.request.headers.get("X-Grafana-Context"))
+    request: Request
 
     @cached_property
-    def instance_context(self) -> dict:
-        return json.loads(self.request.headers["X-Instance-Context"])
+    def grafana_context(self) -> GrafanaContext:
+        grafana_context: GrafanaContext = json.loads(self.request.headers["X-Grafana-Context"])
+        return grafana_context
+
+    @cached_property
+    def instance_context(self) -> InstanceContext:
+        instance_context: InstanceContext = json.loads(self.request.headers["X-Instance-Context"])
+        return instance_context

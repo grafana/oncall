@@ -31,8 +31,6 @@ paths_to_work_even_when_maintenance_mode_is_active = [
 
 urlpatterns = [
     *paths_to_work_even_when_maintenance_mode_is_active,
-    # path('slow/', SlowView.as_view()),
-    # path('exception/', ExceptionView.as_view()),
     path(settings.ONCALL_DJANGO_ADMIN_PATH, admin.site.urls),
     path("api/gi/v1/", include("apps.api_for_grafana_incident.urls", namespace="api-gi")),
     path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),
@@ -43,6 +41,11 @@ urlpatterns = [
     path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
     path("api/internal/v1/mobile_app/", include("apps.mobile_app.urls", namespace="mobile_app_tmp")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.FEATURE_PROMETHEUS_EXPORTER_ENABLED:
+    urlpatterns += [
+        path("metrics/", include("apps.metrics_exporter.urls")),
+    ]
 
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
@@ -60,6 +63,7 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
+        path("zvonok/", include("apps.zvonok.urls")),
     ]
 
 if settings.DEBUG:

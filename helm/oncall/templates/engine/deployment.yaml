@@ -51,6 +51,7 @@ spec:
             {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
             {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
             {{- include "snippet.oncall.twilio.env" . | nindent 12 }}
+            {{- include "snippet.oncall.exporter.env" . | nindent 12 }}
             {{- if eq .Values.database.type "mysql" }}
             {{- include "snippet.mysql.env" . | nindent 12 }}
             {{- end }}
@@ -59,17 +60,7 @@ spec:
             {{- end }}
             {{- include "snippet.rabbitmq.env" . | nindent 12 }}
             {{- include "snippet.redis.env" . | nindent 12 }}
-            {{- if .Values.env }}
-              {{- if (kindIs "map" .Values.env) }}
-                {{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $value }}
-                {{- end -}}
-              {{/* support previous schema */}}
-              {{- else }}
-            {{- toYaml .Values.env | nindent 12 }}
-              {{- end }}
-            {{- end }}
+            {{- include "oncall.extraEnvs" . | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /health/
@@ -86,7 +77,7 @@ spec:
             httpGet:
               path: /startupprobe/
               port: http
-            periodSeconds: 60
+            periodSeconds: 10
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
