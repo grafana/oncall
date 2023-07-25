@@ -52,15 +52,15 @@ dayjs.extend(isoWeek);
 dayjs.extend(isBetween);
 dayjs.extend(customParseFormat);
 
-import 'style/vars.css';
-import 'style/global.css';
-import 'style/utils.css';
-import 'style/responsive.css';
+import 'assets/style/vars.css';
+import 'assets/style/global.css';
+import 'assets/style/utils.css';
+import 'assets/style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
-import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
+import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
