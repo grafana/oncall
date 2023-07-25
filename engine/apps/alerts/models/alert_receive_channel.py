@@ -538,10 +538,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(self.heartbeat_module, "heartbeat_expired_payload")
 
     @property
-    def heartbeat_instruction_template(self):
-        return getattr(self.heartbeat_module, "heartbeat_instruction_template")
-
-    @property
     def heartbeat_module(self):
         return getattr(heartbeat, self.integration, None)
 

@@ -3,7 +3,6 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.template.loader import render_to_string
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -139,14 +138,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
     def get_instructions(self, obj):
-        if obj.integration in [AlertReceiveChannel.INTEGRATION_MAINTENANCE]:
-            return ""
-
-        rendered_instruction_for_web = render_to_string(
-            AlertReceiveChannel.INTEGRATIONS_TO_INSTRUCTIONS_WEB[obj.integration], {"alert_receive_channel": obj}
-        )
-
-        return rendered_instruction_for_web
+        # Deprecated, kept for api-backward compatibility
+        return ""
 
     # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
     def get_default_channel_filter(self, obj):

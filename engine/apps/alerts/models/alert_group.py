@@ -22,7 +22,7 @@ from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_T
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
-from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
+from apps.alerts.tasks import acknowledge_reminder_task, send_alert_group_signal, unsilence_task
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
@@ -545,9 +545,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         self.stop_escalation()
         if self.is_root_alert_group:
             self.start_ack_reminder(user)
-
-        if self.can_call_ack_url:
-            self.start_call_ack_url()
 
         log_record = self.log_records.create(type=AlertGroupLogRecord.TYPE_ACK, author=user)
 
@@ -1199,9 +1196,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             if alert_group.is_root_alert_group:
                 alert_group.start_ack_reminder(user)
 
-            if alert_group.can_call_ack_url:
-                alert_group.start_call_ack_url()
-
             log_record = alert_group.log_records.create(type=AlertGroupLogRecord.TYPE_ACK, author=user)
             send_alert_group_signal.apply_async((log_record.pk,))
 
@@ -1603,28 +1597,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             self.last_unique_unacknowledge_process_id = unique_unacknowledge_process_id
             self.save(update_fields=["last_unique_unacknowledge_process_id"])
 
-    def start_call_ack_url(self):
-        get_ack_url = self.alerts.first().integration_unique_data.get("ack_url_get", None)
-        channel_id = self.slack_message.channel_id if self.slack_message is not None else None
-        if get_ack_url and not self.acknowledged_on_source:
-            call_ack_url.apply_async(
-                (get_ack_url, self.pk, channel_id),
-            )
-        post_ack_url = self.alerts.first().integration_unique_data.get("ack_url_post", None)
-        if post_ack_url and not self.acknowledged_on_source:
-            call_ack_url.apply_async(
-                (post_ack_url, self.pk, channel_id, "POST"),
-            )
-
     def start_unsilence_task(self, countdown):
         task_id = celery_uuid()
         self.unsilence_task_uuid = task_id
         self.save(update_fields=["unsilence_task_uuid"])
         unsilence_task.apply_async((self.pk,), task_id=task_id, countdown=countdown)
-
-    @property
-    def can_call_ack_url(self):
-        return type(self.alerts.first().integration_unique_data) is dict
 
     @property
     def is_root_alert_group(self):
