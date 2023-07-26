@@ -557,8 +557,12 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         if payload is None:
             payload = self.config.example_payload
 
-        # TODO: AMV2 - Deprecated. After all alertmanager based integration will be migrated to v2 should be removed.
-        if self.based_on_alertmanager:
+        # TODO: AMV2: hack to keep demo alert working for integration with legacy alertmanager behaviour.
+        if self.integration in {
+            AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
+            AlertReceiveChannel.INTEGRATION_GRAFANA,
+        }:
             alerts = payload.get("alerts", None)
             if not isinstance(alerts, list) or not len(alerts):
                 raise UnableToSendDemoAlert(
