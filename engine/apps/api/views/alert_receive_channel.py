@@ -319,8 +319,8 @@ class AlertReceiveChannelView(
         organization = self.request.auth.organization
         name_used = AlertReceiveChannel.objects.exists(organization=organization, verbal_name=verbal_name)
         if name_used:
-            r = Response(status=status.HTTP_200_OK)
-        else:
             r = Response(status=status.HTTP_409_CONFLICT)
+        else:
+            r = Response(status=status.HTTP_200_OK)
 
         return r
