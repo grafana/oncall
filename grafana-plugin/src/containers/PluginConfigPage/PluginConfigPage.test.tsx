@@ -71,11 +71,16 @@ afterEach(() => {
   console.error = originalError;
 });
 
-const mockcheckTokenAndIfPluginIsConnected = (license: License = License.OSS) => {
+const mockCheckTokenAndIfPluginIsConnected = (license: License = License.OSS) => {
   PluginState.checkTokenAndIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
     token_ok: true,
     license,
     version: 'v1.2.3',
+    allow_signup: true,
+    currently_undergoing_maintenance_message: null,
+    recaptcha_site_key: 'abc',
+    is_installed: true,
+    is_user_anonymous: false,
   });
 };
 
@@ -99,9 +104,14 @@ describe('reloadPageWithPluginConfiguredQueryParams', () => {
       // mocks
       const version = 'v1.2.3';
       const license = 'OpenSource';
+      const recaptcha_site_key = 'abc';
+      const currently_undergoing_maintenance_message = 'false';
 
       // test
-      reloadPageWithPluginConfiguredQueryParams({ version, license }, pluginEnabled);
+      reloadPageWithPluginConfiguredQueryParams(
+        { version, license, recaptcha_site_key, currently_undergoing_maintenance_message },
+        pluginEnabled
+      );
 
       // assertions
       expect(window.location.href).toEqual(
@@ -130,7 +140,7 @@ describe('PluginConfigPage', () => {
     // mocks
     const metaJsonDataOnCallApiUrl = 'onCallApiUrlFromMetaJsonData';
     PluginState.checkIfPluginIsConnected = jest.fn();
-    mockcheckTokenAndIfPluginIsConnected();
+    mockCheckTokenAndIfPluginIsConnected();
 
     // test setup
     render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl, true)} />);
@@ -157,7 +167,7 @@ describe('PluginConfigPage', () => {
     } as ReturnType<typeof useLocationOriginal>);
 
     PluginState.checkIfPluginIsConnected = jest.fn();
-    mockcheckTokenAndIfPluginIsConnected();
+    mockCheckTokenAndIfPluginIsConnected();
 
     // test setup
     const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);
@@ -192,7 +202,7 @@ describe('PluginConfigPage', () => {
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
     PluginState.selfHostedInstallPlugin = jest.fn();
-    mockcheckTokenAndIfPluginIsConnected();
+    mockCheckTokenAndIfPluginIsConnected();
 
     // test setup
     render(<PluginConfigPage {...generateComponentProps()} />);
@@ -268,7 +278,7 @@ describe('PluginConfigPage', () => {
       process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
       PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
-      mockcheckTokenAndIfPluginIsConnected(license);
+      mockCheckTokenAndIfPluginIsConnected(license);
 
       // test setup
       const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);
@@ -288,8 +298,9 @@ describe('PluginConfigPage', () => {
 
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
     window.location.reload = jest.fn();
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
-    mockcheckTokenAndIfPluginIsConnected(License.OSS);
+
+    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValue(null);
+    mockCheckTokenAndIfPluginIsConnected(License.OSS);
 
     if (successful) {
       PluginState.resetPlugin = jest.fn().mockResolvedValueOnce(null);

@@ -61,7 +61,12 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   const [pluginConnectionCheckError, setPluginConnectionCheckError] = useState<string>(null);
   const [pluginIsConnected, setPluginIsConnected] = useState<PluginStatusResponseBase>(
     pluginConfiguredRedirect
-      ? { version: pluginConfiguredVersionQueryParam, license: pluginConfiguredLicenseQueryParam }
+      ? {
+          version: pluginConfiguredVersionQueryParam,
+          license: pluginConfiguredLicenseQueryParam,
+          recaptcha_site_key: 'abc',
+          currently_undergoing_maintenance_message: 'false',
+        }
       : null
   );
 
@@ -82,7 +87,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     resetMessages();
     setSyncingPlugin(true);
 
-    const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+    const pluginConnectionStatus = await PluginState.checkTokenAndIfPluginIsConnected(onCallApiUrl);
 
     if (typeof pluginConnectionStatus === 'string') {
       setSyncError(pluginConnectionStatus);
