@@ -306,7 +306,7 @@ class AlertReceiveChannelView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
-    def check_name(self):
+    def validate_name(self):
         """
         Checks if verbal_name is available.
         It is needed for OnCall <-> Alerting integration.
