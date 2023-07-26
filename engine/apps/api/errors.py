@@ -16,13 +16,3 @@ class AlertGroupAPIError(Enum):
     """
 
     RESOLUTION_NOTE_REQUIRED = 1101
-
-
-@unique
-class AlertReceiveChannelAPIError(Enum):
-    """
-    Error codes for alert group.
-    Range is 1200-1299
-    """
-
-    NAME_NOT_UNIQ = 1201

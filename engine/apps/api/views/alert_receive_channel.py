@@ -10,7 +10,6 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.api.errors import AlertReceiveChannelAPIError
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
@@ -319,12 +318,6 @@ class AlertReceiveChannelView(
         if name_used:
             r = Response(status=status.HTTP_200_OK)
         else:
-            r = Response(
-                data={
-                    "code": AlertReceiveChannelAPIError.NAME_NOT_UNIQ.value,
-                    "detail": "Integration with this name already exists",
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
+            r = Response(status=status.HTTP_409_CONFLICT)
 
         return r
