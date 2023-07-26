@@ -3,7 +3,6 @@ import logging
 from json import JSONDecodeError
 
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.conf import settings
 from django.db.models import Prefetch
 
@@ -44,8 +43,9 @@ TRIGGER_TYPE_TO_LABEL = {
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
-    Webhooks = apps.get_model("webhooks", "Webhook")
-    webhooks_qs = Webhooks.objects.filter(
+    from apps.webhooks.models import Webhook
+
+    webhooks_qs = Webhook.objects.filter(
         trigger_type=trigger_type,
         organization_id=organization_id,
     ).exclude(is_webhook_enabled=False)
@@ -163,10 +163,11 @@ def make_request(webhook, alert_group, data):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
-    Webhooks = apps.get_model("webhooks", "Webhook")
+    from apps.webhooks.models import Webhook
+
     try:
-        webhook = Webhooks.objects.get(pk=webhook_pk)
-    except Webhooks.DoesNotExist:
+        webhook = Webhook.objects.get(pk=webhook_pk)
+    except Webhook.DoesNotExist:
         logger.warn(f"Webhook {webhook_pk} does not exist")
         return
 

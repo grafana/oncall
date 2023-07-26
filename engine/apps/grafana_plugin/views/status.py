@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.http import JsonResponse
 from rest_framework.request import Request
@@ -86,7 +85,8 @@ class StatusView(GrafanaHeadersMixin, APIView):
             _, resp = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token).check_token()
             token_ok = resp["connected"]
         else:
-            DynamicSetting = apps.get_model("base", "DynamicSetting")
+            from apps.base.models import DynamicSetting
+
             allow_signup = DynamicSetting.objects.get_or_create(
                 name="allow_plugin_organization_signup", defaults={"boolean_value": True}
             )[0].boolean_value

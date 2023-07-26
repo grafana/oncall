@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.conf import settings
 from rest_framework import status
 from rest_framework.request import Request
@@ -40,7 +39,8 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
                 organization.save(update_fields=["api_token_status"])
 
             if not organization:
-                DynamicSetting = apps.get_model("base", "DynamicSetting")
+                from apps.base.models import DynamicSetting
+
                 allow_signup = DynamicSetting.objects.get_or_create(
                     name="allow_plugin_organization_signup", defaults={"boolean_value": True}
                 )[0].boolean_value

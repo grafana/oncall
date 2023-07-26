@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
 
@@ -36,15 +35,15 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
         Count sms and calls together and they have common limit.
         For FreePublicBetaSubscriptionStrategy notifications are counted per day
         """
-        PhoneCallRecord = apps.get_model("phone_notifications", "PhoneCallRecord")
-        SMSMessage = apps.get_model("phone_notifications", "SMSRecord")
+        from apps.phone_notifications.models import PhoneCallRecord, SMSRecord
+
         now = timezone.now()
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         calls_today = PhoneCallRecord.objects.filter(
             created_at__gte=day_start,
             receiver=user,
         ).count()
-        sms_today = SMSMessage.objects.filter(
+        sms_today = SMSRecord.objects.filter(
             created_at__gte=day_start,
             receiver=user,
         ).count()

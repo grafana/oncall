@@ -3,7 +3,6 @@ from uuid import uuid4
 
 import humanize
 import pytz
-from django.apps import apps
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -68,9 +67,7 @@ class MaintainableObject(models.Model):
         raise NotImplementedError
 
     def start_maintenance(self, mode, maintenance_duration, user):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 
         with transaction.atomic():
             _self = self.__class__.objects.select_for_update().get(pk=self.pk)

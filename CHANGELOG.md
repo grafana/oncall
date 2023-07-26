@@ -7,16 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Fixed
-
-- Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
-  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
-  by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
+## v1.3.17 (2023-07-25)
 
 ### Added
 
 - Added banner on the ChatOps screen for OSS to let the user know if no chatops integration is enabled
   ([#1735](https://github.com/grafana/oncall/issues/1735))
+- Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
+  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
+
+### Fixed
+
+- Bring heartbeats back to UI by @maskin25 ([#2550](https://github.com/grafana/oncall/pull/2550))
+- Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
+  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
+  by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
 
 ## v1.3.16 (2023-07-21)
 
@@ -25,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
   ([#2601](https://github.com/grafana/oncall/pull/2601))
 - Add filter integrations by type ([2609](https://github.com/grafana/oncall/pull/2609))
-- Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
-  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
 
 ### Changed
 

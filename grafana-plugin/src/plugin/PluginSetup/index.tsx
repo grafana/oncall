@@ -6,7 +6,7 @@ import { PluginPageFallback } from 'PluginPage';
 import { observer } from 'mobx-react';
 import { AppRootProps } from 'types';
 
-import logo from 'img/logo.svg';
+import logo from 'assets/img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 
