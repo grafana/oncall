@@ -70,8 +70,8 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       : null
   );
 
-  const [syncingPlugin, setSyncingPlugin] = useState<boolean>(false);
-  const [syncError, setSyncError] = useState<string>(null);
+  const [updatingPluginStatus, setUpdatingPluginStatus] = useState<boolean>(false);
+  const [updatingPluginStatusError, setUpdatingPluginStatusError] = useState<string>(null);
 
   const [resettingPlugin, setResettingPlugin] = useState<boolean>(false);
   const [pluginResetError, setPluginResetError] = useState<string>(null);
@@ -85,19 +85,19 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
 
   const triggerUpdatePluginStatus = useCallback(async () => {
     resetMessages();
-    setSyncingPlugin(true);
+    setUpdatingPluginStatus(true);
 
     const pluginConnectionStatus = await PluginState.checkTokenAndIfPluginIsConnected(onCallApiUrl);
 
     if (typeof pluginConnectionStatus === 'string') {
-      setSyncError(pluginConnectionStatus);
+      setUpdatingPluginStatusError(pluginConnectionStatus);
     } else {
       const { token_ok, ...versionLicenseInfo } = pluginConnectionStatus;
       setPluginIsConnected(versionLicenseInfo);
       reloadPageWithPluginConfiguredQueryParams(versionLicenseInfo, pluginIsEnabled);
     }
 
-    setSyncingPlugin(false);
+    setUpdatingPluginStatus(false);
   }, [onCallApiUrl, pluginIsEnabled]);
 
   useEffect(resetQueryParams, [resetQueryParams]);
@@ -152,7 +152,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     setPluginResetError(null);
     setPluginConnectionCheckError(null);
     setPluginIsConnected(null);
-    setSyncError(null);
+    setUpdatingPluginStatusError(null);
   }, []);
 
   const resetState = useCallback(() => {
@@ -193,7 +193,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
 
   if (checkingIfPluginIsConnected) {
     content = <LoadingPlaceholder text="Validating your plugin connection..." />;
-  } else if (syncingPlugin) {
+  } else if (updatingPluginStatus) {
     content = <LoadingPlaceholder text="Syncing data required for your plugin..." />;
   } else if (pluginConnectionCheckError || pluginResetError) {
     content = (
@@ -202,10 +202,10 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
         <ReconfigurePluginButtons />
       </>
     );
-  } else if (syncError) {
+  } else if (updatingPluginStatusError) {
     content = (
       <>
-        <StatusMessageBlock text={syncError} />
+        <StatusMessageBlock text={updatingPluginStatusError} />
         <ReconfigurePluginButtons />
       </>
     );

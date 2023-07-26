@@ -31,7 +31,7 @@ enum License {
 
 const SELF_HOSTED_INSTALL_PLUGIN_ERROR_MESSAGE = 'ohhh nooo an error msg from self hosted install plugin';
 const CHECK_IF_PLUGIN_IS_CONNECTED_ERROR_MESSAGE = 'ohhh nooo a plugin connection error';
-const SNYC_DATA_WITH_ONCALL_ERROR_MESSAGE = 'ohhh noooo a sync issue';
+const UPDATE_PLUGIN_STATUS_ERROR_MESSAGE = 'ohhh noooo a sync issue';
 const PLUGIN_CONFIGURATION_FORM_DATA_ID = 'plugin-configuration-form';
 const STATUS_MESSAGE_BLOCK_DATA_ID = 'status-message-block';
 
@@ -256,7 +256,7 @@ describe('PluginConfigPage', () => {
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
     PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(null);
-    PluginState.checkTokenAndIfPluginIsConnected = jest.fn().mockResolvedValueOnce(SNYC_DATA_WITH_ONCALL_ERROR_MESSAGE);
+    PluginState.checkTokenAndIfPluginIsConnected = jest.fn().mockResolvedValueOnce(UPDATE_PLUGIN_STATUS_ERROR_MESSAGE);
 
     // test setup
     const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);

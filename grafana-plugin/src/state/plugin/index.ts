@@ -41,7 +41,6 @@ export type InstallationVerb = 'install' | 'sync';
 class PluginState {
   static ONCALL_BASE_URL = '/plugin';
   static GRAFANA_PLUGIN_SETTINGS_URL = '/api/plugins/grafana-oncall-app/settings';
-  static SYNC_STATUS_POLLING_RETRY_LIMIT = 10;
   static grafanaBackend = getBackendSrv();
 
   static generateOnCallApiUrlConfiguredThroughEnvVarMsg = (isConfiguredThroughEnvVar: boolean): string =>
