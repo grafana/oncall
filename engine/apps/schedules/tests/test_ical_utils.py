@@ -83,18 +83,23 @@ def test_users_in_ical_email_case_insensitive(make_organization_and_user, make_u
 
 
 @pytest.mark.django_db
-def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_for_organization):
+@pytest.mark.parametrize("include_viewers", [True, False])
+def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_for_organization, include_viewers):
     organization, user = make_organization_and_user()
     viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     usernames = [user.username, viewer.username]
-    result = users_in_ical(usernames, organization)
-    assert set(result) == {user}
+    result = users_in_ical(usernames, organization, include_viewers=include_viewers)
+    if include_viewers:
+        assert set(result) == {user, viewer}
+    else:
+        assert set(result) == {user}
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("include_viewers", [True, False])
 def test_list_users_to_notify_from_ical_viewers_inclusion(
-    make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift
+    make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift, include_viewers
 ):
     organization, user = make_organization_and_user()
     viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
@@ -116,10 +121,14 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
 
     # get users on-call
     date = date + timezone.timedelta(minutes=5)
-    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    users_on_call = list_users_to_notify_from_ical(schedule, date, include_viewers=include_viewers)
 
-    assert len(users_on_call) == 1
-    assert set(users_on_call) == {user}
+    if include_viewers:
+        assert len(users_on_call) == 2
+        assert set(users_on_call) == {user, viewer}
+    else:
+        assert len(users_on_call) == 1
+        assert set(users_on_call) == {user}
 
 
 @pytest.mark.django_db
@@ -152,7 +161,7 @@ def test_list_users_to_notify_from_ical_until_terminated_event(
     date = date + timezone.timedelta(minutes=5)
     # this should not raise despite the shift configuration (until < rotation start)
     users_on_call = list_users_to_notify_from_ical(schedule, date)
-    assert list(users_on_call) == []
+    assert users_on_call == []
 
 
 @pytest.mark.django_db
@@ -164,26 +173,17 @@ def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_
 
     day_to_check_iso = "2021-01-27T15:27:14.448059+00:00"
     parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
-    requested_datetime = parsed_iso_day_to_check - timezone.timedelta(days=1)
-    datetime_end = requested_datetime + timezone.timedelta(days=2)
-    shifts = list_of_oncall_shifts_from_ical(schedule, requested_datetime, datetime_end, with_empty_shifts=True)
+    requested_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
+    shifts = list_of_oncall_shifts_from_ical(schedule, requested_date, days=3, with_empty_shifts=True)
     assert len(shifts) == 5
     for s in shifts:
-        start = (
-            s["start"]
-            if isinstance(s["start"], datetime.datetime)
-            else datetime.datetime.combine(s["start"], datetime.time.min, tzinfo=pytz.UTC)
-        )
-        end = (
-            s["end"]
-            if isinstance(s["end"], datetime.datetime)
-            else datetime.datetime.combine(s["start"], datetime.time.max, tzinfo=pytz.UTC)
-        )
+        start = s["start"].date() if isinstance(s["start"], datetime.datetime) else s["start"]
+        end = s["end"].date() if isinstance(s["end"], datetime.datetime) else s["end"]
         # event started in the given period, or ended in that period, or is happening during the period
         assert (
-            requested_datetime <= start <= requested_datetime + timezone.timedelta(days=2)
-            or requested_datetime <= end <= requested_datetime + timezone.timedelta(days=2)
-            or start <= requested_datetime <= end
+            requested_date <= start <= requested_date + timezone.timedelta(days=3)
+            or requested_date <= end <= requested_date + timezone.timedelta(days=3)
+            or start <= requested_date <= end
         )
 
 
@@ -197,8 +197,7 @@ def test_shifts_dict_from_cached_final(
     organization = make_organization()
     u1 = make_user_for_organization(organization)
 
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    yesterday = today - timezone.timedelta(days=1)
+    yesterday = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) - timezone.timedelta(days=1)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     data = {
         "start": yesterday + timezone.timedelta(hours=10),
@@ -228,7 +227,7 @@ def test_shifts_dict_from_cached_final(
 
     shifts = [
         (s["calendar_type"], s["start"], list(s["users"]))
-        for s in list_of_oncall_shifts_from_ical(schedule, yesterday, today, from_cached_final=True)
+        for s in list_of_oncall_shifts_from_ical(schedule, yesterday, days=1, from_cached_final=True)
     ]
     expected_events = [
         (OnCallSchedule.PRIMARY, on_call_shift.start, [u1]),
