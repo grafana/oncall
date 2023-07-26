@@ -1,6 +1,6 @@
 {
   "name": "grafana-oncall-app",
-  "version": "1.0.0",
+  "version": "dev-oss",
   "description": "Grafana OnCall Plugin",
   "scripts": {
     "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 ./src",

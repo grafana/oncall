@@ -55,8 +55,3 @@ exports[`PluginState.getHumanReadableErrorFromOnCallError it handles an unknown 
 "An unknown error occurred when trying to install the plugin. Verify OnCall API URL, http://hello.com, is correct (NOTE: OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
-
-exports[`PluginState.pollOnCallDataSyncStatus it returns an error message if the pollCount is greater than 10 1`] = `
-"There was an issue while synchronizing data required for the plugin.
-Verify your OnCall backend setup (ie. that Celery workers are launched and properly configured)"
-`;
