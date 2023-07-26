@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Label, Legend, LoadingPlaceholder } from '@grafana/ui';
+import { Button, HorizontalGroup, Label, Legend, LinkButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
@@ -210,11 +210,22 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     );
   } else {
     // plugin is fully connected and synced
+    const pluginLink = (
+      <LinkButton href={`/a/grafana-oncall-app/`} variant="primary">
+        Open Grafana OnCall
+      </LinkButton>
+    );
     content =
       licenseType === GRAFANA_LICENSE_OSS ? (
-        <RemoveConfigButton />
+        <HorizontalGroup>
+          {pluginLink}
+          <RemoveConfigButton />
+        </HorizontalGroup>
       ) : (
-        <Label>This is a cloud managed configuration.</Label>
+        <VerticalGroup>
+          <Label>This is a cloud managed configuration.</Label>
+          {pluginLink}
+        </VerticalGroup>
       );
   }
 
@@ -223,10 +234,6 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       <Legend>Configure Grafana OnCall</Legend>
       {pluginIsConnected ? (
         <>
-          <p>
-            Plugin is connected! Continue to Grafana OnCall by clicking OnCall under Alerts & IRM in the navigation over
-            there 👈
-          </p>
           <StatusMessageBlock
             text={`Connected to OnCall (${pluginIsConnected.version}, ${pluginIsConnected.license})`}
           />

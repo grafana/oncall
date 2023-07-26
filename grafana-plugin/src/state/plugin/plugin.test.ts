@@ -1,6 +1,6 @@
 import { makeRequest as makeRequestOriginal, isNetworkError as isNetworkErrorOriginal } from 'network';
 
-import PluginState, { InstallationVerb, PluginSyncStatusResponse, UpdateGrafanaPluginSettingsProps } from '.';
+import PluginState, { InstallationVerb, UpdateGrafanaPluginSettingsProps } from '.';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
 const isNetworkError = isNetworkErrorOriginal as unknown as jest.Mock<ReturnType<typeof isNetworkErrorOriginal>>;
@@ -234,247 +234,6 @@ describe('PluginState.createGrafanaToken', () => {
   );
 });
 
-describe('PluginState.getPluginSyncStatus', () => {
-  test('it returns the plugin sync response', async () => {
-    // mocks
-    const mockedResp: PluginSyncStatusResponse = {
-      license: 'asdasdf',
-      version: 'asdasf',
-      token_ok: true,
-      recaptcha_site_key: 'asdasdf',
-    };
-    makeRequest.mockResolvedValueOnce(mockedResp);
-
-    // test
-    const response = await PluginState.getPluginSyncStatus();
-
-    // assertions
-    expect(response).toEqual(mockedResp);
-    expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith(`${ONCALL_BASE_URL}/sync`, { method: 'GET' });
-  });
-});
-
-describe('PluginState.pollOnCallDataSyncStatus', () => {
-  const onCallApiUrl = 'http://hello.com';
-  const onCallApiUrlIsConfiguredThroughEnvVar = true;
-
-  test('it returns an error message if the pollCount is greater than 10', async () => {
-    // mocks
-    const mockSyncResponse = { token_ok: false };
-
-    PluginState.getPluginSyncStatus = jest.fn().mockResolvedValue(mockSyncResponse);
-    PluginState.timeout = jest.fn();
-
-    // test
-    const response = await PluginState.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-
-    // assertions
-    expect(response).toMatchSnapshot();
-
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledTimes(11);
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledWith();
-
-    expect(PluginState.timeout).toHaveBeenCalledTimes(11);
-    expect(PluginState.timeout).toHaveBeenLastCalledWith(10);
-  });
-
-  test('it returns successfully if the getPluginSyncStatus response token_ok is true', async () => {
-    // mocks
-    const mockSyncResponse = { token_ok: true, foo: 'bar' };
-
-    PluginState.getPluginSyncStatus = jest.fn().mockResolvedValueOnce(mockSyncResponse);
-
-    // test
-    const response = await PluginState.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-
-    // assertions
-    expect(response).toEqual(mockSyncResponse);
-
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledTimes(1);
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledWith();
-  });
-
-  test('it recursively calls itself if the getPluginSyncStatus response token_ok is not true', async () => {
-    // mocks
-    const mockSyncResponse = { token_ok: false };
-    const mock_pollOnCallDataSyncStatusResponse = { foo: 'bar' };
-
-    PluginState.getPluginSyncStatus = jest.fn().mockResolvedValueOnce(mockSyncResponse);
-    PluginState.timeout = jest.fn();
-    PluginState._pollOnCallDataSyncStatus = jest.fn().mockResolvedValueOnce(mock_pollOnCallDataSyncStatusResponse);
-
-    // test
-    const response = await PluginState.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, 8);
-
-    // assertions
-    expect(response).toEqual(mock_pollOnCallDataSyncStatusResponse);
-
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledTimes(1);
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledWith();
-
-    expect(PluginState.timeout).toHaveBeenCalledTimes(1);
-    expect(PluginState.timeout).toHaveBeenCalledWith(8);
-
-    expect(PluginState._pollOnCallDataSyncStatus).toHaveBeenCalledTimes(1);
-    expect(PluginState._pollOnCallDataSyncStatus).toHaveBeenCalledWith(
-      onCallApiUrl,
-      onCallApiUrlIsConfiguredThroughEnvVar,
-      9
-    );
-  });
-
-  test('it returns the result of getHumanReadableErrorFromOnCallError in the event of an error from getPluginSyncStatus', async () => {
-    // mocks
-    const mockError = { foo: 'bar' };
-    const mockedHumanReadableError = 'kjdfkjfdjkfdkjfd';
-
-    PluginState.getPluginSyncStatus = jest.fn().mockRejectedValueOnce(mockError);
-    PluginState._pollOnCallDataSyncStatus = jest.fn();
-    PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(mockedHumanReadableError);
-
-    // test
-    const response = await PluginState.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-
-    // assertions
-    expect(response).toEqual(mockedHumanReadableError);
-
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledTimes(1);
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledWith();
-
-    expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledTimes(1);
-    expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledWith(
-      mockError,
-      onCallApiUrl,
-      'sync',
-      onCallApiUrlIsConfiguredThroughEnvVar
-    );
-
-    expect(PluginState._pollOnCallDataSyncStatus).not.toHaveBeenCalled();
-  });
-
-  test('it returns the result of getHumanReadableErrorFromOnCallError in the event of an error from a recursive call to pollOnCallDataSyncStatus', async () => {
-    // mocks
-    const mockSyncResponse = { token_ok: false };
-    const mockError = { foo: 'bar' };
-    const mockedHumanReadableError = 'kjdfkjfdjkfdkjfd';
-
-    PluginState.getPluginSyncStatus = jest.fn().mockResolvedValueOnce(mockSyncResponse);
-    PluginState._pollOnCallDataSyncStatus = jest.fn().mockRejectedValueOnce(mockError);
-    PluginState.timeout = jest.fn();
-    PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(mockedHumanReadableError);
-
-    // test
-    const response = await PluginState.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, 5);
-
-    // assertions
-    expect(response).toEqual(mockedHumanReadableError);
-
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledTimes(1);
-    expect(PluginState.getPluginSyncStatus).toHaveBeenCalledWith();
-
-    expect(PluginState.timeout).toHaveBeenCalledTimes(1);
-    expect(PluginState.timeout).toHaveBeenCalledWith(5);
-
-    expect(PluginState._pollOnCallDataSyncStatus).toHaveBeenCalledTimes(1);
-    expect(PluginState._pollOnCallDataSyncStatus).toHaveBeenCalledWith(
-      onCallApiUrl,
-      onCallApiUrlIsConfiguredThroughEnvVar,
-      6
-    );
-
-    expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledTimes(1);
-    expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledWith(
-      mockError,
-      onCallApiUrl,
-      'sync',
-      onCallApiUrlIsConfiguredThroughEnvVar
-    );
-  });
-});
-
-describe('PluginState.syncDataWithOnCall', () => {
-  const onCallApiUrl = 'http://hello.com';
-  const onCallApiUrlIsConfiguredThroughEnvVar = true;
-  const requestUrl = `${ONCALL_BASE_URL}/sync`;
-  const requestArgs = { method: 'POST' };
-
-  test('it returns the error mesage if the start sync returns an error', async () => {
-    // mocks
-    const errorMsg = 'asdfasdf';
-
-    makeRequest.mockResolvedValueOnce(errorMsg);
-    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
-    PluginState.pollOnCallDataSyncStatus = jest.fn();
-
-    // test
-    const response = await PluginState.syncDataWithOnCall(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-
-    // assertions
-    expect(response).toEqual(errorMsg);
-
-    expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith(requestUrl, requestArgs);
-
-    expect(PluginState.pollOnCallDataSyncStatus).not.toHaveBeenCalled();
-  });
-
-  test('it calls pollOnCallDataSyncStatus if the start sync does not return an error', async () => {
-    // mocks
-    const mockedResponse = { foo: 'bar' };
-    const mockedPollOnCallDataSyncStatusResponse = 'dfjkdfjdf';
-
-    makeRequest.mockResolvedValueOnce(mockedResponse);
-    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
-    PluginState.pollOnCallDataSyncStatus = jest.fn().mockResolvedValueOnce(mockedPollOnCallDataSyncStatusResponse);
-
-    // test
-    const response = await PluginState.syncDataWithOnCall(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-
-    // assertions
-    expect(response).toEqual(mockedPollOnCallDataSyncStatusResponse);
-
-    expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith(requestUrl, requestArgs);
-
-    expect(PluginState.pollOnCallDataSyncStatus).toHaveBeenCalledTimes(1);
-    expect(PluginState.pollOnCallDataSyncStatus).toHaveBeenCalledWith(
-      onCallApiUrl,
-      onCallApiUrlIsConfiguredThroughEnvVar
-    );
-  });
-
-  test('it calls getHumanReadableErrorFromOnCallError if an unknown error pops up', async () => {
-    // mocks
-    const mockedError = { foo: 'bar' };
-    const mockedHumanReadableError = 'asdfjkdfjkdfjk';
-
-    makeRequest.mockRejectedValueOnce(mockedError);
-    PluginState.getGrafanaToken = jest.fn().mockReturnValueOnce({ id: 1 });
-    PluginState.pollOnCallDataSyncStatus = jest.fn();
-    PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(mockedHumanReadableError);
-
-    // test
-    const response = await PluginState.syncDataWithOnCall(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-
-    // assertions
-    expect(response).toEqual(mockedHumanReadableError);
-
-    expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith(requestUrl, requestArgs);
-
-    expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledTimes(1);
-    expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledWith(
-      mockedError,
-      onCallApiUrl,
-      'sync',
-      onCallApiUrlIsConfiguredThroughEnvVar
-    );
-
-    expect(PluginState.pollOnCallDataSyncStatus).not.toHaveBeenCalled();
-  });
-});
-
 describe('PluginState.installPlugin', () => {
   it.each([true, false])('returns the proper response - self hosted: %s', async (selfHosted) => {
     // mocks
@@ -682,24 +441,6 @@ describe('PluginState.selfHostedInstallPlugin', () => {
   });
 });
 
-describe('PluginState.checkIfBackendIsInMaintenanceMode', () => {
-  test('it returns the API response', async () => {
-    // mocks
-    const maintenanceModeMsg = 'asdfljkadsjlfkajsdf';
-    const mockedResp = { currently_undergoing_maintenance_message: maintenanceModeMsg };
-    const onCallApiUrl = 'http://hello.com';
-    makeRequest.mockResolvedValueOnce(mockedResp);
-
-    // test
-    const response = await PluginState.checkIfBackendIsInMaintenanceMode(onCallApiUrl);
-
-    // assertions
-    expect(response).toEqual(mockedResp);
-    expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith('/maintenance-mode-status', { method: 'GET' });
-  });
-});
-
 describe('PluginState.checkIfPluginIsConnected', () => {
   test('it returns the API response', async () => {
     // mocks
@@ -714,7 +455,7 @@ describe('PluginState.checkIfPluginIsConnected', () => {
     expect(response).toEqual(mockedResp);
 
     expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith(`${ONCALL_BASE_URL}/status`, { method: 'GET' });
+    expect(makeRequest).toHaveBeenCalledWith(`${ONCALL_BASE_URL}/status`, { method: 'POST' });
   });
 
   test('it returns a human readable error in the event of an unsuccessful api call', async () => {
@@ -733,7 +474,7 @@ describe('PluginState.checkIfPluginIsConnected', () => {
     expect(response).toEqual(mockedHumanReadableError);
 
     expect(makeRequest).toHaveBeenCalledTimes(1);
-    expect(makeRequest).toHaveBeenCalledWith(`${ONCALL_BASE_URL}/status`, { method: 'GET' });
+    expect(makeRequest).toHaveBeenCalledWith(`${ONCALL_BASE_URL}/status`, { method: 'POST' });
 
     expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledTimes(1);
     expect(PluginState.getHumanReadableErrorFromOnCallError).toHaveBeenCalledWith(
