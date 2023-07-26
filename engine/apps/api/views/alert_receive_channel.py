@@ -10,6 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.alerts.models.maintainable_object import MaintainableObject
+from apps.api.errors import AlertReceiveChannelAPIError
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
@@ -79,7 +80,7 @@ class AlertReceiveChannelView(
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ("verbal_name", "integration")
+    search_fields = "verbal_name"
 
     filterset_class = AlertReceiveChannelFilter
     pagination_class = FifteenPageSizePaginator
@@ -296,3 +297,26 @@ class AlertReceiveChannelView(
         user = request.user
         instance.force_disable_maintenance(user)
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"])
+    def check_name(self):
+        """
+        Checks if given name is available for
+        """
+        verbal_name = self.request.query_params.get("verbal_name")
+        if verbal_name is None:
+            raise BadRequest("verbal_name is required")
+        organization = self.request.auth.organization
+        name_used = AlertReceiveChannel.objects.exists(organization=organization, verbal_name=verbal_name)
+        if name_used:
+            r = Response(status=status.HTTP_200_OK)
+        else:
+            r = Response(
+                data={
+                    "code": AlertReceiveChannelAPIError.NAME_NOT_UNIQ.value,
+                    "detail": "Integration with this name already exists",
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        return r

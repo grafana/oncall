@@ -13,6 +13,7 @@ from .views import (
     GrafanaAlertingAPIView,
     GrafanaAPIView,
     IntegrationHeartBeatAPIView,
+    MetadataView,
     UniversalAPIView,
 )
 
@@ -34,6 +35,7 @@ urlpatterns = [
     path("amazon_sns/<str:alert_channel_key>/", AmazonSNS.as_view(), name="amazon_sns"),
     path("alertmanager_v2/<str:alert_channel_key>/", AlertManagerV2View.as_view(), name="alertmanager_v2"),
     path("<str:integration_type>/<str:alert_channel_key>/", UniversalAPIView.as_view(), name="universal"),
+    path("<str:integration_type>/meta/<str:alert_channel_key>/", MetadataView.as_view(), name="metadata"),
 ]
 
 if settings.FEATURE_INBOUND_EMAIL_ENABLED:
