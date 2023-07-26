@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from django.apps import AppConfig, apps
+from django.apps import AppConfig
 from django.conf import settings
 from django.db import OperationalError
 
@@ -27,7 +27,8 @@ class GrafanaPluginConfig(AppConfig):
         is_not_migration_script = any(startup_command in sys.argv for startup_command in STARTUP_COMMANDS)
         if is_not_migration_script and settings.IS_OPEN_SOURCE:
             try:
-                Organization = apps.get_model("user_management", "Organization")
+                from apps.user_management.models import Organization
+
                 has_existing_org = Organization.objects.first() is not None
 
                 # only enforce the following for new setups - if no organization exists in the database

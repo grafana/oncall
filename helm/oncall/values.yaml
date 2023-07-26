@@ -191,6 +191,7 @@ migrate:
   ttlSecondsAfterFinished: 20
   # use a helm hook to manage the migration job
   useHook: false
+  annotations: {}
 
   ## Affinity for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity

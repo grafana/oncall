@@ -3,7 +3,6 @@ from .alert_group_web_title_cache import (  # noqa:F401
     update_web_title_cache,
     update_web_title_cache_for_alert_receive_channel,
 )
-from .call_ack_url import call_ack_url  # noqa: F401
 from .check_escalation_finished import check_escalation_finished_task  # noqa: F401
 from .create_contact_points_for_datasource import create_contact_points_for_datasource  # noqa: F401
 from .create_contact_points_for_datasource import schedule_create_contact_points_for_datasource  # noqa: F401

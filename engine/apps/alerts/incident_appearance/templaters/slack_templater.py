@@ -1,5 +1,3 @@
-from django.apps import apps
-
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
 
 
@@ -30,7 +28,8 @@ class AlertSlackTemplater(AlertTemplater):
         payload = self.alert.raw_request_data
         # First check if payload look like payload from manual incident integration and was not modified before.
         if "view" in payload and "private_metadata" in payload.get("view", {}) and "oncall" not in payload:
-            AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+            from apps.alerts.models import AlertReceiveChannel
+
             # If so - check it with db query.
             if self.alert.group.channel.integration == AlertReceiveChannel.INTEGRATION_MANUAL:
                 metadata = payload.get("view", {}).get("private_metadata", {})

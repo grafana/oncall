@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import ExpressionWrapper, F, fields
@@ -14,8 +13,9 @@ from .task_logger import task_logger
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def disable_maintenance(*args, **kwargs):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    User = apps.get_model("user_management", "User")
+    from apps.alerts.models import AlertGroup
+    from apps.user_management.models import User
+
     user = None
     object_under_maintenance = None
     user_id = kwargs.get("user_id")
@@ -25,7 +25,7 @@ def disable_maintenance(*args, **kwargs):
     force = kwargs.get("force", False)
     with transaction.atomic():
         if "alert_receive_channel_id" in kwargs:
-            AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+            from apps.alerts.models import AlertReceiveChannel
 
             alert_receive_channel_id = kwargs["alert_receive_channel_id"]
             try:
@@ -82,7 +82,8 @@ def disable_maintenance(*args, **kwargs):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def check_maintenance_finished(*args, **kwargs):
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    from apps.alerts.models import AlertReceiveChannel
+
     now = timezone.now()
     maintenance_finish_at = ExpressionWrapper(
         (F("maintenance_started_at") + F("maintenance_duration")), output_field=fields.DateTimeField()

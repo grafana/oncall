@@ -234,7 +234,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderHeader = () => {
     const {
       store,
-      query: { cursor, start, perpage },
+      query,
       match: {
         params: { id },
       },
@@ -255,7 +255,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
-              <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
+              <PluginLink query={{ page: 'alert-groups', ...query }}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}

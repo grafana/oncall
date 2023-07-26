@@ -4,7 +4,6 @@ import { sentenceCase } from 'change-case';
 // @ts-ignore
 import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
-import qs from 'query-string';
 
 import { isNetworkError } from 'network';
 
@@ -17,12 +16,6 @@ export class KeyValuePair<T = string | number> {
     this.value = value;
   }
 }
-
-export const TZ_OFFSET = new Date().getTimezoneOffset();
-
-export const getTzOffsetHours = (): number => {
-  return TZ_OFFSET / 60;
-};
 
 export function showApiError(error: any) {
   if (isNetworkError(error) && error.response && error.response.status >= 400 && error.response.status < 500) {
@@ -97,74 +90,4 @@ export function getPaths(obj?: any, parentKey?: string): string[] {
     result = [];
   }
   return concat(result, parentKey || []);
-}
-
-export function rateToPercent(rate: number): string | undefined {
-  if (isNaN(rate)) {
-    return undefined;
-  }
-  return ((rate - 1) * 100).toFixed(2);
-}
-
-export function getIsMobile(): boolean {
-  const width = document.documentElement.clientWidth;
-  return width < 900;
-}
-
-export function splitTime(seconds: number): number[] {
-  let days = 0;
-  let hours = 0;
-  let mins = 0;
-  let secs = seconds;
-  if (secs) {
-    days = Math.floor(secs / 86400);
-    secs -= days * 86400;
-    hours = Math.floor(secs / 3600);
-    secs -= hours * 3600;
-    mins = Math.floor(secs / 60);
-    secs -= mins * 60;
-  }
-
-  return [days, hours, mins, secs];
-}
-
-export function secondsToHumanReadable(duration: number): string {
-  const [days, hours, mins, secs] = splitTime(duration);
-
-  let timeText = '';
-
-  if (days) {
-    timeText += `${days}d`;
-  }
-
-  if (hours) {
-    timeText += `${hours}h`;
-  }
-
-  if (mins) {
-    timeText += `${mins}m`;
-  }
-
-  if (secs) {
-    timeText += `${secs}s`;
-  }
-
-  return timeText;
-}
-
-export function secondsToHours(seconds: number) {
-  return seconds / 3600;
-}
-
-export function getApiOrigin() {
-  return process.env.REACT_APP_API || '';
-}
-
-export function replaceQueryParams(params: any) {
-  const query = qs.stringify({
-    ...qs.parse(window.location.search),
-    ...params,
-  });
-
-  window.history.replaceState(null, '', `${window.location.pathname}?${query}${window.location.hash}`);
 }

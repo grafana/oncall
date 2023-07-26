@@ -3,7 +3,6 @@ import typing
 
 import requests
 from celery import shared_task
-from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
@@ -109,7 +108,7 @@ def check_escalation_finished_task() -> None:
     """
     don't retry this task, the idea is to be alerted of failures
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
 
     now = timezone.now()
     two_days_ago = now - datetime.timedelta(days=2)

@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 
@@ -12,9 +11,8 @@ from .task_logger import task_logger
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def acknowledge_reminder_task(alert_group_pk, unacknowledge_process_id):
-    Organization = apps.get_model("user_management", "Organization")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+    from apps.user_management.models import Organization
 
     log_record = None
 
@@ -76,9 +74,8 @@ def acknowledge_reminder_task(alert_group_pk, unacknowledge_process_id):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def unacknowledge_timeout_task(alert_group_pk, unacknowledge_process_id):
-    Organization = apps.get_model("user_management", "Organization")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+    from apps.user_management.models import Organization
 
     log_record = None
 
