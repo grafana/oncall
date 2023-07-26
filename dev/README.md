@@ -7,7 +7,7 @@
   - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
-- [UI Integration Tests](#ui-integration-tests)
+- [UI Integration Tests](#ui-e2e-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -198,7 +198,7 @@ To run these tests locally simply do the following:
 
 ```bash
 npx playwright install  # install playwright dependencies
-cp ./grafana-plugin/integration-tests/.env.example ./grafana-plugin/integration-tests/.env
+cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
 cd grafana-plugin
 yarn test:e2e
