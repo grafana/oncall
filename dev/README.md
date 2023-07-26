@@ -7,7 +7,7 @@
   - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
-- [UI Integration Tests](#ui-e2e-tests)
+- [UI E2E Tests](#ui-e2e-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -189,7 +189,7 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
-## UI Integration Tests
+## UI E2E Tests
 
 We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
 are run on pull request CI builds. New features should ideally include a new/modified integration test.
