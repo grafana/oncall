@@ -500,11 +500,19 @@
 {{- end }}
 {{- end }}
 
+{{- define "snippet.redis.port" -}}
+{{ if not .Values.redis.enabled -}}
+  {{ required "externalRedis.port is required if not redis.enabled" .Values.externalRedis.port | quote }}
+{{- else -}}
+  6379
+{{- end }}
+{{- end }}
+
 {{- define "snippet.redis.env" -}}
 - name: REDIS_HOST
   value: {{ include "snippet.redis.host" . }}
 - name: REDIS_PORT
-  value: "6379"
+  value: "{{ include "snippet.redis.port" . }}"
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:

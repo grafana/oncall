@@ -361,6 +361,8 @@ redis:
 externalRedis:
   host:
   password:
+  # To select a redis database you must use 6379/2
+  port: "6379"
   # Use an existing secret for the redis password
   existingSecret:
   # The key in the secret containing the redis password
