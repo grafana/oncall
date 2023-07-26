@@ -142,14 +142,15 @@ class AlertReceiveChannelView(
 
         return queryset
 
-    def paginate_queryset(self, queryset, request, view=None):
-        """Override to apply pagination only if ?page= is present in query params
+    def paginate_queryset(self, queryset):
+        """
+        Override to apply pagination only if ?page= is present in query params
         Required for Grafana Alerting.
         """
-        page_number = request.query_params.get(self.page_query_param, None)
+        page_number = self.request.query_params.get("page", None)
         if not page_number:
             return None
-        return super().paginate_queryset(queryset, request, view)
+        return super().paginate_queryset(queryset)
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
