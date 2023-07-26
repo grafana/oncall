@@ -20,7 +20,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
     await page.getByTestId('integration-heartbeat-settings').click();
   };
 
-  test('"change heartbeat interval', async ({ adminRolePage: { page } }) => {
+  test('change heartbeat interval', async ({ adminRolePage: { page } }) => {
     const integrationName = generateRandomValue();
     await createIntegration(page, integrationName);
 
@@ -49,26 +49,23 @@ test.describe("updating an integration's heartbeat interval works", async () => 
     expect(heartbeatIntervalValue).toEqual(value);
   });
 
-  // TODO: Uncomment once https://github.com/grafana/oncall/pull/2648 ready
-  // test('"send heartbeat', async ({ adminRolePage: { page } }) => {
-  //   const integrationName = generateRandomValue();
-  //   await createIntegration(page, integrationName);
+  test('send heartbeat', async ({ request, adminRolePage: { page } }) => {
+    const integrationName = generateRandomValue();
+    await createIntegration(page, integrationName);
 
-  //   await _openHeartbeatSettingsForm(page);
+    await _openHeartbeatSettingsForm(page);
 
-  //   const heartbeatSettingsForm = page.getByTestId('heartbeat-settings-form');
+    const heartbeatSettingsForm = page.getByTestId('heartbeat-settings-form');
 
-  //   const endpoint = await heartbeatSettingsForm
-  //     .getByTestId('input-wrapper')
-  //     .locator('input[class*="input-input"]')
-  //     .inputValue();
+    const endpoint = await heartbeatSettingsForm
+      .getByTestId('input-wrapper')
+      .locator('input[class*="input-input"]')
+      .inputValue();
 
-  //   await page.goto(endpoint);
+    await request.get(endpoint);
+    await page.reload({ waitUntil: 'networkidle' });
 
-  //   await page.goBack();
-
-  //   const heartbeatBadge = await page.getByTestId('heartbeat-badge');
-
-  //   await expect(heartbeatBadge).toHaveClass(/--success/);
-  // });
+    // If heartbeat was never sent, there will be no badge
+    await page.getByTestId('heartbeat-badge').waitFor({ state: 'visible' });
+  });
 });
