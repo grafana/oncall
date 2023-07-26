@@ -80,7 +80,7 @@ class AlertReceiveChannelView(
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = "verbal_name"
+    search_fields = ("verbal_name",)
 
     filterset_class = AlertReceiveChannelFilter
     pagination_class = FifteenPageSizePaginator
@@ -301,7 +301,8 @@ class AlertReceiveChannelView(
     @action(detail=False, methods=["get"])
     def check_name(self):
         """
-        Checks if given name is available for
+        Checks if verbal_name is available.
+        It is needed for OnCall <-> Alerting integration.
         """
         verbal_name = self.request.query_params.get("verbal_name")
         if verbal_name is None:
