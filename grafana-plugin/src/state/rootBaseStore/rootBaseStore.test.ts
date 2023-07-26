@@ -347,7 +347,7 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
-    const syncDataWithOnCallError = 'asdasdfasdfasf';
+    const checkIfPluginIsConnectedError = 'asdasdfasdfasf';
 
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
@@ -357,7 +357,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(syncDataWithOnCallError);
+    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(checkIfPluginIsConnectedError);
     rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
 
     // test
@@ -367,6 +367,6 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(rootBaseStore.initializationError).toEqual(syncDataWithOnCallError);
+    expect(rootBaseStore.initializationError).toEqual(checkIfPluginIsConnectedError);
   });
 });

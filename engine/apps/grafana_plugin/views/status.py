@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
+from apps.base.models import DynamicSetting
 from apps.grafana_plugin.helpers import GrafanaAPIClient
 from apps.grafana_plugin.permissions import PluginTokenVerified
 from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
@@ -41,7 +42,6 @@ class StatusView(GrafanaHeadersMixin, APIView):
             is_installed = True
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
         else:
-            DynamicSetting = apps.get_model("base", "DynamicSetting")
             allow_signup = DynamicSetting.objects.get_or_create(
                 name="allow_plugin_organization_signup", defaults={"boolean_value": True}
             )[0].boolean_value

@@ -248,7 +248,7 @@ describe('PluginConfigPage', () => {
     expect(component.container).toMatchSnapshot();
   });
 
-  test('OnCallApiUrl is set, and checkApiTokenSyncData returns an error', async () => {
+  test('OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected returns an error', async () => {
     // mocks
     const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';
     const metaJsonDataOnCallApiUrl = 'onCallApiUrlFromMetaJsonData';
@@ -269,7 +269,7 @@ describe('PluginConfigPage', () => {
   });
 
   test.each([License.CLOUD, License.OSS])(
-    'OnCallApiUrl is set, and checkApiTokenSyncData does not return an error. It displays properly the plugin connected items based on the license - License: %s',
+    'OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected does not return an error. It displays properly the plugin connected items based on the license - License: %s',
     async (license) => {
       // mocks
       const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';

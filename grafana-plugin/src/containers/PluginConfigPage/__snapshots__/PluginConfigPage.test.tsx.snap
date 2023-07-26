@@ -264,7 +264,7 @@ exports[`PluginConfigPage It doesn't make any network calls if the plugin config
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
 <div>
   <legend
     class="css-11wqcat"
@@ -317,7 +317,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData does no
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
 <div>
   <legend
     class="css-11wqcat"
@@ -371,7 +371,7 @@ exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData does no
 </div>
 `;
 
-exports[`PluginConfigPage OnCallApiUrl is set, and checkApiTokenSyncData returns an error 1`] = `
+exports[`PluginConfigPage OnCallApiUrl is set, and checkTokenAndIfPluginIsConnected returns an error 1`] = `
 <div>
   <legend
     class="css-11wqcat"
