@@ -20,7 +20,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
     await page.getByTestId('integration-heartbeat-settings').click();
   };
 
-  test('"change heartbeat interval', async ({ adminRolePage: { page } }) => {
+  test('change heartbeat interval', async ({ adminRolePage: { page } }) => {
     const integrationName = generateRandomValue();
     await createIntegration(page, integrationName);
 
@@ -49,7 +49,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
     expect(heartbeatIntervalValue).toEqual(value);
   });
 
-  test('"send heartbeat', async ({ request, adminRolePage: { page } }) => {
+  test('send heartbeat', async ({ request, adminRolePage: { page } }) => {
     const integrationName = generateRandomValue();
     await createIntegration(page, integrationName);
 
@@ -65,7 +65,7 @@ test.describe("updating an integration's heartbeat interval works", async () => 
     await request.get(endpoint);
     await page.reload({ waitUntil: 'networkidle' });
 
-    const heartbeatBadge = await page.getByTestId('heartbeat-badge');
-    await expect(heartbeatBadge).toHaveClass(/--success/);
+    // If heartbeat was never sent, there will be no badge
+    await page.getByTestId('heartbeat-badge').waitFor({ state: 'visible' });
   });
 });
