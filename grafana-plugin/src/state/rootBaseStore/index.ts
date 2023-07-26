@@ -115,6 +115,7 @@ export class RootBaseStore {
     };
 
     return Promise.all([
+      this.userStore.loadCurrentUser(),
       this.organizationStore.loadCurrentOrganization(),
       this.grafanaTeamStore.updateItems(),
       updateFeatures(),
@@ -221,11 +222,12 @@ export class RootBaseStore {
       this.backendLicense = pluginConnectionStatus.license;
       this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
     }
-
-    try {
-      await this.userStore.loadCurrentUser();
-    } catch (e) {
-      return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
+    if (!this.userStore.currentUser) {
+      try {
+        await this.userStore.loadCurrentUser();
+      } catch (e) {
+        return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
+      }
     }
   }
 
