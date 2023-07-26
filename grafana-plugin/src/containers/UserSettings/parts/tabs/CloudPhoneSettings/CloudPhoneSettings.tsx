@@ -115,7 +115,6 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
       <WithPermissionControlDisplay
         userAction={UserActions.OtherSettingsWrite}
         title="OnCall uses Grafana Cloud for SMS and phone call notifications"
-        message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
       >
         <VerticalGroup spacing="lg">
           <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>

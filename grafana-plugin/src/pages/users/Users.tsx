@@ -236,14 +236,28 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   renderTitle = (user: UserType) => {
+    const {
+      store: { userStore },
+    } = this.props;
+    const isCurrent = userStore.currentUserPk === user.pk;
+
     return (
       <HorizontalGroup>
         <Avatar className={cx('user-avatar')} size="large" src={user.avatar} />
-        <div>
-          <div>{user.username}</div>
-          <Text type="secondary">{user.email}</Text>
+        <div
+          className={cx({
+            'current-user': isCurrent,
+            'other-user': !isCurrent,
+          })}
+        >
+          <div data-testid="users-username">{user.username}</div>
+          <Text type="secondary" data-testid="users-email">
+            {user.email}
+          </Text>
           <br />
-          <Text type="secondary">{user.verified_phone_number}</Text>
+          <Text type="secondary" data-testid="users-phone-number">
+            {user.verified_phone_number}
+          </Text>
         </div>
       </HorizontalGroup>
     );
