@@ -313,16 +313,3 @@ class AlertManagerV2View(BrowsableInstructionMixin, AlertChannelDefiningMixin, I
             },
         )
         return Response("Ok.")
-
-
-class MetadataView(AlertChannelDefiningMixin, APIView):
-    """
-    MetadataView allows to get some data about integration using its integration token.
-    """
-
-    def get(self, request, *args, **kwargs):
-        alert_receive_channel = self.request.alert_receive_channel
-        # currently it's used only for OnCall <-> Alerting integration.
-        if alert_receive_channel.integration != AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
-            return Response(status=404)
-        return Response(data={"id": alert_receive_channel.public_primary_key}, status=200)
