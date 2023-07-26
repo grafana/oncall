@@ -271,7 +271,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 return None
 
     def get_is_based_on_alertmanager(self, obj):
-        return obj.has_alertmanager_payload_structure
+        return obj.based_on_alertmanager
 
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
     def to_internal_value(self, data):

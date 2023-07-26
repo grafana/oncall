@@ -8,7 +8,7 @@ is_featured = False
 featured_tag_name = None
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
-based_on_am = True
+based_on_alertmanager = True
 
 description = """ \
 Alerts from Grafana Alertmanager are automatically routed to this integration.

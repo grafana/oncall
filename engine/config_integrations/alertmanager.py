@@ -8,7 +8,7 @@ is_featured = False
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
 description = None
-based_on_am = True
+based_on_alertmanager = True
 
 
 # Behaviour

@@ -558,7 +558,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             payload = self.config.example_payload
 
         # TODO: AMV2 - Deprecated. After all alertmanager based integration will be migrated to v2 should be removed.
-        if self.has_alertmanager_payload_structure:
+        if self.based_on_alertmanager:
             alerts = payload.get("alerts", None)
             if not isinstance(alerts, list) or not len(alerts):
                 raise UnableToSendDemoAlert(
@@ -579,8 +579,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             )
 
     @property
-    def has_alertmanager_payload_structure(self):
-        return getattr(self.config, "based_on_am", False)
+    def based_on_alertmanager(self):
+        return getattr(self.config, "based_on_alertmanager", False)
 
     # Insight logs
     @property
