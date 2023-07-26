@@ -1,4 +1,4 @@
-base_url: http://localhost:30001
+base_url: "http://localhost:30001"
 ingress:
   enabled: false
 ingress-nginx:
