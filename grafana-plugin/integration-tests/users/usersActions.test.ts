@@ -31,7 +31,7 @@ test.describe('Users screen actions', () => {
     // therefore we wait a generic 1000ms duration and assert based on visibility
     await page.waitForTimeout(1000);
 
-    const tabs = ['tab-phone-verification', 'tab-mobile-app'];
+    const tabs = ['tab-phone-verification', 'tab-mobile-app', 'tab-slack', 'tab-telegram'];
 
     for (let i = 0; i < tabs.length - 1; ++i) {
       const tab = page.getByTestId(tabs[i]);
