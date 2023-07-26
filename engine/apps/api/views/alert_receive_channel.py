@@ -143,6 +143,13 @@ class AlertReceiveChannelView(
 
         return queryset
 
+    def paginate_queryset(self, queryset):
+        pagination = self.request.query_params.get("pagination", "true") == "true"
+        if pagination:
+            return super().paginate_queryset(queryset)
+        else:
+            return None
+
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
         instance = self.get_object()
