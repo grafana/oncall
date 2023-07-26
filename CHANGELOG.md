@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Remove checks delaying plugin load and cause "Initializing plugin..." ([2624](https://github.com/grafana/oncall/pull/2624))
+- Fix "Continue escalation if >X alerts per Y minutes" escalation step by @vadimkerr ([#2636](https://github.com/grafana/oncall/pull/2636))
 
 ## v1.3.17 (2023-07-25)
 
