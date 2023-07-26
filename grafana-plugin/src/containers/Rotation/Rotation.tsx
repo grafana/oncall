@@ -7,7 +7,7 @@ import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
+import { Schedule, Event, RotationFormLiveParams, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
@@ -31,6 +31,8 @@ interface RotationProps {
   tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
+  onSlotClick?: (shiftId: Shift['id']) => void;
+  getColor?: (shiftId: Shift['id']) => string;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
@@ -39,7 +41,7 @@ const Rotation: FC<RotationProps> = (props) => {
     scheduleId,
     startMoment,
     currentTimezone,
-    color,
+    color: propsColor,
     days = 7,
     transparent = false,
     tutorialParams,
@@ -47,6 +49,8 @@ const Rotation: FC<RotationProps> = (props) => {
     handleAddOverride,
     simplified,
     filters,
+    getColor,
+    onSlotClick,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
@@ -72,6 +76,12 @@ const Rotation: FC<RotationProps> = (props) => {
     };
   };
 
+  const getSlotClickHandler = (shiftId: Shift['id']) => {
+    return () => {
+      onSlotClick(shiftId);
+    };
+  };
+
   const x = useMemo(() => {
     if (!events || !events.length) {
       return 0;
@@ -85,7 +95,7 @@ const Rotation: FC<RotationProps> = (props) => {
   }, [events]);
 
   return (
-    <div className={cx('root')} onClick={handleRotationClick}>
+    <div className={cx('root')} onClick={onClick && handleRotationClick}>
       <div className={cx('timeline')}>
         {tutorialParams && <RotationTutorial startMoment={startMoment} {...tutorialParams} />}
         {events ? (
@@ -102,10 +112,11 @@ const Rotation: FC<RotationProps> = (props) => {
                     event={event}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
-                    color={color}
+                    color={propsColor || getColor(event.shift?.pk)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     simplified={simplified}
                     filters={filters}
+                    onClick={onSlotClick && getSlotClickHandler(event.shift?.pk)}
                   />
                 );
               })}

@@ -111,6 +111,7 @@ export interface Layer {
 export interface ShiftEvents {
   shiftId: string;
   events: Event[];
+  priority: number;
   isPreview?: boolean;
 }
 

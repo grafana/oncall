@@ -10,7 +10,12 @@ import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
+import {
+  flattenFinalShifs,
+  getLayersFromStore,
+  getOverridesFromStore,
+  getShiftsFromStore,
+} from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
@@ -52,13 +57,15 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const currentTimeX = diff / base;
 
-    const shifts = getShiftsFromStore(store, scheduleId, startMoment);
+    const shifts = flattenFinalShifs(getShiftsFromStore(store, scheduleId, startMoment));
 
     const layers = getLayersFromStore(store, scheduleId, startMoment);
 
     const overrides = getOverridesFromStore(store, scheduleId, startMoment);
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
+
+    const getColor = (shiftId: Shift['id']) => findColor(shiftId, layers, overrides);
 
     return (
       <>
@@ -79,7 +86,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <TimelineMarks startMoment={startMoment} timezone={currentTimezone} />
             <TransitionGroup className={cx('rotations')}>
               {shifts && shifts.length ? (
-                shifts.map(({ shiftId, events }, index) => {
+                shifts.map(({ events }, index) => {
                   return (
                     <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                       <Rotation
@@ -88,11 +95,11 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                         events={events}
                         startMoment={startMoment}
                         currentTimezone={currentTimezone}
-                        color={findColor(shiftId, layers, overrides)}
-                        onClick={this.getRotationClickHandler(shiftId)}
+                        onSlotClick={this.handleRotationClick}
                         handleAddOverride={this.handleShowOverrideForm}
                         simplified={simplified}
                         filters={filters}
+                        getColor={getColor}
                       />
                     </CSSTransition>
                   );
@@ -114,16 +121,12 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
     );
   }
 
-  getRotationClickHandler = (shiftId: Shift['id']) => {
+  handleRotationClick = (shiftId: Shift['id']) => {
     const { onClick, disabled } = this.props;
-
-    return () => {
-      if (disabled) {
-        return;
-      }
-
-      onClick(shiftId);
-    };
+    if (disabled) {
+      return;
+    }
+    onClick(shiftId);
   };
 
   onSearchTermChangeCallback = () => {};

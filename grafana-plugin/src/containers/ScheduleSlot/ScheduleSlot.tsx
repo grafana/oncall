@@ -28,12 +28,13 @@ interface ScheduleSlotProps {
   color?: string;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
+  onClick: () => void;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { event, scheduleId, currentTimezone, color, handleAddOverride, simplified, filters } = props;
+  const { event, scheduleId, currentTimezone, color, handleAddOverride, simplified, filters, onClick } = props;
   const { users } = event;
 
   const start = dayjs(event.start);
@@ -50,7 +51,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
 
   return (
-    <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
+    <div className={cx('stack')} style={{ width: `${width * 100}%` }} onClick={onClick}>
       {event.is_gap ? (
         <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
           <div className={cx('root', 'root__type_gap')} />
