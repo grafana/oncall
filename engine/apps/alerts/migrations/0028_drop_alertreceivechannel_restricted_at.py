@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql="ALTER TABLE alerts_alertreceivechannel DROP COLUMN restricted_at",
-            reverse_sql=migrations.RunSQL.noop
+            reverse_sql="ALTER TABLE alerts_alertreceivechannel ADD COLUMN restricted_at datetime(6) NULL"
         )
     ]
