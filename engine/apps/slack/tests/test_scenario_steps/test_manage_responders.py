@@ -4,6 +4,8 @@ from unittest.mock import patch
 import pytest
 from django.utils import timezone
 
+from apps.alerts.models import AlertGroup
+from apps.alerts.paging import DirectPagingAlertGroupResolvedError
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.manage_responders import (
@@ -192,6 +194,42 @@ def test_add_schedule(manage_responders_setup, make_schedule, make_on_call_shift
 
     assert mock_slack_api_call.call_args.args == ("views.update",)
     assert mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["accessory"]["value"] == str(user.pk)
+
+
+@pytest.mark.django_db
+def test_add_schedule_alert_group_resolved(
+    manage_responders_setup, make_schedule, make_on_call_shift, make_user_notification_policy
+):
+    organization, user, slack_team_identity, slack_user_identity = manage_responders_setup
+    AlertGroup.objects.filter(pk=ALERT_GROUP_ID).update(resolved=True)  # resolve alert group
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(hours=23, minutes=59, seconds=59),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+    schedule.refresh_ical_file()
+    payload = make_slack_payload(schedule=schedule)
+
+    step = ManageRespondersScheduleChange(slack_team_identity, organization, user)
+    with patch.object(step._slack_client, "api_call") as mock_slack_api_call:
+        step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_slack_api_call.call_args.args == ("views.update",)
+    assert (
+        DirectPagingAlertGroupResolvedError.DETAIL
+        in mock_slack_api_call.call_args.kwargs["view"]["blocks"][0]["text"]["text"]
+    )
 
 
 @pytest.mark.django_db
