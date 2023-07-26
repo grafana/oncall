@@ -1,8 +1,6 @@
-import datetime
 import functools
 import operator
 
-import pytz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, OuterRef, Subquery
 from django.db.utils import IntegrityError
@@ -276,16 +274,12 @@ class ScheduleView(
 
     @action(detail=True, methods=["get"])
     def events(self, request, pk):
-        user_tz, starting_date = self.get_request_timezone()
+        user_tz, date = self.get_request_timezone()
         with_empty = self.request.query_params.get("with_empty", False) == "true"
         with_gap = self.request.query_params.get("with_gap", False) == "true"
 
         schedule = self.get_object()
-
-        pytz_tz = pytz.timezone(user_tz)
-        datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
-        datetime_end = datetime_start + datetime.timedelta(days=1)
-        events = schedule.filter_events(datetime_start, datetime_end, with_empty=with_empty, with_gap=with_gap)
+        events = schedule.filter_events(user_tz, date, days=1, with_empty=with_empty, with_gap=with_gap)
 
         slack_channel = (
             {
@@ -318,22 +312,19 @@ class ScheduleView(
 
         schedule = self.get_object()
 
-        pytz_tz = pytz.timezone(user_tz)
-        datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
-        datetime_end = datetime_start + datetime.timedelta(days=days)
-
         if filter_by is not None and filter_by != EVENTS_FILTER_BY_FINAL:
             filter_by = OnCallSchedule.PRIMARY if filter_by == EVENTS_FILTER_BY_ROTATION else OnCallSchedule.OVERRIDES
             events = schedule.filter_events(
-                datetime_start,
-                datetime_end,
+                user_tz,
+                starting_date,
+                days=days,
                 with_empty=True,
                 with_gap=resolve_schedule,
                 filter_by=filter_by,
                 all_day_datetime=True,
             )
         else:  # return final schedule
-            events = schedule.final_events(datetime_start, datetime_end)
+            events = schedule.final_events(user_tz, starting_date, days)
 
         result = {
             "id": schedule.public_primary_key,
@@ -346,11 +337,11 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def next_shifts_per_user(self, request, pk):
         """Return next shift for users in schedule."""
+        user_tz, _ = self.get_request_timezone()
         now = timezone.now()
-        datetime_end = now + datetime.timedelta(days=30)
+        starting_date = now.date()
         schedule = self.get_object()
-
-        events = schedule.final_events(now, datetime_end)
+        events = schedule.final_events(user_tz, starting_date, days=30)
 
         users = {u.public_primary_key: None for u in schedule.related_users()}
         for e in events:
@@ -382,11 +373,10 @@ class ScheduleView(
         schedule = self.get_object()
 
         _, date = self.get_request_timezone()
-        datetime_start = datetime.datetime.combine(date, datetime.time.min, tzinfo=pytz.UTC)
         days = self.request.query_params.get("days")
         days = int(days) if days else None
 
-        return Response(schedule.quality_report(datetime_start, days))
+        return Response(schedule.quality_report(date, days))
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):
