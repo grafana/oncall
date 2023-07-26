@@ -198,9 +198,7 @@ class EscalationSnapshotMixin:
 
     @property
     def escalation_chain_exists(self) -> bool:
-        if self.pause_escalation:
-            return False
-        elif not self.channel_filter:
+        if not self.channel_filter:
             return False
         return self.channel_filter.escalation_chain is not None
 
@@ -232,17 +230,11 @@ class EscalationSnapshotMixin:
 
         is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
 
-        if (
-            self.is_restricted
-            or is_on_maintenace_or_debug_mode
-            or self.pause_escalation
-            or not self.escalation_chain_exists
-        ):
+        if self.is_restricted or is_on_maintenace_or_debug_mode or not self.escalation_chain_exists:
             logger.debug(
                 f"Not escalating alert group w/ pk: {self.pk}\n"
                 f"is_restricted: {self.is_restricted}\n"
                 f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
-                f"pause_escalation: {self.pause_escalation}\n"
                 f"escalation_chain_exists: {self.escalation_chain_exists}"
             )
             return
