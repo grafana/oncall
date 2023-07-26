@@ -2,7 +2,6 @@ import logging
 import urllib.parse
 from string import digits
 
-from django.apps import apps
 from django.db.models import F, Q
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from twilio.base.exceptions import TwilioRestException
@@ -18,14 +17,21 @@ from apps.phone_notifications.exceptions import (
 )
 from apps.phone_notifications.phone_provider import PhoneProvider, ProviderFlags
 from apps.twilioapp.gather import get_gather_message, get_gather_url
-from apps.twilioapp.models import TwilioCallStatuses, TwilioPhoneCall, TwilioSMS
+from apps.twilioapp.models import (
+    TwilioCallStatuses,
+    TwilioPhoneCall,
+    TwilioPhoneCallSender,
+    TwilioSMS,
+    TwilioSmsSender,
+    TwilioVerificationSender,
+)
 from apps.twilioapp.status_callback import get_call_status_callback_url, get_sms_status_callback_url
 
 logger = logging.getLogger(__name__)
 
 
 class TwilioPhoneProvider(PhoneProvider):
-    def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall:
+    def make_notification_call(self, number: str, message: str) -> TwilioPhoneCall | None:
         message = self._escape_call_message(message)
 
         twiml_query = self._message_to_twiml(message, with_gather=True)
@@ -39,26 +45,27 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
-                logger.info(f"TwilioPhoneProvider.make_notification_call: error 21609, calling without callback_url")
+                logger.info("TwilioPhoneProvider.make_notification_call: error 21609, calling without callback_url")
                 try_without_callback = True
             else:
                 logger.error(f"TwilioPhoneProvider.make_notification_call: failed {e}")
-                raise FailedToMakeCall
+                raise FailedToMakeCall(graceful_msg=self._get_graceful_msg(e, number))
 
         if try_without_callback:
             try:
                 response = self._call_create(twiml_query, number, with_callback=False)
             except TwilioRestException as e:
                 logger.error(f"TwilioPhoneProvider.make_notification_call: failed {e}")
-                raise FailedToMakeCall
+                raise FailedToMakeCall(graceful_msg=self._get_graceful_msg(e, number))
 
         if response and response.status and response.sid:
             return TwilioPhoneCall(
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
             )
+        return None
 
-    def send_notification_sms(self, number: str, message: str) -> TwilioSMS:
+    def send_notification_sms(self, number: str, message: str) -> TwilioSMS | None:
         try_without_callback = False
         response = None
 
@@ -68,24 +75,25 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
-                logger.info(f"TwilioPhoneProvider.send_notification_sms: error 21609, sending without callback_url")
+                logger.info("TwilioPhoneProvider.send_notification_sms: error 21609, sending without callback_url")
                 try_without_callback = True
             else:
                 logger.error(f"TwilioPhoneProvider.send_notification_sms: failed {e}")
-                raise FailedToSendSMS
+                raise FailedToSendSMS(graceful_msg=self._get_graceful_msg(e, number))
 
         if try_without_callback:
             try:
                 response = self._messages_create(number, message, with_callback=False)
             except TwilioRestException as e:
                 logger.error(f"TwilioPhoneProvider.send_notification_sms: failed {e}")
-                raise FailedToSendSMS
+                raise FailedToSendSMS(graceful_msg=self._get_graceful_msg(e, number))
 
         if response and response.status and response.sid:
             return TwilioSMS(
                 status=TwilioCallStatuses.DETERMINANT.get(response.status, None),
                 sid=response.sid,
             )
+        return None
 
     def send_verification_sms(self, number: str):
         self._send_verification_code(number, via="sms")
@@ -106,9 +114,36 @@ class TwilioPhoneProvider(PhoneProvider):
                     return normalized_number
             except TwilioRestException as e:
                 logger.error(f"TwilioPhoneProvider.finish_verification: failed to verify number {number}: {e}")
-                raise FailedToFinishVerification
+                raise FailedToFinishVerification(graceful_msg=self._get_graceful_msg(e, number))
         else:
             return None
+
+    """
+    Errors we will raise without graceful messages:
+
+    20404 - We should not be requesting missing resources
+    30808 - Unknown error, likely on the carrier side
+    30007, 32017 - Blocked or filtered, Intermediary / Carrier Analytics blocked call
+                due to poor reputation score on the telephone number:
+        * We need to register our number or sender with the analytics provider or carrier for that jurisdiction
+    """
+
+    def _get_graceful_msg(self, e, number):
+        if e.code in (30003, 30005):
+            return f"Destination handset {number} is unreachable"
+        elif e.code == 30004:
+            return f"Sending message to {number} is blocked"
+        elif e.code == 30006:
+            return f"Cannot send to {number} is landline or unreachable carrier"
+        elif e.code == 30410:
+            return f"Provider for {number} is experiencing timeouts"
+        elif e.code == 60200:
+            return f"{number} is incorrectly formatted"
+        elif e.code in (21215, 60410, 60605):
+            return f"Verification to {number} is blocked"
+        elif e.code == 60203:
+            return f"Max verification attempts for {number} reached"
+        return None
 
     def make_call(self, number: str, message: str):
         twiml_query = self._message_to_twiml(message, with_gather=False)
@@ -116,14 +151,14 @@ class TwilioPhoneProvider(PhoneProvider):
             self._call_create(twiml_query, number, with_callback=False)
         except TwilioRestException as e:
             logger.error(f"TwilioPhoneProvider.make_call: failed {e}")
-            raise FailedToMakeCall
+            raise FailedToMakeCall(graceful_msg=self._get_graceful_msg(e, number))
 
     def send_sms(self, number: str, message: str):
         try:
             self._messages_create(number, message, with_callback=False)
         except TwilioRestException as e:
             logger.error(f"TwilioPhoneProvider.send_sms: failed {e}")
-            raise FailedToSendSMS
+            raise FailedToSendSMS(graceful_msg=self._get_graceful_msg(e, number))
 
     def _message_to_twiml(self, message: str, with_gather=False):
         q = f"<Response><Say>{message}</Say></Response>"
@@ -178,7 +213,7 @@ class TwilioPhoneProvider(PhoneProvider):
             logger.info(f"TwilioPhoneProvider._send_verification_code: verification status {verification.status}")
         except TwilioRestException as e:
             logger.error(f"Twilio verification start error: {e} to number {number}")
-            raise FailedToStartVerification
+            raise FailedToStartVerification(graceful_msg=self._get_graceful_msg(e, number))
 
     def _normalize_phone_number(self, number: str):
         # TODO: phone_provider: is it best place to parse phone number?
@@ -231,11 +266,10 @@ class TwilioPhoneProvider(PhoneProvider):
     def _default_twilio_number(self):
         return live_settings.TWILIO_NUMBER
 
-    def _twilio_sender(self, sender_type, to):
+    def _twilio_sender(self, sender_model, to):
         _, _, country_code = self._parse_number(to)
-        TwilioSender = apps.get_model("twilioapp", sender_type)
         sender = (
-            TwilioSender.objects.filter(Q(country_code=country_code) | Q(country_code__isnull=True))
+            sender_model.objects.filter(Q(country_code=country_code) | Q(country_code__isnull=True))
             .order_by(F("country_code").desc(nulls_last=True))
             .first()
         )
@@ -246,15 +280,15 @@ class TwilioPhoneProvider(PhoneProvider):
         return self._default_twilio_api_client, None
 
     def _sms_sender(self, to):
-        client, sender = self._twilio_sender("TwilioSmsSender", to)
+        client, sender = self._twilio_sender(TwilioSmsSender, to)
         return client, sender.sender if sender else self._default_twilio_number
 
     def _phone_sender(self, to):
-        client, sender = self._twilio_sender("TwilioPhoneCallSender", to)
+        client, sender = self._twilio_sender(TwilioPhoneCallSender, to)
         return client, sender.number if sender else self._default_twilio_number
 
     def _verify_sender(self, to):
-        client, sender = self._twilio_sender("TwilioVerificationSender", to)
+        client, sender = self._twilio_sender(TwilioVerificationSender, to)
         return client, sender.verify_service_sid if sender else live_settings.TWILIO_VERIFY_SERVICE_SID
 
     def _get_calling_code(self, iso):

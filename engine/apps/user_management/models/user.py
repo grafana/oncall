@@ -3,7 +3,6 @@ import logging
 import typing
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -20,6 +19,12 @@ from apps.api.permissions import (
 )
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+    from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +142,12 @@ class UserQuerySet(models.QuerySet):
 
 
 class User(models.Model):
+    auth_tokens: "RelatedManager['ApiAuthToken']"
+    escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
+    last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
+    schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+
     objects = UserManager.from_queryset(UserQuerySet)()
 
     class Meta:
@@ -244,7 +255,7 @@ class User(models.Model):
         return self.username
 
     @property
-    def timezone(self):
+    def timezone(self) -> typing.Optional[str]:
         if self._timezone:
             return self._timezone
 
@@ -258,7 +269,12 @@ class User(models.Model):
         self._timezone = value
 
     def short(self):
-        return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}
+        return {
+            "username": self.username,
+            "pk": self.public_primary_key,
+            "avatar": self.avatar_url,
+            "avatar_full": self.avatar_full_url,
+        }
 
     # Insight logs
     @property
@@ -271,7 +287,8 @@ class User(models.Model):
 
     @property
     def insight_logs_serialized(self):
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy
+
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
         notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
         notification_policies_verbal = demojize(notification_policies_verbal)
@@ -313,7 +330,7 @@ class User(models.Model):
 
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
-def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
+def listen_for_user_model_save(sender: User, instance: User, created: bool, *args, **kwargs) -> None:
     if created:
         instance.notification_policies.create_default_policies_for_user(instance)
         instance.notification_policies.create_important_policies_for_user(instance)

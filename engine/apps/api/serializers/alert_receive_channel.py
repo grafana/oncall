@@ -1,10 +1,8 @@
 from collections import OrderedDict
 
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.template.loader import render_to_string
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -45,13 +43,15 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     default_channel_filter = serializers.SerializerMethodField()
     instructions = serializers.SerializerMethodField()
     demo_alert_enabled = serializers.BooleanField(source="is_demo_alert_enabled", read_only=True)
+    is_based_on_alertmanager = serializers.BooleanField(source="has_alertmanager_payload_structure", read_only=True)
     maintenance_till = serializers.ReadOnlyField(source="till_maintenance_timestamp")
     heartbeat = serializers.SerializerMethodField()
     allow_delete = serializers.SerializerMethodField()
     description_short = serializers.CharField(max_length=250, required=False, allow_null=True)
-    demo_alert_payload = serializers.CharField(source="config.example_payload", read_only=True)
+    demo_alert_payload = serializers.JSONField(source="config.example_payload", read_only=True)
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
+    inbound_email = serializers.CharField(required=False)
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -88,6 +88,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "demo_alert_payload",
             "routes_count",
             "connected_escalations_chains_count",
+            "is_based_on_alertmanager",
+            "inbound_email",
         ]
         read_only_fields = [
             "created_at",
@@ -101,6 +103,8 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "demo_alert_payload",
             "routes_count",
             "connected_escalations_chains_count",
+            "is_based_on_alertmanager",
+            "inbound_email",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
@@ -111,27 +115,43 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise BadRequest(detail=connection_error)
-        instance = AlertReceiveChannel.create(
-            **validated_data, organization=organization, author=self.context["request"].user
-        )
+        for _integration in AlertReceiveChannel._config:
+            if _integration.slug == integration:
+                is_able_to_autoresolve = _integration.is_able_to_autoresolve
+
+        try:
+            instance = AlertReceiveChannel.create(
+                **validated_data,
+                organization=organization,
+                author=self.context["request"].user,
+                allow_source_based_resolving=is_able_to_autoresolve,
+            )
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
         return instance
 
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
     def get_instructions(self, obj):
-        if obj.integration in [AlertReceiveChannel.INTEGRATION_MAINTENANCE]:
-            return ""
-
-        rendered_instruction_for_web = render_to_string(
-            AlertReceiveChannel.INTEGRATIONS_TO_INSTRUCTIONS_WEB[obj.integration], {"alert_receive_channel": obj}
-        )
-
-        return rendered_instruction_for_web
+        # Deprecated, kept for api-backward compatibility
+        return ""
 
     # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
     def get_default_channel_filter(self, obj):
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
+
+    @staticmethod
+    def validate_integration(integration):
+        if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
+            raise BadRequest(detail="invalid integration")
+        return integration
 
     def validate_verbal_name(self, verbal_name):
         organization = self.context["request"].auth.organization
@@ -166,8 +186,11 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         return obj.channel_filters.count()
 
     def get_connected_escalations_chains_count(self, obj) -> int:
-        return len(
-            set(ChannelFilter.objects.filter(alert_receive_channel=obj).values_list("escalation_chain", flat=True))
+        return (
+            ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
+            .values("escalation_chain")
+            .distinct()
+            .count()
         )
 
 
@@ -186,8 +209,7 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         fields = ["id", "integration", "verbal_name", "deleted"]
 
     def get_deleted(self, obj):
-        # Treat direct paging integrations as deleted, so integration settings are disabled on the frontend
-        return obj.deleted_at is not None or obj.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        return obj.deleted_at is not None
 
 
 class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
@@ -223,7 +245,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         extra_kwargs = {"integration": {"required": True}}
 
     def get_payload_example(self, obj):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         if "alert_group_id" in self.context["request"].query_params:
             alert_group_id = self.context["request"].query_params.get("alert_group_id")
             try:

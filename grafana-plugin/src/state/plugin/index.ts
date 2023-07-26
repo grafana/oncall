@@ -2,7 +2,6 @@ import { getBackendSrv } from '@grafana/runtime';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
 import { makeRequest, isNetworkError } from 'network';
-import FaroHelper from 'utils/faro';
 
 export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
@@ -11,6 +10,8 @@ export type UpdateGrafanaPluginSettingsProps = {
 
 export type PluginStatusResponseBase = Pick<OnCallPluginMetaJSONData, 'license'> & {
   version: string;
+  recaptcha_site_key: string;
+  currently_undergoing_maintenance_message: string;
 };
 
 export type PluginSyncStatusResponse = PluginStatusResponseBase & {
@@ -23,10 +24,6 @@ type PluginConnectedStatusResponse = PluginStatusResponseBase & {
   token_ok: boolean;
   allow_signup: boolean;
   is_user_anonymous: boolean;
-};
-
-type PluginIsInMaintenanceModeResponse = {
-  currently_undergoing_maintenance_message: string;
 };
 
 type CloudProvisioningConfigResponse = null;
@@ -44,25 +41,22 @@ export type InstallationVerb = 'install' | 'sync';
 class PluginState {
   static ONCALL_BASE_URL = '/plugin';
   static GRAFANA_PLUGIN_SETTINGS_URL = '/api/plugins/grafana-oncall-app/settings';
-  static SYNC_STATUS_POLLING_RETRY_LIMIT = 10;
   static grafanaBackend = getBackendSrv();
 
   static generateOnCallApiUrlConfiguredThroughEnvVarMsg = (isConfiguredThroughEnvVar: boolean): string =>
-    isConfiguredThroughEnvVar
-      ? ' (NOTE: your OnCall API URL is currently being taken from process.env of your UI)'
-      : '';
+    isConfiguredThroughEnvVar ? ' (NOTE: OnCall API URL is currently being taken from process.env of your UI)' : '';
 
   static generateInvalidOnCallApiURLErrorMsg = (onCallApiUrl: string, isConfiguredThroughEnvVar: boolean): string =>
-    `Could not communicate with your OnCall API at ${onCallApiUrl}${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
+    `Could not communicate with OnCall API at ${onCallApiUrl}${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
       isConfiguredThroughEnvVar
-    )}.\nValidate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance.`;
+    )}.\nValidate that the URL is correct, OnCall API is running, and that it is accessible from your Grafana instance.`;
 
   static generateUnknownErrorMsg = (
     onCallApiUrl: string,
     verb: InstallationVerb,
     isConfiguredThroughEnvVar: boolean
   ): string =>
-    `An unknown error occured when trying to ${verb} the plugin. Are you sure that your OnCall API URL, ${onCallApiUrl}, is correct${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
+    `An unknown error occurred when trying to ${verb} the plugin. Verify OnCall API URL, ${onCallApiUrl}, is correct${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
       isConfiguredThroughEnvVar
     )}?\nRefresh your page and try again, or try removing your plugin configuration and reconfiguring.`;
 
@@ -78,7 +72,7 @@ class PluginState {
       installationVerb,
       onCallApiUrlIsConfiguredThroughEnvVar
     );
-    const consoleMsg = `occured while trying to ${installationVerb} the plugin w/ the OnCall backend`;
+    const consoleMsg = `occurred while trying to ${installationVerb} the plugin w/ the OnCall backend`;
 
     if (isNetworkError(e)) {
       const { status: statusCode } = e.response;
@@ -104,7 +98,7 @@ class PluginState {
         errorMsg = unknownErrorMsg;
       }
     } else {
-      // a non-network related error occured.. this scenario shouldn't occur...
+      // a non-network related error occurred.. this scenario shouldn't occur...
       console.warn(`An unknown error ${consoleMsg}`, e);
       errorMsg = unknownErrorMsg;
     }
@@ -121,11 +115,11 @@ class PluginState {
 
     if (isNetworkError(e)) {
       // The user likely put in a bogus URL for the OnCall API URL
-      console.warn('An HTTP related error occured while trying to provision the plugin w/ Grafana', e.response);
+      console.warn('An HTTP related error occurred while trying to provision the plugin w/ Grafana', e.response);
       errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
     } else {
-      // a non-network related error occured.. this scenario shouldn't occur...
-      console.warn('An unknown error occured while trying to provision the plugin w/ Grafana', e);
+      // a non-network related error occurred.. this scenario shouldn't occur...
+      console.warn('An unknown error occurred while trying to provision the plugin w/ Grafana', e);
       errorMsg = this.generateUnknownErrorMsg(onCallApiUrl, installationVerb, onCallApiUrlIsConfiguredThroughEnvVar);
     }
     return errorMsg;
@@ -137,88 +131,96 @@ class PluginState {
   static updateGrafanaPluginSettings = async (data: UpdateGrafanaPluginSettingsProps, enabled = true) =>
     this.grafanaBackend.post(this.GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
 
-  static createGrafanaToken = async () => {
-    const baseUrl = '/api/auth/keys';
-    const keys = await this.grafanaBackend.get(baseUrl);
-    const existingKey = keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
+  static readonly KEYS_BASE_URL = '/api/auth/keys';
+  static readonly ONCALL_KEY_NAME = 'OnCall';
+  static readonly SERVICE_ACCOUNTS_BASE_URL = '/api/serviceaccounts';
+  static readonly ONCALL_SERVICE_ACCOUNT_NAME = 'sa-autogen-OnCall';
+  static readonly SERVICE_ACCOUNTS_SEARCH_URL = `${PluginState.SERVICE_ACCOUNTS_BASE_URL}/search?query=${PluginState.ONCALL_SERVICE_ACCOUNT_NAME}`;
 
-    if (existingKey) {
-      await this.grafanaBackend.delete(`${baseUrl}/${existingKey.id}`);
+  static getServiceAccount = async () => {
+    const serviceAccounts = await this.grafanaBackend.get(this.SERVICE_ACCOUNTS_SEARCH_URL);
+    return serviceAccounts.serviceAccounts.length > 0 ? serviceAccounts.serviceAccounts[0] : null;
+  };
+
+  static getOrCreateServiceAccount = async () => {
+    const serviceAccount = await this.getServiceAccount();
+    if (serviceAccount) {
+      return serviceAccount;
     }
 
-    return await this.grafanaBackend.post(baseUrl, {
-      name: 'OnCall',
+    return await this.grafanaBackend.post(this.SERVICE_ACCOUNTS_BASE_URL, {
+      name: this.ONCALL_SERVICE_ACCOUNT_NAME,
       role: 'Admin',
-      secondsToLive: null,
+      isDisabled: false,
     });
   };
 
-  static getPluginSyncStatus = (): Promise<PluginSyncStatusResponse> =>
-    makeRequest<PluginSyncStatusResponse>(`${this.ONCALL_BASE_URL}/sync`, { method: 'GET' });
-
-  static timeout = (pollCount: number) => new Promise((resolve) => setTimeout(resolve, 10 * 2 ** pollCount));
-
-  /**
-   * DON'T CALL THIS METHOD DIRECTLY
-   * This really only exists to properly test the recursive nature of pollOnCallDataSyncStatus
-   * Without this it is impossible (or very hacky) to mock the recursive calls
-   */
-  static _pollOnCallDataSyncStatus = (
-    onCallApiUrl: string,
-    onCallApiUrlIsConfiguredThroughEnvVar: boolean,
-    pollCount: number
-  ) => this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, pollCount);
-
-  /**
-   * Poll, for a configured amount of time, the status of the OnCall backend data sync
-   * Returns a PluginSyncStatusResponse if the sync was successful (ie. token_ok is true), otherwise null
-   */
-  static pollOnCallDataSyncStatus = async (
-    onCallApiUrl: string,
-    onCallApiUrlIsConfiguredThroughEnvVar: boolean,
-    pollCount = 0
-  ): Promise<PluginSyncStatusResponse | string> => {
-    if (pollCount > this.SYNC_STATUS_POLLING_RETRY_LIMIT) {
-      return `There was an issue while synchronizing data required for the plugin.\nVerify your OnCall backend setup (ie. that Celery workers are launched and properly configured)`;
-    }
-
-    try {
-      const syncResponse = await this.getPluginSyncStatus();
-      if (syncResponse?.token_ok) {
-        return syncResponse;
-      }
-
-      await this.timeout(pollCount);
-      return await this._pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, pollCount + 1);
-    } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
-    }
+  static getTokenFromServiceAccount = async (serviceAccount) => {
+    const tokens = await this.grafanaBackend.get(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`);
+    return tokens.find((key: { id: number; name: string; role: string }) => key.name === PluginState.ONCALL_KEY_NAME);
   };
 
   /**
-   * Trigger a data sync with the OnCall backend AND then poll, for a configured amount of time, the status of that sync
-   * If the
-   * Returns a PluginSyncStatusResponse if the sync was succesful, otherwise null
+   * This will satisfy a check for an existing key regardless of if the key is an older api key or under a
+   * service account.
    */
-  static syncDataWithOnCall = async (
-    onCallApiUrl: string,
-    onCallApiUrlIsConfiguredThroughEnvVar = false
-  ): Promise<PluginSyncStatusResponse | string> => {
-    try {
-      const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
-      if (typeof startSyncResponse === 'string') {
-        // an error occured trying to initiate the sync
-        return startSyncResponse;
-      }
-
-      if (!FaroHelper.faro) {
-        FaroHelper.initializeFaro(onCallApiUrl);
-      }
-
-      return await this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-    } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
+  static getGrafanaToken = async () => {
+    const serviceAccount = await this.getServiceAccount();
+    if (serviceAccount) {
+      return await this.getTokenFromServiceAccount(serviceAccount);
     }
+
+    const keys = await this.grafanaBackend.get(this.KEYS_BASE_URL);
+    const oncallApiKeys = keys.find(
+      (key: { id: number; name: string; role: string }) => key.name === PluginState.ONCALL_KEY_NAME
+    );
+    if (oncallApiKeys) {
+      return oncallApiKeys;
+    }
+
+    return null;
+  };
+
+  /**
+   * Create service account and api token belonging to it instead of using api keys
+   */
+  static createGrafanaToken = async () => {
+    const serviceAccount = await this.getOrCreateServiceAccount();
+    const existingToken = await this.getTokenFromServiceAccount(serviceAccount);
+    if (existingToken) {
+      await this.grafanaBackend.delete(
+        `${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens/${existingToken.id}`
+      );
+    }
+
+    const existingKey = await this.getGrafanaToken();
+    if (existingKey) {
+      await this.grafanaBackend.delete(`${this.KEYS_BASE_URL}/${existingKey.id}`);
+    }
+
+    return await this.grafanaBackend.post(`${this.SERVICE_ACCOUNTS_BASE_URL}/${serviceAccount.id}/tokens`, {
+      name: PluginState.ONCALL_KEY_NAME,
+      role: 'Admin',
+    });
+  };
+
+  static checkTokenAndIfPluginIsConnected = async (
+    onCallApiUrl: string
+  ): Promise<PluginSyncStatusResponse | string> => {
+    /**
+     * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
+     * an API key on accident but leaves the plugin settings intact.
+     */
+    const existingKey = await PluginState.getGrafanaToken();
+    if (!existingKey) {
+      try {
+        await PluginState.installPlugin();
+      } catch (e) {
+        return PluginState.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'install', false);
+      }
+    }
+
+    return await PluginState.updatePluginStatus(onCallApiUrl);
   };
 
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(
@@ -300,20 +302,13 @@ class PluginState {
     return null;
   };
 
-  static checkIfBackendIsInMaintenanceMode = async (): Promise<string> => {
-    const response = await makeRequest<PluginIsInMaintenanceModeResponse>('/maintenance-mode-status', {
-      method: 'GET',
-    });
-    return response.currently_undergoing_maintenance_message;
-  };
-
-  static checkIfPluginIsConnected = async (
+  static updatePluginStatus = async (
     onCallApiUrl: string,
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginConnectedStatusResponse | string> => {
     try {
       return await makeRequest<PluginConnectedStatusResponse>(`${this.ONCALL_BASE_URL}/status`, {
-        method: 'GET',
+        method: 'POST',
       });
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(

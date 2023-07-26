@@ -1,9 +1,8 @@
+import datetime
 import json
 import logging
 
-from django.apps import apps
 from django.db.models import Q
-from django.utils import timezone
 
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
@@ -11,13 +10,13 @@ from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 
-from .step_mixins import AlertGroupActionsMixin, CheckAlertIsUnarchivedMixin
+from .step_mixins import AlertGroupActionsMixin
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.ScenarioStep):
+class AddToResolutionNoteStep(scenario_step.ScenarioStep):
     callback_id = [
         "add_resolution_note",
         "add_resolution_note_staging",
@@ -25,10 +24,8 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
     ]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        SlackMessage = apps.get_model("slack", "SlackMessage")
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
-        SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
+        from apps.alerts.models import ResolutionNote, ResolutionNoteSlackMessage
+        from apps.slack.models import SlackMessage, SlackUserIdentity
 
         try:
             channel_id = payload["channel"]["id"]
@@ -60,9 +57,6 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                 f"Slack Message id: {slack_message.slack_id}"
             )
             raise e
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            return
 
         if payload["message"]["type"] == "message" and "user" in payload["message"]:
             message_ts = payload["message_ts"]
@@ -219,7 +213,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 self.remove_resolution_note_reaction(resolution_note_slack_message)
 
     def post_or_update_resolution_note_in_thread(self, resolution_note):
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        from apps.alerts.models import ResolutionNoteSlackMessage
+
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
@@ -373,7 +368,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         return blocks
 
 
-class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixin, scenario_step.ScenarioStep):
+class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
@@ -381,8 +376,9 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, data=None):
         if data:
             # Argument "data" is used when step is called from other step, e.g. AddRemoveThreadMessageStep
-            AlertGroup = apps.get_model("alerts", "AlertGroup")
-            alert_group = AlertGroup.all_objects.get(pk=data["alert_group_pk"])
+            from apps.alerts.models import AlertGroup
+
+            alert_group = AlertGroup.objects.get(pk=data["alert_group_pk"])
         else:
             # Handle "Add Resolution notes" button click
             alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -395,9 +391,6 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
         resolution_note_window_action = value.get("resolution_note_window_action", "") or value.get("action_value", "")
         action_resolve = value.get("action_resolve", False)
         channel_id = payload["channel"]["id"] if "channel" in payload else None
-
-        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
-            return
 
         blocks = []
 
@@ -455,7 +448,8 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
             )
 
     def get_resolution_notes_blocks(self, alert_group, resolution_note_window_action, action_resolve):
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        from apps.alerts.models import ResolutionNote
+
         blocks = []
 
         other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
@@ -570,7 +564,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, AlertGroupActionsMixi
             for resolution_note in other_resolution_notes:
                 resolution_note_slack_message = resolution_note.resolution_note_slack_message
                 user_verbal = resolution_note.author_verbal(mention=True)
-                message_timestamp = timezone.datetime.timestamp(resolution_note.created_at)
+                message_timestamp = datetime.datetime.timestamp(resolution_note.created_at)
                 blocks.append(
                     {
                         "type": "divider",
@@ -681,9 +675,8 @@ class ReadEditPostmortemStep(ResolutionNoteModalStep):
 
 class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
+
         value = json.loads(payload["actions"][0]["value"])
         slack_message_pk = value.get("message_pk")
         resolution_note_pk = value.get("resolution_note_pk")
@@ -692,7 +685,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         slack_thread_message = None
         resolution_note = None
 
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
         if slack_message_pk is not None:
             slack_thread_message = ResolutionNoteSlackMessage.objects.get(pk=slack_message_pk)

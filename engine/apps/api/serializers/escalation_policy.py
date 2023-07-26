@@ -85,7 +85,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
         model = EscalationPolicy
         fields = [
             "id",
-            "order",
             "step",
             "wait_delay",
             "escalation_chain",
@@ -101,7 +100,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "notify_to_group",
             "important",
         ]
-        read_only_fields = ("order",)
 
     SELECT_RELATED = [
         "escalation_chain",
@@ -113,7 +111,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
     PREFETCH_RELATED = ["notify_to_users_queue"]
 
     def validate(self, data):
-
         fields_to_check = [
             WAIT_DELAY,
             NOTIFY_SCHEDULE,
@@ -200,7 +197,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, serializers.ModelSerializer)
 
 class EscalationPolicyCreateSerializer(EscalationPolicySerializer):
     class Meta(EscalationPolicySerializer.Meta):
-        read_only_fields = ("order",)
         extra_kwargs = {"escalation_chain": {"required": True, "allow_null": False}}
 
     def create(self, validated_data):
@@ -213,7 +209,7 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
     escalation_chain = serializers.CharField(read_only=True, source="escalation_chain.public_primary_key")
 
     class Meta(EscalationPolicySerializer.Meta):
-        read_only_fields = ("order", "escalation_chain")
+        read_only_fields = ["escalation_chain"]
 
     def update(self, instance, validated_data):
         step = validated_data.get("step", instance.step)

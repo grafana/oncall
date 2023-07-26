@@ -9,3 +9,12 @@
 !add_env_var.sh
 !prometheus.yml
 !README.md
+!scripts/
+!scripts/*
+
+# only source control grafana/provisioning/datasources/automatic.yml
+# any other files under ./grafana will be ignored
+!grafana/
+!grafana/provisioning/
+!grafana/provisioning/datasources/
+!grafana/provisioning/datasources/automatic.yml

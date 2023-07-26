@@ -3,12 +3,12 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
-from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.mobile_app.fcm_relay import FCMRelayThrottler, _get_message_from_request_data, fcm_relay_async
+from apps.mobile_app.models import FCMDevice
 from apps.mobile_app.tasks import _get_alert_group_escalation_fcm_message
 
 

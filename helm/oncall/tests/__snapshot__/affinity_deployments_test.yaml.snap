@@ -1,0 +1,49 @@
+affinity -> should use custom affinity:
+  1: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - grafana
+                - key: app.kubernetes.io/instance
+                  operator: In
+                  values:
+                    - grafana
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+          weight: 100
+  2: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - grafana
+                - key: app.kubernetes.io/instance
+                  operator: In
+                  values:
+                    - grafana
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+          weight: 100
+  3: |
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - grafana
+                - key: app.kubernetes.io/instance
+                  operator: In
+                  values:
+                    - grafana
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+          weight: 100

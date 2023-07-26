@@ -1,4 +1,5 @@
-from django.apps import apps
+import datetime
+
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -20,7 +21,7 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def get_on_call_now(self, obj):
-        users_on_call = list_users_to_notify_from_ical(obj, timezone.datetime.now(timezone.utc))
+        users_on_call = list_users_to_notify_from_ical(obj, datetime.datetime.now(timezone.utc))
         if users_on_call is not None:
             return [user.public_primary_key for user in users_on_call]
         else:
@@ -37,7 +38,7 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         return validated_data
 
     def validate_slack(self, slack_field):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         slack_channel_id = slack_field.get("channel_id")
         user_group_id = slack_field.get("user_group_id")
@@ -71,3 +72,17 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         }
 
         return result
+
+
+class FinalShiftQueryParamsSerializer(serializers.Serializer):
+    start_date = serializers.DateField(required=True)
+    end_date = serializers.DateField(required=True)
+
+    def validate(self, attrs):
+        if attrs["start_date"] > attrs["end_date"]:
+            raise serializers.ValidationError("start_date must be less than or equal to end_date")
+        if attrs["end_date"] - attrs["start_date"] > datetime.timedelta(days=365):
+            raise serializers.ValidationError(
+                "The difference between start_date and end_date must be less than one year (365 days)"
+            )
+        return attrs

@@ -1,11 +1,10 @@
 from unittest.mock import patch
 
 import pytest
-from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
-from apps.mobile_app.models import MobileAppUserSettings
+from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 from apps.mobile_app.tasks import _get_alert_group_escalation_fcm_message, notify_user_async
 from apps.oss_installation.models import CloudConnector
 

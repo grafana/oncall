@@ -1,0 +1,35 @@
+.root {
+  border: var(--border);
+  width: 100%;
+}
+
+.header {
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.header_with-background {
+  background: var(--secondary-background);
+}
+
+.label {
+  display: block;
+  margin-left: 8px;
+  flex-grow: 1;
+}
+
+.content {
+  padding: 16px;
+}
+
+.icon {
+  color: var(--secondary-text-color);
+  transform-origin: center;
+  transition: transform 0.2s;
+
+  &--rotated {
+    transform: rotate(90deg);
+  }
+}

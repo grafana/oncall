@@ -8,20 +8,18 @@ from apps.base.models.user_notification_policy import NotificationChannelPublicA
 from common.api_helpers.custom_fields import UserIdField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
+from common.ordered_model.serializer import OrderedModelSerializer
 
 
-class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+class PersonalNotificationRuleSerializer(EagerLoadingMixin, OrderedModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     user_id = UserIdField(required=True, source="user")
-    position = serializers.IntegerField(required=False, source="order")
     type = serializers.CharField(
         required=False,
     )
-
     duration = serializers.ChoiceField(
         required=False, source="wait_delay", choices=UserNotificationPolicy.DURATION_CHOICES
     )
-    manual_order = serializers.BooleanField(default=False, write_only=True)
 
     SELECT_RELATED = ["user"]
 
@@ -31,7 +29,7 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
 
     class Meta:
         model = UserNotificationPolicy
-        fields = ["id", "user_id", "position", "type", "duration", "manual_order", "important"]
+        fields = OrderedModelSerializer.Meta.fields + ["id", "user_id", "type", "duration", "important"]
 
     def create(self, validated_data):
         if "type" not in validated_data:
@@ -43,16 +41,8 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         # that is why step key is used instead of type below
         if "wait_delay" in validated_data and validated_data["step"] != UserNotificationPolicy.Step.WAIT:
             raise exceptions.ValidationError({"duration": "Duration can't be set"})
-        user = validated_data.pop("user")
-        manual_order = validated_data.pop("manual_order")
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            instance = UserNotificationPolicy.objects.create(**validated_data, user=user)
-            self._change_position(order, instance)
-        else:
-            instance = UserNotificationPolicy.objects.create(**validated_data, user=user)
 
-        return instance
+        return super().create(validated_data)
 
     def to_internal_value(self, data):
         if "duration" in data:
@@ -66,7 +56,6 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
-
         step = instance.step
         result = super().to_representation(instance)
 
@@ -118,15 +107,6 @@ class PersonalNotificationRuleSerializer(EagerLoadingMixin, serializers.ModelSer
 
         raise exceptions.ValidationError({"type": "Invalid type"})
 
-    def _change_position(self, order, instance):
-        if order is not None:
-            if order >= 0:
-                instance.to(order)
-            elif order == -1:
-                instance.bottom()
-            else:
-                raise BadRequest(detail="Invalid value for position field")
-
 
 class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerializer):
     user_id = UserIdField(read_only=True, source="user")
@@ -145,11 +125,5 @@ class PersonalNotificationRuleUpdateSerializer(PersonalNotificationRuleSerialize
         else:
             if "wait_delay" in validated_data and instance.step != UserNotificationPolicy.Step.WAIT:
                 raise exceptions.ValidationError({"duration": "Duration can't be set"})
-
-        manual_order = validated_data.pop("manual_order")
-
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            self._change_position(order, instance)
 
         return super().update(instance, validated_data)

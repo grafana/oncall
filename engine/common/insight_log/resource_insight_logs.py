@@ -19,7 +19,12 @@ class EntityEvent(enum.Enum):
 class InsightLoggable(ABC):
     @property
     @abstractmethod
-    def public_primary_key(self):
+    def id(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def public_primary_key(self) -> str:
         pass
 
     @property
@@ -65,7 +70,7 @@ def write_resource_insight_log(instance: InsightLoggable, author, event: EntityE
             author = json.dumps(author.username)
             entity_type = instance.insight_logs_type_verbal
             try:
-                entity_id = instance.public_primary_key
+                entity_id: str | int = instance.public_primary_key
             except AttributeError:
                 # Fallback for entities which have no public_primary_key, E.g. public api token, schedule export token
                 entity_id = instance.id

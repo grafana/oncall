@@ -11,8 +11,8 @@
     },
     "keywords": ["oncall", "irm", "incident", "response"],
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "assets/img/logo.svg",
+      "large": "assets/img/logo.svg"
     },
     "links": [
       {
@@ -24,7 +24,7 @@
         "url": "https://github.com/grafana/oncall/blob/main/LICENSE"
       }
     ],
-    "screenshots": [{ "name": "Escalation chain", "path": "img/screenshot.png" }],
+    "screenshots": [{ "name": "Escalation chain", "path": "assets/img/screenshot.png" }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
@@ -40,7 +40,7 @@
     },
     {
       "type": "page",
-      "name": "Alert Groups",
+      "name": "Alert groups",
       "path": "/a/grafana-oncall-app/alert-groups",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
@@ -64,7 +64,7 @@
     },
     {
       "type": "page",
-      "name": "Escalation Chains",
+      "name": "Escalation chains",
       "path": "/a/grafana-oncall-app/escalations",
       "role": "Viewer",
       "action": "grafana-oncall-app.escalation-chains:read",
@@ -80,19 +80,11 @@
     },
     {
       "type": "page",
-      "name": "Outgoing Webhooks",
+      "name": "Outgoing webhooks",
       "path": "/a/grafana-oncall-app/outgoing_webhooks",
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
       "addToNav": true
-    },
-    {
-      "type": "page",
-      "name": "Outgoing Webhooks 2",
-      "path": "/a/grafana-oncall-app/outgoing_webhooks_2",
-      "role": "Viewer",
-      "action": "grafana-oncall-app.outgoing-webhooks:read",
-      "addToNav": false
     },
     {
       "type": "page",
@@ -109,6 +101,11 @@
       "role": "Viewer",
       "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true
+    },
+    {
+      "type": "dashboard",
+      "path": "dashboards/oncall_metrics_dashboard.json",
+      "name": "OnCall Metrics"
     }
   ],
   "routes": [

@@ -35,7 +35,7 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'team',
       label: 'Assign to Team',
       description:
-        'Assigning to the teams allows you to filter Outgoing Webhooks and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+        'Assigning to the teams allows you to filter Outgoing Webhooks and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details. This setting does not effect execution of the webhook.',
       type: FormItemType.GSelect,
       extra: {
         modelName: 'grafanaTeamStore',
@@ -48,6 +48,7 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'trigger_type',
       label: 'Trigger Type',
+      description: 'The type of event which will cause this webhook to execute.',
       type: FormItemType.Select,
       extra: {
         options: [
@@ -135,18 +136,22 @@ export const form: { name: string; fields: FormItem[] } = {
       },
       validation: { required: true },
       description:
-        'Integrations that this webhook applies to. If this is empty the webhook will apply to all integrations',
+        'Integrations that this webhook applies to. If this is empty the webhook will execute for all integrations',
     },
     {
       name: 'url',
       label: 'Webhook URL',
-      type: FormItemType.Input,
+      type: FormItemType.Monaco,
       validation: { required: true },
+      extra: {
+        height: 30,
+      },
     },
     {
       name: 'headers',
       label: 'Webhook Headers',
-      type: FormItemType.TextArea,
+      description: 'Request headers should be in JSON format.',
+      type: FormItemType.Monaco,
       extra: {
         rows: 3,
       },
@@ -161,11 +166,13 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'authorization_header',
-      type: FormItemType.Input,
+      description:
+        'Value of the Authorization header, do not need to prefix with "Authorization:". For example: Bearer AbCdEf123456',
+      type: FormItemType.Password,
     },
     {
       name: 'trigger_template',
-      type: FormItemType.TextArea,
+      type: FormItemType.Monaco,
       description:
         'Trigger template is used to conditionally execute the webhook based on incoming data. The trigger template must be empty or evaluate to true or 1 for the webhook to be sent',
       extra: {
@@ -176,16 +183,15 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'forward_all',
       normalize: (value) => Boolean(value),
       type: FormItemType.Switch,
-      description: "Forwards whole payload of the alert to the webhook's url as POST/PUT data",
+      description: "Forwards whole payload of the alert group and context data to the webhook's url as POST/PUT data",
     },
     {
       name: 'data',
       getDisabled: (data) => Boolean(data?.forward_all),
-      type: FormItemType.TextArea,
-      description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}',
-      extra: {
-        rows: 9,
-      },
+      type: FormItemType.Monaco,
+      description:
+        'Available variables: {{ event }}, {{ user }}, {{ alert_group }}, {{ alert_group_id }}, {{ alert_payload }}, {{ integration }}, {{ notified_users }}, {{ users_to_be_notified }}, {{ responses }}',
+      extra: {},
     },
   ],
 };

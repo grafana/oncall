@@ -50,7 +50,6 @@ def test_organization_hard_delete(
     make_slack_team_identity,
     make_slack_user_identity,
     make_slack_message,
-    make_slack_action_record,
     make_schedule,
     make_custom_action,
     make_alert_receive_channel,
@@ -144,7 +143,6 @@ def test_organization_hard_delete(
     telegram_message = make_telegram_message(alert_group=alert_group, message_type=TelegramMessage.ALERT_GROUP_MESSAGE)
 
     slack_message = make_slack_message(alert_group=alert_group)
-    slack_action_record = make_slack_action_record(organization=organization, user=user_1)
 
     plugin_token, _ = make_token_for_organization(organization)
     public_api_token, _ = make_public_api_token(user_1, organization)
@@ -186,7 +184,6 @@ def test_organization_hard_delete(
         telegram_verification_code,
         telegram_channel_verification_code,
         slack_message,
-        slack_action_record,
         plugin_token,
         public_api_token,
         invitation,

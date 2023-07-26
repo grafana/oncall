@@ -25,12 +25,13 @@
 }
 
 .content {
-  margin-top: 24px;
+  margin-top: 5px;
   display: flex;
 }
 
 .message {
   margin-top: 16px;
+  word-wrap: break-word;
 }
 
 .message a {

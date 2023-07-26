@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.db import models
 from django.db.models import JSONField
 
@@ -15,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class SlackTeamIdentity(models.Model):
-
     id = models.AutoField(primary_key=True)
     slack_id = models.CharField(max_length=100)
     cached_name = models.CharField(max_length=100, null=True, default=None)
@@ -46,7 +44,8 @@ class SlackTeamIdentity(models.Model):
 
     def update_oauth_fields(self, user, organization, reinstall_data):
         logger.info(f"updated oauth_fields for sti {self.pk}")
-        SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
+        from apps.slack.models import SlackUserIdentity
+
         organization.slack_team_identity = self
         organization.save(update_fields=["slack_team_identity"])
         slack_user_identity, _ = SlackUserIdentity.objects.get_or_create(

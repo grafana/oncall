@@ -42,6 +42,9 @@ def test_get_user_groups(
                 },
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -80,6 +83,9 @@ def test_get_user_groups_filter_by_handle(
                 },
             }
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -98,7 +104,15 @@ def test_get_user_groups_filter_by_handle_empty_result(
 
     response = client.get(f"{url}?slack_handle=NonExistentSlackHandle", format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    expected_payload = {"count": 0, "next": None, "previous": None, "results": []}
+    expected_payload = {
+        "count": 0,
+        "next": None,
+        "previous": None,
+        "results": [],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
+    }
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data == expected_payload

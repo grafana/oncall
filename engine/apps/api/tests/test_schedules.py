@@ -137,6 +137,9 @@ def test_get_list_schedules(
                 "enable_web_overrides": True,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 15,
+        "total_pages": 1,
     }
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -147,7 +150,7 @@ def test_get_list_schedules(
 def test_get_list_schedules_pagination(
     schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
 ):
-    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    user, token, calendar_schedule, ical_schedule, web_schedule, _ = schedule_internal_api_setup
 
     # setup escalation chain linked to web schedule
     escalation_chain = make_escalation_chain(user.organization)
@@ -219,7 +222,7 @@ def test_get_list_schedules_pagination(
     client = APIClient()
 
     schedule_list_url = reverse("api-internal:schedule-list")
-    absolute_url = create_engine_url(schedule_list_url, override_base="http://testserver")
+    absolute_url = create_engine_url(schedule_list_url)
     for p, schedule in enumerate(available_schedules, start=1):
         # patch oncall_users to check a paginated queryset is used
         def mock_oncall_now(qs, events_datetime):
@@ -247,6 +250,9 @@ def test_get_list_schedules_pagination(
             "next": next_url,
             "previous": previous_url,
             "results": [schedule],
+            "current_page_number": p,
+            "page_size": 1,
+            "total_pages": 3,
         }
         assert response.json() == expected_payload
 
@@ -334,8 +340,26 @@ def test_get_list_schedules_by_type(
             "next": None,
             "previous": None,
             "results": [available_schedules[schedule_type]],
+            "current_page_number": 1,
+            "page_size": 15,
+            "total_pages": 1,
         }
         assert response.json() == expected_payload
+
+    # request multiple types
+    url = reverse("api-internal:schedule-list") + "?type=0&type=1"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    expected_payload = {
+        "count": 2,
+        "next": None,
+        "previous": None,
+        "results": [available_schedules[0], available_schedules[1]],
+        "current_page_number": 1,
+        "page_size": 15,
+        "total_pages": 1,
+    }
+    assert response.json() == expected_payload
 
 
 @pytest.mark.django_db
@@ -812,7 +836,14 @@ def test_events_calendar(
                 "all_day": False,
                 "start": on_call_shift.start,
                 "end": on_call_shift.start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -878,7 +909,14 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": mon_start,
                 "end": mon_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -894,7 +932,14 @@ def test_filter_events_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    }
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -977,7 +1022,14 @@ def test_filter_events_range_calendar(
                 "all_day": False,
                 "start": fri_start,
                 "end": fri_start + on_call_shift.duration,
-                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                        "email": user.email,
+                        "avatar_full": user.avatar_full_url,
+                    },
+                ],
                 "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
@@ -1059,7 +1111,14 @@ def test_filter_events_overrides(
                 "all_day": False,
                 "start": override_start,
                 "end": override_start + override.duration,
-                "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+                "users": [
+                    {
+                        "display_name": other_user.username,
+                        "pk": other_user.public_primary_key,
+                        "email": other_user.email,
+                        "avatar_full": other_user.avatar_full_url,
+                    }
+                ],
                 "missing_users": [],
                 "priority_level": None,
                 "source": "api",
@@ -1840,3 +1899,36 @@ def test_get_schedule_from_other_team_with_flag(
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_get_schedule_on_call_now(
+    make_organization, make_user_for_organization, make_token_for_organization, make_schedule, make_user_auth_headers
+):
+    organization = make_organization(grafana_url="https://example.com")
+    user = make_user_for_organization(organization, username="test", avatar_url="/avatar/test123")
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-list")
+    with patch(
+        "apps.schedules.models.on_call_schedule.OnCallScheduleQuerySet.get_oncall_users",
+        return_value={schedule.pk: [user]},
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["results"][0]["on_call_now"] == [
+        {
+            "pk": user.public_primary_key,
+            "username": "test",
+            "avatar": "/avatar/test123",
+            "avatar_full": "https://example.com/avatar/test123",
+        }
+    ]

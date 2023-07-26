@@ -1,9 +1,10 @@
+import datetime
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.utils import timezone
-from ordered_model.models import OrderedModel
 
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -22,8 +23,7 @@ def generate_public_primary_key_for_escalation_policy():
 
 
 class EscalationPolicy(OrderedModel):
-
-    order_with_respect_to = "escalation_chain"
+    order_with_respect_to = ["escalation_chain_id"]
 
     MAX_TIMES_REPEAT = 5
 
@@ -229,7 +229,10 @@ class EscalationPolicy(OrderedModel):
         "alerts.EscalationChain", on_delete=models.CASCADE, related_name="escalation_policies"
     )
 
-    notify_to_users_queue = models.ManyToManyField("user_management.User")
+    notify_to_users_queue = models.ManyToManyField(
+        "user_management.User",
+        related_name="escalation_policy_notify_queues",
+    )
 
     last_notified_user = models.ForeignKey(
         "user_management.User",
@@ -244,6 +247,7 @@ class EscalationPolicy(OrderedModel):
     notify_to_group = models.ForeignKey(
         "slack.SlackUserGroup",
         on_delete=models.SET_NULL,
+        related_name="escalation_policies",
         default=None,
         null=True,
     )
@@ -272,13 +276,13 @@ class EscalationPolicy(OrderedModel):
         null=True,
     )
 
-    ONE_MINUTE = timezone.timedelta(minutes=1)
-    FIVE_MINUTES = timezone.timedelta(minutes=5)
-    FIFTEEN_MINUTES = timezone.timedelta(minutes=15)
-    THIRTY_MINUTES = timezone.timedelta(minutes=30)
-    HOUR = timezone.timedelta(minutes=60)
+    ONE_MINUTE = datetime.timedelta(minutes=1)
+    FIVE_MINUTES = datetime.timedelta(minutes=5)
+    FIFTEEN_MINUTES = datetime.timedelta(minutes=15)
+    THIRTY_MINUTES = datetime.timedelta(minutes=30)
+    HOUR = datetime.timedelta(minutes=60)
 
-    DEFAULT_WAIT_DELAY = timezone.timedelta(minutes=5)
+    DEFAULT_WAIT_DELAY = datetime.timedelta(minutes=5)
 
     DURATION_CHOICES = (
         (ONE_MINUTE, "1 min"),
@@ -307,6 +311,12 @@ class EscalationPolicy(OrderedModel):
     # fields needed for escalation step "Continue escalation if >X alerts per Y minutes"
     num_alerts_in_window = models.PositiveIntegerField(null=True, default=None)
     num_minutes_in_window = models.PositiveIntegerField(null=True, default=None)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(fields=["escalation_chain_id", "order"], name="unique_escalation_policy_order")
+        ]
 
     def __str__(self):
         return f"{self.pk}: {self.step_type_verbal}"

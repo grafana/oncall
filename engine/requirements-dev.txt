@@ -1,0 +1,13 @@
+celery-types==0.18.0
+django-filter-stubs==0.1.3
+django-stubs[compatible-mypy]==4.2.2
+djangorestframework-stubs[compatible-mypy]==3.14.2
+mypy==1.4.1
+pre-commit==2.15.0
+pytest==7.3.1
+pytest-django==4.5.2
+pytest_factoryboy==2.5.1
+types-beautifulsoup4==4.12.0.5
+types-PyMySQL==1.0.19.7
+types-python-dateutil==2.8.19.13
+types-requests==2.31.0.1

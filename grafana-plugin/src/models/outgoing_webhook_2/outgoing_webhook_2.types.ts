@@ -28,4 +28,5 @@ export interface OutgoingWebhook2Response {
   request_data: string;
   status_code: string;
   content: string;
+  event_data: string;
 }

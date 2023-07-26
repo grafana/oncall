@@ -12,7 +12,6 @@
 Developer-friendly incident response with brilliant Slack integration.
 
 <!-- markdownlint-disable MD013 MD033 -->
-
 <table>
   <tbody>
     <tr>
@@ -21,7 +20,6 @@ Developer-friendly incident response with brilliant Slack integration.
     </tr>
   </tbody>
 </table>
-
 <!-- markdownlint-enable MD013 MD033 -->
 
 - Collect and analyze alerts from multiple monitoring systems
@@ -47,17 +45,45 @@ We prepared multiple environments:
 
    ```bash
    echo "DOMAIN=http://localhost:8080
-   COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
+   # Remove 'with_grafana' below if you want to use existing grafana
+   # Add 'with_prometheus' below to optionally enable a local prometheus for oncall metrics
+   # e.g. COMPOSE_PROFILES=with_grafana,with_prometheus
+   COMPOSE_PROFILES=with_grafana
+   # to setup an auth token for prometheus exporter metrics:
+   # PROMETHEUS_EXPORTER_SECRET=my_random_prometheus_secret
+   # also, make sure to enable the /metrics endpoint:
+   # FEATURE_PROMETHEUS_EXPORTER_ENABLED=True
    SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long" > .env
    ```
 
-3. Launch services:
+3. (Optional) If you want to enable/setup the prometheus metrics exporter
+(besides the changes above), create a `prometheus.yml` file (replacing
+`my_random_prometheus_secret` accordingly), next to your `docker-compose.yml`:
+
+   ```bash
+   echo "global:
+     scrape_interval:     15s
+     evaluation_interval: 15s
+
+   scrape_configs:
+     - job_name: prometheus
+       metrics_path: /metrics/
+       authorization:
+         credentials: my_random_prometheus_secret
+       static_configs:
+         - targets: [\"host.docker.internal:8080\"]" > prometheus.yml
+   ```
+
+   NOTE: you will need to setup a Prometheus datasource using `http://prometheus:9090`
+   as the URL in the Grafana UI.
+
+4. Launch services:
 
    ```bash
    docker-compose pull && docker-compose up -d
    ```
 
-4. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials
+5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials
    as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_
    with OnCall _backend_:
 
@@ -65,7 +91,7 @@ We prepared multiple environments:
    OnCall backend URL: http://engine:8080
    ```
 
-5. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up
+6. Enjoy! Check our [OSS docs](https://grafana.com/docs/oncall/latest/open-source/) if you want to set up
    Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 
 ## Update version

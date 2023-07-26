@@ -7,12 +7,12 @@ from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
     RollingUsersField,
     TeamPrimaryKeyRelatedField,
+    TimeZoneField,
     UsersFilteredByOrganizationField,
 )
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault
-from common.timezones import TimeZoneField
 
 
 class CustomOnCallShiftTypeField(fields.CharField):
@@ -143,19 +143,6 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         for schedule in instance.schedules.all():
             instance.start_drop_ical_and_check_schedule_tasks(schedule)
         return instance
-
-    def validate_name(self, name):
-        organization = self.context["request"].auth.organization
-        if name is None:
-            return name
-        try:
-            obj = CustomOnCallShift.objects.get(organization=organization, name=name)
-        except CustomOnCallShift.DoesNotExist:
-            return name
-        if self.instance and obj.id == self.instance.id:
-            return name
-        else:
-            raise BadRequest(detail="On-call shift with this name already exists")
 
     def validate_by_day(self, by_day):
         if by_day:

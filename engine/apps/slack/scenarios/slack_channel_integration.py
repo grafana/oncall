@@ -1,9 +1,5 @@
-import json
 import logging
 
-from django.apps import apps
-
-from apps.integrations.tasks import create_alert
 from apps.slack.scenarios import scenario_step
 
 logger = logging.getLogger(__name__)
@@ -30,13 +26,10 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             and "thread_ts" in payload["event"]["previous_message"]
         ):
             self.delete_thread_message_from_resolution_note(slack_user_identity, payload)
-        # Otherwise check if it is a message from channel with Slack Channel Integration
-        else:
-            self.create_alert_for_slack_channel_integration_if_needed(payload)
 
     def save_thread_message_for_resolution_note(self, slack_user_identity, payload):
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        from apps.alerts.models import ResolutionNoteSlackMessage
+        from apps.slack.models import SlackMessage
 
         if slack_user_identity is None:
             logger.warning(
@@ -119,7 +112,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             slack_thread_message.save()
 
     def delete_thread_message_from_resolution_note(self, slack_user_identity, payload):
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        from apps.alerts.models import ResolutionNoteSlackMessage
 
         if slack_user_identity is None:
             logger.warning(
@@ -143,37 +136,6 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             alert_group = slack_thread_message.alert_group
             slack_thread_message.delete()
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
-
-    def create_alert_for_slack_channel_integration_if_needed(self, payload):
-        if "subtype" in payload["event"] and payload["event"]["subtype"] != scenario_step.EVENT_SUBTYPE_FILE_SHARE:
-            return
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-        alert_receive_channels = AlertReceiveChannel.objects.filter(
-            integration_slack_channel_id=payload["event"]["channel"], organization=self.organization
-        ).all()
-        for alert_receive_channel in alert_receive_channels:
-            r = self._slack_client.api_call(
-                "chat.getPermalink",
-                channel=payload["event"]["channel"],
-                message_ts=payload["event"]["ts"],
-            )
-            # insert permalink to payload to have access to it in templaters
-            payload["event"]["amixr_mixin"] = {"permalink": r["permalink"]}
-
-            create_alert.apply_async(
-                [],
-                {
-                    "title": "<#{}>".format(payload["event"]["channel"]),
-                    "message": "{}\n_New message in <#{}> channel_".format(
-                        payload["event"]["text"], payload["event"]["channel"]
-                    ),
-                    "image_url": None,
-                    "link_to_upstream_details": r["permalink"],
-                    "alert_receive_channel_pk": alert_receive_channel.pk,
-                    "integration_unique_data": json.dumps(payload["event"]),
-                    "raw_request_data": payload["event"],
-                },
-            )
 
 
 STEPS_ROUTING = [

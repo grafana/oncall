@@ -3,7 +3,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from 'components/Collapse/Collapse.module.css';
+import styles from 'components/Collapse/Collapse.module.scss';
 
 export interface CollapseProps {
   label: React.ReactNode;
@@ -48,7 +48,7 @@ const Collapse: FC<CollapseProps> = (props) => {
         onClick={onHeaderClickCallback}
         data-testid="test__toggle"
       >
-        <Icon name={isOpen ? 'angle-down' : 'angle-right'} size="xl" className={cx('icon')} />
+        <Icon name={'angle-right'} size="xl" className={cx('icon', { 'icon--rotated': isOpen })} />
         <div className={cx('label')}> {label}</div>
       </div>
       {isOpen && (

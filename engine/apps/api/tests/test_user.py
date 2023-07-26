@@ -10,12 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.api.permissions import (
-    DONT_USE_LEGACY_PERMISSION_MAPPING,
-    GrafanaAPIPermission,
-    LegacyAccessControlRole,
-    RBACPermission,
-)
+from apps.api.permissions import GrafanaAPIPermission, LegacyAccessControlRole, RBACPermission
 from apps.base.models import UserNotificationPolicy
 from apps.phone_notifications.exceptions import FailedToFinishVerification
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
@@ -26,6 +21,51 @@ from apps.user_management.models.user import default_working_hours
 def clear_cache():
     # Ratelimit keys are stored in cache, clean to prevent ratelimits
     cache.clear()
+
+
+@pytest.mark.django_db
+def test_current_user(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:api-user")
+
+    expected_response = {
+        "pk": user.public_primary_key,
+        "organization": {"pk": organization.public_primary_key, "name": organization.org_title},
+        "current_team": None,
+        "email": user.email,
+        "hide_phone_number": False,
+        "username": user.username,
+        "name": user.name,
+        "role": user.role,
+        "rbac_permissions": user.permissions,
+        "timezone": None,
+        "working_hours": default_working_hours(),
+        "unverified_phone_number": None,
+        "verified_phone_number": None,
+        "telegram_configuration": None,
+        "messaging_backends": {
+            "TESTONLY": {
+                "user": user.username,
+            }
+        },
+        "cloud_connection_status": 0,
+        "notification_chain_verbal": {"default": "", "important": ""},
+        "slack_user_identity": None,
+        "avatar": user.avatar_url,
+        "avatar_full": user.avatar_full_url,
+    }
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+    data_to_update = {"hide_phone_number": True}
+
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response | data_to_update
 
 
 @pytest.mark.django_db
@@ -56,6 +96,7 @@ def test_update_user(
     assert response.json()["current_team"] == data["current_team"]
 
 
+@override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=False)
 @pytest.mark.django_db
 def test_update_user_cant_change_email_and_username(
     make_organization,
@@ -94,8 +135,7 @@ def test_update_user_cant_change_email_and_username(
                 "user": admin.username,
             }
         },
-        "cloud_connection_status": 0,
-        "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[admin.role],
+        "cloud_connection_status": None,
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
@@ -106,6 +146,7 @@ def test_update_user_cant_change_email_and_username(
     assert response.json() == expected_response
 
 
+@override_settings(GRAFANA_CLOUD_NOTIFICATIONS_ENABLED=False)
 @pytest.mark.django_db
 def test_list_users(
     make_organization,
@@ -145,12 +186,11 @@ def test_list_users(
                         "user": admin.username,
                     }
                 },
-                "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[admin.role],
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
                 "avatar_full": admin.avatar_full_url,
-                "cloud_connection_status": 0,
+                "cloud_connection_status": None,
             },
             {
                 "pk": editor.public_primary_key,
@@ -171,14 +211,16 @@ def test_list_users(
                         "user": editor.username,
                     }
                 },
-                "permissions": DONT_USE_LEGACY_PERMISSION_MAPPING[editor.role],
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
                 "avatar_full": editor.avatar_full_url,
-                "cloud_connection_status": 0,
+                "cloud_connection_status": None,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))
@@ -1153,7 +1195,7 @@ def test_user_cant_unlink_slack_another_user(
 
 
 @pytest.mark.django_db
-def test_user_cant_unlink_backend__another_user(
+def test_user_cant_unlink_backend_another_user(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
     organization, first_user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
@@ -1424,22 +1466,6 @@ def test_forget_other_number(
 
 
 @pytest.mark.django_db
-def test_viewer_cant_get_own_backend_verification_code(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers
-):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
-
-    client = APIClient()
-    url = (
-        reverse("api-internal:user-get-backend-verification-code", kwargs={"pk": user.public_primary_key})
-        + "?backend=TESTONLY"
-    )
-
-    response = client.get(f"{url}", format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.django_db
 def test_viewer_cant_get_another_user_backend_verification_code(
     make_organization_and_user_with_plugin_token, make_user_for_organization, make_user_auth_headers
 ):
@@ -1453,16 +1479,6 @@ def test_viewer_cant_get_another_user_backend_verification_code(
     )
 
     response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.django_db
-def test_viewer_cant_unlink_backend_own_user(make_organization_and_user_with_plugin_token, make_user_auth_headers):
-    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.VIEWER)
-    client = APIClient()
-    url = reverse("api-internal:user-unlink-backend", kwargs={"pk": user.public_primary_key}) + "?backend=TESTONLY"
-
-    response = client.post(f"{url}", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 

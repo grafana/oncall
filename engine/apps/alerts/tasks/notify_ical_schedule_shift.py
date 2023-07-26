@@ -2,7 +2,6 @@ import datetime
 import json
 from copy import copy
 
-from django.apps import apps
 from django.utils import timezone
 
 from apps.schedules.ical_events import ical_events
@@ -23,9 +22,9 @@ from .task_logger import task_logger
 
 def get_current_shifts_from_ical(calendar, schedule, min_priority=0):
     calendar_tz = get_icalendar_tz_or_utc(calendar)
-    now = timezone.datetime.now(timezone.utc)
+    now = datetime.datetime.now(timezone.utc)
     events_from_ical_for_three_days = ical_events.get_events_from_ical_between(
-        calendar, now - timezone.timedelta(days=1), now + timezone.timedelta(days=1)
+        calendar, now - datetime.timedelta(days=1), now + datetime.timedelta(days=1)
     )
     shifts = {}
     current_users = {}
@@ -54,9 +53,9 @@ def get_current_shifts_from_ical(calendar, schedule, min_priority=0):
 
 def get_next_shifts_from_ical(calendar, schedule, min_priority=0, days_to_lookup=3):
     calendar_tz = get_icalendar_tz_or_utc(calendar)
-    now = timezone.datetime.now(timezone.utc)
+    now = datetime.datetime.now(timezone.utc)
     next_events_from_ical = ical_events.get_events_from_ical_between(
-        calendar, now - timezone.timedelta(days=1), now + timezone.timedelta(days=days_to_lookup)
+        calendar, now - datetime.timedelta(days=1), now + datetime.timedelta(days=days_to_lookup)
     )
     shifts = {}
     for event in next_events_from_ical:
@@ -173,7 +172,7 @@ def recalculate_shifts_with_respect_to_priority(shifts, users=None):
 @shared_dedicated_queue_retry_task()
 def notify_ical_schedule_shift(schedule_pk):
     task_logger.info(f"Notify ical schedule shift {schedule_pk}")
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     try:
         schedule = OnCallSchedule.objects.get(
@@ -186,10 +185,13 @@ def notify_ical_schedule_shift(schedule_pk):
     if schedule.organization.slack_team_identity is None:
         task_logger.info(f"Trying to notify ical schedule shift with no slack team identity {schedule_pk}")
         return
+    elif schedule.organization.deleted_at:
+        task_logger.info(f"Trying to notify ical schedule shift from deleted organization {schedule_pk}")
+        return
 
     MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT = 3
 
-    now = timezone.datetime.now(timezone.utc)
+    now = datetime.datetime.now(timezone.utc)
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
     current_calendars = schedule.get_icalendars()

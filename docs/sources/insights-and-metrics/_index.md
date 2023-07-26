@@ -6,11 +6,123 @@ keywords:
   - Metrics
   - Loki
   - Prometheus
-title: Insight Logs
+title: Insight Logs and Metrics
 weight: 1400
 ---
 
-# Insight Logs
+# Insight Logs and Metrics
+
+## Metrics
+
+Grafana OnCall Metrics represents certain parameters, such as:
+
+- A total count of alert groups for each integration in every state (firing, acknowledged, resolved, silenced).
+It is a gauge, and its name has the suffix `alert_groups_total`
+- Response time on alert groups for each integration (mean time between the start and first action of all alert groups
+for the last 7 days in selected period). It is a histogram, and its name has the suffix `alert_groups_response_time`
+with the histogram suffixes such as `_bucket`, `_sum` and `_count`
+- A total count of alert groups users were notified of for each user. It is a counter, and its name has the suffix
+`user_was_notified_of_alert_groups_total`
+
+You can find more information about metrics types in the [Prometheus documentation](https://prometheus.io/docs/concepts/metric_types).
+
+To retrieve Prometheus metrics use PromQL. If you are not familiar with PromQL, check this [documentation](https://prometheus.io/docs/prometheus/latest/querying/basics/).
+
+### For Grafana Cloud customers
+
+OnCall application metrics are collected in preinstalled `grafanacloud_usage` datasource and are available for every
+cloud instance.
+
+Metrics have prefix `grafanacloud_oncall_instance`, e.g. `grafanacloud_oncall_instance_alert_groups_total`,
+`grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket` and
+`grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total`.
+
+### For open source customers
+
+To collect OnCall application metrics you need to set up Prometheus and add it to your Grafana instance as a datasource.
+You can find more information about Prometheus setup in the [OSS documentation](https://github.com/grafana/oncall#readme)
+
+Metrics will have the prefix `oncall`, e.g. `oncall_alert_groups_total`, `oncall_alert_groups_response_time_seconds_bucket`
+and `oncall_user_was_notified_of_alert_groups_total`.
+
+Your metrics may also have additional labels, such as `pod`, `instance`, `container`, depending on your Prometheus setup.
+
+### Metric Alert groups total
+
+This metric has the following labels:
+
+| Label Name    |                                 Description                                   |
+|---------------|:-----------------------------------------------------------------------------:|
+| `id`          | ID of Grafana instance (stack)                                                |
+| `slug`        | Slug of Grafana instance (stack)                                              |
+| `org_id`      | ID of Grafana organization                                                    |
+| `team`        | Team name                                                                     |
+| `integration` | OnCall Integration name                                                       |
+| `state`       | Alert groups state. May be `firing`, `acknowledged`, `resolved` and `silenced`|
+
+**Query example:**
+
+Get the number of alert groups in "firing" state in integration "Grafana Alerting" in Grafana stack "test_stack":
+
+```promql
+grafanacloud_oncall_instance_alert_groups_total{slug="test_stack", integration="Grafana Alerting", state="firing"}
+```
+
+### Metric Alert groups response time
+
+This metric has the following labels:
+
+| Label Name    |                                 Description                                    |
+|---------------|:------------------------------------------------------------------------------:|
+| `id`          | ID of Grafana instance (stack)                                                 |
+| `slug`        | Slug of Grafana instance (stack)                                               |
+| `org_id`      | ID of Grafana organization                                                     |
+| `team`        | Team name                                                                      |
+| `integration` | OnCall Integration name                                                        |
+| `le`          | Histogram bucket value in seconds. May be `60`, `300`, `600`, `3600` and `+Inf`|
+
+**Query example:**
+
+Get the number of alert groups with response time more than 10 minutes (600 seconds) in integration "Grafana Alerting"
+in Grafana stack "test_stack":
+
+```promql
+grafanacloud_oncall_instance_alert_groups_response_time_seconds_bucket{slug="test_stack", integration="Grafana Alerting", le="600"}
+```
+
+### Metric Alert groups user was notified of
+
+This metric has the following labels:
+
+| Label Name    |                                 Description                                   |
+|---------------|:-----------------------------------------------------------------------------:|
+| `id`          | ID of Grafana instance (stack)                                                |
+| `slug`        | Slug of Grafana instance (stack)                                              |
+| `org_id`      | ID of Grafana organization                                                    |
+| `username`    | User username                                                                 |
+
+**Query example:**
+
+Get the number of alert groups user with username "alex" was notified of in Grafana stack "test_stack":
+
+```promql
+grafanacloud_oncall_instance_user_was_notified_of_alert_groups_total{slug="test_stack", username="alex"}
+```
+
+### Dashboard
+
+You can find the "OnCall Metrics" dashboard in the list of your dashboards in the folder `General`, it has the tag
+`oncall`. In the datasource dropdown select your Prometheus datasource (for Cloud customers it's `grafanacloud_usage`).
+You can filter data by your Grafana instances, teams and integrations.
+
+To re-import OnCall metrics dashboard go to `Administration` -> `Plugins` page, find OnCall in the plugins list, open
+`Dashboards` tab at the OnCall plugin settings page and click "Re-import" near "OnCall Metrics". After that you can find
+the "OnCall Metrics" dashboard in your dashboards list.
+
+Be aware: if you have made changes to the dashboard, they will be lost after re-importing or after the plugin update.
+To save your changes go to the "OnCall Metrics" dashboard settings, click "Save as" and save a copy of the dashboard.
+
+## Insight Logs
 
 > **Note:** Grafana OnCall insight logs are available in Grafana Cloud only.
 We're in the process of rolling out Insight Logs to all customers,
@@ -29,7 +141,7 @@ You can use this query to retrieve all logs related to your OnCall instance.
 {instance_type="oncall"} | logfmt | __error__=``
 ```
 
-## Resource insight logs
+### Resource insight logs
 
 Logs are created each time a user modifies any resource in Grafana OnCall.
 
@@ -39,7 +151,7 @@ These logs will have `action_type=resource` field and can be retrieved with foll
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `resource`
 ```
 
-### Format
+#### Format
 
 Logs contain the following fields, where the fields followed by * are always available, and the others depend on the logged event:
 
@@ -67,7 +179,7 @@ resource types are: `integration_heartbeat`, `escalation_chain`, `integration`, 
 `escalation_policy`, `public_api_token`, `schedule_export_token`,`user_schedule_export_token`,
 `oncall_shift`, `web_schedule`, `ical_schedule`, `calendar_schedule`, `organization`, `user`, `webhook`.
 
-## Maintenance insight logs
+### Maintenance insight logs
 
 Logs are created every time when a maintenance mode is started or finished for an integration.
 
@@ -77,7 +189,7 @@ These logs will have `action_type=maintenace` field and can be retrieved with fo
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `maintenance`
 ```
 
-### Format
+#### Format
 
 Logs of maintenance insights contain the following fields, where the fields followed by * are always available, and the others depend on the logged event:
 
@@ -93,7 +205,7 @@ Logs of maintenance insights contain the following fields, where the fields foll
 | `team`*             |                Name of team to which integration belongs.                |
 | `team_id`           |                 ID of team to which integration belongs.                 |
 
-## ChatOps insight logs
+### ChatOps insight logs
 
 Logs are created when user modifies ChatOps settings.
 
@@ -103,7 +215,7 @@ These log lines will have `action_type=chat_ops` field and can be retrieved with
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops`
 ```
 
-### Format
+#### Format
 
 Logs of chatops insight logs contain the following fields, where the fields followed by * are always available, and the others depend on the logged event:
 
@@ -122,7 +234,7 @@ Logs of chatops insight logs contain the following fields, where the fields foll
 
 chatops action names: `workspace_connected`, `workspace_disconnected`, `channel_connected`, `channel_disconnected`, `user_linked`, `used_unlinked`, `default_channel_changed`.
 
-## Examples
+### Examples
 
 Here is some examples of practical queries to Grafana OnCall insight logs.
 LogQL is used to retrieve them. If you are not familiar with LogQL check this [documentation](https://grafana.com/docs/loki/latest/logql/).
@@ -134,7 +246,7 @@ Resource IDs are used a lot in insight logs. You can find them in web ui (exampl
 3. The URL looks like `https://<YOUR_STACK_SLUG>/a/grafana-oncall-app/integrations/C5VXMIFKKP67K`.
 4. Integration ID is `C5VXMIFKKP67K`.
 
-Alternatively you can find resource ID using public [API](https://grafana.com/docs/oncall/latest/oncall-api-reference/) or browser dev tools.
+Alternatively you can find resource ID using public [API][oncall-api-reference] or browser dev tools.
 
 Actions performed by user:
 
@@ -165,3 +277,8 @@ Actions performed with slack chatops integration:
 ```logql
 {instance_type="oncall"} | logfmt | __error__=`` | action_type = `chat_ops` and chat_ops_type=`slack`
 ```
+
+{{% docs/reference %}}
+[oncall-api-reference]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/oncall-api-reference"
+[oncall-api-reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/oncall-api-reference"
+{{% /docs/reference %}}

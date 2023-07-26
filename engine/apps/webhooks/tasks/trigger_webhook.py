@@ -3,7 +3,6 @@ import logging
 from json import JSONDecodeError
 
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.conf import settings
 from django.db.models import Prefetch
 
@@ -11,6 +10,7 @@ from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
 from apps.base.models import UserNotificationPolicyLogRecord
 from apps.user_management.models import User
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 from apps.webhooks.utils import (
     InvalidWebhookData,
     InvalidWebhookHeaders,
@@ -43,8 +43,9 @@ TRIGGER_TYPE_TO_LABEL = {
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def send_webhook_event(trigger_type, alert_group_id, organization_id=None, user_id=None):
-    Webhooks = apps.get_model("webhooks", "Webhook")
-    webhooks_qs = Webhooks.objects.filter(
+    from apps.webhooks.models import Webhook
+
+    webhooks_qs = Webhook.objects.filter(
         trigger_type=trigger_type,
         organization_id=organization_id,
     ).exclude(is_webhook_enabled=False)
@@ -94,15 +95,23 @@ def _build_payload(webhook, alert_group, user):
     return data
 
 
+def mask_authorization_header(headers):
+    masked_headers = headers.copy()
+    if "Authorization" in masked_headers:
+        masked_headers["Authorization"] = WEBHOOK_FIELD_PLACEHOLDER
+    return masked_headers
+
+
 def make_request(webhook, alert_group, data):
     status = {
         "url": None,
         "request_trigger": None,
         "request_headers": None,
-        "request_data": data,
+        "request_data": None,
         "status_code": None,
         "content": None,
         "webhook": webhook,
+        "event_data": json.dumps(data),
     }
 
     exception = error = None
@@ -115,7 +124,8 @@ def make_request(webhook, alert_group, data):
         if triggered:
             status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
+            display_headers = mask_authorization_header(request_kwargs.get("headers", {}))
+            status["request_headers"] = json.dumps(display_headers)
             if "json" in request_kwargs:
                 status["request_data"] = json.dumps(request_kwargs["json"])
             else:
@@ -153,10 +163,11 @@ def make_request(webhook, alert_group, data):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
-    Webhooks = apps.get_model("webhooks", "Webhook")
+    from apps.webhooks.models import Webhook
+
     try:
-        webhook = Webhooks.objects.get(pk=webhook_pk)
-    except Webhooks.DoesNotExist:
+        webhook = Webhook.objects.get(pk=webhook_pk)
+    except Webhook.DoesNotExist:
         logger.warn(f"Webhook {webhook_pk} does not exist")
         return
 
@@ -167,7 +178,7 @@ def execute_webhook(webhook_pk, alert_group_id, user_id, escalation_policy_id):
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_SUCCESS,
         ).select_related("author")
         alert_group = (
-            AlertGroup.unarchived_objects.prefetch_related(
+            AlertGroup.objects.prefetch_related(
                 Prefetch("personal_log_records", queryset=personal_log_records, to_attr="sent_notifications")
             )
             .select_related("channel")

@@ -107,10 +107,9 @@ def getenv_integer(variable_name: str, default: int) -> int:
     if value is None:
         return default
     try:
-        value = int(value)
+        return int(value)
     except ValueError:
         return default
-    return value
 
 
 def batch_queryset(qs, batch_size=1000):
@@ -150,7 +149,7 @@ def str_or_backup(string, backup):
 
 
 def clean_html(text):
-    text = "".join(BeautifulSoup(text, features="html.parser").find_all(text=True))
+    text = "".join(BeautifulSoup(text, features="html.parser").find_all(string=True))
     return text
 
 
@@ -164,23 +163,34 @@ def convert_md_to_html(text):
     # Adding two spaces to any line break to support templates that were built without this in mind.
     # https://daringfireball.net/projects/markdown/syntax#p
     text = text.replace("\n", "  \n")
-    text = markdown2.markdown(
-        text,
-        extras=[
-            "cuddled-lists",
-            "code-friendly",  # Disable _ and __ for em and strong.
-            # This gives us <pre> and <code> tags for ```-fenced blocks
-            "fenced-code-blocks",
-            "pyshell",
-            "nl2br",
-            "target-blank-links",
-            "nofollow",
-            "pymdownx.emoji",
-            "pymdownx.magiclink",
-            "tables",
-        ],
-    ).strip()
-    return text
+
+    extras = {
+        "cuddled-lists",
+        "code-friendly",  # Disable _ and __ for em and strong.
+        # This gives us <pre> and <code> tags for ```-fenced blocks
+        "fenced-code-blocks",
+        "pyshell",
+        "nl2br",
+        "target-blank-links",
+        "nofollow",
+        "pymdownx.emoji",
+        "pymdownx.magiclink",
+        "tables",
+    }
+    try:
+        text = markdown2.markdown(
+            text,
+            extras=extras,
+        )
+    except AssertionError:
+        # markdown2 raises an AssertionError when using the "cuddled-lists" extra and passing strings with "- - " in it.
+        # If the initial attempt fails, try again without the "cuddled-lists" extra.
+        text = markdown2.markdown(
+            text,
+            extras=extras - {"cuddled-lists"},
+        )
+
+    return text.strip()
 
 
 def clean_markup(text):
@@ -202,7 +212,7 @@ def urlize_with_respect_to_a(html):
     Wrap links into <a> tag if not already
     """
     soup = BeautifulSoup(html, features="html.parser")
-    textNodes = soup.find_all(text=True)
+    textNodes = soup.find_all(string=True)
     for textNode in textNodes:
         if textNode.parent and getattr(textNode.parent, "name") == "a":
             continue

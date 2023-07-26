@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/slack_channels/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/slack_channels/
 title: Slack Channels HTTP API
 weight: 1300
@@ -27,7 +25,10 @@ The above command returns JSON structured in the following way:
       "name": "meow_channel",
       "slack_id": "MEOW_SLACK_ID"
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

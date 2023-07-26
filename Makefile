@@ -73,6 +73,12 @@ define run_ui_docker_command
 	$(call run_docker_compose_command,run --rm oncall_ui sh -c '$(1)')
 endef
 
+# always use settings.ci-test django settings file when running the tests
+# if we use settings.dev it's very possible that some fail just based on the settings alone
+define run_backend_tests
+	$(call run_engine_docker_command,pytest --ds=settings.ci-test $(1))
+endef
+
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
 start:  ## start all of the docker containers
 ifeq ($(DB),$(SQLITE_PROFILE))
@@ -107,7 +113,7 @@ cleanup: stop  ## this will remove all of the images, containers, volumes, and n
 install-pre-commit:
 	@if [ ! -x "$$(command -v pre-commit)" ]; then \
 		echo "installing pre-commit"; \
-		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements.txt); \
+		pip install $$(grep "pre-commit" $(ENGINE_DIR)/requirements-dev.txt); \
 	else \
 		echo "pre-commit already installed"; \
 	fi
@@ -115,14 +121,17 @@ install-pre-commit:
 lint: install-pre-commit  ## run both frontend and backend linters
                           ## may need to run `yarn install` from within `grafana-plugin`
                           ## to install several `pre-commit` dependencies
-
 	pre-commit run --all-files
 
 install-precommit-hook: install-pre-commit
 	pre-commit install
 
 test:  ## run backend tests
-	$(call run_engine_docker_command,pytest)
+	$(call run_backend_tests)
+
+test-dev:  ## very similar to `test` command, but allows you to pass arbitray args to pytest
+           ## for example, `make test-dev ARGS="--last-failed --pdb"
+	$(call run_backend_tests,$(ARGS))
 
 start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)

@@ -4,7 +4,6 @@ import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types'
 
 export interface ChannelFilter {
   id: string;
-  order: number;
   alert_receive_channel: AlertReceiveChannel['id'];
   slack_channel_id?: SlackChannel['id'];
   telegram_channel?: TelegramChannel['id'];

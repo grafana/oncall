@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: row;
   margin-bottom: 4px;
+  max-width: 100%;
+  margin-left: 16px;
 
   &__content {
     width: 100%;

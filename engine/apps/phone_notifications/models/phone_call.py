@@ -60,6 +60,7 @@ class PhoneCallRecord(models.Model):
 class ProviderPhoneCall(models.Model):
     """
     ProviderPhoneCall is an interface between PhoneCallRecord and call data returned from PhoneProvider.
+    Concrete provider phone call should be inherited from ProviderPhoneCall.
 
     Some phone providers allows to track status of call or gather pressed digits (we use it to ack/resolve alert group).
     It is needed to link phone call and alert group without exposing internals of concrete phone provider to PhoneBackend.

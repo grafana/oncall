@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.webhooks.models import Webhook, WebhookResponse
+from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
@@ -21,6 +22,7 @@ class WebhookResponseSerializer(serializers.ModelSerializer):
             "request_data",
             "status_code",
             "content",
+            "event_data",
         ]
 
 
@@ -65,6 +67,29 @@ class WebhookSerializer(serializers.ModelSerializer):
         }
 
         validators = [UniqueTogetherValidator(queryset=Webhook.objects.all(), fields=["name", "organization"])]
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if instance.password:
+            result["password"] = WEBHOOK_FIELD_PLACEHOLDER
+        if instance.authorization_header:
+            result["authorization_header"] = WEBHOOK_FIELD_PLACEHOLDER
+        return result
+
+    def to_internal_value(self, data):
+        webhook = self.instance
+
+        # If webhook is being copied instance won't exist to copy values from
+        if not webhook and "id" in data:
+            webhook = Webhook.objects.get(
+                public_primary_key=data["id"], organization=self.context["request"].auth.organization
+            )
+
+        if data.get("password") == WEBHOOK_FIELD_PLACEHOLDER:
+            data["password"] = webhook.password
+        if data.get("authorization_header") == WEBHOOK_FIELD_PLACEHOLDER:
+            data["authorization_header"] = webhook.authorization_header
+        return super().to_internal_value(data)
 
     def _validate_template_field(self, template):
         try:

@@ -4,7 +4,11 @@ import pytest
 from prometheus_client import CollectorRegistry, generate_latest
 
 from apps.alerts.constants import AlertGroupState
-from apps.metrics_exporter.constants import ALERT_GROUPS_RESPONSE_TIME, ALERT_GROUPS_TOTAL
+from apps.metrics_exporter.constants import (
+    ALERT_GROUPS_RESPONSE_TIME,
+    ALERT_GROUPS_TOTAL,
+    USER_WAS_NOTIFIED_OF_ALERT_GROUPS,
+)
 from apps.metrics_exporter.metrics_collectors import ApplicationMetricsCollector
 
 
@@ -25,6 +29,9 @@ def test_application_metrics_collector(
         elif metric.name == ALERT_GROUPS_RESPONSE_TIME:
             # integration with labels for each value in collector's bucket + _count and _sum histogram values
             assert len(metric.samples) == len(collector._buckets) + 2
+        elif metric.name == USER_WAS_NOTIFIED_OF_ALERT_GROUPS:
+            # metric with labels for each notified user
+            assert len(metric.samples) == 1
     result = generate_latest(test_metrics_registry).decode("utf-8")
     assert result is not None
     assert mocked_org_ids.called

@@ -70,7 +70,7 @@ def test_check_user_availability_no_policies(make_organization, make_user_for_or
     organization = make_organization()
     user = make_user_for_organization(organization)
 
-    warnings = check_user_availability(user, None)
+    warnings = check_user_availability(user)
     assert warnings == [
         {"data": {}, "error": USER_HAS_NO_NOTIFICATION_POLICY},
         {"data": {"schedules": {}}, "error": USER_IS_NOT_ON_CALL},
@@ -95,37 +95,9 @@ def test_check_user_availability_not_on_call(
         make_schedule, make_on_call_shift, organization, None, other_user, extra_users=[user]
     )
 
-    warnings = check_user_availability(user, None)
+    warnings = check_user_availability(user)
     assert warnings == [
         {"data": {"schedules": {schedule.name: {other_user.public_primary_key}}}, "error": USER_IS_NOT_ON_CALL},
-    ]
-
-
-@pytest.mark.django_db
-def test_check_user_availability_on_call_different_team(
-    make_organization,
-    make_team,
-    make_user_for_organization,
-    make_user_notification_policy,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization = make_organization()
-    some_team = make_team(organization)
-    user = make_user_for_organization(organization)
-    make_user_notification_policy(
-        user=user,
-        step=UserNotificationPolicy.Step.NOTIFY,
-        notify_by=UserNotificationPolicy.NotificationChannel.SMS,
-    )
-
-    # setup on call schedule
-    # user is on call, but on a different team
-    setup_always_on_call_schedule(make_schedule, make_on_call_shift, organization, some_team, user)
-
-    warnings = check_user_availability(user, None)
-    assert warnings == [
-        {"data": {"schedules": {}}, "error": USER_IS_NOT_ON_CALL},
     ]
 
 
@@ -150,22 +122,8 @@ def test_check_user_availability_on_call(
     # setup on call schedule
     setup_always_on_call_schedule(make_schedule, make_on_call_shift, organization, some_team, user)
 
-    warnings = check_user_availability(user, some_team)
+    warnings = check_user_availability(user)
     assert warnings == []
-
-
-@pytest.mark.django_db
-def test_direct_paging_no_one(make_organization, make_user_for_organization):
-    organization = make_organization()
-    from_user = make_user_for_organization(organization)
-
-    with patch("apps.alerts.paging.notify_user_task") as notify_task:
-        direct_paging(organization, None, from_user)
-
-    # no alert group
-    assert AlertGroup.all_objects.count() == 0
-    # no notifications
-    assert not notify_task.apply_async.called
 
 
 @pytest.mark.django_db
@@ -181,15 +139,17 @@ def test_direct_paging_user(make_organization, make_user_for_organization):
         )
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     alert = ag.alerts.get()
     assert alert.title == "Help!"
     assert alert.message == "Fire"
     # notifications sent
-    for (u, important) in ((user, False), (other_user, True)):
-        assert notify_task.apply_async.called_with((u.pk, ag.pk), {"important": important})
+    for u, important in ((user, False), (other_user, True)):
+        assert notify_task.apply_async.called_with(
+            (u.pk, ag.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
+        )
         expected_info = {"user": u.public_primary_key, "schedule": None, "important": important}
         assert_log_record(ag, f"{from_user.username} paged user {u.username}", expected_info=expected_info)
 
@@ -214,7 +174,7 @@ def test_direct_paging_schedule(
         direct_paging(organization, None, from_user, schedules=[(schedule, False), (other_schedule, True)])
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     alert = ag.alerts.get()
@@ -223,8 +183,10 @@ def test_direct_paging_schedule(
     assert_log_record(ag, f"{from_user.username} paged schedule {schedule.name}")
     assert_log_record(ag, f"{from_user.username} paged schedule {other_schedule.name}")
     # notifications sent
-    for (u, important, s) in ((user, False, schedule), (other_user, True, other_schedule)):
-        assert notify_task.apply_async.called_with((u.pk, ag.pk), {"important": important})
+    for u, important, s in ((user, False, schedule), (other_user, True, other_schedule)):
+        assert notify_task.apply_async.called_with(
+            (u.pk, ag.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
+        )
         expected_info = {"user": u.public_primary_key, "schedule": s.public_primary_key, "important": important}
         assert_log_record(
             ag, f"{from_user.username} paged user {u.username} (from schedule {s.name})", expected_info=expected_info
@@ -245,12 +207,14 @@ def test_direct_paging_reusing_alert_group(
         direct_paging(organization, None, from_user, users=[(user, False)], alert_group=alert_group)
 
     # no new alert group is created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     assert_log_record(alert_group, f"{from_user.username} paged user {user.username}")
     # notifications sent
     ag = alert_groups.get()
-    assert notify_task.apply_async.called_with((user.pk, ag.pk), {"important": False})
+    assert notify_task.apply_async.called_with(
+        (user.pk, ag.pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    )
 
 
 @pytest.mark.django_db
@@ -278,7 +242,7 @@ def test_direct_paging_custom_chain(
     direct_paging(organization, None, from_user, escalation_chain=custom_chain)
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 1
     ag = alert_groups.get()
     channel_filter = ag.channel_filter_with_respect_to_escalation_snapshot
@@ -298,7 +262,7 @@ def test_direct_paging_returns_alert_group(make_organization, make_user_for_orga
         alert_group = direct_paging(organization, None, from_user, title="Help!", message="Fire", users=[(user, False)])
 
     # check alert group returned by direct paging is the same as the one created
-    assert alert_group == AlertGroup.all_objects.get()
+    assert alert_group == AlertGroup.objects.get()
 
 
 @pytest.mark.django_db
@@ -347,8 +311,12 @@ def test_direct_paging_always_create_group(make_organization, make_user_for_orga
         direct_paging(organization, None, from_user, title="Help!", users=[(user, False)])
 
     # alert group created
-    alert_groups = AlertGroup.all_objects.all()
+    alert_groups = AlertGroup.objects.all()
     assert alert_groups.count() == 2
     # notifications sent
-    assert notify_task.apply_async.called_with((user.pk, alert_groups[0].pk), {"important": False})
-    assert notify_task.apply_async.called_with((user.pk, alert_groups[1].pk), {"important": False})
+    assert notify_task.apply_async.called_with(
+        (user.pk, alert_groups[0].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    )
+    assert notify_task.apply_async.called_with(
+        (user.pk, alert_groups[1].pk), {"important": False, "notify_even_acknowledged": True, "notify_anyway": True}
+    )

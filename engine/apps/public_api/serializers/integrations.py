@@ -59,12 +59,12 @@ for backend_id, backend in get_messaging_backends():
 
 class IntegrationTypeField(fields.CharField):
     def to_representation(self, value):
-        return AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP[value]
+        return AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP[value]
 
     def to_internal_value(self, data):
         try:
             integration_type = [
-                key for key, value in AlertReceiveChannel.INTEGRATIONS_TO_REVERSE_URL_MAP.items() if value == data
+                key for key, value in AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP.items() if value == data
             ][0]
         except IndexError:
             raise BadRequest(detail="Invalid integration type")
@@ -76,6 +76,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
     name = serializers.CharField(required=False, source="verbal_name")
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     link = serializers.ReadOnlyField(source="integration_url")
+    inbound_email = serializers.ReadOnlyField()
     type = IntegrationTypeField(source="integration")
     templates = serializers.DictField(required=False)
     default_route = serializers.DictField(required=False)
@@ -93,6 +94,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             "description_short",
             "team_id",
             "link",
+            "inbound_email",
             "type",
             "default_route",
             "templates",
@@ -115,16 +117,22 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         default_route_data = validated_data.pop("default_route", None)
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
+        # hack to block alertmanager_v2 integration, will be removed
+        if integration == "alertmanager_v2":
+            raise BadRequest
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
         with transaction.atomic():
-            instance = AlertReceiveChannel.create(
-                **validated_data,
-                author=self.context["request"].user,
-                organization=organization,
-            )
+            try:
+                instance = AlertReceiveChannel.create(
+                    **validated_data,
+                    author=self.context["request"].user,
+                    organization=organization,
+                )
+            except AlertReceiveChannel.DuplicateDirectPagingError:
+                raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
             if default_route_data:
                 serializer = DefaultChannelFilterSerializer(
                     instance.default_channel_filter, default_route_data, context=self.context
@@ -132,6 +140,12 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
         return instance
+
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
     def validate(self, attrs):
         organization = self.context["request"].auth.organization

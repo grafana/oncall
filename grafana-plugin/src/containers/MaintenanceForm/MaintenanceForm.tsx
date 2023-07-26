@@ -8,9 +8,8 @@ import { observer } from 'mobx-react';
 import GForm from 'components/GForm/GForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { useStore } from 'state/useStore';
-import { showApiError } from 'utils';
+import { openNotification, showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 
 import { form } from './MaintenanceForm.config';
@@ -21,7 +20,6 @@ const cx = cn.bind(styles);
 
 interface MaintenanceFormProps {
   initialData: {
-    type?: MaintenanceType;
     alert_receive_channel_id?: AlertReceiveChannel['id'];
     disabled?: boolean;
   };
@@ -35,22 +33,22 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
 
   const store = useStore();
 
-  const { maintenanceStore } = store;
+  const { alertReceiveChannelStore } = store;
 
-  const handleSubmit = useCallback((data) => {
-    maintenanceStore
-      .startMaintenanceMode(
-        MaintenanceType.alert_receive_channel,
+  const handleSubmit = useCallback(async (data) => {
+    try {
+      await alertReceiveChannelStore.startMaintenanceMode(
+        initialData.alert_receive_channel_id,
         data.mode,
-        data.duration,
-        data.alert_receive_channel_id
-      )
-      .then(() => {
-        onHide();
+        data.duration
+      );
 
-        onUpdate();
-      })
-      .catch(showApiError);
+      onHide();
+      onUpdate();
+      openNotification('Maintenance has been started');
+    } catch (err) {
+      showApiError(err);
+    }
   }, []);
 
   if (initialData.disabled) {
@@ -64,15 +62,17 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
 
   return (
     <Drawer width="640px" scrollableContent title="Start Maintenance Mode" onClose={onHide} closeOnMaskClick={false}>
-      <div className={cx('content')}>
+      <div className={cx('content')} data-testid="maintenance-mode-drawer">
         <VerticalGroup>
+          Start maintenance mode when performing scheduled maintenance or updates on the infrastructure, which may
+          trigger false alarms.
           <GForm form={maintenanceForm} data={initialData} onSubmit={handleSubmit} />
           <HorizontalGroup justify="flex-end">
             <Button variant="secondary" onClick={onHide}>
               Cancel
             </Button>
             <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
-              <Button form={form.name} type="submit">
+              <Button form={form.name} type="submit" data-testid="create-maintenance-button">
                 Start
               </Button>
             </WithPermissionControlTooltip>

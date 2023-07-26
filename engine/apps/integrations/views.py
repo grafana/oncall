@@ -1,14 +1,9 @@
 import json
 import logging
 
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
-from django.db.utils import IntegrityError
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.template import loader
-from django.utils import timezone
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_sns_view.views import SNSEndpoint
@@ -16,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.heartbeat.tasks import heartbeat_checkup, process_heartbeat_task
+from apps.heartbeat.tasks import process_heartbeat_task
 from apps.integrations.mixins import (
     AlertChannelDefiningMixin,
     BrowsableInstructionMixin,
@@ -262,122 +257,6 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
         return Response("Ok.")
 
 
-# TODO: restore HeartBeatAPIView integration or clean it up as it is not used now
-class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
-    def get(self, request):
-        template = loader.get_template("heartbeat_link.html")
-        docs_url = create_engine_url("/#/integrations/heartbeat", override_base=settings.DOCS_URL)
-        return HttpResponse(
-            template.render(
-                {
-                    "docs_url": docs_url,
-                }
-            )
-        )
-
-    def post(self, request):
-        alert_receive_channel = self.request.alert_receive_channel
-        HeartBeat = apps.get_model("heartbeat", "HeartBeat")
-
-        if request.data.get("action") == "activate":
-            # timeout_seconds
-            timeout_seconds = request.data.get("timeout_seconds")
-            try:
-                timeout_seconds = int(timeout_seconds)
-            except ValueError:
-                timeout_seconds = None
-
-            if timeout_seconds is None:
-                return Response(status=400, data="timeout_seconds int expected")
-            # id
-            _id = request.data.get("id", "default")
-            # title
-            title = request.data.get("title", "Title")
-            # title
-            link = request.data.get("link")
-            # message
-            message = request.data.get("message")
-
-            heartbeat = HeartBeat(
-                alert_receive_channel=alert_receive_channel,
-                timeout_seconds=timeout_seconds,
-                title=title,
-                message=message,
-                link=link,
-                user_defined_id=_id,
-                last_heartbeat_time=timezone.now(),
-                last_checkup_task_time=timezone.now(),
-                actual_check_up_task_id="none",
-            )
-            try:
-                heartbeat.save()
-                with transaction.atomic():
-                    heartbeat = HeartBeat.objects.filter(pk=heartbeat.pk).select_for_update()[0]
-                    task = heartbeat_checkup.apply_async(
-                        (heartbeat.pk,),
-                        countdown=heartbeat.timeout_seconds,
-                    )
-                    heartbeat.actual_check_up_task_id = task.id
-                    heartbeat.save()
-            except IntegrityError:
-                return Response(status=400, data="id should be unique")
-
-        elif request.data.get("action") == "deactivate":
-            _id = request.data.get("id", "default")
-            try:
-                heartbeat = HeartBeat.objects.filter(
-                    alert_receive_channel=alert_receive_channel,
-                    user_defined_id=_id,
-                ).get()
-                heartbeat.delete()
-            except HeartBeat.DoesNotExist:
-                return Response(status=400, data="heartbeat not found")
-
-        elif request.data.get("action") == "list":
-            result = []
-            heartbeats = HeartBeat.objects.filter(
-                alert_receive_channel=alert_receive_channel,
-            ).all()
-            for heartbeat in heartbeats:
-                result.append(
-                    {
-                        "created_at": heartbeat.created_at,
-                        "last_heartbeat": heartbeat.last_heartbeat_time,
-                        "expiration_time": heartbeat.expiration_time,
-                        "is_expired": heartbeat.is_expired,
-                        "id": heartbeat.user_defined_id,
-                        "title": heartbeat.title,
-                        "timeout_seconds": heartbeat.timeout_seconds,
-                        "link": heartbeat.link,
-                        "message": heartbeat.message,
-                    }
-                )
-            return Response(result)
-
-        elif request.data.get("action") == "heartbeat":
-            _id = request.data.get("id", "default")
-            with transaction.atomic():
-                try:
-                    heartbeat = HeartBeat.objects.filter(
-                        alert_receive_channel=alert_receive_channel,
-                        user_defined_id=_id,
-                    ).select_for_update()[0]
-                    task = heartbeat_checkup.apply_async(
-                        (heartbeat.pk,),
-                        countdown=heartbeat.timeout_seconds,
-                    )
-                    heartbeat.actual_check_up_task_id = task.id
-                    heartbeat.last_heartbeat_time = timezone.now()
-                    update_fields = ["actual_check_up_task_id", "last_heartbeat_time"]
-                    state_changed = heartbeat.check_heartbeat_state()
-                    if state_changed:
-                        update_fields.append("previous_alerted_state_was_life")
-                    heartbeat.save(update_fields=update_fields)
-                except IndexError:
-                    return Response(status=400, data="heartbeat not found")
-        return Response("Ok.")
-
-
 class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBeatRateLimitMixin, APIView):
     def get(self, request):
         self._process_heartbeat_signal(request, request.alert_receive_channel)
@@ -391,3 +270,46 @@ class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBea
         process_heartbeat_task.apply_async(
             (alert_receive_channel.pk,),
         )
+
+
+class AlertManagerV2View(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
+    """
+    AlertManagerV2View consumes alerts from AlertManager. It expects data to be in format of AM webhook receiver.
+    """
+
+    def post(self, request, *args, **kwargs):
+        alert_receive_channel = self.request.alert_receive_channel
+        if not alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER_V2:
+            return HttpResponseBadRequest(
+                f"This url is for integration with {alert_receive_channel.config.title}."
+                f"Key is for {alert_receive_channel.get_integration_display()}"
+            )
+        alerts = request.data.get("alerts", [])
+
+        data = request.data
+        if "numFiring" not in request.data:
+            num_firing = 0
+            num_resolved = 0
+            for a in alerts:
+                if a["status"] == "firing":
+                    num_firing += 1
+                elif a["status"] == "resolved":
+                    num_resolved += 1
+            # Count firing and resolved alerts manually if not present in payload
+            data = {**request.data, "numFiring": num_firing, "numResolved": num_resolved}
+        else:
+            data = request.data
+
+        create_alert.apply_async(
+            [],
+            {
+                "title": None,
+                "message": None,
+                "image_url": None,
+                "link_to_upstream_details": None,
+                "alert_receive_channel_pk": alert_receive_channel.pk,
+                "integration_unique_data": None,
+                "raw_request_data": data,
+            },
+        )
+        return Response("Ok.")

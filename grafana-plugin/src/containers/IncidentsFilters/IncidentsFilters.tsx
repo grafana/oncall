@@ -143,7 +143,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
       <div className={cx('cards', 'row')}>
         <div key="new" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell" size="xxxl" />}
+            icon={<Icon name="bell" size="xl" />}
             description="Firing"
             title={newIncidentsCount}
             selected={status.includes(IncidentStatus.Firing)}
@@ -152,7 +152,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         </div>
         <div key="acknowledged" className={cx('col')}>
           <CardButton
-            icon={<Icon name="eye" size="xxxl" />}
+            icon={<Icon name="eye" size="xl" />}
             description="Acknowledged"
             title={acknowledgedIncidentsCount}
             selected={status.includes(IncidentStatus.Acknowledged)}
@@ -161,7 +161,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         </div>
         <div key="resolved" className={cx('col')}>
           <CardButton
-            icon={<Icon name="check" size="xxxl" />}
+            icon={<Icon name="check" size="xl" />}
             description="Resolved"
             title={resolvedIncidentsCount}
             selected={status.includes(IncidentStatus.Resolved)}
@@ -170,7 +170,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         </div>
         <div key="silenced" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell-slash" size="xxxl" />}
+            icon={<Icon name="bell-slash" size="xl" />}
             description="Silenced"
             title={silencedIncidentsCount}
             selected={status.includes(IncidentStatus.Silenced)}

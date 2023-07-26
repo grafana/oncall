@@ -3,7 +3,6 @@ from .alert_group_web_title_cache import (  # noqa:F401
     update_web_title_cache,
     update_web_title_cache_for_alert_receive_channel,
 )
-from .call_ack_url import call_ack_url  # noqa: F401
 from .check_escalation_finished import check_escalation_finished_task  # noqa: F401
 from .create_contact_points_for_datasource import create_contact_points_for_datasource  # noqa: F401
 from .create_contact_points_for_datasource import schedule_create_contact_points_for_datasource  # noqa: F401
@@ -22,7 +21,6 @@ from .resolve_alert_group_by_source_if_needed import resolve_alert_group_by_sour
 from .resolve_by_last_step import resolve_by_last_step_task  # noqa: F401
 from .send_alert_group_signal import send_alert_group_signal  # noqa: F401
 from .send_update_log_report_signal import send_update_log_report_signal  # noqa: F401
-from .send_update_postmortem_signal import send_update_postmortem_signal  # noqa: F401
 from .send_update_resolution_note_signal import send_update_resolution_note_signal  # noqa: F401
 from .sync_grafana_alerting_contact_points import sync_grafana_alerting_contact_points  # noqa: F401
 from .unsilence import unsilence_task  # noqa: F401

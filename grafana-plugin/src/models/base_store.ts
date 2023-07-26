@@ -65,7 +65,7 @@ export default class BaseStore {
     }).catch(this.onApiError);
 
     // Update env_status field for current team
-    await this.rootStore.teamStore.loadCurrentTeam();
+    await this.rootStore.organizationStore.loadCurrentOrganization();
     return result;
   }
 
@@ -76,7 +76,7 @@ export default class BaseStore {
     }).catch(this.onApiError);
 
     // Update env_status field for current team
-    await this.rootStore.teamStore.loadCurrentTeam();
+    await this.rootStore.organizationStore.loadCurrentOrganization();
     return result;
   }
 }
