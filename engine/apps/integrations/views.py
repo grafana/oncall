@@ -99,7 +99,6 @@ class AlertManagerAPIView(
         """
         alert_receive_channel = self.request.alert_receive_channel
         if not self.check_integration_type(alert_receive_channel):
-            print("BOLO")
             return HttpResponseBadRequest(
                 f"This url is for integration with {alert_receive_channel.get_integration_display()}. Key is for "
                 + str(alert_receive_channel.get_integration_display())
@@ -170,14 +169,35 @@ class GrafanaAlertingAPIView(AlertManagerAPIView):
         }
 
 
-class GrafanaAPIView(AlertManagerAPIView):
+class GrafanaAPIView(
+    BrowsableInstructionMixin,
+    AlertChannelDefiningMixin,
+    IntegrationRateLimitMixin,
+    APIView,
+):
     """Support both new and old versions of Grafana Alerting"""
 
     def post(self, request):
         alert_receive_channel = self.request.alert_receive_channel
-        # New Grafana has the same payload structure as AlertManager
+        if not self.check_integration_type(alert_receive_channel):
+            return HttpResponseBadRequest(
+                "This url is for integration with Grafana. Key is for "
+                + str(alert_receive_channel.get_integration_display())
+            )
+
+        # Grafana Alerting 9 has the same payload structure as AlertManager
         if "alerts" in request.data:
-            return super().post(request)
+            for alert in request.data.get("alerts", []):
+                if settings.DEBUG:
+                    create_alertmanager_alerts(alert_receive_channel.pk, alert)
+                else:
+                    self.execute_rate_limit_with_notification_logic()
+
+                    if self.request.limited and not is_ratelimit_ignored(alert_receive_channel):
+                        return self.get_ratelimit_http_response()
+
+                    create_alertmanager_alerts.apply_async((alert_receive_channel.pk, alert))
+            return Response("Ok.")
 
         """
         Example of request.data from old Grafana:
@@ -200,12 +220,6 @@ class GrafanaAPIView(AlertManagerAPIView):
             'title': '[Alerting] Test notification'
         }
         """
-        if not self.check_integration_type(alert_receive_channel):
-            return HttpResponseBadRequest(
-                "This url is for integration with Grafana. Key is for "
-                + str(alert_receive_channel.get_integration_display())
-            )
-
         if "attachments" in request.data:
             # Fallback in case user by mistake configured Slack url instead of webhook
             """
