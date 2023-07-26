@@ -441,7 +441,7 @@ describe('PluginState.selfHostedInstallPlugin', () => {
   });
 });
 
-describe('PluginState.checkIfPluginIsConnected', () => {
+describe('PluginState.updatePluginStatus', () => {
   test('it returns the API response', async () => {
     // mocks
     const mockedResp = { foo: 'bar' };
@@ -449,7 +449,7 @@ describe('PluginState.checkIfPluginIsConnected', () => {
     makeRequest.mockResolvedValueOnce(mockedResp);
 
     // test
-    const response = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+    const response = await PluginState.updatePluginStatus(onCallApiUrl);
 
     // assertions
     expect(response).toEqual(mockedResp);
@@ -468,7 +468,7 @@ describe('PluginState.checkIfPluginIsConnected', () => {
     PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(mockedHumanReadableError);
 
     // test
-    const response = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+    const response = await PluginState.updatePluginStatus(onCallApiUrl);
 
     // assertions
     expect(response).toEqual(mockedHumanReadableError);

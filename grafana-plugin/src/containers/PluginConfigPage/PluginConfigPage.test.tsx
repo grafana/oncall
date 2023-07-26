@@ -139,7 +139,7 @@ describe('PluginConfigPage', () => {
   test('It removes the plugin configured query params if the plugin is enabled', async () => {
     // mocks
     const metaJsonDataOnCallApiUrl = 'onCallApiUrlFromMetaJsonData';
-    PluginState.checkIfPluginIsConnected = jest.fn();
+    PluginState.updatePluginStatus = jest.fn();
     mockCheckTokenAndIfPluginIsConnected();
 
     // test setup
@@ -149,8 +149,8 @@ describe('PluginConfigPage', () => {
     // assertions
     expect(window.history.pushState).toBeCalledWith({ path: MOCK_URL }, '', MOCK_URL);
 
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
 
     expect(PluginState.checkTokenAndIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkTokenAndIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
@@ -166,7 +166,7 @@ describe('PluginConfigPage', () => {
       search: `?pluginConfigured=true&pluginConfiguredLicense=${license}&pluginConfiguredVersion=${version}`,
     } as ReturnType<typeof useLocationOriginal>);
 
-    PluginState.checkIfPluginIsConnected = jest.fn();
+    PluginState.updatePluginStatus = jest.fn();
     mockCheckTokenAndIfPluginIsConnected();
 
     // test setup
@@ -174,16 +174,16 @@ describe('PluginConfigPage', () => {
     await screen.findByTestId(STATUS_MESSAGE_BLOCK_DATA_ID);
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).not.toHaveBeenCalled();
+    expect(PluginState.updatePluginStatus).not.toHaveBeenCalled();
     expect(PluginState.checkTokenAndIfPluginIsConnected).not.toHaveBeenCalled();
     expect(component.container).toMatchSnapshot();
   });
 
-  test("If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, checkIfPluginIsConnected is not called, and the configuration form is shown", async () => {
+  test("If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, updatePluginStatus is not called, and the configuration form is shown", async () => {
     // mocks
     delete process.env.ONCALL_API_URL;
 
-    PluginState.checkIfPluginIsConnected = jest.fn();
+    PluginState.updatePluginStatus = jest.fn();
     PluginState.checkTokenAndIfPluginIsConnected = jest.fn();
 
     // test setup
@@ -191,7 +191,7 @@ describe('PluginConfigPage', () => {
     await screen.findByTestId(PLUGIN_CONFIGURATION_FORM_DATA_ID);
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).not.toHaveBeenCalled();
+    expect(PluginState.updatePluginStatus).not.toHaveBeenCalled();
     expect(PluginState.checkTokenAndIfPluginIsConnected).not.toHaveBeenCalled();
     expect(component.container).toMatchSnapshot();
   });
@@ -229,22 +229,22 @@ describe('PluginConfigPage', () => {
     expect(component.container).toMatchSnapshot();
   });
 
-  test('If onCallApiUrl is set, and checkIfPluginIsConnected returns an error, it sets an error message', async () => {
+  test('If onCallApiUrl is set, and updatePluginStatus returns an error, it sets an error message', async () => {
     // mocks
     const processEnvOnCallApiUrl = 'onCallApiUrlFromProcessEnv';
     const metaJsonDataOnCallApiUrl = 'onCallApiUrlFromMetaJsonData';
 
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(CHECK_IF_PLUGIN_IS_CONNECTED_ERROR_MESSAGE);
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(CHECK_IF_PLUGIN_IS_CONNECTED_ERROR_MESSAGE);
 
     // test setup
     const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);
     await screen.findByTestId(STATUS_MESSAGE_BLOCK_DATA_ID);
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
     expect(component.container).toMatchSnapshot();
   });
 
@@ -255,7 +255,7 @@ describe('PluginConfigPage', () => {
 
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(null);
     PluginState.checkTokenAndIfPluginIsConnected = jest.fn().mockResolvedValueOnce(SNYC_DATA_WITH_ONCALL_ERROR_MESSAGE);
 
     // test setup
@@ -263,8 +263,8 @@ describe('PluginConfigPage', () => {
     await screen.findByTestId(STATUS_MESSAGE_BLOCK_DATA_ID);
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
     expect(component.container).toMatchSnapshot();
   });
 
@@ -277,7 +277,7 @@ describe('PluginConfigPage', () => {
 
       process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
 
-      PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(null);
+      PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(null);
       mockCheckTokenAndIfPluginIsConnected(license);
 
       // test setup
@@ -285,8 +285,8 @@ describe('PluginConfigPage', () => {
       await screen.findByTestId(STATUS_MESSAGE_BLOCK_DATA_ID);
 
       // assertions
-      expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-      expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
+      expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+      expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
       expect(component.container).toMatchSnapshot();
     }
   );
@@ -299,7 +299,7 @@ describe('PluginConfigPage', () => {
     process.env.ONCALL_API_URL = processEnvOnCallApiUrl;
     window.location.reload = jest.fn();
 
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValue(null);
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValue(null);
     mockCheckTokenAndIfPluginIsConnected(License.OSS);
 
     if (successful) {
@@ -318,8 +318,8 @@ describe('PluginConfigPage', () => {
     await userEvent.click(screen.getByText('Remove'));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);
 
     expect(PluginState.checkTokenAndIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkTokenAndIfPluginIsConnected).toHaveBeenCalledWith(metaJsonDataOnCallApiUrl);

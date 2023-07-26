@@ -55,7 +55,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
 </div>
 `;
 
-exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, checkIfPluginIsConnected is not called, and the configuration form is shown 1`] = `
+exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, updatePluginStatus is not called, and the configuration form is shown 1`] = `
 <div>
   <legend
     class="css-11wqcat"
@@ -156,7 +156,7 @@ exports[`PluginConfigPage If onCallApiUrl is not set in the plugin's meta jsonDa
 </div>
 `;
 
-exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected returns an error, it sets an error message 1`] = `
+exports[`PluginConfigPage If onCallApiUrl is set, and updatePluginStatus returns an error, it sets an error message 1`] = `
 <div>
   <legend
     class="css-11wqcat"

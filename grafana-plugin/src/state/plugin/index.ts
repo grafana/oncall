@@ -221,7 +221,7 @@ class PluginState {
       }
     }
 
-    return await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+    return await PluginState.updatePluginStatus(onCallApiUrl);
   };
 
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(
@@ -303,7 +303,7 @@ class PluginState {
     return null;
   };
 
-  static checkIfPluginIsConnected = async (
+  static updatePluginStatus = async (
     onCallApiUrl: string,
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginConnectedStatusResponse | string> => {

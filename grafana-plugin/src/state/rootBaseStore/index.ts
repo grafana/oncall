@@ -164,7 +164,7 @@ export class RootBaseStore {
     }
 
     // at this point we know the plugin is provisioned
-    const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
+    const pluginConnectionStatus = await PluginState.updatePluginStatus(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
     }

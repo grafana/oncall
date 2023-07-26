@@ -83,7 +83,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
 
   const resetQueryParams = useCallback(() => removePluginConfiguredQueryParams(pluginIsEnabled), [pluginIsEnabled]);
 
-  const triggerCheckIfPluginIsConnected = useCallback(async () => {
+  const triggerUpdatePluginStatus = useCallback(async () => {
     resetMessages();
     setSyncingPlugin(true);
 
@@ -103,7 +103,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   useEffect(resetQueryParams, [resetQueryParams]);
 
   useEffect(() => {
-    const configurePluginAndCheckIfPluginIsConnected = async () => {
+    const configurePluginAndUpdatePluginStatus = async () => {
       /**
        * If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
        * In that case, check to see if ONCALL_API_URL has been supplied as an env var.
@@ -128,12 +128,12 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
        * there's no reason to check if the plugin is connected, we know it can't be
        */
       if (onCallApiUrl) {
-        const pluginConnectionResponse = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+        const pluginConnectionResponse = await PluginState.updatePluginStatus(onCallApiUrl);
 
         if (typeof pluginConnectionResponse === 'string') {
           setPluginConnectionCheckError(pluginConnectionResponse);
         } else {
-          triggerCheckIfPluginIsConnected();
+          triggerUpdatePluginStatus();
         }
       }
       setCheckingIfPluginIsConnected(false);
@@ -144,7 +144,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
      * plugin setup
      */
     if (!pluginConfiguredRedirect) {
-      configurePluginAndCheckIfPluginIsConnected();
+      configurePluginAndUpdatePluginStatus();
     }
   }, [pluginMetaOnCallApiUrl, processEnvOnCallApiUrl, onCallApiUrl, pluginConfiguredRedirect]);
 
@@ -182,7 +182,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
 
   const ReconfigurePluginButtons = () => (
     <HorizontalGroup>
-      <Button variant="primary" onClick={triggerCheckIfPluginIsConnected} size="md">
+      <Button variant="primary" onClick={triggerUpdatePluginStatus} size="md">
         Retry Sync
       </Button>
       {licenseType === GRAFANA_LICENSE_OSS ? <RemoveConfigButton /> : null}
@@ -211,10 +211,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
     );
   } else if (!pluginIsConnected) {
     content = (
-      <ConfigurationForm
-        onSuccessfulSetup={triggerCheckIfPluginIsConnected}
-        defaultOnCallApiUrl={processEnvOnCallApiUrl}
-      />
+      <ConfigurationForm onSuccessfulSetup={triggerUpdatePluginStatus} defaultOnCallApiUrl={processEnvOnCallApiUrl} />
     );
   } else {
     // plugin is fully connected and synced
