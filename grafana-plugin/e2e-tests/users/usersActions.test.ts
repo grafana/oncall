@@ -19,7 +19,7 @@ test.describe('Users screen actions', () => {
   test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
 
-    await _cannotAccessRestrictedTabs(page, ['tab-phone-verification', 'tab-mobile-app', 'tab-slack', 'tab-telegram']);
+    await _accessProfileTabs(page, ['tab-phone-verification', 'tab-mobile-app', 'tab-slack', 'tab-telegram'], false);
   });
 
   test("Editor cannot view other users' data", async ({ editorRolePage }) => {
@@ -44,6 +44,13 @@ test.describe('Users screen actions', () => {
     }
   });
 
+  test('Editor can access tabs from View My Profile', async ({ editorRolePage }) => {
+    const { page } = editorRolePage;
+
+    // the other tabs depend on Cloud, skip for now
+    await _accessProfileTabs(page, ['tab-slack', 'tab-telegram'], true);
+  });
+
   test("Editor is not allowed to edit other users' profile", async ({ editorRolePage }) => {
     await _testButtons(editorRolePage.page, 'button.edit-other-profile-button:not([disabled])');
   });
@@ -63,7 +70,7 @@ test.describe('Users screen actions', () => {
     expect(buttonsList).toHaveCount(0);
   }
 
-  async function _cannotAccessRestrictedTabs(page: Page, tabs: string[]) {
+  async function _accessProfileTabs(page: Page, tabs: string[], hasAccess: boolean) {
     await goToOnCallPage(page, 'users');
 
     await page.getByTestId('users-view-my-profile').click();
@@ -76,9 +83,16 @@ test.describe('Users screen actions', () => {
       const tab = page.getByTestId(tabs[i]);
       if (tab.isVisible()) {
         await tab.click();
-        await expect(
-          page.getByText('You do not have permission to perform this action. Ask an admin to upgrade your permissions.')
-        ).toBeVisible();
+
+        const query = page.getByText(
+          'You do not have permission to perform this action. Ask an admin to upgrade your permissions.'
+        );
+
+        if (hasAccess) {
+          await expect(query).toBeHidden();
+        } else {
+          await expect(query).toBeVisible();
+        }
       }
     }
   }
