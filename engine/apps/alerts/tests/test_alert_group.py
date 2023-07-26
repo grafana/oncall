@@ -38,7 +38,7 @@ def test_render_for_phone_call(
     )
 
     expected_verbose_name = (
-        f"to check an incident from Grafana OnCall. "
+        f"to check an Alert Group from Grafana OnCall. "
         f"Alert via {alert_receive_channel.verbal_name} - Grafana with title TestAlert triggered 1 times"
     )
     rendered_text = AlertGroupPhoneCallRenderer(alert_group).render()
