@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import classnames from 'classnames';
 import dayjs from 'dayjs';
@@ -71,8 +71,6 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 };
 
 export const Root = observer((props: AppRootProps) => {
-  const [didFinishLoading, setDidFinishLoading] = useState(false);
-
   const store = useStore();
 
   useEffect(() => {
@@ -106,12 +104,7 @@ export const Root = observer((props: AppRootProps) => {
   const updateBasicData = async () => {
     await store.updateBasicData();
     await store.alertGroupStore.fetchIRMPlan();
-    setDidFinishLoading(true);
   };
-
-  if (!didFinishLoading) {
-    return null;
-  }
 
   const location = useLocation();
 
