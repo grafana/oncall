@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
@@ -64,7 +63,8 @@ class BanAlertConsumptionBasedOnSettingsMiddleware(MiddlewareMixin):
 
     def is_banned(self, path):
         try:
-            DynamicSetting = apps.get_model("base", "DynamicSetting")
+            from apps.base.models import DynamicSetting
+
             banned_paths = DynamicSetting.objects.get_or_create(
                 name="ban_hammer_list",
                 defaults={

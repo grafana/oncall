@@ -7,7 +7,6 @@ from urllib.parse import urljoin
 from uuid import UUID, uuid1
 
 from celery import uuid as celery_uuid
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import IntegrityError, models, transaction
@@ -23,7 +22,7 @@ from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_T
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertGroupSlackRenderer
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 from apps.alerts.signals import alert_group_action_triggered_signal, alert_group_created_signal
-from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
+from apps.alerts.tasks import acknowledge_reminder_task, send_alert_group_signal, unsilence_task
 from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
@@ -407,7 +406,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return self.maintenance_uuid is not None
 
     def stop_maintenance(self, user: User) -> None:
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        from apps.alerts.models import AlertReceiveChannel
 
         try:
             integration_on_maintenance = AlertReceiveChannel.objects.get(maintenance_uuid=self.maintenance_uuid)
@@ -521,7 +520,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         )
 
     def acknowledge_by_user(self, user: User, action_source: typing.Optional[str] = None) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
         logger.debug(f"Started acknowledge_by_user for alert_group {self.pk}")
 
@@ -546,9 +546,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         if self.is_root_alert_group:
             self.start_ack_reminder(user)
 
-        if self.can_call_ack_url:
-            self.start_call_ack_url()
-
         log_record = self.log_records.create(type=AlertGroupLogRecord.TYPE_ACK, author=user)
 
         logger.debug(
@@ -568,7 +565,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         logger.debug(f"Finished acknowledge_by_user for alert_group {self.pk}")
 
     def acknowledge_by_source(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         # if incident was silenced, unsilence it without starting escalation
@@ -603,7 +601,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.acknowledge_by_source()
 
     def un_acknowledge_by_user(self, user: User, action_source: typing.Optional[str] = None) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
         logger.debug(f"Started un_acknowledge_by_user for alert_group {self.pk}")
 
@@ -631,7 +630,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         logger.debug(f"Finished un_acknowledge_by_user for alert_group {self.pk}")
 
     def resolve_by_user(self, user: User, action_source: typing.Optional[str] = None) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         # if incident was silenced, unsilence it without starting escalation
@@ -664,7 +664,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.resolve_by_user(user, action_source=action_source)
 
     def resolve_by_source(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         # if incident was silenced, unsilence it without starting escalation
@@ -698,7 +699,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.resolve_by_source()
 
     def resolve_by_last_step(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         self.resolve(resolved_by=AlertGroup.LAST_STEP)
@@ -724,7 +726,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.resolve_by_last_step()
 
     def resolve_by_disable_maintenance(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         self.resolve(resolved_by=AlertGroup.DISABLE_MAINTENANCE)
         self.stop_escalation()
@@ -746,7 +748,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.resolve_by_disable_maintenance()
 
     def un_resolve_by_user(self, user: User, action_source: typing.Optional[str] = None) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         if self.wiped_at is None:
             initial_state = self.state
@@ -777,7 +779,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def attach_by_user(
         self, user: User, root_alert_group: "AlertGroup", action_source: typing.Optional[str] = None
     ) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         if root_alert_group.root_alert_group is None and not root_alert_group.resolved:
             self.root_alert_group = root_alert_group
@@ -853,7 +855,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             )
 
     def un_attach_by_user(self, user: User, action_source: typing.Optional[str] = None) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         root_alert_group: AlertGroup = self.root_alert_group
         self.root_alert_group = None
@@ -900,7 +902,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         )
 
     def un_attach_by_delete(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         self.root_alert_group = None
         self.save(update_fields=["root_alert_group"])
@@ -927,7 +929,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def silence_by_user(
         self, user: User, silence_delay: typing.Optional[int], action_source: typing.Optional[str] = None
     ) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         if self.resolved:
@@ -984,7 +987,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.silence_by_user(user, silence_delay, action_source)
 
     def un_silence_by_user(self, user: User, action_source: typing.Optional[str] = None) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         self.un_silence()
@@ -1017,7 +1021,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.un_silence_by_user(user, action_source=action_source)
 
     def wipe_by_user(self, user: User) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         if not self.wiped_at:
@@ -1062,7 +1067,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.wipe_by_user(user)
 
     def delete_by_user(self, user: User):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         initial_state = self.state
 
         self.stop_escalation()
@@ -1101,7 +1107,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             dependent_alert_group.un_attach_by_delete()
 
     def hard_delete(self):
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        from apps.alerts.models import ResolutionNote
 
         alerts = self.alerts.all()
         alerts.delete()
@@ -1117,7 +1123,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def _bulk_acknowledge(user: User, alert_groups_to_acknowledge: "QuerySet[AlertGroup]") -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         # it is needed to unserolve those alert_groups which were resolved to build proper log.
         alert_groups_to_unresolve_before_acknowledge = alert_groups_to_acknowledge.filter(resolved=models.Value("1"))
@@ -1190,9 +1196,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             if alert_group.is_root_alert_group:
                 alert_group.start_ack_reminder(user)
 
-            if alert_group.can_call_ack_url:
-                alert_group.start_call_ack_url()
-
             log_record = alert_group.log_records.create(type=AlertGroupLogRecord.TYPE_ACK, author=user)
             send_alert_group_signal.apply_async((log_record.pk,))
 
@@ -1213,7 +1216,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def _bulk_resolve(user: User, alert_groups_to_resolve: "QuerySet[AlertGroup]") -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         # it is needed to unsilence those alert_groups which were silenced to build proper log.
         alert_groups_to_unsilence_before_resolve = alert_groups_to_resolve.filter(silenced=models.Value("1"))
@@ -1300,7 +1303,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def _bulk_restart_unack(user: User, alert_groups_to_restart_unack: "QuerySet[AlertGroup]") -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         # convert current qs to list to prevent changes by update
         alert_groups_to_restart_unack_list = list(alert_groups_to_restart_unack)
@@ -1343,7 +1346,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def _bulk_restart_unresolve(user: User, alert_groups_to_restart_unresolve: "QuerySet[AlertGroup]") -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         # convert current qs to list to prevent changes by update
         alert_groups_to_restart_unresolve_list = list(alert_groups_to_restart_unresolve)
@@ -1386,7 +1389,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def _bulk_restart_unsilence(user: User, alert_groups_to_restart_unsilence: "QuerySet[AlertGroup]") -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         # convert current qs to list to prevent changes by update
         alert_groups_to_restart_unsilence_list = list(alert_groups_to_restart_unsilence)
@@ -1456,7 +1459,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def _bulk_silence(user: User, alert_groups_to_silence: "QuerySet[AlertGroup]", silence_delay: int) -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         now = timezone.now()
         silence_for_period = silence_delay is not None and silence_delay > 0
@@ -1572,7 +1575,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             AlertGroup._bulk_silence(user, dependent_alert_groups_to_silence, silence_delay)
 
     def start_ack_reminder(self, user: User):
-        Organization = apps.get_model("user_management", "Organization")
+        from apps.user_management.models import Organization
+
         unique_unacknowledge_process_id = uuid1()
         logger.info(
             f"AlertGroup acknowledged by user with pk "
@@ -1593,28 +1597,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             self.last_unique_unacknowledge_process_id = unique_unacknowledge_process_id
             self.save(update_fields=["last_unique_unacknowledge_process_id"])
 
-    def start_call_ack_url(self):
-        get_ack_url = self.alerts.first().integration_unique_data.get("ack_url_get", None)
-        channel_id = self.slack_message.channel_id if self.slack_message is not None else None
-        if get_ack_url and not self.acknowledged_on_source:
-            call_ack_url.apply_async(
-                (get_ack_url, self.pk, channel_id),
-            )
-        post_ack_url = self.alerts.first().integration_unique_data.get("ack_url_post", None)
-        if post_ack_url and not self.acknowledged_on_source:
-            call_ack_url.apply_async(
-                (post_ack_url, self.pk, channel_id, "POST"),
-            )
-
     def start_unsilence_task(self, countdown):
         task_id = celery_uuid()
         self.unsilence_task_uuid = task_id
         self.save(update_fields=["unsilence_task_uuid"])
         unsilence_task.apply_async((self.pk,), task_id=task_id, countdown=countdown)
-
-    @property
-    def can_call_ack_url(self):
-        return type(self.alerts.first().integration_unique_data) is dict
 
     @property
     def is_root_alert_group(self):
@@ -1742,9 +1729,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             return "Acknowledged"
 
     def render_after_resolve_report_json(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        from apps.alerts.models import AlertGroupLogRecord, ResolutionNote
+        from apps.base.models import UserNotificationPolicyLogRecord
 
         log_builder = IncidentLogBuilder(self)
         log_records_list = log_builder.get_log_records_list(with_resolution_notes=True)
@@ -1798,7 +1784,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return slack_channel_id
 
     def get_slack_message(self):
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        from apps.slack.models import SlackMessage
+
         if self.slack_message is None:
             slack_message = SlackMessage.objects.filter(alert_group=self).order_by("created_at").first()
             return slack_message
@@ -1806,7 +1793,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @cached_property
     def last_stop_escalation_log(self):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         stop_escalation_log = (
             self.log_records.filter(
                 type__in=[

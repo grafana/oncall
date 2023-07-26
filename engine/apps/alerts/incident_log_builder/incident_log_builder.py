@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.db.models import Q
 from django.utils import timezone
 
@@ -32,8 +31,7 @@ class IncidentLogBuilder:
         return all_log_records_sorted
 
     def _get_log_records_for_after_resolve_report(self):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
 
         excluded_log_types = [
             AlertGroupLogRecord.TYPE_ESCALATION_FINISHED,
@@ -86,8 +84,7 @@ class IncidentLogBuilder:
         )
 
     def _get_user_notification_log_records_for_log_report(self):
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
         # exclude user notification logs with step 'wait' or with status 'finished'
         return (
@@ -160,7 +157,8 @@ class IncidentLogBuilder:
     def _render_escalation_plan_from_escalation_snapshot(
         self, escalation_plan_dict, stop_escalation_log_pk, esc_timedelta, escalation_snapshot, for_slack=False
     ):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
+        from apps.alerts.models import EscalationPolicy
+
         now = timezone.now()
         escalation_eta = None
         last_log_timedelta = None
@@ -261,7 +259,8 @@ class IncidentLogBuilder:
         :param for_slack:
         :return: {timedelta: [{"user_id": user.pk, "plan_lines": [#rendered escalation policy line, ]}, ..., ...], ...}
         """
-        Invitation = apps.get_model("alerts", "Invitation")
+        from apps.alerts.models import Invitation
+
         now = timezone.now()
         for invitation in self.alert_group.invitations.filter(is_active=True):
             invitation_timedelta = timezone.timedelta()
@@ -377,7 +376,7 @@ class IncidentLogBuilder:
 
         :return: dict with timedelta as a key and list with escalation and notification plan lines as a value
         """
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
+        from apps.alerts.models import EscalationPolicy
 
         escalation_plan_dict = {}
         timedelta = timezone.timedelta()
@@ -577,7 +576,8 @@ class IncidentLogBuilder:
         :param for_slack: (bool) add or not user slack id to user notification plan line
         :return: plan line
         """
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy
+
         result = ""
         user_verbal = user_to_notify.get_username_with_slack_verbal() if for_slack else user_to_notify.username
         if notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
@@ -610,8 +610,7 @@ class IncidentLogBuilder:
         :param for_slack: (bool) add or not user slack id to user notification plan line
         :return: {timedelta: [{"user_id": user.pk, "plan_lines": [#rendered notification policy line, ]}, ...], ...}
         """
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
         timedelta = timezone.timedelta()
         is_the_first_notification_step = future_step  # escalation starts with this step or not

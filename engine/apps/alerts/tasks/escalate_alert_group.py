@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from kombu.utils.uuid import uuid as celery_uuid
@@ -16,7 +15,7 @@ def escalate_alert_group(alert_group_pk):
     """
     This task is on duty to send escalated alerts and schedule further escalation.
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
 
     task_logger.debug(f"Start escalate_alert_group for alert_group {alert_group_pk}")
 

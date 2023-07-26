@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.constants import TASK_DELAY_SECONDS
@@ -15,8 +14,7 @@ def distribute_alert(alert_id):
     """
     We need this task to make task processing async and to make sure the task is delivered.
     """
-    Alert = apps.get_model("alerts", "Alert")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import Alert, AlertGroup
 
     alert = Alert.objects.get(pk=alert_id)
     task_logger.debug(f"Start distribute_alert for alert {alert_id} from alert_group {alert.group_id}")
@@ -41,8 +39,7 @@ def distribute_alert(alert_id):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def send_alert_create_signal(alert_id):
-    Alert = apps.get_model("alerts", "Alert")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    from apps.alerts.models import Alert, AlertReceiveChannel
 
     task_logger.debug(f"Started send_alert_create_signal task  for alert {alert_id}")
     alert = Alert.objects.get(pk=alert_id)
