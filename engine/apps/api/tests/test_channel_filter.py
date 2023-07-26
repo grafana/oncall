@@ -269,7 +269,7 @@ def test_move_to_position(
     url = reverse(
         "api-internal:channel_filter-move-to-position", kwargs={"pk": first_channel_filter.public_primary_key}
     )
-    url += f"?position=1"
+    url += "?position=1"
     response = client.put(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
@@ -297,7 +297,7 @@ def test_move_to_position_invalid_index(
     url = reverse(
         "api-internal:channel_filter-move-to-position", kwargs={"pk": first_channel_filter.public_primary_key}
     )
-    url += f"?position=2"
+    url += "?position=2"
     response = client.put(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -320,7 +320,7 @@ def test_move_to_position_cant_move_default(
     url = reverse(
         "api-internal:channel_filter-move-to-position", kwargs={"pk": default_channel_filter.public_primary_key}
     )
-    url += f"?position=1"
+    url += "?position=1"
     response = client.put(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

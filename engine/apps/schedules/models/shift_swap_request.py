@@ -41,7 +41,6 @@ class ShiftSwapRequestManager(models.Manager):
 
 
 class ShiftSwapRequest(models.Model):
-
     objects = ShiftSwapRequestManager()
     objects_with_deleted = models.Manager()
 

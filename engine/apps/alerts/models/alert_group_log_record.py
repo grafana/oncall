@@ -271,7 +271,7 @@ class AlertGroupLogRecord(models.Model):
                 if escalation_chain is not None:
                     result += f' with escalation chain "{escalation_chain.name}"'
                 else:
-                    result += f" with no escalation chain, skipping escalation"
+                    result += " with no escalation chain, skipping escalation"
             else:
                 result += "alert group assigned to deleted route, skipping escalation"
         elif self.type == AlertGroupLogRecord.TYPE_ACK:

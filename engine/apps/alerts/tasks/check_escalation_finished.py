@@ -25,7 +25,7 @@ def send_alert_group_escalation_auditor_task_heartbeat() -> None:
         requests.get(heartbeat_url).raise_for_status()
         task_logger.info(f"Heartbeat successfully sent to {heartbeat_url}")
     else:
-        task_logger.info(f"Skipping sending heartbeat as no heartbeat URL is configured")
+        task_logger.info("Skipping sending heartbeat as no heartbeat URL is configured")
 
 
 def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:

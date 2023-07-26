@@ -55,7 +55,7 @@ def notify_user_task(
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                reason=f"notification is not allowed for user",
+                reason="notification is not allowed for user",
                 alert_group=alert_group,
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
             ).save()
@@ -253,7 +253,7 @@ def perform_notification(log_record_pk):
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            reason=f"notification is not allowed for user",
+            reason="notification is not allowed for user",
             alert_group=alert_group,
             notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
         ).save()
@@ -347,7 +347,7 @@ def perform_notification(log_record_pk):
             backend = None
 
         if backend is None:
-            task_logger.debug(f"notify_user failed because messaging backend is not available")
+            task_logger.debug("notify_user failed because messaging backend is not available")
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,

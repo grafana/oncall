@@ -31,7 +31,7 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
         alert_receive_channel.deleted_at is not None
         or alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_MAINTENANCE
     ):
-        logger.info(f"AlertReceiveChannel alert ignored if deleted/maintenance")
+        logger.info("AlertReceiveChannel alert ignored if deleted/maintenance")
         return
 
     try:
