@@ -81,7 +81,8 @@ test.describe('Users screen actions', () => {
 
     for (let i = 0; i < tabs.length - 1; ++i) {
       const tab = page.getByTestId(tabs[i]);
-      if (tab.isVisible()) {
+
+      if (await tab.isVisible()) {
         await tab.click();
 
         const query = page.getByText(
