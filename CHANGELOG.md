@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+– Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
+
 ### Added
 
 - Added banner on the ChatOps screen for OSS to let the user know if no chatops integration is enabled
