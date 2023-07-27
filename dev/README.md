@@ -475,7 +475,7 @@ is no longer used in new code, but still exists in the database for backward com
     [this migration](https://github.com/grafana/oncall/commit/e15d18a6049f4b50ffcac30c604f8d7677ca5a2b#diff-466e204c4c967410172ba43a425e01cdff05a74fa1dc7447ec7aa4afee4dbc1bR13-R19)
     as an example.
 
-    To generate the `sql` statement automatically, find the migration that added the field and use the
+    To generate the `reverse_sql` statement automatically, find the migration that added the field and use the
     [sqlmigrate](https://docs.djangoproject.com/en/4.2/ref/django-admin/#sqlmigrate) management command on it.
     For the example above, the command would be:
 
@@ -484,7 +484,7 @@ is no longer used in new code, but still exists in the database for backward com
     # Output: ALTER TABLE `alerts_alertreceivechannel` ADD COLUMN `restricted_at` datetime(6) NULL
     ```
 
-    To generate the `reverse_sql` statement, use the same command, but with the `--backwards` flag:
+    To generate the `sql` statement, use the same command, but with the `--backwards` flag:
 
     ```bash
    pyhon manage.py sqlmigrate alerts 0014 --backwards
