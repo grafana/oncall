@@ -457,7 +457,7 @@ that it has been removed. To do this, manually edit the generated migration file
     [this migration](https://github.com/grafana/oncall/blob/ad0ed6714ac9993582e78b50d855aaf69df17619/engine/apps/alerts/migrations/0027_remove_alertreceivechannel_restricted_at_from_state.py#L10-L20)
     as an example.
 
-5. Release the changes (removal of the field & migration). Once released, Django will not be aware of this field
+5. Release the changes (removal of the field & migration). Once released and deployed, Django will not be aware of this field
 anymore, but the field will be still present in the database. This allows for a gradual migration, where the field
 is no longer used in new code, but still exists in the database for backward compatibility with old code.
 6. In any subsequent release, include a new migration that actually deletes the field:
