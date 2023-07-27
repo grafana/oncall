@@ -432,7 +432,7 @@ for the common mistakes and best practices
 
 > This only works for nullable fields (fields with `null=True` in the field definition).
 >
-> DO NOT USE THIS APPROACH FOR NON-NULLABLE FIELDS, IT WILL BREAK THINGS!
+> DO NOT USE THIS APPROACH FOR NON-NULLABLE FIELDS, IT CAN BREAK THINGS!
 
 1. Remove all usages of the field you want to remove. Make sure the field is not used anywhere, including filtering,
 querying, or explicit field referencing from views, models, forms, serializers, etc.
