@@ -125,6 +125,7 @@ export class RootBaseStore {
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
+      this.alertGroupStore.fetchIRMPlan(),
     ]);
   }
 
@@ -198,6 +199,7 @@ export class RootBaseStore {
            * therefore there is no need to trigger an additional/separate sync, nor poll a status
            */
           await PluginState.installPlugin();
+          this.updateBasicData();
         } catch (e) {
           return this.setupPluginError(
             PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
