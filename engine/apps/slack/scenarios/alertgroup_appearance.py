@@ -34,7 +34,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
             return
 
         private_metadata = {
-            "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
+            "organization_id": self.organization.pk,
             "alert_group_pk": alert_group.pk,
             "message_ts": payload.get("message_ts") or payload["container"]["message_ts"],
         }
@@ -74,7 +74,6 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
 
 
 class UpdateAppearanceStep(scenario_step.ScenarioStep):
-
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",

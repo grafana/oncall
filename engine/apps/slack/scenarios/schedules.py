@@ -6,7 +6,15 @@ import pytz
 
 from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, BlockElement, EventPayload, ModalView, Option, PayloadType, RoutingSteps
+from apps.slack.types import (
+    BlockActionType,
+    BlockElement,
+    CompositionObjects,
+    EventPayload,
+    ModalView,
+    PayloadType,
+    RoutingSteps,
+)
 from apps.slack.utils import format_datetime_to_slack
 from common.insight_log import EntityEvent, write_resource_insight_log
 
@@ -131,14 +139,14 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
         return blocks
 
-    def get_options(self, select_name: str) -> typing.List[Option]:
+    def get_options(self, select_name: str) -> typing.List[CompositionObjects.Option]:
         select_options = getattr(self, f"{select_name}_options")
         return [
             {"text": {"type": "plain_text", "text": select_options[option]}, "value": str(option)}
             for option in select_options
         ]
 
-    def get_initial_option(self, schedule_id: str, select_name: str) -> Option:
+    def get_initial_option(self, schedule_id: str, select_name: str) -> CompositionObjects.Option:
         schedule = OnCallSchedule.objects.get(pk=schedule_id)
 
         current_value = getattr(schedule, select_name)

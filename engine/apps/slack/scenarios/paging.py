@@ -16,7 +16,7 @@ from apps.alerts.paging import (
 from apps.slack.constants import PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
-from apps.slack.types import BlockActionType, BlockElement, EventPayload, ModalView, PayloadType, RoutingSteps
+from apps.slack.types import Block, BlockActionType, EventPayload, ModalView, PayloadType, RoutingSteps
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
@@ -445,7 +445,7 @@ def render_dialog(
     )
 
     # Add title and message inputs
-    blocks: typing.List[BlockElement] = [_get_title_input(payload), _get_message_input(payload)]
+    blocks: typing.List[Block.Any] = [_get_title_input(payload), _get_message_input(payload)]
 
     # Add organization select if more than one organization available for user
     if len(available_organizations) > 1:
@@ -461,8 +461,8 @@ def render_dialog(
     return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
 
 
-def _get_form_view(routing_uid: str, blocks: typing.List[BlockElement], private_metadata: str) -> ModalView:
-    return {
+def _get_form_view(routing_uid: str, blocks: typing.List[Block.Any], private_metadata: str) -> ModalView:
+    view: ModalView = {
         "type": "modal",
         "callback_id": routing_uid,
         "title": {
@@ -481,6 +481,7 @@ def _get_form_view(routing_uid: str, blocks: typing.List[BlockElement], private_
         "blocks": blocks,
         "private_metadata": private_metadata,
     }
+    return view
 
 
 def _get_organization_select(
@@ -554,7 +555,7 @@ def _get_team_select_blocks(
     is_selected: bool,
     value: "Team",
     input_id_prefix: str,
-):
+) -> typing.List[Block.Any]:
     user = slack_user_identity.get_user(organization)  # TODO: handle None
     teams = user.available_teams
 
@@ -585,7 +586,7 @@ def _get_team_select_blocks(
             }
         )
 
-    team_select = {
+    team_select: Block.Input = {
         "type": "input",
         "block_id": input_id_prefix + DIRECT_PAGING_TEAM_SELECT_ID,
         "label": {
@@ -609,7 +610,7 @@ def _get_team_select_blocks(
     return [team_select, _get_team_select_context(organization, value)]
 
 
-def _get_team_select_context(organization: "Organization", team: "Team"):
+def _get_team_select_context(organization: "Organization", team: "Team") -> Block.Context:
     team_name = team.name if team else "No team"
     alert_receive_channel = AlertReceiveChannel.objects.filter(
         organization=organization,
@@ -638,7 +639,7 @@ def _get_team_select_context(organization: "Organization", team: "Team"):
     else:
         context_text = f"Integration <{alert_receive_channel.web_link}|{alert_receive_channel.verbal_name} ({team_name})> will be used for notification."
 
-    context = {
+    context: Block.Context = {
         "type": "context",
         "elements": [
             {
@@ -656,7 +657,7 @@ def _get_additional_responders_blocks(
     input_id_prefix,
     is_additional_responders_checked: bool,
     error_msg: str | None,
-) -> typing.List[BlockElement]:
+) -> typing.List[Block.Any]:
     checkbox_option = {
         "text": {
             "type": "plain_text",
@@ -664,7 +665,7 @@ def _get_additional_responders_blocks(
         },
     }
 
-    blocks = [
+    blocks: typing.List[Block.Any] = [
         {
             "type": "input",
             "block_id": input_id_prefix + DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID,
@@ -717,7 +718,7 @@ def _get_additional_responders_blocks(
 
 def _get_users_select(
     organization: "Organization", input_id_prefix: str, action_id: str, max_options_per_group=MAX_STATIC_SELECT_OPTIONS
-):
+) -> Block.Context | Block.Section:
     users = organization.users.all()
 
     user_options = [
@@ -733,9 +734,10 @@ def _get_users_select(
     ]
 
     if not user_options:
-        return {"type": "context", "elements": [{"type": "mrkdwn", "text": "No users available"}]}
+        user_select: Block.Context = {"type": "context", "elements": [{"type": "mrkdwn", "text": "No users available"}]}
+        return user_select
 
-    user_select = {
+    user_select: Block.Section = {
         "type": "section",
         "text": {"type": "mrkdwn", "text": "Notify user"},
         "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,

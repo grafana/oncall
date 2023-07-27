@@ -5,7 +5,7 @@
 import typing
 
 from .common import Style
-from .composition_objects import Confirm, Option, Text
+from .composition_objects import CompositionObjects
 
 
 class BlockElement:
@@ -27,7 +27,7 @@ class BlockElement:
         The type of element. In this case `type` is always `button`.
         """
 
-        text: Text
+        text: CompositionObjects.Text
         """
         A [text object](https://api.slack.com/reference/block-kit/composition-objects#text) that defines the button's text.
 
@@ -57,20 +57,20 @@ class BlockElement:
         The type of element. In this case `type` is always `checkboxes`.
         """
 
-        options: typing.List[Option]
+        options: typing.List[CompositionObjects.Option]
         """
         An array of [option objects](https://api.slack.com/reference/block-kit/composition-objects#option).
         A maximum of 10 options are allowed.
         """
 
-        initial_options: typing.Optional[typing.List[Option]]
+        initial_options: typing.Optional[typing.List[CompositionObjects.Option]]
         """
         An array of [option objects](https://api.slack.com/reference/block-kit/composition-objects#option) that exactly
         matches one or more of the options within `options`. These options will be selected when the checkbox group
         initially loads.
         """
 
-        confirm: typing.Optional[Confirm]
+        confirm: typing.Optional[CompositionObjects.Confirm]
         """
         A [confirm object](https://api.slack.com/reference/block-kit/composition-objects#confirm) that defines an optional
         confirmation dialog that appears after clicking one of the checkboxes in this element.
@@ -84,3 +84,8 @@ class BlockElement:
         """
 
     Any = Button | CheckboxGroup
+
+
+__all__ = [
+    "BlockElement",
+]

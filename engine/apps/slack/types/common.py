@@ -1,8 +1,8 @@
 import enum
 import typing
 
-from .block_elements import BlockElement
-from .composition_objects import PlainText
+from .blocks import Block
+from .composition_objects import CompositionObjects
 
 
 class PayloadType(enum.StrEnum):
@@ -204,7 +204,7 @@ class ModalView(typing.TypedDict):
     Required. The type of view. Set to `modal` for modals.
     """
 
-    title: PlainText
+    title: CompositionObjects.PlainText
     """
     Required. The title that appears in the top-left of the modal.
 
@@ -212,7 +212,7 @@ class ModalView(typing.TypedDict):
     length of 24 characters.
     """
 
-    blocks: typing.List[BlockElement]
+    blocks: typing.List[Block.Any]
     """
     Required. An array of [blocks](https://api.slack.com/reference/block-kit/blocks) that defines the content of the
     view.
@@ -220,7 +220,7 @@ class ModalView(typing.TypedDict):
     Max of 100 blocks.
     """
 
-    close: PlainText
+    close: CompositionObjects.PlainText
     """
     An optional [plain_text text element](https://api.slack.com/reference/block-kit/composition-objects#text) that
     defines the text displayed in the close button at the bottom-right of the view.
@@ -228,7 +228,7 @@ class ModalView(typing.TypedDict):
     Max length of 24 characters.
     """
 
-    submit: PlainText
+    submit: CompositionObjects.PlainText
     """
     An optional [plain_text text element](https://api.slack.com/reference/block-kit/composition-objects#text) that
     defines the text displayed in the submit button at the bottom-right of the view.
