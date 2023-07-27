@@ -8,7 +8,7 @@ from django.conf import settings
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
-from apps.slack.types import BlockActionType, BlockElement, EventPayload, PayloadType, RoutingSteps
+from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, RoutingSteps
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -263,7 +263,7 @@ class OnRouteChange(scenario_step.ScenarioStep):
         pass
 
 
-def _get_manual_incident_form_view(routing_uid: str, blocks: typing.List[BlockElement], private_metatada: str):
+def _get_manual_incident_form_view(routing_uid: str, blocks: typing.List[Block.Any], private_metatada: str):
     deprecation_blocks = [
         {
             "type": "header",
@@ -302,10 +302,10 @@ def _get_manual_incident_form_view(routing_uid: str, blocks: typing.List[BlockEl
 def _get_manual_incident_initial_form_fields(
     slack_team_identity: "SlackTeamIdentity",
     slack_user_identity: "SlackUserIdentity",
-    input_id_prefix,
+    input_id_prefix: str,
     payload: EventPayload,
     with_title_and_message_inputs=False,
-) -> typing.List[BlockElement]:
+) -> typing.List[Block.Any]:
     initial_organization = (
         slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
         .order_by("pk")
@@ -334,7 +334,7 @@ def _get_manual_incident_initial_form_fields(
 
     initial_route = manual_integration.default_channel_filter
     route_select = _get_route_select(manual_integration, initial_route, input_id_prefix)
-    blocks = [organization_select, team_select, route_select]
+    blocks: typing.List[Block.Any] = [organization_select, team_select, route_select]
     if with_title_and_message_inputs:
         title_input = _get_title_input(payload)
         message_input = _get_message_input(payload)
@@ -343,7 +343,12 @@ def _get_manual_incident_initial_form_fields(
     return blocks
 
 
-def _get_organization_select(slack_team_identity, slack_user_identity, value, input_id_prefix):
+def _get_organization_select(
+    slack_team_identity: "SlackTeamIdentity",
+    slack_user_identity: "SlackUserIdentity",
+    value: Organization,
+    input_id_prefix: str,
+) -> Block.Section:
     organizations = slack_team_identity.organizations.filter(
         users__slack_user_identity=slack_user_identity,
     ).distinct()
@@ -363,7 +368,7 @@ def _get_organization_select(slack_team_identity, slack_user_identity, value, in
             }
         )
 
-    organization_select = {
+    organization_select: Block.Section = {
         "type": "section",
         "text": {"type": "mrkdwn", "text": "Select an organization"},
         "block_id": input_id_prefix + MANUAL_INCIDENT_ORG_SELECT_ID,
@@ -390,7 +395,7 @@ def _get_selected_org_from_payload(payload: EventPayload, input_id_prefix: str) 
 
 def _get_team_select(
     slack_user_identity: "SlackUserIdentity", organization: "Organization", value: str, input_id_prefix: str
-):
+) -> Block.Section:
     teams = organization.teams.filter(
         users__slack_user_identity=slack_user_identity,
     ).distinct()
@@ -422,7 +427,7 @@ def _get_team_select(
             }
         )
 
-    team_select = {
+    team_select: Block.Section = {
         "type": "section",
         "text": {"type": "mrkdwn", "text": "Select a team"},
         "block_id": input_id_prefix + MANUAL_INCIDENT_TEAM_SELECT_ID,
@@ -497,7 +502,7 @@ def _get_and_change_input_id_prefix_from_metadata(metadata):
     return old_input_id_prefix, new_input_id_prefix, metadata
 
 
-def _get_title_input(payload: EventPayload) -> BlockElement:
+def _get_title_input(payload: EventPayload) -> Block.Input:
     title_input_block = {
         "type": "input",
         "block_id": MANUAL_INCIDENT_TITLE_INPUT_ID,

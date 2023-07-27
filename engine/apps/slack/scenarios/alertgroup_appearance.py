@@ -5,7 +5,15 @@ from django.apps import apps
 
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, EventPayload, InteractiveMessageActionType, PayloadType, RoutingSteps
+from apps.slack.types import (
+    Block,
+    BlockActionType,
+    EventPayload,
+    InteractiveMessageActionType,
+    ModalView,
+    PayloadType,
+    RoutingSteps,
+)
 
 from .step_mixins import AlertGroupActionsMixin
 
@@ -34,7 +42,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
         }
 
         alert_receive_channel = alert_group.channel
-        blocks = [
+        blocks: typing.List[Block.Section] = [
             {
                 "type": "section",
                 "text": {
@@ -45,7 +53,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
             {"type": "section", "text": {"type": "mrkdwn", "text": "Once changed Refresh the alert group"}},
         ]
 
-        view = {
+        view: ModalView = {
             "callback_id": UpdateAppearanceStep.routing_uid(),
             "blocks": blocks,
             "type": "modal",
