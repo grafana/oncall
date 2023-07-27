@@ -52,6 +52,9 @@ class ResolutionNoteSlackMessageQueryset(models.QuerySet):
 
 
 class ResolutionNoteSlackMessage(models.Model):
+    alert_group: "AlertGroup"
+    resolution_note: typing.Optional["ResolutionNote"]
+
     alert_group = models.ForeignKey(
         "alerts.AlertGroup",
         on_delete=models.CASCADE,
@@ -80,13 +83,13 @@ class ResolutionNoteSlackMessage(models.Model):
     class Meta:
         unique_together = ("thread_ts", "ts")
 
-    def get_resolution_note(self):
+    def get_resolution_note(self) -> typing.Optional["ResolutionNote"]:
         try:
             return self.resolution_note
         except ResolutionNoteSlackMessage.resolution_note.RelatedObjectDoesNotExist:
             return None
 
-    def delete(self):
+    def delete(self) -> None:
         resolution_note = self.get_resolution_note()
         if resolution_note:
             resolution_note.delete()

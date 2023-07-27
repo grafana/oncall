@@ -104,6 +104,31 @@ class _Option(typing.TypedDict):
     """
 
 
+class _OptionGroup(typing.TypedDict):
+    """
+    Provides a way to group options in a [select menu](https://api.slack.com/reference/block-kit/block-elements#select)
+    or [multi-select menu](https://api.slack.com/reference/block-kit/block-elements#multi_select).
+
+    [Documentation](https://api.slack.com/reference/block-kit/composition-objects#option_group)
+    """
+
+    label: _PlainText
+    """
+    A [plain_text only text object](https://api.slack.com/reference/block-kit/composition-objects#text) that defines
+    the label shown above this group of options.
+
+    Maximum length for the `text` in this field is 75 characters.
+    """
+
+    options: typing.List[_Option]
+    """
+    An array of [option objects](https://api.slack.com/reference/block-kit/composition-objects#option) that belong to
+    this specific group.
+
+    Maximum of 100 items.
+    """
+
+
 class _Confirm(typing.TypedDict):
     """
     An object that defines a dialog that provides a confirmation step to any interactive element.
@@ -156,11 +181,12 @@ class _Confirm(typing.TypedDict):
 
 
 class CompositionObjects:
-    PlainText = _PlainText
-    MrkdwnText = _MrkdwnText
-    Text = _Text
-    Option = _Option
     Confirm = _Confirm
+    MrkdwnText = _MrkdwnText
+    Option = _Option
+    OptionGroup = _OptionGroup
+    PlainText = _PlainText
+    Text = _Text
 
 
 __all__ = [

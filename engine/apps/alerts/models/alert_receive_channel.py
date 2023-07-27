@@ -41,7 +41,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import ChannelFilter, GrafanaAlertingContactPoint
-    from apps.user_management import Organization, Team
+    from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
 

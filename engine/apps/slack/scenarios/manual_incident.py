@@ -7,7 +7,15 @@ from django.conf import settings
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
-from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, RoutingSteps
+from apps.slack.types import (
+    Block,
+    BlockActionType,
+    CompositionObjects,
+    EventPayload,
+    ModalView,
+    PayloadType,
+    RoutingSteps,
+)
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -262,7 +270,9 @@ class OnRouteChange(scenario_step.ScenarioStep):
         pass
 
 
-def _get_manual_incident_form_view(routing_uid: str, blocks: typing.List[Block.Any], private_metatada: str):
+def _get_manual_incident_form_view(
+    routing_uid: str, blocks: typing.List[Block.Any], private_metatada: str
+) -> ModalView:
     deprecation_blocks = [
         {
             "type": "header",
@@ -275,7 +285,7 @@ def _get_manual_incident_form_view(routing_uid: str, blocks: typing.List[Block.A
         {"type": "divider"},
     ]
 
-    view = {
+    view: ModalView = {
         "type": "modal",
         "callback_id": routing_uid,
         "title": {
@@ -345,13 +355,13 @@ def _get_manual_incident_initial_form_fields(
 def _get_organization_select(
     slack_team_identity: "SlackTeamIdentity",
     slack_user_identity: "SlackUserIdentity",
-    value: Organization,
+    value: "Organization",
     input_id_prefix: str,
 ) -> Block.Section:
     organizations = slack_team_identity.organizations.filter(
         users__slack_user_identity=slack_user_identity,
     ).distinct()
-    organizations_options = []
+    organizations_options: typing.List[CompositionObjects.Option] = []
     initial_option_idx = 0
     for idx, org in enumerate(organizations):
         if org == value:
@@ -389,8 +399,7 @@ def _get_selected_org_from_payload(payload: EventPayload, input_id_prefix: str) 
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ORG_SELECT_ID][
         OnOrgChange.routing_uid()
     ]["selected_option"]["value"]
-    org = Organization.objects.filter(pk=selected_org_id).first()
-    return org
+    return Organization.objects.filter(pk=selected_org_id).first()
 
 
 def _get_team_select(
@@ -399,7 +408,7 @@ def _get_team_select(
     teams = organization.teams.filter(
         users__slack_user_identity=slack_user_identity,
     ).distinct()
-    team_options = []
+    team_options: typing.List[CompositionObjects.Option] = []
     # Adding pseudo option for default team
     initial_option_idx = 0
     team_options.append(
@@ -450,12 +459,11 @@ def _get_selected_team_from_payload(payload: EventPayload, input_id_prefix: str)
     ]["selected_option"]["value"]
     if selected_team_id == DEFAULT_TEAM_VALUE:
         return None
-    team = Team.objects.filter(pk=selected_team_id).first()
-    return team
+    return Team.objects.filter(pk=selected_team_id).first()
 
 
-def _get_route_select(integration: AlertReceiveChannel, value, input_id_prefix: str):
-    route_options = []
+def _get_route_select(integration: AlertReceiveChannel, value, input_id_prefix: str) -> Block.Section:
+    route_options: typing.List[CompositionObjects.Option] = []
     initial_option_idx = 0
     for idx, route in enumerate(integration.channel_filters.all()):
         filtering_term = f'"{route.filtering_term}"'
@@ -473,7 +481,7 @@ def _get_route_select(integration: AlertReceiveChannel, value, input_id_prefix: 
                 "value": f"{route.pk}",
             }
         )
-    route_select = {
+    route_select: Block.Section = {
         "type": "section",
         "text": {"type": "mrkdwn", "text": "Select a route"},
         "block_id": input_id_prefix + MANUAL_INCIDENT_ROUTE_SELECT_ID,
@@ -494,11 +502,12 @@ def _get_selected_route_from_payload(payload: EventPayload, input_id_prefix: str
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ROUTE_SELECT_ID][
         OnRouteChange.routing_uid()
     ]["selected_option"]["value"]
-    channel_filter = ChannelFilter.objects.filter(pk=selected_org_id).first()
-    return channel_filter
+    return ChannelFilter.objects.filter(pk=selected_org_id).first()
 
 
-def _get_and_change_input_id_prefix_from_metadata(metadata):
+def _get_and_change_input_id_prefix_from_metadata(
+    metadata: typing.Dict[str, str]
+) -> typing.Tuple[str, str, typing.Dict[str, str]]:
     old_input_id_prefix = metadata["input_id_prefix"]
     new_input_id_prefix = _generate_input_id_prefix()
     metadata["input_id_prefix"] = new_input_id_prefix
@@ -506,7 +515,7 @@ def _get_and_change_input_id_prefix_from_metadata(metadata):
 
 
 def _get_title_input(payload: EventPayload) -> Block.Input:
-    title_input_block = {
+    title_input_block: Block.Input = {
         "type": "input",
         "block_id": MANUAL_INCIDENT_TITLE_INPUT_ID,
         "label": {
@@ -534,8 +543,8 @@ def _get_title_from_payload(payload: EventPayload) -> str:
     return title
 
 
-def _get_message_input(payload: EventPayload):
-    message_input_block = {
+def _get_message_input(payload: EventPayload) -> Block.Input:
+    message_input_block: Block.Input = {
         "type": "input",
         "block_id": MANUAL_INCIDENT_MESSAGE_INPUT_ID,
         "label": {
@@ -559,13 +568,12 @@ def _get_message_input(payload: EventPayload):
 
 
 def _get_message_from_payload(payload: EventPayload) -> str:
-    message = (
+    return (
         payload["view"]["state"]["values"][MANUAL_INCIDENT_MESSAGE_INPUT_ID][
             FinishCreateIncidentFromSlashCommand.routing_uid()
         ]["value"]
         or ""
     )
-    return message
 
 
 # _generate_input_id_prefix returns uniq str to not to preserve input's values between view update

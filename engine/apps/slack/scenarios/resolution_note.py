@@ -9,8 +9,8 @@ from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
+    Block,
     BlockActionType,
-    BlockElement,
     EventPayload,
     InteractiveMessageActionType,
     PayloadType,
@@ -365,8 +365,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         except SlackAPIException as e:
             print(e)
 
-    def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> typing.List[BlockElement]:
-        blocks: typing.List[BlockElement] = []
+    def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> typing.List[Block.Any]:
+        blocks: typing.List[Block.Any] = []
         author_verbal = resolution_note.author_verbal(mention=False)
         resolution_note_text_block = {
             "type": "section",
@@ -421,7 +421,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         action_resolve = value.get("action_resolve", False)
         channel_id = payload["channel"]["id"] if "channel" in payload else None
 
-        blocks: typing.List[BlockElement] = []
+        blocks: typing.List[Block.Any] = []
 
         if channel_id:
             members = slack_team_identity.get_conversation_members(self._slack_client, channel_id)
@@ -476,13 +476,12 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 view=view,
             )
 
-
     def get_resolution_notes_blocks(
         self, alert_group: "AlertGroup", resolution_note_window_action: str, action_resolve: bool
-    ) -> typing.List[BlockElement]:
+    ) -> typing.List[Block.Any]:
         from apps.alerts.models import ResolutionNote
 
-        blocks: typing.List[BlockElement] = []
+        blocks: typing.List[Block.Any] = []
 
         other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
         resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(
@@ -679,9 +678,9 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
         return blocks
 
-    def get_invite_bot_tip_blocks(self, channel: str) -> typing.List[BlockElement]:
+    def get_invite_bot_tip_blocks(self, channel: str) -> typing.List[Block.Any]:
         link_to_instruction = create_engine_url("static/images/postmortem.gif")
-        blocks = [
+        blocks: typing.List[Block.Any] = [
             {
                 "type": "divider",
             },
@@ -706,7 +705,6 @@ class ReadEditPostmortemStep(ResolutionNoteModalStep):
 
 
 class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
-
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",

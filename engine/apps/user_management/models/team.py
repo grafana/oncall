@@ -92,7 +92,7 @@ class Team(models.Model):
         default=generate_public_primary_key_for_team,
     )
 
-    objects = TeamManager()
+    objects: models.Manager["Team"] = TeamManager()
 
     team_id = models.PositiveIntegerField()
     organization = models.ForeignKey(

@@ -15,7 +15,8 @@ from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
 
 if typing.TYPE_CHECKING:
-    from apps.alerts.models import AlertGroup
+    from apps.alerts.models import AlertGroup, CustomButton, EscalationPolicy, Invitation
+    from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -23,6 +24,12 @@ logger.setLevel(logging.DEBUG)
 
 class AlertGroupLogRecord(models.Model):
     alert_group: "AlertGroup"
+    author: typing.Optional["User"]
+    custom_button: typing.Optional["CustomButton"]
+    dependent_alert_group: typing.Optional["AlertGroup"]
+    escalation_policy: typing.Optional["EscalationPolicy"]
+    invitation: typing.Optional["Invitation"]
+    root_alert_group: typing.Optional["AlertGroup"]
 
     (
         TYPE_ACK,

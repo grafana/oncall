@@ -4,7 +4,7 @@ import typing
 
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, BlockElement, EventPayload, PayloadType, RoutingSteps
+from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, RoutingSteps
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import ShiftSwapRequest
@@ -17,7 +17,7 @@ SHIFT_SWAP_PK_ACTION_KEY = "shift_swap_request_pk"
 
 
 class BaseShiftSwapRequestStep:
-    def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> typing.List[BlockElement]:
+    def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> typing.List[Block.Any]:
         pk = shift_swap_request.pk
         request_is_taken = shift_swap_request.status == shift_swap_request.Statuses.TAKEN
 
@@ -27,7 +27,7 @@ class BaseShiftSwapRequestStep:
         if request_is_taken:
             main_message_text += "Update. This request has been fulfilled!"
 
-        blocks: typing.List[BlockElement] = [
+        blocks: typing.List[Block.Any] = [
             {
                 "type": "section",
                 "text": {

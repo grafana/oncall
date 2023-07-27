@@ -4,7 +4,8 @@
 
 import typing
 
-from apps.slack.types.common import BaseEvent, ModalView, PayloadType
+from apps.slack.types.common import BaseEvent, PayloadType
+from apps.slack.types.views import ModalView
 
 
 class ViewSubmissionPayload(BaseEvent):

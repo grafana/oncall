@@ -36,8 +36,8 @@ class SlackUserIdentityManager(models.Manager):
 
 
 class SlackUserIdentity(models.Model):
-    objects = SlackUserIdentityManager()
-    all_objects = AllSlackUserIdentityManager()
+    objects: models.Manager["SlackUserIdentity"] = SlackUserIdentityManager()
+    all_objects: models.Manager["SlackUserIdentity"] = AllSlackUserIdentityManager()
 
     id = models.AutoField(primary_key=True)
 

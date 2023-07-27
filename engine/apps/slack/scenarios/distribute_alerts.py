@@ -32,7 +32,16 @@ from apps.slack.tasks import (
     send_message_to_thread_if_bot_not_in_channel,
     update_incident_slack_message,
 )
-from apps.slack.types import BlockActionType, EventPayload, InteractiveMessageActionType, PayloadType, RoutingSteps
+from apps.slack.types import (
+    Block,
+    BlockActionType,
+    CompositionObjects,
+    EventPayload,
+    InteractiveMessageActionType,
+    ModalView,
+    PayloadType,
+    RoutingSteps,
+)
 from apps.slack.utils import get_cache_key_update_incident_slack_message
 from common.utils import clean_markup, is_string_with_visible_characters
 
@@ -115,7 +124,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         alert: Alert,
         attachments,
         channel_id: str,
-        blocks,
+        blocks: typing.List[Block.Any],
     ) -> None:
         # channel_id can be None if general log channel for slack_team_identity is not set
         if channel_id is None:
@@ -194,7 +203,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             alert.save()
 
     def _send_debug_mode_notice(self, alert_group: AlertGroup, channel_id: str) -> None:
-        blocks = []
+        blocks: typing.List[Block.Any] = []
         text = "Escalations are silenced due to Debug mode"
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
         self._slack_client.api_call(
@@ -265,8 +274,7 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
 
 
 class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -293,8 +301,7 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
 
 
 class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -314,8 +321,7 @@ class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
 
 
 class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -332,8 +338,8 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        blocks = []
-        view = {
+        blocks: typing.List[Block.Any] = []
+        view: ModalView = {
             "callback_id": AttachGroupStep.routing_uid(),
             "blocks": blocks,
             "type": "modal",
@@ -400,9 +406,9 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             view=view,
         )
 
-    def get_select_incidents_blocks(self, alert_group: AlertGroup):
-        collected_options = []
-        blocks = []
+    def get_select_incidents_blocks(self, alert_group: AlertGroup) -> typing.List[Block.Any]:
+        collected_options: typing.List[CompositionObjects.Option] = []
+        blocks: typing.List[Block.Any] = []
 
         alert_receive_channel_ids = AlertReceiveChannel.objects.filter(
             organization=alert_group.channel.organization
@@ -536,8 +542,7 @@ class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.un_attach_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
 
 
 class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -693,8 +698,7 @@ class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
 
 
 class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -714,8 +718,7 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
 
     def process_signal(self, log_record: AlertGroupLogRecord) -> None:
-        alert_group = log_record.alert_group
-        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.alert_group)
 
 
 class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -788,7 +791,6 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
 
 
 class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
-
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",
@@ -941,7 +943,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
 
         self.remove_resolution_note_reaction(alert_group)
 
-        bot_messages_ts = []
+        bot_messages_ts: typing.List[str] = []
         bot_messages_ts.extend(alert_group.slack_messages.values_list("slack_id", flat=True))
         bot_messages_ts.extend(
             alert_group.resolution_note_slack_messages.filter(posted_by_bot=True).values_list("ts", flat=True)

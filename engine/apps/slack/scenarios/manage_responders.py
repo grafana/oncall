@@ -14,7 +14,7 @@ from apps.slack.scenarios.paging import (
     _get_users_select,
 )
 from apps.slack.scenarios.step_mixins import AlertGroupActionsMixin
-from apps.slack.types import BlockActionType, EventPayload, PayloadType, RoutingSteps
+from apps.slack.types import Block, BlockActionType, EventPayload, ModalView, PayloadType, RoutingSteps
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
@@ -196,8 +196,8 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
 # slack view/blocks rendering helpers
 
 
-def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False):
-    blocks = []
+def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False) -> ModalView:
+    blocks: typing.List[Block.Any] = []
 
     # Show list of users that are currently paged
     paged_users = alert_group.get_paged_users()
@@ -237,7 +237,7 @@ def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False)
         )
     ]
 
-    view = {
+    view: ModalView = {
         "type": "modal",
         "title": {
             "type": "plain_text",

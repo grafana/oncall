@@ -1,4 +1,3 @@
-import datetime
 import json
 import typing
 
@@ -7,8 +6,8 @@ import pytz
 from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import (
+    Block,
     BlockActionType,
-    BlockElement,
     CompositionObjects,
     EventPayload,
     ModalView,
@@ -85,8 +84,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             new_state=new_state,
         )
 
-    def get_modal_blocks(self, schedule_id: str) -> typing.List[BlockElement]:
-        blocks = [
+    def get_modal_blocks(self, schedule_id: str) -> typing.List[Block.Section]:
+        blocks: typing.List[Block.Section] = [
             {
                 "type": "section",
                 "text": {"type": "plain_text", "text": "Notification frequency"},
@@ -152,7 +151,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         current_value = getattr(schedule, select_name)
         text = getattr(self, f"{select_name}_options")[current_value]
 
-        initial_option = {
+        initial_option: CompositionObjects.Option = {
             "text": {
                 "type": "plain_text",
                 "text": f"{text}",
@@ -163,13 +162,15 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         return initial_option
 
     @classmethod
-    def get_report_blocks_ical(cls, new_shifts, next_shifts, schedule, empty):
+    def get_report_blocks_ical(
+        cls, new_shifts, next_shifts, schedule: OnCallSchedule, empty: bool
+    ) -> typing.List[Block.Any]:
         organization = schedule.organization
         if empty:
             if schedule.notify_empty_oncall == schedule.NotifyEmptyOnCall.ALL:
                 now_text = "Inviting <!channel>. No one on-call now!\n"
             elif schedule.notify_empty_oncall == schedule.NotifyEmptyOnCall.PREV:
-                user_ids = []
+                user_ids: typing.List[str] = []
                 for item in json.loads(schedule.current_shifts).values():
                     user_ids.extend(item.get("users", []))
                 prev_users = organization.users.filter(id__in=user_ids)
@@ -200,7 +201,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             next_text = "\n*Next on-call shift:*\n" + next_text
 
         text = f"{now_text}{next_text}"
-        blocks = [
+        blocks: typing.List[Block.Any] = [
             {
                 "type": "section",
                 "text": {
@@ -222,80 +223,6 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             },
             {"type": "context", "elements": [{"type": "mrkdwn", "text": f"On-call schedule *{schedule.name}*"}]},
         ]
-        return blocks
-
-    @classmethod
-    def get_report_blocks_manual(cls, current_shift, next_shift, schedule) -> typing.List[BlockElement]:
-        current_piece, current_user = current_shift
-
-        start_day = datetime.datetime.now()
-        current_hour = datetime.datetime.today().hour
-        start_hour = current_piece.starts_at.hour
-        if start_hour > current_hour:
-            start_day -= datetime.timedelta(days=1)
-
-        shift_start = start_day.replace(hour=start_hour, minute=0, second=0, microsecond=0)
-        shift_end = shift_start + datetime.timedelta(hours=12)
-        shift_start_timestamp = int(shift_start.astimezone(pytz.UTC).timestamp())
-        shift_end_timestamp = int(shift_end.astimezone(pytz.UTC).timestamp())
-
-        next_shift_end = shift_end + datetime.timedelta(hours=12)
-        next_shift_end_timestamp = int(next_shift_end.astimezone(pytz.UTC).timestamp())
-
-        now_text = "_*Now*_:\n"
-        if schedule.mention_oncall_start:
-            user_mention = current_user.get_username_with_slack_verbal(
-                mention=True,
-            )
-
-        else:
-            user_mention = current_user.get_username_with_slack_verbal(
-                mention=False,
-            )
-        now_text += f"*{user_mention}*"
-
-        now_text += f" from {format_datetime_to_slack(shift_start_timestamp)}"
-        now_text += f" to {format_datetime_to_slack(shift_end_timestamp)}"
-
-        next_piece, next_user = next_shift
-        next_text = "\n_*Next*_:\n"
-        if schedule.mention_oncall_next:
-            user_mention = next_user.get_username_with_slack_verbal(
-                mention=True,
-            )
-        else:
-            user_mention = next_user.get_username_with_slack_verbal(
-                mention=False,
-            )
-        next_text += f"*{user_mention}*"
-
-        next_text += f" from {format_datetime_to_slack(shift_end_timestamp)}"
-        next_text += f" to {format_datetime_to_slack(next_shift_end_timestamp)}"
-
-        text = f"{now_text}{next_text}"
-        blocks: typing.List[BlockElement] = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": text,
-                    "verbatim": True,
-                },
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "action_id": f"{cls.routing_uid()}",
-                        "text": {"type": "plain_text", "text": ":gear:", "emoji": True},
-                        "value": f"edit_{schedule.pk}",
-                    }
-                ],
-            },
-            {"type": "context", "elements": [{"type": "mrkdwn", "text": f"On-call schedule *{schedule.name}*"}]},
-        ]
-
         return blocks
 
     @classmethod

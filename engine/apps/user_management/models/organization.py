@@ -88,7 +88,7 @@ class Organization(MaintainableObject):
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"
 
-    objects = OrganizationManager()
+    objects: models.Manager["Organization"] = OrganizationManager()
     objects_with_deleted = models.Manager()
 
     def __init__(self, *args, **kwargs):

@@ -20,8 +20,98 @@ class Block:
         message. If a message is updated, use a new `block_id`.
         """
 
+    class Actions(_BaseBlock):
+        """
+        A block that is used to hold interactive elements.
+
+        [Documentation](https://api.slack.com/reference/block-kit/blocks#actions)
+        """
+
+        type: typing.Literal["actions"]
+        """
+        The type of block. For an actions block, `type` is always `actions`.
+        """
+
+        elements: typing.List[
+            BlockElement.Button | BlockElement.Select.Any | BlockElement.OverflowMenu | BlockElement.DatePicker
+        ]
+        """
+        An array of interactive [element objects](https://api.slack.com/reference/messaging/block-elements) -
+        [buttons](https://api.slack.com/reference/messaging/block-elements#button),
+        [select menus](https://api.slack.com/reference/messaging/block-elements#select),
+        [overflow menus](https://api.slack.com/reference/messaging/block-elements#overflow), or
+        [date pickers](https://api.slack.com/reference/messaging/block-elements#datepicker).
+
+        There is a maximum of 25 elements in each action block.
+        """
+
     class Context(_BaseBlock):
-        pass
+        """
+        Displays message context, which can include both images and text.
+
+        [Documentation](https://api.slack.com/reference/block-kit/blocks#context)
+        """
+
+        type: typing.Literal["context"]
+        """
+        The type of block. For a context block, `type` is always `context`.
+        """
+
+        elements: typing.List[CompositionObjects.Text | BlockElement.Image]
+        """
+        An array of [image elements](https://api.slack.com/reference/messaging/block-elements#image) and
+        [text objects](https://api.slack.com/reference/messaging/composition-objects#text).
+
+        Maximum number of items is 10.
+        """
+
+    class Divider(_BaseBlock):
+        """
+        A content divider, like an `<hr>`, to split up different blocks inside of a message. The divider block is nice
+        and neat, requiring only a `type`.
+
+        [Documentation](https://api.slack.com/reference/block-kit/blocks#divider)
+        """
+
+        type: typing.Literal["divider"]
+        """
+        The type of block. For a divider block, `type` is always `divider`.
+        """
+
+    class Image(_BaseBlock):
+        """
+        A simple image block, designed to make those cat photos really pop.
+
+        [Documentation](https://api.slack.com/reference/block-kit/blocks#image)
+        """
+
+        type: typing.Literal["image"]
+        """
+        The type of block. For an image block, `type` is always `image`.
+        """
+
+        image_url: str
+        """
+        The URL of the image to be displayed.
+
+        Maximum length for this field is 3000 characters.
+        """
+
+        alt_text: str
+        """
+        A plain-text summary of the image. This should not contain any markup.
+
+        Maximum length for this field is 2000 characters.
+        """
+
+        title: CompositionObjects.PlainText
+        """
+        An optional title for the image in the form of a
+        [text object](https://api.slack.com/reference/messaging/composition-objects#text) that can only be of
+        `type: plain_text`.
+
+        Maximum length for the `text` in this field is 2000 characters.
+        """
 
     class Input(_BaseBlock):
         """
@@ -110,7 +200,7 @@ class Block:
         Be sure to confirm the desired element works with `section`.
         """
 
-    Any = Context | Input | Section
+    Any = Context | Divider | Image | Input | Section
 
 
 __all__ = [

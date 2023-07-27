@@ -25,6 +25,7 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
+    from apps.base.models import UserNotificationPolicy
     from apps.slack.models import SlackUserIdentity
     from apps.user_management.models import Organization, Team
 
@@ -148,12 +149,13 @@ class User(models.Model):
     current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
+    notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
     slack_user_identity: typing.Optional["SlackUserIdentity"]
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
 
-    objects = UserManager.from_queryset(UserQuerySet)()
+    objects: models.Manager["User"] = UserManager.from_queryset(UserQuerySet)()
 
     class Meta:
         # For some reason there are cases when Grafana user gets deleted,
