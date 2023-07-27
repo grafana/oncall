@@ -204,7 +204,7 @@ describe('rootBaseStore', () => {
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
 
-    expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
+    expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(2);
     expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
 
     expect(rootBaseStore.initializationError).toBeNull();
@@ -255,7 +255,7 @@ describe('rootBaseStore', () => {
       expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
       expect(PluginState.installPlugin).toHaveBeenCalledWith();
 
-      expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
+      expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(2);
       expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
 
       expect(rootBaseStore.initializationError).toBeNull();
