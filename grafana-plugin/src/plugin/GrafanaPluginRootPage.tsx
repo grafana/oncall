@@ -103,7 +103,6 @@ export const Root = observer((props: AppRootProps) => {
 
   const updateBasicData = async () => {
     await store.updateBasicData();
-    await store.alertGroupStore.fetchIRMPlan();
   };
 
   const location = useLocation();
