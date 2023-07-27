@@ -12,6 +12,7 @@ keywords:
 title: Alertmanager
 weight: 300
 ---
+# TODO: BANNER ABOUT DEPRECATION
 
 # Alertmanager integration for Grafana OnCall
 
@@ -38,7 +39,7 @@ You will need it when configuring Alertmanager.
 section of your Alertmanager configuration
 2. Set `url` to the **OnCall Integration URL** from previous section
 3. Set `send_resolved` to `true`, so Grafana OnCall can autoresolve alert groups when they are resolved in Alertmanager
-4. It is recommended to set `max_alerts` to less than `300` to avoid rate-limiting issues
+4. It is recommended to set `max_alerts` to less than `300` to avoid too big requests.
 5. Use this receiver in your route configuration
 
 Here is the example of final configuration:
@@ -120,3 +121,49 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
 [complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
 [complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
 {{% /docs/reference %}}
+
+## Migrating from Legacy AlertManager Integration
+
+We are introducing new AlertManager integration with improved grouping and auto-resolve mechanism.
+Existing integration will be marked as Legacy and migrated automatically after DEPRECATION_DATE.
+You have an option to migrate them now and double-check how it works for your setup.
+Integration urls will not be changed, so there is no need to change your Alertmanager configuration.
+However, it is required to adjust templates and routes to the new shape of payload.
+
+### How to migrate
+
+1. Go to **Integration Page**, click on three dots on top right, click **Migrate**
+2. Confirmation Modal will be shown, read it carefully and proceed with migration.
+3. Integration will be updated, templates will be reset.
+4. Adjust templates and routes to the new shape of payload.
+
+### Payload changes
+
+Before we were using each alert from group as a separate payload:
+
+```json
+{
+            "labels": {
+                "severity": "critical",
+                "alertname": "InstanceDown"
+            },
+            ...
+}
+```
+
+This behaviour was leading to mismatch in alert state between OnCall and AlertManager and draining of rate-limits,
+since each AlertManager alert was counted for them.
+
+We decided to change this behaviour to respect AlertManager grouping by treating AlertManager group as one payload.
+
+```json
+{
+    "alerts": [...],
+    "groupLabels": {"alertname": "InstanceDown"},
+    "commonLabels": {"job": "node",  "alertname": "InstanceDown"},
+    "groupKey": "{}:{alertname=\"InstanceDown\"}",
+    ...
+}
+```
+
+You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data)
