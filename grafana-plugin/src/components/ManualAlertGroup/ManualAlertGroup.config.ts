@@ -12,22 +12,8 @@ export const manualAlertFormConfig: { name: string; fields: FormItem[] } = {
     {
       name: 'message',
       type: FormItemType.TextArea,
-      label: 'Description',
-      validation: { required: true },
-    },
-    {
-      name: 'team',
-      label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Alert Groups and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
-      type: FormItemType.GSelect,
-      extra: {
-        modelName: 'grafanaTeamStore',
-        displayField: 'name',
-        valueField: 'id',
-        showSearch: true,
-        allowClear: true,
-      },
+      label: 'Message (optional)',
+      validation: { required: false },
     },
   ],
 };

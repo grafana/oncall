@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 
 import emoji
 from celery import uuid as celery_uuid
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
@@ -199,9 +198,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
 
-    # TODO: remove this field after AlertGroup.is_restricted change has been released
-    restricted_at = models.DateTimeField(null=True, default=None)
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -250,6 +246,25 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     def hard_delete(self):
         super(AlertReceiveChannel, self).delete()
+
+    class DuplicateDirectPagingError(Exception):
+        """Only one Direct Paging integration is allowed per team."""
+
+        DETAIL = "Direct paging integration already exists for this team"  # Returned in BadRequest responses
+
+    def save(self, *args, **kwargs):
+        # Don't allow multiple Direct Paging integrations per team
+        if (
+            self.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+            and AlertReceiveChannel.objects.filter(
+                organization=self.organization, team=self.team, integration=self.integration
+            )
+            .exclude(pk=self.pk)
+            .exists()
+        ):
+            raise self.DuplicateDirectPagingError
+
+        return super().save(*args, **kwargs)
 
     def change_team(self, team_id, user):
         if team_id == self.team_id:
@@ -306,7 +321,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def alerts_count(self):
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert
+
         return Alert.objects.filter(group__channel=self).count()
 
     @property
@@ -336,7 +352,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 ],
             )
         else:
-            rendered_description = None
+            rendered_description = self.config.description
         return rendered_description
 
     @classmethod
@@ -519,16 +535,12 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return getattr(self.heartbeat_module, "heartbeat_expired_payload")
 
     @property
-    def heartbeat_instruction_template(self):
-        return getattr(self.heartbeat_module, "heartbeat_instruction_template")
-
-    @property
     def heartbeat_module(self):
-        return getattr(heartbeat, self.INTEGRATIONS_TO_REVERSE_URL_MAP[self.integration], None)
+        return getattr(heartbeat, self.integration, None)
 
     # Demo alerts
-    def send_demo_alert(self, force_route_id=None, payload=None):
-        logger.info(f"send_demo_alert integration={self.pk} force_route_id={force_route_id}")
+    def send_demo_alert(self, payload=None):
+        logger.info(f"send_demo_alert integration={self.pk}")
 
         if not self.is_demo_alert_enabled:
             raise UnableToSendDemoAlert("Unable to send demo alert for this integration.")
@@ -543,9 +555,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                     "Unable to send demo alert as payload has no 'alerts' key, it is not array, or it is empty."
                 )
             for alert in alerts:
-                create_alertmanager_alerts.delay(
-                    alert_receive_channel_pk=self.pk, alert=alert, is_demo=True, force_route_id=force_route_id
-                )
+                create_alertmanager_alerts.delay(alert_receive_channel_pk=self.pk, alert=alert, is_demo=True)
         else:
             create_alert.delay(
                 title="Demo alert",
@@ -556,7 +566,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 integration_unique_data=None,
                 raw_request_data=payload,
                 is_demo=True,
-                force_route_id=force_route_id,
             )
 
     @property
@@ -619,8 +628,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 def listen_for_alertreceivechannel_model_save(
     sender: AlertReceiveChannel, instance: AlertReceiveChannel, created: bool, *args, **kwargs
 ) -> None:
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-    IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
+    from apps.alerts.models import ChannelFilter
+    from apps.heartbeat.models import IntegrationHeartBeat
 
     if created:
         write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)

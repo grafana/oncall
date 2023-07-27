@@ -104,7 +104,7 @@ class AlertGroupActionsMixin:
         except (KeyError, TypeError):
             return None
 
-        return AlertGroup.all_objects.get(pk=alert_group_pk)
+        return AlertGroup.objects.get(pk=alert_group_pk)
 
     def _get_alert_group_from_message(self, payload: dict) -> AlertGroup | None:
         """
@@ -134,7 +134,7 @@ class AlertGroupActionsMixin:
             except (KeyError, TypeError):
                 continue
 
-            return AlertGroup.all_objects.get(pk=alert_group_pk)
+            return AlertGroup.objects.get(pk=alert_group_pk)
         return None
 
     def _get_alert_group_from_slack_message_in_db(
@@ -160,15 +160,3 @@ class AlertGroupActionsMixin:
             channel_id=channel_id,
         )
         return slack_message.get_alert_group()
-
-
-class CheckAlertIsUnarchivedMixin:
-    def check_alert_is_unarchived(self, slack_team_identity, payload, alert_group, warning=True):
-        alert_group_is_unarchived = alert_group.started_at.date() > self.organization.archive_alerts_from
-        if not alert_group_is_unarchived:
-            if warning:
-                warning_text = "Action is impossible: the Alert is archived."
-                self.open_warning_window(payload, warning_text)
-            if not alert_group.resolved or not alert_group.is_archived:
-                alert_group.resolve_by_archivation()
-        return alert_group_is_unarchived

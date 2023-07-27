@@ -79,7 +79,7 @@ class AlertReceiveChannelView(
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ("verbal_name",)
+    search_fields = ("verbal_name", "integration")
 
     filterset_class = AlertReceiveChannelFilter
     pagination_class = FifteenPageSizePaginator
@@ -102,13 +102,6 @@ class AlertReceiveChannelView(
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
-
-    def create(self, request, *args, **kwargs):
-        if request.data["integration"] is not None and (
-            request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES
-        ):
-            return super().create(request, *args, **kwargs)
-        return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized
@@ -146,10 +139,6 @@ class AlertReceiveChannelView(
 
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
-
-        # Hide direct paging integrations from the list view, but not from the filters
-        if not is_filters_request:
-            queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
         return queryset
 
@@ -257,6 +246,12 @@ class AlertReceiveChannelView(
                 "type": "team_select",
                 "href": api_root + "teams/",
                 "global": True,
+            },
+            {
+                "name": "integration",
+                "display_name": "Type",
+                "type": "options",
+                "href": api_root + "alert_receive_channels/integration_options/",
             },
         ]
 

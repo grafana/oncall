@@ -2,14 +2,13 @@ import json
 import logging
 import re
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from ordered_model.models import OrderedModel
 
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,7 @@ class ChannelFilter(OrderedModel):
     Actually it's a Router based on terms now. Not a Filter.
     """
 
-    order_with_respect_to = ("alert_receive_channel", "is_default")
+    order_with_respect_to = ["alert_receive_channel_id", "is_default"]
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -82,11 +81,12 @@ class ChannelFilter(OrderedModel):
     is_default = models.BooleanField(default=False)
 
     class Meta:
-        ordering = (
-            "alert_receive_channel",
-            "is_default",
-            "order",
-        )
+        ordering = ["alert_receive_channel_id", "is_default", "order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["alert_receive_channel_id", "is_default", "order"], name="unique_channel_filter_order"
+            )
+        ]
 
     def __str__(self):
         return f"{self.pk}: {self.filtering_term or 'default'}"
@@ -165,11 +165,6 @@ class ChannelFilter(OrderedModel):
             return str(self.filtering_term).replace("`", "")
         raise Exception("Unknown filtering term")
 
-    def send_demo_alert(self):
-        """Deprecated. May be used in the older versions of the plugin"""
-        integration = self.alert_receive_channel
-        integration.send_demo_alert(force_route_id=self.pk)
-
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
@@ -190,7 +185,8 @@ class ChannelFilter(OrderedModel):
         }
         if self.slack_channel_id:
             if self.slack_channel_id:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
+                from apps.slack.models import SlackChannel
+
                 sti = self.alert_receive_channel.organization.slack_team_identity
                 slack_channel = SlackChannel.objects.filter(
                     slack_team_identity=sti, slack_id=self.slack_channel_id

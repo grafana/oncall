@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from django.db import transaction
@@ -26,9 +26,15 @@ UserNotifications = list[tuple[User, bool]]
 ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
 
 
+class DirectPagingAlertGroupResolvedError(Exception):
+    """Raised when trying to use direct paging for a resolved alert group."""
+
+    DETAIL = "Cannot add responders for a resolved alert group"  # Returned in BadRequest responses and Slack warnings
+
+
 def _trigger_alert(
     organization: Organization,
-    team: Team,
+    team: Team | None,
     title: str,
     message: str,
     from_user: User,
@@ -42,7 +48,7 @@ def _trigger_alert(
         deleted_at=None,
         defaults={
             "author": from_user,
-            "verbal_name": f"Direct paging ({team.name if team else 'General'} team)",
+            "verbal_name": f"Direct paging ({team.name if team else 'No'} team)",
         },
     )
     if alert_receive_channel.default_channel_filter is None:
@@ -90,7 +96,7 @@ def _trigger_alert(
     return alert.group
 
 
-def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
+def check_user_availability(user: User) -> list[dict[str, Any]]:
     """Check user availability to be paged.
 
     Return a warnings list indicating `error` and any additional related `data`.
@@ -108,7 +114,6 @@ def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
     schedules = OnCallSchedule.objects.filter(
         Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
         organization=user.organization,
-        team=team,
     )
     schedules_data = {}
     for s in schedules:
@@ -134,23 +139,21 @@ def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
 
 def direct_paging(
     organization: Organization,
-    team: Team,
+    team: Team | None,
     from_user: User,
     title: str = None,
     message: str = None,
     users: UserNotifications = None,
     schedules: ScheduleNotifications = None,
     escalation_chain: EscalationChain = None,
-    alert_group: AlertGroup = None,
-) -> Optional[AlertGroup]:
+    alert_group: AlertGroup | None = None,
+) -> AlertGroup | None:
     """Trigger escalation targeting given users/schedules.
 
     If an alert group is given, update escalation to include the specified users.
     Otherwise, create a new alert using given title and message.
 
     """
-    if not users and not schedules and not escalation_chain:
-        return
 
     if users is None:
         users = []
@@ -160,6 +163,10 @@ def direct_paging(
 
     if escalation_chain is not None and alert_group is not None:
         raise ValueError("Cannot change an existing alert group escalation chain")
+
+    # Cannot add responders to a resolved alert group
+    if alert_group and alert_group.resolved:
+        raise DirectPagingAlertGroupResolvedError
 
     # create alert group if needed
     if alert_group is None:
@@ -193,7 +200,9 @@ def direct_paging(
                 "important": important,
             },
         )
-        notify_user_task.apply_async((u.pk, alert_group.pk), {"important": important})
+        notify_user_task.apply_async(
+            (u.pk, alert_group.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
+        )
 
     return alert_group
 

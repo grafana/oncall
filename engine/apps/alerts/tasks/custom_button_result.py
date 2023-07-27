@@ -1,7 +1,6 @@
 import json
 import logging
 
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from jinja2 import TemplateError
@@ -19,11 +18,8 @@ logger = logging.getLogger(__name__)
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def custom_button_result(custom_button_pk, alert_group_pk, user_pk=None, escalation_policy_pk=None):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-    CustomButton = apps.get_model("alerts", "CustomButton")
-    User = apps.get_model("user_management", "User")
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord, CustomButton, EscalationPolicy
+    from apps.user_management.models import User
 
     task_logger.debug(
         f"Start custom_button_result for alert_group {alert_group_pk}, " f"custom_button {custom_button_pk}"
@@ -34,7 +30,7 @@ def custom_button_result(custom_button_pk, alert_group_pk, user_pk=None, escalat
         task_logger.info(f"Custom_button {custom_button_pk} for alert_group {alert_group_pk} does not exist")
         return
 
-    alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk)[0]
+    alert_group = AlertGroup.objects.filter(pk=alert_group_pk)[0]
     escalation_policy = EscalationPolicy.objects.filter(pk=escalation_policy_pk).first()
     task_logger.debug(
         f"Start getting data for request in custom_button_result task for alert_group {alert_group_pk}, "

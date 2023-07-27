@@ -5,7 +5,6 @@ import typing
 import pytz
 from celery import uuid as celery_uuid
 from dateutil.parser import parse
-from django.apps import apps
 from django.utils.functional import cached_property
 from rest_framework.exceptions import ValidationError
 
@@ -199,9 +198,7 @@ class EscalationSnapshotMixin:
 
     @property
     def escalation_chain_exists(self) -> bool:
-        if self.pause_escalation:
-            return False
-        elif not self.channel_filter:
+        if not self.channel_filter:
             return False
         return self.channel_filter.escalation_chain is not None
 
@@ -229,23 +226,15 @@ class EscalationSnapshotMixin:
         """
         :type self:AlertGroup
         """
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
 
-        is_on_maintenace_or_debug_mode = (
-            self.channel.maintenance_mode is not None or self.channel.organization.maintenance_mode is not None
-        )
+        is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
 
-        if (
-            self.is_restricted
-            or is_on_maintenace_or_debug_mode
-            or self.pause_escalation
-            or not self.escalation_chain_exists
-        ):
+        if self.is_restricted or is_on_maintenace_or_debug_mode or not self.escalation_chain_exists:
             logger.debug(
                 f"Not escalating alert group w/ pk: {self.pk}\n"
                 f"is_restricted: {self.is_restricted}\n"
                 f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
-                f"pause_escalation: {self.pause_escalation}\n"
                 f"escalation_chain_exists: {self.escalation_chain_exists}"
             )
             return
@@ -258,7 +247,7 @@ class EscalationSnapshotMixin:
         )
         task_id = celery_uuid()
 
-        AlertGroup.all_objects.filter(pk=self.pk,).update(
+        AlertGroup.objects.filter(pk=self.pk).update(
             active_escalation_id=task_id,
             is_escalation_finished=False,
             raw_escalation_snapshot=raw_escalation_snapshot,

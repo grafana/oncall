@@ -181,4 +181,8 @@ def get_phone_provider() -> PhoneProvider:
     if len(_providers) == 0:
         for provider_alias, importpath in settings.PHONE_PROVIDERS.items():
             _providers[provider_alias] = import_string(importpath)()
+
+    if live_settings.PHONE_PROVIDER not in settings.PHONE_PROVIDERS.keys():
+        return _providers[settings.DEFAULT_PHONE_PROVIDER]
+
     return _providers[live_settings.PHONE_PROVIDER]

@@ -1,6 +1,5 @@
 import json
 
-from django.apps import apps
 from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
@@ -167,7 +166,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return attachment
 
     def _get_buttons_blocks(self):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         buttons = []
         if not self.alert_group.is_maintenance_incident:
             if not self.alert_group.resolved:
@@ -213,12 +213,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     },
                 )
 
-                if self.alert_group.invitations.filter(is_active=True).count() < 5:
-                    action_id = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident").routing_uid()
-                    text = "Invite..."
-                    invitation_element = self._get_select_user_element(action_id, text=text)
-                    buttons.append(invitation_element)
-
                 if not self.alert_group.silenced:
                     silence_options = [
                         {
@@ -244,6 +238,15 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                             "action_id": ScenarioStep.get_step("distribute_alerts", "UnSilenceGroupStep").routing_uid(),
                         },
                     )
+
+                buttons.append(
+                    {
+                        "text": {"type": "plain_text", "text": "Responders", "emoji": True},
+                        "type": "button",
+                        "value": self._alert_group_action_value(),
+                        "action_id": ScenarioStep.get_step("manage_responders", "StartManageResponders").routing_uid(),
+                    },
+                )
 
                 attach_button = {
                     "text": {"type": "plain_text", "text": "Attach to ...", "emoji": True},
@@ -316,7 +319,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return blocks
 
     def _get_invitation_attachment(self):
-        Invitation = apps.get_model("alerts", "Invitation")
+        from apps.alerts.models import Invitation
+
         invitations = Invitation.objects.filter(is_active=True, alert_group=self.alert_group).all()
         if len(invitations) == 0:
             return []

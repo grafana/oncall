@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import classnames from 'classnames';
 import dayjs from 'dayjs';
@@ -27,7 +27,6 @@ import Incidents from 'pages/incidents/Incidents';
 import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
 import Maintenance from 'pages/maintenance/Maintenance';
-import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
 import Schedule from 'pages/schedule/Schedule';
@@ -37,8 +36,8 @@ import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import Users from 'pages/users/Users';
-import 'interceptors';
 import { rootStore } from 'state';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
 import loadJs from 'utils/loadJs';
@@ -53,15 +52,15 @@ dayjs.extend(isoWeek);
 dayjs.extend(isBetween);
 dayjs.extend(customParseFormat);
 
-import 'style/vars.css';
-import 'style/global.css';
-import 'style/utils.css';
-import 'style/responsive.css';
+import 'assets/style/vars.css';
+import 'assets/style/global.css';
+import 'assets/style/utils.css';
+import 'assets/style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
-import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
+import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -72,8 +71,6 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 };
 
 export const Root = observer((props: AppRootProps) => {
-  const [didFinishLoading, setDidFinishLoading] = useState(false);
-
   const store = useStore();
 
   useEffect(() => {
@@ -106,13 +103,7 @@ export const Root = observer((props: AppRootProps) => {
 
   const updateBasicData = async () => {
     await store.updateBasicData();
-    await store.alertGroupStore.fetchIRMPlan();
-    setDidFinishLoading(true);
   };
-
-  if (!didFinishLoading) {
-    return null;
-  }
 
   const location = useLocation();
 
@@ -165,19 +156,17 @@ export const Root = observer((props: AppRootProps) => {
               <Schedule query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-              <OutgoingWebhooks query={query} />
-            </Route>
-            <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
-              <OutgoingWebhooks2 query={query} />
+              {rootStore.hasFeature(AppFeature.Webhooks2) ? (
+                <OutgoingWebhooks2 query={query} />
+              ) : (
+                <OutgoingWebhooks query={query} />
+              )}
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
-              <Maintenance query={query} />
+              <Maintenance />
             </Route>
             <Route path={getRoutesForPage('settings')} exact>
               <SettingsPage />
-            </Route>
-            <Route path={getRoutesForPage('organization-logs')} exact>
-              <OrganizationLogPage />
             </Route>
             <Route path={getRoutesForPage('chat-ops')} exact>
               <ChatOps query={query} />

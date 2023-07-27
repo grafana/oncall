@@ -90,7 +90,6 @@ def test_alert_group_actions_unauthorized(
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities(
         role=LegacyAccessControlRole.VIEWER
     )
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
@@ -262,7 +261,6 @@ def test_step_acknowledge(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -312,7 +310,6 @@ def test_step_unacknowledge(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -362,7 +359,6 @@ def test_step_resolve(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -412,7 +408,6 @@ def test_step_unresolve(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -467,7 +462,6 @@ def test_step_invite(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
     second_user = make_user(organization=organization, pk=USER_ID)
 
@@ -529,7 +523,6 @@ def test_step_stop_invite(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
     second_user = make_user(organization=organization, pk=USER_ID)
 
@@ -587,7 +580,6 @@ def test_step_silence(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -642,7 +634,6 @@ def test_step_unsilence(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -686,7 +677,6 @@ def test_step_select_attach(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -743,7 +733,6 @@ def test_step_unattach(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -800,7 +789,6 @@ def test_step_format_alert(
     slack_channel = make_slack_channel(slack_team_identity, slack_id=SLACK_CHANNEL_ID)
 
     organization = make_organization(pk=ORGANIZATION_ID, slack_team_identity=slack_team_identity)
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
     user = make_user(organization=organization, slack_user_identity=slack_user_identity)
 
     alert_receive_channel = make_alert_receive_channel(organization)
@@ -826,7 +814,6 @@ def test_step_resolution_note(
     make_organization_and_user_with_slack_identities, make_alert_receive_channel, make_alert_group, make_alert
 ):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
-    organization.refresh_from_db()  # without this there's something weird with organization.archive_alerts_from
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)

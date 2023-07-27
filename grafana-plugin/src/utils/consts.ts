@@ -1,7 +1,6 @@
 import plugin from '../../package.json'; // eslint-disable-line
 
 // Navbar
-export const APP_TITLE = 'Grafana OnCall';
 export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
 
 export const APP_VERSION = `${plugin?.version}`;
@@ -16,7 +15,7 @@ export const GRAFANA_LICENSE_CLOUD = 'Cloud';
 export const FALLBACK_LICENSE = CLOUD_VERSION_REGEX.test(APP_VERSION) ? GRAFANA_LICENSE_CLOUD : GRAFANA_LICENSE_OSS;
 
 // height of new Grafana sticky header with breadcrumbs
-export const GRAFANA_HEADER_HEIGTH = 80;
+export const GRAFANA_HEADER_HEIGHT = 80;
 
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;
@@ -44,5 +43,3 @@ export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/oncall/latest/notif
 
 // Make sure if you chage max-width here you also change it in responsive.css
 export const TABLE_COLUMN_MAX_WIDTH = 1500;
-
-export const DATASOURCE_GRAFANA = 'grafana';

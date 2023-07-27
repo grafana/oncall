@@ -11,8 +11,8 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
-from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
 from apps.webhooks.utils import (
+    OUTGOING_WEBHOOK_TIMEOUT,
     InvalidWebhookData,
     InvalidWebhookHeaders,
     InvalidWebhookTrigger,
@@ -293,6 +293,7 @@ class WebhookResponse(models.Model):
     url = models.TextField(null=True, default=None)
     status_code = models.IntegerField(default=None, null=True)
     content = models.TextField(null=True, default=None)
+    event_data = models.TextField(null=True, default=None)
 
     def json(self):
         if self.content:

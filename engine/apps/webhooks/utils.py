@@ -4,12 +4,13 @@ import re
 import socket
 from urllib.parse import urlparse
 
-from django.apps import apps
 from django.conf import settings
 
 from apps.base.utils import live_settings
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from common.jinja_templater import apply_jinja_template
+
+OUTGOING_WEBHOOK_TIMEOUT = 10
 
 
 class InvalidWebhookUrl(Exception):
@@ -179,16 +180,3 @@ def serialize_event(event, alert_group, user, responses=None):
         data["responses"] = responses
 
     return data
-
-
-def is_webhooks_enabled_for_organization(organization_id):
-    DynamicSetting = apps.get_model("base", "DynamicSetting")
-    enabled_webhooks_orgs = DynamicSetting.objects.get_or_create(
-        name="enabled_webhooks_2_orgs",
-        defaults={
-            "json_value": {
-                "org_ids": [],
-            }
-        },
-    )[0]
-    return organization_id in enabled_webhooks_orgs.json_value["org_ids"]

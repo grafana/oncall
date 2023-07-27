@@ -2,7 +2,6 @@ import logging
 import time
 import uuid
 
-from django.apps import apps
 from django.db import models
 
 from apps.slack.slack_client import SlackClientWithErrorHandling
@@ -111,7 +110,8 @@ class SlackMessage(models.Model):
             return self.cached_permalink
 
     def send_slack_notification(self, user, alert_group, notification_policy):
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicyLogRecord
+
         slack_message = alert_group.get_slack_message()
         user_verbal = user.get_username_with_slack_verbal(mention=True)
 

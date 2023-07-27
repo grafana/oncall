@@ -86,6 +86,9 @@ def test_get_routes_list(
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
         ],
+        "current_page_number": 1,
+        "page_size": 25,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -123,6 +126,9 @@ def test_get_routes_filter_by_integration_id(
                 TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
             }
         ],
+        "current_page_number": 1,
+        "page_size": 25,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -438,7 +444,7 @@ def test_update_route_with_manual_ordering(
 
     url = reverse("api-public:routes-detail", kwargs={"pk": channel_filter.public_primary_key})
 
-    # Test negative value. Note, that for "manual_order"=False, -1 is valud option (It will move route to the bottom)
+    # Test negative value. Note, that for "manual_order"=False, -1 is valid option (It will move route to the bottom)
     data_to_update = {"position": -1, "manual_order": True}
 
     response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)

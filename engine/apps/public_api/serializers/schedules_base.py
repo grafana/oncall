@@ -1,6 +1,5 @@
 import datetime
 
-from django.apps import apps
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -39,7 +38,7 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
         return validated_data
 
     def validate_slack(self, slack_field):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         slack_channel_id = slack_field.get("channel_id")
         user_group_id = slack_field.get("user_group_id")

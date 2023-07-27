@@ -16,6 +16,7 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   renderMenuItems,
   forceIsOpen = false,
   focusOnOpen = true,
+  ...rest
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false || forceIsOpen);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -36,7 +37,7 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   }, []);
 
   return (
-    <>
+    <div {...rest}>
       {children({
         openMenu: (e) => {
           setIsMenuOpen(true);
@@ -56,6 +57,6 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
           focusOnOpen={focusOnOpen}
         />
       )}
-    </>
+    </div>
   );
 };

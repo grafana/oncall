@@ -34,12 +34,12 @@ class ZvonokPhoneProvider(PhoneProvider):
             response.raise_for_status()
             body = response.json()
             if not body:
-                logger.error(f"ZvonokPhoneProvider.make_notification_call: failed, empty body")
+                logger.error("ZvonokPhoneProvider.make_notification_call: failed, empty body")
                 raise FailedToMakeCall(graceful_msg=f"Failed make notification call to {number}, empty body")
             call_id = body.get("call_id")
 
             if not call_id:
-                logger.error(f"ZvonokPhoneProvider.make_notification_call: failed, missing call id")
+                logger.error("ZvonokPhoneProvider.make_notification_call: failed, missing call id")
                 raise FailedToMakeCall(graceful_msg=self._get_graceful_msg(body, number))
 
             logger.info(f"ZvonokPhoneProvider.make_notification_call: success, call_id {call_id}")
@@ -66,7 +66,7 @@ class ZvonokPhoneProvider(PhoneProvider):
             response.raise_for_status()
             body = response.json()
             if not body:
-                logger.error(f"ZvonokPhoneProvider.make_call: failed, empty body")
+                logger.error("ZvonokPhoneProvider.make_call: failed, empty body")
                 raise FailedToMakeCall(graceful_msg=f"Failed make call to {number}, empty body")
 
             call_id = body.get("call_id")
@@ -116,7 +116,7 @@ class ZvonokPhoneProvider(PhoneProvider):
             response.raise_for_status()
             body = response.json()
             if not body:
-                logger.error(f"ZvonokPhoneProvider.make_verification_call: failed, empty body")
+                logger.error("ZvonokPhoneProvider.make_verification_call: failed, empty body")
                 raise FailedToMakeCall(graceful_msg=f"Failed make verification call to {number}, empty body")
 
             call_id = body.get("call_id")
