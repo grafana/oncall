@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
-    authentication_classes = (PluginAuthentication, MobileAppAuthTokenAuthentication)
+    authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
