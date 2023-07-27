@@ -205,6 +205,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               <IntegrationActions
                 alertReceiveChannel={alertReceiveChannel}
                 changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
+                isLegacyIntegration={isLegacyIntegration}
                 query={this.props.query}
               />
             </div>
@@ -752,15 +753,17 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 };
 
 interface IntegrationActionsProps {
+  isLegacyIntegration: boolean;
   alertReceiveChannel: AlertReceiveChannel;
   query: KeyValue;
   changeIsTemplateSettingsOpen: () => void;
 }
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
-  alertReceiveChannel,
-  changeIsTemplateSettingsOpen,
   query,
+  alertReceiveChannel,
+  isLegacyIntegration,
+  changeIsTemplateSettingsOpen,
 }) => {
   const { alertReceiveChannelStore } = useStore();
 
@@ -913,27 +916,29 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 </WithPermissionControlTooltip>
               )}
 
-              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                <div
-                  className={cx('integration__actionItem')}
-                  onClick={() =>
-                    setConfirmModal({
-                      isOpen: true,
-                      title: 'Migrate Integration?',
-                      body: (
-                        <Text type="primary">
-                          Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                        </Text>
-                      ),
-                      onConfirm: onIntegrationMigrate,
-                      dismissText: 'Cancel',
-                      confirmText: 'Migrate',
-                    })
-                  }
-                >
-                  Migrate
-                </div>
-              </WithPermissionControlTooltip>
+              {isLegacyIntegration && (
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={() =>
+                      setConfirmModal({
+                        isOpen: true,
+                        title: 'Migrate Integration?',
+                        body: (
+                          <Text type="primary">
+                            Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                          </Text>
+                        ),
+                        onConfirm: onIntegrationMigrate,
+                        dismissText: 'Cancel',
+                        confirmText: 'Migrate',
+                      })
+                    }
+                  >
+                    Migrate
+                  </div>
+                </WithPermissionControlTooltip>
+              )}
 
               <CopyToClipboard
                 text={alertReceiveChannel.id}
