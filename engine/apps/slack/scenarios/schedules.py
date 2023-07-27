@@ -5,6 +5,7 @@ import pytz
 
 from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import BlockActionType, PayloadType
 from apps.slack.utils import format_datetime_to_slack
 from common.insight_log import EntityEvent, write_resource_insight_log
 
@@ -311,14 +312,14 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": EditScheduleShiftNotifyStep.routing_uid(),
         "step": EditScheduleShiftNotifyStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": EditScheduleShiftNotifyStep.routing_uid(),
         "step": EditScheduleShiftNotifyStep,
     },

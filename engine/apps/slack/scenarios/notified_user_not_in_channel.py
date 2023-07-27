@@ -1,6 +1,7 @@
 import logging
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import BlockActionType, PayloadType
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,8 @@ class NotifiedUserNotInChannelStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": NotifiedUserNotInChannelStep.routing_uid(),
         "step": NotifiedUserNotInChannelStep,
     },

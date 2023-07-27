@@ -3,6 +3,7 @@ import logging
 from django.apps import apps
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import PayloadType
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -142,7 +143,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_MESSAGE,
         "message_channel_type": scenario_step.EVENT_TYPE_MESSAGE_CHANNEL,
         "step": SlackChannelMessageEventStep,

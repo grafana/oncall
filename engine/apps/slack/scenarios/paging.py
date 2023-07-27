@@ -14,6 +14,7 @@ from apps.alerts.paging import (
 from apps.slack.constants import PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.types import BlockActionType, PayloadType
 
 DIRECT_PAGING_TEAM_SELECT_ID = "paging_team_select"
 DIRECT_PAGING_ORG_SELECT_ID = "paging_org_select"
@@ -951,53 +952,53 @@ def _generate_input_id_prefix():
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnPagingOrgChange.routing_uid(),
         "step": OnPagingOrgChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnPagingTeamChange.routing_uid(),
         "step": OnPagingTeamChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_CHECKBOXES,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.CHECKBOXES,
         "block_action_id": OnPagingCheckAdditionalResponders.routing_uid(),
         "step": OnPagingCheckAdditionalResponders,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnPagingUserChange.routing_uid(),
         "step": OnPagingUserChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
+        "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": OnPagingConfirmUserChange.routing_uid(),
         "step": OnPagingConfirmUserChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnPagingScheduleChange.routing_uid(),
         "step": OnPagingScheduleChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_OVERFLOW,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.OVERFLOW,
         "block_action_id": OnPagingItemActionChange.routing_uid(),
         "step": OnPagingItemActionChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_SLASH_COMMAND,
+        "payload_type": PayloadType.SLASH_COMMAND,
         "command_name": StartDirectPaging.command_name,
         "step": StartDirectPaging,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
+        "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": FinishDirectPaging.routing_uid(),
         "step": FinishDirectPaging,
     },

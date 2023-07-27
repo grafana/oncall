@@ -2,6 +2,7 @@ from django.apps import apps
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import PayloadType
 
 
 class SlackUserGroupEventStep(scenario_step.ScenarioStep):
@@ -57,17 +58,17 @@ class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_SUBTEAM_CREATED,
         "step": SlackUserGroupEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_SUBTEAM_UPDATED,
         "step": SlackUserGroupEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
         "step": SlackUserGroupMembersChangedEventStep,
     },

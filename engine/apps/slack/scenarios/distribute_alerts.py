@@ -1,5 +1,6 @@
 import json
 import logging
+import typing
 from contextlib import suppress
 from datetime import datetime
 
@@ -11,7 +12,7 @@ from jinja2 import TemplateError
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.renderers.slack_renderer import AlertSlackRenderer
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
+from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
 from apps.alerts.tasks import custom_button_result
 from apps.alerts.utils import render_curl_command
 from apps.api.permissions import RBACPermission
@@ -32,10 +33,15 @@ from apps.slack.tasks import (
     send_message_to_thread_if_bot_not_in_channel,
     update_incident_slack_message,
 )
+from apps.slack.types import BlockActionType, EventPayloadBlocks, PayloadType
 from apps.slack.utils import get_cache_key_update_incident_slack_message
 from common.utils import clean_markup, is_string_with_visible_characters
 
 from .step_mixins import AlertGroupActionsMixin
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.slack.types import EventPayload
 
 ATTACH_TO_ALERT_GROUPS_LIMIT = 20
 
@@ -44,7 +50,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class AlertShootingStep(scenario_step.ScenarioStep):
-    def process_signal(self, alert):
+    def process_signal(self, alert: Alert) -> None:
         # do not try to post alert group message to slack if its channel is rate limited
         if alert.group.channel.is_rate_limited_in_slack:
             logger.info("Skip posting or updating alert_group in Slack due to rate limit")
@@ -92,7 +98,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             else:
                 logger.info("Skip updating alert_group in Slack due to rate limit")
 
-    def _send_first_alert(self, alert, channel_id):
+    def _send_first_alert(self, alert: Alert, channel_id: str) -> None:
         attachments = alert.group.render_slack_attachments()
         blocks = alert.group.render_slack_blocks()
         self._post_alert_group_to_slack(
@@ -104,13 +110,20 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             blocks=blocks,
         )
 
-    def _post_alert_group_to_slack(self, slack_team_identity, alert_group, alert, attachments, channel_id, blocks):
+    def _post_alert_group_to_slack(
+        self,
+        slack_team_identity: "SlackTeamIdentity",
+        alert_group: AlertGroup,
+        alert: Alert,
+        attachments,
+        channel_id: str,
+        blocks: EventPayloadBlocks,
+    ) -> None:
         # channel_id can be None if general log channel for slack_team_identity is not set
         if channel_id is None:
             logger.info(f"Failed to post message to Slack for alert_group {alert_group.pk} because channel_id is None")
             alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_NOT_SPECIFIED
             alert_group.save(update_fields=["reason_to_skip_escalation"])
-            print("Not delivering alert due to channel_id is None.")
             return
 
         try:
@@ -151,11 +164,11 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         except SlackAPITokenException:
             alert_group.reason_to_skip_escalation = AlertGroup.ACCOUNT_INACTIVE
             alert_group.save(update_fields=["reason_to_skip_escalation"])
-            print("Not delivering alert due to account_inactive.")
+            logger.info("Not delivering alert due to account_inactive.")
         except SlackAPIChannelArchivedException:
             alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
             alert_group.save(update_fields=["reason_to_skip_escalation"])
-            print("Not delivering alert due to channel is archived.")
+            logger.info("Not delivering alert due to channel is archived.")
         except SlackAPIRateLimitException as e:
             # don't rate limit maintenance alert
             if alert_group.channel.integration != AlertReceiveChannel.INTEGRATION_MAINTENANCE:
@@ -163,7 +176,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
                 delay = e.response.get("rate_limit_delay") or SLACK_RATE_LIMIT_DELAY
                 alert_group.channel.start_send_rate_limit_message_task(delay)
-                print("Not delivering alert due to slack rate limit.")
+                logger.info("Not delivering alert due to slack rate limit.")
             else:
                 raise e
         except SlackAPIException as e:
@@ -171,18 +184,18 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             if e.response["error"] == "channel_not_found":
                 alert_group.reason_to_skip_escalation = AlertGroup.CHANNEL_ARCHIVED
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
-                print("Not delivering alert due to channel is archived.")
+                logger.info("Not delivering alert due to channel is archived.")
             elif e.response["error"] == "restricted_action":
                 # workspace settings prevent bot to post message (eg. bot is not a full member)
                 alert_group.reason_to_skip_escalation = AlertGroup.RESTRICTED_ACTION
                 alert_group.save(update_fields=["reason_to_skip_escalation"])
-                print("Not delivering alert due to workspace restricted action.")
+                logger.info("Not delivering alert due to workspace restricted action.")
             else:
                 raise e
         finally:
             alert.save()
 
-    def _send_debug_mode_notice(self, alert_group, channel_id):
+    def _send_debug_mode_notice(self, alert_group: AlertGroup, channel_id: str) -> None:
         blocks = []
         text = "Escalations are silenced due to Debug mode"
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
@@ -196,18 +209,23 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             blocks=blocks,
         )
 
-    def _send_log_report_message(self, alert_group, channel_id):
+    def _send_log_report_message(self, alert_group: AlertGroup, channel_id: str) -> None:
         post_or_update_log_report_message_task.apply_async(
             (alert_group.pk, self.slack_team_identity.pk),
         )
 
-    def _send_message_to_thread_if_bot_not_in_channel(self, alert_group, channel_id):
+    def _send_message_to_thread_if_bot_not_in_channel(self, alert_group: AlertGroup, channel_id: str) -> None:
         send_message_to_thread_if_bot_not_in_channel.apply_async(
             (alert_group.pk, self.slack_team_identity.pk, channel_id),
             countdown=1,  # delay for message so that the log report is published first
         )
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: "EventPayload",
+    ) -> None:
         pass
 
 
@@ -219,7 +237,12 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
 
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: "EventPayload",
+    ) -> None:
         User = apps.get_model("user_management", "User")
 
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -458,7 +481,7 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         # submit selection in modal window
-        if payload["type"] == scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION:
+        if payload["type"] == PayloadType.VIEW_SUBMISSION:
             alert_group_pk = json.loads(payload["view"]["private_metadata"])["alert_group_pk"]
             alert_group = AlertGroup.objects.get(pk=alert_group_pk)
             root_alert_group_pk = payload["view"]["state"]["values"][SelectAttachGroupStep.routing_uid()][
@@ -1073,132 +1096,132 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": ResolveGroupStep.routing_uid(),
         "step": ResolveGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": ResolveGroupStep.routing_uid(),
         "step": ResolveGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": UnResolveGroupStep.routing_uid(),
         "step": UnResolveGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": AcknowledgeGroupStep.routing_uid(),
         "step": AcknowledgeGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": AcknowledgeGroupStep.routing_uid(),
         "step": AcknowledgeGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": AcknowledgeConfirmationStep.routing_uid(),
         "step": AcknowledgeConfirmationStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": UnAcknowledgeGroupStep.routing_uid(),
         "step": UnAcknowledgeGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": UnAcknowledgeGroupStep.routing_uid(),
         "step": UnAcknowledgeGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_SELECT,
         "action_name": SilenceGroupStep.routing_uid(),
         "step": SilenceGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": SilenceGroupStep.routing_uid(),
         "step": SilenceGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": UnSilenceGroupStep.routing_uid(),
         "step": UnSilenceGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": UnSilenceGroupStep.routing_uid(),
         "step": UnSilenceGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": SelectAttachGroupStep.routing_uid(),
         "step": SelectAttachGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_SELECT,
         "action_name": AttachGroupStep.routing_uid(),
         "step": AttachGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
+        "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": AttachGroupStep.routing_uid(),
         "step": AttachGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": AttachGroupStep.routing_uid(),
         "step": AttachGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": UnAttachGroupStep.routing_uid(),
         "step": UnAttachGroupStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_SELECT,
         "action_name": InviteOtherPersonToIncident.routing_uid(),
         "step": InviteOtherPersonToIncident,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_USERS_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.USERS_SELECT,
         "block_action_id": InviteOtherPersonToIncident.routing_uid(),
         "step": InviteOtherPersonToIncident,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": InviteOtherPersonToIncident.routing_uid(),
         "step": InviteOtherPersonToIncident,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": StopInvitationProcess.routing_uid(),
         "step": StopInvitationProcess,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": CustomButtonProcessStep.routing_uid(),
         "step": CustomButtonProcessStep,

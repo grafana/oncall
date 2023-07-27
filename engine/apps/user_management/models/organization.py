@@ -27,7 +27,8 @@ if typing.TYPE_CHECKING:
     )
     from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import OnCallSchedule
-    from apps.user_management.models import User
+    from apps.slack.models import SlackTeamIdentity
+    from apps.user_management.models import Region, User
 
 logger = logging.getLogger(__name__)
 
@@ -78,10 +79,12 @@ class OrganizationManager(models.Manager):
 # class Organization(models.Model):
 class Organization(MaintainableObject):
     auth_tokens: "RelatedManager['ApiAuthToken']"
+    migration_destination: typing.Optional["Region"]
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
     plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    slack_team_identity: typing.Optional["SlackTeamIdentity"]
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"
 

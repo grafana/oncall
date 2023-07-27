@@ -26,6 +26,8 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
+    from apps.slack.models import SlackUserIdentity
+    from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
 
@@ -144,9 +146,12 @@ class UserQuerySet(models.QuerySet):
 
 class User(models.Model):
     auth_tokens: "RelatedManager['ApiAuthToken']"
+    current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
+    organization: "Organization"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    slack_user_identity: typing.Optional["SlackUserIdentity"]
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
 
     objects = UserManager.from_queryset(UserQuerySet)()

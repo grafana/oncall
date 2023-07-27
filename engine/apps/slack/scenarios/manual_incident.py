@@ -7,6 +7,7 @@ from django.conf import settings
 from apps.alerts.models import AlertReceiveChannel
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.types import BlockActionType, PayloadType
 
 MANUAL_INCIDENT_TEAM_SELECT_ID = "manual_incident_team_select"
 MANUAL_INCIDENT_ORG_SELECT_ID = "manual_incident_org_select"
@@ -532,30 +533,30 @@ def _generate_input_id_prefix():
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnOrgChange.routing_uid(),
         "step": OnOrgChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnTeamChange.routing_uid(),
         "step": OnTeamChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": OnRouteChange.routing_uid(),
         "step": OnRouteChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_SLASH_COMMAND,
+        "payload_type": PayloadType.SLASH_COMMAND,
         "command_name": StartCreateIncidentFromSlashCommand.command_name,
         "step": StartCreateIncidentFromSlashCommand,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
+        "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": FinishCreateIncidentFromSlashCommand.routing_uid(),
         "step": FinishCreateIncidentFromSlashCommand,
     },

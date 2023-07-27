@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.tasks import clean_slack_channel_leftovers
+from apps.slack.types import PayloadType
 
 
 class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
@@ -77,27 +78,27 @@ class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_CHANNEL_RENAMED,
         "step": SlackChannelCreatedOrRenamedEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_CHANNEL_CREATED,
         "step": SlackChannelCreatedOrRenamedEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_CHANNEL_DELETED,
         "step": SlackChannelDeletedEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_CHANNEL_ARCHIVED,
         "step": SlackChannelArchivedEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_CHANNEL_UNARCHIVED,
         "step": SlackChannelUnArchivedEventStep,
     },

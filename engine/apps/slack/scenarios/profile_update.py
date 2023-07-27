@@ -1,5 +1,6 @@
 from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import PayloadType
 
 
 class ProfileUpdateStep(scenario_step.ScenarioStep):
@@ -44,12 +45,12 @@ STEPS_ROUTING = [
     # Slack event "user_change" is deprecated in favor of "user_profile_changed".
     # Handler for "user_change" is kept for backward compatibility.
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_USER_CHANGE,
         "step": ProfileUpdateStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_USER_PROFILE_CHANGED,
         "step": ProfileUpdateStep,
     },

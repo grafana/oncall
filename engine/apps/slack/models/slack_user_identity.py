@@ -7,7 +7,7 @@ from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.scenarios.notified_user_not_in_channel import NotifiedUserNotInChannelStep
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
-from apps.user_management.models import User
+from apps.user_management.models import Organization, User
 
 logger = logging.getLogger(__name__)
 
@@ -255,7 +255,7 @@ class SlackUserIdentity(models.Model):
                 return None
         return self.slack_verbal or self.cached_slack_email.split("@")[0] or None
 
-    def get_user(self, organization):
+    def get_user(self, organization: Organization) -> User | None:
         try:
             user = organization.users.get(slack_user_identity=self)
         except User.DoesNotExist:

@@ -12,6 +12,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
 from apps.schedules.models import ShiftSwapRequest
+from apps.schedules.tasks.shift_swaps import post_shift_swap_request_creation_message
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -61,19 +62,20 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
 
     def perform_create(self, serializer):
         beneficiary = self.request.user
-        serializer.save(beneficiary=beneficiary)
-        write_resource_insight_log(instance=serializer.instance, author=beneficiary, event=EntityEvent.CREATED)
+        shift_swap_request = serializer.save(beneficiary=beneficiary)
+
+        write_resource_insight_log(instance=shift_swap_request, author=beneficiary, event=EntityEvent.CREATED)
+        post_shift_swap_request_creation_message.apply_async((shift_swap_request.pk,))
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_serialized
         write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
             prev_state=prev_state,
-            new_state=new_state,
+            new_state=serializer.instance.insight_logs_serialized,
         )
 
     @action(methods=["post"], detail=True)

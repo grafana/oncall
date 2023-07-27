@@ -1,6 +1,7 @@
 import logging
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import PayloadType
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +22,12 @@ class AppHomeOpenedStep(scenario_step.ScenarioStep):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_IM_OPEN,
         "step": ImOpenStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": scenario_step.EVENT_TYPE_APP_HOME_OPENED,
         "step": AppHomeOpenedStep,
     },

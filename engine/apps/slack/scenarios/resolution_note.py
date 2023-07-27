@@ -8,6 +8,7 @@ from django.db.models import Q
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.slack.types import BlockActionType, PayloadType
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 
@@ -647,7 +648,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
         return blocks
 
-    def get_invite_bot_tip_blocks(self, channel):
+    def get_invite_bot_tip_blocks(self, channel: str):
         link_to_instruction = create_engine_url("static/images/postmortem.gif")
         blocks = [
             {
@@ -744,31 +745,31 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": ReadEditPostmortemStep.routing_uid(),
         "step": ReadEditPostmortemStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": ResolutionNoteModalStep.routing_uid(),
         "step": ResolutionNoteModalStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": scenario_step.ACTION_TYPE_BUTTON,
         "action_name": ResolutionNoteModalStep.routing_uid(),
         "step": ResolutionNoteModalStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": AddRemoveThreadMessageStep.routing_uid(),
         "step": AddRemoveThreadMessageStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_MESSAGE_ACTION,
+        "payload_type": PayloadType.MESSAGE_ACTION,
         "message_action_callback_id": AddToResolutionNoteStep.callback_id,
         "step": AddToResolutionNoteStep,
     },

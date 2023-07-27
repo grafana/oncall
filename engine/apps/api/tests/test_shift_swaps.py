@@ -147,9 +147,14 @@ def test_retrieve_permissions(
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.post_shift_swap_request_creation_message.apply_async")
 @pytest.mark.django_db
 def test_create(
-    mock_write_resource_insight_log, make_organization_and_user_with_plugin_token, make_schedule, make_user_auth_headers
+    mock_post_shift_swap_request_creation_message_apply_async,
+    mock_write_resource_insight_log,
+    make_organization_and_user_with_plugin_token,
+    make_schedule,
+    make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -175,6 +180,7 @@ def test_create(
     assert response.json() == expected_response
 
     mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
+    mock_post_shift_swap_request_creation_message_apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db

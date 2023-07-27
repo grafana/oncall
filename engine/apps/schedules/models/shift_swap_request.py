@@ -10,7 +10,9 @@ from apps.schedules import exceptions
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
-    from apps.user_management.models import User
+    from apps.schedules.models import OnCallSchedule
+    from apps.slack.models import SlackMessage
+    from apps.user_management.models import Organization, User
 
 
 def generate_public_primary_key_for_shift_swap_request() -> str:
@@ -41,6 +43,10 @@ class ShiftSwapRequestManager(models.Manager):
 
 
 class ShiftSwapRequest(models.Model):
+    beneficiary: "User"
+    benefactor: typing.Optional["User"]
+    schedule: "OnCallSchedule"
+    slack_message: typing.Optional["SlackMessage"]
 
     objects = ShiftSwapRequestManager()
     objects_with_deleted = models.Manager()
@@ -88,6 +94,17 @@ class ShiftSwapRequest(models.Model):
     the person taking on shift workload from the beneficiary
     """
 
+    slack_message = models.OneToOneField(
+        "slack.SlackMessage",
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
+        related_name="shift_swap_request",
+    )
+    """
+    if set, represents the Slack message that was sent when the shift swap request was created
+    """
+
     class Statuses(enum.StrEnum):
         OPEN = "open"
         TAKEN = "taken"
@@ -113,6 +130,23 @@ class ShiftSwapRequest(models.Model):
         elif timezone.now() > self.swap_start:
             return self.Statuses.PAST_DUE
         return self.Statuses.OPEN
+
+    @property
+    def slack_channel_id(self) -> str | None:
+        """
+        This is only set if the schedule associated with the shift swap request
+        has a Slack channel configured for it.
+        """
+        return self.schedule.channel
+
+    @property
+    def organization(self) -> "Organization":
+        return self.schedule.organization
+
+    @property
+    def web_link(self) -> str:
+        # TODO: finish this once we know the proper URL we'll need
+        return f"{self.schedule.web_detail_page_link}"
 
     def take(self, benefactor: "User") -> None:
         if benefactor == self.beneficiary:

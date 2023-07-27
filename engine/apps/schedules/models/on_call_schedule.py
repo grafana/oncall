@@ -51,6 +51,8 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import EscalationPolicy
     from apps.auth_token.models import ScheduleExportAuthToken
+    from apps.slack.models import SlackUserGroup
+    from apps.user_management.models import Organization, Team
 
 
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
@@ -154,6 +156,10 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
 
 
 class OnCallSchedule(PolymorphicModel):
+    organization: "Organization"
+    slack_user_group: typing.Optional["SlackUserGroup"]
+    team: typing.Optional["Team"]
+
     objects = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
 
     # type of calendars in schedule
@@ -229,6 +235,14 @@ class OnCallSchedule(PolymorphicModel):
     # empty shifts checker related fields
     has_empty_shifts = models.BooleanField(default=False)
     empty_shifts_report_sent_at = models.DateField(null=True, default=None)
+
+    @property
+    def web_page_link(self) -> str:
+        return f"{self.organization.web_link}schedules"
+
+    @property
+    def web_detail_page_link(self) -> str:
+        return f"{self.web_page_link}/{self.public_primary_key}"
 
     def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""

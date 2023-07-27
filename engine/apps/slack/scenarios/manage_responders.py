@@ -15,6 +15,7 @@ from apps.slack.scenarios.paging import (
     _get_users_select,
 )
 from apps.slack.scenarios.step_mixins import AlertGroupActionsMixin
+from apps.slack.types import BlockActionType, PayloadType
 
 MANAGE_RESPONDERS_USER_SELECT_ID = "responders_user_select"
 MANAGE_RESPONDERS_SCHEDULE_SELECT_ID = "responders_schedule_select"
@@ -234,31 +235,31 @@ def _get_alert_group_from_payload(payload):
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": ManageRespondersUserChange.routing_uid(),
         "step": ManageRespondersUserChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
+        "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": ManageRespondersConfirmUserChange.routing_uid(),
         "step": ManageRespondersConfirmUserChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": ManageRespondersScheduleChange.routing_uid(),
         "step": ManageRespondersScheduleChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": ManageRespondersRemoveUser.routing_uid(),
         "step": ManageRespondersRemoveUser,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": StartManageResponders.routing_uid(),
         "step": StartManageResponders,
     },

@@ -1,19 +1,21 @@
 import importlib
 import logging
+import typing
 
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
 from apps.slack.slack_client import SlackClientWithErrorHandling
 
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity
+    from apps.slack.types import EventPayload
+    from apps.user_management.models import Organization, User
+
 logger = logging.getLogger(__name__)
 
 
-PAYLOAD_TYPE_INTERACTIVE_MESSAGE = "interactive_message"
 ACTION_TYPE_BUTTON = "button"
 ACTION_TYPE_SELECT = "select"
 
-PAYLOAD_TYPE_SLASH_COMMAND = "slash_command"
-
-PAYLOAD_TYPE_EVENT_CALLBACK = "event_callback"
 EVENT_TYPE_MESSAGE = "message"
 EVENT_TYPE_MESSAGE_CHANNEL = "channel"
 EVENT_TYPE_MESSAGE_IM = "im"
@@ -38,26 +40,16 @@ EVENT_TYPE_CHANNEL_RENAMED = "channel_rename"
 EVENT_TYPE_CHANNEL_ARCHIVED = "channel_archive"
 EVENT_TYPE_CHANNEL_UNARCHIVED = "channel_unarchive"
 
-PAYLOAD_TYPE_BLOCK_ACTIONS = "block_actions"
-BLOCK_ACTION_TYPE_USERS_SELECT = "users_select"
-BLOCK_ACTION_TYPE_BUTTON = "button"
-BLOCK_ACTION_TYPE_STATIC_SELECT = "static_select"
-BLOCK_ACTION_TYPE_CONVERSATIONS_SELECT = "conversations_select"
-BLOCK_ACTION_TYPE_CHANNELS_SELECT = "channels_select"
-BLOCK_ACTION_TYPE_OVERFLOW = "overflow"
-BLOCK_ACTION_TYPE_DATEPICKER = "datepicker"
-BLOCK_ACTION_TYPE_CHECKBOXES = "checkboxes"
-
-PAYLOAD_TYPE_DIALOG_SUBMISSION = "dialog_submission"
-PAYLOAD_TYPE_VIEW_SUBMISSION = "view_submission"
-
-PAYLOAD_TYPE_MESSAGE_ACTION = "message_action"
-
 THREAD_MESSAGE_SUBTYPE = "bot_message"
 
 
 class ScenarioStep(object):
-    def __init__(self, slack_team_identity, organization=None, user=None):
+    def __init__(
+        self,
+        slack_team_identity: "SlackTeamIdentity",
+        organization: typing.Optional["Organization"] = None,
+        user: typing.Optional["User"] = None,
+    ):
         self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
         self.slack_team_identity = slack_team_identity
         self.organization = organization
@@ -65,7 +57,7 @@ class ScenarioStep(object):
 
         self.alert_group_slack_service = AlertGroupSlackService(slack_team_identity, self._slack_client)
 
-    def process_scenario(self, user, team, payload):
+    def process_scenario(self, user: "User", team: "SlackTeamIdentity", payload: "EventPayload") -> None:
         pass
 
     @classmethod
@@ -73,7 +65,7 @@ class ScenarioStep(object):
         return cls.__name__
 
     @classmethod
-    def get_step(cls, scenario, step):
+    def get_step(cls, scenario: str, step: str) -> "ScenarioStep":
         """
         This is a dynamic Step loader to avoid circular dependencies in scenario files
         """
@@ -86,7 +78,7 @@ class ScenarioStep(object):
         except ImportError as e:
             raise Exception("Check import spelling! Scenario: {}, Step:{}, Error: {}".format(scenario, step, e))
 
-    def open_warning_window(self, payload, warning_text, title=None):
+    def open_warning_window(self, payload: "EventPayload", warning_text: str, title: str | None = None) -> None:
         if title is None:
             title = ":warning: Warning"
         view = {

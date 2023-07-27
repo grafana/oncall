@@ -35,7 +35,8 @@ from .alert_group_counter import AlertGroupCounter
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import AlertGroupLogRecord
+    from apps.alerts.models import AlertGroupLogRecord, AlertReceiveChannel
+    from apps.slack.models import SlackMessage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -132,7 +133,9 @@ class AlertGroupSlackRenderingMixin:
 
 
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
+    channel: "AlertReceiveChannel"
     log_records: "RelatedManager['AlertGroupLogRecord']"
+    slack_message: "SlackMessage"
 
     objects = AlertGroupQuerySet.as_manager()
 
