@@ -5,13 +5,12 @@ from django.apps import apps
 
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, PayloadType
+from apps.slack.types import BlockActionType, EventPayload, InteractiveMessageActionType, PayloadType, RoutingSteps
 
 from .step_mixins import AlertGroupActionsMixin
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
-    from apps.slack.types import EventPayload
 
 
 class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
@@ -21,7 +20,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: "EventPayload",
+        payload: EventPayload,
     ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
@@ -73,7 +72,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: "EventPayload",
+        payload: EventPayload,
     ) -> None:
         AlertGroup = apps.get_model("alerts", "AlertGroup")
 
@@ -94,10 +93,10 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         )
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": OpenAlertAppearanceDialogStep.routing_uid(),
         "step": OpenAlertAppearanceDialogStep,
     },

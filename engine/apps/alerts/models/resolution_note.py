@@ -1,3 +1,5 @@
+import typing
+
 import humanize
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -8,6 +10,9 @@ from rest_framework.fields import DateTimeField
 from apps.slack.slack_formatter import SlackFormatter
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 from common.utils import clean_markup
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
 
 
 def generate_public_primary_key_for_alert_group_postmortem():
@@ -100,6 +105,9 @@ class ResolutionNoteQueryset(models.QuerySet):
 
 
 class ResolutionNote(models.Model):
+    alert_group: "AlertGroup"
+    resolution_note_slack_message: typing.Optional[ResolutionNoteSlackMessage]
+
     objects = ResolutionNoteQueryset.as_manager()
     objects_with_deleted = models.Manager()
 

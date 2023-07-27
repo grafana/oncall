@@ -1,13 +1,18 @@
 import json
+import typing
 from uuid import uuid4
 
 from django.apps import apps
 from django.conf import settings
 
-from apps.alerts.models import AlertReceiveChannel
+from apps.alerts.models import AlertReceiveChannel, ChannelFilter
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
-from apps.slack.types import BlockActionType, PayloadType
+from apps.slack.types import BlockActionType, BlockElement, EventPayload, PayloadType, RoutingSteps
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization, Team
 
 MANUAL_INCIDENT_TEAM_SELECT_ID = "manual_incident_team_select"
 MANUAL_INCIDENT_ORG_SELECT_ID = "manual_incident_org_select"
@@ -28,7 +33,12 @@ class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
     TITLE_INPUT_BLOCK_ID = "TITLE_INPUT"
     MESSAGE_INPUT_BLOCK_ID = "MESSAGE_INPUT"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         input_id_prefix = _generate_input_id_prefix()
 
         try:
@@ -62,7 +72,12 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
     FinishCreateIncidentFromSlashCommand creates a manual incident from the slack message via slash message
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         Alert = apps.get_model("alerts", "Alert")
 
         title = _get_title_from_payload(payload)
@@ -138,7 +153,12 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
 
 
 class OnOrgChange(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
         with_title_and_message_inputs = private_metadata.get("with_title_and_message_inputs", False)
         submit_routing_uid = private_metadata.get("submit_routing_uid")
@@ -182,7 +202,12 @@ class OnOrgChange(scenario_step.ScenarioStep):
 
 
 class OnTeamChange(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
         with_title_and_message_inputs = private_metadata.get("with_title_and_message_inputs", False)
         submit_routing_uid = private_metadata.get("submit_routing_uid")
@@ -229,11 +254,16 @@ class OnRouteChange(scenario_step.ScenarioStep):
     OnRouteChange is just a plug to handle change of value on route select
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         pass
 
 
-def _get_manual_incident_form_view(routing_uid, blocks, private_metatada):
+def _get_manual_incident_form_view(routing_uid: str, blocks: typing.List[BlockElement], private_metatada: str):
     deprecation_blocks = [
         {
             "type": "header",
@@ -270,8 +300,12 @@ def _get_manual_incident_form_view(routing_uid, blocks, private_metatada):
 
 
 def _get_manual_incident_initial_form_fields(
-    slack_team_identity, slack_user_identity, input_id_prefix, payload, with_title_and_message_inputs=False
-):
+    slack_team_identity: "SlackTeamIdentity",
+    slack_user_identity: "SlackUserIdentity",
+    input_id_prefix,
+    payload: EventPayload,
+    with_title_and_message_inputs=False,
+) -> typing.List[BlockElement]:
     initial_organization = (
         slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
         .order_by("pk")
@@ -345,7 +379,7 @@ def _get_organization_select(slack_team_identity, slack_user_identity, value, in
     return organization_select
 
 
-def _get_selected_org_from_payload(payload, input_id_prefix):
+def _get_selected_org_from_payload(payload: EventPayload, input_id_prefix: str) -> typing.Optional["Organization"]:
     Organization = apps.get_model("user_management", "Organization")
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ORG_SELECT_ID][
         OnOrgChange.routing_uid()
@@ -354,7 +388,9 @@ def _get_selected_org_from_payload(payload, input_id_prefix):
     return org
 
 
-def _get_team_select(slack_user_identity, organization, value, input_id_prefix):
+def _get_team_select(
+    slack_user_identity: "SlackUserIdentity", organization: "Organization", value: str, input_id_prefix: str
+):
     teams = organization.teams.filter(
         users__slack_user_identity=slack_user_identity,
     ).distinct()
@@ -401,7 +437,7 @@ def _get_team_select(slack_user_identity, organization, value, input_id_prefix):
     return team_select
 
 
-def _get_selected_team_from_payload(payload, input_id_prefix):
+def _get_selected_team_from_payload(payload: EventPayload, input_id_prefix: str) -> typing.Optional["Team"]:
     Team = apps.get_model("user_management", "Team")
     selected_team_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_TEAM_SELECT_ID][
         OnTeamChange.routing_uid()
@@ -412,7 +448,7 @@ def _get_selected_team_from_payload(payload, input_id_prefix):
     return team
 
 
-def _get_route_select(integration, value, input_id_prefix):
+def _get_route_select(integration: AlertReceiveChannel, value, input_id_prefix: str):
     route_options = []
     initial_option_idx = 0
     for idx, route in enumerate(integration.channel_filters.all()):
@@ -446,8 +482,7 @@ def _get_route_select(integration, value, input_id_prefix):
     return route_select
 
 
-def _get_selected_route_from_payload(payload, input_id_prefix):
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
+def _get_selected_route_from_payload(payload: EventPayload, input_id_prefix: str) -> ChannelFilter | None:
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ROUTE_SELECT_ID][
         OnRouteChange.routing_uid()
     ]["selected_option"]["value"]
@@ -462,7 +497,7 @@ def _get_and_change_input_id_prefix_from_metadata(metadata):
     return old_input_id_prefix, new_input_id_prefix, metadata
 
 
-def _get_title_input(payload):
+def _get_title_input(payload: EventPayload) -> BlockElement:
     title_input_block = {
         "type": "input",
         "block_id": MANUAL_INCIDENT_TITLE_INPUT_ID,
@@ -484,14 +519,14 @@ def _get_title_input(payload):
     return title_input_block
 
 
-def _get_title_from_payload(payload):
+def _get_title_from_payload(payload: EventPayload) -> str:
     title = payload["view"]["state"]["values"][MANUAL_INCIDENT_TITLE_INPUT_ID][
         FinishCreateIncidentFromSlashCommand.routing_uid()
     ]["value"]
     return title
 
 
-def _get_message_input(payload):
+def _get_message_input(payload: EventPayload):
     message_input_block = {
         "type": "input",
         "block_id": MANUAL_INCIDENT_MESSAGE_INPUT_ID,
@@ -515,7 +550,7 @@ def _get_message_input(payload):
     return message_input_block
 
 
-def _get_message_from_payload(payload):
+def _get_message_from_payload(payload: EventPayload) -> str:
     message = (
         payload["view"]["state"]["values"][MANUAL_INCIDENT_MESSAGE_INPUT_ID][
             FinishCreateIncidentFromSlashCommand.routing_uid()
@@ -527,11 +562,11 @@ def _get_message_from_payload(payload):
 
 # _generate_input_id_prefix returns uniq str to not to preserve input's values between view update
 #  https://api.slack.com/methods/views.update#markdown
-def _generate_input_id_prefix():
+def _generate_input_id_prefix() -> str:
     return str(uuid4())
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.STATIC_SELECT,

@@ -1,11 +1,10 @@
 import typing
 
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, PayloadType
+from apps.slack.types import BlockActionType, EventPayload, PayloadType, RoutingSteps
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
-    from apps.slack.types import EventPayload
 
 
 class DeclareIncidentStep(scenario_step.ScenarioStep):
@@ -13,7 +12,7 @@ class DeclareIncidentStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: "EventPayload",
+        payload: EventPayload,
     ) -> None:
         """
         Slack sends a POST request to the backend upon clicking a button with a redirect link to Incident.
@@ -21,7 +20,7 @@ class DeclareIncidentStep(scenario_step.ScenarioStep):
         """
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

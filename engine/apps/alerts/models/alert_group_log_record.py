@@ -1,5 +1,6 @@
 import json
 import logging
+import typing
 
 import humanize
 from django.apps import apps
@@ -14,11 +15,16 @@ from apps.alerts.utils import render_relative_timeline
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 class AlertGroupLogRecord(models.Model):
+    alert_group: "AlertGroup"
+
     (
         TYPE_ACK,
         TYPE_UN_ACK,

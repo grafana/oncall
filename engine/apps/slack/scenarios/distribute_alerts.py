@@ -33,7 +33,7 @@ from apps.slack.tasks import (
     send_message_to_thread_if_bot_not_in_channel,
     update_incident_slack_message,
 )
-from apps.slack.types import BlockActionType, EventPayloadBlocks, PayloadType
+from apps.slack.types import BlockActionType, EventPayload, InteractiveMessageActionType, PayloadType, RoutingSteps
 from apps.slack.utils import get_cache_key_update_incident_slack_message
 from common.utils import clean_markup, is_string_with_visible_characters
 
@@ -41,7 +41,6 @@ from .step_mixins import AlertGroupActionsMixin
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
-    from apps.slack.types import EventPayload
 
 ATTACH_TO_ALERT_GROUPS_LIMIT = 20
 
@@ -117,7 +116,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         alert: Alert,
         attachments,
         channel_id: str,
-        blocks: EventPayloadBlocks,
+        blocks,
     ) -> None:
         # channel_id can be None if general log channel for slack_team_identity is not set
         if channel_id is None:
@@ -224,7 +223,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: "EventPayload",
+        payload: EventPayload,
     ) -> None:
         pass
 
@@ -241,7 +240,7 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: "EventPayload",
+        payload: EventPayload,
     ) -> None:
         User = apps.get_model("user_management", "User")
 
@@ -266,7 +265,7 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
         else:
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
@@ -274,7 +273,12 @@ class InviteOtherPersonToIncident(AlertGroupActionsMixin, scenario_step.Scenario
 class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -289,7 +293,7 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
         alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
@@ -297,7 +301,12 @@ class SilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -305,7 +314,7 @@ class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
         alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
@@ -313,7 +322,12 @@ class UnSilenceGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -387,7 +401,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             view=view,
         )
 
-    def get_select_incidents_blocks(self, alert_group):
+    def get_select_incidents_blocks(self, alert_group: AlertGroup):
         collected_options = []
         blocks = []
 
@@ -457,7 +471,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = []  # Permissions are handled in SelectAttachGroupStep
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
 
         if log_record.type == AlertGroupLogRecord.TYPE_ATTACHED and log_record.alert_group.is_maintenance_incident:
@@ -479,7 +493,12 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         # submit selection in modal window
         if payload["type"] == PayloadType.VIEW_SUBMISSION:
             alert_group_pk = json.loads(payload["view"]["private_metadata"])["alert_group_pk"]
@@ -504,7 +523,12 @@ class AttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -512,7 +536,7 @@ class UnAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
         alert_group.un_attach_by_user(self.user, action_source=ActionSource.SLACK)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
@@ -525,7 +549,12 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -540,14 +569,19 @@ class StopInvitationProcess(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
         Invitation.stop_invitation(invitation_id, self.user)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
 
 
 class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         CustomButtom = apps.get_model("alerts", "CustomButton")
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
@@ -571,7 +605,7 @@ class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 kwargs={"user_pk": self.user.pk},
             )
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         result_message = log_record.reason
         custom_button = log_record.custom_button
@@ -604,7 +638,12 @@ class CustomButtonProcessStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         ResolutionNoteModalStep = scenario_step.ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
 
         alert_group = self.get_alert_group(slack_team_identity, payload)
@@ -629,7 +668,7 @@ class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
             alert_group.resolve_by_user(self.user, action_source=ActionSource.SLACK)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         # Do not rerender alert_groups which happened while maintenance.
         # They have no slack messages, since they just attached to the maintenance incident.
@@ -640,7 +679,12 @@ class ResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -648,7 +692,7 @@ class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
         alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
@@ -656,7 +700,12 @@ class UnResolveGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -664,7 +713,7 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 
         alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
@@ -672,7 +721,12 @@ class AcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -680,7 +734,7 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
 
         alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         alert_group = log_record.alert_group
         logger.debug(f"Started process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
@@ -733,7 +787,12 @@ class UnAcknowledgeGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep)
 
 
 class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         alert_group_id = payload["actions"][0]["value"].split("_")[1]
         alert_group = AlertGroup.objects.get(pk=alert_group_id)
@@ -784,7 +843,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 text="This Alert Group is already unacknowledged.",
             )
 
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         Organization = apps.get_model("user_management", "Organization")
         SlackMessage = apps.get_model("slack", "SlackMessage")
 
@@ -865,7 +924,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
 
 
 class WipeGroupStep(scenario_step.ScenarioStep):
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
         user_verbal = log_record.author.get_username_with_slack_verbal()
         text = f"Wiped by {user_verbal}"
@@ -874,7 +933,7 @@ class WipeGroupStep(scenario_step.ScenarioStep):
 
 
 class DeleteGroupStep(scenario_step.ScenarioStep):
-    def process_signal(self, log_record):
+    def process_signal(self, log_record: AlertGroupLogRecord) -> None:
         alert_group = log_record.alert_group
 
         self.remove_resolution_note_reaction(alert_group)
@@ -933,7 +992,7 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
                 else:
                     raise e
 
-    def remove_resolution_note_reaction(self, alert_group):
+    def remove_resolution_note_reaction(self, alert_group: AlertGroup) -> None:
         for message in alert_group.resolution_note_slack_messages.filter(added_to_resolution_note=True):
             message.added_to_resolution_note = False
             message.save(update_fields=["added_to_resolution_note"])
@@ -955,13 +1014,13 @@ class DeleteGroupStep(scenario_step.ScenarioStep):
 
 
 class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
-    def process_signal(self, alert_group):
+    def process_signal(self, alert_group: AlertGroup) -> None:
         if alert_group.skip_escalation_in_slack or alert_group.channel.is_rate_limited_in_slack:
             return
 
         self.update_log_message(alert_group)
 
-    def post_log_message(self, alert_group):
+    def post_log_message(self, alert_group: AlertGroup) -> None:
         SlackMessage = apps.get_model("slack", "SlackMessage")
 
         slack_message = alert_group.get_slack_message()
@@ -1019,7 +1078,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
         else:
             self.update_log_message(alert_group)
 
-    def update_log_message(self, alert_group):
+    def update_log_message(self, alert_group: AlertGroup) -> None:
         slack_message = alert_group.get_slack_message()
 
         if slack_message is None:
@@ -1094,10 +1153,10 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             logger.debug(f"Update log message failed for alert_group {alert_group.pk}: " f"log message does not exist.")
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": ResolveGroupStep.routing_uid(),
         "step": ResolveGroupStep,
     },
@@ -1115,7 +1174,7 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": AcknowledgeGroupStep.routing_uid(),
         "step": AcknowledgeGroupStep,
     },
@@ -1127,13 +1186,13 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": AcknowledgeConfirmationStep.routing_uid(),
         "step": AcknowledgeConfirmationStep,
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": UnAcknowledgeGroupStep.routing_uid(),
         "step": UnAcknowledgeGroupStep,
     },
@@ -1145,7 +1204,7 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_SELECT,
+        "action_type": InteractiveMessageActionType.SELECT,
         "action_name": SilenceGroupStep.routing_uid(),
         "step": SilenceGroupStep,
     },
@@ -1157,7 +1216,7 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": UnSilenceGroupStep.routing_uid(),
         "step": UnSilenceGroupStep,
     },
@@ -1175,7 +1234,7 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_SELECT,
+        "action_type": InteractiveMessageActionType.SELECT,
         "action_name": AttachGroupStep.routing_uid(),
         "step": AttachGroupStep,
     },
@@ -1192,13 +1251,13 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": UnAttachGroupStep.routing_uid(),
         "step": UnAttachGroupStep,
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_SELECT,
+        "action_type": InteractiveMessageActionType.SELECT,
         "action_name": InviteOtherPersonToIncident.routing_uid(),
         "step": InviteOtherPersonToIncident,
     },
@@ -1216,13 +1275,13 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": StopInvitationProcess.routing_uid(),
         "step": StopInvitationProcess,
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": CustomButtonProcessStep.routing_uid(),
         "step": CustomButtonProcessStep,
     },

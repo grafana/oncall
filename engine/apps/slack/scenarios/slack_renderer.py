@@ -1,12 +1,17 @@
+import typing
+
 import humanize
 from django.apps import apps
 
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+
 
 class AlertGroupLogSlackRenderer:
     @staticmethod
-    def render_incident_log_report_for_slack(alert_group):
+    def render_incident_log_report_for_slack(alert_group: "AlertGroup"):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
 

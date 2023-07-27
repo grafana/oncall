@@ -1,7 +1,11 @@
 import logging
+import typing
 
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, PayloadType
+from apps.slack.types import BlockActionType, EventPayload, PayloadType, RoutingSteps
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 logger = logging.getLogger(__name__)
 
@@ -12,12 +16,17 @@ class NotifiedUserNotInChannelStep(scenario_step.ScenarioStep):
     Message, which sends this button is created in SlackUserIdentity.send_link_to_slack_message method.
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         logger.info("Gracefully handle NotifiedUserNotInChannelStep. Do nothing.")
         pass
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

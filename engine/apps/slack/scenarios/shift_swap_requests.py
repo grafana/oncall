@@ -4,12 +4,11 @@ import typing
 
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, EventPayloadBlocks, PayloadType
+from apps.slack.types import BlockActionType, BlockElement, EventPayload, PayloadType, RoutingSteps
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import ShiftSwapRequest
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
-    from apps.slack.types import EventPayload
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -18,7 +17,7 @@ SHIFT_SWAP_PK_ACTION_KEY = "shift_swap_request_pk"
 
 
 class BaseShiftSwapRequestStep:
-    def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> EventPayloadBlocks:
+    def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> typing.List[BlockElement]:
         pk = shift_swap_request.pk
         request_is_taken = shift_swap_request.status == shift_swap_request.Statuses.TAKEN
 
@@ -28,7 +27,7 @@ class BaseShiftSwapRequestStep:
         if request_is_taken:
             main_message_text += "Update. This request has been fulfilled!"
 
-        blocks: EventPayloadBlocks = [
+        blocks: typing.List[BlockElement] = [
             {
                 "type": "section",
                 "text": {
@@ -108,7 +107,7 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep, scenario_step.Scenari
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: "EventPayload",
+        payload: EventPayload,
     ) -> None:
         from apps.schedules import exceptions
         from apps.schedules.models import ShiftSwapRequest
@@ -168,12 +167,12 @@ class ShiftSwapRequestCreationStep(BaseShiftSwapRequestStep, scenario_step.Scena
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: "EventPayload",
+        payload: EventPayload,
     ) -> None:
         pass
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

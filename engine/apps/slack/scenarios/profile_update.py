@@ -1,10 +1,20 @@
+import typing
+
 from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import PayloadType
+from apps.slack.types import EventPayload, EventType, PayloadType, RoutingSteps
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 
 class ProfileUpdateStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: Any update in Slack Profile.
         Dangerous because it's often triggered by internal client's company systems.
@@ -41,17 +51,17 @@ class ProfileUpdateStep(scenario_step.ScenarioStep):
         slack_user_identity.save()
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     # Slack event "user_change" is deprecated in favor of "user_profile_changed".
     # Handler for "user_change" is kept for backward compatibility.
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_USER_CHANGE,
+        "event_type": EventType.USER_CHANGE,
         "step": ProfileUpdateStep,
     },
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_USER_PROFILE_CHANGED,
+        "event_type": EventType.USER_PROFILE_CHANGED,
         "step": ProfileUpdateStep,
     },
 ]

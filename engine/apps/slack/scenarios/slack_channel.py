@@ -1,3 +1,4 @@
+import typing
 from contextlib import suppress
 
 from django.apps import apps
@@ -5,11 +6,19 @@ from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.tasks import clean_slack_channel_leftovers
-from apps.slack.types import PayloadType
+from apps.slack.types import EventPayload, EventType, PayloadType, RoutingSteps
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 
 class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: Create or rename channel
         """
@@ -29,7 +38,12 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: Delete channel
         """
@@ -46,7 +60,12 @@ class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: Archive channel
         """
@@ -62,7 +81,12 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: UnArchive channel
         """
@@ -76,30 +100,30 @@ class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
         ).update(is_archived=False)
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_CHANNEL_RENAMED,
+        "event_type": EventType.CHANNEL_RENAMED,
         "step": SlackChannelCreatedOrRenamedEventStep,
     },
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_CHANNEL_CREATED,
+        "event_type": EventType.CHANNEL_CREATED,
         "step": SlackChannelCreatedOrRenamedEventStep,
     },
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_CHANNEL_DELETED,
+        "event_type": EventType.CHANNEL_DELETED,
         "step": SlackChannelDeletedEventStep,
     },
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_CHANNEL_ARCHIVED,
+        "event_type": EventType.CHANNEL_ARCHIVED,
         "step": SlackChannelArchivedEventStep,
     },
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_CHANNEL_UNARCHIVED,
+        "event_type": EventType.CHANNEL_UNARCHIVED,
         "step": SlackChannelUnArchivedEventStep,
     },
 ]

@@ -1,8 +1,11 @@
+import enum
 import json
+import typing
 from uuid import uuid4
 
 from django.apps import apps
 from django.conf import settings
+from django.db.models.manager import RelatedManager
 
 from apps.alerts.models import AlertReceiveChannel, EscalationChain
 from apps.alerts.paging import (
@@ -14,7 +17,13 @@ from apps.alerts.paging import (
 from apps.slack.constants import PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
-from apps.slack.types import BlockActionType, PayloadType
+from apps.slack.types import BlockActionType, BlockElement, EventPayload, ModalView, PayloadType, RoutingSteps
+
+if typing.TYPE_CHECKING:
+    from apps.schedules.models import OnCallSchedule
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import Organization, Team, User
+
 
 DIRECT_PAGING_TEAM_SELECT_ID = "paging_team_select"
 DIRECT_PAGING_ORG_SELECT_ID = "paging_org_select"
@@ -27,15 +36,20 @@ DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID = "paging_additional_responders_inp
 DEFAULT_TEAM_VALUE = "default_team"
 
 
-# selected user available actions
-DEFAULT_POLICY = "default"
-IMPORTANT_POLICY = "important"
-REMOVE_ACTION = "remove"
+class Policy(enum.StrEnum):
+    """
+    selected user available actions
+    """
+
+    DEFAULT = "default"
+    IMPORTANT = "important"
+    REMOVE_ACTION = "remove"
+
 
 ITEM_ACTIONS = (
-    (DEFAULT_POLICY, "Set default notification policy"),
-    (IMPORTANT_POLICY, "Set important notification policy"),
-    (REMOVE_ACTION, "Remove from escalation"),
+    (Policy.DEFAULT, "Set default notification policy"),
+    (Policy.IMPORTANT, "Set important notification policy"),
+    (Policy.REMOVE_ACTION, "Remove from escalation"),
 )
 
 
@@ -48,7 +62,7 @@ USERS_DATA_KEY = "users"
 MAX_STATIC_SELECT_OPTIONS = 100
 
 
-def add_or_update_item(payload, key, item_pk, policy):
+def add_or_update_item(payload: EventPayload, key: str, item_pk: str, policy: Policy) -> EventPayload:
     metadata = json.loads(payload["view"]["private_metadata"])
     metadata[key][item_pk] = policy
     updated_metadata = json.dumps(metadata)
@@ -58,7 +72,7 @@ def add_or_update_item(payload, key, item_pk, policy):
     return payload
 
 
-def remove_item(payload, key, item_pk):
+def remove_item(payload: EventPayload, key: str, item_pk: str) -> EventPayload:
     metadata = json.loads(payload["view"]["private_metadata"])
     if item_pk in metadata[key]:
         del metadata[key][item_pk]
@@ -66,7 +80,7 @@ def remove_item(payload, key, item_pk):
     return payload
 
 
-def reset_items(payload):
+def reset_items(payload: EventPayload) -> EventPayload:
     metadata = json.loads(payload["view"]["private_metadata"])
     for key in (USERS_DATA_KEY, SCHEDULES_DATA_KEY):
         metadata[key] = {}
@@ -74,7 +88,7 @@ def reset_items(payload):
     return payload
 
 
-def get_current_items(payload, key, qs):
+def get_current_items(payload: EventPayload, key: str, qs):
     metadata = json.loads(payload["view"]["private_metadata"])
     items = []
     for u, p in metadata[key].items():
@@ -91,7 +105,12 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 
     command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         input_id_prefix = _generate_input_id_prefix()
 
         try:
@@ -118,7 +137,12 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 class FinishDirectPaging(scenario_step.ScenarioStep):
     """Handle page command dialog submit."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         title = _get_title_from_payload(payload)
         message = _get_message_from_payload(payload)
         private_metadata = json.loads(payload["view"]["private_metadata"])
@@ -135,11 +159,11 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         is_additional_responders_checked = _get_additional_responders_checked_from_payload(payload, input_id_prefix)
         if is_additional_responders_checked:
             selected_users = [
-                (u, p == IMPORTANT_POLICY)
+                (u, p == Policy.IMPORTANT)
                 for u, p in get_current_items(payload, USERS_DATA_KEY, selected_organization.users)
             ]
             selected_schedules = [
-                (s, p == IMPORTANT_POLICY)
+                (s, p == Policy.IMPORTANT)
                 for s, p in get_current_items(payload, SCHEDULES_DATA_KEY, selected_organization.oncall_schedules)
             ]
 
@@ -181,7 +205,12 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
 class OnPagingOrgChange(scenario_step.ScenarioStep):
     """Reload form with updated organization."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         updated_payload = reset_items(payload)
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
         self._slack_client.api_call(
@@ -195,7 +224,12 @@ class OnPagingOrgChange(scenario_step.ScenarioStep):
 class OnPagingTeamChange(scenario_step.ScenarioStep):
     """Set team."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         view = render_dialog(slack_user_identity, slack_team_identity, payload)
         self._slack_client.api_call(
             "views.update",
@@ -215,7 +249,12 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
     It will perform a user availability check, pushing a new modal for additional confirmation if needed.
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
         selected_organization = _get_selected_org_from_payload(
             payload, private_metadata["input_id_prefix"], slack_team_identity, slack_user_identity
@@ -238,7 +277,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
             # user is available to be paged
             error_msg = None
             try:
-                updated_payload = add_or_update_item(payload, USERS_DATA_KEY, selected_user.pk, DEFAULT_POLICY)
+                updated_payload = add_or_update_item(payload, USERS_DATA_KEY, selected_user.pk, Policy.DEFAULT)
             except ValueError:
                 updated_payload = payload
                 error_msg = "Cannot add user, maximum responders exceeded"
@@ -254,15 +293,20 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
 class OnPagingItemActionChange(scenario_step.ScenarioStep):
     """Reload form with updated user details."""
 
-    def _parse_action(self, payload):
+    def _parse_action(self, payload: EventPayload) -> typing.Tuple[Policy, str, str]:
         value = payload["actions"][0]["selected_option"]["value"]
         return value.split("|")
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, policy=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         policy, key, user_pk = self._parse_action(payload)
 
         error_msg = None
-        if policy == REMOVE_ACTION:
+        if policy == Policy.REMOVE_ACTION:
             updated_payload = remove_item(payload, key, user_pk)
         else:
             try:
@@ -283,7 +327,12 @@ class OnPagingItemActionChange(scenario_step.ScenarioStep):
 class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
     """Confirm user selection despite not being available."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         metadata = json.loads(payload["view"]["private_metadata"])
 
         # recreate original view state and metadata
@@ -305,7 +354,7 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
         error_msg = None
         try:
             updated_payload = add_or_update_item(
-                previous_view_payload, USERS_DATA_KEY, selected_user.pk, DEFAULT_POLICY
+                previous_view_payload, USERS_DATA_KEY, selected_user.pk, Policy.DEFAULT
             )
         except ValueError:
             updated_payload = payload
@@ -325,7 +374,12 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
     It will perform a user availability check, pushing a new modal for additional confirmation if needed.
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
         selected_schedule = _get_selected_schedule_from_payload(payload, private_metadata["input_id_prefix"])
         if selected_schedule is None:
@@ -333,7 +387,7 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
 
         error_msg = None
         try:
-            updated_payload = add_or_update_item(payload, SCHEDULES_DATA_KEY, selected_schedule.pk, DEFAULT_POLICY)
+            updated_payload = add_or_update_item(payload, SCHEDULES_DATA_KEY, selected_schedule.pk, Policy.DEFAULT)
         except ValueError:
             updated_payload = payload
             error_msg = "Cannot add schedule, maximum responders exceeded"
@@ -351,7 +405,13 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
 DIVIDER_BLOCK = {"type": "divider"}
 
 
-def render_dialog(slack_user_identity, slack_team_identity, payload, initial=False, error_msg=None):
+def render_dialog(
+    slack_user_identity: "SlackUserIdentity",
+    slack_team_identity: "SlackTeamIdentity",
+    payload: EventPayload,
+    initial=False,
+    error_msg=None,
+) -> ModalView:
     private_metadata = json.loads(payload["view"]["private_metadata"])
     submit_routing_uid = private_metadata.get("submit_routing_uid")
 
@@ -386,7 +446,7 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
     )
 
     # Add title and message inputs
-    blocks = [_get_title_input(payload), _get_message_input(payload)]
+    blocks: typing.List[BlockElement] = [_get_title_input(payload), _get_message_input(payload)]
 
     # Add organization select if more than one organization available for user
     if len(available_organizations) > 1:
@@ -399,12 +459,11 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
     blocks += team_select_blocks
     blocks += additional_responders_blocks
 
-    view = _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
-    return view
+    return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
 
 
-def _get_form_view(routing_uid, blocks, private_metadata):
-    view = {
+def _get_form_view(routing_uid: str, blocks: typing.List[BlockElement], private_metadata: str) -> ModalView:
+    return {
         "type": "modal",
         "callback_id": routing_uid,
         "title": {
@@ -424,10 +483,10 @@ def _get_form_view(routing_uid, blocks, private_metadata):
         "private_metadata": private_metadata,
     }
 
-    return view
 
-
-def _get_organization_select(organizations, value, input_id_prefix):
+def _get_organization_select(
+    organizations: RelatedManager["Organization"], value: "Organization", input_id_prefix: str
+):
     organizations_options = []
     initial_option_idx = 0
     for idx, org in enumerate(organizations):
@@ -464,17 +523,20 @@ def _get_organization_select(organizations, value, input_id_prefix):
     return organization_select
 
 
-def _get_select_field_value(payload, prefix_id, routing_uid, field_id):
+def _get_select_field_value(payload: EventPayload, prefix_id: str, routing_uid: str, field_id: str) -> str | None:
     try:
         field = payload["view"]["state"]["values"][prefix_id + field_id][routing_uid]["selected_option"]
     except KeyError:
         return None
-
-    if field:
-        return field["value"]
+    return field["value"] if field else None
 
 
-def _get_selected_org_from_payload(payload, input_id_prefix, slack_team_identity, slack_user_identity):
+def _get_selected_org_from_payload(
+    payload: EventPayload,
+    input_id_prefix: str,
+    slack_team_identity: "SlackTeamIdentity",
+    slack_user_identity: "SlackUserIdentity",
+) -> "Organization":
     Organization = apps.get_model("user_management", "Organization")
     selected_org_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingOrgChange.routing_uid(), DIRECT_PAGING_ORG_SELECT_ID
@@ -486,7 +548,13 @@ def _get_selected_org_from_payload(payload, input_id_prefix, slack_team_identity
         return org
 
 
-def _get_team_select_blocks(slack_user_identity, organization, is_selected, value, input_id_prefix):
+def _get_team_select_blocks(
+    slack_user_identity: "SlackUserIdentity",
+    organization: "Organization",
+    is_selected: bool,
+    value: "Team",
+    input_id_prefix: str,
+):
     user = slack_user_identity.get_user(organization)  # TODO: handle None
     teams = user.available_teams
 
@@ -541,7 +609,7 @@ def _get_team_select_blocks(slack_user_identity, organization, is_selected, valu
     return [team_select, _get_team_select_context(organization, value)]
 
 
-def _get_team_select_context(organization, team):
+def _get_team_select_context(organization: "Organization", team: "Team"):
     team_name = team.name if team else "No team"
     alert_receive_channel = AlertReceiveChannel.objects.filter(
         organization=organization,
@@ -583,8 +651,12 @@ def _get_team_select_context(organization, team):
 
 
 def _get_additional_responders_blocks(
-    payload, organization, input_id_prefix, is_additional_responders_checked, error_msg
-):
+    payload: EventPayload,
+    organization: "Organization",
+    input_id_prefix,
+    is_additional_responders_checked: bool,
+    error_msg: str | None,
+) -> typing.List[BlockElement]:
     checkbox_option = {
         "text": {
             "type": "plain_text",
@@ -643,7 +715,9 @@ def _get_additional_responders_blocks(
     return blocks
 
 
-def _get_users_select(organization, input_id_prefix, action_id, max_options_per_group=MAX_STATIC_SELECT_OPTIONS):
+def _get_users_select(
+    organization: "Organization", input_id_prefix: str, action_id: str, max_options_per_group=MAX_STATIC_SELECT_OPTIONS
+):
     users = organization.users.all()
 
     user_options = [
@@ -680,7 +754,9 @@ def _get_users_select(organization, input_id_prefix, action_id, max_options_per_
     return user_select
 
 
-def _get_schedules_select(organization, input_id_prefix, action_id, max_options_per_group=MAX_STATIC_SELECT_OPTIONS):
+def _get_schedules_select(
+    organization: "Organization", input_id_prefix: str, action_id: str, max_options_per_group=MAX_STATIC_SELECT_OPTIONS
+):
     schedules = organization.oncall_schedules.all()
 
     schedule_options = [
@@ -734,7 +810,7 @@ def _get_option_groups(options, max_options_per_group):
     return option_groups
 
 
-def _get_selected_entries_list(input_id_prefix, key, entries):
+def _get_selected_entries_list(input_id_prefix: str, key: str, entries):
     current_entries = []
     for entry, policy in entries:
         if key == USERS_DATA_KEY:
@@ -767,7 +843,7 @@ def _get_selected_entries_list(input_id_prefix, key, entries):
     return current_entries
 
 
-def _display_availability_warnings(payload, warnings, organization, user):
+def _display_availability_warnings(payload: EventPayload, warnings, organization: "Organization", user: "User"):
     metadata = json.loads(payload["view"]["private_metadata"])
     return _get_availability_warnings_view(
         warnings,
@@ -787,7 +863,9 @@ def _display_availability_warnings(payload, warnings, organization, user):
     )
 
 
-def _get_availability_warnings_view(warnings, organization, user, callback_id, private_metadata):
+def _get_availability_warnings_view(
+    warnings, organization: "Organization", user: "User", callback_id: str, private_metadata: str
+) -> ModalView:
     messages = []
     for w in warnings:
         if w["error"] == USER_IS_NOT_ON_CALL:
@@ -860,14 +938,16 @@ def _get_selected_user_from_payload(payload, input_id_prefix):
         return user
 
 
-def _get_selected_schedule_from_payload(payload, input_id_prefix):
+def _get_selected_schedule_from_payload(
+    payload: EventPayload, input_id_prefix: str
+) -> typing.Optional["OnCallSchedule"]:
     OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
     selected_schedule_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingScheduleChange.routing_uid(), DIRECT_PAGING_SCHEDULE_SELECT_ID
     )
     if selected_schedule_id is not None:
-        schedule = OnCallSchedule.objects.filter(pk=selected_schedule_id).first()
-        return schedule
+        return OnCallSchedule.objects.filter(pk=selected_schedule_id).first()
+    return None
 
 
 def _get_and_change_input_id_prefix_from_metadata(metadata):
@@ -936,7 +1016,9 @@ def _get_message_from_payload(payload):
     return message
 
 
-def _get_available_organizations(slack_team_identity, slack_user_identity):
+def _get_available_organizations(
+    slack_team_identity: "SlackTeamIdentity", slack_user_identity: "SlackUserIdentity"
+) -> RelatedManager["Organization"]:
     return (
         slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
         .order_by("pk")
@@ -946,11 +1028,11 @@ def _get_available_organizations(slack_team_identity, slack_user_identity):
 
 # _generate_input_id_prefix returns uniq str to not to preserve input's values between view update
 #  https://api.slack.com/methods/views.update#markdown
-def _generate_input_id_prefix():
+def _generate_input_id_prefix() -> str:
     return str(uuid4())
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.STATIC_SELECT,

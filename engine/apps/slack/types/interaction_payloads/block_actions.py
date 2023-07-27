@@ -1,6 +1,26 @@
+"""
+[Documentation](https://api.slack.com/reference/interaction-payloads/block-actions)
+"""
+
+import enum
 import typing
 
-from .common import BaseEvent, Channel, Container, Message, PayloadType
+from apps.slack.types.common import BaseEvent, Channel, Container, Message, PayloadType
+
+
+class BlockActionType(enum.StrEnum):
+    """
+    https://api.slack.com/reference/interaction-payloads/block-actions#payload_timing
+    """
+
+    USERS_SELECT = "users_select"
+    BUTTON = "button"
+    STATIC_SELECT = "static_select"
+    CONVERSATIONS_SELECT = "conversations_select"
+    CHANNELS_SELECT = "channels_select"
+    OVERFLOW = "overflow"
+    DATEPICKER = "datepicker"
+    CHECKBOXES = "checkboxes"
 
 
 class BlockAction(typing.TypedDict):
@@ -38,7 +58,7 @@ class BlockAction(typing.TypedDict):
     """
 
 
-class BlockActionEvent(BaseEvent):
+class BlockActionsPayload(BaseEvent):
     """
     [Documentation](https://api.slack.com/reference/interaction-payloads/block-actions)
     """

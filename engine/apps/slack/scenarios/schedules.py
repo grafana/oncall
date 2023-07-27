@@ -1,13 +1,17 @@
 import datetime
 import json
+import typing
 
 import pytz
 
 from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, PayloadType
+from apps.slack.types import BlockActionType, BlockElement, EventPayload, ModalView, Option, PayloadType, RoutingSteps
 from apps.slack.utils import format_datetime_to_slack
 from common.insight_log import EntityEvent, write_resource_insight_log
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 
 class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
@@ -16,14 +20,19 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
     mention_oncall_start_options = {1: "Mention person in slack", 0: "Inform in channel without mention"}
     mention_oncall_next_options = {1: "Mention person in slack", 0: "Inform in channel without mention"}
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         if payload["actions"][0].get("value", None) and payload["actions"][0]["value"].startswith("edit"):
             self.open_settings_modal(payload)
         elif payload["actions"][0].get("type", None) and payload["actions"][0]["type"] == "static_select":
             self.set_selected_value(slack_user_identity, payload)
 
-    def open_settings_modal(self, payload, schedule_id=None):
-        schedule_id = payload["actions"][0]["value"].split("_")[1] if schedule_id is None else schedule_id
+    def open_settings_modal(self, payload: EventPayload) -> None:
+        schedule_id = payload["actions"][0]["value"].split("_")[1]
         try:
             _ = OnCallSchedule.objects.get(pk=schedule_id)  # noqa
         except OnCallSchedule.DoesNotExist:
@@ -34,7 +43,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         private_metadata = {}
         private_metadata["schedule_id"] = schedule_id
 
-        view = {
+        view: ModalView = {
             "callback_id": EditScheduleShiftNotifyStep.routing_uid(),
             "blocks": blocks,
             "type": "modal",
@@ -51,7 +60,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             view=view,
         )
 
-    def set_selected_value(self, slack_user_identity, payload):
+    def set_selected_value(self, slack_user_identity: "SlackUserIdentity", payload: EventPayload) -> None:
         action = payload["actions"][0]
         private_metadata = json.loads(payload["view"]["private_metadata"])
         schedule_id = private_metadata["schedule_id"]
@@ -68,7 +77,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             new_state=new_state,
         )
 
-    def get_modal_blocks(self, schedule_id):
+    def get_modal_blocks(self, schedule_id: str) -> typing.List[BlockElement]:
         blocks = [
             {
                 "type": "section",
@@ -122,14 +131,14 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
         return blocks
 
-    def get_options(self, select_name):
+    def get_options(self, select_name: str) -> typing.List[Option]:
         select_options = getattr(self, f"{select_name}_options")
         return [
             {"text": {"type": "plain_text", "text": select_options[option]}, "value": str(option)}
             for option in select_options
         ]
 
-    def get_initial_option(self, schedule_id, select_name):
+    def get_initial_option(self, schedule_id: str, select_name: str) -> Option:
         schedule = OnCallSchedule.objects.get(pk=schedule_id)
 
         current_value = getattr(schedule, select_name)
@@ -208,7 +217,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         return blocks
 
     @classmethod
-    def get_report_blocks_manual(cls, current_shift, next_shift, schedule):
+    def get_report_blocks_manual(cls, current_shift, next_shift, schedule) -> typing.List[BlockElement]:
         current_piece, current_user = current_shift
 
         start_day = datetime.datetime.now()
@@ -256,7 +265,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         next_text += f" to {format_datetime_to_slack(next_shift_end_timestamp)}"
 
         text = f"{now_text}{next_text}"
-        blocks = [
+        blocks: typing.List[BlockElement] = [
             {
                 "type": "section",
                 "text": {
@@ -282,7 +291,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         return blocks
 
     @classmethod
-    def get_ical_shift_notification_text(cls, shift, mention, users):
+    def get_ical_shift_notification_text(cls, shift, mention, users) -> str:
         if shift["all_day"]:
             notification = " ".join([f"{user.get_username_with_slack_verbal(mention=mention)}" for user in users])
             user_verbal = shift["users"][0].get_username_with_slack_verbal(
@@ -310,7 +319,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         return notification
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

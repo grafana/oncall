@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import typing
 
 from django.apps import apps
 from django.db.models import Q
@@ -8,11 +9,22 @@ from django.db.models import Q
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
-from apps.slack.types import BlockActionType, PayloadType
+from apps.slack.types import (
+    BlockActionType,
+    BlockElement,
+    EventPayload,
+    InteractiveMessageActionType,
+    PayloadType,
+    RoutingSteps,
+)
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 
 from .step_mixins import AlertGroupActionsMixin
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -25,7 +37,12 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         "add_resolution_note_develop",
     ]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         SlackMessage = apps.get_model("slack", "SlackMessage")
         ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
         ResolutionNote = apps.get_model("alerts", "ResolutionNote")
@@ -158,7 +175,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
 
 
 class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
-    def process_signal(self, alert_group, resolution_note):
+    def process_signal(self, alert_group: "AlertGroup", resolution_note: "ResolutionNote") -> None:
         if resolution_note.deleted_at:
             self.remove_resolution_note_slack_message(resolution_note)
         else:
@@ -168,7 +185,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
             alert_group=alert_group,
         )
 
-    def remove_resolution_note_slack_message(self, resolution_note):
+    def remove_resolution_note_slack_message(self, resolution_note: "ResolutionNote") -> None:
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         if resolution_note_slack_message is not None:
             resolution_note_slack_message.added_to_resolution_note = False
@@ -216,7 +233,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
             else:
                 self.remove_resolution_note_reaction(resolution_note_slack_message)
 
-    def post_or_update_resolution_note_in_thread(self, resolution_note):
+    def post_or_update_resolution_note_in_thread(self, resolution_note: "ResolutionNote") -> None:
         ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
@@ -324,11 +341,11 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 resolution_note_slack_message.text = resolution_note.text
                 resolution_note_slack_message.save(update_fields=["text"])
 
-    def update_alert_group_resolution_note_button(self, alert_group):
+    def update_alert_group_resolution_note_button(self, alert_group: "AlertGroup") -> None:
         if alert_group.slack_message is not None:
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
-    def add_resolution_note_reaction(self, slack_thread_message):
+    def add_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage"):
         try:
             self._slack_client.api_call(
                 "reactions.add",
@@ -339,7 +356,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         except SlackAPIException as e:
             print(e)  # TODO:770: log instead of print
 
-    def remove_resolution_note_reaction(self, slack_thread_message):
+    def remove_resolution_note_reaction(self, slack_thread_message: "ResolutionNoteSlackMessage") -> None:
         try:
             self._slack_client.api_call(
                 "reactions.remove",
@@ -350,8 +367,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         except SlackAPIException as e:
             print(e)
 
-    def get_resolution_note_blocks(self, resolution_note):
-        blocks = []
+    def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> typing.List[BlockElement]:
+        blocks: typing.List[BlockElement] = []
         author_verbal = resolution_note.author_verbal(mention=False)
         resolution_note_text_block = {
             "type": "section",
@@ -376,7 +393,18 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, data=None):
+    class ScenarioData(typing.TypedDict):
+        resolution_note_window_action: str
+        alert_group_pk: str
+        action_resolve: bool
+
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+        data: ScenarioData | None = None,
+    ) -> None:
         if data:
             # Argument "data" is used when step is called from other step, e.g. AddRemoveThreadMessageStep
             AlertGroup = apps.get_model("alerts", "AlertGroup")
@@ -394,7 +422,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         action_resolve = value.get("action_resolve", False)
         channel_id = payload["channel"]["id"] if "channel" in payload else None
 
-        blocks = []
+        blocks: typing.List[BlockElement] = []
 
         if channel_id:
             members = slack_team_identity.get_conversation_members(self._slack_client, channel_id)
@@ -449,9 +477,11 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 view=view,
             )
 
-    def get_resolution_notes_blocks(self, alert_group, resolution_note_window_action, action_resolve):
+    def get_resolution_notes_blocks(
+        self, alert_group: "AlertGroup", resolution_note_window_action: str, action_resolve: bool
+    ) -> typing.List[BlockElement]:
         ResolutionNote = apps.get_model("alerts", "ResolutionNote")
-        blocks = []
+        blocks: typing.List[BlockElement] = []
 
         other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
         resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(
@@ -648,7 +678,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
         return blocks
 
-    def get_invite_bot_tip_blocks(self, channel: str):
+    def get_invite_bot_tip_blocks(self, channel: str) -> typing.List[BlockElement]:
         link_to_instruction = create_engine_url("static/images/postmortem.gif")
         blocks = [
             {
@@ -675,7 +705,12 @@ class ReadEditPostmortemStep(ResolutionNoteModalStep):
 
 
 class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
         ResolutionNote = apps.get_model("alerts", "ResolutionNote")
@@ -743,7 +778,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         )
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,
@@ -758,7 +793,7 @@ STEPS_ROUTING = [
     },
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": ResolutionNoteModalStep.routing_uid(),
         "step": ResolutionNoteModalStep,
     },

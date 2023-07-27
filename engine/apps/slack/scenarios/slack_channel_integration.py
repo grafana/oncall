@@ -3,7 +3,7 @@ import logging
 from django.apps import apps
 
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import PayloadType
+from apps.slack.types import EventType, MessageEventSubtype, PayloadType
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -19,13 +19,13 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
 
         # If it is a message from thread - save it for resolution note
         if ("thread_ts" in payload["event"] and "subtype" not in payload["event"]) or (
-            payload["event"].get("subtype") == scenario_step.EVENT_SUBTYPE_MESSAGE_CHANGED
+            payload["event"].get("subtype") == MessageEventSubtype.MESSAGE_CHANGED
             and "subtype" not in payload["event"]["message"]
             and "thread_ts" in payload["event"]["message"]
         ):
             self.save_thread_message_for_resolution_note(slack_user_identity, payload)
         elif (
-            payload["event"].get("subtype") == scenario_step.EVENT_SUBTYPE_MESSAGE_DELETED
+            payload["event"].get("subtype") == MessageEventSubtype.MESSAGE_DELETED
             and "thread_ts" in payload["event"]["previous_message"]
         ):
             self.delete_thread_message_from_resolution_note(slack_user_identity, payload)
@@ -144,8 +144,8 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
 STEPS_ROUTING = [
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_MESSAGE,
-        "message_channel_type": scenario_step.EVENT_TYPE_MESSAGE_CHANNEL,
+        "event_type": EventType.MESSAGE,
+        "message_channel_type": EventType.MESSAGE_CHANNEL,
         "step": SlackChannelMessageEventStep,
     }
 ]
