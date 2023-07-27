@@ -13,6 +13,7 @@ $LARGE-MARGIN: 24px;
   &__heading-container {
     display: flex;
     gap: $FLEX-GAP;
+    align-items: center;
   }
 
   &__heading {

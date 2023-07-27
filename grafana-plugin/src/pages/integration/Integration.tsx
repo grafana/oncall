@@ -70,6 +70,7 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+import { KeyValue } from '@grafana/data';
 
 const cx = cn.bind(styles);
 
@@ -204,6 +205,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               <IntegrationActions
                 alertReceiveChannel={alertReceiveChannel}
                 changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
+                query={this.props.query}
               />
             </div>
 
@@ -281,21 +283,22 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     if (!isLegacyIntegration) return null;
 
     return (
-      <Alert
-        severity="warning"
-        title={
-          (
-            <Text type="secondary">
-              This integration has been deprecated. Consider checking out the{' '}
-              <a href="https://grafana.com/docs/oncall/latest/open-source/" target="_blank" rel="noreferrer">
-                documentation
-              </a>{' '}
-              for migrating it.
-            </Text>
-          ) as any
-        }
-        className="u-margin-bottom-md"
-      />
+      <div className="u-padding-top-md">
+        <Alert
+          severity="warning"
+          title={
+            (
+              <Text type="secondary">
+                This integration has been deprecated. Consider checking out the{' '}
+                <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer">
+                  documentation
+                </a>{' '}
+                for migrating it.
+              </Text>
+            ) as any
+          }
+        />
+      </div>
     );
   }
 
@@ -750,12 +753,14 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
 interface IntegrationActionsProps {
   alertReceiveChannel: AlertReceiveChannel;
+  query: KeyValue;
   changeIsTemplateSettingsOpen: () => void;
 }
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
+  query,
 }) => {
   const { alertReceiveChannelStore } = useStore();
 
@@ -989,7 +994,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         setConfirmModal(undefined);
         openNotification('Integration has been successfully migrated.');
       })
-      .then(() => alertReceiveChannelStore.updateItems())
+      .then(() => alertReceiveChannelStore.updateItems({ page: query.p || 1 }))
       .catch(() => openErrorNotification('An error has occurred. Please try again.'));
   }
 

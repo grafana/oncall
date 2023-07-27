@@ -25,15 +25,15 @@
 }
 
 /* -----
- * Margins
+ * Margins/Paddings
  */
 
 .u-margin-right-xs {
   margin-right: 4px;
 }
 
-.u-margin-bottom-md {
-  margin-bottom: 16px;
+.u-padding-top-md {
+  padding-top: 16px;
 }
 
 .u-pull-right {
