@@ -2,7 +2,6 @@ import json
 import typing
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter
@@ -78,7 +77,7 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert
 
         title = _get_title_from_payload(payload)
         message = _get_message_from_payload(payload)
@@ -385,7 +384,8 @@ def _get_organization_select(
 
 
 def _get_selected_org_from_payload(payload: EventPayload, input_id_prefix: str) -> typing.Optional["Organization"]:
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization
+
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ORG_SELECT_ID][
         OnOrgChange.routing_uid()
     ]["selected_option"]["value"]
@@ -406,7 +406,7 @@ def _get_team_select(
         {
             "text": {
                 "type": "plain_text",
-                "text": f"General",
+                "text": "General",
                 "emoji": True,
             },
             "value": DEFAULT_TEAM_VALUE,
@@ -443,7 +443,8 @@ def _get_team_select(
 
 
 def _get_selected_team_from_payload(payload: EventPayload, input_id_prefix: str) -> typing.Optional["Team"]:
-    Team = apps.get_model("user_management", "Team")
+    from apps.user_management.models import Team
+
     selected_team_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_TEAM_SELECT_ID][
         OnTeamChange.routing_uid()
     ]["selected_option"]["value"]
@@ -488,6 +489,8 @@ def _get_route_select(integration: AlertReceiveChannel, value, input_id_prefix: 
 
 
 def _get_selected_route_from_payload(payload: EventPayload, input_id_prefix: str) -> ChannelFilter | None:
+    from apps.alerts.models import ChannelFilter
+
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ROUTE_SELECT_ID][
         OnRouteChange.routing_uid()
     ]["selected_option"]["value"]

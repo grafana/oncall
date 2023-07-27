@@ -32,14 +32,18 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import {
+  APP_VERSION,
+  CLOUD_VERSION_REGEX,
+  GRAFANA_LICENSE_CLOUD,
+  GRAFANA_LICENSE_OSS,
+  PLUGIN_ROOT,
+} from 'utils/consts';
+import FaroHelper from 'utils/faro';
 
 // ------ Dashboard ------ //
 
 export class RootBaseStore {
-  @observable
-  appLoading = true;
-
   @observable
   currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
@@ -117,6 +121,7 @@ export class RootBaseStore {
     };
 
     return Promise.all([
+      this.userStore.loadCurrentUser(),
       this.organizationStore.loadCurrentOrganization(),
       this.grafanaTeamStore.updateItems(),
       updateFeatures(),
@@ -126,60 +131,68 @@ export class RootBaseStore {
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
+      this.alertGroupStore.fetchIRMPlan(),
     ]);
   }
 
   setupPluginError(errorMsg: string) {
-    this.appLoading = false;
     this.initializationError = errorMsg;
   }
 
   /**
+   * This function is called in the background when the plugin is loaded.
+   * It will check the status of the plugin and
+   * rerender the screen with the appropriate message if the plugin is not setup correctly.
+   *
    * First check to see if the plugin has been provisioned (plugin's meta jsonData has an onCallApiUrl saved)
    * If not, tell the user they first need to configure/provision the plugin.
    *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
+   * - OnCall api should not be under maintenance
    * - plugin must be considered installed by the OnCall API
    * - token_ok must be true
    *   - This represents the status of the Grafana API token. It can be false in the event that either the token
    *   hasn't been created, or if the API token was revoked in Grafana.
    * - user must be not "anonymous" (this is determined by the plugin-proxy)
    * - the OnCall API must be currently allowing signup
-   * - the user must have an Admin role
-   * If these conditions are all met then trigger a data sync w/ the OnCall backend and poll its response
+   * - the user must have an Admin role and necessary permissions
    * Finally, try to load the current user from the OnCall backend
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
-    this.appLoading = true;
     this.initializationError = null;
     this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
+
+    if (!FaroHelper.faro) {
+      FaroHelper.initializeFaro(this.onCallApiUrl);
+    }
 
     if (!this.onCallApiUrl) {
       // plugin is not provisioned
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    const maintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode(this.onCallApiUrl);
-    if (typeof maintenanceMode === 'string') {
-      return this.setupPluginError(maintenanceMode);
-    } else if (maintenanceMode.currently_undergoing_maintenance_message) {
-      this.currentlyUndergoingMaintenance = true;
-      return this.setupPluginError(`🚧 ${maintenanceMode.currently_undergoing_maintenance_message} 🚧`);
-    }
-
     // at this point we know the plugin is provisioned
-    const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
+    const pluginConnectionStatus = await PluginState.updatePluginStatus(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
     }
 
+    // Check if the plugin is currently undergoing maintenance
+    if (pluginConnectionStatus.currently_undergoing_maintenance_message) {
+      this.currentlyUndergoingMaintenance = true;
+      return this.setupPluginError(`🚧 ${pluginConnectionStatus.currently_undergoing_maintenance_message} 🚧`);
+    }
+
     const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
 
+    // Anonymous users are not allowed to use the plugin
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
-    } else if (!is_installed || !token_ok) {
+    }
+    // If the plugin is not installed in the OnCall backend, or token is not valid, then we need to install it
+    if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
@@ -192,6 +205,7 @@ export class RootBaseStore {
            * therefore there is no need to trigger an additional/separate sync, nor poll a status
            */
           await PluginState.installPlugin();
+          window.history.pushState(null, null, PLUGIN_ROOT);
         } catch (e) {
           return this.setupPluginError(
             PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
@@ -211,25 +225,18 @@ export class RootBaseStore {
         }
       }
     } else {
-      const syncDataResponse = await PluginState.syncDataWithOnCall(this.onCallApiUrl);
-
-      if (typeof syncDataResponse === 'string') {
-        return this.setupPluginError(syncDataResponse);
-      }
-
       // everything is all synced successfully at this point..
-      this.backendVersion = syncDataResponse.version;
-      this.backendLicense = syncDataResponse.license;
-      this.recaptchaSiteKey = syncDataResponse.recaptcha_site_key;
+      this.backendVersion = pluginConnectionStatus.version;
+      this.backendLicense = pluginConnectionStatus.license;
+      this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
     }
-
-    try {
-      await this.userStore.loadCurrentUser();
-    } catch (e) {
-      return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
+    if (!this.userStore.currentUser) {
+      try {
+        await this.userStore.loadCurrentUser();
+      } catch (e) {
+        return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
+      }
     }
-
-    this.appLoading = false;
   }
 
   checkMissingSetupPermissions() {

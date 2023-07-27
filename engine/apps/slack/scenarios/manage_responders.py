@@ -1,9 +1,7 @@
 import json
 import typing
 
-from django.apps import apps
-
-from apps.alerts.paging import check_user_availability, direct_paging, unpage_user
+from apps.alerts.paging import DirectPagingAlertGroupResolvedError, check_user_availability, direct_paging, unpage_user
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_SCHEDULE_SELECT_ID,
@@ -85,15 +83,19 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
                 view=view,
             )
         else:
-            # no warnings, proceed with paging
-            direct_paging(
-                organization=organization,
-                team=alert_group.channel.team,
-                from_user=slack_user_identity.get_user(organization),
-                users=[(selected_user, False)],
-                alert_group=alert_group,
-            )
-            view = render_dialog(alert_group)
+            try:
+                # no warnings, proceed with paging
+                direct_paging(
+                    organization=organization,
+                    team=alert_group.channel.team,
+                    from_user=slack_user_identity.get_user(organization),
+                    users=[(selected_user, False)],
+                    alert_group=alert_group,
+                )
+                view = render_dialog(alert_group)
+            except DirectPagingAlertGroupResolvedError:
+                view = render_dialog(alert_group, alert_group_resolved_warning=True)
+
             self._slack_client.api_call(
                 "views.update",
                 trigger_id=payload["trigger_id"],
@@ -115,14 +117,18 @@ class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
         selected_user = _get_selected_user_from_payload(payload)
         organization = alert_group.channel.organization
 
-        direct_paging(
-            organization=organization,
-            team=alert_group.channel.team,
-            from_user=slack_user_identity.get_user(organization),
-            users=[(selected_user, False)],
-            alert_group=alert_group,
-        )
-        view = render_dialog(alert_group)
+        try:
+            direct_paging(
+                organization=organization,
+                team=alert_group.channel.team,
+                from_user=slack_user_identity.get_user(organization),
+                users=[(selected_user, False)],
+                alert_group=alert_group,
+            )
+            view = render_dialog(alert_group)
+        except DirectPagingAlertGroupResolvedError:
+            view = render_dialog(alert_group, alert_group_resolved_warning=True)
+
         self._slack_client.api_call(
             "views.update",
             trigger_id=payload["trigger_id"],
@@ -144,17 +150,22 @@ class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
         selected_schedule = _get_selected_schedule_from_payload(payload)
         organization = alert_group.channel.organization
 
-        direct_paging(
-            organization=organization,
-            team=alert_group.channel.team,
-            from_user=slack_user_identity.get_user(organization),
-            schedules=[(selected_schedule, False)],
-            alert_group=alert_group,
-        )
+        try:
+            direct_paging(
+                organization=organization,
+                team=alert_group.channel.team,
+                from_user=slack_user_identity.get_user(organization),
+                schedules=[(selected_schedule, False)],
+                alert_group=alert_group,
+            )
+            view = render_dialog(alert_group)
+        except DirectPagingAlertGroupResolvedError:
+            view = render_dialog(alert_group, alert_group_resolved_warning=True)
+
         self._slack_client.api_call(
             "views.update",
             trigger_id=payload["trigger_id"],
-            view=render_dialog(alert_group),
+            view=view,
             view_id=payload["view"]["id"],
         )
 
@@ -185,7 +196,7 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
 # slack view/blocks rendering helpers
 
 
-def render_dialog(alert_group: "AlertGroup"):
+def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False):
     blocks = []
 
     # Show list of users that are currently paged
@@ -205,6 +216,15 @@ def render_dialog(alert_group: "AlertGroup"):
         ]
     if paged_users:
         blocks += [DIVIDER_BLOCK]
+
+    # Show a warning when trying to add responders for a resolved alert group
+    if alert_group_resolved_warning:
+        blocks += [
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f":no_entry: {DirectPagingAlertGroupResolvedError.DETAIL}"},
+            }
+        ]
 
     # Show user and schedule dropdowns
     input_id_prefix = _generate_input_id_prefix()
@@ -230,7 +250,7 @@ def render_dialog(alert_group: "AlertGroup"):
 
 
 def _get_selected_user_from_payload(payload: EventPayload) -> "User":
-    User = apps.get_model("user_management", "User")
+    from apps.user_management.models import User
 
     try:
         selected_user_id = payload["actions"][0]["value"]  # "remove" button
@@ -249,7 +269,7 @@ def _get_selected_user_from_payload(payload: EventPayload) -> "User":
 
 
 def _get_selected_schedule_from_payload(payload: EventPayload) -> "OnCallSchedule":
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
     selected_schedule_id = _get_select_field_value(
@@ -260,7 +280,8 @@ def _get_selected_schedule_from_payload(payload: EventPayload) -> "OnCallSchedul
 
 
 def _get_alert_group_from_payload(payload: EventPayload) -> "AlertGroup":
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
+
     alert_group_pk = json.loads(payload["view"]["private_metadata"])[ALERT_GROUP_DATA_KEY]
     return AlertGroup.objects.get(pk=alert_group_pk)
 

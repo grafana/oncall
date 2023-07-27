@@ -1,7 +1,6 @@
 import typing
 from contextlib import suppress
 
-from django.apps import apps
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
@@ -22,7 +21,7 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
         """
         Triggered by action: Create or rename channel
         """
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         slack_id = payload["event"]["channel"]["id"]
         channel_name = payload["event"]["channel"]["name"]
@@ -47,7 +46,7 @@ class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
         """
         Triggered by action: Delete channel
         """
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         slack_id = payload["event"]["channel"]
         with suppress(SlackChannel.DoesNotExist):
@@ -69,7 +68,7 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
         """
         Triggered by action: Archive channel
         """
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         slack_id = payload["event"]["channel"]
 
@@ -90,7 +89,7 @@ class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
         """
         Triggered by action: UnArchive channel
         """
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         slack_id = payload["event"]["channel"]
 

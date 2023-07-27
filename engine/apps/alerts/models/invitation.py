@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-from django.apps import apps
 from django.db import models, transaction
 
 from apps.alerts.tasks import invite_user_to_join_incident, send_alert_group_signal
@@ -57,7 +56,7 @@ class Invitation(models.Model):
 
     @staticmethod
     def invite_user(invitee_user, alert_group, user):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         # RFCT - why atomic? without select for update?
         with transaction.atomic():
@@ -98,7 +97,7 @@ class Invitation(models.Model):
 
     @staticmethod
     def stop_invitation(invitation_pk, user):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         with transaction.atomic():
             try:

@@ -3,7 +3,6 @@ import json
 import typing
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 from django.db.models.manager import RelatedManager
 
@@ -537,7 +536,8 @@ def _get_selected_org_from_payload(
     slack_team_identity: "SlackTeamIdentity",
     slack_user_identity: "SlackUserIdentity",
 ) -> "Organization":
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization
+
     selected_org_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingOrgChange.routing_uid(), DIRECT_PAGING_ORG_SELECT_ID
     )
@@ -565,7 +565,7 @@ def _get_team_select_blocks(
         {
             "text": {
                 "type": "plain_text",
-                "text": f"No team",
+                "text": "No team",
                 "emoji": True,
             },
             "value": DEFAULT_TEAM_VALUE,
@@ -902,7 +902,8 @@ def _get_availability_warnings_view(
 
 
 def _get_selected_team_from_payload(payload, input_id_prefix):
-    Team = apps.get_model("user_management", "Team")
+    from apps.user_management.models import Team
+
     selected_team_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingTeamChange.routing_uid(), DIRECT_PAGING_TEAM_SELECT_ID
     )
@@ -929,7 +930,8 @@ def _get_additional_responders_checked_from_payload(payload, input_id_prefix):
 
 
 def _get_selected_user_from_payload(payload, input_id_prefix):
-    User = apps.get_model("user_management", "User")
+    from apps.user_management.models import User
+
     selected_user_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingUserChange.routing_uid(), DIRECT_PAGING_USER_SELECT_ID
     )
@@ -941,7 +943,8 @@ def _get_selected_user_from_payload(payload, input_id_prefix):
 def _get_selected_schedule_from_payload(
     payload: EventPayload, input_id_prefix: str
 ) -> typing.Optional["OnCallSchedule"]:
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
+
     selected_schedule_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingScheduleChange.routing_uid(), DIRECT_PAGING_SCHEDULE_SELECT_ID
     )

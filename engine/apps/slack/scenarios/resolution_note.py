@@ -3,7 +3,6 @@ import json
 import logging
 import typing
 
-from django.apps import apps
 from django.db.models import Q
 
 from apps.api.permissions import RBACPermission
@@ -43,10 +42,8 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        SlackMessage = apps.get_model("slack", "SlackMessage")
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
-        SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
+        from apps.alerts.models import ResolutionNote, ResolutionNoteSlackMessage
+        from apps.slack.models import SlackMessage, SlackUserIdentity
 
         try:
             channel_id = payload["channel"]["id"]
@@ -234,7 +231,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
                 self.remove_resolution_note_reaction(resolution_note_slack_message)
 
     def post_or_update_resolution_note_in_thread(self, resolution_note: "ResolutionNote") -> None:
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        from apps.alerts.models import ResolutionNoteSlackMessage
+
         resolution_note_slack_message = resolution_note.resolution_note_slack_message
         alert_group = resolution_note.alert_group
         alert_group_slack_message = alert_group.slack_message
@@ -407,7 +405,8 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
     ) -> None:
         if data:
             # Argument "data" is used when step is called from other step, e.g. AddRemoveThreadMessageStep
-            AlertGroup = apps.get_model("alerts", "AlertGroup")
+            from apps.alerts.models import AlertGroup
+
             alert_group = AlertGroup.objects.get(pk=data["alert_group_pk"])
         else:
             # Handle "Add Resolution notes" button click
@@ -477,10 +476,12 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 view=view,
             )
 
+
     def get_resolution_notes_blocks(
         self, alert_group: "AlertGroup", resolution_note_window_action: str, action_resolve: bool
     ) -> typing.List[BlockElement]:
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        from apps.alerts.models import ResolutionNote
+
         blocks: typing.List[BlockElement] = []
 
         other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
@@ -705,15 +706,15 @@ class ReadEditPostmortemStep(ResolutionNoteModalStep):
 
 
 class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
+
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
         payload: EventPayload,
     ) -> None:
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
-        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
+
         value = json.loads(payload["actions"][0]["value"])
         slack_message_pk = value.get("message_pk")
         resolution_note_pk = value.get("resolution_note_pk")

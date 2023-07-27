@@ -3,7 +3,6 @@ import logging
 import typing
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -293,7 +292,8 @@ class User(models.Model):
 
     @property
     def insight_logs_serialized(self):
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy
+
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
         notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
         notification_policies_verbal = demojize(notification_policies_verbal)

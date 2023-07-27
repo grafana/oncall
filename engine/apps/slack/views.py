@@ -170,7 +170,7 @@ class SlackEventApiEndpointView(APIView):
 
         # Means that slack_team_identity unpopulated
         if not slack_team_identity.organizations.exists():
-            logger.warning(f"OnCall Team for SlackTeamIdentity is not detected, stop it!")
+            logger.warning("OnCall Team for SlackTeamIdentity is not detected, stop it!")
             # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
             warning_text = (
                 "OnCall is not able to process this action because this Slack workspace was "

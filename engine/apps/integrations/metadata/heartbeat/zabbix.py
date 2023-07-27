@@ -6,8 +6,6 @@ integration_verbal = PurePath(__file__).stem
 creator = HeartBeatTextCreator(integration_verbal)
 heartbeat_text = creator.get_heartbeat_texts()
 
-heartbeat_instruction_template = heartbeat_text.heartbeat_instruction_template
-
 heartbeat_expired_title = heartbeat_text.heartbeat_expired_title
 heartbeat_expired_message = heartbeat_text.heartbeat_expired_message
 

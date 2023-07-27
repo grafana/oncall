@@ -40,7 +40,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "<div>\n  <img src=\"https://ops.grafana-ops.net/public/plugins/grafana-oncall-app/img/logo.svg\">\n</div>",
+        "content": "<div>\n  <img src=\"https://ops.grafana-ops.net/public/plugins/grafana-oncall-app/assets/img/logo.svg\">\n</div>",
         "mode": "html"
       },
       "pluginVersion": "9.5.2",

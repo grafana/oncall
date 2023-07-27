@@ -1,7 +1,5 @@
 import logging
 
-from django.apps import apps
-
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import EventType, MessageEventSubtype, PayloadType
 
@@ -31,8 +29,8 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             self.delete_thread_message_from_resolution_note(slack_user_identity, payload)
 
     def save_thread_message_for_resolution_note(self, slack_user_identity, payload):
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        from apps.alerts.models import ResolutionNoteSlackMessage
+        from apps.slack.models import SlackMessage
 
         if slack_user_identity is None:
             logger.warning(
@@ -115,7 +113,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             slack_thread_message.save()
 
     def delete_thread_message_from_resolution_note(self, slack_user_identity, payload):
-        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        from apps.alerts.models import ResolutionNoteSlackMessage
 
         if slack_user_identity is None:
             logger.warning(

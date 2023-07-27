@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -12,8 +11,7 @@ def resolve_alert_group_by_source_if_needed(alert_group_pk):
     The purpose of this task is to avoid computation-heavy check after each alert.
     Should be delayed and invoked only for the last one.
     """
-    AlertGroupForAlertManager = apps.get_model("alerts", "AlertGroupForAlertManager")
-    AlertForAlertManager = apps.get_model("alerts", "AlertForAlertManager")
+    from apps.alerts.models import AlertForAlertManager, AlertGroupForAlertManager
 
     alert_group = AlertGroupForAlertManager.objects.get(pk=alert_group_pk)
 
@@ -22,7 +20,6 @@ def resolve_alert_group_by_source_if_needed(alert_group_pk):
             alert_group.active_resolve_calculation_id
         )
     else:
-
         is_more_than_max_alerts_in_group = alert_group.alerts_count_gt(
             AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE
         )

@@ -46,11 +46,20 @@ def start_sync_organizations():
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
 def sync_organization_async(organization_pk):
+    """
+    This task is called periodically to sync an organization with Grafana.
+    It runs syncronization without force_sync flag.
+    """
     run_organization_sync(organization_pk, False)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
 def plugin_sync_organization_async(organization_pk):
+    """
+    This task is called each time when the plugin is loaded.
+    It runs syncronization with force_sync flag.
+    Which means it will sync even if the organization was synced recently.
+    """
     run_organization_sync(organization_pk, True)
 
 

@@ -3,7 +3,6 @@ import typing
 
 import requests
 from celery import shared_task
-from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
@@ -26,7 +25,7 @@ def send_alert_group_escalation_auditor_task_heartbeat() -> None:
         requests.get(heartbeat_url).raise_for_status()
         task_logger.info(f"Heartbeat successfully sent to {heartbeat_url}")
     else:
-        task_logger.info(f"Skipping sending heartbeat as no heartbeat URL is configured")
+        task_logger.info("Skipping sending heartbeat as no heartbeat URL is configured")
 
 
 def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
@@ -109,7 +108,7 @@ def check_escalation_finished_task() -> None:
     """
     don't retry this task, the idea is to be alerted of failures
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
 
     now = timezone.now()
     two_days_ago = now - datetime.timedelta(days=2)

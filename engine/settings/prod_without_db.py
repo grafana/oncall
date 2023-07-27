@@ -1,5 +1,7 @@
 import os
 
+from .base import *  # noqa: F401, F403
+
 try:
     import uwsgi
     from prometheus_client import multiprocess
@@ -13,7 +15,6 @@ except ModuleNotFoundError:
     # Only works under uwsgi web server environment
     pass
 
-from .base import *  # noqa
 
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
@@ -45,7 +46,6 @@ SECURE_HSTS_SECONDS = 360000
 
 CELERY_TASK_ROUTES = {
     # DEFAULT
-    "apps.alerts.tasks.call_ack_url.call_ack_url": {"queue": "default"},
     "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},

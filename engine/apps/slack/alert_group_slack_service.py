@@ -1,8 +1,6 @@
 import logging
 import typing
 
-from django.apps import apps
-
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import (
@@ -35,8 +33,8 @@ class AlertGroupSlackService:
 
     def update_alert_group_slack_message(self, alert_group: "AlertGroup") -> None:
         logger.info(f"Started _update_slack_message for alert_group {alert_group.pk}")
-        SlackMessage = apps.get_model("slack", "SlackMessage")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        from apps.alerts.models import AlertReceiveChannel
+        from apps.slack.models import SlackMessage
 
         slack_message = alert_group.slack_message
         attachments = alert_group.render_slack_attachments()
@@ -97,7 +95,8 @@ class AlertGroupSlackService:
         if alert_group.channel.is_rate_limited_in_slack:
             return
 
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        from apps.slack.models import SlackMessage
+
         slack_message = alert_group.get_slack_message()
         channel_id = slack_message.channel_id
         try:
