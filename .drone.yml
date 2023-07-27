@@ -34,19 +34,6 @@ steps:
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
 
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-    when:
-      ref:
-        - refs/tags/v*.*.*
-
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
     settings:
@@ -278,14 +265,6 @@ name: gcr_admin
 get:
   path: infra/data/ci/gcr-admin
   name: .dockerconfigjson
-
----
-# Secret for GitHub
-get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
 
 ---
 # Slack webhook
