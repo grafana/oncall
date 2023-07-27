@@ -163,6 +163,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
+    const isLegacyIntegration = (integration.value as string).toLowerCase().startsWith('legacy_');
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -207,11 +208,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             </div>
 
             <div className={cx('integration__subheading-container')}>
-              {alertReceiveChannel.description_short && (
-                <Text type="secondary" className={cx('integration__description')}>
-                  {alertReceiveChannel.description_short}
-                </Text>
-              )}
+              {this.renderDeprecatedHeaderMaybe(isLegacyIntegration)}
+
+              {this.renderDescriptionMaybe(alertReceiveChannel)}
 
               <div className={cx('no-wrap')}>
                 <IntegrationHeader
@@ -225,8 +224,11 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                 <div className={cx('integration__description-alert')}>
                   <Alert
                     style={{ marginBottom: '0' }}
-                    // @ts-ignore
-                    title={<div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>}
+                    title={
+                      (
+                        <div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>
+                      ) as any
+                    }
                     severity="info"
                   />
                 </div>
@@ -272,6 +274,38 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
           </div>
         )}
       </PageErrorHandlingWrapper>
+    );
+  }
+
+  renderDeprecatedHeaderMaybe(isLegacyIntegration: boolean) {
+    if (!isLegacyIntegration) return null;
+
+    return (
+      <Alert
+        severity="warning"
+        title={
+          (
+            <Text type="secondary">
+              This integration has been deprecated. Consider checking out the{' '}
+              <a href="https://grafana.com/docs/oncall/latest/open-source/" target="_blank" rel="noreferrer">
+                documentation
+              </a>{' '}
+              for migrating it.
+            </Text>
+          ) as any
+        }
+        className="u-margin-bottom-md"
+      />
+    );
+  }
+
+  renderDescriptionMaybe(alertReceiveChannel: AlertReceiveChannel) {
+    if (!alertReceiveChannel.description_short) return null;
+
+    return (
+      <Text type="secondary" className={cx('integration__description')}>
+        {alertReceiveChannel.description_short}
+      </Text>
     );
   }
 
@@ -528,9 +562,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       .saveTemplates(id, data)
       .then(() => {
         openNotification('The Alert templates have been updated');
-        this.setState({
-          isEditTemplateModalOpen: undefined,
-        });
+        this.setState({ isEditTemplateModalOpen: undefined });
         this.setState({ isTemplateSettingsOpen: true });
         LocationHelper.update({ template: undefined, routeId: undefined }, 'partial');
       })
@@ -876,6 +908,28 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                 </WithPermissionControlTooltip>
               )}
 
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <div
+                  className={cx('integration__actionItem')}
+                  onClick={() =>
+                    setConfirmModal({
+                      isOpen: true,
+                      title: 'Migrate Integration?',
+                      body: (
+                        <Text type="primary">
+                          Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                        </Text>
+                      ),
+                      onConfirm: onIntegrationMigrate,
+                      dismissText: 'Cancel',
+                      confirmText: 'Migrate',
+                    })
+                  }
+                >
+                  Migrate
+                </div>
+              </WithPermissionControlTooltip>
+
               <CopyToClipboard
                 text={alertReceiveChannel.id}
                 onCopy={() => openNotification('Integration ID is copied')}
@@ -900,8 +954,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                         title: 'Delete Integration?',
                         body: (
                           <Text type="primary">
-                            Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
-                            integration?{' '}
+                            Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> ?
                           </Text>
                         ),
                         onConfirm: deleteIntegration,
@@ -909,7 +962,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                         confirmText: 'Delete',
                       });
                     }}
-                    style={{ width: '100%' }}
+                    className="u-width-100"
                   >
                     <Text type="danger">
                       <HorizontalGroup spacing={'xs'}>
@@ -929,6 +982,17 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     </>
   );
 
+  function onIntegrationMigrate() {
+    alertReceiveChannelStore
+      .migrateChannelFilter(alertReceiveChannel.id)
+      .then(() => {
+        setConfirmModal(undefined);
+        openNotification('Integration has been successfully migrated.');
+      })
+      .then(() => alertReceiveChannelStore.updateItems())
+      .catch(() => openErrorNotification('An error has occurred. Please try again.'));
+  }
+
   function showHeartbeatSettings() {
     return alertReceiveChannel.is_available_for_integration_heartbeat;
   }
@@ -936,7 +1000,9 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   function deleteIntegration() {
     alertReceiveChannelStore
       .deleteAlertReceiveChannel(alertReceiveChannel.id)
-      .then(() => history.push(`${PLUGIN_ROOT}/integrations`));
+      .then(() => history.push(`${PLUGIN_ROOT}/integrations`))
+      .then(() => openNotification('Integration has been succesfully deleted.'))
+      .catch(() => openErrorNotification('An error has occurred. Please try again.'));
   }
 
   function openIntegrationSettings() {
