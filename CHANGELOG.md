@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.18 (2023-07-28)
+
 ### Changed
 
 - Update the direct paging feature to page for acknowledged & silenced alert groups,
