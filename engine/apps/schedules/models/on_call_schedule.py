@@ -1,3 +1,4 @@
+import copy
 import datetime
 import itertools
 import re
@@ -92,6 +93,15 @@ class ScheduleEventUser(typing.TypedDict):
     avatar_full: str
 
 
+class SwapRequest(typing.TypedDict):
+    pk: str
+    user: typing.Optional[ScheduleEventUser]
+
+
+class MaybeSwappedScheduleEventUser(ScheduleEventUser):
+    swap_request: typing.Optional[SwapRequest]
+
+
 class ScheduleEventShift(typing.TypedDict):
     pk: str
 
@@ -100,7 +110,7 @@ class ScheduleEvent(typing.TypedDict):
     all_day: bool
     start: datetime.datetime
     end: datetime.datetime
-    users: typing.List[ScheduleEventUser]
+    users: typing.List[MaybeSwappedScheduleEventUser]
     missing_users: typing.List[str]
     priority_level: typing.Optional[int]
     source: typing.Optional[str]
@@ -379,7 +389,12 @@ class OnCallSchedule(PolymorphicModel):
             events.append(shift_json)
 
         # combine multiple-users same-shift events into one
-        return self._merge_events(events)
+        events = self._merge_events(events)
+
+        # annotate events with swap request details swapping users as needed
+        events = self._apply_swap_requests(events, datetime_start, datetime_end)
+
+        return events
 
     def final_events(self, datetime_start, datetime_end):
         """Return schedule final events, after resolving shifts and overrides."""
@@ -600,6 +615,94 @@ class OnCallSchedule(PolymorphicModel):
             "comments": comments,
             "overloaded_users": overloaded_users,
         }
+
+    def _apply_swap_requests(self, events, datetime_start, datetime_end) -> ScheduleEvents:
+        """Apply swap requests details to schedule events."""
+        # get swaps requests affecting this schedule / time range
+        swaps = self.shift_swap_requests.filter(  # starting before but ongoing
+            swap_start__lt=datetime_start, swap_end__gte=datetime_start
+        ).union(
+            self.shift_swap_requests.filter(  # starting after but before end
+                swap_start__gte=datetime_start, swap_start__lte=datetime_end
+            )
+        )
+        swaps = swaps.order_by("created_at")
+
+        def _insert_event(index, event):
+            # add event, if any, to events list in the specified index
+            # return incremented index if the event was added
+            if event is None:
+                return index
+            events.insert(index, event)
+            return index + 1
+
+        # apply swaps sequentially
+        for swap in swaps:
+            i = 0
+            while i < len(events):
+                event = events.pop(i)
+
+                if event["start"] > swap.swap_end or event["end"] < swap.swap_start:
+                    # event outside the swap period, keep as it is and continue
+                    i = _insert_event(i, event)
+                    continue
+
+                users = set(u["pk"] for u in event["users"])
+                if swap.beneficiary.public_primary_key in users:
+                    # swap request affects current event
+
+                    split_before = None
+                    if event["start"] < swap.swap_start:
+                        # partially included start -> split
+                        split_before = copy.deepcopy(event)
+                        split_before["end"] = swap.swap_start
+                        # update event to swap
+                        event["start"] = swap.swap_start
+
+                    split_after = None
+                    if event["end"] > swap.swap_end:
+                        # partially included end -> split
+                        split_after = copy.deepcopy(event)
+                        split_after["start"] = swap.swap_end
+                        # update event to swap
+                        event["end"] = swap.swap_end
+
+                    # identify user to swap
+                    user_to_swap = None
+                    for u in event["users"]:
+                        if u["pk"] == swap.beneficiary.public_primary_key:
+                            user_to_swap = u
+                            break
+
+                    # apply swap changes to event user
+                    swap_details = {"pk": swap.public_primary_key}
+                    if swap.benefactor:
+                        # swap is taken, update user in shift
+                        user_to_swap["pk"] = swap.benefactor.public_primary_key
+                        user_to_swap["display_name"] = swap.benefactor.username
+                        user_to_swap["email"] = swap.benefactor.email
+                        user_to_swap["avatar_full"] = swap.benefactor.avatar_full_url
+                        # add beneficiary user to details
+                        swap_details["user"] = {
+                            "display_name": swap.beneficiary.username,
+                            "email": swap.beneficiary.email,
+                            "pk": swap.beneficiary.public_primary_key,
+                            "avatar_full": swap.beneficiary.avatar_full_url,
+                        }
+                    user_to_swap["swap_request"] = swap_details
+
+                    # update events list
+                    # keep first split event in its original index
+                    i = _insert_event(i, split_before)
+                    # insert updated swap-related event
+                    i = _insert_event(i, event)
+                    # keep second split event after swap
+                    i = _insert_event(i, split_after)
+                else:
+                    # event for different user(s), keep as it is and continue
+                    i = _insert_event(i, event)
+
+        return events
 
     def _resolve_schedule(
         self, events: ScheduleEvents, datetime_start: datetime.datetime, datetime_end: datetime.datetime

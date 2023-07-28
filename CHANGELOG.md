@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix one of the latest migrations failing on SQLite by @vadimkerr ([#2680](https://github.com/grafana/oncall/pull/2680))
 
+### Added
+
+- Apply swap requests details to schedule events ([#2677](https://github.com/grafana/oncall/pull/2677))
+
 ## v1.3.18 (2023-07-28)
 
 ### Changed
