@@ -14,6 +14,13 @@ weight: 100
 
 # Grafana Alerting integration for Grafana OnCall
 
+> ⚠️ A note about **(Legacy)** integrations: We are introducing new AlertManager integration with enhanced grouping and auto-resolve mechanism.
+> Integrations that were created before version **VERSION** are marked as **(Legacy)**.
+> These integrations are still functional, receiving and escalating alerts, but will be automatically migrated after DEPRECATION_DATE.
+> Integration urls will not be changed during the migration, so no changes in AlertManager configuration is required.
+> To ensure a smooth transition you can migrate them by yourself now.
+> [Here][migration] you can read more about migration process.
+
 Grafana Alerting for Grafana OnCall can be set up using two methods:
 
 - Grafana Alerting: Grafana OnCall is connected to the same Grafana instance being used to manage Grafana OnCall.
@@ -64,3 +71,8 @@ OnCall is being managed:
    > see [Contact points in Grafana Alerting](https://grafana.com/docs/grafana/latest/alerting/unified-alerting/contact-points/).
 
 8. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
+
+{{% docs/reference %}}
+[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager#migrating-from-legacy-alertmanager-integration"
+[migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#migrating-from-legacy-alertmanager-integration"
+{{% /docs/reference %}}

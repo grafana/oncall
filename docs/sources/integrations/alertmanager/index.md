@@ -118,6 +118,8 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
 
 ## Migrating from Legacy AlertManager Integration
 
+> Information below also works for Grafana Alerting integration since it using AlertManager under the hood
+
 Before we were using each alert from AlertManager group as a separate payload:
 
 ```json
