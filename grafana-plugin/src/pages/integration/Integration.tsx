@@ -292,7 +292,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
           title={
             (
               <Text type="secondary">
-                We are introducing new AlertManager integration. This integration is marked as Legacy and will be
+                We are introducing new AlertManager integration. Existing integration is marked as Legacy and will be
                 migrated after DATE.
                 <br />
                 Please, check{' '}

@@ -155,7 +155,7 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 
 ### How to migrate
 
-> Integration URL will stay the same, so no need to change AlertManager  or Grafana Alerting configuration.
+> Integration URL will stay the same, so no need to change AlertManager or Grafana Alerting configuration.
 > Integration templates will be reset to suit new payload.
 > It is needed to adjust routes manually to new payload.
 
