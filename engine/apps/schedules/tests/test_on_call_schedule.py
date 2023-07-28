@@ -1837,3 +1837,404 @@ def test_event_until_non_utc(make_organization, make_schedule):
     # check this works without raising exception
     datetime_end = now + timezone.timedelta(days=7)
     schedule.final_events(now, datetime_end)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("swap_taken", [False, True])
+def test_swap_request_split_start(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+    swap_taken,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=12)
+    duration = timezone.timedelta(hours=3)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    tomorrow = today + timezone.timedelta(days=1)
+    # setup swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=tomorrow + timezone.timedelta(hours=13),
+        swap_end=tomorrow + timezone.timedelta(hours=18),
+    )
+    if swap_taken:
+        swap_request.take(other_user)
+
+    events = schedule.filter_events(today, today + timezone.timedelta(days=2))
+
+    expected = [
+        # start, end, swap requested
+        (start, start + duration, False),  # today shift unchanged
+        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=1), False),  # first split
+        (
+            start + timezone.timedelta(days=1, hours=1),
+            start + timezone.timedelta(days=1, hours=3),
+            True,
+        ),  # second split
+    ]
+    returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
+    assert returned == expected
+    # check swap request details
+    assert events[2]["users"][0]["swap_request"]["pk"] == swap_request.public_primary_key
+    if swap_taken:
+        assert events[2]["users"][0]["pk"] == other_user.public_primary_key
+        assert events[2]["users"][0]["swap_request"]["user"]["pk"] == user.public_primary_key
+    else:
+        assert events[2]["users"][0]["pk"] == user.public_primary_key
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("swap_taken", [False, True])
+def test_swap_request_split_end(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+    swap_taken,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=12)
+    duration = timezone.timedelta(hours=3)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    tomorrow = today + timezone.timedelta(days=1)
+    # setup swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=tomorrow + timezone.timedelta(hours=10),
+        swap_end=tomorrow + timezone.timedelta(hours=13),
+    )
+    if swap_taken:
+        swap_request.take(other_user)
+
+    events = schedule.filter_events(today, today + timezone.timedelta(days=2))
+
+    expected = [
+        # start, end, swap requested
+        (start, start + duration, False),  # today shift unchanged
+        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=1), True),  # first split
+        (
+            start + timezone.timedelta(days=1, hours=1),
+            start + timezone.timedelta(days=1, hours=3),
+            False,
+        ),  # second split
+    ]
+    returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
+    assert returned == expected
+    # check swap request details
+    assert events[1]["users"][0]["swap_request"]["pk"] == swap_request.public_primary_key
+    if swap_taken:
+        assert events[1]["users"][0]["pk"] == other_user.public_primary_key
+        assert events[1]["users"][0]["swap_request"]["user"]["pk"] == user.public_primary_key
+    else:
+        assert events[1]["users"][0]["pk"] == user.public_primary_key
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("swap_taken", [False, True])
+def test_swap_request_split_both(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+    swap_taken,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=12)
+    duration = timezone.timedelta(hours=3)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    tomorrow = today + timezone.timedelta(days=1)
+    # setup swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=tomorrow + timezone.timedelta(hours=13),
+        swap_end=tomorrow + timezone.timedelta(hours=14),
+    )
+    if swap_taken:
+        swap_request.take(other_user)
+
+    events = schedule.filter_events(today, today + timezone.timedelta(days=2))
+
+    expected = [
+        # start, end, swap requested
+        (start, start + duration, False),  # today shift unchanged
+        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=1), False),  # first split
+        (
+            start + timezone.timedelta(days=1, hours=1),
+            start + timezone.timedelta(days=1, hours=2),
+            True,
+        ),  # second split
+        (
+            start + timezone.timedelta(days=1, hours=2),
+            start + timezone.timedelta(days=1, hours=3),
+            False,
+        ),  # third split
+    ]
+    returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
+    assert returned == expected
+    # check swap request details
+    assert events[2]["users"][0]["swap_request"]["pk"] == swap_request.public_primary_key
+    if swap_taken:
+        assert events[2]["users"][0]["pk"] == other_user.public_primary_key
+        assert events[2]["users"][0]["swap_request"]["user"]["pk"] == user.public_primary_key
+    else:
+        assert events[2]["users"][0]["pk"] == user.public_primary_key
+
+    # check cached final schedule reflects swap
+    # force final schedule export to consider 2 days only
+    with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_AFTER", 2):
+        with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_BEFORE", 0):
+            schedule.refresh_ical_final_schedule()
+    assert schedule.cached_ical_final_schedule
+    expected_events = [
+        # start, end, user
+        (start, start + duration, user.username),  # today shift unchanged
+        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=1), user.username),  # first split
+        (
+            start + timezone.timedelta(days=1, hours=1),
+            start + timezone.timedelta(days=1, hours=2),
+            other_user.username if swap_taken else user.username,
+        ),  # second split
+        (
+            start + timezone.timedelta(days=1, hours=2),
+            start + timezone.timedelta(days=1, hours=3),
+            user.username,
+        ),  # third split
+    ]
+    calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
+    for component in calendar.walk():
+        if component.name == ICAL_COMPONENT_VEVENT:
+            event = (
+                component[ICAL_DATETIME_START].dt,
+                component[ICAL_DATETIME_END].dt,
+                component[ICAL_SUMMARY],
+            )
+            assert event in expected_events
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("swap_taken", [False, True])
+def test_swap_request_whole_shift(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+    swap_taken,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=12)
+    duration = timezone.timedelta(hours=3)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    tomorrow = today + timezone.timedelta(days=1)
+    # setup swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=tomorrow + timezone.timedelta(hours=12),
+        swap_end=tomorrow + timezone.timedelta(hours=15),
+    )
+    if swap_taken:
+        swap_request.take(other_user)
+
+    events = schedule.filter_events(today, today + timezone.timedelta(days=2))
+
+    expected = [
+        # start, end, swap requested
+        (start, start + duration, False),  # today shift unchanged
+        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=3), True),  # no splits
+    ]
+    returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
+    assert returned == expected
+    # check swap request details
+    assert events[1]["users"][0]["swap_request"]["pk"] == swap_request.public_primary_key
+    if swap_taken:
+        assert events[1]["users"][0]["pk"] == other_user.public_primary_key
+        assert events[1]["users"][0]["swap_request"]["user"]["pk"] == user.public_primary_key
+    else:
+        assert events[1]["users"][0]["pk"] == user.public_primary_key
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("swap_taken", [False, True])
+def test_swap_request_partial_replace(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+    swap_taken,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    another_user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=12)
+    duration = timezone.timedelta(hours=3)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user, another_user]])
+
+    tomorrow = today + timezone.timedelta(days=1)
+    # setup swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=tomorrow + timezone.timedelta(hours=10),
+        swap_end=tomorrow + timezone.timedelta(hours=13),
+    )
+    if swap_taken:
+        swap_request.take(other_user)
+
+    events = schedule.filter_events(today, today + timezone.timedelta(days=2))
+
+    expected = [
+        # start, end, swap requested
+        (start, start + duration, False),  # today shift unchanged
+        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=1), True),  # first split
+        (
+            start + timezone.timedelta(days=1, hours=1),
+            start + timezone.timedelta(days=1, hours=3),
+            False,
+        ),  # second split
+    ]
+    returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
+    assert returned == expected
+    # check swap request details
+    assert events[1]["users"][0]["swap_request"]["pk"] == swap_request.public_primary_key
+    if swap_taken:
+        assert events[1]["users"][0]["pk"] == other_user.public_primary_key
+        assert events[1]["users"][0]["swap_request"]["user"]["pk"] == user.public_primary_key
+    else:
+        assert events[1]["users"][0]["pk"] == user.public_primary_key
+    assert events[1]["users"][1]["pk"] == another_user.public_primary_key
+
+
+@pytest.mark.django_db
+def test_swap_request_no_changes(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=12)
+    duration = timezone.timedelta(hours=3)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    events_before = schedule.filter_events(today, today + timezone.timedelta(days=2))
+
+    # setup swap requests
+    tomorrow = today + timezone.timedelta(days=1)
+    make_shift_swap_request(schedule, other_user, swap_start=today, swap_end=tomorrow)
+    make_shift_swap_request(schedule, user, swap_start=today, swap_end=tomorrow, deleted_at=today)
+    make_shift_swap_request(
+        schedule, user, swap_start=today - timezone.timedelta(days=7), swap_end=tomorrow - timezone.timedelta(days=7)
+    )
+
+    events_after = schedule.filter_events(today, today + timezone.timedelta(days=2))
+    assert events_before == events_after

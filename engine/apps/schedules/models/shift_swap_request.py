@@ -7,6 +7,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.schedules import exceptions
+from apps.schedules.tasks import refresh_ical_final_schedule
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
@@ -156,9 +157,13 @@ class ShiftSwapRequest(models.Model):
     def delete(self):
         self.deleted_at = timezone.now()
         self.save()
+        # make sure final schedule ical representation is updated
+        refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
     def hard_delete(self):
         super().delete()
+        # make sure final schedule ical representation is updated
+        refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
     def take(self, benefactor: "User") -> None:
         if benefactor == self.beneficiary:
@@ -169,7 +174,8 @@ class ShiftSwapRequest(models.Model):
         self.benefactor = benefactor
         self.save()
 
-        # TODO: implement the actual override logic in https://github.com/grafana/oncall/issues/2590
+        # make sure final schedule ical representation is updated
+        refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
     # Insight logs
     @property
