@@ -26,6 +26,7 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -35,7 +36,6 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
 import styles from './Integrations.module.scss';
-import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
