@@ -15,12 +15,13 @@ weight: 300
 
 # Alertmanager integration for Grafana OnCall
 
-> ⚠️ A note about **(Legacy)** integrations: We are introducing new AlertManager integration with enhanced grouping and auto-resolve mechanism.
+> ⚠️ A note about **(Legacy)** integrations:
+> We are changing internal behaviour of AlertManager integration.
 > Integrations that were created before version **VERSION** are marked as **(Legacy)**.
-> These integrations are still functional, receiving and escalating alerts, but will be automatically migrated after DEPRECATION_DATE.
-> Integration urls will not be changed during the migration, so no changes in AlertManager configuration is required.
+> These integrations are still receiving and escalating alerts but will be automatically migrated after DEPRECATION_DATE.
+> <br/><br/>
 > To ensure a smooth transition you can migrate them by yourself now.
-> [Here][migration] you can read more about migration process.
+> [Here][migration] you can read more about changes and migration process.
 
 The Alertmanager integration handles alerts from [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/).
 This integration is the recommended way to send alerts from Prometheus deployed in your infrastructure, to Grafana OnCall.
@@ -116,9 +117,7 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
               send_resolved: false
 ```
 
-## Migrating from Legacy AlertManager Integration
-
-> Information below also works for Grafana Alerting integration since it using AlertManager under the hood
+## Migrating from Legacy Integration
 
 Before we were using each alert from AlertManager group as a separate payload:
 
@@ -152,14 +151,17 @@ We decided to change this behaviour to respect AlertManager grouping by treating
 }
 ```
 
+You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data).
+
 ### How to migrate
+
+> Integration URL will stay the same, so no need to change AlertManager  or Grafana Alerting configuration.
+> Integration templates will be reset to suit new payload.
+> It is needed to adjust routes manually to new payload.
 
 1. Go to **Integration Page**, click on three dots on top right, click **Migrate**
 2. Confirmation Modal will be shown, read it carefully and proceed with migration.
-3. Integration will be updated, integration url will stay the same, templates will be reset.
-4. Adjust templates and routes to the new shape of payload.
-
-You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data).
+3. Adjust routes to the new shape of payload.
 
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"

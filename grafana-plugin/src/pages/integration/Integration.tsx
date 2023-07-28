@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { KeyValue } from '@grafana/data';
 import {
   Button,
   HorizontalGroup,
@@ -70,7 +71,6 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
-import { KeyValue } from '@grafana/data';
 
 const cx = cn.bind(styles);
 
@@ -281,7 +281,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   renderDeprecatedHeaderMaybe(isLegacyIntegration: boolean) {
-    if (!isLegacyIntegration) return null;
+    if (!isLegacyIntegration) {
+      return null;
+    }
 
     return (
       <div className="u-padding-top-md">
@@ -290,11 +292,18 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
           title={
             (
               <Text type="secondary">
-                This integration has been deprecated. Consider checking out the{' '}
-                <a href="https://grafana.com/docs/oncall/latest/integrations/" target="_blank" rel="noreferrer">
+                We are introducing new AlertManager integration. This integration is marked as Legacy and will be
+                migrated after DATE.
+                <br />
+                Please, check{' '}
+                <a
+                  href="https://grafana.com/docs/oncall/latest/integrations/alertmanager"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   documentation
                 </a>{' '}
-                for migrating it.
+                for more information.
               </Text>
             ) as any
           }
@@ -304,7 +313,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   renderDescriptionMaybe(alertReceiveChannel: AlertReceiveChannel) {
-    if (!alertReceiveChannel.description_short) return null;
+    if (!alertReceiveChannel.description_short) {
+      return null;
+    }
 
     return (
       <Text type="secondary" className={cx('integration__description')}>
@@ -926,6 +937,15 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                         title: 'Migrate Integration?',
                         body: (
                           <Text type="primary">
+                            – Integration internal behaviour will be changed
+                            <br />
+                            – Integration URL will stay the same, so no need to change AlertManager or Grafana Alerting
+                            configuration.
+                            <br />
+                            – Integration templates will be reset to suit new payload.
+                            <br />
+                            – It is needed to adjust routes manually to new payload
+                            <br />
                             Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
                           </Text>
                         ),

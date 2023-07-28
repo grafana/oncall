@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Post to Telegram ChatOps channel option is not showing in the integrations page
   by @alexintech ([#2498](https://github.com/grafana/oncall/pull/2498))
 
-
 ## v1.3.17 (2023-07-25)
 
 ### Added

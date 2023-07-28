@@ -14,12 +14,13 @@ weight: 100
 
 # Grafana Alerting integration for Grafana OnCall
 
-> ⚠️ A note about **(Legacy)** integrations: We are introducing new AlertManager integration with enhanced grouping and auto-resolve mechanism.
+> ⚠️ A note about **(Legacy)** integrations:
+> We are changing internal behaviour of Grafana Alerting integration.
 > Integrations that were created before version **VERSION** are marked as **(Legacy)**.
-> These integrations are still functional, receiving and escalating alerts, but will be automatically migrated after DEPRECATION_DATE.
-> Integration urls will not be changed during the migration, so no changes in AlertManager configuration is required.
+> These integrations are still receiving and escalating alerts but will be automatically migrated after DEPRECATION_DATE.
+> <br/><br/>
 > To ensure a smooth transition you can migrate them by yourself now.
-> [Here][migration] you can read more about migration process.
+> [Here][migration] you can read more about changes and migration process.
 
 Grafana Alerting for Grafana OnCall can be set up using two methods:
 
@@ -71,6 +72,52 @@ OnCall is being managed:
    > see [Contact points in Grafana Alerting](https://grafana.com/docs/grafana/latest/alerting/unified-alerting/contact-points/).
 
 8. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
+
+## Migrating from Legacy Integration
+
+Before we were using each alert from Grafana Alerting group as a separate payload:
+
+```json
+{
+            "labels": {
+                "severity": "critical",
+                "alertname": "InstanceDown"
+            },
+            "annotations": {
+                "title": "Instance localhost:8081 down",
+                "description": "Node has been down for more than 1 minute"
+            },
+            ...
+}
+```
+
+This behaviour was leading to mismatch in alert state between OnCall and Grafana Alerting and draining of rate-limits,
+since each Grafana Alerting alert was counted for them.
+
+We decided to change this behaviour to respect Grafana Alerting grouping by treating AlertManager group as one payload.
+
+```json
+{
+    "alerts": [...],
+    "groupLabels": {"alertname": "InstanceDown"},
+    "commonLabels": {"job": "node",  "alertname": "InstanceDown"},
+    "commonAnnotations": {"description": "Node has been down for more than 1 minute"},
+    "groupKey": "{}:{alertname=\"InstanceDown\"}",
+    ...
+}
+```
+
+You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data).
+
+### How to migrate
+
+> Integration URL will stay the same, so no need to make changes on Grafana Alerting side.
+> Integration templates will be reset to suit new payload.
+> It is needed to adjust routes manually to new payload.
+
+1. Go to **Integration Page**, click on three dots on top right, click **Migrate**
+2. Confirmation Modal will be shown, read it carefully and proceed with migration.
+3. Adjust routes to the new shape of payload.
 
 {{% docs/reference %}}
 [migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager#migrating-from-legacy-alertmanager-integration"
