@@ -1,4 +1,5 @@
 import logging
+import typing
 
 from django.db import models
 from django.db.models import JSONField
@@ -10,10 +11,17 @@ from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenE
 from apps.user_management.models.user import User
 from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.user_management.models import Organization
+
 logger = logging.getLogger(__name__)
 
 
 class SlackTeamIdentity(models.Model):
+    organizations: "RelatedManager['Organization']"
+
     id = models.AutoField(primary_key=True)
     slack_id = models.CharField(max_length=100)
     cached_name = models.CharField(max_length=100, null=True, default=None)

@@ -4,13 +4,7 @@ import pytest
 from django.utils import timezone
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, UserHasNotification
-from apps.alerts.paging import (
-    USER_HAS_NO_NOTIFICATION_POLICY,
-    USER_IS_NOT_ON_CALL,
-    check_user_availability,
-    direct_paging,
-    unpage_user,
-)
+from apps.alerts.paging import PagingError, check_user_availability, direct_paging, unpage_user
 from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 
@@ -72,8 +66,8 @@ def test_check_user_availability_no_policies(make_organization, make_user_for_or
 
     warnings = check_user_availability(user)
     assert warnings == [
-        {"data": {}, "error": USER_HAS_NO_NOTIFICATION_POLICY},
-        {"data": {"schedules": {}}, "error": USER_IS_NOT_ON_CALL},
+        {"data": {}, "error": PagingError.USER_HAS_NO_NOTIFICATION_POLICY},
+        {"data": {"schedules": {}}, "error": PagingError.USER_IS_NOT_ON_CALL},
     ]
 
 
@@ -97,7 +91,10 @@ def test_check_user_availability_not_on_call(
 
     warnings = check_user_availability(user)
     assert warnings == [
-        {"data": {"schedules": {schedule.name: {other_user.public_primary_key}}}, "error": USER_IS_NOT_ON_CALL},
+        {
+            "data": {"schedules": {schedule.name: {other_user.public_primary_key}}},
+            "error": PagingError.USER_IS_NOT_ON_CALL,
+        },
     ]
 
 
