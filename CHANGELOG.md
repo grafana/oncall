@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.18 (2023-07-28)
+
 ### Changed
 
 - Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
