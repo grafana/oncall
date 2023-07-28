@@ -621,8 +621,10 @@ class OnCallSchedule(PolymorphicModel):
         # get swaps requests affecting this schedule / time range
         swaps = self.shift_swap_requests.filter(  # starting before but ongoing
             swap_start__lt=datetime_start, swap_end__gte=datetime_start
-        ) | self.shift_swap_requests.filter(  # starting after but before end
-            swap_start__gte=datetime_start, swap_start__lte=datetime_end
+        ).union(
+            self.shift_swap_requests.filter(  # starting after but before end
+                swap_start__gte=datetime_start, swap_start__lte=datetime_end
+            )
         )
         swaps = swaps.order_by("created_at")
 
