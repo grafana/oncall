@@ -1857,6 +1857,44 @@ def test_events_permissions(
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
         (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_filter_shift_swaps_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        name="test_ical_schedule",
+        ical_url_primary=ICAL_URL,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-filter-shift-swaps", kwargs={"pk": schedule.public_primary_key})
+
+    with patch(
+        "apps.api.views.schedule.ScheduleView.filter_shift_swaps",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
