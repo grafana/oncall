@@ -93,6 +93,15 @@ class ScheduleEventUser(typing.TypedDict):
     avatar_full: str
 
 
+class SwapRequest(typing.TypedDict):
+    pk: str
+    user: typing.Optional[ScheduleEventUser]
+
+
+class MaybeSwappedScheduleEventUser(ScheduleEventUser):
+    swap_request: typing.Optional[SwapRequest]
+
+
 class ScheduleEventShift(typing.TypedDict):
     pk: str
 
@@ -101,7 +110,7 @@ class ScheduleEvent(typing.TypedDict):
     all_day: bool
     start: datetime.datetime
     end: datetime.datetime
-    users: typing.List[ScheduleEventUser]
+    users: typing.List[MaybeSwappedScheduleEventUser]
     missing_users: typing.List[str]
     priority_level: typing.Optional[int]
     source: typing.Optional[str]
