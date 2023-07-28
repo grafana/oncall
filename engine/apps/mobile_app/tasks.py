@@ -76,7 +76,7 @@ def _send_push_notification(
 
         if not CloudConnector.objects.exists():
             _error_cb()
-            logger.error(f"Error while sending a mobile push notification: not connected to cloud")
+            logger.error("Error while sending a mobile push notification: not connected to cloud")
             return
 
         try:

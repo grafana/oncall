@@ -496,7 +496,7 @@ def _get_team_select_blocks(slack_user_identity, organization, is_selected, valu
         {
             "text": {
                 "type": "plain_text",
-                "text": f"No team",
+                "text": "No team",
                 "emoji": True,
             },
             "value": DEFAULT_TEAM_VALUE,

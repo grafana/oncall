@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from django.db import transaction
@@ -24,6 +24,12 @@ USER_IS_NOT_ON_CALL = "USER_IS_NOT_ON_CALL"
 # notifications: (User|Schedule, important)
 UserNotifications = list[tuple[User, bool]]
 ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
+
+
+class DirectPagingAlertGroupResolvedError(Exception):
+    """Raised when trying to use direct paging for a resolved alert group."""
+
+    DETAIL = "Cannot add responders for a resolved alert group"  # Returned in BadRequest responses and Slack warnings
 
 
 def _trigger_alert(
@@ -140,8 +146,8 @@ def direct_paging(
     users: UserNotifications = None,
     schedules: ScheduleNotifications = None,
     escalation_chain: EscalationChain = None,
-    alert_group: AlertGroup = None,
-) -> Optional[AlertGroup]:
+    alert_group: AlertGroup | None = None,
+) -> AlertGroup | None:
     """Trigger escalation targeting given users/schedules.
 
     If an alert group is given, update escalation to include the specified users.
@@ -157,6 +163,10 @@ def direct_paging(
 
     if escalation_chain is not None and alert_group is not None:
         raise ValueError("Cannot change an existing alert group escalation chain")
+
+    # Cannot add responders to a resolved alert group
+    if alert_group and alert_group.resolved:
+        raise DirectPagingAlertGroupResolvedError
 
     # create alert group if needed
     if alert_group is None:
@@ -190,7 +200,9 @@ def direct_paging(
                 "important": important,
             },
         )
-        notify_user_task.apply_async((u.pk, alert_group.pk), {"important": important})
+        notify_user_task.apply_async(
+            (u.pk, alert_group.pk), {"important": important, "notify_even_acknowledged": True, "notify_anyway": True}
+        )
 
     return alert_group
 

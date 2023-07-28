@@ -35,7 +35,7 @@ class GrafanaPluginConfig(AppConfig):
                 # and the GRAFANA_API_URL env var is not specified, exit the application
                 if has_existing_org is False and settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"] is None:
                     logger.error(
-                        f"For OSS installations, GRAFANA_API_URL is a required environment variable. Please set it and restart the application."
+                        "For OSS installations, GRAFANA_API_URL is a required environment variable. Please set it and restart the application."
                     )
                     sys.exit()
             except OperationalError:

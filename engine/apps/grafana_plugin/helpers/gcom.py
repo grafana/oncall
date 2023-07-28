@@ -50,7 +50,8 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
             name="allow_plugin_organization_signup", defaults={"boolean_value": True}
         )[0].boolean_value
         if allow_signup:
-            organization = Organization.objects.create(
+            # Get org from db or create a new one
+            organization, _ = Organization.objects.get_or_create(
                 stack_id=str(instance_info["id"]),
                 stack_slug=instance_info["slug"],
                 grafana_url=instance_info["url"],
@@ -60,7 +61,7 @@ def check_gcom_permission(token_string: str, context) -> GcomToken:
                 region_slug=instance_info["regionSlug"],
                 cluster_slug=instance_info["clusterSlug"],
                 gcom_token=token_string,
-                gcom_token_org_last_time_synced=timezone.now(),
+                defaults={"gcom_token_org_last_time_synced": timezone.now()},
             )
     else:
         organization.stack_slug = instance_info["slug"]

@@ -364,7 +364,7 @@ def _get_team_select(slack_user_identity, organization, value, input_id_prefix):
         {
             "text": {
                 "type": "plain_text",
-                "text": f"General",
+                "text": "General",
                 "emoji": True,
             },
             "value": DEFAULT_TEAM_VALUE,
