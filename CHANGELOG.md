@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.18 (2023-07-28)
+
 ### Changed
 
 - Update the direct paging feature to page for acknowledged & silenced alert groups,
   and show a warning for resolved alert groups by @vadimkerr ([#2639](https://github.com/grafana/oncall/pull/2639))
 - Change calls to get instances from GCOM to paginate by @mderynck ([#2669](https://github.com/grafana/oncall/pull/2669))
+- Update checking on-call users to use schedule final events ([#2651](https://github.com/grafana/oncall/pull/2651))
 
 ### Fixed
 
