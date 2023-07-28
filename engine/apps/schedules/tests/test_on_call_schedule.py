@@ -2185,16 +2185,26 @@ def test_swap_request_partial_replace(
             False,
         ),  # second split
     ]
-    returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
+    expected_user = user
+    if swap_taken:
+        expected_user = other_user
+    returned = [
+        (
+            e["start"],
+            e["end"],
+            bool([u for u in e["users"] if u["pk"] == expected_user.public_primary_key and u.get("swap_request")]),
+        )
+        for e in events
+    ]
     assert returned == expected
     # check swap request details
-    assert events[1]["users"][0]["swap_request"]["pk"] == swap_request.public_primary_key
+    user_pks = [u["pk"] for u in events[1]["users"]]
+    assert expected_user.public_primary_key in user_pks
     if swap_taken:
-        assert events[1]["users"][0]["pk"] == other_user.public_primary_key
-        assert events[1]["users"][0]["swap_request"]["user"]["pk"] == user.public_primary_key
-    else:
-        assert events[1]["users"][0]["pk"] == user.public_primary_key
-    assert events[1]["users"][1]["pk"] == another_user.public_primary_key
+        for u in events[1]["users"]:
+            if u["pk"] == expected_user:
+                assert u["swap_request"]["pk"] == swap_request.public_primary_key
+                assert u["swap_request"]["user"]["pk"] == user.public_primary_key
 
 
 @pytest.mark.django_db

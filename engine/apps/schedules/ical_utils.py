@@ -40,6 +40,7 @@ if TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
     from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
     from apps.user_management.models import Organization, User
+    from apps.user_management.models.user import UserQuerySet
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -60,7 +61,7 @@ IcalEvents = typing.List[IcalEvent]
 def users_in_ical(
     usernames_from_ical: typing.List[str],
     organization: "Organization",
-) -> typing.Sequence["User"]:
+) -> "UserQuerySet":
     """
     This method returns a sequence of `User` objects, filtered by users whose username, or case-insensitive e-mail,
     is present in `usernames_from_ical`. If `include_viewers` is set to `True`, users are further filtered down
@@ -90,9 +91,7 @@ def users_in_ical(
 
 
 @timed_lru_cache(timeout=100)
-def memoized_users_in_ical(
-    usernames_from_ical: typing.List[str], organization: "Organization"
-) -> typing.Sequence["User"]:
+def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: "Organization") -> UserQuerySet:
     # using in-memory cache instead of redis to avoid pickling python objects
     return users_in_ical(usernames_from_ical, organization)
 
@@ -336,7 +335,7 @@ def list_users_to_notify_from_ical_for_period(
     schedule: "OnCallSchedule",
     start_datetime: datetime.datetime,
     end_datetime: datetime.datetime,
-) -> typing.Sequence["User"]:
+) -> UserQuerySet:
     users_found_in_ical: typing.Sequence["User"] = []
     events = schedule.final_events(start_datetime, end_datetime)
     usernames = []
@@ -349,7 +348,7 @@ def list_users_to_notify_from_ical_for_period(
 
 def get_oncall_users_for_multiple_schedules(
     schedules: "OnCallScheduleQuerySet", events_datetime=None
-) -> typing.Dict["OnCallSchedule", typing.List[User]]:
+) -> typing.Dict["OnCallSchedule", UserQuerySet]:
     if events_datetime is None:
         events_datetime = datetime.datetime.now(timezone.utc)
 
