@@ -164,7 +164,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-    const isLegacyIntegration = (integration.value as string).toLowerCase().startsWith('legacy_');
+    const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -211,7 +211,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             </div>
 
             <div className={cx('integration__subheading-container')}>
-              {this.renderDeprecatedHeaderMaybe(isLegacyIntegration)}
+              {this.renderDeprecatedHeaderMaybe(integration, isLegacyIntegration)}
 
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
@@ -280,7 +280,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     );
   }
 
-  renderDeprecatedHeaderMaybe(isLegacyIntegration: boolean) {
+  renderDeprecatedHeaderMaybe(integration: SelectOption, isLegacyIntegration: boolean) {
     if (!isLegacyIntegration) {
       return null;
     }
@@ -291,25 +291,36 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
           severity="warning"
           title={
             (
-              <Text type="secondary">
-                We are introducing new AlertManager integration. Existing integration is marked as Legacy and will be
-                migrated after DATE.
-                <br />
-                Please, check{' '}
-                <a
-                  href="https://grafana.com/docs/oncall/latest/integrations/alertmanager"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  documentation
-                </a>{' '}
-                for more information.
-              </Text>
+              <VerticalGroup>
+                <Text type="secondary">
+                  We are introducing a new {getDisplayName()} integration. The existing integration is marked as Legacy
+                  and will be migrated after DATE.
+                </Text>
+                <Text type="secondary">
+                  Please, check{' '}
+                  <a
+                    href={`https://grafana.com/docs/oncall/latest/integrations/${getIntegrationName()}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    documentation
+                  </a>{' '}
+                  for more information.
+                </Text>
+              </VerticalGroup>
             ) as any
           }
         />
       </div>
     );
+
+    function getDisplayName() {
+      return integration.display_name.toString().replace('(Legacy) ', '');
+    }
+
+    function getIntegrationName() {
+      return integration.value.toString().replace('legacy_', '').replace('_', '-');
+    }
   }
 
   renderDescriptionMaybe(alertReceiveChannel: AlertReceiveChannel) {
@@ -936,18 +947,23 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
                         isOpen: true,
                         title: 'Migrate Integration?',
                         body: (
-                          <Text type="primary">
-                            – Integration internal behaviour will be changed
-                            <br />
-                            – Integration URL will stay the same, so no need to change AlertManager or Grafana Alerting
-                            configuration.
-                            <br />
-                            – Integration templates will be reset to suit new payload.
-                            <br />
-                            – It is needed to adjust routes manually to new payload
-                            <br />
-                            Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
-                          </Text>
+                          <VerticalGroup spacing="lg">
+                            <Text type="primary">
+                              Are you sure you want to migrate <Emoji text={alertReceiveChannel.verbal_name} /> ?
+                            </Text>
+
+                            <VerticalGroup spacing="xs">
+                              <Text type="secondary">- Integration internal behaviour will be changed</Text>
+                              <Text type="secondary">
+                                - Integration URL will stay the same, so no need to change {getMigrationDisplayName()}{' '}
+                                configuration
+                              </Text>
+                              <Text type="secondary">
+                                - Integration templates will be reset to suit the new payload
+                              </Text>
+                              <Text type="secondary">- It is needed to adjust routes manually to the new payload</Text>
+                            </VerticalGroup>
+                          </VerticalGroup>
                         ),
                         onConfirm: onIntegrationMigrate,
                         dismissText: 'Cancel',
@@ -1011,6 +1027,17 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       </div>
     </>
   );
+
+  function getMigrationDisplayName() {
+    const name = alertReceiveChannel.integration.toLowerCase().replace('legacy_', '');
+    switch (name) {
+      case 'grafana_alerting':
+        return 'Grafana Alerting';
+      case 'alertmanager':
+      default:
+        return 'AlertManager';
+    }
+  }
 
   function onIntegrationMigrate() {
     alertReceiveChannelStore
