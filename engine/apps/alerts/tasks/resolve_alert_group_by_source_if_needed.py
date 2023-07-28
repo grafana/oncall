@@ -20,7 +20,6 @@ def resolve_alert_group_by_source_if_needed(alert_group_pk):
             alert_group.active_resolve_calculation_id
         )
     else:
-
         is_more_than_max_alerts_in_group = alert_group.alerts_count_gt(
             AlertGroupForAlertManager.MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE
         )

@@ -47,7 +47,8 @@ button on the specific alert group's page. Here you can select more users, or ch
 schedules. The same functionality is available in Slack using the **Responders** button in the alert group's message.
 
 Notifying additional responders doesn't disrupt or interfere with the escalation chain configured for the alert group;
-it simply adds more responders and notifies them immediately.
+it simply adds more responders and notifies them immediately. Note that adding responders for an existing alert group
+will page them even if the alert group is silenced or acknowledged, but not if the alert group is resolved.
 
 > It's not possible to page a team for an existing alert group. To page a specific team, you need to
 [create a new alert group](#page-a-team).

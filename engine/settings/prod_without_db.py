@@ -1,5 +1,7 @@
 import os
 
+from .base import *  # noqa: F401, F403
+
 try:
     import uwsgi
     from prometheus_client import multiprocess
@@ -13,7 +15,6 @@ except ModuleNotFoundError:
     # Only works under uwsgi web server environment
     pass
 
-from .base import *  # noqa
 
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")

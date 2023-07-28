@@ -331,7 +331,7 @@ class UserView(
         logger.info("get_verification_code: validating reCAPTCHA code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f"get_verification_code: invalid reCAPTCHA validation")
+            logger.warning("get_verification_code: invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
         logger.info('get_verification_code: pass reCAPTCHA validation"')
 
@@ -358,7 +358,7 @@ class UserView(
         logger.info("get_verification_code_via_call: validating reCAPTCHA code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f"get_verification_code_via_call: invalid reCAPTCHA validation")
+            logger.warning("get_verification_code_via_call: invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
         logger.info('get_verification_code_via_call: pass reCAPTCHA validation"')
 

@@ -1,6 +1,15 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  VerticalGroup,
+  IconButton,
+  ToolbarButton,
+  Icon,
+  Modal,
+  LoadingPlaceholder,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -38,7 +47,9 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+  basicDataLoaded: boolean;
+}
 
 interface SchedulePageState extends PageBaseState {
   startMoment: dayjs.Dayjs;
@@ -107,6 +118,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       match: {
         params: { id: scheduleId },
       },
+      basicDataLoaded,
     } = this.props;
 
     const {
@@ -141,7 +153,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       !!shiftIdToShowOverridesForm ||
       shiftIdToShowRotationForm;
 
-    return (
+    return !basicDataLoaded ? (
+      <LoadingPlaceholder text="Loading..." />
+    ) : (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
         {() => (
           <>

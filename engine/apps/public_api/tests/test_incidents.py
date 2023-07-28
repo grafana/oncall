@@ -133,7 +133,7 @@ def test_get_incidents_filter_by_state_new(
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
-    response = client.get(url + f"?state=new", format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.get(url + "?state=new", format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
@@ -149,7 +149,7 @@ def test_get_incidents_filter_by_state_acknowledged(
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
-    response = client.get(url + f"?state=acknowledged", format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.get(url + "?state=acknowledged", format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
@@ -165,7 +165,7 @@ def test_get_incidents_filter_by_state_silenced(
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
-    response = client.get(url + f"?state=silenced", format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.get(url + "?state=silenced", format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
@@ -181,7 +181,7 @@ def test_get_incidents_filter_by_state_resolved(
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
-    response = client.get(url + f"?state=resolved", format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.get(url + "?state=resolved", format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
@@ -195,7 +195,7 @@ def test_get_incidents_filter_by_state_unknown(
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
-    response = client.get(url + f"?state=unknown", format="json", HTTP_AUTHORIZATION=f"{token}")
+    response = client.get(url + "?state=unknown", format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 

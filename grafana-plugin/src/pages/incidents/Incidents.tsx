@@ -110,13 +110,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
     const {
-      store,
-      store: { alertGroupStore, alertReceiveChannelStore },
+      store: { alertReceiveChannelStore },
     } = this.props;
-
-    if (!alertGroupStore.irmPlan && !store.isOpenSource()) {
-      return <LoadingPlaceholder text={'Loading...'} />;
-    }
 
     return (
       <>

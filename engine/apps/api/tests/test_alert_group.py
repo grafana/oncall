@@ -77,7 +77,7 @@ def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_he
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
-        url + f"?started_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
+        url + "?started_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
         format="json",
         **make_user_auth_headers(user, token),
     )
@@ -653,7 +653,7 @@ def test_get_filter_mine(
     url = reverse("api-internal:alertgroup-list")
 
     first_response = client.get(
-        url + f"?mine=true",
+        url + "?mine=true",
         format="json",
         **make_user_auth_headers(first_user, token),
     )
@@ -661,7 +661,7 @@ def test_get_filter_mine(
     assert len(first_response.data["results"]) == 1
 
     second_response = client.get(
-        url + f"?mine=false",
+        url + "?mine=false",
         format="json",
         **make_user_auth_headers(first_user, token),
     )
