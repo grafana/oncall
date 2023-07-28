@@ -64,6 +64,10 @@
  * Other
  */
 
+.back-arrow {
+  padding-top: 8px;
+}
+
 .link {
   text-decoration: none !important;
 }

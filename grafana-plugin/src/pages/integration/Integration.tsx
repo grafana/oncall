@@ -196,12 +196,12 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
             )}
 
             <div className={cx('integration__heading-container')}>
-              <PluginLink query={{ page: 'integrations', p }}>
+              <PluginLink query={{ page: 'integrations', p }} className={cx('back-arrow')}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
-              <h1 className={cx('integration__name')}>
+              <h2 className={cx('integration__name')}>
                 <Emoji text={alertReceiveChannel.verbal_name} />
-              </h1>
+              </h2>
               <IntegrationActions
                 alertReceiveChannel={alertReceiveChannel}
                 changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
