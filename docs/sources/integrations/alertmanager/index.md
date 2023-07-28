@@ -41,7 +41,7 @@ You will need it when configuring Alertmanager.
 section of your Alertmanager configuration
 2. Set `url` to the **OnCall Integration URL** from previous section
 3. Set `send_resolved` to `true`, so Grafana OnCall can autoresolve alert groups when they are resolved in Alertmanager
-4. It is recommended to set `max_alerts` to less than `300` to avoid too big requests.
+4. It is recommended to set `max_alerts` to less than `100` to avoid too big requests.
 5. Use this receiver in your route configuration
 
 Here is the example of final configuration:
@@ -56,7 +56,7 @@ receivers:
     webhook_configs:
       - url: <integation-url>
         send_resolved: true
-        max_alerts: 300
+        max_alerts: 100
 ```
 
 ## Complete the Integration Configuration
@@ -118,8 +118,6 @@ Add receiver configuration to `prometheus.yaml` with the **OnCall Heartbeat URL*
 
 ## Migrating from Legacy AlertManager Integration
 
-### What changed
-
 Before we were using each alert from AlertManager group as a separate payload:
 
 ```json
@@ -154,7 +152,7 @@ We decided to change this behaviour to respect AlertManager grouping by treating
 3. Integration will be updated, integration url will stay the same, templates will be reset.
 4. Adjust templates and routes to the new shape of payload.
 
-You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data)
+You can read more about AlertManager Data model [here](https://prometheus.io/docs/alerting/latest/notifications/#data).
 
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"
@@ -163,6 +161,6 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 [complete-the-integration-configuration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations#complete-the-integration-configuration"
 [complete-the-integration-configuration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations#complete-the-integration-configuration"
 
-[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager#migrating-from-legacy-alertManager-integration"
-[migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#migrating-from-legacy-alertManager-integration"
+[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager#migrating-from-legacy-alertmanager-integration"
+[migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#migrating-from-legacy-alertmanager-integration"
 {{% /docs/reference %}}
