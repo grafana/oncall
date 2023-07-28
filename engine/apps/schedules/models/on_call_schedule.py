@@ -626,15 +626,23 @@ class OnCallSchedule(PolymorphicModel):
         )
         swaps = swaps.order_by("created_at")
 
+        def _insert_event(index, event):
+            # add event, if any, to events list in the specified index
+            # return incremented index if the event was added
+            if event is None:
+                return index
+            events.insert(index, event)
+            return index + 1
+
         # apply swaps sequentially
         for swap in swaps:
             i = 0
             while i < len(events):
                 event = events.pop(i)
+
                 if event["start"] > swap.swap_end or event["end"] < swap.swap_start:
                     # event outside the swap period, keep as it is and continue
-                    events.insert(i, event)
-                    i += 1
+                    i = _insert_event(i, event)
                     continue
 
                 users = set(u["pk"] for u in event["users"])
@@ -682,21 +690,15 @@ class OnCallSchedule(PolymorphicModel):
                     user_to_swap["swap_request"] = swap_details
 
                     # update events list
-                    if split_before:
-                        # keep first split event in its original index
-                        events.insert(i, split_before)
-                        i += 1
+                    # keep first split event in its original index
+                    i = _insert_event(i, split_before)
                     # insert updated swap-related event
-                    events.insert(i, event)
-                    i += 1
-                    if split_after:
-                        # keep second split event after swap
-                        events.insert(i, split_after)
-                        i += 1
+                    i = _insert_event(i, event)
+                    # keep second split event after swap
+                    i = _insert_event(i, split_after)
                 else:
                     # event for different user(s), keep as it is and continue
-                    events.insert(i, event)
-                    i += 1
+                    i = _insert_event(i, event)
 
         return events
 
