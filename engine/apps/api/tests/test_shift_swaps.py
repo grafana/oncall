@@ -147,10 +147,10 @@ def test_retrieve_permissions(
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
-@patch("apps.api.views.shift_swap.post_shift_swap_request_creation_message.apply_async")
+@patch("apps.api.views.shift_swap.create_shift_swap_request_message")
 @pytest.mark.django_db
 def test_create(
-    mock_post_shift_swap_request_creation_message_apply_async,
+    mock_create_shift_swap_request_message,
     mock_write_resource_insight_log,
     make_organization_and_user_with_plugin_token,
     make_schedule,
@@ -180,7 +180,7 @@ def test_create(
     assert response.json() == expected_response
 
     mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
-    mock_post_shift_swap_request_creation_message_apply_async.assert_called_once_with((ssr.pk,))
+    mock_create_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db
@@ -267,8 +267,11 @@ def test_create_permissions(
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
+def test_update(
+    mock_update_shift_swap_request_message, mock_write_resource_insight_log, ssr_setup, make_user_auth_headers
+):
     ssr, beneficiary, token, _ = ssr_setup(description=description)
     insights_log_prev_state = ssr.insight_logs_serialized
 
@@ -301,6 +304,8 @@ def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_heade
         prev_state=insights_log_prev_state,
         new_state=ssr.insight_logs_serialized,
     )
+
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db
@@ -400,8 +405,11 @@ def test_update_others_ssr_permissions(ssr_setup, make_user_auth_headers):
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_partial_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
+def test_partial_update(
+    mock_update_shift_swap_request_message, mock_write_resource_insight_log, ssr_setup, make_user_auth_headers
+):
     ssr, beneficiary, token, _ = ssr_setup(description=description)
     insights_log_prev_state = ssr.insight_logs_serialized
 
@@ -429,6 +437,8 @@ def test_partial_update(mock_write_resource_insight_log, ssr_setup, make_user_au
         prev_state=insights_log_prev_state,
         new_state=ssr.insight_logs_serialized,
     )
+
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db
@@ -553,8 +563,11 @@ def test_benefactor_and_beneficiary_are_read_only_fields(ssr_setup, make_user_au
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_delete(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
+def test_delete(
+    mock_update_shift_swap_request_message, mock_write_resource_insight_log, ssr_setup, make_user_auth_headers
+):
     ssr, beneficiary, token, _ = ssr_setup()
     client = APIClient()
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
@@ -571,6 +584,8 @@ def test_delete(mock_write_resource_insight_log, ssr_setup, make_user_auth_heade
         author=beneficiary,
         event=EntityEvent.DELETED,
     )
+
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db

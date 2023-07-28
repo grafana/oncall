@@ -75,6 +75,7 @@ CELERY_TASK_ROUTES = {
         "queue": "default"
     },
     "apps.schedules.tasks.shift_swaps.slack_messages.post_shift_swap_request_creation_message": {"queue": "default"},
+    "apps.schedules.tasks.shift_swaps.slack_messages.update_shift_swap_request_message": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},

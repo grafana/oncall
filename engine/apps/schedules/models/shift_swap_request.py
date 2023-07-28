@@ -48,8 +48,8 @@ class ShiftSwapRequest(models.Model):
     schedule: "OnCallSchedule"
     slack_message: typing.Optional["SlackMessage"]
 
-    objects = ShiftSwapRequestManager()
-    objects_with_deleted = models.Manager()
+    objects: models.Manager["ShiftSwapRequest"] = ShiftSwapRequestManager()
+    objects_with_deleted: models.Manager["ShiftSwapRequest"] = models.Manager()
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -114,20 +114,25 @@ class ShiftSwapRequest(models.Model):
     def __str__(self) -> str:
         return f"{self.schedule.name} {self.beneficiary.username} {self.swap_start} - {self.swap_end}"
 
-    def delete(self):
-        self.deleted_at = timezone.now()
-        self.save()
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
 
-    def hard_delete(self):
-        super().delete()
+    @property
+    def is_taken(self) -> bool:
+        return self.benefactor is not None
+
+    @property
+    def is_past_due(self) -> bool:
+        return timezone.now() > self.swap_start
 
     @property
     def status(self) -> str:
-        if self.deleted_at is not None:
+        if self.is_deleted:
             return self.Statuses.DELETED
-        elif self.benefactor is not None:
+        elif self.is_taken:
             return self.Statuses.TAKEN
-        elif timezone.now() > self.swap_start:
+        elif self.is_past_due:
             return self.Statuses.PAST_DUE
         return self.Statuses.OPEN
 
@@ -147,6 +152,13 @@ class ShiftSwapRequest(models.Model):
     def web_link(self) -> str:
         # TODO: finish this once we know the proper URL we'll need
         return f"{self.schedule.web_detail_page_link}"
+
+    def delete(self):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def hard_delete(self):
+        super().delete()
 
     def take(self, benefactor: "User") -> None:
         if benefactor == self.beneficiary:

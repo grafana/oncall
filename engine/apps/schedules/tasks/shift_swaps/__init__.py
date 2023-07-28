@@ -1,1 +1,1 @@
-from .slack_messages import post_shift_swap_request_creation_message  # noqa: F401
+from .slack_messages import create_shift_swap_request_message, update_shift_swap_request_message  # noqa: F401

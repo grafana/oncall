@@ -17,16 +17,12 @@ logger.setLevel(logging.DEBUG)
 SHIFT_SWAP_PK_ACTION_KEY = "shift_swap_request_pk"
 
 
-class BaseShiftSwapRequestStep:
+class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
     def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         pk = shift_swap_request.pk
-        request_is_taken = shift_swap_request.status == shift_swap_request.Statuses.TAKEN
 
         # TODO: come up with a better layout for this..
         main_message_text = f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
-
-        if request_is_taken:
-            main_message_text += "Update. This request has been fulfilled!"
 
         blocks: Block.AnyBlocks = [
             typing.cast(
@@ -67,7 +63,33 @@ class BaseShiftSwapRequestStep:
                 )
             )
 
-        if not request_is_taken:
+        if shift_swap_request.is_deleted:
+            blocks.append(
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Update*: this shift swap request has been deleted.",
+                        },
+                    },
+                ),
+            )
+        elif shift_swap_request.is_taken:
+            blocks.append(
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"*Update*: {shift_swap_request.benefactor.get_username_with_slack_verbal()} has taken the shift swap.",
+                        },
+                    },
+                ),
+            )
+        else:
             value = {
                 SHIFT_SWAP_PK_ACTION_KEY: pk,
                 "organization_id": shift_swap_request.organization.pk,
@@ -115,8 +137,31 @@ class BaseShiftSwapRequestStep:
 
         return blocks
 
+    def create_message(self, shift_swap_request: "ShiftSwapRequest") -> SlackMessage:
+        channel_id = shift_swap_request.slack_channel_id
+        organization = self.organization
 
-class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep, scenario_step.ScenarioStep):
+        blocks = self._generate_blocks(shift_swap_request)
+        result = self._slack_client.api_call("chat.postMessage", channel=channel_id, blocks=blocks)
+
+        return SlackMessage.objects.create(
+            slack_id=result["ts"],
+            organization=organization,
+            _slack_team_identity=self.slack_team_identity,
+            channel_id=channel_id,
+        )
+
+    def update_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
+        # TODO: better error handling here...
+        self._slack_client.api_call(
+            "chat.update",
+            channel=shift_swap_request.slack_channel_id,
+            ts=shift_swap_request.slack_message.slack_id,
+            blocks=self._generate_blocks(shift_swap_request),
+        )
+
+
+class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
     def process_scenario(
         self,
         slack_user_identity: "SlackUserIdentity",
@@ -143,47 +188,7 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep, scenario_step.Scenari
             self.open_warning_window(payload, "The shift swap request is not in a state which allows it to be taken")
             return
 
-        blocks = self._generate_blocks(shift_swap_request)
-
-        # TODO: better error handling here...
-        self._slack_client.api_call(
-            "chat.update",
-            channel=shift_swap_request.slack_channel_id,
-            ts=shift_swap_request.slack_message.slack_id,
-            blocks=blocks,
-        )
-
-
-class ShiftSwapRequestCreationStep(BaseShiftSwapRequestStep, scenario_step.ScenarioStep):
-    def send_creation_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
-        pk = shift_swap_request.pk
-        channel_id = shift_swap_request.slack_channel_id
-        organization = self.organization
-
-        if channel_id is None:
-            logger.info(f"Skipping posting message to Slack for shift_swap_request {pk} because channel_id is None")
-            return
-
-        blocks = self._generate_blocks(shift_swap_request)
-        result = self._slack_client.api_call("chat.postMessage", channel=channel_id, blocks=blocks)
-
-        slack_message = SlackMessage.objects.create(
-            slack_id=result["ts"],
-            organization=organization,
-            _slack_team_identity=self.slack_team_identity,
-            channel_id=channel_id,
-        )
-
-        shift_swap_request.slack_message = slack_message
-        shift_swap_request.save(update_fields=["slack_message"])
-
-    def process_scenario(
-        self,
-        slack_user_identity: "SlackUserIdentity",
-        slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
-    ) -> None:
-        pass
+        self.update_message(shift_swap_request)
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
