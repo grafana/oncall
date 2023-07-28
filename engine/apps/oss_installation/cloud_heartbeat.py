@@ -3,7 +3,6 @@ import random
 from urllib.parse import urljoin
 
 import requests
-from django.apps import apps
 from django.conf import settings
 from rest_framework import status
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def setup_heartbeat_integration(name=None):
     """Setup Grafana Cloud OnCall heartbeat integration."""
-    CloudHeartbeat = apps.get_model("oss_installation", "CloudHeartbeat")
+    from apps.oss_installation.models import CloudHeartbeat
 
     cloud_heartbeat = None
     api_token = live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
@@ -57,8 +56,8 @@ def setup_heartbeat_integration(name=None):
 
 
 def send_cloud_heartbeat():
-    CloudHeartbeat = apps.get_model("oss_installation", "CloudHeartbeat")
-    CloudConnector = apps.get_model("oss_installation", "CloudConnector")
+    from apps.oss_installation.models import CloudConnector, CloudHeartbeat
+
     """Send heartbeat to Grafana Cloud OnCall integration."""
     if not live_settings.GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED or not live_settings.GRAFANA_CLOUD_ONCALL_TOKEN:
         logger.info(

@@ -2,12 +2,10 @@ import hashlib
 import logging
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField
-from django.db.models.signals import post_save
 
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
@@ -82,16 +80,17 @@ class Alert(models.Model):
         channel_filter=None,
         force_route_id=None,
     ):
-        ChannelFilter = apps.get_model("alerts", "ChannelFilter")
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        """
+        Creates an alert and a group if needed.
+        """
+        # This import is here to avoid circular imports
+        from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, ChannelFilter
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
         if channel_filter is None:
             channel_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, force_route_id)
 
-        group, group_created = AlertGroup.all_objects.get_or_create_grouping(
+        group, group_created = AlertGroup.objects.get_or_create_grouping(
             channel=alert_receive_channel,
             channel_filter=channel_filter,
             group_data=group_data,
@@ -125,6 +124,16 @@ class Alert(models.Model):
 
         alert.save()
 
+        # Store exact alert which resolved group.
+        if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
+            group.resolved_by_alert = alert
+            group.save(update_fields=["resolved_by_alert"])
+
+        if settings.DEBUG:
+            distribute_alert(alert.pk)
+        else:
+            distribute_alert.apply_async((alert.pk,), countdown=TASK_DELAY_SECONDS)
+
         if group_created:
             # all code below related to maintenance mode
             maintenance_uuid = None
@@ -134,7 +143,7 @@ class Alert(models.Model):
 
             if maintenance_uuid is not None:
                 try:
-                    maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
+                    maintenance_incident = AlertGroup.objects.get(maintenance_uuid=maintenance_uuid)
                     group.root_alert_group = maintenance_incident
                     group.save(update_fields=["root_alert_group"])
                     log_record_for_root_incident = maintenance_incident.log_records.create(
@@ -173,7 +182,7 @@ class Alert(models.Model):
 
     @classmethod
     def render_group_data(cls, alert_receive_channel, raw_request_data, is_demo=False):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
 
         template_manager = TemplateLoader()
 
@@ -255,32 +264,3 @@ class Alert(models.Model):
             distinction = str(uuid4())
 
         return distinction
-
-
-def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    """
-    Here we invoke AlertShootingStep by model saving action.
-    """
-    if created:
-        # RFCT - why additinal save ?
-        instance.save()
-
-        group = instance.group
-        # Store exact alert which resolved group.
-        if group.resolved_by == AlertGroup.SOURCE and group.resolved_by_alert is None:
-            group.resolved_by_alert = instance
-            group.save(update_fields=["resolved_by_alert"])
-
-        if settings.DEBUG:
-            distribute_alert(instance.pk)
-        else:
-            distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
-
-
-# Connect signal to  base Alert class
-post_save.connect(listen_for_alert_model_save, Alert)
-
-# And subscribe for events from child classes
-for subclass in Alert.__subclasses__():
-    post_save.connect(listen_for_alert_model_save, subclass)

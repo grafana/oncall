@@ -1,7 +1,6 @@
 import logging
 
 import pytz
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
@@ -25,7 +24,12 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.serializers.user import (
+    CurrentUserSerializer,
+    FilterUserSerializer,
+    UserHiddenFieldsSerializer,
+    UserSerializer,
+)
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
@@ -79,10 +83,7 @@ UPCOMING_SHIFTS_MAX_DAYS = 65
 
 
 class CurrentUserView(APIView):
-    authentication_classes = (
-        MobileAppAuthTokenAuthentication,
-        PluginAuthentication,
-    )
+    authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -98,12 +99,12 @@ class CurrentUserView(APIView):
                 context["cloud_identities"] = cloud_identities
                 context["connector"] = connector
 
-        serializer = UserSerializer(request.user, context=context)
+        serializer = CurrentUserSerializer(request.user, context=context)
         return Response(serializer.data)
 
     def put(self, request):
         data = self.request.data
-        serializer = UserSerializer(request.user, data=data, context={"request": self.request})
+        serializer = CurrentUserSerializer(request.user, data=data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -330,7 +331,7 @@ class UserView(
         logger.info("get_verification_code: validating reCAPTCHA code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f"get_verification_code: invalid reCAPTCHA validation")
+            logger.warning("get_verification_code: invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
         logger.info('get_verification_code: pass reCAPTCHA validation"')
 
@@ -357,7 +358,7 @@ class UserView(
         logger.info("get_verification_code_via_call: validating reCAPTCHA code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f"get_verification_code_via_call: invalid reCAPTCHA validation")
+            logger.warning("get_verification_code_via_call: invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
         logger.info('get_verification_code_via_call: pass reCAPTCHA validation"')
 
@@ -526,7 +527,8 @@ class UserView(
     @action(detail=True, methods=["post"])
     def unlink_telegram(self, request, pk) -> Response:
         user = self.get_object()
-        TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
+        from apps.telegram.models import TelegramToUserConnector
+
         try:
             connector = TelegramToUserConnector.objects.get(user=user)
             connector.delete()

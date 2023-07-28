@@ -14,7 +14,8 @@ from common.api_helpers.custom_fields import (
     UsersFilteredByOrganizationField,
 )
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import EagerLoadingMixin, OrderedModelSerializerMixin
+from common.api_helpers.mixins import EagerLoadingMixin
+from common.ordered_model.serializer import OrderedModelSerializer
 
 
 class EscalationPolicyTypeField(fields.CharField):
@@ -35,12 +36,11 @@ class EscalationPolicyTypeField(fields.CharField):
         return step_type
 
 
-class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin, serializers.ModelSerializer):
+class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=EscalationChain.objects, source="escalation_chain"
     )
-    position = serializers.IntegerField(required=False, source="order")
     type = EscalationPolicyTypeField(source="step", allow_null=True)
     duration = serializers.ChoiceField(required=False, source="wait_delay", choices=EscalationPolicy.DURATION_CHOICES)
     persons_to_notify = UsersFilteredByOrganizationField(
@@ -67,17 +67,15 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
         required=False,
         source="custom_button_trigger",
     )
-    manual_order = serializers.BooleanField(default=False, write_only=True)
     important = serializers.BooleanField(required=False)
     notify_if_time_from = CustomTimeField(required=False, source="from_time")
     notify_if_time_to = CustomTimeField(required=False, source="to_time")
 
     class Meta:
         model = EscalationPolicy
-        fields = [
+        fields = OrderedModelSerializer.Meta.fields + [
             "id",
             "escalation_chain_id",
-            "position",
             "type",
             "duration",
             "important",
@@ -86,7 +84,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
             "notify_on_call_from_schedule",
             "group_to_notify",
             "action_to_trigger",
-            "manual_order",
             "notify_if_time_from",
             "notify_if_time_to",
             "num_alerts_in_window",
@@ -112,35 +109,9 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
 
         return step_type
 
-    def validate_action_to_trigger(self, action_to_trigger):
-        if action_to_trigger.team != self.escalation_chain.team:
-            raise BadRequest(detail="Action must be assigned to the same team as the escalation chain")
-
-        return action_to_trigger
-
-    def validate_notify_on_call_from_schedule(self, schedule):
-        if schedule.team != self.escalation_chain.team:
-            raise BadRequest(detail="Schedule must be assigned to the same team as the escalation chain")
-
-        return schedule
-
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
-        manual_order = validated_data.pop("manual_order")
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            escalation_chain_id = validated_data.get("escalation_chain")
-            # validate 'order' value before creation
-            self._validate_order(order, {"escalation_chain_id": escalation_chain_id})
-
-            instance = super().create(validated_data)
-            self._change_position(order, instance)
-        else:
-            # validate will raise if there is a duplicated order
-            self._validate_manual_order(None, validated_data)
-            instance = super().create(validated_data)
-
-        return instance
+        return super().create(validated_data)
 
     def to_representation(self, instance):
         step = instance.step
@@ -210,18 +181,6 @@ class EscalationPolicySerializer(EagerLoadingMixin, OrderedModelSerializerMixin,
         for field in fields_to_remove:
             result.pop(field, None)
         return result
-
-    def _validate_manual_order(self, instance, validated_data):
-        order = validated_data.get("order")
-        if order is None:
-            return
-
-        policies_with_order = self.escalation_chain.escalation_policies.filter(order=order)
-        if instance and instance.id:
-            policies_with_order = policies_with_order.exclude(id=instance.id)
-
-        if policies_with_order.exists():
-            raise BadRequest(detail="Steps cannot have duplicated positions")
 
     def _correct_validated_data(self, validated_data):
         validated_data_fields_to_remove = [
@@ -309,15 +268,5 @@ class EscalationPolicyUpdateSerializer(EscalationPolicySerializer):
                 if step != EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
                     instance.num_alerts_in_window = None
                     instance.num_minutes_in_window = None
-
-        manual_order = validated_data.pop("manual_order")
-
-        if not manual_order:
-            order = validated_data.pop("order", None)
-            self._validate_order(order, {"escalation_chain_id": instance.escalation_chain_id})
-            self._change_position(order, instance)
-        else:
-            # validate will raise if there is a duplicated order
-            self._validate_manual_order(instance, validated_data)
 
         return super().update(instance, validated_data)

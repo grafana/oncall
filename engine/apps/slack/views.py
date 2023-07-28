@@ -22,6 +22,7 @@ from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGRO
 from apps.slack.scenarios.declare_incident import STEPS_ROUTING as DECLARE_INCIDENT_ROUTING
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
 from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING
+from apps.slack.scenarios.manage_responders import STEPS_ROUTING as MANAGE_RESPONDERS_ROUTING
 from apps.slack.scenarios.manual_incident import STEPS_ROUTING as MANUAL_INCIDENT_ROUTING
 from apps.slack.scenarios.notified_user_not_in_channel import STEPS_ROUTING as NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING
 from apps.slack.scenarios.onboarding import STEPS_ROUTING as ONBOARDING_STEPS_ROUTING
@@ -75,6 +76,7 @@ SCENARIOS_ROUTES.extend(CHANNEL_ROUTING)
 SCENARIOS_ROUTES.extend(PROFILE_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(MANUAL_INCIDENT_ROUTING)
 SCENARIOS_ROUTES.extend(DIRECT_PAGE_ROUTING)
+SCENARIOS_ROUTES.extend(MANAGE_RESPONDERS_ROUTING)
 SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
 SCENARIOS_ROUTES.extend(NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING)
 
@@ -196,7 +198,7 @@ class SlackEventApiEndpointView(APIView):
 
         # Means that slack_team_identity unpopulated
         if not slack_team_identity.organizations.exists():
-            logger.warning(f"OnCall Team for SlackTeamIdentity is not detected, stop it!")
+            logger.warning("OnCall Team for SlackTeamIdentity is not detected, stop it!")
             # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
             warning_text = (
                 "OnCall is not able to process this action because this Slack workspace was "

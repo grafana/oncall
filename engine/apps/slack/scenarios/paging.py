@@ -1,7 +1,6 @@
 import json
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.models import AlertReceiveChannel, EscalationChain
@@ -42,6 +41,9 @@ ITEM_ACTIONS = (
 
 SCHEDULES_DATA_KEY = "schedules"
 USERS_DATA_KEY = "users"
+
+# https://api.slack.com/reference/block-kit/block-elements#static_select
+MAX_STATIC_SELECT_OPTIONS = 100
 
 
 def add_or_update_item(payload, key, item_pk, policy):
@@ -471,7 +473,8 @@ def _get_select_field_value(payload, prefix_id, routing_uid, field_id):
 
 
 def _get_selected_org_from_payload(payload, input_id_prefix, slack_team_identity, slack_user_identity):
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization
+
     selected_org_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingOrgChange.routing_uid(), DIRECT_PAGING_ORG_SELECT_ID
     )
@@ -493,7 +496,7 @@ def _get_team_select_blocks(slack_user_identity, organization, is_selected, valu
         {
             "text": {
                 "type": "plain_text",
-                "text": f"No team",
+                "text": "No team",
                 "emoji": True,
             },
             "value": DEFAULT_TEAM_VALUE,
@@ -554,14 +557,14 @@ def _get_team_select_context(organization, team):
             ":warning: *Direct paging integration missing*\n"
             "The selected team doesn't have a direct paging integration configured and will not be notified. "
             "If you proceed with the alert group, an empty direct paging integration will be created automatically for the team. "
-            "<https://grafana.com/docs/oncall/latest/integrations/manual/|Learn more.>"
+            "<https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings|Learn more.>"
         )
     elif not escalation_chains_exist:
         context_text = (
             ":warning: *Direct paging integration not configured*\n"
             "The direct paging integration for the selected team has no escalation chains configured. "
             "If you proceed with the alert group, the team likely will not be notified. "
-            "<https://grafana.com/docs/oncall/latest/integrations/manual/|Learn more.>"
+            "<https://grafana.com/docs/oncall/latest/integrations/manual/#learn-the-flow-and-handle-warnings|Learn more.>"
         )
     else:
         context_text = f"Integration <{alert_receive_channel.web_link}|{alert_receive_channel.verbal_name} ({team_name})> will be used for notification."
@@ -622,8 +625,8 @@ def _get_additional_responders_blocks(
         ]
 
     if is_additional_responders_checked:
-        users_select = _get_users_select(organization, input_id_prefix)
-        schedules_select = _get_schedules_select(organization, input_id_prefix)
+        users_select = _get_users_select(organization, input_id_prefix, OnPagingUserChange.routing_uid())
+        schedules_select = _get_schedules_select(organization, input_id_prefix, OnPagingScheduleChange.routing_uid())
 
         blocks += [users_select, schedules_select]
         # selected items
@@ -639,7 +642,7 @@ def _get_additional_responders_blocks(
     return blocks
 
 
-def _get_users_select(organization, input_id_prefix):
+def _get_users_select(organization, input_id_prefix, action_id, max_options_per_group=MAX_STATIC_SELECT_OPTIONS):
     users = organization.users.all()
 
     user_options = [
@@ -659,35 +662,24 @@ def _get_users_select(organization, input_id_prefix):
 
     user_select = {
         "type": "section",
-        "text": {"type": "mrkdwn", "text": "Add users"},
+        "text": {"type": "mrkdwn", "text": "Notify user"},
         "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
         "accessory": {
             "type": "static_select",
-            "placeholder": {"type": "plain_text", "text": "Select a user", "emoji": True},
-            "action_id": OnPagingUserChange.routing_uid(),
+            "placeholder": {"type": "plain_text", "text": "Select user", "emoji": True},
+            "action_id": action_id,
         },
     }
-    MAX_STATIC_SELECT_OPTIONS = 100
-    if len(user_options) > MAX_STATIC_SELECT_OPTIONS:
-        # paginate user options in groups
-        max_length = MAX_STATIC_SELECT_OPTIONS
-        chunks = [user_options[x : x + max_length] for x in range(0, len(user_options), max_length)]
-        option_groups = [
-            {
-                "label": {"type": "plain_text", "text": f"({(i * max_length)+1}-{(i * max_length)+max_length})"},
-                "options": group,
-            }
-            for i, group in enumerate(chunks)
-        ]
-        user_select["accessory"]["option_groups"] = option_groups
 
+    if len(user_options) > max_options_per_group:
+        user_select["accessory"]["option_groups"] = _get_option_groups(user_options, max_options_per_group)
     else:
         user_select["accessory"]["options"] = user_options
 
     return user_select
 
 
-def _get_schedules_select(organization, input_id_prefix):
+def _get_schedules_select(organization, input_id_prefix, action_id, max_options_per_group=MAX_STATIC_SELECT_OPTIONS):
     schedules = organization.oncall_schedules.all()
 
     schedule_options = [
@@ -701,21 +693,44 @@ def _get_schedules_select(organization, input_id_prefix):
         }
         for schedule in schedules
     ]
+
     if not schedule_options:
-        schedule_select = {"type": "context", "elements": [{"type": "mrkdwn", "text": "No schedules available"}]}
+        return {"type": "context", "elements": [{"type": "mrkdwn", "text": "No schedules available"}]}
+
+    schedule_select = {
+        "type": "section",
+        "text": {"type": "mrkdwn", "text": "Notify schedule"},
+        "block_id": input_id_prefix + DIRECT_PAGING_SCHEDULE_SELECT_ID,
+        "accessory": {
+            "type": "static_select",
+            "placeholder": {"type": "plain_text", "text": "Select schedule", "emoji": True},
+            "action_id": action_id,
+        },
+    }
+
+    if len(schedule_options) > max_options_per_group:
+        schedule_select["accessory"]["option_groups"] = _get_option_groups(schedule_options, max_options_per_group)
     else:
-        schedule_select = {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "Add schedules"},
-            "block_id": input_id_prefix + DIRECT_PAGING_SCHEDULE_SELECT_ID,
-            "accessory": {
-                "type": "static_select",
-                "placeholder": {"type": "plain_text", "text": "Select a schedule", "emoji": True},
-                "options": schedule_options,
-                "action_id": OnPagingScheduleChange.routing_uid(),
-            },
-        }
+        schedule_select["accessory"]["options"] = schedule_options
+
     return schedule_select
+
+
+def _get_option_groups(options, max_options_per_group):
+    chunks = [options[x : x + max_options_per_group] for x in range(0, len(options), max_options_per_group)]
+
+    option_groups = []
+    for idx, group in enumerate(chunks):
+        start = idx * max_options_per_group + 1
+        end = idx * max_options_per_group + max_options_per_group
+        option_groups.append(
+            {
+                "label": {"type": "plain_text", "text": f"({start}-{end})"},
+                "options": group,
+            }
+        )
+
+    return option_groups
 
 
 def _get_selected_entries_list(input_id_prefix, key, entries):
@@ -753,7 +768,25 @@ def _get_selected_entries_list(input_id_prefix, key, entries):
 
 def _display_availability_warnings(payload, warnings, organization, user):
     metadata = json.loads(payload["view"]["private_metadata"])
+    return _get_availability_warnings_view(
+        warnings,
+        organization,
+        user,
+        OnPagingConfirmUserChange.routing_uid(),
+        json.dumps(
+            {
+                "state": payload["view"]["state"],
+                "input_id_prefix": metadata["input_id_prefix"],
+                "channel_id": metadata["channel_id"],
+                "submit_routing_uid": metadata["submit_routing_uid"],
+                USERS_DATA_KEY: metadata[USERS_DATA_KEY],
+                SCHEDULES_DATA_KEY: metadata[SCHEDULES_DATA_KEY],
+            }
+        ),
+    )
 
+
+def _get_availability_warnings_view(warnings, organization, user, callback_id, private_metadata):
     messages = []
     for w in warnings:
         if w["error"] == USER_IS_NOT_ON_CALL:
@@ -772,7 +805,7 @@ def _display_availability_warnings(payload, warnings, organization, user):
 
     return {
         "type": "modal",
-        "callback_id": OnPagingConfirmUserChange.routing_uid(),
+        "callback_id": callback_id,
         "title": {"type": "plain_text", "text": "Are you sure?"},
         "submit": {"type": "plain_text", "text": "Confirm"},
         "blocks": [
@@ -785,21 +818,13 @@ def _display_availability_warnings(payload, warnings, organization, user):
             }
             for message in messages
         ],
-        "private_metadata": json.dumps(
-            {
-                "state": payload["view"]["state"],
-                "input_id_prefix": metadata["input_id_prefix"],
-                "channel_id": metadata["channel_id"],
-                "submit_routing_uid": metadata["submit_routing_uid"],
-                USERS_DATA_KEY: metadata[USERS_DATA_KEY],
-                SCHEDULES_DATA_KEY: metadata[SCHEDULES_DATA_KEY],
-            }
-        ),
+        "private_metadata": private_metadata,
     }
 
 
 def _get_selected_team_from_payload(payload, input_id_prefix):
-    Team = apps.get_model("user_management", "Team")
+    from apps.user_management.models import Team
+
     selected_team_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingTeamChange.routing_uid(), DIRECT_PAGING_TEAM_SELECT_ID
     )
@@ -826,7 +851,8 @@ def _get_additional_responders_checked_from_payload(payload, input_id_prefix):
 
 
 def _get_selected_user_from_payload(payload, input_id_prefix):
-    User = apps.get_model("user_management", "User")
+    from apps.user_management.models import User
+
     selected_user_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingUserChange.routing_uid(), DIRECT_PAGING_USER_SELECT_ID
     )
@@ -836,7 +862,8 @@ def _get_selected_user_from_payload(payload, input_id_prefix):
 
 
 def _get_selected_schedule_from_payload(payload, input_id_prefix):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
+
     selected_schedule_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingScheduleChange.routing_uid(), DIRECT_PAGING_SCHEDULE_SELECT_ID
     )

@@ -1,13 +1,10 @@
-from django.apps import apps
-
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 
 
 class NotificationDeliveryStep(scenario_step.ScenarioStep):
     def process_signal(self, log_record):
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
         user = log_record.author
         alert_group = log_record.alert_group

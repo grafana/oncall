@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
@@ -7,12 +6,12 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.telegram.models import TelegramToOrganizationConnector
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import EagerLoadingMixin, OrderedModelSerializerMixin
+from common.api_helpers.mixins import EagerLoadingMixin
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.utils import is_regex_valid
 
 
-class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, serializers.ModelSerializer):
+class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = OrganizationFilteredPrimaryKeyRelatedField(queryset=AlertReceiveChannel.objects)
     escalation_chain = OrganizationFilteredPrimaryKeyRelatedField(
@@ -27,7 +26,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         queryset=TelegramToOrganizationConnector.objects, filter_field="organization", allow_null=True, required=False
     )
     telegram_channel_details = serializers.SerializerMethodField()
-    order = serializers.IntegerField(required=False)
     filtering_term_as_jinja2 = serializers.SerializerMethodField()
     filtering_term = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
@@ -37,7 +35,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         model = ChannelFilter
         fields = [
             "id",
-            "order",
             "alert_receive_channel",
             "escalation_chain",
             "slack_channel",
@@ -65,13 +62,13 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             try:
                 valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
             except JinjaTemplateError:
-                raise serializers.ValidationError([f"Jinja template is incorrect"])
+                raise serializers.ValidationError(["Jinja template is incorrect"])
         elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or filtering_term_type is None:
             if filtering_term is not None:
                 if not is_regex_valid(filtering_term):
                     raise serializers.ValidationError(["Regular expression is incorrect"])
         else:
-            raise serializers.ValidationError([f"Expression type is incorrect"])
+            raise serializers.ValidationError(["Expression type is incorrect"])
         return data
 
     def get_slack_channel(self, obj):
@@ -97,7 +94,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             return None
 
     def validate_slack_channel(self, slack_channel_id):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         if slack_channel_id is not None:
             slack_channel_id = slack_channel_id.upper()
@@ -148,7 +145,6 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
         model = ChannelFilter
         fields = [
             "id",
-            "order",
             "alert_receive_channel",
             "escalation_chain",
             "slack_channel",
@@ -181,14 +177,8 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
         return result
 
     def create(self, validated_data):
-        order = validated_data.pop("order", None)
-        if order is not None:
-            alert_receive_channel_id = validated_data.get("alert_receive_channel")
-            self._validate_order(order, {"alert_receive_channel_id": alert_receive_channel_id, "is_default": False})
-            instance = super().create(validated_data)
-            self._change_position(order, instance)
-        else:
-            instance = super().create(validated_data)
+        instance = super().create(validated_data)
+        instance.to_index(0)  # the new route should be the first one
         return instance
 
 
@@ -200,18 +190,8 @@ class ChannelFilterUpdateSerializer(ChannelFilterCreateSerializer):
         extra_kwargs = {"filtering_term": {"required": False}}
 
     def update(self, instance, validated_data):
-        order = validated_data.get("order")
         filtering_term = validated_data.get("filtering_term")
-
-        if instance.is_default and order is not None and instance.order != order:
-            raise BadRequest(detail="The order of default channel filter cannot be changed")
-
         if instance.is_default and filtering_term is not None:
             raise BadRequest(detail="Filtering term of default channel filter cannot be changed")
 
-        if order is not None:
-            self._validate_order(
-                order, {"alert_receive_channel_id": instance.alert_receive_channel_id, "is_default": False}
-            )
-            self._change_position(order, instance)
         return super().update(instance, validated_data)

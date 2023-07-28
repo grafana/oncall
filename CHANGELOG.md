@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.18 (2023-07-28)
+
+### Changed
+
+- Update the direct paging feature to page for acknowledged & silenced alert groups,
+  and show a warning for resolved alert groups by @vadimkerr ([#2639](https://github.com/grafana/oncall/pull/2639))
+- Update checking on-call users to use schedule final events ([#2651](https://github.com/grafana/oncall/pull/2651))
+
+### Fixed
+
+- Remove checks delaying plugin load and cause "Initializing plugin..." ([2624](https://github.com/grafana/oncall/pull/2624))
+- Fix "Continue escalation if >X alerts per Y minutes" escalation step by @vadimkerr ([#2636](https://github.com/grafana/oncall/pull/2636))
+- Post to Telegram ChatOps channel option is not showing in the integrations page
+  by @alexintech ([#2498](https://github.com/grafana/oncall/pull/2498))
+
+## v1.3.17 (2023-07-25)
+
+### Added
+
+- Added banner on the ChatOps screen for OSS to let the user know if no chatops integration is enabled
+  ([#1735](https://github.com/grafana/oncall/issues/1735))
+- Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
+  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
+
+### Fixed
+
+- Bring heartbeats back to UI by @maskin25 ([#2550](https://github.com/grafana/oncall/pull/2550))
+- Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
+  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
+  by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
+
+## v1.3.16 (2023-07-21)
+
+### Added
+
+- Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
+  ([#2601](https://github.com/grafana/oncall/pull/2601))
+- Add filter integrations by type ([2609](https://github.com/grafana/oncall/pull/2609))
+
+### Changed
+
+- Update direct paging docs by @vadimkerr ([#2600](https://github.com/grafana/oncall/pull/2600))
+- Improve APIs for creating/updating direct paging integrations by @vadimkerr ([#2603](https://github.com/grafana/oncall/pull/2603))
+- Remove unnecessary team checks in public API by @vadimkerr ([#2606](https://github.com/grafana/oncall/pull/2606))
+
+### Fixed
+
+- Fix Slack direct paging issue when there are more than 100 schedules by @vadimkerr ([#2594](https://github.com/grafana/oncall/pull/2594))
+- Fix webhooks unable to be copied if they contain password or authorization header ([#2608](https://github.com/grafana/oncall/pull/2608))
+
+## v1.3.15 (2023-07-19)
+
+### Changed
+
+- Deprecate `AlertGroup.is_archived` column. Column will be removed in a subsequent release. By @joeyorlando ([#2524](https://github.com/grafana/oncall/pull/2524)).
+- Update Slack "invite" feature to use direct paging by @vadimkerr ([#2562](https://github.com/grafana/oncall/pull/2562))
+- Change "Current responders" to "Additional Responders" in web UI by @vadimkerr ([#2567](https://github.com/grafana/oncall/pull/2567))
+
+### Fixed
+
+- Fix duplicate orders on routes and escalation policies by @vadimkerr ([#2568](https://github.com/grafana/oncall/pull/2568))
+- Fixed Slack channels sync by @Ferril ([#2571](https://github.com/grafana/oncall/pull/2571))
+- Fixed rendering of slack connection errors ([#2526](https://github.com/grafana/oncall/pull/2526))
+
 ## v1.3.14 (2023-07-17)
 
 ### Changed

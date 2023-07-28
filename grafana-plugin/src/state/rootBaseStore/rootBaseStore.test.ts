@@ -39,7 +39,6 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData());
 
     // assertions
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual('🚫 Plugin has not been initialized');
   });
 
@@ -49,19 +48,15 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce(errorMsg);
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(errorMsg);
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(errorMsg);
   });
 
@@ -71,7 +66,7 @@ describe('rootBaseStore', () => {
     const rootBaseStore = new RootBaseStore();
     const maintenanceMessage = 'mncvnmvcmnvkjdjkd';
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
+    PluginState.updatePluginStatus = jest
       .fn()
       .mockResolvedValueOnce({ currently_undergoing_maintenance_message: maintenanceMessage });
 
@@ -79,10 +74,9 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfBackendIsInMaintenanceMode).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfBackendIsInMaintenanceMode).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(`🚧 ${maintenanceMessage} 🚧`);
     expect(rootBaseStore.currentlyUndergoingMaintenance).toBe(true);
   });
@@ -92,10 +86,7 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: true,
       is_installed: true,
       token_ok: true,
@@ -108,10 +99,9 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(
       '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
     );
@@ -122,10 +112,7 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: false,
       token_ok: true,
@@ -139,12 +126,11 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(0);
 
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(
       '🚫 OnCall has temporarily disabled signup of new users. Please try again later.'
     );
@@ -159,10 +145,7 @@ describe('rootBaseStore', () => {
     contextSrv.accessControlEnabled = jest.fn().mockReturnValue(false);
     contextSrv.hasAccess = jest.fn().mockReturnValue(false);
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: false,
       token_ok: true,
@@ -177,12 +160,11 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(0);
 
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(
       '🚫 User with Admin permissions in your organization must sign on and setup OnCall before it can be used'
     );
@@ -201,10 +183,7 @@ describe('rootBaseStore', () => {
     contextSrv.accessControlEnabled = jest.fn().mockResolvedValueOnce(false);
     contextSrv.hasAccess = jest.fn().mockReturnValue(true);
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       ...scenario,
       is_user_anonymous: false,
       allow_signup: true,
@@ -219,17 +198,11 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
-
-    expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
-    expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
-
-    expect(rootBaseStore.appLoading).toBe(false);
-    expect(rootBaseStore.initializationError).toBeNull();
   });
 
   test.each([
@@ -255,10 +228,7 @@ describe('rootBaseStore', () => {
     contextSrv.accessControlEnabled = jest.fn().mockReturnValue(true);
     rootBaseStore.checkMissingSetupPermissions = jest.fn().mockImplementation(() => scenario.missing_permissions);
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       ...scenario,
       is_user_anonymous: false,
       allow_signup: true,
@@ -273,19 +243,12 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
-
-    expect(rootBaseStore.appLoading).toBe(false);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
     if (scenario.expected_result) {
       expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
       expect(PluginState.installPlugin).toHaveBeenCalledWith();
-
-      expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
-      expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
-
-      expect(rootBaseStore.initializationError).toBeNull();
     } else {
       expect(PluginState.installPlugin).toHaveBeenCalledTimes(0);
 
@@ -308,10 +271,7 @@ describe('rootBaseStore', () => {
     contextSrv.accessControlEnabled = jest.fn().mockReturnValue(false);
     contextSrv.hasAccess = jest.fn().mockReturnValue(true);
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: false,
       token_ok: true,
@@ -327,8 +287,8 @@ describe('rootBaseStore', () => {
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
@@ -340,7 +300,6 @@ describe('rootBaseStore', () => {
       'install'
     );
 
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(humanReadableErrorMsg);
   });
 
@@ -349,13 +308,8 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
-    const version = 'asdfalkjslkjdf';
-    const license = 'lkjdkjfdkjfdjkfd';
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: true,
       token_ok: true,
@@ -363,23 +317,18 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    PluginState.syncDataWithOnCall = jest.fn().mockResolvedValueOnce({ version, license, token_ok: true });
     rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
-
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledTimes(1);
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
     expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
     expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
 
-    expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toBeNull();
   });
 
@@ -388,12 +337,9 @@ describe('rootBaseStore', () => {
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
-    const syncDataWithOnCallError = 'asdasdfasdfasf';
+    const updatePluginStatusError = 'asdasdfasdfasf';
 
-    PluginState.checkIfBackendIsInMaintenanceMode = jest
-      .fn()
-      .mockResolvedValueOnce({ currently_undergoing_maintenance_message: null });
-    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce({
       is_user_anonymous: false,
       is_installed: true,
       token_ok: true,
@@ -401,20 +347,16 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    PluginState.syncDataWithOnCall = jest.fn().mockResolvedValueOnce(syncDataWithOnCallError);
+    PluginState.updatePluginStatus = jest.fn().mockResolvedValueOnce(updatePluginStatusError);
     rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
 
     // test
     await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl));
 
     // assertions
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
-    expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledTimes(1);
+    expect(PluginState.updatePluginStatus).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledTimes(1);
-    expect(PluginState.syncDataWithOnCall).toHaveBeenCalledWith(onCallApiUrl);
-
-    expect(rootBaseStore.appLoading).toBe(false);
-    expect(rootBaseStore.initializationError).toEqual(syncDataWithOnCallError);
+    expect(rootBaseStore.initializationError).toEqual(updatePluginStatusError);
   });
 });

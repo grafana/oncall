@@ -406,7 +406,6 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       () => {
         alertReceiveChannelStore
           .createChannelFilter({
-            order: 0,
             alert_receive_channel: id,
             filtering_term: NEW_ROUTE_DEFAULT,
             filtering_term_type: 1, // non-regex
@@ -726,7 +725,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { alertReceiveChannelStore, heartbeatStore } = useStore();
+  const { alertReceiveChannelStore } = useStore();
 
   const history = useHistory();
 
@@ -823,7 +822,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                  <div className={cx('integration__actionItem')} onClick={() => setIsHeartbeatFormOpen(true)}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={() => setIsHeartbeatFormOpen(true)}
+                    data-testid="integration-heartbeat-settings"
+                  >
                     Heartbeat Settings
                   </div>
                 </WithPermissionControlTooltip>
@@ -927,9 +930,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   );
 
   function showHeartbeatSettings() {
-    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
-    const heartbeat = heartbeatStore.items[heartbeatId];
-    return !!heartbeat?.last_heartbeat_time_verbal;
+    return alertReceiveChannel.is_available_for_integration_heartbeat;
   }
 
   function deleteIntegration() {
@@ -1042,7 +1043,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       if (item?.integration === 'direct_paging') {
         return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
       } else {
-        return item.demo_alert_enabled && <Text type={'primary'}>; try to send a demo alert</Text>;
+        return item.demo_alert_enabled && <Text type={'primary'}>try to send a demo alert</Text>;
       }
     };
 
@@ -1159,22 +1160,20 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
     const heartbeat = heartbeatStore.items[heartbeatId];
 
-    const heartbeatStatus = Boolean(heartbeat?.status);
-
-    if (
-      !alertReceiveChannel.is_available_for_integration_heartbeat ||
-      !alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal
-    ) {
+    if (!alertReceiveChannel.is_available_for_integration_heartbeat || !heartbeat?.last_heartbeat_time_verbal) {
       return null;
     }
 
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
     return (
       <TooltipBadge
+        data-testid="heartbeat-badge"
         text={undefined}
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
         customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
+        tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
         tooltipContent={undefined}
       />
     );

@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.alerts.models import ChannelFilter
 from apps.api.permissions import LegacyAccessControlRole
 
 
@@ -220,7 +221,7 @@ def test_channel_filter_move_to_position_permissions(
 
 
 @pytest.mark.django_db
-def test_channel_filter_create_with_order(
+def test_channel_filter_create_order(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_escalation_chain,
@@ -230,7 +231,6 @@ def test_channel_filter_create_with_order(
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
     make_escalation_chain(organization)
-    # create default channel filter
     make_channel_filter(alert_receive_channel, is_default=True)
     channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False)
     client = APIClient()
@@ -239,44 +239,16 @@ def test_channel_filter_create_with_order(
     data_for_creation = {
         "alert_receive_channel": alert_receive_channel.public_primary_key,
         "filtering_term": "b",
-        "order": 0,
     }
 
     response = client.post(url, data=data_for_creation, format="json", **make_user_auth_headers(user, token))
     channel_filter.refresh_from_db()
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json()["order"] == 0
+
+    # check that orders are correct
+    assert ChannelFilter.objects.get(public_primary_key=response.json()["id"]).order == 0
     assert channel_filter.order == 1
-
-
-@pytest.mark.django_db
-def test_channel_filter_create_without_order(
-    make_organization_and_user_with_plugin_token,
-    make_alert_receive_channel,
-    make_escalation_chain,
-    make_channel_filter,
-    make_user_auth_headers,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(organization)
-    make_escalation_chain(organization)
-    make_channel_filter(alert_receive_channel, is_default=True)
-    channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False)
-    client = APIClient()
-
-    url = reverse("api-internal:channel_filter-list")
-    data_for_creation = {
-        "alert_receive_channel": alert_receive_channel.public_primary_key,
-        "filtering_term": "b",
-    }
-
-    response = client.post(url, data=data_for_creation, format="json", **make_user_auth_headers(user, token))
-    channel_filter.refresh_from_db()
-
-    assert response.status_code == status.HTTP_201_CREATED
-    assert response.json()["order"] == 1
-    assert channel_filter.order == 0
 
 
 @pytest.mark.django_db
@@ -297,7 +269,7 @@ def test_move_to_position(
     url = reverse(
         "api-internal:channel_filter-move-to-position", kwargs={"pk": first_channel_filter.public_primary_key}
     )
-    url += f"?position=2"
+    url += "?position=1"
     response = client.put(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
@@ -305,6 +277,30 @@ def test_move_to_position(
     second_channel_filter.refresh_from_db()
     assert first_channel_filter.order == 2
     assert second_channel_filter.order == 1
+
+
+@pytest.mark.django_db
+def test_move_to_position_invalid_index(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    # create default channel filter
+    make_channel_filter(alert_receive_channel, is_default=True, order=0)
+    first_channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False, order=1)
+    make_channel_filter(alert_receive_channel, filtering_term="b", is_default=False, order=2)
+
+    client = APIClient()
+    url = reverse(
+        "api-internal:channel_filter-move-to-position", kwargs={"pk": first_channel_filter.public_primary_key}
+    )
+    url += "?position=2"
+    response = client.put(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -324,49 +320,14 @@ def test_move_to_position_cant_move_default(
     url = reverse(
         "api-internal:channel_filter-move-to-position", kwargs={"pk": default_channel_filter.public_primary_key}
     )
-    url += f"?position=1"
+    url += "?position=1"
     response = client.put(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
-def test_channel_filter_update_with_order(
-    make_organization_and_user_with_plugin_token,
-    make_alert_receive_channel,
-    make_channel_filter,
-    make_user_auth_headers,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(organization)
-    # create default channel filter
-    make_channel_filter(alert_receive_channel, is_default=True)
-    first_channel_filter = make_channel_filter(alert_receive_channel, filtering_term="a", is_default=False)
-    second_channel_filter = make_channel_filter(alert_receive_channel, filtering_term="b", is_default=False)
-
-    client = APIClient()
-
-    url = reverse("api-internal:channel_filter-detail", kwargs={"pk": first_channel_filter.public_primary_key})
-    data_for_update = {
-        "id": first_channel_filter.public_primary_key,
-        "alert_receive_channel": alert_receive_channel.public_primary_key,
-        "order": 1,
-        "filtering_term": first_channel_filter.filtering_term,
-    }
-
-    response = client.put(url, data=data_for_update, format="json", **make_user_auth_headers(user, token))
-
-    first_channel_filter.refresh_from_db()
-    second_channel_filter.refresh_from_db()
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["order"] == 1
-    assert first_channel_filter.order == 1
-    assert second_channel_filter.order == 0
-
-
-@pytest.mark.django_db
-def test_channel_filter_update_without_order(
+def test_channel_filter_update(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_channel_filter,
@@ -394,7 +355,6 @@ def test_channel_filter_update_without_order(
     second_channel_filter.refresh_from_db()
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["order"] == 0
     assert first_channel_filter.order == 0
     assert second_channel_filter.order == 1
 

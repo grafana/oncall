@@ -138,3 +138,8 @@ Consider modifying example templates to fit your use case (e.g. to include more 
 Refer to [outgoing webhooks documentation][outgoing-webhooks] for more information on available template variables and webhook configuration.
 
 For more information on ServiceNow REST API, refer to [ServiceNow REST API documentation](https://developer.servicenow.com/dev.do#!/reference/api/sandiego/rest).
+
+{{% docs/reference %}}
+[outgoing-webhooks]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/outgoing-webhooks"
+[outgoing-webhooks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/outgoing-webhooks"
+{{% /docs/reference %}}

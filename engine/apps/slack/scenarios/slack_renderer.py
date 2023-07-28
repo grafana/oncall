@@ -1,5 +1,4 @@
 import humanize
-from django.apps import apps
 
 from apps.alerts.incident_log_builder import IncidentLogBuilder
 
@@ -7,8 +6,8 @@ from apps.alerts.incident_log_builder import IncidentLogBuilder
 class AlertGroupLogSlackRenderer:
     @staticmethod
     def render_incident_log_report_for_slack(alert_group):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+        from apps.base.models import UserNotificationPolicyLogRecord
 
         log_builder = IncidentLogBuilder(alert_group)
         all_log_records = log_builder.get_log_records_list()
@@ -31,9 +30,7 @@ class AlertGroupLogSlackRenderer:
         result = ""
 
         # check if escalation or invitation active
-        if not (
-            alert_group.resolved or alert_group.is_archived or alert_group.wiped_at or alert_group.root_alert_group
-        ):
+        if not (alert_group.resolved or alert_group.wiped_at or alert_group.root_alert_group):
             escalation_policies_plan = log_builder.get_incident_escalation_plan(for_slack=True)
             if escalation_policies_plan:
                 result += "\n:arrow_down: :arrow_down: :arrow_down: Plan:\n\n"

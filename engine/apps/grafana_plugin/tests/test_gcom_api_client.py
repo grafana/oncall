@@ -31,6 +31,26 @@ class TestIsRbacEnabledForStack:
         assert mocked_gcom_api_client_api_get.called_once_with(f"instances/{stack_id}?config=true")
 
     @pytest.mark.parametrize(
+        "instance_info_feature_toggles,delimiter,expected",
+        [
+            ({}, " ", False),
+            ({"enable": "foo,bar,baz"}, " ", False),
+            ({"enable": "foo,bar,baz"}, ",", False),
+            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE}"}, " ", False),
+            ({"enable": f"foo,bar,baz{TEST_FEATURE_TOGGLE}"}, ",", False),
+            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE}abc"}, ",", False),
+            ({"enable": f"foo,bar,baz,{TEST_FEATURE_TOGGLE}"}, ",", True),
+        ],
+    )
+    def test_feature_is_enabled_via_enable_key(self, instance_info_feature_toggles, delimiter, expected) -> None:
+        assert (
+            GcomAPIClient("someFakeApiToken")._feature_is_enabled_via_enable_key(
+                instance_info_feature_toggles, self.TEST_FEATURE_TOGGLE, delimiter
+            )
+            == expected
+        )
+
+    @pytest.mark.parametrize(
         "instance_info,expected",
         [
             ({}, False),
@@ -38,9 +58,12 @@ class TestIsRbacEnabledForStack:
             ({"config": {"feature_toggles": {}}}, False),
             ({"config": {"feature_toggles": {"enable": "foo,bar,baz"}}}, False),
             ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "false"}}}, False),
-            # must be comma separated
             ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE}baz"}}}, False),
-            # these cases will probably never happen, but lets account for them anyways
+            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE},baz"}}}, True),
+            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE} baz"}}}, True),
+            ({"config": {"feature_toggles": {"enable": "foo bar baz", TEST_FEATURE_TOGGLE: "true"}}}, True),
+            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "true"}}}, True),
+            # this case will probably never happen, but lets account for it anyways
             (
                 {
                     "config": {
@@ -52,11 +75,6 @@ class TestIsRbacEnabledForStack:
                 },
                 True,
             ),
-            ({"config": {"feature_toggles": {"enable": f"foo bar baz", TEST_FEATURE_TOGGLE: "true"}}}, True),
-            ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "true"}}}, True),
-            # features enabled via feature_toggles.enable should be comma separated, not space separated
-            ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE},baz"}}}, True),
-            ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE} baz"}}}, False),
         ],
     )
     def test_feature_toggle_is_enabled(self, instance_info, expected) -> None:

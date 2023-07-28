@@ -110,13 +110,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
     const {
-      store,
-      store: { alertGroupStore, alertReceiveChannelStore },
+      store: { alertReceiveChannelStore },
     } = this.props;
-
-    if (!alertGroupStore.irmPlan && !store.isOpenSource()) {
-      return <LoadingPlaceholder text={'Loading...'} />;
-    }
 
     return (
       <>
@@ -563,7 +558,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTitle = (record: AlertType) => {
-    const { store } = this.props;
+    const { store, query } = this.props;
     const {
       pagination: { start },
     } = this.state;
@@ -580,6 +575,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               cursor: incidentsCursor,
               perpage: incidentsItemsPerPage,
               start,
+              ...query,
             }}
           >
             <Tooltip placement="top" content={record.render_for_web.title}>
