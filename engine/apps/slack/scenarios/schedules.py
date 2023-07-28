@@ -31,14 +31,14 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         if payload["actions"][0].get("value", None) and payload["actions"][0]["value"].startswith("edit"):
             self.open_settings_modal(payload)
         elif payload["actions"][0].get("type", None) and payload["actions"][0]["type"] == "static_select":
             self.set_selected_value(slack_user_identity, payload)
 
-    def open_settings_modal(self, payload: EventPayload) -> None:
+    def open_settings_modal(self, payload: EventPayload.Any) -> None:
         schedule_id = payload["actions"][0]["value"].split("_")[1]
         try:
             _ = OnCallSchedule.objects.get(pk=schedule_id)  # noqa
@@ -67,7 +67,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             view=view,
         )
 
-    def set_selected_value(self, slack_user_identity: "SlackUserIdentity", payload: EventPayload) -> None:
+    def set_selected_value(self, slack_user_identity: "SlackUserIdentity", payload: EventPayload.Any) -> None:
         action = payload["actions"][0]
         private_metadata = json.loads(payload["view"]["private_metadata"])
         schedule_id = private_metadata["schedule_id"]

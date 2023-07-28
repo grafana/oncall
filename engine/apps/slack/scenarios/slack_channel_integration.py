@@ -16,7 +16,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         """
         Triggered by action: Any new message in channel.
@@ -38,7 +38,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             self.delete_thread_message_from_resolution_note(slack_user_identity, payload)
 
     def save_thread_message_for_resolution_note(
-        self, slack_user_identity: "SlackUserIdentity", payload: EventPayload
+        self, slack_user_identity: "SlackUserIdentity", payload: EventPayload.Any
     ) -> None:
         from apps.alerts.models import ResolutionNoteSlackMessage
         from apps.slack.models import SlackMessage
@@ -125,7 +125,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             slack_thread_message.save()
 
     def delete_thread_message_from_resolution_note(
-        self, slack_user_identity: "SlackUserIdentity", payload: EventPayload
+        self, slack_user_identity: "SlackUserIdentity", payload: EventPayload.Any
     ) -> None:
         from apps.alerts.models import ResolutionNoteSlackMessage
 

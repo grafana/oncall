@@ -41,7 +41,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         from apps.alerts.models import ResolutionNote, ResolutionNoteSlackMessage
         from apps.slack.models import SlackMessage, SlackUserIdentity
@@ -401,7 +401,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
         data: ScenarioData | None = None,
     ) -> None:
         if data:
@@ -711,7 +711,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
 

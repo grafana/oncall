@@ -19,7 +19,7 @@ class ImOpenStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         logger.info("InOpenStep, doing nothing.")
 
@@ -29,7 +29,7 @@ class AppHomeOpenedStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         pass
 

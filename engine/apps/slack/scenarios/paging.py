@@ -76,7 +76,7 @@ class DataKey(enum.StrEnum):
 MAX_STATIC_SELECT_OPTIONS = 100
 
 
-def add_or_update_item(payload: EventPayload, key: DataKey, item_pk: str, policy: Policy) -> EventPayload:
+def add_or_update_item(payload: EventPayload.Any, key: DataKey, item_pk: str, policy: Policy) -> EventPayload:
     metadata = json.loads(payload["view"]["private_metadata"])
     metadata[key][item_pk] = policy
     updated_metadata = json.dumps(metadata)
@@ -86,7 +86,7 @@ def add_or_update_item(payload: EventPayload, key: DataKey, item_pk: str, policy
     return payload
 
 
-def remove_item(payload: EventPayload, key: DataKey, item_pk: str) -> EventPayload:
+def remove_item(payload: EventPayload.Any, key: DataKey, item_pk: str) -> EventPayload:
     metadata = json.loads(payload["view"]["private_metadata"])
     if item_pk in metadata[key]:
         del metadata[key][item_pk]
@@ -94,7 +94,7 @@ def remove_item(payload: EventPayload, key: DataKey, item_pk: str) -> EventPaylo
     return payload
 
 
-def reset_items(payload: EventPayload) -> EventPayload:
+def reset_items(payload: EventPayload.Any) -> EventPayload:
     metadata = json.loads(payload["view"]["private_metadata"])
     for key in (DataKey.USERS, DataKey.SCHEDULES):
         metadata[key] = {}
@@ -106,7 +106,7 @@ T = typing.TypeVar("T", bound=Model)
 
 
 def get_current_items(
-    payload: EventPayload, key: DataKey, qs: "RelatedManager['T']"
+    payload: EventPayload.Any, key: DataKey, qs: "RelatedManager['T']"
 ) -> typing.List[typing.Tuple[T, Policy]]:
     metadata = json.loads(payload["view"]["private_metadata"])
     items: typing.List[T] = []
@@ -128,7 +128,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         input_id_prefix = _generate_input_id_prefix()
 
@@ -160,7 +160,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         title = _get_title_from_payload(payload)
         message = _get_message_from_payload(payload)
@@ -230,7 +230,7 @@ class OnPagingOrgChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         updated_payload = reset_items(payload)
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
@@ -249,7 +249,7 @@ class OnPagingTeamChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         view = render_dialog(slack_user_identity, slack_team_identity, payload)
         self._slack_client.api_call(
@@ -274,7 +274,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
         selected_organization = _get_selected_org_from_payload(
@@ -314,7 +314,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
 class OnPagingItemActionChange(scenario_step.ScenarioStep):
     """Reload form with updated user details."""
 
-    def _parse_action(self, payload: EventPayload) -> typing.Tuple[Policy, str, str]:
+    def _parse_action(self, payload: EventPayload.Any) -> typing.Tuple[Policy, str, str]:
         value = payload["actions"][0]["selected_option"]["value"]
         return value.split("|")
 
@@ -322,7 +322,7 @@ class OnPagingItemActionChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         policy, key, user_pk = self._parse_action(payload)
 
@@ -352,7 +352,7 @@ class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         metadata = json.loads(payload["view"]["private_metadata"])
 
@@ -397,7 +397,7 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         private_metadata = json.loads(payload["view"]["private_metadata"])
         selected_schedule = _get_selected_schedule_from_payload(payload, private_metadata["input_id_prefix"])
@@ -425,7 +425,7 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
 def render_dialog(
     slack_user_identity: "SlackUserIdentity",
     slack_team_identity: "SlackTeamIdentity",
-    payload: EventPayload,
+    payload: EventPayload.Any,
     initial=False,
     error_msg=None,
 ) -> ModalView:
@@ -541,7 +541,7 @@ def _get_organization_select(
     return organization_select
 
 
-def _get_select_field_value(payload: EventPayload, prefix_id: str, routing_uid: str, field_id: str) -> str | None:
+def _get_select_field_value(payload: EventPayload.Any, prefix_id: str, routing_uid: str, field_id: str) -> str | None:
     try:
         field = payload["view"]["state"]["values"][prefix_id + field_id][routing_uid]["selected_option"]
     except KeyError:
@@ -550,7 +550,7 @@ def _get_select_field_value(payload: EventPayload, prefix_id: str, routing_uid: 
 
 
 def _get_selected_org_from_payload(
-    payload: EventPayload,
+    payload: EventPayload.Any,
     input_id_prefix: str,
     slack_team_identity: "SlackTeamIdentity",
     slack_user_identity: "SlackUserIdentity",
@@ -668,7 +668,7 @@ def _get_team_select_context(organization: "Organization", team: "Team") -> Bloc
 
 
 def _get_additional_responders_blocks(
-    payload: EventPayload,
+    payload: EventPayload.Any,
     organization: "Organization",
     input_id_prefix,
     is_additional_responders_checked: bool,
@@ -876,7 +876,7 @@ def _get_selected_entries_list(
 
 
 def _display_availability_warnings(
-    payload: EventPayload, warnings: typing.List[AvailabilityWarning], organization: "Organization", user: "User"
+    payload: EventPayload.Any, warnings: typing.List[AvailabilityWarning], organization: "Organization", user: "User"
 ) -> ModalView:
     metadata = json.loads(payload["view"]["private_metadata"])
     return _get_availability_warnings_view(
@@ -941,7 +941,7 @@ def _get_availability_warnings_view(
 
 
 def _get_selected_team_from_payload(
-    payload: EventPayload, input_id_prefix: str
+    payload: EventPayload.Any, input_id_prefix: str
 ) -> typing.Tuple[str | None, typing.Optional["Team"]]:
     from apps.user_management.models import Team
 
@@ -959,7 +959,7 @@ def _get_selected_team_from_payload(
     return selected_team_id, team
 
 
-def _get_additional_responders_checked_from_payload(payload: EventPayload, input_id_prefix: str) -> bool:
+def _get_additional_responders_checked_from_payload(payload: EventPayload.Any, input_id_prefix: str) -> bool:
     try:
         selected_options = payload["view"]["state"]["values"][
             input_id_prefix + DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID
@@ -970,7 +970,7 @@ def _get_additional_responders_checked_from_payload(payload: EventPayload, input
     return len(selected_options) > 0
 
 
-def _get_selected_user_from_payload(payload: EventPayload, input_id_prefix: str) -> typing.Optional["User"]:
+def _get_selected_user_from_payload(payload: EventPayload.Any, input_id_prefix: str) -> typing.Optional["User"]:
     from apps.user_management.models import User
 
     selected_user_id = _get_select_field_value(
@@ -983,7 +983,7 @@ def _get_selected_user_from_payload(payload: EventPayload, input_id_prefix: str)
 
 
 def _get_selected_schedule_from_payload(
-    payload: EventPayload, input_id_prefix: str
+    payload: EventPayload.Any, input_id_prefix: str
 ) -> typing.Optional["OnCallSchedule"]:
     from apps.schedules.models import OnCallSchedule
 
@@ -1004,7 +1004,7 @@ def _get_and_change_input_id_prefix_from_metadata(
     return old_input_id_prefix, new_input_id_prefix, metadata
 
 
-def _get_title_input(payload: EventPayload) -> Block.Input:
+def _get_title_input(payload: EventPayload.Any) -> Block.Input:
     title_input_block: Block.Input = {
         "type": "input",
         "block_id": DIRECT_PAGING_TITLE_INPUT_ID,
@@ -1026,12 +1026,12 @@ def _get_title_input(payload: EventPayload) -> Block.Input:
     return title_input_block
 
 
-def _get_title_from_payload(payload: EventPayload) -> str:
+def _get_title_from_payload(payload: EventPayload.Any) -> str:
     title = payload["view"]["state"]["values"][DIRECT_PAGING_TITLE_INPUT_ID][FinishDirectPaging.routing_uid()]["value"]
     return title
 
 
-def _get_message_input(payload: EventPayload) -> Block.Input:
+def _get_message_input(payload: EventPayload.Any) -> Block.Input:
     message_input_block: Block.Input = {
         "type": "input",
         "block_id": DIRECT_PAGING_MESSAGE_INPUT_ID,
@@ -1055,7 +1055,7 @@ def _get_message_input(payload: EventPayload) -> Block.Input:
     return message_input_block
 
 
-def _get_message_from_payload(payload: EventPayload) -> str:
+def _get_message_from_payload(payload: EventPayload.Any) -> str:
     return (
         payload["view"]["state"]["values"][DIRECT_PAGING_MESSAGE_INPUT_ID][FinishDirectPaging.routing_uid()]["value"]
         or ""

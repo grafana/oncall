@@ -19,7 +19,7 @@ class InvitedToChannelStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         if payload["event"]["user"] == slack_team_identity.bot_user_id:
             channel_id = payload["event"]["channel"]

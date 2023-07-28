@@ -5,11 +5,20 @@ from .shortcuts import MessageActionPayload
 from .slash_command import SlashCommandPayload
 from .view_submission import ViewSubmissionPayload
 
-EventPayload = (
-    BlockActionsPayload
-    | DialogSubmissionPayload
-    | InteractiveMessagesPayload
-    | MessageActionPayload
-    | SlashCommandPayload
-    | ViewSubmissionPayload
-)
+
+class EventPayload:
+    BlockActionsPayload = BlockActionsPayload
+    DialogSubmissionPayload = DialogSubmissionPayload
+    InteractiveMessagesPayload = InteractiveMessagesPayload
+    MessageActionPayload = MessageActionPayload
+    SlashCommandPayload = SlashCommandPayload
+    ViewSubmissionPayload = ViewSubmissionPayload
+
+    Any = (
+        BlockActionsPayload
+        | DialogSubmissionPayload
+        | InteractiveMessagesPayload
+        | MessageActionPayload
+        | SlashCommandPayload
+        | ViewSubmissionPayload
+    )

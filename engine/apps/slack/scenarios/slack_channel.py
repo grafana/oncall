@@ -16,7 +16,7 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         """
         Triggered by action: Create or rename channel
@@ -41,7 +41,7 @@ class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         """
         Triggered by action: Delete channel
@@ -63,7 +63,7 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         """
         Triggered by action: Archive channel
@@ -84,7 +84,7 @@ class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload,
+        payload: EventPayload.Any,
     ) -> None:
         """
         Triggered by action: UnArchive channel
