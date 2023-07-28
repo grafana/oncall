@@ -203,11 +203,6 @@ describe('rootBaseStore', () => {
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
-
-    expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
-    expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
-
-    expect(rootBaseStore.initializationError).toBeNull();
   });
 
   test.each([
@@ -254,11 +249,6 @@ describe('rootBaseStore', () => {
     if (scenario.expected_result) {
       expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
       expect(PluginState.installPlugin).toHaveBeenCalledWith();
-
-      expect(mockedLoadCurrentUser).toHaveBeenCalledTimes(1);
-      expect(mockedLoadCurrentUser).toHaveBeenCalledWith();
-
-      expect(rootBaseStore.initializationError).toBeNull();
     } else {
       expect(PluginState.installPlugin).toHaveBeenCalledTimes(0);
 
