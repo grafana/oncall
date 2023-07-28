@@ -28,5 +28,9 @@ export const form: { name: string; fields: FormItem[] } = {
         allowClear: true,
       },
     },
+    {
+      name: 'contact_point',
+      type: FormItemType.Other,
+    }
   ],
 };

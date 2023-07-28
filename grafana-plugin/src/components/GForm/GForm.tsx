@@ -19,6 +19,8 @@ interface GFormProps {
   form: { name: string; fields: FormItem[] };
   data: any;
   onSubmit: (data: any) => void;
+
+  customFieldSectionRenderer?: React.FC<{ control; formItem }>;
   onFieldRender?: (
     formItem: FormItem,
     disabled: boolean,
@@ -36,12 +38,11 @@ function renderFormControl(
   formItem: FormItem,
   register: any,
   control: any,
-  disabled,
+  disabled: boolean,
   onChangeFn: (field, value) => void
 ) {
   switch (formItem.type) {
     case FormItemType.Input:
-      console.log({ ...register(formItem.name, formItem.validation) });
       return (
         <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
       );
@@ -155,7 +156,7 @@ function renderFormControl(
 
 class GForm extends React.Component<GFormProps, {}> {
   render() {
-    const { form, data, onFieldRender } = this.props;
+    const { form, data, onFieldRender, customFieldSectionRenderer: CustomFieldSectionRenderer } = this.props;
 
     const openFields = form.fields.filter((field) => !field.collapsed);
     const collapsedfields = form.fields.filter((field) => field.collapsed);
@@ -178,6 +179,10 @@ class GForm extends React.Component<GFormProps, {}> {
               field?.onChange(value);
               this.forceUpdate();
             });
+
+            if (CustomFieldSectionRenderer && formItem.type === FormItemType.Other) {
+              return <CustomFieldSectionRenderer control={control} formItem={formItem} />;
+            }
 
             return (
               <Field
