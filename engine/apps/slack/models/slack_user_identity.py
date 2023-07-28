@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import requests
 from django.db import models
@@ -8,6 +9,9 @@ from apps.slack.scenarios.notified_user_not_in_channel import NotifiedUserNotInC
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.user_management.models import Organization, User
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +40,8 @@ class SlackUserIdentityManager(models.Manager):
 
 
 class SlackUserIdentity(models.Model):
+    users: "RelatedManager['User']"
+
     objects: models.Manager["SlackUserIdentity"] = SlackUserIdentityManager()
     all_objects: models.Manager["SlackUserIdentity"] = AllSlackUserIdentityManager()
 

@@ -6,6 +6,7 @@ import typing
 from django.db.models import Q
 
 from apps.api.permissions import RBACPermission
+from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
@@ -14,7 +15,7 @@ from apps.slack.types import (
     EventPayload,
     InteractiveMessageActionType,
     PayloadType,
-    RoutingSteps,
+    ScenarioRoute,
 )
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
@@ -365,8 +366,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         except SlackAPIException as e:
             print(e)
 
-    def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> typing.List[Block.Any]:
-        blocks: typing.List[Block.Any] = []
+    def get_resolution_note_blocks(self, resolution_note: "ResolutionNote") -> Block.AnyBlocks:
+        blocks: Block.AnyBlocks = []
         author_verbal = resolution_note.author_verbal(mention=False)
         resolution_note_text_block = {
             "type": "section",
@@ -421,7 +422,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         action_resolve = value.get("action_resolve", False)
         channel_id = payload["channel"]["id"] if "channel" in payload else None
 
-        blocks: typing.List[Block.Any] = []
+        blocks: Block.AnyBlocks = []
 
         if channel_id:
             members = slack_team_identity.get_conversation_members(self._slack_client, channel_id)
@@ -478,10 +479,10 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
 
     def get_resolution_notes_blocks(
         self, alert_group: "AlertGroup", resolution_note_window_action: str, action_resolve: bool
-    ) -> typing.List[Block.Any]:
+    ) -> Block.AnyBlocks:
         from apps.alerts.models import ResolutionNote
 
-        blocks: typing.List[Block.Any] = []
+        blocks: Block.AnyBlocks = []
 
         other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
         resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(
@@ -490,62 +491,61 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         if resolution_note_slack_messages.count() > self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT:
             blocks.extend(
                 [
-                    {
-                        "type": "divider",
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": (
-                                ":warning: Listing up to last {} thread messages, "
-                                "you can still add any other message using contextual menu actions."
-                            ).format(self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT),
+                    DIVIDER,
+                    typing.cast(
+                        Block.Section,
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": (
+                                    ":warning: Listing up to last {} thread messages, "
+                                    "you can still add any other message using contextual menu actions."
+                                ).format(self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT),
+                            },
                         },
-                    },
+                    ),
                 ]
             )
         if action_resolve:
             blocks.extend(
                 [
-                    {
-                        "type": "divider",
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": ":warning: You cannot resolve this incident without resolution note.",
+                    DIVIDER,
+                    typing.cast(
+                        Block.Section,
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": ":warning: You cannot resolve this incident without resolution note.",
+                            },
                         },
-                    },
+                    ),
                 ]
             )
 
         if "error" in resolution_note_window_action:
             blocks.extend(
                 [
-                    {
-                        "type": "divider",
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": ":warning: _Oops! You cannot remove this message from resolution notes when incident is "
-                            "resolved. Reason: `resolution note is required` setting. Add another message at first._ ",
+                    DIVIDER,
+                    typing.cast(
+                        Block.Section,
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": ":warning: _Oops! You cannot remove this message from resolution notes when incident is "
+                                "resolved. Reason: `resolution note is required` setting. Add another message at first._ ",
+                            },
                         },
-                    },
+                    ),
                 ]
             )
 
         for message in resolution_note_slack_messages[: self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT]:
             user_verbal = message.user.get_username_with_slack_verbal(mention=True)
-            blocks.append(
-                {
-                    "type": "divider",
-                }
-            )
-            message_block = {
+            blocks.append(DIVIDER)
+            message_block: Block.Section = {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
@@ -580,29 +580,26 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         if other_resolution_notes:
             blocks.extend(
                 [
-                    {
-                        "type": "divider",
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": "*Resolution notes from other sources:*",
+                    DIVIDER,
+                    typing.cast(
+                        Block.Section,
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "*Resolution notes from other sources:*",
+                            },
                         },
-                    },
+                    ),
                 ]
             )
             for resolution_note in other_resolution_notes:
                 resolution_note_slack_message = resolution_note.resolution_note_slack_message
                 user_verbal = resolution_note.author_verbal(mention=True)
                 message_timestamp = datetime.datetime.timestamp(resolution_note.created_at)
-                blocks.append(
-                    {
-                        "type": "divider",
-                    }
-                )
+                blocks.append(DIVIDER)
                 source = "web" if resolution_note.source == ResolutionNote.Source.WEB else "slack"
-                message_block = {
+                message_block: Block.Section = {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
@@ -655,46 +652,51 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
             # there aren't any resolution notes yet, display a hint instead
             link_to_instruction = create_engine_url("static/images/postmortem.gif")
             blocks = [
-                {
-                    "type": "divider",
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":bulb: You can add a message to the resolution notes via context menu:",
+                DIVIDER,
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":bulb: You can add a message to the resolution notes via context menu:",
+                        },
                     },
-                },
-                {
-                    "type": "image",
-                    "title": {
-                        "type": "plain_text",
-                        "text": "Add a resolution note",
+                ),
+                typing.cast(
+                    Block.Image,
+                    {
+                        "type": "image",
+                        "title": {
+                            "type": "plain_text",
+                            "text": "Add a resolution note",
+                        },
+                        "image_url": link_to_instruction,
+                        "alt_text": "Add to postmortem context menu",
                     },
-                    "image_url": link_to_instruction,
-                    "alt_text": "Add to postmortem context menu",
-                },
+                ),
             ]
 
         return blocks
 
-    def get_invite_bot_tip_blocks(self, channel: str) -> typing.List[Block.Any]:
+    def get_invite_bot_tip_blocks(self, channel: str) -> Block.AnyBlocks:
         link_to_instruction = create_engine_url("static/images/postmortem.gif")
-        blocks: typing.List[Block.Any] = [
-            {
-                "type": "divider",
-            },
-            {
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f":bulb: To include messages from thread to resolution note `/invite` Grafana OnCall to "
-                        f"<#{channel}>. Or you can add a message via "
-                        f"<{link_to_instruction}|context menu>.",
-                    },
-                ],
-            },
+        blocks: Block.AnyBlocks = [
+            DIVIDER,
+            typing.cast(
+                Block.Context,
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": f":bulb: To include messages from thread to resolution note `/invite` Grafana OnCall to "
+                            f"<#{channel}>. Or you can add a message via "
+                            f"<{link_to_instruction}|context menu>.",
+                        },
+                    ],
+                },
+            ),
         ]
         return blocks
 
@@ -777,7 +779,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         )
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

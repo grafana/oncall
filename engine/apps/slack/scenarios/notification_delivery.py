@@ -60,7 +60,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                         )
 
     def _post_message_to_channel(self, text: str, channel: str) -> None:
-        blocks: typing.List[Block.Any] = [
+        blocks: Block.AnyBlocks = [
             {
                 "type": "section",
                 "block_id": "alert",

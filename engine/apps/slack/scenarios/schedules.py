@@ -12,7 +12,7 @@ from apps.slack.types import (
     EventPayload,
     ModalView,
     PayloadType,
-    RoutingSteps,
+    ScenarioRoute,
 )
 from apps.slack.utils import format_datetime_to_slack
 from common.insight_log import EntityEvent, write_resource_insight_log
@@ -162,9 +162,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         return initial_option
 
     @classmethod
-    def get_report_blocks_ical(
-        cls, new_shifts, next_shifts, schedule: OnCallSchedule, empty: bool
-    ) -> typing.List[Block.Any]:
+    def get_report_blocks_ical(cls, new_shifts, next_shifts, schedule: OnCallSchedule, empty: bool) -> Block.AnyBlocks:
         organization = schedule.organization
         if empty:
             if schedule.notify_empty_oncall == schedule.NotifyEmptyOnCall.ALL:
@@ -201,27 +199,44 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             next_text = "\n*Next on-call shift:*\n" + next_text
 
         text = f"{now_text}{next_text}"
-        blocks: typing.List[Block.Any] = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": text,
-                    "verbatim": True,
+        blocks: Block.AnyBlocks = [
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": text,
+                        "verbatim": True,
+                    },
                 },
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "action_id": f"{cls.routing_uid()}",
-                        "text": {"type": "plain_text", "text": ":gear:", "emoji": True},
-                        "value": f"edit_{schedule.pk}",
-                    }
-                ],
-            },
-            {"type": "context", "elements": [{"type": "mrkdwn", "text": f"On-call schedule *{schedule.name}*"}]},
+            ),
+            typing.cast(
+                Block.Actions,
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "action_id": f"{cls.routing_uid()}",
+                            "text": {"type": "plain_text", "text": ":gear:", "emoji": True},
+                            "value": f"edit_{schedule.pk}",
+                        },
+                    ],
+                },
+            ),
+            typing.cast(
+                Block.Context,
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": f"On-call schedule *{schedule.name}*",
+                        },
+                    ],
+                },
+            ),
         ]
         return blocks
 
@@ -254,7 +269,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         return notification
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

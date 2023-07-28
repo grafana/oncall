@@ -78,6 +78,26 @@ class Block:
         The type of block. For a divider block, `type` is always `divider`.
         """
 
+    class Header(_BaseBlock):
+        """
+        A `header` is a plain-text block that displays in a larger, bold font. Use it to delineate between different
+        groups of content in your app's surfaces.
+
+        [Documentation](https://api.slack.com/reference/block-kit/blocks#header)
+        """
+
+        type: typing.Literal["header"]
+        """
+        The type of block. For a header block, `type` is always `header`.
+        """
+
+        text: CompositionObjects.Text
+        """
+        The text for the block, in the form of a [text object](https://api.slack.com/reference/block-kit/composition-objects#text).
+
+        Maximum length for the `text` in this field is 150 characters.
+        """
+
     class Image(_BaseBlock):
         """
         A simple image block, designed to make those cat photos really pop.
@@ -200,7 +220,8 @@ class Block:
         Be sure to confirm the desired element works with `section`.
         """
 
-    Any = Context | Divider | Image | Input | Section
+    Any = Actions | Context | Divider | Header | Image | Input | Section
+    AnyBlocks = typing.List[Any]
 
 
 __all__ = [

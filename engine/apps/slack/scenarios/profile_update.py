@@ -2,7 +2,7 @@ import typing
 
 from apps.slack.constants import SLACK_BOT_ID
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import EventPayload, EventType, PayloadType, RoutingSteps
+from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -51,7 +51,7 @@ class ProfileUpdateStep(scenario_step.ScenarioStep):
         slack_user_identity.save()
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     # Slack event "user_change" is deprecated in favor of "user_profile_changed".
     # Handler for "user_change" is kept for backward compatibility.
     {

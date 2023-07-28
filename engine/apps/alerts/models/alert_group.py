@@ -146,10 +146,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
     resolution_notes: "RelatedManager['ResolutionNote']"
     resolution_note_slack_messages: "RelatedManager['ResolutionNoteSlackMessage']"
-
+    resolved_by_alert: typing.Optional["Alert"]
+    root_alert_group: typing.Optional["AlertGroup"]
     slack_message: typing.Optional["SlackMessage"]
     slack_log_message: typing.Optional["SlackMessage"]
     slack_messages: "RelatedManager['SlackMessage']"
+    users: "RelatedManager['User']"
 
     objects: models.Manager["AlertGroup"] = AlertGroupQuerySet.as_manager()
 
@@ -249,6 +251,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         on_delete=models.SET_NULL,
         null=True,
         default=None,
+        related_name="acknowledged_alert_groups",
     )
     acknowledged_by_confirmed = models.DateTimeField(null=True, default=None)
 
@@ -333,7 +336,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     wiped_at = models.DateTimeField(null=True, default=None)
     wiped_by = models.ForeignKey(
-        "user_management.User", on_delete=models.SET_NULL, null=True, default=None, related_name="wiped_by_user"
+        "user_management.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
+        related_name="wiped_alert_groups",
     )
 
     slack_message = models.OneToOneField(

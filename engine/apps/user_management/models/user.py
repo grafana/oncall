@@ -23,7 +23,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import EscalationPolicy
+    from apps.alerts.models import AlertGroup, EscalationPolicy
     from apps.auth_token.models import ApiAuthToken, ScheduleExportAuthToken, UserScheduleExportAuthToken
     from apps.base.models import UserNotificationPolicy
     from apps.slack.models import SlackUserIdentity
@@ -145,15 +145,19 @@ class UserQuerySet(models.QuerySet):
 
 
 class User(models.Model):
+    acknowledged_alert_groups: "RelatedManager['AlertGroup']"
     auth_tokens: "RelatedManager['ApiAuthToken']"
     current_team: typing.Optional["Team"]
     escalation_policy_notify_queues: "RelatedManager['EscalationPolicy']"
     last_notified_in_escalation_policies: "RelatedManager['EscalationPolicy']"
     notification_policies: "RelatedManager['UserNotificationPolicy']"
     organization: "Organization"
+    resolved_alert_groups: "RelatedManager['AlertGroup']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    silenced_alert_groups: "RelatedManager['AlertGroup']"
     slack_user_identity: typing.Optional["SlackUserIdentity"]
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
+    wiped_alert_groups: "RelatedManager['AlertGroup']"
 
     objects: models.Manager["User"] = UserManager.from_queryset(UserQuerySet)()
 
@@ -173,7 +177,9 @@ class User(models.Model):
 
     user_id = models.PositiveIntegerField()
     organization = models.ForeignKey(to="user_management.Organization", on_delete=models.CASCADE, related_name="users")
-    current_team = models.ForeignKey(to="user_management.Team", null=True, default=None, on_delete=models.SET_NULL)
+    current_team = models.ForeignKey(
+        to="user_management.Team", null=True, default=None, on_delete=models.SET_NULL, related_name="current_team_users"
+    )
 
     email = models.EmailField()
     name = models.CharField(max_length=300)
@@ -185,7 +191,9 @@ class User(models.Model):
     _timezone = models.CharField(max_length=50, null=True, default=None)
     working_hours = models.JSONField(null=True, default=default_working_hours)
 
-    notification = models.ManyToManyField("alerts.AlertGroup", through="alerts.UserHasNotification")
+    notification = models.ManyToManyField(
+        "alerts.AlertGroup", through="alerts.UserHasNotification", related_name="users"
+    )
 
     unverified_phone_number = models.CharField(max_length=20, null=True, default=None)
     _verified_phone_number = models.CharField(max_length=20, null=True, default=None)

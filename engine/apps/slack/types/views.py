@@ -22,7 +22,7 @@ class ModalView(typing.TypedDict):
     length of 24 characters.
     """
 
-    blocks: typing.List[Block.Any]
+    blocks: Block.AnyBlocks
     """
     Required. An array of [blocks](https://api.slack.com/reference/block-kit/blocks) that defines the content of the
     view.

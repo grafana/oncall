@@ -16,6 +16,8 @@ from common.jinja_templater.apply_jinja_template import JinjaTemplateError, Jinj
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
     from apps.alerts.models import AlertGroup
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,7 @@ def generate_public_primary_key_for_alert():
 
 class Alert(models.Model):
     group: typing.Optional["AlertGroup"]
+    resolved_alert_groups: "RelatedManager['AlertGroup']"
 
     public_primary_key = models.CharField(
         max_length=20,

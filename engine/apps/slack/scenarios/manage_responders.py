@@ -2,11 +2,11 @@ import json
 import typing
 
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, check_user_availability, direct_paging, unpage_user
+from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_SCHEDULE_SELECT_ID,
     DIRECT_PAGING_USER_SELECT_ID,
-    DIVIDER_BLOCK,
     _generate_input_id_prefix,
     _get_availability_warnings_view,
     _get_schedules_select,
@@ -14,7 +14,7 @@ from apps.slack.scenarios.paging import (
     _get_users_select,
 )
 from apps.slack.scenarios.step_mixins import AlertGroupActionsMixin
-from apps.slack.types import Block, BlockActionType, EventPayload, ModalView, PayloadType, RoutingSteps
+from apps.slack.types import Block, BlockActionType, EventPayload, ModalView, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
@@ -197,33 +197,39 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
 
 
 def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False) -> ModalView:
-    blocks: typing.List[Block.Any] = []
+    blocks: Block.AnyBlocks = []
 
     # Show list of users that are currently paged
     paged_users = alert_group.get_paged_users()
     for user in alert_group.get_paged_users():
         blocks += [
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": f":bust_in_silhouette: *{user.name or user.username}*"},
-                "accessory": {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Remove", "emoji": True},
-                    "action_id": ManageRespondersRemoveUser.routing_uid(),
-                    "value": str(user.pk),
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f":bust_in_silhouette: *{user.name or user.username}*"},
+                    "accessory": {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "Remove", "emoji": True},
+                        "action_id": ManageRespondersRemoveUser.routing_uid(),
+                        "value": str(user.pk),
+                    },
                 },
-            }
+            ),
         ]
     if paged_users:
-        blocks += [DIVIDER_BLOCK]
+        blocks += [DIVIDER]
 
     # Show a warning when trying to add responders for a resolved alert group
     if alert_group_resolved_warning:
         blocks += [
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": f":no_entry: {DirectPagingAlertGroupResolvedError.DETAIL}"},
-            }
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f":no_entry: {DirectPagingAlertGroupResolvedError.DETAIL}"},
+                },
+            ),
         ]
 
     # Show user and schedule dropdowns
@@ -286,7 +292,7 @@ def _get_alert_group_from_payload(payload: EventPayload) -> "AlertGroup":
     return AlertGroup.objects.get(pk=alert_group_pk)
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.STATIC_SELECT,

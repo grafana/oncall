@@ -89,11 +89,11 @@ class ResolutionNoteSlackMessage(models.Model):
         except ResolutionNoteSlackMessage.resolution_note.RelatedObjectDoesNotExist:
             return None
 
-    def delete(self) -> None:
+    def delete(self, *args, **kwargs) -> typing.Tuple[int, typing.Dict[str, int]]:
         resolution_note = self.get_resolution_note()
         if resolution_note:
             resolution_note.delete()
-        super().delete()
+        return super().delete(*args, **kwargs)
 
 
 class ResolutionNoteQueryset(models.QuerySet):

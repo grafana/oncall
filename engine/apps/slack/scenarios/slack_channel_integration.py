@@ -2,7 +2,7 @@ import logging
 import typing
 
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, RoutingSteps
+from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -153,11 +153,14 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
-STEPS_ROUTING: RoutingSteps = [
-    {
-        "payload_type": PayloadType.EVENT_CALLBACK,
-        "event_type": EventType.MESSAGE,
-        "message_channel_type": EventType.MESSAGE_CHANNEL,
-        "step": SlackChannelMessageEventStep,
-    }
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
+    typing.cast(
+        ScenarioRoute.EventCallbackChannelMessageScenarioRoute,
+        {
+            "payload_type": PayloadType.EVENT_CALLBACK,
+            "event_type": EventType.MESSAGE,
+            "message_channel_type": EventType.MESSAGE_CHANNEL,
+            "step": SlackChannelMessageEventStep,
+        },
+    ),
 ]

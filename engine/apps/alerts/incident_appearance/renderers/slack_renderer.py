@@ -22,9 +22,9 @@ class AlertSlackRenderer(AlertBaseRenderer):
     def templater_class(self):
         return AlertSlackTemplater
 
-    def render_alert_blocks(self) -> typing.List[Block.Any]:
+    def render_alert_blocks(self) -> Block.AnyBlocks:
         BLOCK_SECTION_TEXT_MAX_SIZE = 2800
-        blocks: typing.List[Block.Any] = []
+        blocks: Block.AnyBlocks = []
 
         title = Truncator(str_or_backup(self.templated_alert.title, "Alert"))
         blocks.append(
@@ -77,8 +77,8 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def alert_renderer_class(self):
         return AlertSlackRenderer
 
-    def render_alert_group_blocks(self) -> typing.List[Block.Any]:
-        blocks: typing.List[Block.Any] = self.alert_renderer.render_alert_blocks()
+    def render_alert_group_blocks(self) -> Block.AnyBlocks:
+        blocks: Block.AnyBlocks = self.alert_renderer.render_alert_blocks()
         alerts_count = self.alert_group.alerts.count()
         if alerts_count > 1:
             text = (

@@ -40,7 +40,7 @@ from apps.slack.types import (
     InteractiveMessageActionType,
     ModalView,
     PayloadType,
-    RoutingSteps,
+    ScenarioRoute,
 )
 from apps.slack.utils import get_cache_key_update_incident_slack_message
 from common.utils import clean_markup, is_string_with_visible_characters
@@ -124,7 +124,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         alert: Alert,
         attachments,
         channel_id: str,
-        blocks: typing.List[Block.Any],
+        blocks: Block.AnyBlocks,
     ) -> None:
         # channel_id can be None if general log channel for slack_team_identity is not set
         if channel_id is None:
@@ -203,7 +203,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             alert.save()
 
     def _send_debug_mode_notice(self, alert_group: AlertGroup, channel_id: str) -> None:
-        blocks: typing.List[Block.Any] = []
+        blocks: Block.AnyBlocks = []
         text = "Escalations are silenced due to Debug mode"
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
         self._slack_client.api_call(
@@ -338,7 +338,7 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             self.open_unauthorized_warning(payload)
             return
 
-        blocks: typing.List[Block.Any] = []
+        blocks: Block.AnyBlocks = []
         view: ModalView = {
             "callback_id": AttachGroupStep.routing_uid(),
             "blocks": blocks,
@@ -406,9 +406,9 @@ class SelectAttachGroupStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
             view=view,
         )
 
-    def get_select_incidents_blocks(self, alert_group: AlertGroup) -> typing.List[Block.Any]:
+    def get_select_incidents_blocks(self, alert_group: AlertGroup) -> Block.AnyBlocks:
         collected_options: typing.List[CompositionObjects.Option] = []
-        blocks: typing.List[Block.Any] = []
+        blocks: Block.AnyBlocks = []
 
         alert_receive_channel_ids = AlertReceiveChannel.objects.filter(
             organization=alert_group.channel.organization
@@ -1158,7 +1158,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             logger.debug(f"Update log message failed for alert_group {alert_group.pk}: " f"log message does not exist.")
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": InteractiveMessageActionType.BUTTON,

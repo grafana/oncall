@@ -15,7 +15,7 @@ from apps.alerts.paging import (
     check_user_availability,
     direct_paging,
 )
-from apps.slack.constants import PRIVATE_METADATA_MAX_LENGTH
+from apps.slack.constants import DIVIDER, PRIVATE_METADATA_MAX_LENGTH
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
@@ -25,7 +25,7 @@ from apps.slack.types import (
     EventPayload,
     ModalView,
     PayloadType,
-    RoutingSteps,
+    ScenarioRoute,
 )
 
 if typing.TYPE_CHECKING:
@@ -102,7 +102,7 @@ def reset_items(payload: EventPayload) -> EventPayload:
     return payload
 
 
-T = typing.TypeVar("T")
+T = typing.TypeVar("T", bound=Model)
 
 
 def get_current_items(
@@ -421,8 +421,6 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
 
 # slack view/blocks rendering helpers
 
-DIVIDER_BLOCK = {"type": "divider"}
-
 
 def render_dialog(
     slack_user_identity: "SlackUserIdentity",
@@ -465,7 +463,7 @@ def render_dialog(
     )
 
     # Add title and message inputs
-    blocks: typing.List[Block.Any] = [_get_title_input(payload), _get_message_input(payload)]
+    blocks: Block.AnyBlocks = [_get_title_input(payload), _get_message_input(payload)]
 
     # Add organization select if more than one organization available for user
     if len(available_organizations) > 1:
@@ -481,7 +479,7 @@ def render_dialog(
     return _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
 
 
-def _get_form_view(routing_uid: str, blocks: typing.List[Block.Any], private_metadata: str) -> ModalView:
+def _get_form_view(routing_uid: str, blocks: Block.AnyBlocks, private_metadata: str) -> ModalView:
     view: ModalView = {
         "type": "modal",
         "callback_id": routing_uid,
@@ -573,7 +571,7 @@ def _get_team_select_blocks(
     is_selected: bool,
     value: "Team",
     input_id_prefix: str,
-) -> typing.List[Block.Any]:
+) -> Block.AnyBlocks:
     user = slack_user_identity.get_user(organization)  # TODO: handle None
     teams = user.available_teams
 
@@ -675,7 +673,7 @@ def _get_additional_responders_blocks(
     input_id_prefix,
     is_additional_responders_checked: bool,
     error_msg: str | None,
-) -> typing.List[Block.Any]:
+) -> Block.AnyBlocks:
     checkbox_option: CompositionObjects.Option = {
         "text": {
             "type": "plain_text",
@@ -683,22 +681,25 @@ def _get_additional_responders_blocks(
         },
     }
 
-    blocks: typing.List[Block.Any] = [
-        {
-            "type": "input",
-            "block_id": input_id_prefix + DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID,
-            "label": {
-                "type": "plain_text",
-                "text": "Additional responders",
+    blocks: Block.AnyBlocks = [
+        typing.cast(
+            Block.Input,
+            {
+                "type": "input",
+                "block_id": input_id_prefix + DIRECT_PAGING_ADDITIONAL_RESPONDERS_INPUT_ID,
+                "label": {
+                    "type": "plain_text",
+                    "text": "Additional responders",
+                },
+                "element": {
+                    "type": "checkboxes",
+                    "options": [checkbox_option],
+                    "action_id": OnPagingCheckAdditionalResponders.routing_uid(),
+                },
+                "optional": True,
+                "dispatch_action": True,
             },
-            "element": {
-                "type": "checkboxes",
-                "options": [checkbox_option],
-                "action_id": OnPagingCheckAdditionalResponders.routing_uid(),
-            },
-            "optional": True,
-            "dispatch_action": True,
-        }
+        ),
     ]
 
     if is_additional_responders_checked:
@@ -706,14 +707,17 @@ def _get_additional_responders_blocks(
 
     if error_msg:
         blocks += [
-            {
-                "type": "section",
-                "block_id": "error_message",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f":warning: {error_msg}",
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "block_id": "error_message",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f":warning: {error_msg}",
+                    },
                 },
-            }
+            ),
         ]
 
     if is_additional_responders_checked:
@@ -726,10 +730,10 @@ def _get_additional_responders_blocks(
         selected_schedules = get_current_items(payload, DataKey.SCHEDULES, organization.oncall_schedules)
 
         if selected_users or selected_schedules:
-            blocks += [DIVIDER_BLOCK]
+            blocks += [DIVIDER]
             blocks += _get_selected_entries_list(input_id_prefix, DataKey.USERS, selected_users)
             blocks += _get_selected_entries_list(input_id_prefix, DataKey.SCHEDULES, selected_schedules)
-            blocks += [DIVIDER_BLOCK]
+            blocks += [DIVIDER]
 
     return blocks
 
@@ -1074,7 +1078,7 @@ def _generate_input_id_prefix() -> str:
     return str(uuid4())
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.STATIC_SELECT,

@@ -10,7 +10,7 @@ from apps.slack.types import (
     InteractiveMessageActionType,
     ModalView,
     PayloadType,
-    RoutingSteps,
+    ScenarioRoute,
 )
 
 from .step_mixins import AlertGroupActionsMixin
@@ -99,7 +99,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         )
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.INTERACTIVE_MESSAGE,
         "action_type": InteractiveMessageActionType.BUTTON,

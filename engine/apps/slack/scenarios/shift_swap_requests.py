@@ -2,9 +2,10 @@ import json
 import logging
 import typing
 
+from apps.slack.constants import DIVIDER
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, RoutingSteps
+from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import ShiftSwapRequest
@@ -17,7 +18,7 @@ SHIFT_SWAP_PK_ACTION_KEY = "shift_swap_request_pk"
 
 
 class BaseShiftSwapRequestStep:
-    def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> typing.List[Block.Any]:
+    def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         pk = shift_swap_request.pk
         request_is_taken = shift_swap_request.status == shift_swap_request.Statuses.TAKEN
 
@@ -27,34 +28,43 @@ class BaseShiftSwapRequestStep:
         if request_is_taken:
             main_message_text += "Update. This request has been fulfilled!"
 
-        blocks: typing.List[Block.Any] = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": main_message_text,
-                },
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    # TODO: I believe it'll be easier to wait to generate this until we have the schedule override changes in place
-                    # NOTE: use apps.slack.utils.format_datetime_to_slack method to format the datetimes
-                    "text": "*📅 Shift Details*: 9h00 - 17h00 (UTC) daily from Monday July 24, 2023 - July 28, 2023",
-                },
-            },
-        ]
-
-        if description := shift_swap_request.description:
-            blocks.append(
+        blocks: Block.AnyBlocks = [
+            typing.cast(
+                Block.Section,
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*📝 Description*: {description}",
+                        "text": main_message_text,
                     },
-                }
+                },
+            ),
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        # TODO: I believe it'll be easier to wait to generate this until we have the schedule override changes in place
+                        # NOTE: use apps.slack.utils.format_datetime_to_slack method to format the datetimes
+                        "text": "*📅 Shift Details*: 9h00 - 17h00 (UTC) daily from Monday July 24, 2023 - July 28, 2023",
+                    },
+                },
+            ),
+        ]
+
+        if description := shift_swap_request.description:
+            blocks.append(
+                typing.cast(
+                    Block.Section,
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"*📝 Description*: {description}",
+                        },
+                    },
+                )
             )
 
         if not request_is_taken:
@@ -64,38 +74,42 @@ class BaseShiftSwapRequestStep:
             }
 
             blocks.append(
-                {
-                    "type": "actions",
-                    "elements": [
-                        {
-                            "type": "button",
-                            "style": "primary",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "✔️ Accept Shift Swap Request",
-                                "emoji": True,
+                typing.cast(
+                    Block.Actions,
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "style": "primary",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "✔️ Accept Shift Swap Request",
+                                    "emoji": True,
+                                },
+                                "value": json.dumps(value),
+                                "action_id": AcceptShiftSwapRequestStep.routing_uid(),
                             },
-                            "value": json.dumps(value),
-                            "action_id": AcceptShiftSwapRequestStep.routing_uid(),
-                        },
-                    ],
-                }
+                        ],
+                    },
+                )
             )
 
         blocks.extend(
             [
-                {
-                    "type": "divider",
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"👀 View the shift swap within Grafana OnCall by clicking <{shift_swap_request.web_link}|here>.",
-                        },
-                    ],
-                },
+                DIVIDER,
+                typing.cast(
+                    Block.Context,
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": f"👀 View the shift swap within Grafana OnCall by clicking <{shift_swap_request.web_link}|here>.",
+                            },
+                        ],
+                    },
+                ),
             ]
         )
 
@@ -172,7 +186,7 @@ class ShiftSwapRequestCreationStep(BaseShiftSwapRequestStep, scenario_step.Scena
         pass
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,

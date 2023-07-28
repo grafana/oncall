@@ -37,14 +37,14 @@ from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROU
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
-from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, RoutingSteps
+from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import delete_slack_connector
 
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
-SCENARIOS_ROUTES: RoutingSteps = []
+SCENARIOS_ROUTES: ScenarioRoute.RoutingSteps = []
 SCENARIOS_ROUTES.extend(ONBOARDING_STEPS_ROUTING)
 SCENARIOS_ROUTES.extend(DISTRIBUTION_STEPS_ROUTING)
 SCENARIOS_ROUTES.extend(INVITED_TO_CHANNEL_ROUTING)

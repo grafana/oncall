@@ -3,7 +3,7 @@ import typing
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import EventPayload, EventType, PayloadType, RoutingSteps
+from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -70,7 +70,7 @@ class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
             user_group.save(update_fields=["members"])
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": EventType.SUBTEAM_CREATED,

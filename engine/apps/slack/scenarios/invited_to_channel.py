@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client import SlackClientWithErrorHandling
-from apps.slack.types import EventPayload, EventType, PayloadType, RoutingSteps
+from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -39,7 +39,7 @@ class InvitedToChannelStep(scenario_step.ScenarioStep):
             logger.info("Other user was invited to a channel with a bot.")
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.EVENT_CALLBACK,
         "event_type": EventType.MEMBER_JOINED_CHANNEL,

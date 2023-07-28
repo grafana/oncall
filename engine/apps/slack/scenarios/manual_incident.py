@@ -5,6 +5,7 @@ from uuid import uuid4
 from django.conf import settings
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter
+from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.slack.types import (
@@ -14,7 +15,7 @@ from apps.slack.types import (
     EventPayload,
     ModalView,
     PayloadType,
-    RoutingSteps,
+    ScenarioRoute,
 )
 
 if typing.TYPE_CHECKING:
@@ -196,7 +197,7 @@ class OnOrgChange(scenario_step.ScenarioStep):
         team_select = _get_team_select(slack_user_identity, selected_organization, selected_team, new_input_id_prefix)
         route_select = _get_route_select(manual_integration, selected_route, new_input_id_prefix)
 
-        blocks = [organization_select, team_select, route_select]
+        blocks: Block.AnyBlocks = [organization_select, team_select, route_select]
         if with_title_and_message_inputs:
             blocks.extend([_get_title_input(payload), _get_message_input(payload)])
         view = _get_manual_incident_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
@@ -244,7 +245,7 @@ class OnTeamChange(scenario_step.ScenarioStep):
         team_select = _get_team_select(slack_user_identity, selected_organization, selected_team, new_input_id_prefix)
         route_select = _get_route_select(manual_integration, initial_route, new_input_id_prefix)
 
-        blocks = [organization_select, team_select, route_select]
+        blocks: Block.AnyBlocks = [organization_select, team_select, route_select]
         if with_title_and_message_inputs:
             blocks.extend([_get_title_input(payload), _get_message_input(payload)])
         view = _get_manual_incident_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
@@ -270,19 +271,20 @@ class OnRouteChange(scenario_step.ScenarioStep):
         pass
 
 
-def _get_manual_incident_form_view(
-    routing_uid: str, blocks: typing.List[Block.Any], private_metatada: str
-) -> ModalView:
-    deprecation_blocks = [
-        {
-            "type": "header",
-            "text": {
-                "type": "plain_text",
-                "text": f":no_entry: This command is deprecated and will be removed soon. Please use {settings.SLACK_DIRECT_PAGING_SLASH_COMMAND} command instead :no_entry:",
-                "emoji": True,
+def _get_manual_incident_form_view(routing_uid: str, blocks: Block.AnyBlocks, private_metatada: str) -> ModalView:
+    deprecation_blocks: Block.AnyBlocks = [
+        typing.cast(
+            Block.Header,
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": f":no_entry: This command is deprecated and will be removed soon. Please use {settings.SLACK_DIRECT_PAGING_SLASH_COMMAND} command instead :no_entry:",
+                    "emoji": True,
+                },
             },
-        },
-        {"type": "divider"},
+        ),
+        DIVIDER,
     ]
 
     view: ModalView = {
@@ -314,7 +316,7 @@ def _get_manual_incident_initial_form_fields(
     input_id_prefix: str,
     payload: EventPayload,
     with_title_and_message_inputs=False,
-) -> typing.List[Block.Any]:
+) -> Block.AnyBlocks:
     initial_organization = (
         slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
         .order_by("pk")
@@ -343,7 +345,7 @@ def _get_manual_incident_initial_form_fields(
 
     initial_route = manual_integration.default_channel_filter
     route_select = _get_route_select(manual_integration, initial_route, input_id_prefix)
-    blocks: typing.List[Block.Any] = [organization_select, team_select, route_select]
+    blocks: Block.AnyBlocks = [organization_select, team_select, route_select]
     if with_title_and_message_inputs:
         title_input = _get_title_input(payload)
         message_input = _get_message_input(payload)
@@ -582,7 +584,7 @@ def _generate_input_id_prefix() -> str:
     return str(uuid4())
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.STATIC_SELECT,

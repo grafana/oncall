@@ -1,7 +1,7 @@
 import typing
 
 from apps.slack.scenarios import scenario_step
-from apps.slack.types import BlockActionType, EventPayload, PayloadType, RoutingSteps
+from apps.slack.types import BlockActionType, EventPayload, PayloadType, ScenarioRoute
 
 if typing.TYPE_CHECKING:
     from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
@@ -20,7 +20,7 @@ class DeclareIncidentStep(scenario_step.ScenarioStep):
         """
 
 
-STEPS_ROUTING: RoutingSteps = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
         "payload_type": PayloadType.BLOCK_ACTIONS,
         "block_action_type": BlockActionType.BUTTON,
