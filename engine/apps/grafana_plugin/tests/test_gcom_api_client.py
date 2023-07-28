@@ -2,7 +2,6 @@ import uuid
 from unittest.mock import patch
 
 import pytest
-from django.conf import settings
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient
 from apps.grafana_plugin.helpers.gcom import get_instance_ids
@@ -143,7 +142,7 @@ def test_get_instances_pagination(page_size, expected_pages, expected_items):
         ("", 4, 3333),
     ],
 )
-def test_get_instance_ids_pagination(query, expected_pages, expected_items):
+def test_get_instance_ids_pagination(settings, query, expected_pages, expected_items):
     settings.GRAFANA_COM_API_TOKEN = "someToken"
     settings.LICENSE = CLOUD_LICENSE_NAME
 
