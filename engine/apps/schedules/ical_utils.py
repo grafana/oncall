@@ -40,7 +40,6 @@ if TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
     from apps.schedules.models.on_call_schedule import OnCallScheduleQuerySet
     from apps.user_management.models import Organization, User
-    from apps.user_management.models.user import UserQuerySet
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -351,8 +350,6 @@ def list_users_to_notify_from_ical_for_period(
 def get_oncall_users_for_multiple_schedules(
     schedules: "OnCallScheduleQuerySet", events_datetime=None
 ) -> typing.Dict["OnCallSchedule", typing.List[User]]:
-    from apps.user_management.models import User
-
     if events_datetime is None:
         events_datetime = datetime.datetime.now(timezone.utc)
 
