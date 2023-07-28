@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import classnames from 'classnames';
 import dayjs from 'dayjs';
@@ -73,6 +73,8 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 export const Root = observer((props: AppRootProps) => {
   const store = useStore();
 
+  const [basicDataLoaded, setBasicDataLoaded] = useState(false);
+
   useEffect(() => {
     updateBasicData();
   }, []);
@@ -103,7 +105,7 @@ export const Root = observer((props: AppRootProps) => {
 
   const updateBasicData = async () => {
     await store.updateBasicData();
-    await store.alertGroupStore.fetchIRMPlan();
+    setBasicDataLoaded(true);
   };
 
   const location = useLocation();
@@ -154,7 +156,7 @@ export const Root = observer((props: AppRootProps) => {
               <Schedules query={query} />
             </Route>
             <Route path={getRoutesForPage('schedule')} exact>
-              <Schedule query={query} />
+              <Schedule query={query} basicDataLoaded={basicDataLoaded} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
               {rootStore.hasFeature(AppFeature.Webhooks2) ? (

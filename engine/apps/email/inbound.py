@@ -87,7 +87,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             if domain == live_settings.INBOUND_EMAIL_DOMAIN:
                 return token
         else:
-            logger.info(f"get_integration_token_from_request: message.envelope_recipient is not present")
+            logger.info("get_integration_token_from_request: message.envelope_recipient is not present")
         """
         TODO: handle case when envelope_recipient is not provided.
         Now we can't just compare to/cc domains one by one with INBOUND_EMAIL_DOMAIN
@@ -123,7 +123,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         """
         # TODO: These settings should be checked before app start.
         if not live_settings.INBOUND_EMAIL_ESP:
-            logger.error(f"InboundEmailWebhookView: INBOUND_EMAIL_ESP env variable must be set.")
+            logger.error("InboundEmailWebhookView: INBOUND_EMAIL_ESP env variable must be set.")
             return HttpResponse(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

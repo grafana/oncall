@@ -186,7 +186,6 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
     metric_user_was_notified: typing.Dict[int, UserWasNotifiedOfAlertGroupsMetricsDict] = {}
 
     for user in users:
-
         counter = (
             user.personal_log_records.filter(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED)
             .values("alert_group")

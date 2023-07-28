@@ -61,7 +61,7 @@ class TestIsRbacEnabledForStack:
             ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE}baz"}}}, False),
             ({"config": {"feature_toggles": {"enable": f"foo,bar,{TEST_FEATURE_TOGGLE},baz"}}}, True),
             ({"config": {"feature_toggles": {"enable": f"foo bar {TEST_FEATURE_TOGGLE} baz"}}}, True),
-            ({"config": {"feature_toggles": {"enable": f"foo bar baz", TEST_FEATURE_TOGGLE: "true"}}}, True),
+            ({"config": {"feature_toggles": {"enable": "foo bar baz", TEST_FEATURE_TOGGLE: "true"}}}, True),
             ({"config": {"feature_toggles": {TEST_FEATURE_TOGGLE: "true"}}}, True),
             # this case will probably never happen, but lets account for it anyways
             (

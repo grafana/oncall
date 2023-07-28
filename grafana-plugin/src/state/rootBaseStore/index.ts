@@ -1,4 +1,5 @@
 import { OrgRole } from '@grafana/data';
+import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
@@ -32,7 +33,13 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import {
+  APP_VERSION,
+  CLOUD_VERSION_REGEX,
+  GRAFANA_LICENSE_CLOUD,
+  GRAFANA_LICENSE_OSS,
+  PLUGIN_ROOT,
+} from 'utils/consts';
 import FaroHelper from 'utils/faro';
 
 // ------ Dashboard ------ //
@@ -125,6 +132,7 @@ export class RootBaseStore {
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
+      this.alertGroupStore.fetchIRMPlan(),
     ]);
   }
 
@@ -198,6 +206,7 @@ export class RootBaseStore {
            * therefore there is no need to trigger an additional/separate sync, nor poll a status
            */
           await PluginState.installPlugin();
+          locationService.push(PLUGIN_ROOT);
         } catch (e) {
           return this.setupPluginError(
             PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
