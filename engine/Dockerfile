@@ -1,4 +1,4 @@
-FROM python:3.11.3-slim-buster AS base
+FROM python:3.11.4-slim-bookworm AS base
 
 # Create a group and user to run an app
 ENV APP_USER=appuser
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     libmariadb-dev \
     libpq-dev \
-    netcat \
+    netcat-openbsd \
     curl \
     bash \
     git \
