@@ -1,6 +1,12 @@
+import typing
+
 import humanize
 
 from apps.slack.scenarios import scenario_step
+
+if typing.TYPE_CHECKING:
+    from apps.base.models import UserNotificationPolicy
+    from apps.user_management.models import User
 
 
 class EscalationDeliveryStep(scenario_step.ScenarioStep):
@@ -8,7 +14,9 @@ class EscalationDeliveryStep(scenario_step.ScenarioStep):
     used for user group and channel notification in slack
     """
 
-    def get_user_notification_message_for_thread_for_usergroup(self, user, notification_policy):
+    def get_user_notification_message_for_thread_for_usergroup(
+        self, user: "User", notification_policy: "UserNotificationPolicy"
+    ) -> None:
         from apps.base.models import UserNotificationPolicy
 
         notification_channel = notification_policy.notify_by
