@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Apply swap requests details to schedule events ([#2677](https://github.com/grafana/oncall/pull/2677))
 
+### Added
+
+- [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
+
 ## v1.3.18 (2023-07-28)
 
 ### Changed
