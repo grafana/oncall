@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.19 (2023-07-28)
+
+### Fixed
+
+- Fix one of the latest migrations failing on SQLite by @vadimkerr ([#2680](https://github.com/grafana/oncall/pull/2680))
+
+### Added
+
+- Apply swap requests details to schedule events ([#2677](https://github.com/grafana/oncall/pull/2677))
 
 - Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
 
@@ -15,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update the direct paging feature to page for acknowledged & silenced alert groups,
   and show a warning for resolved alert groups by @vadimkerr ([#2639](https://github.com/grafana/oncall/pull/2639))
+- Change calls to get instances from GCOM to paginate by @mderynck ([#2669](https://github.com/grafana/oncall/pull/2669))
+- Update checking on-call users to use schedule final events ([#2651](https://github.com/grafana/oncall/pull/2651))
 
 ### Fixed
 

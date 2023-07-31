@@ -1,94 +1,88 @@
 import datetime
+from unittest.mock import patch
 
 import pytest
-from django.utils import timezone
 
 from apps.schedules import exceptions
-from apps.schedules.models import OnCallScheduleWeb, ShiftSwapRequest
-
-
-@pytest.fixture
-def ssr_setup(make_schedule, make_organization_and_user, make_user_for_organization, make_shift_swap_request):
-    def _ssr_setup():
-        organization, beneficiary = make_organization_and_user()
-        benefactor = make_user_for_organization(organization)
-
-        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-        tomorrow = timezone.now() + datetime.timedelta(days=1)
-        two_days_from_now = tomorrow + datetime.timedelta(days=1)
-
-        ssr = make_shift_swap_request(schedule, beneficiary, swap_start=tomorrow, swap_end=two_days_from_now)
-
-        return ssr, beneficiary, benefactor
-
-    return _ssr_setup
+from apps.schedules.models import ShiftSwapRequest
 
 
 @pytest.mark.django_db
-def test_soft_delete(ssr_setup):
-    ssr, _, _ = ssr_setup()
+def test_soft_delete(shift_swap_request_setup):
+    ssr, _, _ = shift_swap_request_setup()
     assert ssr.deleted_at is None
-    ssr.delete()
+
+    with patch("apps.schedules.models.shift_swap_request.refresh_ical_final_schedule") as mock_refresh_final:
+        ssr.delete()
 
     ssr.refresh_from_db()
     assert ssr.deleted_at is not None
+
+    assert mock_refresh_final.apply_async.called_with((ssr.schedule.pk,))
 
     assert ShiftSwapRequest.objects.all().count() == 0
     assert ShiftSwapRequest.objects_with_deleted.all().count() == 1
 
 
 @pytest.mark.django_db
-def test_status_open(ssr_setup) -> None:
-    ssr, _, _ = ssr_setup()
+def test_status_open(shift_swap_request_setup) -> None:
+    ssr, _, _ = shift_swap_request_setup()
     assert ssr.status == ShiftSwapRequest.Statuses.OPEN
 
 
 @pytest.mark.django_db
-def test_status_taken(ssr_setup) -> None:
-    ssr, _, benefactor = ssr_setup()
+def test_status_taken(shift_swap_request_setup) -> None:
+    ssr, _, benefactor = shift_swap_request_setup()
     assert ssr.status == ShiftSwapRequest.Statuses.OPEN
+    assert ssr.is_taken is False
 
     ssr.benefactor = benefactor
     ssr.save()
     assert ssr.status == ShiftSwapRequest.Statuses.TAKEN
+    assert ssr.is_taken is True
 
 
 @pytest.mark.django_db
-def test_status_past_due(ssr_setup) -> None:
-    ssr, _, _ = ssr_setup()
+def test_status_past_due(shift_swap_request_setup) -> None:
+    ssr, _, _ = shift_swap_request_setup()
     assert ssr.status == ShiftSwapRequest.Statuses.OPEN
+    assert ssr.is_past_due is False
 
     ssr.swap_start = ssr.swap_start - datetime.timedelta(days=5)
     ssr.save()
     assert ssr.status == ShiftSwapRequest.Statuses.PAST_DUE
+    assert ssr.is_past_due is True
 
 
 @pytest.mark.django_db
-def test_status_deleted(ssr_setup) -> None:
-    ssr, _, _ = ssr_setup()
+def test_status_deleted(shift_swap_request_setup) -> None:
+    ssr, _, _ = shift_swap_request_setup()
     assert ssr.status == ShiftSwapRequest.Statuses.OPEN
+    assert ssr.is_deleted is False
 
     ssr.delete()
     assert ssr.status == ShiftSwapRequest.Statuses.DELETED
+    assert ssr.is_deleted is True
 
 
 @pytest.mark.django_db
-def test_take(ssr_setup) -> None:
-    ssr, _, benefactor = ssr_setup()
+def test_take(shift_swap_request_setup) -> None:
+    ssr, _, benefactor = shift_swap_request_setup()
     original_updated_at = ssr.updated_at
 
-    ssr.take(benefactor)
+    with patch("apps.schedules.models.shift_swap_request.refresh_ical_final_schedule") as mock_refresh_final:
+        ssr.take(benefactor)
 
     assert ssr.benefactor == benefactor
     assert ssr.updated_at != original_updated_at
-
-    # TODO:
+    # final schedule refresh was triggered
+    assert mock_refresh_final.apply_async.called_with((ssr.schedule.pk,))
 
 
 @pytest.mark.django_db
-def test_take_only_works_for_open_requests(ssr_setup) -> None:
+def test_take_only_works_for_open_requests(shift_swap_request_setup) -> None:
     # already taken
-    ssr, _, benefactor = ssr_setup()
+    ssr, _, benefactor = shift_swap_request_setup()
 
     ssr.benefactor = benefactor
     ssr.save()
@@ -98,7 +92,7 @@ def test_take_only_works_for_open_requests(ssr_setup) -> None:
         ssr.take(benefactor)
 
     # past due
-    ssr, _, benefactor = ssr_setup()
+    ssr, _, benefactor = shift_swap_request_setup()
 
     ssr.swap_start = ssr.swap_start - datetime.timedelta(days=5)
     ssr.save()
@@ -108,7 +102,7 @@ def test_take_only_works_for_open_requests(ssr_setup) -> None:
         ssr.take(benefactor)
 
     # deleted
-    ssr, _, benefactor = ssr_setup()
+    ssr, _, benefactor = shift_swap_request_setup()
 
     ssr.delete()
     assert ssr.status == ShiftSwapRequest.Statuses.DELETED
@@ -118,7 +112,7 @@ def test_take_only_works_for_open_requests(ssr_setup) -> None:
 
 
 @pytest.mark.django_db
-def test_take_own_ssr(ssr_setup) -> None:
-    ssr, beneficiary, _ = ssr_setup()
+def test_take_own_ssr(shift_swap_request_setup) -> None:
+    ssr, beneficiary, _ = shift_swap_request_setup()
     with pytest.raises(exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest):
         ssr.take(beneficiary)

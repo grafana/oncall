@@ -1,3 +1,6 @@
+import datetime
+
+import pytz
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
@@ -106,8 +109,13 @@ class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerialize
         updated_shift_pk = self.request.data.get("shift_pk")
         shift = CustomOnCallShift(**validated_data)
         schedule = shift.schedule
+
+        pytz_tz = pytz.timezone(user_tz)
+        datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
+        datetime_end = datetime_start + datetime.timedelta(days=days)
+
         shift_events, final_events = schedule.preview_shift(
-            shift, user_tz, starting_date, days, updated_shift_pk=updated_shift_pk
+            shift, datetime_start, datetime_end, updated_shift_pk=updated_shift_pk
         )
         data = {
             "rotation": shift_events,
