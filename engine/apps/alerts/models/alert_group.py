@@ -34,7 +34,15 @@ from .alert_group_counter import AlertGroupCounter
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import AlertGroupLogRecord
+    from apps.alerts.models import (
+        Alert,
+        AlertGroupLogRecord,
+        AlertReceiveChannel,
+        ResolutionNote,
+        ResolutionNoteSlackMessage,
+    )
+    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.slack.models import SlackMessage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -131,9 +139,21 @@ class AlertGroupSlackRenderingMixin:
 
 
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
+    alerts: "RelatedManager['Alert']"
+    dependent_alert_groups: "RelatedManager['AlertGroup']"
+    channel: "AlertReceiveChannel"
     log_records: "RelatedManager['AlertGroupLogRecord']"
+    personal_log_records: "RelatedManager['UserNotificationPolicyLogRecord']"
+    resolution_notes: "RelatedManager['ResolutionNote']"
+    resolution_note_slack_messages: "RelatedManager['ResolutionNoteSlackMessage']"
+    resolved_by_alert: typing.Optional["Alert"]
+    root_alert_group: typing.Optional["AlertGroup"]
+    slack_message: typing.Optional["SlackMessage"]
+    slack_log_message: typing.Optional["SlackMessage"]
+    slack_messages: "RelatedManager['SlackMessage']"
+    users: "RelatedManager['User']"
 
-    objects = AlertGroupQuerySet.as_manager()
+    objects: models.Manager["AlertGroup"] = AlertGroupQuerySet.as_manager()
 
     (
         NEW,
@@ -231,6 +251,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         on_delete=models.SET_NULL,
         null=True,
         default=None,
+        related_name="acknowledged_alert_groups",
     )
     acknowledged_by_confirmed = models.DateTimeField(null=True, default=None)
 
@@ -315,7 +336,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     wiped_at = models.DateTimeField(null=True, default=None)
     wiped_by = models.ForeignKey(
-        "user_management.User", on_delete=models.SET_NULL, null=True, default=None, related_name="wiped_by_user"
+        "user_management.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
+        related_name="wiped_alert_groups",
     )
 
     slack_message = models.OneToOneField(
