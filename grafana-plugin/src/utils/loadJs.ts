@@ -1,7 +1,7 @@
 /**
  * Will append a new JS script
- * @param  {[string]} url url of the script
- * @param  {[id]} string optional id. If specified, the script will be loaded only once for that given id
+ * @param  {string} url of the script
+ * @param  {string} id optional id. If specified, the script will be loaded only once for that given id
  */
 export default function loadJs(url: string, id: string = undefined) {
   if (id) {
