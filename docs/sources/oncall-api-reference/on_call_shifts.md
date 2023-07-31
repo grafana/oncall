@@ -141,7 +141,10 @@ The above command returns JSON structured in the following way:
       "by_monthday": null,
       "users": ["U4DNY931HHJS5"]
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

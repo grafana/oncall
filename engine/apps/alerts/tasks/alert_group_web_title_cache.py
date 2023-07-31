@@ -27,7 +27,7 @@ def update_web_title_cache_for_alert_receive_channel(alert_receive_channel_pk):
 
     countdown = 0
     cursor = 0
-    queryset = AlertGroup.all_objects.filter(channel_id=alert_receive_channel_pk)
+    queryset = AlertGroup.objects.filter(channel_id=alert_receive_channel_pk)
     ids = batch_ids(queryset, cursor)
 
     while ids:
@@ -57,7 +57,7 @@ def update_web_title_cache(alert_receive_channel_pk, alert_group_pks):
         task_logger.warning(f"AlertReceiveChannel {alert_receive_channel_pk} doesn't exist")
         return
 
-    alert_groups = AlertGroup.all_objects.filter(pk__in=alert_group_pks).only("pk")
+    alert_groups = AlertGroup.objects.filter(pk__in=alert_group_pks).only("pk")
 
     # get first alerts in 2 SQL queries
     alerts_info = (
@@ -84,4 +84,4 @@ def update_web_title_cache(alert_receive_channel_pk, alert_group_pks):
 
         alert_group.web_title_cache = web_title_cache
 
-    AlertGroup.all_objects.bulk_update(alert_groups, ["web_title_cache"])
+    AlertGroup.objects.bulk_update(alert_groups, ["web_title_cache"])

@@ -253,6 +253,7 @@ class GcomAPIClient(APIClient):
     DELETED_INSTANCE_QUERY = "instances?status=deleted&includeDeleted=true"
     STACK_STATUS_DELETED = "deleted"
     STACK_STATUS_ACTIVE = "active"
+    PAGE_SIZE = 1000
 
     def __init__(self, api_token: str) -> None:
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
@@ -270,6 +271,11 @@ class GcomAPIClient(APIClient):
         data, _ = self.api_get(url)
         return data
 
+    def _feature_is_enabled_via_enable_key(
+        self, instance_feature_toggles: GCOMInstanceInfoConfigFeatureToggles, feature_name: str, delimiter: str
+    ):
+        return feature_name in instance_feature_toggles.get("enable", "").split(delimiter)
+
     def _feature_toggle_is_enabled(self, instance_info: GCOMInstanceInfo, feature_name: str) -> bool:
         """
         there are two ways that feature toggles can be enabled, this method takes into account both
@@ -284,12 +290,22 @@ class GcomAPIClient(APIClient):
         if not instance_feature_toggles:
             return False
 
-        # features enabled via enable key are comma separated (https://github.com/grafana/grafana/issues/36511)
-        features_enabled_via_enable_key = instance_feature_toggles.get("enable", "").split(",")
-        feature_enabled_via_enable_key = feature_name in features_enabled_via_enable_key
+        # features enabled via enable key can be either space or comma delimited
+        # https://raintank-corp.slack.com/archives/C036J5B39/p1690183217162019
+
+        feature_enabled_via_enable_key_space_delimited = self._feature_is_enabled_via_enable_key(
+            instance_feature_toggles, feature_name, " "
+        )
+        feature_enabled_via_enable_key_comma_delimited = self._feature_is_enabled_via_enable_key(
+            instance_feature_toggles, feature_name, ","
+        )
         feature_enabled_via_direct_key = instance_feature_toggles.get(feature_name, "false") == "true"
 
-        return feature_enabled_via_enable_key or feature_enabled_via_direct_key
+        return (
+            feature_enabled_via_direct_key
+            or feature_enabled_via_enable_key_space_delimited
+            or feature_enabled_via_enable_key_comma_delimited
+        )
 
     def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
         """
@@ -300,8 +316,20 @@ class GcomAPIClient(APIClient):
             return False
         return self._feature_toggle_is_enabled(instance_info, "accessControlOnCall")
 
-    def get_instances(self, query: str):
-        return self.api_get(query)
+    def get_instances(self, query: str, page_size=None):
+        if not page_size:
+            page, _ = self.api_get(query)
+            yield page
+        else:
+            cursor = 0
+            while cursor is not None:
+                if query:
+                    page_query = query + f"&cursor={cursor}&pageSize={page_size}"
+                else:
+                    page_query = f"?cursor={cursor}&pageSize={page_size}"
+                page, _ = self.api_get(page_query)
+                yield page
+                cursor = page["nextCursor"]
 
     def is_stack_deleted(self, stack_id: str) -> bool:
         url = f"instances?includeDeleted=true&id={stack_id}"

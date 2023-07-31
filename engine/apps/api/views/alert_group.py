@@ -242,7 +242,7 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
                     organization_id=self.request.auth.organization.id,
                 ).values_list("id", flat=True)
             )
-            queryset = AlertGroup.unarchived_objects.filter(
+            queryset = AlertGroup.objects.filter(
                 channel__in=alert_receive_channels_ids,
             ).only("public_primary_key")
 
@@ -331,7 +331,7 @@ class AlertGroupView(
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
 
-        queryset = AlertGroup.unarchived_objects.filter(
+        queryset = AlertGroup.objects.filter(
             channel__in=alert_receive_channels_ids,
         )
 
@@ -362,7 +362,7 @@ class AlertGroupView(
 
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        queryset = AlertGroup.all_objects.filter(pk__in=alert_group_pks).order_by("-pk")
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-pk")
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
@@ -688,7 +688,7 @@ class AlertGroupView(
                 raise BadRequest(detail="Please specify a delay for silence")
             kwargs["silence_delay"] = delay
 
-        alert_groups = AlertGroup.unarchived_objects.filter(
+        alert_groups = AlertGroup.objects.filter(
             channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_public_pks
         )
 

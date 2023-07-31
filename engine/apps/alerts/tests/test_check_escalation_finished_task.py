@@ -81,6 +81,27 @@ def test_send_alert_group_escalation_auditor_task_heartbeat_raises_an_exception_
 
 
 @pytest.mark.django_db
+def test_audit_alert_group_escalation_skips_validation_if_the_alert_group_does_not_have_an_escalation_chain(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    alert_group.escalation_snapshot = None
+    alert_group.save()
+
+    assert alert_group.escalation_chain_exists is False
+
+    try:
+        audit_alert_group_escalation(alert_group)
+    except AlertGroupEscalationPolicyExecutionAuditException:
+        pytest.fail()
+
+
+@pytest.mark.django_db
 def test_audit_alert_group_escalation_raises_exception_if_the_alert_group_does_not_have_an_escalation_snapshot(
     escalation_snapshot_test_setup,
 ):

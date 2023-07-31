@@ -102,7 +102,7 @@ def test_alert_attached_to_maintenance_incident_integration(
     duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds
 
     alert_receive_channel.start_maintenance(mode, duration, user)
-    maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=alert_receive_channel.maintenance_uuid)
+    maintenance_incident = AlertGroup.objects.get(maintenance_uuid=alert_receive_channel.maintenance_uuid)
 
     alert = make_alert_with_custom_create_method(
         title="test_title",
@@ -132,7 +132,7 @@ def test_stop_maintenance(
     duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds
 
     alert_receive_channel.start_maintenance(mode, duration, user)
-    maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=alert_receive_channel.maintenance_uuid)
+    maintenance_incident = AlertGroup.objects.get(maintenance_uuid=alert_receive_channel.maintenance_uuid)
     alert = make_alert_with_custom_create_method(
         title="test_title",
         message="test_message",

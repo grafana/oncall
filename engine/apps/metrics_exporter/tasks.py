@@ -1,6 +1,5 @@
 import typing
 
-from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Count, Q
@@ -78,9 +77,8 @@ def calculate_and_cache_metrics(organization_id, force=False):
     """
     Calculate integrations metrics for organization.
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.alerts.models import AlertGroup, AlertReceiveChannel
+    from apps.user_management.models import Organization
 
     ONE_HOUR = 3600
     TWO_HOURS = 7200
@@ -165,8 +163,8 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
     """
     Calculate metric "user_was_notified_of_alert_groups" for organization.
     """
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.base.models import UserNotificationPolicyLogRecord
+    from apps.user_management.models import Organization
 
     TWO_HOURS = 7200
 
@@ -188,7 +186,6 @@ def calculate_and_cache_user_was_notified_metric(organization_id):
     metric_user_was_notified: typing.Dict[int, UserWasNotifiedOfAlertGroupsMetricsDict] = {}
 
     for user in users:
-
         counter = (
             user.personal_log_records.filter(type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED)
             .values("alert_group")

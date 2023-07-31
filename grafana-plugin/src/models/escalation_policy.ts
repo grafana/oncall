@@ -2,7 +2,6 @@ import { Channel } from 'models/channel';
 import { Schedule } from 'models/schedule/schedule.types';
 import { UserGroup } from 'models/user_group/user_group.types';
 
-import { ActionDTO } from './action';
 import { ChannelFilter } from './channel_filter';
 import { ScheduleDTO } from './schedule';
 import { UserDTO as User } from './user';
@@ -10,8 +9,7 @@ import { UserDTO as User } from './user';
 export interface EscalationPolicyType {
   id: string;
   notify_to_user: User['pk'] | null;
-  order: number;
-  //  is't option value from api/internal/v1/escalation_policies/escalation_options/
+  //  it's option value from api/internal/v1/escalation_policies/escalation_options/
   step: number;
   wait_delay: string | null;
   is_final: boolean;
@@ -21,7 +19,6 @@ export interface EscalationPolicyType {
   to_time: string | null;
   notify_to_schedule: ScheduleDTO['id'] | null;
   notify_to_channel: Channel['id'] | null;
-  custom_button_trigger: ActionDTO['id'] | null;
   notify_to_group: UserGroup['id'];
   notify_schedule: Schedule['id'];
 }
@@ -35,6 +32,5 @@ export function prepareEscalationPolicy(value: EscalationPolicyType): Escalation
     from_time: null,
     to_time: null,
     notify_to_schedule: null,
-    custom_button_trigger: null,
   };
 }

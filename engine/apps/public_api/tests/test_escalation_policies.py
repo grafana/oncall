@@ -62,6 +62,9 @@ def escalation_policies_setup():
                 escalation_policy_wait_payload,
                 escalation_policy_notify_persons_empty_payload,
             ],
+            "current_page_number": 1,
+            "page_size": 50,
+            "total_pages": 1,
         }
         return (
             escalation_chain,
@@ -151,7 +154,7 @@ def test_create_escalation_policy_manual_order_duplicated_position(
     escalation_policies_setup,
 ):
     organization, user, token = make_organization_and_user_with_token()
-    escalation_chain, _, _ = escalation_policies_setup(organization, user)
+    escalation_chain, escalation_policies, _ = escalation_policies_setup(organization, user)
 
     data_for_create = {
         "escalation_chain_id": escalation_chain.public_primary_key,
@@ -165,7 +168,43 @@ def test_create_escalation_policy_manual_order_duplicated_position(
     url = reverse("api-public:escalation_policies-list")
     response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["position"] == 0
+
+    for escalation_policy in escalation_policies:
+        escalation_policy.refresh_from_db()
+
+    orders = [escalation_policy.order for escalation_policy in escalation_policies]
+    assert orders == [3, 1, 2]  # Check orders are swapped when manual_order is True
+
+
+@pytest.mark.django_db
+def test_create_escalation_policy_no_manual_order_duplicated_position(
+    make_organization_and_user_with_token,
+    escalation_policies_setup,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    escalation_chain, escalation_policies, _ = escalation_policies_setup(organization, user)
+
+    data_for_create = {
+        "escalation_chain_id": escalation_chain.public_primary_key,
+        "type": "notify_person_next_each_time",
+        "position": 0,
+        "persons_to_notify_next_each_time": [user.public_primary_key],
+    }
+
+    client = APIClient()
+    url = reverse("api-public:escalation_policies-list")
+    response = client.post(url, data=data_for_create, format="json", HTTP_AUTHORIZATION=token)
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["position"] == 0
+
+    for escalation_policy in escalation_policies:
+        escalation_policy.refresh_from_db()
+
+    orders = [escalation_policy.order for escalation_policy in escalation_policies]
+    assert orders == [1, 2, 3]  # Check policies are moved down manual_order is False
 
 
 @pytest.mark.django_db
@@ -262,4 +301,10 @@ def test_update_escalation_policy_manual_order_duplicated_position(
     data_to_change = {"position": 0, "manual_order": True}
     response = client.put(url, data=data_to_change, format="json", HTTP_AUTHORIZATION=token)
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_200_OK
+
+    for escalation_policy in escalation_policies:
+        escalation_policy.refresh_from_db()
+
+    orders = [escalation_policy.order for escalation_policy in escalation_policies]
+    assert orders == [1, 0, 2]  # Check orders are swapped when manual_order is True

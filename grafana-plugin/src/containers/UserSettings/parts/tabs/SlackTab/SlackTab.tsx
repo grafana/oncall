@@ -40,7 +40,7 @@ export const SlackTab = () => {
 
           <img
             style={{ height: '350px', display: 'block', margin: '0 auto' }}
-            src="public/plugins/grafana-oncall-app/img/slack_instructions.png"
+            src="public/plugins/grafana-oncall-app/assets/img/slack_instructions.png"
           />
         </VerticalGroup>
       </Block>

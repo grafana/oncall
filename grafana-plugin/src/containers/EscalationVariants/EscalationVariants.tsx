@@ -105,7 +105,7 @@ const EscalationVariants = observer(
         <div className={cx('body')}>
           {!hideSelected && Boolean(value.userResponders.length || value.scheduleResponders.length) && (
             <>
-              <Label>Additional Responders will be notified immediately:</Label>
+              <Label>Additional responders will be notified immediately:</Label>
               <ul className={cx('responders-list')}>
                 {value.userResponders.map((responder, index) => (
                   <UserResponder
@@ -127,7 +127,7 @@ const EscalationVariants = observer(
             </>
           )}
           <div className={cx('assign-responders-button')}>
-            {withLabels && <Label>Assign additional responders from other teams (by user or by schedule)</Label>}
+            {withLabels && <Label>Additional responders (optional)</Label>}
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <Button
                 icon="users-alt"
@@ -137,7 +137,7 @@ const EscalationVariants = observer(
                   setShowEscalationVariants(true);
                 }}
               >
-                Invite additional responders
+                Notify additional responders
               </Button>
             </WithPermissionControlTooltip>
           </div>

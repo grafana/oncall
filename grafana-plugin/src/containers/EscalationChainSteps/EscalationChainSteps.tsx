@@ -56,7 +56,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
   );
 
   const escalationPolicyIds = escalationPolicyStore.escalationChainToEscalationPolicy[id];
-  const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
+  const isSlackInstalled = Boolean(store.organizationStore.currentOrganization?.slack_team_identity);
 
   return (
     // @ts-ignore
@@ -90,7 +90,6 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
               teamStore={store.grafanaTeamStore}
               scheduleStore={store.scheduleStore}
               outgoingWebhookStore={store.outgoingWebhookStore}
-              outgoingWebhook2Store={store.outgoingWebhook2Store}
               isDisabled={isDisabled}
             />
           );

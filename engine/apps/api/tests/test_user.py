@@ -24,6 +24,51 @@ def clear_cache():
 
 
 @pytest.mark.django_db
+def test_current_user(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:api-user")
+
+    expected_response = {
+        "pk": user.public_primary_key,
+        "organization": {"pk": organization.public_primary_key, "name": organization.org_title},
+        "current_team": None,
+        "email": user.email,
+        "hide_phone_number": False,
+        "username": user.username,
+        "name": user.name,
+        "role": user.role,
+        "rbac_permissions": user.permissions,
+        "timezone": None,
+        "working_hours": default_working_hours(),
+        "unverified_phone_number": None,
+        "verified_phone_number": None,
+        "telegram_configuration": None,
+        "messaging_backends": {
+            "TESTONLY": {
+                "user": user.username,
+            }
+        },
+        "cloud_connection_status": 0,
+        "notification_chain_verbal": {"default": "", "important": ""},
+        "slack_user_identity": None,
+        "avatar": user.avatar_url,
+        "avatar_full": user.avatar_full_url,
+    }
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+    data_to_update = {"hide_phone_number": True}
+
+    response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response | data_to_update
+
+
+@pytest.mark.django_db
 def test_update_user(
     make_organization,
     make_team,
@@ -173,6 +218,9 @@ def test_list_users(
                 "cloud_connection_status": None,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 100,
+        "total_pages": 1,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(admin, token))

@@ -1,13 +1,13 @@
 import logging
 
-from django.apps import apps
 from django.db import models
 
 logger = logging.getLogger(__name__)
 
 
 def sync_regions(regions: list[dict]):
-    Region = apps.get_model("user_management", "Region")
+    from apps.user_management.models import Region
+
     gcom_regions = {region["slug"]: region for region in regions}
     existing_region_slugs = set(Region.objects.all().values_list("slug", flat=True))
 

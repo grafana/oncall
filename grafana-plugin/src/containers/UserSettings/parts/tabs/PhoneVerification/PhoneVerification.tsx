@@ -36,7 +36,7 @@ const PHONE_REGEX = /^\+\d{8,15}$/;
 const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { userPk: propsUserPk } = props;
   const store = useStore();
-  const { userStore, teamStore } = store;
+  const { userStore, organizationStore } = store;
 
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
   const user = userStore.items[userPk];
@@ -158,8 +158,8 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     });
   }, [code, userPk, userStore.verifyPhone, userStore.loadUser]);
 
-  const isPhoneProviderConfigured = teamStore.currentTeam?.env_status.phone_provider?.configured;
-  const providerConfiguration = teamStore.currentTeam?.env_status.phone_provider;
+  const providerConfiguration = organizationStore.currentOrganization?.env_status.phone_provider;
+  const isPhoneProviderConfigured = providerConfiguration?.configured;
 
   const phoneHasMinimumLength = phone?.length > 8;
 
