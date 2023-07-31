@@ -340,7 +340,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def description(self):
-        # TODO: AMV2: Deprecated. Remove this if after legacy integrations are migrated.
+        # TODO: AMV2: Remove this check after legacy integrations are migrated.
         if self.integration == AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING:
             contact_points = self.contact_points.all()
             rendered_description = jinja_template_env.from_string(self.config.description).render(
