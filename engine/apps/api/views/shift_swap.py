@@ -95,8 +95,6 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
-    # test: return shifts for swap
-
     @action(methods=["post"], detail=True)
     def take(self, request, pk) -> Response:
         shift_swap = self.get_object()
