@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-import { KeyValue } from '@grafana/data';
 import {
   Button,
   HorizontalGroup,
@@ -206,7 +205,6 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                 alertReceiveChannel={alertReceiveChannel}
                 changeIsTemplateSettingsOpen={() => this.setState({ isTemplateSettingsOpen: true })}
                 isLegacyIntegration={isLegacyIntegration}
-                query={this.props.query}
               />
             </div>
 
@@ -780,12 +778,10 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 interface IntegrationActionsProps {
   isLegacyIntegration: boolean;
   alertReceiveChannel: AlertReceiveChannel;
-  query: KeyValue;
   changeIsTemplateSettingsOpen: () => void;
 }
 
 const IntegrationActions: React.FC<IntegrationActionsProps> = ({
-  query,
   alertReceiveChannel,
   isLegacyIntegration,
   changeIsTemplateSettingsOpen,
@@ -1049,7 +1045,12 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         setConfirmModal(undefined);
         openNotification('Integration has been successfully migrated.');
       })
-      .then(() => alertReceiveChannelStore.updateItems({ page: query.p || 1 }))
+      .then(() =>
+        Promise.all([
+          alertReceiveChannelStore.updateItem(alertReceiveChannel.id),
+          alertReceiveChannelStore.updateTemplates(alertReceiveChannel.id),
+        ])
+      )
       .catch(() => openErrorNotification('An error has occurred. Please try again.'));
   }
 
