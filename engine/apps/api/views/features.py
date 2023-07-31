@@ -63,6 +63,6 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_WEBHOOKS_2_ENABLED:
             enabled_features.append(FEATURE_WEBHOOKS2)
 
-        if settings.FEATURE_GRAFANA_ALERTING_V2:
+        if settings.FEATURE_GRAFANA_ALERTING_V2_ENABLED:
             enabled_features.append(FEATURE_GRAFANA_ALERTING_V2)
         return enabled_features
