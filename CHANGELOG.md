@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix helm env variable validation logic when specifying Twilio auth related values by @njohnstone2 ([#2674](https://github.com/grafana/oncall/pull/2674))
+- Fixed mobile app verification not sending SMS to phone number ([#2687](https://github.com/grafana/oncall/issues/2687))
 
 ## v1.3.19 (2023-07-28)
 
