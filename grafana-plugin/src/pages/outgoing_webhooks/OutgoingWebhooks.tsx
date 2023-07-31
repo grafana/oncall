@@ -32,7 +32,6 @@ import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification, openNotification } from 'utils';
@@ -149,11 +148,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       },
     ];
 
-    return store.hasFeature(AppFeature.Webhooks2) ? (
+    return (
       <PageErrorHandlingWrapper
         errorData={errorData}
-        objectName="outgoing webhook 2"
-        pageName="outgoing_webhooks_2"
+        objectName="outgoing webhook"
+        pageName="outgoing_webhooks"
         itemNotFoundMessage={`Outgoing webhook with id=${id} was not found. Please select outgoing webhook from the list.`}
       >
         {() => (
@@ -217,8 +216,6 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
           </>
         )}
       </PageErrorHandlingWrapper>
-    ) : (
-      <Text>Outgoing webhooks 2 functionality is not enabled.</Text>
     );
   }
 
