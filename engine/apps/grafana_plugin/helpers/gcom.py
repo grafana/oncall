@@ -101,12 +101,13 @@ def get_instance_ids(query: str) -> Tuple[Optional[set], bool]:
         return None, False
 
     client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
-    instances, status = client.get_instances(query)
+    instance_pages = client.get_instances(query, GcomAPIClient.PAGE_SIZE)
 
-    if not instances:
+    if not instance_pages:
         return None, True
 
-    ids = set(i["id"] for i in instances["items"])
+    ids = set(i["id"] for page in instance_pages for i in page["items"])
+
     return ids, True
 
 
