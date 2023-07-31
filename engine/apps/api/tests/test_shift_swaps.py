@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.schedules.models import OnCallScheduleWeb, ShiftSwapRequest
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 from common.api_helpers.utils import serialize_datetime_as_utc_timestamp
 from common.insight_log import EntityEvent
 
@@ -467,6 +467,53 @@ def test_partial_update_time_related_fields(ssr_setup, make_user_auth_headers):
 
 
 @pytest.mark.django_db
+def test_related_shifts(ssr_setup, make_on_call_shift, make_user_auth_headers):
+    ssr, beneficiary, token, _ = ssr_setup()
+
+    schedule = ssr.schedule
+    organization = schedule.organization
+    user = beneficiary
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(days=2)
+    duration = timezone.timedelta(hours=8)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    client = APIClient()
+    url = reverse("api-internal:shift_swap-shifts", kwargs={"pk": ssr.public_primary_key})
+    auth_headers = make_user_auth_headers(beneficiary, token)
+    response = client.get(url, **auth_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    expected = [
+        # start, end, user, swap request ID
+        (
+            start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            (start + duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            user.public_primary_key,
+            ssr.public_primary_key,
+        ),
+    ]
+    returned_events = [
+        (e["start"], e["end"], e["users"][0]["pk"], e["users"][0]["swap_request"]["pk"])
+        for e in response_json["events"]
+    ]
+    assert returned_events == expected
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
@@ -713,4 +760,29 @@ def test_take_permissions(
     url = reverse("api-internal:shift_swap-take", kwargs={"pk": ssr.public_primary_key})
 
     response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
+    assert response.status_code == expected_status
+
+
+@patch("apps.api.views.shift_swap.ShiftSwapViewSet.shifts", return_value=mock_success_response)
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_list_shifts_permissions(
+    mock_endpoint_handler,
+    ssr_setup,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    ssr, beneficiary, token, _ = ssr_setup(beneficiary_role=role)
+    client = APIClient()
+    url = reverse("api-internal:shift_swap-shifts", kwargs={"pk": ssr.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(beneficiary, token))
     assert response.status_code == expected_status
