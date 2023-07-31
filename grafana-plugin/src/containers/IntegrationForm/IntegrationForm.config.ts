@@ -31,6 +31,6 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'contact_point',
       type: FormItemType.Other,
-    }
+    },
   ],
 };

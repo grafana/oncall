@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import {
   Drawer,
   VerticalGroup,
@@ -20,6 +21,7 @@ import { useHistory } from 'react-router-dom';
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import GForm from 'components/GForm/GForm';
+import { FormItem } from 'components/GForm/GForm.types';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -34,10 +36,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
-
 import styles from './IntegrationForm.module.scss';
-import { FormItem } from 'components/GForm/GForm.types';
-import { SelectableValue } from '@grafana/data';
 
 const cx = cn.bind(styles);
 
@@ -250,7 +249,9 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 };
 
 const HowTheIntegrationWorks: React.FC<{ selectedOption: AlertReceiveChannelOption }> = ({ selectedOption }) => {
-  if (!selectedOption) return null;
+  if (!selectedOption) {
+    return null;
+  }
 
   return (
     <Collapse

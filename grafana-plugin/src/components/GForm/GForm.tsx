@@ -9,10 +9,10 @@ import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import GSelect from 'containers/GSelect/GSelect';
+import { CustomFieldSectionRendererProps } from 'containers/IntegrationForm/IntegrationForm';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 
 import styles from './GForm.module.scss';
-import { CustomFieldSectionRendererProps } from 'containers/IntegrationForm/IntegrationForm';
 
 const cx = cn.bind(styles);
 
