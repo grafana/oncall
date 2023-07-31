@@ -1,7 +1,6 @@
 import logging
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponse
@@ -29,7 +28,7 @@ def set_user_and_organization_from_request(backend, strategy, *args, **kwargs):
 
 
 def connect_user_to_slack(response, backend, strategy, user, organization, *args, **kwargs):
-    SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
+    from apps.slack.models import SlackUserIdentity
 
     # Continue pipeline step only if it was installation
     if backend.name != "slack-login":
@@ -80,7 +79,7 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
 
 
 def populate_slack_identities(response, backend, user, organization, **kwargs):
-    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
+    from apps.slack.models import SlackTeamIdentity
 
     # Continue pipeline step only if it was installation
     if backend.name != "slack-install-free":

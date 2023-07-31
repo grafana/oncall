@@ -1,8 +1,8 @@
 import json
 import logging
 import re
+import typing
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -11,6 +11,11 @@ from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import AlertGroup
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +38,8 @@ class ChannelFilter(OrderedModel):
     """
     Actually it's a Router based on terms now. Not a Filter.
     """
+
+    alert_groups: "RelatedManager['AlertGroup']"
 
     order_with_respect_to = ["alert_receive_channel_id", "is_default"]
 
@@ -186,7 +193,8 @@ class ChannelFilter(OrderedModel):
         }
         if self.slack_channel_id:
             if self.slack_channel_id:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
+                from apps.slack.models import SlackChannel
+
                 sti = self.alert_receive_channel.organization.slack_team_identity
                 slack_channel = SlackChannel.objects.filter(
                     slack_team_identity=sti, slack_id=self.slack_channel_id

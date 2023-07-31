@@ -1,7 +1,5 @@
 import logging
 
-from django.apps import apps
-
 from apps.alerts.models import AlertGroup
 from apps.alerts.representative import AlertGroupAbstractRepresentative
 from apps.telegram.models import TelegramMessage
@@ -16,8 +14,7 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         self.log_record = log_record
 
     def is_applicable(self):
-        TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
-        TelegramToOrganizationConnector = apps.get_model("telegram", "TelegramToOrganizationConnector")
+        from apps.telegram.models import TelegramToOrganizationConnector, TelegramToUserConnector
 
         organization = self.log_record.alert_group.channel.organization
 
@@ -32,7 +29,7 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
 
     @staticmethod
     def get_handlers_map():
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
 
         return {
             AlertGroupLogRecord.TYPE_ACK: "alert_group_action",
@@ -78,7 +75,8 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
 
     @classmethod
     def on_alert_group_action_triggered(cls, **kwargs):
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         log_record = kwargs["log_record"]
         logger.info(f"AlertGroupTelegramRepresentative ACTION SIGNAL, log record {log_record}")
 

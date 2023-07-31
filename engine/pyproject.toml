@@ -1,14 +1,13 @@
 [tool.isort]
 profile = "black"
 line_length=120
-# TODO: upgrade this to python 3.11
-py_version=39
+float_to_top=true
+py_version=311
 extend_skip_glob = "**/migrations/**"
 
 [tool.black]
 line-length = 120
-# TODO: upgrade this to python 3.11
-target-version = ["py39"]
+target-version = ["py311"]
 force-exclude = "migrations"
 
 [tool.mypy]

@@ -12,6 +12,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
 from apps.schedules.models import ShiftSwapRequest
+from apps.schedules.tasks.shift_swaps import create_shift_swap_request_message, update_shift_swap_request_message
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
-    authentication_classes = (PluginAuthentication, MobileAppAuthTokenAuthentication)
+    authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
@@ -55,26 +56,36 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
         queryset = ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization)
         return self.serializer_class.setup_eager_loading(queryset)
 
-    def perform_destroy(self, instance):
+    def perform_destroy(self, instance) -> None:
+        # TODO: should we allow deleting a taken request? if so we will have to undo the overrides that were generated
+
         super().perform_destroy(instance)
         write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
 
-    def perform_create(self, serializer):
-        beneficiary = self.request.user
-        serializer.save(beneficiary=beneficiary)
-        write_resource_insight_log(instance=serializer.instance, author=beneficiary, event=EntityEvent.CREATED)
+        update_shift_swap_request_message.apply_async((instance.pk,))
 
-    def perform_update(self, serializer):
+    def perform_create(self, serializer) -> None:
+        beneficiary = self.request.user
+        shift_swap_request = serializer.save(beneficiary=beneficiary)
+
+        write_resource_insight_log(instance=shift_swap_request, author=beneficiary, event=EntityEvent.CREATED)
+
+        create_shift_swap_request_message.apply_async((shift_swap_request.pk,))
+
+    def perform_update(self, serializer) -> None:
         prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_serialized
+        shift_swap_request = serializer.instance
+
         write_resource_insight_log(
-            instance=serializer.instance,
+            instance=shift_swap_request,
             author=self.request.user,
             event=EntityEvent.UPDATED,
             prev_state=prev_state,
-            new_state=new_state,
+            new_state=shift_swap_request.insight_logs_serialized,
         )
+
+        update_shift_swap_request_message.apply_async((shift_swap_request.pk,))
 
     @action(methods=["post"], detail=True)
     def take(self, request, pk) -> Response:

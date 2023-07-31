@@ -3,7 +3,6 @@ import re
 import typing
 from collections import defaultdict
 
-from django.apps import apps
 from icalendar import Calendar, Event
 from recurring_ical_events import UnfoldableCalendar, compare_greater, is_event, time_span_contains_event
 
@@ -143,7 +142,7 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
         """
         Calculate start and end datetime
         """
-        CustomOnCallShift = apps.get_model("schedules", "CustomOnCallShift")
+        from apps.schedules.models import CustomOnCallShift
 
         start = event[ICAL_DATETIME_START].dt
         end = event[ICAL_DATETIME_END].dt

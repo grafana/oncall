@@ -255,7 +255,7 @@ def test_team_permissions_not_in_team(
         assert response.json() == {"error_code": "wrong_team"}
 
     # Editor cannot retrieve other user information
-    url = reverse(f"api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
+    url = reverse("api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
     response = client.get(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN

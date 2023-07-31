@@ -7,10 +7,13 @@ from django.db import models
 from django.utils import timezone
 
 from apps.schedules import exceptions
+from apps.schedules.tasks import refresh_ical_final_schedule
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 if typing.TYPE_CHECKING:
-    from apps.user_management.models import User
+    from apps.schedules.models import OnCallSchedule
+    from apps.slack.models import SlackMessage
+    from apps.user_management.models import Organization, User
 
 
 def generate_public_primary_key_for_shift_swap_request() -> str:
@@ -41,9 +44,13 @@ class ShiftSwapRequestManager(models.Manager):
 
 
 class ShiftSwapRequest(models.Model):
+    beneficiary: "User"
+    benefactor: typing.Optional["User"]
+    schedule: "OnCallSchedule"
+    slack_message: typing.Optional["SlackMessage"]
 
-    objects = ShiftSwapRequestManager()
-    objects_with_deleted = models.Manager()
+    objects: models.Manager["ShiftSwapRequest"] = ShiftSwapRequestManager()
+    objects_with_deleted: models.Manager["ShiftSwapRequest"] = models.Manager()
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -88,6 +95,17 @@ class ShiftSwapRequest(models.Model):
     the person taking on shift workload from the beneficiary
     """
 
+    slack_message = models.OneToOneField(
+        "slack.SlackMessage",
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
+        related_name="shift_swap_request",
+    )
+    """
+    if set, represents the Slack message that was sent when the shift swap request was created
+    """
+
     class Statuses(enum.StrEnum):
         OPEN = "open"
         TAKEN = "taken"
@@ -97,22 +115,55 @@ class ShiftSwapRequest(models.Model):
     def __str__(self) -> str:
         return f"{self.schedule.name} {self.beneficiary.username} {self.swap_start} - {self.swap_end}"
 
-    def delete(self):
-        self.deleted_at = timezone.now()
-        self.save()
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
 
-    def hard_delete(self):
-        super().delete()
+    @property
+    def is_taken(self) -> bool:
+        return self.benefactor is not None
+
+    @property
+    def is_past_due(self) -> bool:
+        return timezone.now() > self.swap_start
 
     @property
     def status(self) -> str:
-        if self.deleted_at is not None:
+        if self.is_deleted:
             return self.Statuses.DELETED
-        elif self.benefactor is not None:
+        elif self.is_taken:
             return self.Statuses.TAKEN
-        elif timezone.now() > self.swap_start:
+        elif self.is_past_due:
             return self.Statuses.PAST_DUE
         return self.Statuses.OPEN
+
+    @property
+    def slack_channel_id(self) -> str | None:
+        """
+        This is only set if the schedule associated with the shift swap request
+        has a Slack channel configured for it.
+        """
+        return self.schedule.channel
+
+    @property
+    def organization(self) -> "Organization":
+        return self.schedule.organization
+
+    @property
+    def web_link(self) -> str:
+        # TODO: finish this once we know the proper URL we'll need
+        return f"{self.schedule.web_detail_page_link}"
+
+    def delete(self):
+        self.deleted_at = timezone.now()
+        self.save()
+        # make sure final schedule ical representation is updated
+        refresh_ical_final_schedule.apply_async((self.schedule.pk,))
+
+    def hard_delete(self):
+        super().delete()
+        # make sure final schedule ical representation is updated
+        refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
     def take(self, benefactor: "User") -> None:
         if benefactor == self.beneficiary:
@@ -123,7 +174,8 @@ class ShiftSwapRequest(models.Model):
         self.benefactor = benefactor
         self.save()
 
-        # TODO: implement the actual override logic in https://github.com/grafana/oncall/issues/2590
+        # make sure final schedule ical representation is updated
+        refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
     # Insight logs
     @property
