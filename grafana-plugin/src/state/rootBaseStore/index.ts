@@ -1,4 +1,5 @@
 import { OrgRole } from '@grafana/data';
+import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
@@ -18,12 +19,12 @@ import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
+import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
-import { TeamStore } from 'models/team/team';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
 import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
@@ -31,14 +32,18 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import {
+  APP_VERSION,
+  CLOUD_VERSION_REGEX,
+  GRAFANA_LICENSE_CLOUD,
+  GRAFANA_LICENSE_OSS,
+  PLUGIN_ROOT,
+} from 'utils/consts';
+import FaroHelper from 'utils/faro';
 
 // ------ Dashboard ------ //
 
 export class RootBaseStore {
-  @observable
-  appLoading = true;
-
   @observable
   currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
@@ -78,28 +83,28 @@ export class RootBaseStore {
   onCallApiUrl: string;
 
   // --------------------------
+  userStore = new UserStore(this);
+  cloudStore = new CloudStore(this);
+  directPagingStore = new DirectPagingStore(this);
+  grafanaTeamStore = new GrafanaTeamStore(this);
+  alertReceiveChannelStore = new AlertReceiveChannelStore(this);
+  outgoingWebhookStore = new OutgoingWebhookStore(this);
+  alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
+  escalationChainStore = new EscalationChainStore(this);
+  escalationPolicyStore = new EscalationPolicyStore(this);
+  organizationStore = new OrganizationStore(this);
+  telegramChannelStore = new TelegramChannelStore(this);
+  slackStore = new SlackStore(this);
+  slackChannelStore = new SlackChannelStore(this);
+  heartbeatStore = new HeartbeatStore(this);
+  scheduleStore = new ScheduleStore(this);
+  userGroupStore = new UserGroupStore(this);
+  alertGroupStore = new AlertGroupStore(this);
+  resolutionNotesStore = new ResolutionNotesStore(this);
+  apiTokenStore = new ApiTokenStore(this);
+  globalSettingStore = new GlobalSettingStore(this);
+  filtersStore = new FiltersStore(this);
 
-  userStore: UserStore = new UserStore(this);
-  cloudStore: CloudStore = new CloudStore(this);
-  directPagingStore: DirectPagingStore = new DirectPagingStore(this);
-  grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
-  alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
-  outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
-  alertReceiveChannelFiltersStore: AlertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
-  escalationChainStore: EscalationChainStore = new EscalationChainStore(this);
-  escalationPolicyStore: EscalationPolicyStore = new EscalationPolicyStore(this);
-  teamStore: TeamStore = new TeamStore(this);
-  telegramChannelStore: TelegramChannelStore = new TelegramChannelStore(this);
-  slackStore: SlackStore = new SlackStore(this);
-  slackChannelStore: SlackChannelStore = new SlackChannelStore(this);
-  heartbeatStore: HeartbeatStore = new HeartbeatStore(this);
-  scheduleStore: ScheduleStore = new ScheduleStore(this);
-  userGroupStore: UserGroupStore = new UserGroupStore(this);
-  alertGroupStore: AlertGroupStore = new AlertGroupStore(this);
-  resolutionNotesStore: ResolutionNotesStore = new ResolutionNotesStore(this);
-  apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
-  globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
-  filtersStore: FiltersStore = new FiltersStore(this);
   // stores
 
   async updateBasicData() {
@@ -114,7 +119,8 @@ export class RootBaseStore {
     };
 
     return Promise.all([
-      this.teamStore.loadCurrentTeam(),
+      this.userStore.loadCurrentUser(),
+      this.organizationStore.loadCurrentOrganization(),
       this.grafanaTeamStore.updateItems(),
       updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),
@@ -123,60 +129,68 @@ export class RootBaseStore {
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
+      this.alertGroupStore.fetchIRMPlan(),
     ]);
   }
 
   setupPluginError(errorMsg: string) {
-    this.appLoading = false;
     this.initializationError = errorMsg;
   }
 
   /**
+   * This function is called in the background when the plugin is loaded.
+   * It will check the status of the plugin and
+   * rerender the screen with the appropriate message if the plugin is not setup correctly.
+   *
    * First check to see if the plugin has been provisioned (plugin's meta jsonData has an onCallApiUrl saved)
    * If not, tell the user they first need to configure/provision the plugin.
    *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
+   * - OnCall api should not be under maintenance
    * - plugin must be considered installed by the OnCall API
    * - token_ok must be true
    *   - This represents the status of the Grafana API token. It can be false in the event that either the token
    *   hasn't been created, or if the API token was revoked in Grafana.
    * - user must be not "anonymous" (this is determined by the plugin-proxy)
    * - the OnCall API must be currently allowing signup
-   * - the user must have an Admin role
-   * If these conditions are all met then trigger a data sync w/ the OnCall backend and poll its response
+   * - the user must have an Admin role and necessary permissions
    * Finally, try to load the current user from the OnCall backend
    */
   async setupPlugin(meta: OnCallAppPluginMeta) {
-    this.appLoading = true;
     this.initializationError = null;
     this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
+
+    if (!FaroHelper.faro) {
+      FaroHelper.initializeFaro(this.onCallApiUrl);
+    }
 
     if (!this.onCallApiUrl) {
       // plugin is not provisioned
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
-    const maintenanceMode = await PluginState.checkIfBackendIsInMaintenanceMode(this.onCallApiUrl);
-    if (typeof maintenanceMode === 'string') {
-      return this.setupPluginError(maintenanceMode);
-    } else if (maintenanceMode.currently_undergoing_maintenance_message) {
-      this.currentlyUndergoingMaintenance = true;
-      return this.setupPluginError(`🚧 ${maintenanceMode.currently_undergoing_maintenance_message} 🚧`);
-    }
-
     // at this point we know the plugin is provisioned
-    const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
+    const pluginConnectionStatus = await PluginState.updatePluginStatus(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
     }
 
+    // Check if the plugin is currently undergoing maintenance
+    if (pluginConnectionStatus.currently_undergoing_maintenance_message) {
+      this.currentlyUndergoingMaintenance = true;
+      return this.setupPluginError(`🚧 ${pluginConnectionStatus.currently_undergoing_maintenance_message} 🚧`);
+    }
+
     const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
 
+    // Anonymous users are not allowed to use the plugin
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
-    } else if (!is_installed || !token_ok) {
+    }
+    // If the plugin is not installed in the OnCall backend, or token is not valid, then we need to install it
+    if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
@@ -189,6 +203,7 @@ export class RootBaseStore {
            * therefore there is no need to trigger an additional/separate sync, nor poll a status
            */
           await PluginState.installPlugin();
+          locationService.push(PLUGIN_ROOT);
         } catch (e) {
           return this.setupPluginError(
             PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
@@ -208,25 +223,18 @@ export class RootBaseStore {
         }
       }
     } else {
-      const syncDataResponse = await PluginState.syncDataWithOnCall(this.onCallApiUrl);
-
-      if (typeof syncDataResponse === 'string') {
-        return this.setupPluginError(syncDataResponse);
-      }
-
       // everything is all synced successfully at this point..
-      this.backendVersion = syncDataResponse.version;
-      this.backendLicense = syncDataResponse.license;
-      this.recaptchaSiteKey = syncDataResponse.recaptcha_site_key;
+      this.backendVersion = pluginConnectionStatus.version;
+      this.backendLicense = pluginConnectionStatus.license;
+      this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
     }
-
-    try {
-      await this.userStore.loadCurrentUser();
-    } catch (e) {
-      return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
+    if (!this.userStore.currentUser) {
+      try {
+        await this.userStore.loadCurrentUser();
+      } catch (e) {
+        return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
+      }
     }
-
-    this.appLoading = false;
   }
 
   checkMissingSetupPermissions() {

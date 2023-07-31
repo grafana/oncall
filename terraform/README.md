@@ -53,6 +53,7 @@ check [Readme](https://github.com/grafana/terraform-provider-grafana/blob/master
       dev_overrides {
           "grafana/grafana" = "/path/to/your/grafana/terraform-provider" # this path is the directory where the binary is built
       }
+   }
     ```
 
 1. Create a new directory and a `main.tf` file with the following content:

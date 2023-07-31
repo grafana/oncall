@@ -126,7 +126,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   render() {
     const { store, query } = this.props;
     const { alertReceiveChannelId, page, confirmationModal } = this.state;
-    const { grafanaTeamStore, alertReceiveChannelStore, heartbeatStore } = store;
+    const { grafanaTeamStore, alertReceiveChannelStore } = store;
 
     const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
 
@@ -160,7 +160,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         width: '5%',
         title: 'Heartbeat',
         key: 'heartbeat',
-        render: (item: AlertReceiveChannel) => this.renderHeartbeat(item, alertReceiveChannelStore, heartbeatStore),
+        render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
       },
       {
         width: '15%',
@@ -343,7 +343,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  renderHeartbeat(item: AlertReceiveChannel, alertReceiveChannelStore, heartbeatStore) {
+  renderHeartbeat(item: AlertReceiveChannel) {
+    const { store } = this.props;
+    const { alertReceiveChannelStore, heartbeatStore } = store;
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
 
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];

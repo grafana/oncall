@@ -137,6 +137,9 @@ def test_get_list_schedules(
                 "enable_web_overrides": True,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 15,
+        "total_pages": 1,
     }
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -247,6 +250,9 @@ def test_get_list_schedules_pagination(
             "next": next_url,
             "previous": previous_url,
             "results": [schedule],
+            "current_page_number": p,
+            "page_size": 1,
+            "total_pages": 3,
         }
         assert response.json() == expected_payload
 
@@ -334,6 +340,9 @@ def test_get_list_schedules_by_type(
             "next": None,
             "previous": None,
             "results": [available_schedules[schedule_type]],
+            "current_page_number": 1,
+            "page_size": 15,
+            "total_pages": 1,
         }
         assert response.json() == expected_payload
 
@@ -346,6 +355,9 @@ def test_get_list_schedules_by_type(
         "next": None,
         "previous": None,
         "results": [available_schedules[0], available_schedules[1]],
+        "current_page_number": 1,
+        "page_size": 15,
+        "total_pages": 1,
     }
     assert response.json() == expected_payload
 
@@ -1215,7 +1227,7 @@ def test_filter_events_final_schedule(
             "is_gap": is_gap,
             "is_override": is_override,
             "priority_level": priority,
-            "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
+            "start": start_date + timezone.timedelta(hours=start),
             "user": user,
         }
         for start, duration, user, priority, is_gap, is_override in expected

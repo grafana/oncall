@@ -46,6 +46,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.celery.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.celery.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

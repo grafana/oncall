@@ -1,6 +1,5 @@
 from dataclasses import asdict
 
-from django.apps import apps
 from rest_framework import serializers
 
 from apps.base.models import LiveSetting
@@ -23,6 +22,8 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True, source="org_title")
     slack_channel = serializers.SerializerMethodField()
 
+    rbac_enabled = serializers.BooleanField(source="is_rbac_permissions_enabled")
+
     SELECT_RELATED = ["slack_team_identity"]
 
     class Meta:
@@ -32,13 +33,16 @@ class OrganizationSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "name",
             "slack_team_identity",
             "slack_channel",
+            "rbac_enabled",
         ]
         read_only_fields = [
             "slack_team_identity",
+            "rbac_enabled",
         ]
 
     def get_slack_channel(self, obj):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
+
         if obj.general_log_channel_id is None or obj.slack_team_identity is None:
             return None
         try:
@@ -70,7 +74,8 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         ]
 
     def get_banner(self, obj):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         banner = DynamicSetting.objects.get_or_create(
             name="banner",
             defaults={"json_value": {"title": None, "body": None}},

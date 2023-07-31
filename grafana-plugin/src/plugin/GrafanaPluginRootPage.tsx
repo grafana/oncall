@@ -50,15 +50,15 @@ dayjs.extend(isoWeek);
 dayjs.extend(isBetween);
 dayjs.extend(customParseFormat);
 
-import 'style/vars.css';
-import 'style/global.css';
-import 'style/utils.css';
-import 'style/responsive.css';
+import 'assets/style/vars.css';
+import 'assets/style/global.css';
+import 'assets/style/utils.css';
+import 'assets/style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
-import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
+import grafanaGlobalStyle from '!raw-loader!assets/style/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -69,9 +69,9 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 };
 
 export const Root = observer((props: AppRootProps) => {
-  const [didFinishLoading, setDidFinishLoading] = useState(false);
-
   const store = useStore();
+
+  const [basicDataLoaded, setBasicDataLoaded] = useState(false);
 
   useEffect(() => {
     updateBasicData();
@@ -103,13 +103,8 @@ export const Root = observer((props: AppRootProps) => {
 
   const updateBasicData = async () => {
     await store.updateBasicData();
-    await store.alertGroupStore.fetchIRMPlan();
-    setDidFinishLoading(true);
+    setBasicDataLoaded(true);
   };
-
-  if (!didFinishLoading) {
-    return null;
-  }
 
   const location = useLocation();
 
@@ -159,7 +154,7 @@ export const Root = observer((props: AppRootProps) => {
               <Schedules query={query} />
             </Route>
             <Route path={getRoutesForPage('schedule')} exact>
-              <Schedule query={query} />
+              <Schedule query={query} basicDataLoaded={basicDataLoaded} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
               <OutgoingWebhooks query={query} />

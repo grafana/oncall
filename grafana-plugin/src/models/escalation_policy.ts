@@ -9,8 +9,7 @@ import { UserDTO as User } from './user';
 export interface EscalationPolicyType {
   id: string;
   notify_to_user: User['pk'] | null;
-  order: number;
-  //  is't option value from api/internal/v1/escalation_policies/escalation_options/
+  //  it's option value from api/internal/v1/escalation_policies/escalation_options/
   step: number;
   wait_delay: string | null;
   is_final: boolean;

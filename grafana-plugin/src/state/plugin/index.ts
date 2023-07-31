@@ -2,7 +2,6 @@ import { getBackendSrv } from '@grafana/runtime';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
 import { makeRequest, isNetworkError } from 'network';
-import FaroHelper from 'utils/faro';
 
 export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
@@ -11,6 +10,8 @@ export type UpdateGrafanaPluginSettingsProps = {
 
 export type PluginStatusResponseBase = Pick<OnCallPluginMetaJSONData, 'license'> & {
   version: string;
+  recaptcha_site_key: string;
+  currently_undergoing_maintenance_message: string;
 };
 
 export type PluginSyncStatusResponse = PluginStatusResponseBase & {
@@ -23,10 +24,6 @@ type PluginConnectedStatusResponse = PluginStatusResponseBase & {
   token_ok: boolean;
   allow_signup: boolean;
   is_user_anonymous: boolean;
-};
-
-type PluginIsInMaintenanceModeResponse = {
-  currently_undergoing_maintenance_message: string;
 };
 
 type CloudProvisioningConfigResponse = null;
@@ -44,7 +41,6 @@ export type InstallationVerb = 'install' | 'sync';
 class PluginState {
   static ONCALL_BASE_URL = '/plugin';
   static GRAFANA_PLUGIN_SETTINGS_URL = '/api/plugins/grafana-oncall-app/settings';
-  static SYNC_STATUS_POLLING_RETRY_LIMIT = 10;
   static grafanaBackend = getBackendSrv();
 
   static generateOnCallApiUrlConfiguredThroughEnvVarMsg = (isConfiguredThroughEnvVar: boolean): string =>
@@ -208,75 +204,9 @@ class PluginState {
     });
   };
 
-  static getPluginSyncStatus = (): Promise<PluginSyncStatusResponse> =>
-    makeRequest<PluginSyncStatusResponse>(`${this.ONCALL_BASE_URL}/sync`, { method: 'GET' });
-
-  static timeout = (pollCount: number) => new Promise((resolve) => setTimeout(resolve, 10 * 2 ** pollCount));
-
-  /**
-   * DON'T CALL THIS METHOD DIRECTLY
-   * This really only exists to properly test the recursive nature of pollOnCallDataSyncStatus
-   * Without this it is impossible (or very hacky) to mock the recursive calls
-   */
-  static _pollOnCallDataSyncStatus = (
-    onCallApiUrl: string,
-    onCallApiUrlIsConfiguredThroughEnvVar: boolean,
-    pollCount: number
-  ) => this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, pollCount);
-
-  /**
-   * Poll, for a configured amount of time, the status of the OnCall backend data sync
-   * Returns a PluginSyncStatusResponse if the sync was successful (ie. token_ok is true), otherwise null
-   */
-  static pollOnCallDataSyncStatus = async (
-    onCallApiUrl: string,
-    onCallApiUrlIsConfiguredThroughEnvVar: boolean,
-    pollCount = 0
+  static checkTokenAndIfPluginIsConnected = async (
+    onCallApiUrl: string
   ): Promise<PluginSyncStatusResponse | string> => {
-    if (pollCount > this.SYNC_STATUS_POLLING_RETRY_LIMIT) {
-      return `There was an issue while synchronizing data required for the plugin.\nVerify your OnCall backend setup (ie. that Celery workers are launched and properly configured)`;
-    }
-
-    try {
-      const syncResponse = await this.getPluginSyncStatus();
-      if (syncResponse?.token_ok) {
-        return syncResponse;
-      }
-
-      await this.timeout(pollCount);
-      return await this._pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, pollCount + 1);
-    } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
-    }
-  };
-
-  /**
-   * Trigger a data sync with the OnCall backend AND then poll, for a configured amount of time, the status of that sync
-   * If the
-   * Returns a PluginSyncStatusResponse if the sync was succesful, otherwise null
-   */
-  static syncDataWithOnCall = async (
-    onCallApiUrl: string,
-    onCallApiUrlIsConfiguredThroughEnvVar = false
-  ): Promise<PluginSyncStatusResponse | string> => {
-    try {
-      const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
-      if (typeof startSyncResponse === 'string') {
-        // an error occurred trying to initiate the sync
-        return startSyncResponse;
-      }
-
-      if (!FaroHelper.faro) {
-        FaroHelper.initializeFaro(onCallApiUrl);
-      }
-
-      return await this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
-    } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
-    }
-  };
-
-  static checkTokenAndSyncDataWithOncall = async (onCallApiUrl: string): Promise<PluginSyncStatusResponse | string> => {
     /**
      * Allows the plugin config page to repair settings like the app initialization screen if a user deletes
      * an API key on accident but leaves the plugin settings intact.
@@ -290,7 +220,7 @@ class PluginState {
       }
     }
 
-    return await PluginState.syncDataWithOnCall(onCallApiUrl);
+    return await PluginState.updatePluginStatus(onCallApiUrl);
   };
 
   static installPlugin = async <RT = CloudProvisioningConfigResponse>(
@@ -372,31 +302,13 @@ class PluginState {
     return null;
   };
 
-  static checkIfBackendIsInMaintenanceMode = async (
-    onCallApiUrl: string,
-    onCallApiUrlIsConfiguredThroughEnvVar = false
-  ): Promise<PluginIsInMaintenanceModeResponse | string> => {
-    try {
-      return await makeRequest<PluginIsInMaintenanceModeResponse>('/maintenance-mode-status', {
-        method: 'GET',
-      });
-    } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(
-        e,
-        onCallApiUrl,
-        'install',
-        onCallApiUrlIsConfiguredThroughEnvVar
-      );
-    }
-  };
-
-  static checkIfPluginIsConnected = async (
+  static updatePluginStatus = async (
     onCallApiUrl: string,
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginConnectedStatusResponse | string> => {
     try {
       return await makeRequest<PluginConnectedStatusResponse>(`${this.ONCALL_BASE_URL}/status`, {
-        method: 'GET',
+        method: 'POST',
       });
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(

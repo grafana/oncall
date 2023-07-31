@@ -1,6 +1,5 @@
 import time
 
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -29,14 +28,12 @@ def notify_user_task(
     important=False,
     notify_anyway=False,
 ):
-    UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-    User = apps.get_model("user_management", "User")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    UserHasNotification = apps.get_model("alerts", "UserHasNotification")
+    from apps.alerts.models import AlertGroup, UserHasNotification
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.user_management.models import User
 
     try:
-        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+        alert_group = AlertGroup.objects.get(pk=alert_group_pk)
     except AlertGroup.DoesNotExist:
         return f"notify_user_task: alert_group {alert_group_pk} doesn't exist"
 
@@ -58,7 +55,7 @@ def notify_user_task(
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                reason=f"notification is not allowed for user",
+                reason="notification is not allowed for user",
                 alert_group=alert_group,
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
             ).save()
@@ -127,21 +124,15 @@ def notify_user_task(
             if (
                 (alert_group.acknowledged and not notify_even_acknowledged)
                 or alert_group.resolved
-                or alert_group.is_archived
                 or alert_group.wiped_at
                 or alert_group.root_alert_group
             ):
-                return "Acknowledged, resolved, archived, attached or wiped."
+                return "Acknowledged, resolved, attached or wiped."
 
             if alert_group.silenced and not notify_anyway:
                 task_logger.info(
                     f"notify_user_task: skip notification user {user.pk} because alert_group {alert_group.pk} is silenced"
                 )
-                return
-
-            active_invitations_count = alert_group.invitations.filter(invitee=user, is_active=True).count()
-            if (notify_even_acknowledged or notify_anyway) and active_invitations_count == 0:
-                task_logger.info(f"notify_user_task: skip notification user {user.pk} invitation exceeded")
                 return
 
             if notification_policy.step == UserNotificationPolicy.Step.WAIT:
@@ -236,9 +227,9 @@ def notify_user_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def perform_notification(log_record_pk):
-    UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-    TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+    from apps.telegram.models import TelegramToUserConnector
+
     log_record = UserNotificationPolicyLogRecord.objects.get(pk=log_record_pk)
 
     user = log_record.author
@@ -262,7 +253,7 @@ def perform_notification(log_record_pk):
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            reason=f"notification is not allowed for user",
+            reason="notification is not allowed for user",
             alert_group=alert_group,
             notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
         ).save()
@@ -356,7 +347,7 @@ def perform_notification(log_record_pk):
             backend = None
 
         if backend is None:
-            task_logger.debug(f"notify_user failed because messaging backend is not available")
+            task_logger.debug("notify_user failed because messaging backend is not available")
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -377,7 +368,8 @@ def perform_notification(log_record_pk):
 def send_user_notification_signal(log_record_pk):
     start_time = time.time()
 
-    UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    from apps.base.models import UserNotificationPolicyLogRecord
+
     task_logger.debug(f"LOG RECORD PK: {log_record_pk}")
     task_logger.debug(f"LOG RECORD LAST: {UserNotificationPolicyLogRecord.objects.last()}")
 

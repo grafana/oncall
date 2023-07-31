@@ -42,7 +42,7 @@ export const filterAlertGroupsTableByIntegrationAndGoToDetailPage = async (
     throw new Error('we were not able to properly filter the alert groups table by integration');
   }
 
-  await goToOnCallPage(page, 'incidents');
+  await goToOnCallPage(page, 'alert-groups');
 
   // filter by integration
   const selectElement = await selectDropdownValue({
@@ -99,4 +99,14 @@ export const verifyThatAlertGroupIsTriggered = async (
   await filterAlertGroupsTableByIntegrationAndGoToDetailPage(page, integrationName);
 
   expect(await incidentTimelineContainsStep(page, triggeredStepText)).toBe(true);
+};
+
+
+export const verifyAlertGroupTitleAndMessageContainText = async (
+  page: Page,
+  title: string,
+  message: string
+): Promise<void> => {
+  await expect(page.getByTestId('incident-title')).toContainText(title);
+  await expect(page.getByTestId('incident-message')).toContainText(message);
 };

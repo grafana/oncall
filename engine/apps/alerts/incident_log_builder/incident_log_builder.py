@@ -1,21 +1,33 @@
-from django.apps import apps
+import typing
+
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
+    from apps.base.models import UserNotificationPolicyLogRecord
+
 
 class IncidentLogBuilder:
-    def __init__(self, alert_group):
+    def __init__(self, alert_group: "AlertGroup"):
         self.alert_group = alert_group
 
-    def get_log_records_list(self, with_resolution_notes=False):
+    def get_log_records_list(
+        self, with_resolution_notes: bool = False
+    ) -> typing.List[typing.Union["AlertGroupLogRecord", "ResolutionNote", "UserNotificationPolicyLogRecord"]]:
         """
-        Generates list with AlertGroupLogRecord and UserNotificationPolicyLogRecord logs
-        :return: list with logs
+        Generates list of `AlertGroupLogRecord` and `UserNotificationPolicyLogRecord` logs.
+
+        `ResolutionNote`s are optionally included if `with_resolution_notes` is `True`.
         """
-        all_log_records = list()
+        all_log_records: typing.List[
+            typing.Union["AlertGroupLogRecord", "ResolutionNote", "UserNotificationPolicyLogRecord"]
+        ] = list()
         # get logs from AlertGroupLogRecord
         alert_group_log_records = self._get_log_records_for_after_resolve_report()
         all_log_records.extend(alert_group_log_records)
@@ -31,9 +43,8 @@ class IncidentLogBuilder:
         all_log_records_sorted = sorted(all_log_records, key=lambda log: log.created_at)
         return all_log_records_sorted
 
-    def _get_log_records_for_after_resolve_report(self):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+    def _get_log_records_for_after_resolve_report(self) -> "RelatedManager['AlertGroupLogRecord']":
+        from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
 
         excluded_log_types = [
             AlertGroupLogRecord.TYPE_ESCALATION_FINISHED,
@@ -85,9 +96,8 @@ class IncidentLogBuilder:
             .order_by("created_at")
         )
 
-    def _get_user_notification_log_records_for_log_report(self):
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+    def _get_user_notification_log_records_for_log_report(self) -> "RelatedManager['UserNotificationPolicyLogRecord']":
+        from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
         # exclude user notification logs with step 'wait' or with status 'finished'
         return (
@@ -103,7 +113,7 @@ class IncidentLogBuilder:
             .order_by("created_at")
         )
 
-    def _get_resolution_notes(self):
+    def _get_resolution_notes(self) -> "RelatedManager['ResolutionNote']":
         return self.alert_group.resolution_notes.select_related("author", "resolution_note_slack_message").order_by(
             "created_at"
         )
@@ -160,7 +170,8 @@ class IncidentLogBuilder:
     def _render_escalation_plan_from_escalation_snapshot(
         self, escalation_plan_dict, stop_escalation_log_pk, esc_timedelta, escalation_snapshot, for_slack=False
     ):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
+        from apps.alerts.models import EscalationPolicy
+
         now = timezone.now()
         escalation_eta = None
         last_log_timedelta = None
@@ -261,7 +272,8 @@ class IncidentLogBuilder:
         :param for_slack:
         :return: {timedelta: [{"user_id": user.pk, "plan_lines": [#rendered escalation policy line, ]}, ..., ...], ...}
         """
-        Invitation = apps.get_model("alerts", "Invitation")
+        from apps.alerts.models import Invitation
+
         now = timezone.now()
         for invitation in self.alert_group.invitations.filter(is_active=True):
             invitation_timedelta = timezone.timedelta()
@@ -377,7 +389,7 @@ class IncidentLogBuilder:
 
         :return: dict with timedelta as a key and list with escalation and notification plan lines as a value
         """
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
+        from apps.alerts.models import EscalationPolicy
 
         escalation_plan_dict = {}
         timedelta = timezone.timedelta()
@@ -577,7 +589,8 @@ class IncidentLogBuilder:
         :param for_slack: (bool) add or not user slack id to user notification plan line
         :return: plan line
         """
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy
+
         result = ""
         user_verbal = user_to_notify.get_username_with_slack_verbal() if for_slack else user_to_notify.username
         if notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
@@ -610,8 +623,7 @@ class IncidentLogBuilder:
         :param for_slack: (bool) add or not user slack id to user notification plan line
         :return: {timedelta: [{"user_id": user.pk, "plan_lines": [#rendered notification policy line, ]}, ...], ...}
         """
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
         timedelta = timezone.timedelta()
         is_the_first_notification_step = future_step  # escalation starts with this step or not

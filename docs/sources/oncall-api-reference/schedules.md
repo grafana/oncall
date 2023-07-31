@@ -129,7 +129,10 @@ The above command returns JSON structured in the following way:
         "user_group_id": "MEOW_SLACK_ID"
       }
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 
@@ -294,7 +297,10 @@ The above command returns JSON structured in the following way:
       "shift_start": "2023-01-27T09:00:00Z",
       "shift_end": "2023-01-27T17:00:00Z"
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

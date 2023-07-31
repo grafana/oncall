@@ -10,7 +10,7 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -33,19 +33,6 @@ steps:
       - cd ci/dist
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
-
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-    when:
-      ref:
-        - refs/tags/v*.*.*
 
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
@@ -179,7 +166,7 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -231,7 +218,7 @@ steps:
     image: alpine
     commands:
       - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG#v}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
       - cat engine/settings/base.py | grep VERSION | head -1
 
   - name: build and push docker image
@@ -280,14 +267,6 @@ get:
   name: .dockerconfigjson
 
 ---
-# Secret for GitHub
-get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
-
----
 # Slack webhook
 get:
   name: slack-plugin
@@ -334,6 +313,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: be10373849d65e1f90bce64c7468d5cf5bac546285226ff8931a8b953163a752
+hmac: f09cde0461e15ca192f16ffb9d92f802ed127988643581e95a2fbdbba720fb89
 
 ...

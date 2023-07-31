@@ -43,7 +43,7 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
 import ExpandedIntegrationRouteDisplay from 'containers/IntegrationContainers/ExpandedIntegrationRouteDisplay/ExpandedIntegrationRouteDisplay';
-import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHearbeatForm/IntegrationHeartbeatForm';
+import IntegrationHeartbeatForm from 'containers/IntegrationContainers/IntegrationHeartbeatForm/IntegrationHeartbeatForm';
 import IntegrationTemplateList from 'containers/IntegrationContainers/IntegrationTemplatesList';
 import IntegrationForm from 'containers/IntegrationForm/IntegrationForm';
 import IntegrationTemplate from 'containers/IntegrationTemplate/IntegrationTemplate';
@@ -406,7 +406,6 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       () => {
         alertReceiveChannelStore
           .createChannelFilter({
-            order: 0,
             alert_receive_channel: id,
             filtering_term: NEW_ROUTE_DEFAULT,
             filtering_term_type: 1, // non-regex
@@ -726,7 +725,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   alertReceiveChannel,
   changeIsTemplateSettingsOpen,
 }) => {
-  const { alertReceiveChannelStore, heartbeatStore } = useStore();
+  const { alertReceiveChannelStore } = useStore();
 
   const history = useHistory();
 
@@ -742,7 +741,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }>(undefined);
 
   const [isIntegrationSettingsOpen, setIsIntegrationSettingsOpen] = useState(false);
-  const [isHearbeatFormOpen, setIsHearbeatFormOpen] = useState(false);
+  const [isHeartbeatFormOpen, setIsHeartbeatFormOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState<{
     disabled: boolean;
@@ -784,10 +783,10 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
         />
       )}
 
-      {isHearbeatFormOpen && (
+      {isHeartbeatFormOpen && (
         <IntegrationHeartbeatForm
           alertReceveChannelId={alertReceiveChannel['id']}
-          onClose={() => setIsHearbeatFormOpen(false)}
+          onClose={() => setIsHeartbeatFormOpen(false)}
         />
       )}
 
@@ -823,7 +822,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
               {showHeartbeatSettings() && (
                 <WithPermissionControlTooltip key="ok" userAction={UserActions.IntegrationsWrite}>
-                  <div className={cx('integration__actionItem')} onClick={() => setIsHearbeatFormOpen(true)}>
+                  <div
+                    className={cx('integration__actionItem')}
+                    onClick={() => setIsHeartbeatFormOpen(true)}
+                    data-testid="integration-heartbeat-settings"
+                  >
                     Heartbeat Settings
                   </div>
                 </WithPermissionControlTooltip>
@@ -927,9 +930,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   );
 
   function showHeartbeatSettings() {
-    const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
-    const heartbeat = heartbeatStore.items[heartbeatId];
-    return !!heartbeat?.last_heartbeat_time_verbal;
+    return alertReceiveChannel.is_available_for_integration_heartbeat;
   }
 
   function deleteIntegration() {
@@ -1042,7 +1043,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       if (item?.integration === 'direct_paging') {
         return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
       } else {
-        return item.demo_alert_enabled && <Text type={'primary'}>; try to send a demo alert</Text>;
+        return item.demo_alert_enabled && <Text type={'primary'}>try to send a demo alert</Text>;
       }
     };
 
@@ -1119,7 +1120,7 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
         />
       )}
 
-      {renderHearbeat(alertReceiveChannel)}
+      {renderHeartbeat(alertReceiveChannel)}
 
       <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', marginLeft: '8px' }}>
         <div className={cx('headerTop__item')}>
@@ -1155,26 +1156,24 @@ const IntegrationHeader: React.FC<IntegrationHeaderProps> = ({
     );
   }
 
-  function renderHearbeat(alertReceiveChannel: AlertReceiveChannel) {
+  function renderHeartbeat(alertReceiveChannel: AlertReceiveChannel) {
     const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceiveChannel.id];
     const heartbeat = heartbeatStore.items[heartbeatId];
 
-    const heartbeatStatus = Boolean(heartbeat?.status);
-
-    if (
-      !alertReceiveChannel.is_available_for_integration_heartbeat ||
-      !alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal
-    ) {
+    if (!alertReceiveChannel.is_available_for_integration_heartbeat || !heartbeat?.last_heartbeat_time_verbal) {
       return null;
     }
 
+    const heartbeatStatus = Boolean(heartbeat?.status);
+
     return (
       <TooltipBadge
+        data-testid="heartbeat-badge"
         text={undefined}
         className={cx('heartbeat-badge')}
         borderType={heartbeatStatus ? 'success' : 'danger'}
         customIcon={heartbeatStatus ? <HeartIcon /> : <HeartRedIcon />}
-        tooltipTitle={`Last heartbeat: ${alertReceiveChannel.heartbeat?.last_heartbeat_time_verbal}`}
+        tooltipTitle={`Last heartbeat: ${heartbeat?.last_heartbeat_time_verbal}`}
         tooltipContent={undefined}
       />
     );

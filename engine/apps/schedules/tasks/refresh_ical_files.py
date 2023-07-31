@@ -1,5 +1,4 @@
 from celery.utils.log import get_task_logger
-from django.apps import apps
 
 from apps.alerts.tasks import notify_ical_schedule_shift
 from apps.schedules.ical_utils import is_icals_equal
@@ -12,7 +11,7 @@ task_logger = get_task_logger(__name__)
 
 @shared_dedicated_queue_retry_task()
 def start_refresh_ical_files():
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info("Start refresh ical files")
 
@@ -26,7 +25,7 @@ def start_refresh_ical_files():
 
 @shared_dedicated_queue_retry_task()
 def start_refresh_ical_final_schedules():
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info("Start refresh ical final schedules")
 
@@ -37,7 +36,7 @@ def start_refresh_ical_final_schedules():
 
 @shared_dedicated_queue_retry_task()
 def refresh_ical_file(schedule_pk):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     task_logger.info(f"Refresh ical files for schedule {schedule_pk}")
 
@@ -89,7 +88,8 @@ def refresh_ical_file(schedule_pk):
 
 @shared_dedicated_queue_retry_task()
 def refresh_ical_final_schedule(schedule_pk):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
+
     task_logger.info(f"Refresh ical final schedule {schedule_pk}")
 
     try:

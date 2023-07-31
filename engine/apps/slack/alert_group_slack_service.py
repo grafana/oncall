@@ -1,6 +1,5 @@
 import logging
-
-from django.apps import apps
+import typing
 
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY
 from apps.slack.slack_client import SlackClientWithErrorHandling
@@ -11,21 +10,31 @@ from apps.slack.slack_client.exceptions import (
     SlackAPITokenException,
 )
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+    from apps.slack.models import SlackTeamIdentity
+
 logger = logging.getLogger(__name__)
 
 
 class AlertGroupSlackService:
-    def __init__(self, slack_team_identity, slack_client=None):
+    _slack_client: SlackClientWithErrorHandling
+
+    def __init__(
+        self,
+        slack_team_identity: "SlackTeamIdentity",
+        slack_client: typing.Optional[SlackClientWithErrorHandling] = None,
+    ):
         self.slack_team_identity = slack_team_identity
         if slack_client is not None:
             self._slack_client = slack_client
         else:
             self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
 
-    def update_alert_group_slack_message(self, alert_group):
+    def update_alert_group_slack_message(self, alert_group: "AlertGroup") -> None:
         logger.info(f"Started _update_slack_message for alert_group {alert_group.pk}")
-        SlackMessage = apps.get_model("slack", "SlackMessage")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        from apps.alerts.models import AlertReceiveChannel
+        from apps.slack.models import SlackMessage
 
         slack_message = alert_group.slack_message
         attachments = alert_group.render_slack_attachments()
@@ -79,14 +88,15 @@ class AlertGroupSlackService:
         logger.info(f"Finished _update_slack_message for alert_group {alert_group.pk}")
 
     def publish_message_to_alert_group_thread(
-        self, alert_group, attachments=[], mrkdwn=True, unfurl_links=True, text=None
-    ):
+        self, alert_group: "AlertGroup", attachments=[], mrkdwn=True, unfurl_links=True, text=None
+    ) -> None:
         # TODO: refactor checking the possibility of sending message to slack
         # do not try to post message to slack if integration is rate limited
         if alert_group.channel.is_rate_limited_in_slack:
             return
 
-        SlackMessage = apps.get_model("slack", "SlackMessage")
+        from apps.slack.models import SlackMessage
+
         slack_message = alert_group.get_slack_message()
         channel_id = slack_message.channel_id
         try:

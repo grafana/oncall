@@ -1,7 +1,6 @@
 from time import perf_counter
 
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.db import transaction
 from django.utils import timezone
 
@@ -10,40 +9,18 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 logger = get_task_logger(__name__)
 
 
-@shared_dedicated_queue_retry_task(bind=True)
-def heartbeat_checkup(self, heartbeat_id):
-    HeartBeat = apps.get_model("heartbeat", "HeartBeat")
-    HeartBeat.perform_heartbeat_check(heartbeat_id, heartbeat_checkup.request.id)
-
-
 @shared_dedicated_queue_retry_task()
-def integration_heartbeat_checkup(heartbeat_id):
-    IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
+def integration_heartbeat_checkup(heartbeat_id: int) -> None:
+    from apps.heartbeat.models import IntegrationHeartBeat
+
     IntegrationHeartBeat.perform_heartbeat_check(heartbeat_id, integration_heartbeat_checkup.request.id)
-
-
-@shared_dedicated_queue_retry_task()
-def restore_heartbeat_tasks():
-    """
-    Restore heartbeat tasks in case they got lost for some reason
-    """
-    HeartBeat = apps.get_model("heartbeat", "HeartBeat")
-    for heartbeat in HeartBeat.objects.all():
-        if (
-            heartbeat.last_checkup_task_time
-            + timezone.timedelta(minutes=5)
-            + timezone.timedelta(seconds=heartbeat.timeout_seconds)
-            < timezone.now()
-        ):
-            task = heartbeat_checkup.apply_async((heartbeat.pk,), countdown=5)
-            heartbeat.actual_check_up_task_id = task.id
-            heartbeat.save()
 
 
 @shared_dedicated_queue_retry_task()
 def process_heartbeat_task(alert_receive_channel_pk):
     start = perf_counter()
-    IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
+    from apps.heartbeat.models import IntegrationHeartBeat
+
     with transaction.atomic():
         heartbeats = IntegrationHeartBeat.objects.filter(
             alert_receive_channel__pk=alert_receive_channel_pk,
