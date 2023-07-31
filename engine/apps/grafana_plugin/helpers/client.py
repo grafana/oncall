@@ -253,6 +253,7 @@ class GcomAPIClient(APIClient):
     DELETED_INSTANCE_QUERY = "instances?status=deleted&includeDeleted=true"
     STACK_STATUS_DELETED = "deleted"
     STACK_STATUS_ACTIVE = "active"
+    PAGE_SIZE = 1000
 
     def __init__(self, api_token: str) -> None:
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
@@ -315,8 +316,20 @@ class GcomAPIClient(APIClient):
             return False
         return self._feature_toggle_is_enabled(instance_info, "accessControlOnCall")
 
-    def get_instances(self, query: str):
-        return self.api_get(query)
+    def get_instances(self, query: str, page_size=None):
+        if not page_size:
+            page, _ = self.api_get(query)
+            yield page
+        else:
+            cursor = 0
+            while cursor is not None:
+                if query:
+                    page_query = query + f"&cursor={cursor}&pageSize={page_size}"
+                else:
+                    page_query = f"?cursor={cursor}&pageSize={page_size}"
+                page, _ = self.api_get(page_query)
+                yield page
+                cursor = page["nextCursor"]
 
     def is_stack_deleted(self, stack_id: str) -> bool:
         url = f"instances?includeDeleted=true&id={stack_id}"

@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroupLogRecord
+    from apps.user_management.models import User
 
 
 def generate_public_primary_key_for_team():
@@ -83,7 +84,9 @@ class TeamManager(models.Manager):
 
 
 class Team(models.Model):
+    current_team_users: "RelatedManager['User']"
     oncall_schedules: "RelatedManager['AlertGroupLogRecord']"
+    users: "RelatedManager['User']"
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -92,7 +95,7 @@ class Team(models.Model):
         default=generate_public_primary_key_for_team,
     )
 
-    objects = TeamManager()
+    objects: models.Manager["Team"] = TeamManager()
 
     team_id = models.PositiveIntegerField()
     organization = models.ForeignKey(
