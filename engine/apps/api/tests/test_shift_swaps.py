@@ -11,6 +11,7 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import OnCallScheduleWeb, ShiftSwapRequest
+from common.api_helpers.utils import serialize_datetime_as_utc_timestamp
 from common.insight_log import EntityEvent
 
 description = "my shift swap request"
@@ -36,18 +37,14 @@ def ssr_setup(
     return _ssr_setup
 
 
-def _convert_dt_to_sr(dt: datetime.datetime) -> str:
-    return dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
-
 def _construct_serialized_object(ssr: ShiftSwapRequest, status="open", description=None, benefactor=None):
     return {
         "id": ssr.public_primary_key,
-        "created_at": _convert_dt_to_sr(ssr.created_at),
-        "updated_at": _convert_dt_to_sr(ssr.updated_at),
+        "created_at": serialize_datetime_as_utc_timestamp(ssr.created_at),
+        "updated_at": serialize_datetime_as_utc_timestamp(ssr.updated_at),
         "schedule": ssr.schedule.public_primary_key,
-        "swap_start": _convert_dt_to_sr(ssr.swap_start),
-        "swap_end": _convert_dt_to_sr(ssr.swap_end),
+        "swap_start": serialize_datetime_as_utc_timestamp(ssr.swap_start),
+        "swap_end": serialize_datetime_as_utc_timestamp(ssr.swap_end),
         "beneficiary": ssr.beneficiary.public_primary_key,
         "status": status,
         "benefactor": benefactor,
@@ -147,9 +144,14 @@ def test_retrieve_permissions(
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.create_shift_swap_request_message")
 @pytest.mark.django_db
 def test_create(
-    mock_write_resource_insight_log, make_organization_and_user_with_plugin_token, make_schedule, make_user_auth_headers
+    mock_create_shift_swap_request_message,
+    mock_write_resource_insight_log,
+    make_organization_and_user_with_plugin_token,
+    make_schedule,
+    make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -167,14 +169,15 @@ def test_create(
     ssr = ShiftSwapRequest.objects.get(public_primary_key=response.json()["id"])
     expected_response = _construct_serialized_object(ssr) | {
         **data,
-        "swap_start": _convert_dt_to_sr(tomorrow),
-        "swap_end": _convert_dt_to_sr(two_days_from_now),
+        "swap_start": serialize_datetime_as_utc_timestamp(tomorrow),
+        "swap_end": serialize_datetime_as_utc_timestamp(two_days_from_now),
     }
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
 
     mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
+    mock_create_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db
@@ -261,8 +264,11 @@ def test_create_permissions(
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
+def test_update(
+    mock_update_shift_swap_request_message, mock_write_resource_insight_log, ssr_setup, make_user_auth_headers
+):
     ssr, beneficiary, token, _ = ssr_setup(description=description)
     insights_log_prev_state = ssr.insight_logs_serialized
 
@@ -273,8 +279,8 @@ def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_heade
     data = {
         "description": "hellooooo world",
         "schedule": ssr.schedule.public_primary_key,
-        "swap_start": _convert_dt_to_sr(ssr.swap_start),
-        "swap_end": _convert_dt_to_sr(ssr.swap_end),
+        "swap_start": serialize_datetime_as_utc_timestamp(ssr.swap_start),
+        "swap_end": serialize_datetime_as_utc_timestamp(ssr.swap_end),
     }
 
     response = client.put(url, data=json.dumps(data), content_type="application/json", **auth_headers)
@@ -295,6 +301,8 @@ def test_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_heade
         prev_state=insights_log_prev_state,
         new_state=ssr.insight_logs_serialized,
     )
+
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db
@@ -369,8 +377,8 @@ def test_update_own_ssr_permissions(ssr_setup, make_user_auth_headers, role, exp
     data = {
         "description": "hellooooo world",
         "schedule": ssr.schedule.public_primary_key,
-        "swap_start": _convert_dt_to_sr(ssr.swap_start),
-        "swap_end": _convert_dt_to_sr(ssr.swap_end),
+        "swap_start": serialize_datetime_as_utc_timestamp(ssr.swap_start),
+        "swap_end": serialize_datetime_as_utc_timestamp(ssr.swap_end),
     }
 
     response = client.put(
@@ -394,8 +402,11 @@ def test_update_others_ssr_permissions(ssr_setup, make_user_auth_headers):
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_partial_update(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
+def test_partial_update(
+    mock_update_shift_swap_request_message, mock_write_resource_insight_log, ssr_setup, make_user_auth_headers
+):
     ssr, beneficiary, token, _ = ssr_setup(description=description)
     insights_log_prev_state = ssr.insight_logs_serialized
 
@@ -424,6 +435,8 @@ def test_partial_update(mock_write_resource_insight_log, ssr_setup, make_user_au
         new_state=ssr.insight_logs_serialized,
     )
 
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
+
 
 @pytest.mark.django_db
 def test_partial_update_time_related_fields(ssr_setup, make_user_auth_headers):
@@ -433,8 +446,8 @@ def test_partial_update_time_related_fields(ssr_setup, make_user_auth_headers):
     auth_headers = make_user_auth_headers(beneficiary, token)
 
     # but if we do PATCH a time related field, we must specify all the time fields
-    swap_start = {"swap_start": _convert_dt_to_sr(tomorrow + datetime.timedelta(days=5))}
-    swap_end = {"swap_end": _convert_dt_to_sr(tomorrow + datetime.timedelta(days=10))}
+    swap_start = {"swap_start": serialize_datetime_as_utc_timestamp(tomorrow + datetime.timedelta(days=5))}
+    swap_end = {"swap_end": serialize_datetime_as_utc_timestamp(tomorrow + datetime.timedelta(days=10))}
     valid = swap_start | swap_end
 
     for case in [swap_start, swap_end]:
@@ -502,8 +515,8 @@ def test_benefactor_and_beneficiary_are_read_only_fields(ssr_setup, make_user_au
     base_data = {
         "description": "hellooooo world",
         "schedule": ssr.schedule.public_primary_key,
-        "swap_start": _convert_dt_to_sr(ssr.swap_start),
-        "swap_end": _convert_dt_to_sr(ssr.swap_end),
+        "swap_start": serialize_datetime_as_utc_timestamp(ssr.swap_start),
+        "swap_end": serialize_datetime_as_utc_timestamp(ssr.swap_end),
     }
 
     update_beneficiary = {"beneficiary": benefactor.public_primary_key}
@@ -547,8 +560,11 @@ def test_benefactor_and_beneficiary_are_read_only_fields(ssr_setup, make_user_au
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
+@patch("apps.api.views.shift_swap.update_shift_swap_request_message")
 @pytest.mark.django_db
-def test_delete(mock_write_resource_insight_log, ssr_setup, make_user_auth_headers):
+def test_delete(
+    mock_update_shift_swap_request_message, mock_write_resource_insight_log, ssr_setup, make_user_auth_headers
+):
     ssr, beneficiary, token, _ = ssr_setup()
     client = APIClient()
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
@@ -565,6 +581,8 @@ def test_delete(mock_write_resource_insight_log, ssr_setup, make_user_auth_heade
         author=beneficiary,
         event=EntityEvent.DELETED,
     )
+
+    mock_update_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
 @pytest.mark.django_db
@@ -613,7 +631,9 @@ def test_take(ssr_setup, make_user_auth_headers):
 
     assert response.status_code == status.HTTP_200_OK
     assert response_json == expected_response
-    assert updated_at != _convert_dt_to_sr(ssr.updated_at)  # validate that updated_at is auto-updated on take
+    assert updated_at != serialize_datetime_as_utc_timestamp(
+        ssr.updated_at
+    )  # validate that updated_at is auto-updated on take
 
     url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
     response = client.get(url, format="json", **auth_headers)

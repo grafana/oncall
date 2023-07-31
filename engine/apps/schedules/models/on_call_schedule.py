@@ -1,3 +1,4 @@
+import copy
 import datetime
 import itertools
 import re
@@ -50,6 +51,8 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import EscalationPolicy
     from apps.auth_token.models import ScheduleExportAuthToken
+    from apps.slack.models import SlackUserGroup
+    from apps.user_management.models import Organization, Team
 
 
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
@@ -90,6 +93,15 @@ class ScheduleEventUser(typing.TypedDict):
     avatar_full: str
 
 
+class SwapRequest(typing.TypedDict):
+    pk: str
+    user: typing.Optional[ScheduleEventUser]
+
+
+class MaybeSwappedScheduleEventUser(ScheduleEventUser):
+    swap_request: typing.Optional[SwapRequest]
+
+
 class ScheduleEventShift(typing.TypedDict):
     pk: str
 
@@ -98,7 +110,7 @@ class ScheduleEvent(typing.TypedDict):
     all_day: bool
     start: datetime.datetime
     end: datetime.datetime
-    users: typing.List[ScheduleEventUser]
+    users: typing.List[MaybeSwappedScheduleEventUser]
     missing_users: typing.List[str]
     priority_level: typing.Optional[int]
     source: typing.Optional[str]
@@ -153,7 +165,11 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
 
 
 class OnCallSchedule(PolymorphicModel):
-    objects = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
+    organization: "Organization"
+    slack_user_group: typing.Optional["SlackUserGroup"]
+    team: typing.Optional["Team"]
+
+    objects: models.Manager["OnCallSchedule"] = PolymorphicManager.from_queryset(OnCallScheduleQuerySet)()
 
     # type of calendars in schedule
     TYPE_ICAL_PRIMARY, TYPE_ICAL_OVERRIDES, TYPE_CALENDAR = range(
@@ -228,6 +244,14 @@ class OnCallSchedule(PolymorphicModel):
     # empty shifts checker related fields
     has_empty_shifts = models.BooleanField(default=False)
     empty_shifts_report_sent_at = models.DateField(null=True, default=None)
+
+    @property
+    def web_page_link(self) -> str:
+        return f"{self.organization.web_link}schedules"
+
+    @property
+    def web_detail_page_link(self) -> str:
+        return f"{self.web_page_link}/{self.public_primary_key}"
 
     def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""
@@ -365,13 +389,29 @@ class OnCallSchedule(PolymorphicModel):
             events.append(shift_json)
 
         # combine multiple-users same-shift events into one
-        return self._merge_events(events)
+        events = self._merge_events(events)
+
+        # annotate events with swap request details swapping users as needed
+        events = self._apply_swap_requests(events, datetime_start, datetime_end)
+
+        return events
 
     def final_events(self, datetime_start, datetime_end):
         """Return schedule final events, after resolving shifts and overrides."""
         events = self.filter_events(datetime_start, datetime_end, with_empty=True, with_gap=True, all_day_datetime=True)
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
+
+    def filter_swap_requests(self, datetime_start, datetime_end):
+        swap_requests = self.shift_swap_requests.filter(  # starting before but ongoing
+            swap_start__lt=datetime_start, swap_end__gte=datetime_start
+        ).union(
+            self.shift_swap_requests.filter(  # starting after but before end
+                swap_start__gte=datetime_start, swap_start__lte=datetime_end
+            )
+        )
+        swap_requests = swap_requests.order_by("created_at")
+        return swap_requests
 
     def refresh_ical_final_schedule(self):
         now = timezone.now()
@@ -586,6 +626,87 @@ class OnCallSchedule(PolymorphicModel):
             "comments": comments,
             "overloaded_users": overloaded_users,
         }
+
+    def _apply_swap_requests(self, events, datetime_start, datetime_end) -> ScheduleEvents:
+        """Apply swap requests details to schedule events."""
+        # get swaps requests affecting this schedule / time range
+        swaps = self.filter_swap_requests(datetime_start, datetime_end)
+
+        def _insert_event(index, event):
+            # add event, if any, to events list in the specified index
+            # return incremented index if the event was added
+            if event is None:
+                return index
+            events.insert(index, event)
+            return index + 1
+
+        # apply swaps sequentially
+        for swap in swaps:
+            i = 0
+            while i < len(events):
+                event = events.pop(i)
+
+                if event["start"] > swap.swap_end or event["end"] < swap.swap_start:
+                    # event outside the swap period, keep as it is and continue
+                    i = _insert_event(i, event)
+                    continue
+
+                users = set(u["pk"] for u in event["users"])
+                if swap.beneficiary.public_primary_key in users:
+                    # swap request affects current event
+
+                    split_before = None
+                    if event["start"] < swap.swap_start:
+                        # partially included start -> split
+                        split_before = copy.deepcopy(event)
+                        split_before["end"] = swap.swap_start
+                        # update event to swap
+                        event["start"] = swap.swap_start
+
+                    split_after = None
+                    if event["end"] > swap.swap_end:
+                        # partially included end -> split
+                        split_after = copy.deepcopy(event)
+                        split_after["start"] = swap.swap_end
+                        # update event to swap
+                        event["end"] = swap.swap_end
+
+                    # identify user to swap
+                    user_to_swap = None
+                    for u in event["users"]:
+                        if u["pk"] == swap.beneficiary.public_primary_key:
+                            user_to_swap = u
+                            break
+
+                    # apply swap changes to event user
+                    swap_details = {"pk": swap.public_primary_key}
+                    if swap.benefactor:
+                        # swap is taken, update user in shift
+                        user_to_swap["pk"] = swap.benefactor.public_primary_key
+                        user_to_swap["display_name"] = swap.benefactor.username
+                        user_to_swap["email"] = swap.benefactor.email
+                        user_to_swap["avatar_full"] = swap.benefactor.avatar_full_url
+                        # add beneficiary user to details
+                        swap_details["user"] = {
+                            "display_name": swap.beneficiary.username,
+                            "email": swap.beneficiary.email,
+                            "pk": swap.beneficiary.public_primary_key,
+                            "avatar_full": swap.beneficiary.avatar_full_url,
+                        }
+                    user_to_swap["swap_request"] = swap_details
+
+                    # update events list
+                    # keep first split event in its original index
+                    i = _insert_event(i, split_before)
+                    # insert updated swap-related event
+                    i = _insert_event(i, event)
+                    # keep second split event after swap
+                    i = _insert_event(i, split_after)
+                else:
+                    # event for different user(s), keep as it is and continue
+                    i = _insert_event(i, event)
+
+        return events
 
     def _resolve_schedule(
         self, events: ScheduleEvents, datetime_start: datetime.datetime, datetime_end: datetime.datetime
