@@ -1,5 +1,6 @@
 import json
 import logging
+import typing
 
 import humanize
 from django.db import models
@@ -13,11 +14,23 @@ from apps.alerts.utils import render_relative_timeline
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup, CustomButton, EscalationPolicy, Invitation
+    from apps.user_management.models import User
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 class AlertGroupLogRecord(models.Model):
+    alert_group: "AlertGroup"
+    author: typing.Optional["User"]
+    custom_button: typing.Optional["CustomButton"]
+    dependent_alert_group: typing.Optional["AlertGroup"]
+    escalation_policy: typing.Optional["EscalationPolicy"]
+    invitation: typing.Optional["Invitation"]
+    root_alert_group: typing.Optional["AlertGroup"]
+
     (
         TYPE_ACK,
         TYPE_UN_ACK,
@@ -271,7 +284,7 @@ class AlertGroupLogRecord(models.Model):
                 if escalation_chain is not None:
                     result += f' with escalation chain "{escalation_chain.name}"'
                 else:
-                    result += f" with no escalation chain, skipping escalation"
+                    result += " with no escalation chain, skipping escalation"
             else:
                 result += "alert group assigned to deleted route, skipping escalation"
         elif self.type == AlertGroupLogRecord.TYPE_ACK:

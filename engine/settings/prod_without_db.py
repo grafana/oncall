@@ -1,5 +1,7 @@
 import os
 
+from .base import *  # noqa: F401, F403
+
 try:
     import uwsgi
     from prometheus_client import multiprocess
@@ -13,7 +15,6 @@ except ModuleNotFoundError:
     # Only works under uwsgi web server environment
     pass
 
-from .base import *  # noqa
 
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
@@ -73,6 +74,8 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },
+    "apps.schedules.tasks.shift_swaps.slack_messages.post_shift_swap_request_creation_message": {"queue": "default"},
+    "apps.schedules.tasks.shift_swaps.slack_messages.update_shift_swap_request_message": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},

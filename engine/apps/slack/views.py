@@ -2,7 +2,6 @@ import hashlib
 import hmac
 import json
 import logging
-import typing
 from contextlib import suppress
 
 from django.conf import settings
@@ -29,45 +28,28 @@ from apps.slack.scenarios.onboarding import STEPS_ROUTING as ONBOARDING_STEPS_RO
 from apps.slack.scenarios.paging import STEPS_ROUTING as DIRECT_PAGE_ROUTING
 from apps.slack.scenarios.profile_update import STEPS_ROUTING as PROFILE_UPDATE_ROUTING
 from apps.slack.scenarios.resolution_note import STEPS_ROUTING as RESOLUTION_NOTE_ROUTING
-from apps.slack.scenarios.scenario_step import (
-    EVENT_SUBTYPE_BOT_MESSAGE,
-    EVENT_SUBTYPE_MESSAGE_CHANGED,
-    EVENT_SUBTYPE_MESSAGE_DELETED,
-    EVENT_TYPE_APP_MENTION,
-    EVENT_TYPE_MESSAGE,
-    EVENT_TYPE_MESSAGE_CHANNEL,
-    EVENT_TYPE_SUBTEAM_CREATED,
-    EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
-    EVENT_TYPE_SUBTEAM_UPDATED,
-    EVENT_TYPE_USER_CHANGE,
-    EVENT_TYPE_USER_PROFILE_CHANGED,
-    PAYLOAD_TYPE_BLOCK_ACTIONS,
-    PAYLOAD_TYPE_DIALOG_SUBMISSION,
-    PAYLOAD_TYPE_EVENT_CALLBACK,
-    PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
-    PAYLOAD_TYPE_MESSAGE_ACTION,
-    PAYLOAD_TYPE_SLASH_COMMAND,
-    PAYLOAD_TYPE_VIEW_SUBMISSION,
-    ScenarioStep,
-)
+from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.scenarios.schedules import STEPS_ROUTING as SCHEDULES_ROUTING
+from apps.slack.scenarios.shift_swap_requests import STEPS_ROUTING as SHIFT_SWAP_REQUESTS_ROUTING
 from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
 from apps.slack.scenarios.slack_channel_integration import STEPS_ROUTING as SLACK_CHANNEL_INTEGRATION_ROUTING
 from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROUP_UPDATE_ROUTING
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
+from apps.slack.types import EventPayload, EventType, MessageEventSubtype, PayloadType, ScenarioRoute
 from apps.user_management.models import Organization
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import delete_slack_connector
 
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
-SCENARIOS_ROUTES = []  # Add all other routes here
+SCENARIOS_ROUTES: ScenarioRoute.RoutingSteps = []
 SCENARIOS_ROUTES.extend(ONBOARDING_STEPS_ROUTING)
 SCENARIOS_ROUTES.extend(DISTRIBUTION_STEPS_ROUTING)
 SCENARIOS_ROUTES.extend(INVITED_TO_CHANNEL_ROUTING)
 SCENARIOS_ROUTES.extend(SCHEDULES_ROUTING)
+SCENARIOS_ROUTES.extend(SHIFT_SWAP_REQUESTS_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_CHANNEL_INTEGRATION_ROUTING)
 SCENARIOS_ROUTES.extend(ALERTGROUP_APPEARANCE_ROUTING)
 SCENARIOS_ROUTES.extend(RESOLUTION_NOTE_ROUTING)
@@ -81,16 +63,6 @@ SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
 SCENARIOS_ROUTES.extend(NOTIFIED_USER_NOT_IN_CHANNEL_ROUTING)
 
 logger = logging.getLogger(__name__)
-
-
-class StopAnalyticsReporting(APIView):
-    def get(self, request):
-        response = HttpResponse(
-            "Your app installation would not be tracked by analytics from backend, "
-            "use browser plugin to disable from a frontend side. "
-        )
-        response.set_cookie("no_track", True, max_age=10 * 360 * 24 * 60 * 60)
-        return response
 
 
 class InstallLinkRedirectView(APIView):
@@ -164,7 +136,7 @@ class SlackEventApiEndpointView(APIView):
             payload["amixr_slack_retries"] = request.META["HTTP_X_SLACK_RETRY_NUM"]
 
         payload_type = payload.get("type")
-        payload_type_is_block_actions = payload_type == PAYLOAD_TYPE_BLOCK_ACTIONS
+        payload_type_is_block_actions = payload_type == PayloadType.BLOCK_ACTIONS
         payload_command = payload.get("command")
         payload_callback_id = payload.get("callback_id")
         payload_actions = payload.get("actions", [])
@@ -198,7 +170,7 @@ class SlackEventApiEndpointView(APIView):
 
         # Means that slack_team_identity unpopulated
         if not slack_team_identity.organizations.exists():
-            logger.warning(f"OnCall Team for SlackTeamIdentity is not detected, stop it!")
+            logger.warning("OnCall Team for SlackTeamIdentity is not detected, stop it!")
             # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
             warning_text = (
                 "OnCall is not able to process this action because this Slack workspace was "
@@ -244,9 +216,7 @@ class SlackEventApiEndpointView(APIView):
                     raise Exception("Failed Linking user identity")
 
             elif (
-                payload_event_bot_id
-                and slack_team_identity
-                and payload_event_channel_type == EVENT_TYPE_MESSAGE_CHANNEL
+                payload_event_bot_id and slack_team_identity and payload_event_channel_type == EventType.MESSAGE_CHANNEL
             ):
                 response = sc.api_call("bots.info", bot=payload_event_bot_id)
                 bot_user_id = response.get("bot", {}).get("user_id", "")
@@ -278,14 +248,14 @@ class SlackEventApiEndpointView(APIView):
         logger.info("SlackUserIdentity detected: " + str(slack_user_identity))
 
         if not slack_user_identity:
-            if payload_type == PAYLOAD_TYPE_EVENT_CALLBACK:
+            if payload_type == PayloadType.EVENT_CALLBACK:
                 if payload_event_type in [
-                    EVENT_TYPE_SUBTEAM_CREATED,
-                    EVENT_TYPE_SUBTEAM_UPDATED,
-                    EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
+                    EventType.SUBTEAM_CREATED,
+                    EventType.SUBTEAM_UPDATED,
+                    EventType.SUBTEAM_MEMBERS_CHANGED,
                 ]:
                     logger.info("Slack event without user slack_id.")
-                elif payload_event_type in (EVENT_TYPE_USER_CHANGE, EVENT_TYPE_USER_PROFILE_CHANGED):
+                elif payload_event_type in (EventType.USER_CHANGE, EventType.USER_PROFILE_CHANGED):
                     logger.info(
                         f"Event {payload_event_type}. Dropping request because it does not have SlackUserIdentity."
                     )
@@ -323,20 +293,20 @@ class SlackEventApiEndpointView(APIView):
             return Response(status=200)
 
         # Capture cases when we expect stateful message from user
-        if payload_type == PAYLOAD_TYPE_EVENT_CALLBACK:
+        if payload_type == PayloadType.EVENT_CALLBACK:
             event_type = payload_event_type
 
             # Message event is from channel
             if (
-                event_type == EVENT_TYPE_MESSAGE
-                and payload_event_channel_type == EVENT_TYPE_MESSAGE_CHANNEL
+                event_type == EventType.MESSAGE
+                and payload_event_channel_type == EventType.MESSAGE_CHANNEL
                 and (
                     not payload_event_subtype
                     or payload_event_subtype
                     in [
-                        EVENT_SUBTYPE_BOT_MESSAGE,
-                        EVENT_SUBTYPE_MESSAGE_CHANGED,
-                        EVENT_SUBTYPE_MESSAGE_DELETED,
+                        MessageEventSubtype.BOT_MESSAGE,
+                        MessageEventSubtype.MESSAGE_CHANGED,
+                        MessageEventSubtype.MESSAGE_DELETED,
                     ]
                 )
             ):
@@ -348,8 +318,8 @@ class SlackEventApiEndpointView(APIView):
                         step.process_scenario(slack_user_identity, slack_team_identity, payload)
                         step_was_found = True
             # We don't do anything on app mention, but we doesn't want to unsubscribe from this event yet.
-            if event_type == EVENT_TYPE_APP_MENTION:
-                logger.info(f"Received event of type {EVENT_TYPE_APP_MENTION} from slack. Skipping.")
+            if event_type == EventType.APP_MENTION:
+                logger.info(f"Received event of type {EventType.APP_MENTION} from slack. Skipping.")
                 return Response(status=200)
 
         # Routing to Steps based on routing rules
@@ -358,7 +328,7 @@ class SlackEventApiEndpointView(APIView):
                 route_payload_type = route["payload_type"]
 
                 # Slash commands have to "type"
-                if payload_command and route_payload_type == PAYLOAD_TYPE_SLASH_COMMAND:
+                if payload_command and route_payload_type == PayloadType.SLASH_COMMAND:
                     if payload_command in route["command_name"]:
                         Step = route["step"]
                         logger.info("Routing to {}".format(Step))
@@ -367,7 +337,7 @@ class SlackEventApiEndpointView(APIView):
                         step_was_found = True
 
                 if payload_type == route_payload_type:
-                    if payload_type == PAYLOAD_TYPE_EVENT_CALLBACK:
+                    if payload_type == PayloadType.EVENT_CALLBACK:
                         if payload_event_type == route["event_type"]:
                             # event_name is used for stateful
                             if "event_name" not in route:
@@ -377,7 +347,7 @@ class SlackEventApiEndpointView(APIView):
                                 step.process_scenario(slack_user_identity, slack_team_identity, payload)
                                 step_was_found = True
 
-                    if payload_type == PAYLOAD_TYPE_INTERACTIVE_MESSAGE:
+                    if payload_type == PayloadType.INTERACTIVE_MESSAGE:
                         for action in payload_actions:
                             if action["type"] == route["action_type"]:
                                 # Action name may also contain action arguments.
@@ -401,7 +371,7 @@ class SlackEventApiEndpointView(APIView):
                                     step.process_scenario(slack_user_identity, slack_team_identity, payload)
                                     step_was_found = True
 
-                    if payload_type == PAYLOAD_TYPE_DIALOG_SUBMISSION:
+                    if payload_type == PayloadType.DIALOG_SUBMISSION:
                         if payload_callback_id == route["dialog_callback_id"]:
                             Step = route["step"]
                             logger.info("Routing to {}".format(Step))
@@ -411,7 +381,7 @@ class SlackEventApiEndpointView(APIView):
                                 return result
                             step_was_found = True
 
-                    if payload_type == PAYLOAD_TYPE_VIEW_SUBMISSION:
+                    if payload_type == PayloadType.VIEW_SUBMISSION:
                         if payload["view"]["callback_id"].startswith(route["view_callback_id"]):
                             Step = route["step"]
                             logger.info("Routing to {}".format(Step))
@@ -421,7 +391,7 @@ class SlackEventApiEndpointView(APIView):
                                 return result
                             step_was_found = True
 
-                    if payload_type == PAYLOAD_TYPE_MESSAGE_ACTION:
+                    if payload_type == PayloadType.MESSAGE_ACTION:
                         if payload_callback_id in route["message_action_callback_id"]:
                             Step = route["step"]
                             logger.info("Routing to {}".format(Step))
@@ -435,7 +405,7 @@ class SlackEventApiEndpointView(APIView):
         return Response(status=200)
 
     @staticmethod
-    def _get_slack_team_identity_from_payload(payload: dict[str, typing.Any]) -> SlackTeamIdentity | None:
+    def _get_slack_team_identity_from_payload(payload: EventPayload.Any) -> SlackTeamIdentity | None:
         def _slack_team_id() -> str | None:
             with suppress(KeyError):
                 return payload["team"]["id"]
@@ -452,7 +422,7 @@ class SlackEventApiEndpointView(APIView):
 
     @staticmethod
     def _get_organization_from_payload(
-        payload: dict[str, typing.Any], slack_team_identity: SlackTeamIdentity
+        payload: EventPayload.Any, slack_team_identity: SlackTeamIdentity
     ) -> Organization | None:
         """
         Extract organization from Slack payload.
@@ -521,7 +491,9 @@ class SlackEventApiEndpointView(APIView):
 
         return None
 
-    def _open_warning_window_if_needed(self, payload, slack_team_identity, warning_text) -> None:
+    def _open_warning_window_if_needed(
+        self, payload: EventPayload.Any, slack_team_identity: SlackTeamIdentity, warning_text: str
+    ) -> None:
         if payload.get("trigger_id") is not None:
             step = ScenarioStep(slack_team_identity)
             try:
@@ -531,7 +503,9 @@ class SlackEventApiEndpointView(APIView):
                     f"Failed to open pop-up for unpopulated SlackTeamIdentity {slack_team_identity.pk}\n" f"Error: {e}"
                 )
 
-    def _open_warning_for_unconnected_user(self, slack_client, payload):
+    def _open_warning_for_unconnected_user(
+        self, slack_client: SlackClientWithErrorHandling, payload: EventPayload.Any
+    ) -> None:
         if payload.get("trigger_id") is None:
             return
 

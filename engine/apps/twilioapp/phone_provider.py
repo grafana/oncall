@@ -45,7 +45,7 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
-                logger.info(f"TwilioPhoneProvider.make_notification_call: error 21609, calling without callback_url")
+                logger.info("TwilioPhoneProvider.make_notification_call: error 21609, calling without callback_url")
                 try_without_callback = True
             else:
                 logger.error(f"TwilioPhoneProvider.make_notification_call: failed {e}")
@@ -75,7 +75,7 @@ class TwilioPhoneProvider(PhoneProvider):
             # If status callback is not valid and not accessible from public url then trying to send message without it
             # https://www.twilio.com/docs/api/errors/21609
             if e.code == 21609:
-                logger.info(f"TwilioPhoneProvider.send_notification_sms: error 21609, sending without callback_url")
+                logger.info("TwilioPhoneProvider.send_notification_sms: error 21609, sending without callback_url")
                 try_without_callback = True
             else:
                 logger.error(f"TwilioPhoneProvider.send_notification_sms: failed {e}")

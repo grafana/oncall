@@ -1,20 +1,33 @@
+import typing
+
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord, ResolutionNote
+    from apps.base.models import UserNotificationPolicyLogRecord
+
 
 class IncidentLogBuilder:
-    def __init__(self, alert_group):
+    def __init__(self, alert_group: "AlertGroup"):
         self.alert_group = alert_group
 
-    def get_log_records_list(self, with_resolution_notes=False):
+    def get_log_records_list(
+        self, with_resolution_notes: bool = False
+    ) -> typing.List[typing.Union["AlertGroupLogRecord", "ResolutionNote", "UserNotificationPolicyLogRecord"]]:
         """
-        Generates list with AlertGroupLogRecord and UserNotificationPolicyLogRecord logs
-        :return: list with logs
+        Generates list of `AlertGroupLogRecord` and `UserNotificationPolicyLogRecord` logs.
+
+        `ResolutionNote`s are optionally included if `with_resolution_notes` is `True`.
         """
-        all_log_records = list()
+        all_log_records: typing.List[
+            typing.Union["AlertGroupLogRecord", "ResolutionNote", "UserNotificationPolicyLogRecord"]
+        ] = list()
         # get logs from AlertGroupLogRecord
         alert_group_log_records = self._get_log_records_for_after_resolve_report()
         all_log_records.extend(alert_group_log_records)
@@ -30,7 +43,7 @@ class IncidentLogBuilder:
         all_log_records_sorted = sorted(all_log_records, key=lambda log: log.created_at)
         return all_log_records_sorted
 
-    def _get_log_records_for_after_resolve_report(self):
+    def _get_log_records_for_after_resolve_report(self) -> "RelatedManager['AlertGroupLogRecord']":
         from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
 
         excluded_log_types = [
@@ -83,7 +96,7 @@ class IncidentLogBuilder:
             .order_by("created_at")
         )
 
-    def _get_user_notification_log_records_for_log_report(self):
+    def _get_user_notification_log_records_for_log_report(self) -> "RelatedManager['UserNotificationPolicyLogRecord']":
         from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
         # exclude user notification logs with step 'wait' or with status 'finished'
@@ -100,7 +113,7 @@ class IncidentLogBuilder:
             .order_by("created_at")
         )
 
-    def _get_resolution_notes(self):
+    def _get_resolution_notes(self) -> "RelatedManager['ResolutionNote']":
         return self.alert_group.resolution_notes.select_related("author", "resolution_note_slack_message").order_by(
             "created_at"
         )

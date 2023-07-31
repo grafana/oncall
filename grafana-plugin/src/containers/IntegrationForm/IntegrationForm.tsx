@@ -51,7 +51,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const data =
     id === 'new'
-      ? { integration: selectedOption?.value, team: user.current_team }
+      ? { integration: selectedOption?.value, team: user?.current_team }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
   const handleSubmit = useCallback(

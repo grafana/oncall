@@ -55,7 +55,7 @@ def notify_user_task(
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                reason=f"notification is not allowed for user",
+                reason="notification is not allowed for user",
                 alert_group=alert_group,
                 notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
             ).save()
@@ -133,11 +133,6 @@ def notify_user_task(
                 task_logger.info(
                     f"notify_user_task: skip notification user {user.pk} because alert_group {alert_group.pk} is silenced"
                 )
-                return
-
-            active_invitations_count = alert_group.invitations.filter(invitee=user, is_active=True).count()
-            if (notify_even_acknowledged or notify_anyway) and active_invitations_count == 0:
-                task_logger.info(f"notify_user_task: skip notification user {user.pk} invitation exceeded")
                 return
 
             if notification_policy.step == UserNotificationPolicy.Step.WAIT:
@@ -258,7 +253,7 @@ def perform_notification(log_record_pk):
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            reason=f"notification is not allowed for user",
+            reason="notification is not allowed for user",
             alert_group=alert_group,
             notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
         ).save()
@@ -352,7 +347,7 @@ def perform_notification(log_record_pk):
             backend = None
 
         if backend is None:
-            task_logger.debug(f"notify_user failed because messaging backend is not available")
+            task_logger.debug("notify_user failed because messaging backend is not available")
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,

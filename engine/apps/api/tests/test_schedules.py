@@ -1227,7 +1227,7 @@ def test_filter_events_final_schedule(
             "is_gap": is_gap,
             "is_override": is_override,
             "priority_level": priority,
-            "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
+            "start": start_date + timezone.timedelta(hours=start),
             "user": user,
         }
         for start, duration, user, priority, is_gap, is_override in expected
