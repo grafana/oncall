@@ -101,6 +101,7 @@ class AlertReceiveChannelView(
         "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "validate_name": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
