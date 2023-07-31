@@ -20,7 +20,7 @@ weight: 300
 > Integrations that were created before version **VERSION** are marked as **(Legacy)**.
 > These integrations are still receiving and escalating alerts but will be automatically migrated after DEPRECATION_DATE.
 > <br/><br/>
-> To ensure a smooth transition you can migrate them by yourself now.
+> To ensure a smooth transition you can migrate legacy integrations by yourself now.
 > [Here][migration] you can read more about changes and migration process.
 
 The Alertmanager integration handles alerts from [Prometheus Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/).
@@ -161,7 +161,8 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 
 1. Go to **Integration Page**, click on three dots on top right, click **Migrate**
 2. Confirmation Modal will be shown, read it carefully and proceed with migration.
-3. Adjust routes to the new shape of payload.
+3. Send demo alert to make sure everything went well.
+4. Adjust routes to the new shape of payload. You can use payload of the demo alert from previous step as an example.
 
 {{% docs/reference %}}
 [user-and-team-management]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/user-and-team-management"

@@ -1,6 +1,6 @@
 # Main
 enabled = True
-title = "(Legacy) Alertmanager"
+title = "(Legacy) AlertManager"
 slug = "legacy_alertmanager"
 short_description = "Prometheus"
 is_displayed_on_web = True

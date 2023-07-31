@@ -305,6 +305,31 @@ class AlertReceiveChannelView(
         integration_type = instance.integration
         if not has_legacy_prefix(integration_type):
             raise BadRequest(detail="Integration is not legacy")
+
         instance.integration = remove_legacy_prefix(instance.integration)
+
+        # drop all templates since they won't work for new payload shape
+        templates = [
+            "web_title_template",
+            "web_message_template",
+            "web_image_url_template",
+            "sms_title_template",
+            "phone_call_title_template",
+            "source_link_template",
+            "grouping_id_template",
+            "resolve_condition_template",
+            "acknowledge_condition_template",
+            "slack_title_template",
+            "slack_message_template",
+            "slack_image_url_template",
+            "telegram_title_template",
+            "telegram_message_template",
+            "telegram_image_url_template",
+            "messaging_backends_templates",
+        ]
+
+        for f in templates:
+            setattr(instance, f, None)
+
         instance.save()
         return Response(status=status.HTTP_200_OK)

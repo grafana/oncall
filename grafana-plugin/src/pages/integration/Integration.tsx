@@ -297,6 +297,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                   and will be migrated after DATE.
                 </Text>
                 <Text type="secondary">
+                  To ensure a smooth transition you can migrate now using "Migrate" button in the menu on the right.
+                </Text>
+                <Text type="secondary">
                   Please, check{' '}
                   <a
                     href={`https://grafana.com/docs/oncall/latest/integrations/${getIntegrationName()}`}
