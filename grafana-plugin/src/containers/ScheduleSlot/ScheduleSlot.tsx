@@ -25,6 +25,7 @@ interface ScheduleSlotProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
+  handleAddShiftSwap: (event: React.MouseEvent<HTMLDivElement>) => void;
   color?: string;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
@@ -33,7 +34,8 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { event, scheduleId, currentTimezone, color, handleAddOverride, simplified, filters } = props;
+  const { event, scheduleId, currentTimezone, color, handleAddOverride, handleAddShiftSwap, simplified, filters } =
+    props;
   const { users } = event;
 
   const start = dayjs(event.start);
@@ -109,6 +111,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   currentTimezone={currentTimezone}
                   event={event}
                   handleAddOverride={handleAddOverride}
+                  handleAddShiftSwap={handleAddShiftSwap}
                   simplified={simplified}
                   color={color}
                 />
@@ -131,12 +134,13 @@ interface ScheduleSlotDetailsProps {
   currentTimezone: Timezone;
   event: Event;
   handleAddOverride: (event: React.SyntheticEvent) => void;
+  handleAddShiftSwap: (event: React.SyntheticEvent) => void;
   simplified?: boolean;
   color: string;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentTimezone, event, handleAddOverride, simplified, color } = props;
+  const { user, currentTimezone, event, handleAddOverride, handleAddShiftSwap, simplified, color } = props;
 
   const store = useStore();
   const { scheduleStore } = store;
@@ -199,13 +203,18 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             {dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}
           </Text>
         </HorizontalGroup>
-        {!simplified && !event.is_override && (
-          <HorizontalGroup justify="flex-end">
+        <HorizontalGroup justify="flex-end">
+          {!simplified && (
+            <Button size="sm" variant="secondary" onClick={handleAddShiftSwap}>
+              Request shift swap
+            </Button>
+          )}
+          {!simplified && !event.is_override && (
             <Button size="sm" variant="secondary" onClick={handleAddOverride}>
               + Override
             </Button>
-          </HorizontalGroup>
-        )}
+          )}
+        </HorizontalGroup>
       </VerticalGroup>
     </div>
   );

@@ -7,7 +7,7 @@ import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
+import { Schedule, Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
@@ -26,6 +26,7 @@ interface RotationProps {
   events: Event[];
   onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
+  handleAddShiftSwap?: (params: Partial<ShiftSwap>) => void;
   days?: number;
   transparent?: boolean;
   tutorialParams?: RotationFormLiveParams;
@@ -45,6 +46,7 @@ const Rotation: FC<RotationProps> = (props) => {
     tutorialParams,
     onClick,
     handleAddOverride,
+    handleAddShiftSwap,
     simplified,
     filters,
   } = props;
@@ -69,6 +71,18 @@ const Rotation: FC<RotationProps> = (props) => {
       event.stopPropagation();
 
       handleAddOverride(dayjs(scheduleEvent.start), dayjs(scheduleEvent.end));
+    };
+  };
+
+  const getAddShiftSwapClickHandler = (scheduleEvent: Event) => {
+    return (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+
+      handleAddShiftSwap({
+        beneficiary: scheduleEvent.users[0].pk,
+        swap_start: scheduleEvent.start,
+        swap_end: scheduleEvent.end,
+      });
     };
   };
 
@@ -104,6 +118,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     currentTimezone={currentTimezone}
                     color={color}
                     handleAddOverride={getAddOverrideClickHandler(event)}
+                    handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
                     simplified={simplified}
                     filters={filters}
                   />

@@ -27,6 +27,7 @@ import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import ShiftSwapForm from 'containers/RotationForm/ShiftSwapForm';
 import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
@@ -34,7 +35,7 @@ import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -64,6 +65,7 @@ interface SchedulePageState extends PageBaseState {
   showScheduleICalSettings: boolean;
   lastUpdated: number;
   filters: ScheduleFiltersType;
+  shiftSwapParamsToShowForm?: Partial<ShiftSwap>;
 }
 
 @observer
@@ -102,6 +104,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     await store.scheduleStore.updateOncallShifts(id); // TODO we should know shifts to render Rotations
     await this.updateEvents();
 
+    store.scheduleStore.updateShiftSwaps(id);
+
     this.setState({ isLoading: false });
   }
 
@@ -132,6 +136,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftStartToShowOverrideForm,
       shiftEndToShowOverrideForm,
       filters,
+      shiftSwapParamsToShowForm,
     } = this.state;
 
     const { isNotFoundError } = errorData;
@@ -293,6 +298,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onShowOverrideForm={this.handleShowOverridesForm}
                       disabled={disabledRotationForm}
                       filters={filters}
+                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
@@ -330,6 +336,13 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               >
                 <ScheduleICalSettings id={scheduleId} />
               </Modal>
+            )}
+            {shiftSwapParamsToShowForm && (
+              <ShiftSwapForm
+                params={shiftSwapParamsToShowForm}
+                onHide={() => this.setState({ shiftSwapParamsToShowForm: undefined })}
+                onCreate={this.addShiftSwap}
+              />
             )}
           </>
         )}
@@ -536,6 +549,21 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     store.scheduleStore.delete(id).then(() => history.replace(`${PLUGIN_ROOT}/schedules`));
+  };
+
+  handleShowShiftSwapForm = (params: Partial<ShiftSwap>) => {
+    this.setState({ shiftSwapParamsToShowForm: params });
+  };
+
+  addShiftSwap = (params: Partial<ShiftSwap>) => {
+    const {
+      store: { scheduleStore },
+      match: {
+        params: { id },
+      },
+    } = this.props;
+
+    scheduleStore.createShiftSwap({ schedule: id, ...params });
   };
 }
 

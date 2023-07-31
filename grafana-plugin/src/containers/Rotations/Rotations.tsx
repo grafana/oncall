@@ -14,8 +14,9 @@ import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
-import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
+import { Layer, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
@@ -35,9 +36,11 @@ interface RotationsProps extends WithStoreProps {
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
   onClick: (id: Shift['id'] | 'new') => void;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
+  onShowShiftSwapForm: (params: Partial<ShiftSwap>) => void;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
+  onShiftSwapRequest: (beneficiary: User['pk'], swap_start: string, swap_end: string) => void;
   disabled: boolean;
   filters: ScheduleFiltersType;
 }
@@ -68,6 +71,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       shiftIdToShowRotationForm,
       disabled,
       filters,
+      onShowShiftSwapForm,
     } = this.props;
     const { layerPriority, shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
@@ -104,35 +108,46 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   Rotations
                 </Text.Title>
               </div>
-              {disabled ? (
-                isTypeReadOnly ? (
-                  <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">
-                    <div>
+              <HorizontalGroup>
+                {/*  <Button
+                  variant="secondary"
+                  icon="plus"
+                  onClick={() => {
+                    onShowShiftSwapForm({});
+                  }}
+                >
+                  Request shift swap
+                </Button> */}
+                {disabled ? (
+                  isTypeReadOnly ? (
+                    <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">
+                      <div>
+                        <Button variant="primary" icon="plus" disabled>
+                          Add rotation
+                        </Button>
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                       <Button variant="primary" icon="plus" disabled>
                         Add rotation
                       </Button>
-                    </div>
-                  </Tooltip>
+                    </WithPermissionControlTooltip>
+                  )
+                ) : options.length > 0 ? (
+                  <ValuePicker
+                    label="Add rotation"
+                    options={options}
+                    onChange={this.handleAddRotation}
+                    variant="primary"
+                    size="md"
+                  />
                 ) : (
-                  <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                    <Button variant="primary" icon="plus" disabled>
-                      Add rotation
-                    </Button>
-                  </WithPermissionControlTooltip>
-                )
-              ) : options.length > 0 ? (
-                <ValuePicker
-                  label="Add rotation"
-                  options={options}
-                  onChange={this.handleAddRotation}
-                  variant="primary"
-                  size="md"
-                />
-              ) : (
-                <Button variant="primary" icon="plus" onClick={() => this.handleAddLayer(nextPriority, startMoment)}>
-                  Add rotation
-                </Button>
-              )}
+                  <Button variant="primary" icon="plus" onClick={() => this.handleAddLayer(nextPriority, startMoment)}>
+                    Add rotation
+                  </Button>
+                )}
+              </HorizontalGroup>
             </HorizontalGroup>
           </div>
           <div className={cx('rotations-plus-title')}>
@@ -164,6 +179,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                   this.onRotationClick(shiftId, shiftStart, shiftEnd);
                                 }}
                                 handleAddOverride={this.handleShowOverrideForm}
+                                handleAddShiftSwap={onShowShiftSwapForm}
                                 color={getColor(layerIndex, rotationIndex)}
                                 events={events}
                                 layerIndex={layerIndex}

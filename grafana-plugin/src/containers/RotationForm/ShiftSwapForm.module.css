@@ -1,0 +1,12 @@
+.root {
+  display: block;
+}
+
+.icon {
+  color: var(--secondary-text-color);
+}
+
+.details-icon {
+  width: 16px;
+  margin-right: 4px;
+}

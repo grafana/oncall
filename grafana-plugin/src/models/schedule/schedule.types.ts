@@ -120,6 +120,19 @@ export interface ScheduleScoreQualityResponse {
   overloaded_users: Array<{ id: string; username: string; score: number }>;
 }
 
+export interface ShiftSwap {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  schedule: Schedule['id'];
+  swap_start: string;
+  swap_end: string;
+  beneficiary: User['pk'];
+  status: 'open' | 'taken' | 'past_due';
+  benefactor: User['pk'];
+  description: string;
+}
+
 export enum ScheduleScoreQualityResult {
   Bad = 'Bad',
   Low = 'Low',

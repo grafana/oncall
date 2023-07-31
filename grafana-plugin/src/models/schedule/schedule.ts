@@ -26,6 +26,7 @@ import {
   ShiftEvents,
   RotationFormLiveParams,
   ScheduleScoreQualityResponse,
+  ShiftSwap,
 } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
@@ -431,5 +432,13 @@ export class ScheduleStore extends BaseStore {
     this.byDayOptions = await makeRequest(`/oncall_shifts/days_options/`, {
       method: 'GET',
     });
+  }
+
+  async createShiftSwap(params: Partial<ShiftSwap>) {
+    return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params });
+  }
+
+  async updateShiftSwaps() {
+    return await makeRequest(`/shift_swaps/`, {});
   }
 }
