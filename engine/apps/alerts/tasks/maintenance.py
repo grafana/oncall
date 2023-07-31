@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import ExpressionWrapper, F, fields
@@ -14,9 +13,9 @@ from .task_logger import task_logger
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def disable_maintenance(*args, **kwargs):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    User = apps.get_model("user_management", "User")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.alerts.models import AlertGroup
+    from apps.user_management.models import User
+
     user = None
     object_under_maintenance = None
     user_id = kwargs.get("user_id")
@@ -26,7 +25,7 @@ def disable_maintenance(*args, **kwargs):
     force = kwargs.get("force", False)
     with transaction.atomic():
         if "alert_receive_channel_id" in kwargs:
-            AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+            from apps.alerts.models import AlertReceiveChannel
 
             alert_receive_channel_id = kwargs["alert_receive_channel_id"]
             try:
@@ -37,12 +36,6 @@ def disable_maintenance(*args, **kwargs):
                 task_logger.info(
                     f"AlertReceiveChannel for disable_maintenance does not exists. Id: {alert_receive_channel_id}"
                 )
-        elif "organization_id" in kwargs:
-            organization_id = kwargs["organization_id"]
-            try:
-                object_under_maintenance = Organization.objects.select_for_update().get(pk=organization_id)
-            except Organization.DoesNotExist:
-                task_logger.info(f"Organization for disable_maintenance does not exists. Id: {organization_id}")
 
         else:
             task_logger.info(f"Invalid instance id passed in disable_maintenance. Got: {kwargs}")
@@ -54,7 +47,7 @@ def disable_maintenance(*args, **kwargs):
             write_maintenance_insight_log(object_under_maintenance, user, MaintenanceEvent.FINISHED)
             if object_under_maintenance.maintenance_mode == object_under_maintenance.MAINTENANCE:
                 mode_verbal = "Maintenance"
-                maintenance_incident = AlertGroup.all_objects.get(
+                maintenance_incident = AlertGroup.objects.get(
                     maintenance_uuid=object_under_maintenance.maintenance_uuid
                 )
                 transaction.on_commit(maintenance_incident.resolve_by_disable_maintenance)
@@ -89,8 +82,8 @@ def disable_maintenance(*args, **kwargs):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def check_maintenance_finished(*args, **kwargs):
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.alerts.models import AlertReceiveChannel
+
     now = timezone.now()
     maintenance_finish_at = ExpressionWrapper(
         (F("maintenance_started_at") + F("maintenance_duration")), output_field=fields.DateTimeField()
@@ -106,16 +99,4 @@ def check_maintenance_finished(*args, **kwargs):
         disable_maintenance.apply_async(
             args=(),
             kwargs={"alert_receive_channel_id": id, "force": True},
-        )
-
-    organization_with_expired_maintenance_ids = (
-        Organization.objects.filter(maintenance_started_at__isnull=False)
-        .annotate(maintenance_finish_at=maintenance_finish_at)
-        .filter(maintenance_finish_at__lt=now)
-        .values_list("pk", flat=True)
-    )
-    for id in organization_with_expired_maintenance_ids:
-        disable_maintenance.apply_async(
-            args=(),
-            kwargs={"organization_id": id, "force": True},
         )

@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from common.admin import CustomModelAdmin
 
-from .models import SlackActionRecord, SlackMessage, SlackTeamIdentity, SlackUserIdentity
+from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
 
 @admin.register(SlackTeamIdentity)
@@ -23,9 +23,3 @@ class SlackUserIdentityAdmin(CustomModelAdmin):
 class SlackMessageAdmin(CustomModelAdmin):
     list_display = ("id", "slack_id", "_slack_team_identity", "alert_group", "created_at")
     list_filter = ("created_at",)
-
-
-@admin.register(SlackActionRecord)
-class SlackActionRecordAdmin(CustomModelAdmin):
-    list_display = ("id", "organization", "user", "step", "datetime")
-    list_filter = ("datetime",)

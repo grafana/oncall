@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.auth_token.models import ScheduleExportAuthToken, UserScheduleExportAuthToken
+from apps.schedules.constants import ICAL_COMPONENT_VEVENT, ICAL_SUMMARY
 from apps.schedules.models import OnCallScheduleICal
 
 ICAL_DATA = """
@@ -48,9 +49,12 @@ END:VCALENDAR
 
 
 @pytest.mark.django_db
-def test_export_calendar(make_organization_and_user_with_token, make_schedule):
-
+def test_export_calendar(make_organization_and_user_with_token, make_user_for_organization, make_schedule):
     organization, user, _ = make_organization_and_user_with_token()
+    usernames = {"amixr", "justin.hunthrop@grafana.com"}
+    # setup users for shifts
+    for u in usernames:
+        make_user_for_organization(organization, username=u)
 
     schedule = make_schedule(
         organization,
@@ -75,12 +79,15 @@ def test_export_calendar(make_organization_and_user_with_token, make_schedule):
     cal = Calendar.from_ical(response.data)
 
     assert type(cal) == Calendar
-    assert len(cal.subcomponents) == 2
+    # check there are events
+    assert len(cal.subcomponents) > 0
+    for component in cal.walk():
+        if component.name == ICAL_COMPONENT_VEVENT:
+            assert component[ICAL_SUMMARY] in usernames
 
 
 @pytest.mark.django_db
 def test_export_user_calendar(make_organization_and_user_with_token, make_schedule):
-
     organization, user, _ = make_organization_and_user_with_token()
 
     # make a schedule so that one is available

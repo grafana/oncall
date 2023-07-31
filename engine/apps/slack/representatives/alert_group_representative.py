@@ -1,7 +1,6 @@
 import logging
 
 from celery.utils.log import get_task_logger
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.constants import ActionSource
@@ -20,7 +19,7 @@ def on_create_alert_slack_representative_async(alert_pk):
     """
     It's asynced in order to prevent Slack downtime causing issues with SMS and other destinations.
     """
-    Alert = apps.get_model("alerts", "Alert")
+    from apps.alerts.models import Alert
 
     alert = (
         Alert.objects.filter(pk=alert_pk)
@@ -53,7 +52,7 @@ def on_create_alert_slack_representative_async(alert_pk):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def on_alert_group_action_triggered_async(log_record_id):
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+    from apps.alerts.models import AlertGroupLogRecord
 
     logger.debug(f"SLACK representative: get log record {log_record_id}")
 
@@ -84,8 +83,9 @@ def on_alert_group_action_triggered_async(log_record_id):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def on_alert_group_update_log_report_async(alert_group_id):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_id)
+    from apps.alerts.models import AlertGroup
+
+    alert_group = AlertGroup.objects.get(pk=alert_group_id)
     logger.debug(f"Start on_alert_group_update_log_report for alert_group {alert_group_id}")
     organization = alert_group.channel.organization
     if alert_group.slack_message and organization.slack_team_identity:
@@ -113,7 +113,8 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
 
     @classmethod
     def on_create_alert(cls, **kwargs):
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert
+
         alert = kwargs["alert"]
         if isinstance(alert, Alert):
             alert_id = alert.pk
@@ -141,7 +142,8 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
     @classmethod
     def on_alert_group_action_triggered(cls, **kwargs):
         logger.debug("Received alert_group_action_triggered signal in SLACK representative")
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+        from apps.alerts.models import AlertGroupLogRecord
+
         log_record = kwargs["log_record"]
         action_source = kwargs.get("action_source")
         force_sync = kwargs.get("force_sync", False)
@@ -157,14 +159,15 @@ class AlertGroupSlackRepresentative(AlertGroupAbstractRepresentative):
 
     @classmethod
     def on_alert_group_update_log_report(cls, **kwargs):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         alert_group = kwargs["alert_group"]
 
         if isinstance(alert_group, AlertGroup):
             alert_group_id = alert_group.pk
         else:
             alert_group_id = alert_group
-            alert_group = AlertGroup.all_objects.get(pk=alert_group_id)
+            alert_group = AlertGroup.objects.get(pk=alert_group_id)
 
         logger.debug(
             f"Received alert_group_update_log_report signal in SLACK representative for alert_group {alert_group_id}"

@@ -1,13 +1,24 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  ConfirmModal,
+  ConfirmModalProps,
+  HorizontalGroup,
+  Icon,
+  IconButton,
+  VerticalGroup,
+  WithContextMenu,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
+import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -15,29 +26,24 @@ import {
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhook2Form from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form';
-import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { ActionDTO } from 'models/action';
 import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { openErrorNotification, openNotification } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
-import styles from './OutgoingWebhooks2.module.css';
+import styles from './OutgoingWebhooks2.module.scss';
+import { WebhookFormActionType } from './OutgoingWebhooks2.types';
 
 const cx = cn.bind(styles);
-
-const Action = {
-  STATUS: 'status',
-  EDIT: 'edit',
-};
 
 interface OutgoingWebhooks2Props
   extends WithStoreProps,
@@ -45,22 +51,20 @@ interface OutgoingWebhooks2Props
     RouteComponentProps<{ id: string; action: string }> {}
 
 interface OutgoingWebhooks2State extends PageBaseState {
-  outgoingWebhook2IdToEdit?: OutgoingWebhook2['id'] | 'new';
-  outgoingWebhook2IdToShowStatus?: OutgoingWebhook2['id'];
+  outgoingWebhook2Action?: WebhookFormActionType;
+  outgoingWebhook2Id?: OutgoingWebhook2['id'];
+  confirmationModal: ConfirmModalProps;
 }
 
 @observer
 class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, OutgoingWebhooks2State> {
   state: OutgoingWebhooks2State = {
     errorData: initErrorDataState(),
+    confirmationModal: undefined,
   };
 
-  async componentDidMount() {
-    this.update().then(this.parseQueryParams);
-  }
-
   componentDidUpdate(prevProps: OutgoingWebhooks2Props) {
-    if (prevProps.match.params.id !== this.props.match.params.id) {
+    if (prevProps.match.params.id !== this.props.match.params.id && !this.state.outgoingWebhook2Action) {
       this.parseQueryParams();
     }
   }
@@ -68,7 +72,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   parseQueryParams = async () => {
     this.setState((_prevState) => ({
       errorData: initErrorDataState(),
-      outgoingWebhook2IdToEdit: undefined,
+      outgoingWebhook2Id: undefined,
     })); // reset state on query parse
 
     const {
@@ -78,35 +82,36 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       },
     } = this.props;
 
-    if (!id) {
-      return;
+    if (action) {
+      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: convertWebhookUrlToAction(action) });
     }
 
-    let outgoingWebhook2: OutgoingWebhook2 | void = undefined;
     const isNewWebhook = id === 'new';
-
-    if (!isNewWebhook) {
-      outgoingWebhook2 = await store.outgoingWebhook2Store
+    if (isNewWebhook) {
+      this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.NEW });
+    } else if (id) {
+      await store.outgoingWebhook2Store
         .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
-    }
-
-    if (isNewWebhook || (action === Action.EDIT && outgoingWebhook2)) {
-      this.setState({ outgoingWebhook2IdToEdit: id });
-    } else if (action === Action.STATUS && outgoingWebhook2) {
-      this.setState({ outgoingWebhook2IdToShowStatus: id });
+        .catch((error) =>
+          this.setState({ errorData: { ...getWrongTeamResponseInfo(error) }, outgoingWebhook2Action: undefined })
+        );
     }
   };
 
   update = () => {
     const { store } = this.props;
-
     return store.outgoingWebhook2Store.updateItems();
   };
 
   render() {
-    const { store, query } = this.props;
-    const { outgoingWebhook2IdToEdit, outgoingWebhook2IdToShowStatus, errorData } = this.state;
+    const {
+      store,
+      history,
+      match: {
+        params: { id },
+      },
+    } = this.props;
+    const { outgoingWebhook2Id, outgoingWebhook2Action, errorData, confirmationModal } = this.state;
 
     const webhooks = store.outgoingWebhook2Store.getSearchResult();
 
@@ -115,16 +120,12 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         width: '25%',
         title: 'Name',
         dataIndex: 'name',
+        render: this.renderName,
       },
       {
-        width: '5%',
+        width: '10%',
         title: 'Trigger type',
         dataIndex: 'trigger_type_name',
-      },
-      {
-        width: '5%',
-        title: 'HTTP method',
-        dataIndex: 'http_method',
       },
       {
         width: '35%',
@@ -135,7 +136,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       {
         width: '10%',
         title: 'Last run',
-        dataIndex: 'last_run',
         render: this.renderLastRun,
       },
       {
@@ -150,15 +150,26 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       },
     ];
 
-    return (
+    return store.hasFeature(AppFeature.Webhooks2) ? (
       <PageErrorHandlingWrapper
         errorData={errorData}
         objectName="outgoing webhook 2"
         pageName="outgoing_webhooks_2"
-        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+        itemNotFoundMessage={`Outgoing webhook with id=${id} was not found. Please select outgoing webhook from the list.`}
       >
         {() => (
           <>
+            {confirmationModal && (
+              <ConfirmModal
+                {...(confirmationModal as ConfirmModalProps)}
+                onDismiss={() =>
+                  this.setState({
+                    confirmationModal: undefined,
+                  })
+                }
+              />
+            )}
+
             <div className={cx('root')}>
               {this.renderOutgoingWebhooksFilters()}
               <GTable
@@ -166,20 +177,13 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 title={() => (
                   <div className={cx('header')}>
                     <div className="header__title">
-                      <VerticalGroup spacing="sm">
-                        <LegacyNavHeading>
-                          <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
-                        </LegacyNavHeading>
-                        <Text type="secondary" className={cx('header__desc')}>
-                          <Icon name="exclamation-triangle"></Icon> Preview Functionality! Things will change and things
-                          will break! Do not use for critical production processes!
-                        </Text>
-                      </VerticalGroup>
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                      </LegacyNavHeading>
                     </div>
-
                     <div className="u-pull-right">
                       <PluginLink
-                        query={{ page: 'outgoing_webhooks_2', id: 'new' }}
+                        query={{ page: 'outgoing_webhooks', id: 'new' }}
                         disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                       >
                         <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
@@ -196,23 +200,26 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 data={webhooks}
               />
             </div>
-            {outgoingWebhook2IdToEdit && !outgoingWebhook2IdToShowStatus && (
+
+            {outgoingWebhook2Id && outgoingWebhook2Action && (
               <OutgoingWebhook2Form
-                id={outgoingWebhook2IdToEdit}
+                id={outgoingWebhook2Id}
+                action={outgoingWebhook2Action}
                 onUpdate={this.update}
                 onHide={this.handleOutgoingWebhookFormHide}
-              />
-            )}
-            {outgoingWebhook2IdToShowStatus && (
-              <OutgoingWebhook2Status
-                id={outgoingWebhook2IdToShowStatus}
-                onUpdate={this.update}
-                onHide={this.handleOutgoingWebhookFormHide}
+                onDelete={() => {
+                  this.onDeleteClick(outgoingWebhook2Id).then(() => {
+                    this.setState({ outgoingWebhook2Id: undefined, outgoingWebhook2Action: undefined });
+                    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
+                  });
+                }}
               />
             )}
           </>
         )}
       </PageErrorHandlingWrapper>
+    ) : (
+      <Text>Outgoing webhooks 2 functionality is not enabled.</Text>
     );
   }
 
@@ -246,29 +253,96 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     return <TeamName team={teams[record.team]} />;
   }
 
-  renderActionButtons = (record: ActionDTO) => {
+  renderActionButtons = (record: OutgoingWebhook2) => {
     return (
-      <HorizontalGroup justify="flex-end">
-        <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-          <Button onClick={() => this.onStatusClick(record.id)} fill="text">
-            Status
-          </Button>
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <Button onClick={() => this.onEditClick(record.id)} fill="text">
-            Edit
-          </Button>
-        </WithPermissionControlTooltip>
-        <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <WithConfirm>
-            <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
-              Delete
-            </Button>
-          </WithConfirm>
-        </WithPermissionControlTooltip>
-      </HorizontalGroup>
+      <WithContextMenu
+        renderMenuItems={() => (
+          <div className={cx('hamburgerMenu')}>
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onLastRunClick(record.id)}>
+              <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
+                <Text type="primary">View Last Run</Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onEditClick(record.id)}>
+              <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <Text type="primary">Edit settings</Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <div
+              className={cx('hamburgerMenu__item')}
+              onClick={() =>
+                this.setState({
+                  confirmationModal: {
+                    isOpen: true,
+                    confirmText: 'Confirm',
+                    dismissText: 'Cancel',
+                    onConfirm: () => this.onDisableWebhook(record.id, !record.is_webhook_enabled),
+                    title: `Are you sure you want to ${record.is_webhook_enabled ? 'disable' : 'enable'} webhook?`,
+                  } as ConfirmModalProps,
+                })
+              }
+            >
+              <WithPermissionControlTooltip key={'disable_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <Text type="primary">{record.is_webhook_enabled ? 'Disable' : 'Enable'}</Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <div className={cx('hamburgerMenu__item')} onClick={() => this.onCopyClick(record.id)}>
+              <WithPermissionControlTooltip key={'copy_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <Text type="primary">Make a copy</Text>
+              </WithPermissionControlTooltip>
+            </div>
+
+            <CopyToClipboard text={record.id} onCopy={() => openNotification('Webhook ID has been copied')}>
+              <div className={cx('hamburgerMenu__item')}>
+                <HorizontalGroup type="primary" spacing="xs">
+                  <Icon name="clipboard-alt" />
+                  <Text type="primary">UID: {record.id}</Text>
+                </HorizontalGroup>
+              </div>
+            </CopyToClipboard>
+
+            <div className={cx('thin-line-break')} />
+
+            <div
+              className={cx('hamburgerMenu__item')}
+              onClick={() =>
+                this.setState({
+                  confirmationModal: {
+                    isOpen: true,
+                    confirmText: 'Confirm',
+                    dismissText: 'Cancel',
+                    onConfirm: () => this.onDeleteClick(record.id),
+                    body: 'The action cannot be undone.',
+                    title: `Are you sure you want to delete webhook?`,
+                  } as Partial<ConfirmModalProps> as ConfirmModalProps,
+                })
+              }
+            >
+              <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+                <HorizontalGroup spacing="xs">
+                  <IconButton tooltip="Remove" tooltipPlacement="top" variant="destructive" name="trash-alt" />
+                  <Text type="danger">Delete Webhook</Text>
+                </HorizontalGroup>
+              </WithPermissionControlTooltip>
+            </div>
+          </div>
+        )}
+      >
+        {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={225} withBackground />}
+      </WithContextMenu>
     );
   };
+
+  renderName(name: String) {
+    return (
+      <div className="u-break-word">
+        <span>{name}</span>
+      </div>
+    );
+  }
 
   renderUrl(url: string) {
     return (
@@ -278,49 +352,97 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   }
 
-  renderLastRun(lastRun: string) {
-    // TODO: remove replace when backend will update lastRun to a correct timestamp
-    const lastRunMoment = moment(lastRun.replace(' (200 OK)', ''));
+  renderLastRun(record: OutgoingWebhook2) {
+    const lastRunMoment = moment(record.last_response_log?.timestamp);
 
-    return (
+    return !record.is_webhook_enabled ? (
+      <Text type="secondary">Disabled</Text>
+    ) : (
       <VerticalGroup spacing="none">
         <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('MMM DD, YYYY') : '-'}</Text>
-        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('hh:mm A') : ''}</Text>
+        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('HH:mm') : ''}</Text>
+        <Text type="secondary">
+          {lastRunMoment.isValid()
+            ? record.last_response_log?.status_code
+              ? 'Status: ' + record.last_response_log?.status_code
+              : 'Check Status'
+            : ''}
+        </Text>
       </VerticalGroup>
     );
   }
 
-  getDeleteClickHandler = (id: OutgoingWebhook2['id']) => {
+  onDeleteClick = (id: OutgoingWebhook2['id']): Promise<void> => {
     const { store } = this.props;
-
-    return () => {
-      store.outgoingWebhook2Store.delete(id).then(this.update);
-    };
+    return store.outgoingWebhook2Store
+      .delete(id)
+      .then(this.update)
+      .then(() => openNotification('Webhook has been removed'))
+      .catch(() => openNotification('Webook could not been removed'))
+      .finally(() => this.setState({ confirmationModal: undefined }));
   };
 
   onEditClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2IdToEdit: id, outgoingWebhook2IdToShowStatus: undefined });
-
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.EDIT_SETTINGS }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/edit/${id}`)
+    );
   };
 
-  onStatusClick = (id: OutgoingWebhook2['id']) => {
+  onCopyClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2IdToEdit: undefined, outgoingWebhook2IdToShowStatus: id });
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.COPY }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/copy/${id}`)
+    );
+  };
 
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/status/${id}`);
+  onDisableWebhook = (id: OutgoingWebhook2['id'], isEnabled: boolean) => {
+    const {
+      store: { outgoingWebhook2Store },
+    } = this.props;
+
+    const data = {
+      ...{ ...outgoingWebhook2Store.items[id], is_webhook_enabled: isEnabled },
+      is_legacy: false,
+    };
+
+    outgoingWebhook2Store
+      .update(id, data)
+      .then(() => this.update())
+      .then(() => openNotification(`Webhook has been ${isEnabled ? 'enabled' : 'disabled'}`))
+      .catch(() => openErrorNotification('Webhook could not been updated'))
+      .finally(() => this.setState({ confirmationModal: undefined }));
+  };
+
+  onLastRunClick = (id: OutgoingWebhook2['id']) => {
+    const { history } = this.props;
+
+    this.setState({ outgoingWebhook2Id: id, outgoingWebhook2Action: WebhookFormActionType.VIEW_LAST_RUN }, () =>
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/last_run/${id}`)
+    );
   };
 
   handleOutgoingWebhookFormHide = () => {
     const { history } = this.props;
 
-    this.setState({ outgoingWebhook2IdToEdit: undefined, outgoingWebhook2IdToShowStatus: undefined });
+    this.setState({ outgoingWebhook2Id: undefined, outgoingWebhook2Action: undefined });
 
-    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2`);
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
   };
+}
+
+function convertWebhookUrlToAction(urlAction: string) {
+  if (urlAction === 'new') {
+    return WebhookFormActionType.NEW;
+  } else if (urlAction === 'copy') {
+    return WebhookFormActionType.COPY;
+  } else if (urlAction === 'edit') {
+    return WebhookFormActionType.EDIT_SETTINGS;
+  } else {
+    return WebhookFormActionType.VIEW_LAST_RUN;
+  }
 }
 
 export { OutgoingWebhooks2 };

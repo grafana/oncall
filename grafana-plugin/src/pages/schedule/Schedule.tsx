@@ -1,6 +1,15 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  VerticalGroup,
+  IconButton,
+  ToolbarButton,
+  Icon,
+  Modal,
+  LoadingPlaceholder,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -12,6 +21,8 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import ScheduleFilters from 'components/ScheduleFilters/ScheduleFilters';
+import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
@@ -36,7 +47,9 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {
+  basicDataLoaded: boolean;
+}
 
 interface SchedulePageState extends PageBaseState {
   startMoment: dayjs.Dayjs;
@@ -44,10 +57,13 @@ interface SchedulePageState extends PageBaseState {
   renderType: string;
   shiftIdToShowRotationForm?: Shift['id'];
   shiftIdToShowOverridesForm?: Shift['id'];
+  shiftStartToShowOverrideForm?: dayjs.Dayjs;
+  shiftEndToShowOverrideForm?: dayjs.Dayjs;
   isLoading: boolean;
   showEditForm: boolean;
   showScheduleICalSettings: boolean;
   lastUpdated: number;
+  filters: ScheduleFiltersType;
 }
 
 @observer
@@ -67,6 +83,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       showScheduleICalSettings: false,
       errorData: initErrorDataState(),
       lastUpdated: 0,
+      filters: { users: [] },
     };
   }
 
@@ -97,9 +114,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   render() {
     const {
       store,
+      query,
       match: {
         params: { id: scheduleId },
       },
+      basicDataLoaded,
     } = this.props;
 
     const {
@@ -110,6 +129,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       showEditForm,
       showScheduleICalSettings,
       errorData,
+      shiftStartToShowOverrideForm,
+      shiftEndToShowOverrideForm,
+      filters,
     } = this.state;
 
     const { isNotFoundError } = errorData;
@@ -122,14 +144,18 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const disabledRotationForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
-      !!shiftIdToShowRotationForm;
+      !!shiftIdToShowRotationForm ||
+      shiftIdToShowOverridesForm;
 
     const disabledOverrideForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       !schedule?.enable_web_overrides ||
-      !!shiftIdToShowOverridesForm;
+      !!shiftIdToShowOverridesForm ||
+      shiftIdToShowRotationForm;
 
-    return (
+    return !basicDataLoaded ? (
+      <LoadingPlaceholder text="Loading..." />
+    ) : (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
         {() => (
           <>
@@ -139,7 +165,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <VerticalGroup spacing="lg" align="center">
                     <Text.Title level={1}>404</Text.Title>
                     <Text.Title level={4}>Schedule not found</Text.Title>
-                    <PluginLink query={{ page: 'schedules' }}>
+                    <PluginLink query={{ page: 'schedules', ...query }}>
                       <Button variant="secondary" icon="arrow-left" size="md">
                         Go to Schedules page
                       </Button>
@@ -151,7 +177,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <div className={cx('header')}>
                     <HorizontalGroup justify="space-between">
                       <div className={cx('title')}>
-                        <PluginLink query={{ page: 'schedules' }}>
+                        <PluginLink query={{ page: 'schedules', ...query }}>
                           <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title
@@ -239,6 +265,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                             {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
                           </Text.Title>
                         </HorizontalGroup>
+                        <ScheduleFilters
+                          value={filters}
+                          onChange={(value) => this.setState({ filters: value })}
+                          currentUserPk={store.userStore.currentUserPk}
+                        />
                       </HorizontalGroup>
                     </div>
                     <ScheduleFinal
@@ -247,6 +278,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       startMoment={startMoment}
                       onClick={this.handleShowForm}
                       disabled={disabledRotationForm}
+                      onShowOverrideForm={this.handleShowOverridesForm}
+                      filters={filters}
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -257,7 +290,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onDelete={this.handleDeleteRotation}
                       shiftIdToShowRotationForm={shiftIdToShowRotationForm}
                       onShowRotationForm={this.handleShowRotationForm}
+                      onShowOverrideForm={this.handleShowOverridesForm}
                       disabled={disabledRotationForm}
+                      filters={filters}
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
@@ -269,6 +304,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                       onShowRotationForm={this.handleShowOverridesForm}
                       disabled={disabledOverrideForm}
+                      shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
+                      shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
+                      filters={filters}
                     />
                   </div>
                 </VerticalGroup>
@@ -329,8 +367,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.setState({ shiftIdToShowRotationForm: shiftId });
   };
 
-  handleShowOverridesForm = (shiftId: Shift['id'] | 'new') => {
-    this.setState({ shiftIdToShowOverridesForm: shiftId });
+  handleShowOverridesForm = (shiftId: Shift['id'] | 'new', shiftStart?: dayjs.Dayjs, shiftEnd?: dayjs.Dayjs) => {
+    this.setState({
+      shiftIdToShowOverridesForm: shiftId,
+      shiftStartToShowOverrideForm: shiftStart,
+      shiftEndToShowOverrideForm: shiftEnd,
+    });
   };
 
   handleNameChange = (value: string) => {

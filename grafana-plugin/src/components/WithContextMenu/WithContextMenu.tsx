@@ -4,7 +4,7 @@ import { ContextMenu } from '@grafana/ui';
 
 export interface WithContextMenuProps {
   children: (props: { openMenu: React.MouseEventHandler<HTMLElement> }) => JSX.Element;
-  renderMenuItems: () => React.ReactNode;
+  renderMenuItems: ({ closeMenu }: { closeMenu?: () => void }) => React.ReactNode;
   forceIsOpen?: boolean;
   focusOnOpen?: boolean;
 }
@@ -16,6 +16,7 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   renderMenuItems,
   forceIsOpen = false,
   focusOnOpen = true,
+  ...rest
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false || forceIsOpen);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -36,7 +37,7 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   }, []);
 
   return (
-    <>
+    <div {...rest}>
       {children({
         openMenu: (e) => {
           setIsMenuOpen(true);
@@ -52,10 +53,10 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
           onClose={() => setIsMenuOpen(false)}
           x={menuPosition.x}
           y={menuPosition.y}
-          renderMenuItems={renderMenuItems}
+          renderMenuItems={() => renderMenuItems({ closeMenu: () => setIsMenuOpen(false) })}
           focusOnOpen={focusOnOpen}
         />
       )}
-    </>
+    </div>
   );
 };

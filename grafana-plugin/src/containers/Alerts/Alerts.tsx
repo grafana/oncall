@@ -13,7 +13,6 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate, useQueryParams } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 
@@ -54,101 +53,115 @@ export default function Alerts() {
   }, []);
 
   const store = useStore();
-
-  const { userStore, teamStore } = store;
-
-  const { currentTeam } = teamStore;
-  const { currentUser } = userStore;
+  const {
+    userStore: { currentUser },
+    organizationStore: { currentOrganization },
+  } = store;
 
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
+  const isDefaultNotificationsSet = currentUser?.notification_chain_verbal.default;
+  const isImportantNotificationsSet = currentUser?.notification_chain_verbal.important;
+
+  if (!showSlackInstallAlert && !showBannerTeam() && !showMismatchWarning() && !showChannelWarnings()) {
+    return null;
+  }
   return (
     <div className={cx('alerts-container', { 'alerts-container--legacy': !isTopNavbar() })}>
       {showSlackInstallAlert && (
         <Alert
           className={cx('alert')}
           onRemove={handleCloseInstallSlackAlert}
-          severity="warning"
-          title="Slack integration warning"
+          severity="error"
+          title="Slack integration error"
         >
-          {getSlackMessage(
-            showSlackInstallAlert,
-            store.teamStore.currentTeam,
-            store.hasFeature(AppFeature.LiveSettings)
-          )}
+          {getSlackMessage(showSlackInstallAlert, currentOrganization, store.hasFeature(AppFeature.LiveSettings))}
         </Alert>
       )}
-      {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
+      {showBannerTeam() && (
         <Alert
           className={cx('alert')}
           severity="success"
-          title={currentTeam.banner.title}
-          onRemove={getRemoveAlertHandler(currentTeam?.banner.title)}
+          title={currentOrganization.banner.title}
+          onRemove={getRemoveAlertHandler(currentOrganization?.banner.title)}
         >
           <div
             dangerouslySetInnerHTML={{
-              __html: sanitize(currentTeam?.banner.body),
+              __html: sanitize(currentOrganization?.banner.body),
             }}
           />
         </Alert>
       )}
-      {store.backendLicense === GRAFANA_LICENSE_OSS &&
-        store.backendVersion &&
-        plugin?.version &&
-        store.backendVersion !== plugin?.version &&
-        !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
-          <Alert
-            className={cx('alert')}
-            severity="warning"
-            title={'Version mismatch!'}
-            onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+      {showMismatchWarning() && (
+        <Alert
+          className={cx('alert')}
+          severity="warning"
+          title={'Version mismatch!'}
+          onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+        >
+          Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
+          otherwise there could be issues with your Grafana OnCall installation!
+          <br />
+          {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
+          <br />
+          Please see{' '}
+          <a
+            href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
+            target="_blank"
+            rel="noreferrer"
+            className={cx('instructions-link')}
           >
-            Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
-            otherwise there could be issues with your Grafana OnCall installation!
-            <br />
-            {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
-            <br />
-            Please see{' '}
-            <a
-              href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
-              target="_blank"
-              rel="noreferrer"
-              className={cx('instructions-link')}
-            >
-              the update instructions
-            </a>
-            .
-          </Alert>
-        )}
-      {Boolean(
-        currentTeam &&
-          currentUser &&
-          isUserActionAllowed(UserActions.UserSettingsWrite) &&
-          (!isPhoneVerified || !isChatOpsConnected) &&
-          !getItem(AlertID.CONNECTIVITY_WARNING)
-      ) && (
+            the update instructions
+          </a>
+          .
+        </Alert>
+      )}
+      {showChannelWarnings() && (
         <Alert
           onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
           className={cx('alert')}
           severity="warning"
-          title="Connectivity Warning"
+          title="Notification Warning! Possible notification miss."
         >
           {
             <>
-              {!isChatOpsConnected && (
-                <>Communication channels are not connected. Configure at least one channel to receive notifications.</>
-              )}
-              {!isPhoneVerified && (
-                <>
-                  Your phone number is not verified. You can change your configuration in{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>User settings</PluginLink>
-                </>
-              )}
+              {!isDefaultNotificationsSet && <>Default notification chain is not set. </>}
+              {!isImportantNotificationsSet && <>Important notification chain is not set. </>}
+              {!isChatOpsConnected && <>No messenger connected for ChatOps. </>}
+              {!isPhoneVerified && <>Your phone number is not verified. </>}
+              <>
+                You can change your configuration in{' '}
+                <PluginLink query={{ page: 'users', id: 'me' }}>User profile settings</PluginLink>
+              </>
             </>
           }
         </Alert>
       )}
     </div>
   );
+
+  function showBannerTeam(): boolean {
+    return currentOrganization?.banner.title != null && !getItem(currentOrganization?.banner.title);
+  }
+
+  function showMismatchWarning(): boolean {
+    return (
+      store.isOpenSource() &&
+      store.backendVersion &&
+      plugin?.version &&
+      store.backendVersion !== plugin?.version &&
+      !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`)
+    );
+  }
+
+  function showChannelWarnings(): boolean {
+    return Boolean(
+      currentOrganization &&
+        currentUser &&
+        isUserActionAllowed(UserActions.UserSettingsWrite) &&
+        (!isPhoneVerified || !isChatOpsConnected) &&
+        !getItem(AlertID.CONNECTIVITY_WARNING)
+    );
+  }
 }

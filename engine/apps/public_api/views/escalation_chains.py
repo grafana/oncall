@@ -6,15 +6,14 @@ from rest_framework.viewsets import ModelViewSet
 from apps.alerts.models import EscalationChain
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import EscalationChainSerializer
-from apps.public_api.serializers.escalation_chains import EscalationChainUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
-from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
+class EscalationChainView(RateLimitHeadersMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -22,7 +21,6 @@ class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVie
 
     model = EscalationChain
     serializer_class = EscalationChainSerializer
-    update_serializer_class = EscalationChainUpdateSerializer
 
     pagination_class = FiftyPageSizePaginator
 
@@ -36,7 +34,7 @@ class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVie
         if name is not None:
             queryset = queryset.filter(name=name)
 
-        return queryset
+        return queryset.order_by("id")
 
     def get_object(self):
         public_primary_key = self.kwargs["pk"]

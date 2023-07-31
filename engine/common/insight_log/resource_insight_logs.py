@@ -19,7 +19,12 @@ class EntityEvent(enum.Enum):
 class InsightLoggable(ABC):
     @property
     @abstractmethod
-    def public_primary_key(self):
+    def id(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def public_primary_key(self) -> str:
         pass
 
     @property
@@ -65,13 +70,13 @@ def write_resource_insight_log(instance: InsightLoggable, author, event: EntityE
             author = json.dumps(author.username)
             entity_type = instance.insight_logs_type_verbal
             try:
-                entity_id = instance.public_primary_key
+                entity_id: str | int = instance.public_primary_key
             except AttributeError:
                 # Fallback for entities which have no public_primary_key, E.g. public api token, schedule export token
                 entity_id = instance.id
             entity_name = json.dumps(instance.insight_logs_verbal)
             metadata = instance.insight_logs_metadata
-            log_line = f"tenant_id={tenant_id} author_id={author_id} author={author} action_type=resource action={event.value} resource_type={entity_type} resource_id={entity_id} resource_name={entity_name}"  # noqa
+            log_line = f"tenant_id={tenant_id} author_id={author_id} author={author} action_type=resource action_name={event.value} resource_type={entity_type} resource_id={entity_id} resource_name={entity_name}"  # noqa
             for k, v in metadata.items():
                 log_line += f" {k}={json.dumps(v)}"
             if prev_state and new_state:
@@ -82,7 +87,7 @@ def write_resource_insight_log(instance: InsightLoggable, author, event: EntityE
                 log_line += f' new_state="{new_state}"'
             insight_logger.info(log_line)
     except Exception as e:
-        logger.warning(f"insight_log.failed_to_write_entity_insight_log exception={e}")
+        logger.warning(f"insight_log.failed_to_write_entity_insight_log exception={e} instance_id={instance.id}")
 
 
 def state_diff_finder(prev_state: dict, new_state: dict):

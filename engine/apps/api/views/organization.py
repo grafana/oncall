@@ -1,6 +1,5 @@
 from contextlib import suppress
 
-from django.apps import apps
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,12 +9,16 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.organization import CurrentOrganizationSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.telegram.client import TelegramClient
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class CurrentOrganizationView(APIView):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
@@ -58,7 +61,8 @@ class GetTelegramVerificationCode(APIView):
     def get(self, request):
         organization = request.auth.organization
         user = request.user
-        TelegramChannelVerificationCode = apps.get_model("telegram", "TelegramChannelVerificationCode")
+        from apps.telegram.models import TelegramChannelVerificationCode
+
         with suppress(TelegramChannelVerificationCode.DoesNotExist):
             existing_verification_code = organization.telegram_verification_code
             existing_verification_code.delete()
@@ -99,7 +103,8 @@ class SetGeneralChannel(APIView):
     }
 
     def post(self, request):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
+
         organization = request.auth.organization
         slack_team_identity = organization.slack_team_identity
         slack_channel_id = request.data["id"]

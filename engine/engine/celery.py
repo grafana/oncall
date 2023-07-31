@@ -3,6 +3,7 @@ import os
 import time
 
 import celery
+from celery import Celery
 from celery.app.log import TaskFormatter
 from celery.utils.debug import memdump, sample_mem
 from celery.utils.log import get_task_logger
@@ -16,13 +17,9 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 
-from django.db import connection  # noqa: E402
-
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
-connection.cursor()
-from celery import Celery  # noqa: E402
 
 app = Celery("proj")
 
@@ -54,6 +51,13 @@ def on_after_setup_logger(logger, **kwargs):
                 "%(asctime)s source=engine:celery worker=%(processName)s task_id=%(task_id)s task_name=%(task_name)s name=%(name)s level=%(levelname)s %(message)s"
             )
         )
+
+
+@celery.signals.worker_ready.connect
+def on_worker_ready(*args, **kwargs):
+    from apps.telegram.tasks import register_telegram_webhook
+
+    register_telegram_webhook.delay()
 
 
 if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:

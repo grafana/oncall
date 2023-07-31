@@ -4,16 +4,16 @@ from rest_framework import serializers
 from apps.alerts.models import AlertGroup
 from apps.telegram.models.message import TelegramMessage
 from common.api_helpers.mixins import EagerLoadingMixin
+from common.constants.alert_group_restrictions import IS_RESTRICTED_TITLE
 
 
 class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
-
     id = serializers.CharField(read_only=True, source="public_primary_key")
     integration_id = serializers.CharField(source="channel.public_primary_key")
     route_id = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(source="started_at")
     alerts_count = serializers.SerializerMethodField()
-    title = serializers.CharField(source="web_title_cache")
+    title = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["channel", "channel_filter", "slack_message", "channel__organization"]
@@ -40,6 +40,9 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "title",
             "permalinks",
         ]
+
+    def get_title(self, obj):
+        return IS_RESTRICTED_TITLE if obj.is_restricted else obj.web_title_cache
 
     def get_alerts_count(self, obj):
         return len(obj.alerts.all())

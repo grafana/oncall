@@ -35,11 +35,10 @@ class RouteRegexDebuggerView(APIView):
         MAX_INCIDENTS_TO_SHOW = 5
         INCIDENTS_TO_LOOKUP = 100
         for ag in (
-            AlertGroup.unarchived_objects.prefetch_related(Prefetch("alerts", queryset=Alert.objects.order_by("pk")))
+            AlertGroup.objects.prefetch_related(Prefetch("alerts", queryset=Alert.objects.order_by("pk")))
             .filter(channel__organization=organization, channel__team=team)
             .order_by("-started_at")[:INCIDENTS_TO_LOOKUP]
         ):
-
             if len(incidents_matching_regex) < MAX_INCIDENTS_TO_SHOW:
                 first_alert = ag.alerts.all()[0]
                 if re.search(regex, json.dumps(first_alert.raw_request_data)):

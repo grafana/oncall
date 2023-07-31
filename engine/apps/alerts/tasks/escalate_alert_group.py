@@ -1,7 +1,6 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
-from kombu import uuid as celery_uuid
+from kombu.utils.uuid import uuid as celery_uuid
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -16,7 +15,7 @@ def escalate_alert_group(alert_group_pk):
     """
     This task is on duty to send escalated alerts and schedule further escalation.
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
 
     task_logger.debug(f"Start escalate_alert_group for alert_group {alert_group_pk}")
 
@@ -24,7 +23,7 @@ def escalate_alert_group(alert_group_pk):
 
     with transaction.atomic():
         try:
-            alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk).select_for_update()[0]  # Lock alert_group:
+            alert_group = AlertGroup.objects.filter(pk=alert_group_pk).select_for_update()[0]  # Lock alert_group:
         except IndexError:
             return f"Alert group with pk {alert_group_pk} doesn't exist"
 
@@ -48,12 +47,6 @@ def escalate_alert_group(alert_group_pk):
         if alert_group.root_alert_group is not None:
             # TODO: consistent_is_escalation_finished remove this check for is_escalation_finished
             return "Alert is dependent on another. No need to activate escalation."
-
-        if alert_group.is_archived:
-            # TODO: consistent_is_escalation_finished remove this check for is_escalation_finished
-            return "Escalation stopped. Reason: incident is archived. Escalation id: {}".format(
-                alert_group.active_escalation_id
-            )
 
         if alert_group.wiped_at is not None:
             # TODO: consistent_is_escalation_finished remove this check for is_escalation_finished

@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import typing
 from json import JSONDecodeError
 
 from django.conf import settings
@@ -13,6 +14,12 @@ from requests.auth import HTTPBasicAuth
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import EscalationPolicy
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -46,6 +53,7 @@ class CustomButtonManager(models.Manager):
 
 
 class CustomButton(models.Model):
+    escalation_policies: "RelatedManager['EscalationPolicy']"
 
     objects = CustomButtonManager()
     objects_with_deleted = models.Manager()

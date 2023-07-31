@@ -59,6 +59,16 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
         "DANGEROUS_WEBHOOKS_ENABLED",
+        "PHONE_PROVIDER",
+        "ZVONOK_API_KEY",
+        "ZVONOK_CAMPAIGN_ID",
+        "ZVONOK_AUDIO_ID",
+        "ZVONOK_SPEAKER_ID",
+        "ZVONOK_POSTBACK_CALL_ID",
+        "ZVONOK_POSTBACK_CAMPAIGN_ID",
+        "ZVONOK_POSTBACK_STATUS",
+        "ZVONOK_POSTBACK_USER_CHOICE",
+        "ZVONOK_POSTBACK_USER_CHOICE_ACK",
     )
 
     DESCRIPTIONS = {
@@ -76,28 +86,28 @@ class LiveSetting(models.Model):
         "INBOUND_EMAIL_WEBHOOK_SECRET": "Inbound email webhook secret",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_SECRET": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_ID": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_INSTALL_RETURN_REDIRECT_HOST": (
             "Check <a href='"
-            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "https://grafana.com/docs/oncall/latest/open-source/#slack-setup"
             "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
@@ -146,6 +156,16 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable heartbeat integration with Grafana Cloud OnCall.",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
         "DANGEROUS_WEBHOOKS_ENABLED": "Enable outgoing webhooks to private networks",
+        "PHONE_PROVIDER": f"Phone provider name. Available options: {','.join(list(settings.PHONE_PROVIDERS.keys()))}",
+        "ZVONOK_API_KEY": "API public key. You can get it in Profile->Settings section.",
+        "ZVONOK_CAMPAIGN_ID": "Calls by API campaign ID. You can get it after campaign creation.",
+        "ZVONOK_AUDIO_ID": "Calls with specific audio. You can get it in Audioclips section.",
+        "ZVONOK_SPEAKER_ID": "Calls with speaker.",
+        "ZVONOK_POSTBACK_CALL_ID": "'Postback' call id (ct_call_id) query parameter name to validate a postback request.",
+        "ZVONOK_POSTBACK_CAMPAIGN_ID": "'Postback' company id (ct_campaign_id) query parameter name to validate a postback request.",
+        "ZVONOK_POSTBACK_STATUS": "'Postback' status (ct_status) query parameter name to validate a postback request.",
+        "ZVONOK_POSTBACK_USER_CHOICE": "'Postback' user choice (ct_user_choice) query parameter name (optional).",
+        "ZVONOK_POSTBACK_USER_CHOICE_ACK": "'Postback' user choice (ct_user_choice) query parameter value for acknowledge alert group (optional).",
     }
 
     SECRET_SETTING_NAMES = (
@@ -161,6 +181,7 @@ class LiveSetting(models.Model):
         "SLACK_SIGNING_SECRET",
         "TELEGRAM_TOKEN",
         "GRAFANA_CLOUD_ONCALL_TOKEN",
+        "ZVONOK_API_KEY",
     )
 
     def __str__(self):
@@ -210,6 +231,7 @@ class LiveSetting(models.Model):
     def validate_settings(cls):
         settings_to_validate = cls.objects.all()
         for setting in settings_to_validate:
+            setting.error = LiveSettingValidator(live_setting=setting).get_error()
             setting.save(update_fields=["error"])
 
     @staticmethod
@@ -221,7 +243,5 @@ class LiveSetting(models.Model):
             raise ValueError(
                 f"Setting with name '{self.name}' is not in list of available names {self.AVAILABLE_NAMES}"
             )
-
-        self.error = LiveSettingValidator(live_setting=self).get_error()
 
         super().save(*args, **kwargs)

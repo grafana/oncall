@@ -1,13 +1,6 @@
 import factory
 
-from apps.slack.models import (
-    SlackActionRecord,
-    SlackChannel,
-    SlackMessage,
-    SlackTeamIdentity,
-    SlackUserGroup,
-    SlackUserIdentity,
-)
+from apps.slack.models import SlackChannel, SlackMessage, SlackTeamIdentity, SlackUserGroup, SlackUserIdentity
 from common.utils import UniqueFaker
 
 
@@ -32,7 +25,7 @@ class SlackUserIdentityFactory(factory.DjangoModelFactory):
 class SlackUserGroupFactory(factory.DjangoModelFactory):
     slack_id = UniqueFaker("word")
     name = factory.Faker("word")
-    handle = factory.Faker("word")
+    handle = UniqueFaker("word")
 
     class Meta:
         model = SlackUserGroup
@@ -52,8 +45,3 @@ class SlackMessageFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = SlackMessage
-
-
-class SlackActionRecordFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = SlackActionRecord

@@ -21,7 +21,7 @@ else:
     }
 
 if BROKER_TYPE == BrokerTypes.RABBITMQ:
-    CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
+    CELERY_BROKER_URL = RABBITMQ_URI
 elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
 
@@ -40,3 +40,5 @@ TWILIO_ACCOUNT_SID = "dummy_twilio_account_sid"
 TWILIO_AUTH_TOKEN = "dummy_twilio_auth_token"
 
 EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend", 42)]
+
+FEATURE_SHIFT_SWAPS_ENABLED = True

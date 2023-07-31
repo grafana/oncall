@@ -3,9 +3,14 @@ from unittest.mock import call, patch
 import pytest
 from requests.auth import HTTPBasicAuth
 
-from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
 from apps.webhooks.models import Webhook
-from apps.webhooks.utils import InvalidWebhookData, InvalidWebhookHeaders, InvalidWebhookTrigger, InvalidWebhookUrl
+from apps.webhooks.utils import (
+    OUTGOING_WEBHOOK_TIMEOUT,
+    InvalidWebhookData,
+    InvalidWebhookHeaders,
+    InvalidWebhookTrigger,
+    InvalidWebhookUrl,
+)
 
 
 @pytest.mark.django_db
@@ -102,6 +107,35 @@ def test_build_request_kwargs_custom_data(make_organization, make_custom_webhook
     request_kwargs = webhook.build_request_kwargs({"foo": "bar", "something": "else"})
 
     assert request_kwargs == {"headers": {}, "data": "bar"}
+
+
+@pytest.mark.django_db
+def test_build_request_kwargs_is_legacy_custom_data(make_organization, make_custom_webhook):
+    organization = make_organization()
+    webhook = make_custom_webhook(
+        organization=organization,
+        data="{{alert_payload.message}}",
+        forward_all=False,
+        is_legacy=True,
+    )
+    event_data = {"alert_group_id": "bar", "alert_payload": {"message": "the-message"}}
+    request_kwargs = webhook.build_request_kwargs(event_data)
+
+    assert request_kwargs == {"headers": {}, "data": "the-message"}
+
+
+@pytest.mark.django_db
+def test_build_request_kwargs_is_legacy_forward_all(make_organization, make_custom_webhook):
+    organization = make_organization()
+    webhook = make_custom_webhook(
+        organization=organization,
+        forward_all=True,
+        is_legacy=True,
+    )
+    event_data = {"alert_group_id": "bar", "alert_payload": {"message": "the-message"}}
+    request_kwargs = webhook.build_request_kwargs(event_data)
+
+    assert request_kwargs == {"headers": {}, "json": event_data["alert_payload"]}
 
 
 @pytest.mark.django_db

@@ -6,7 +6,7 @@ import { PluginPageFallback } from 'PluginPage';
 import { observer } from 'mobx-react';
 import { AppRootProps } from 'types';
 
-import logo from 'img/logo.svg';
+import logo from 'assets/img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 
@@ -35,32 +35,28 @@ const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => 
 const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
   const store = useStore();
   const setupPlugin = useCallback(() => store.setupPlugin(props.meta), [props.meta]);
-
   useEffect(() => {
     setupPlugin();
   }, [setupPlugin]);
 
-  if (store.appLoading) {
-    return <PluginSetupWrapper text="Initializing plugin..." />;
-  }
-
   if (store.initializationError) {
     return (
       <PluginSetupWrapper text={store.initializationError}>
-        <div className="configure-plugin">
-          <HorizontalGroup>
-            <Button variant="primary" onClick={setupPlugin} size="sm">
-              Retry
-            </Button>
-            <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
-              Configure Plugin
-            </LinkButton>
-          </HorizontalGroup>
-        </div>
+        {!store.currentlyUndergoingMaintenance && (
+          <div className="configure-plugin">
+            <HorizontalGroup>
+              <Button variant="primary" onClick={setupPlugin} size="sm">
+                Retry
+              </Button>
+              <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
+                Configure Plugin
+              </LinkButton>
+            </HorizontalGroup>
+          </div>
+        )}
       </PluginSetupWrapper>
     );
   }
-
   return <InitializedComponent {...props} />;
 });
 

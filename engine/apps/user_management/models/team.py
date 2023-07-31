@@ -1,8 +1,17 @@
+import typing
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 
+from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
+from apps.metrics_exporter.metrics_cache_manager import MetricsCacheManager
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import AlertGroupLogRecord
 
 
 def generate_public_primary_key_for_team():
@@ -43,6 +52,13 @@ class TeamManager(models.Manager):
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()
         organization.teams.filter(team_id__in=team_ids_to_delete).delete()
 
+        # collect teams diffs to update metrics cache
+        metrics_teams_to_update = {}
+        for team_id in team_ids_to_delete:
+            metrics_teams_to_update = MetricsCacheManager.update_team_diff(
+                metrics_teams_to_update, team_id, deleted=True
+            )
+
         # update existing teams if any fields have changed
         teams_to_update = []
         for team in organization.teams.filter(team_id__in=existing_team_ids):
@@ -52,14 +68,23 @@ class TeamManager(models.Manager):
                 or team.email != grafana_team["email"]
                 or team.avatar_url != grafana_team["avatarUrl"]
             ):
+                if team.name != grafana_team["name"]:
+                    # collect teams diffs to update metrics cache
+                    metrics_teams_to_update = MetricsCacheManager.update_team_diff(
+                        metrics_teams_to_update, team.id, new_name=grafana_team["name"]
+                    )
                 team.name = grafana_team["name"]
                 team.email = grafana_team["email"]
                 team.avatar_url = grafana_team["avatarUrl"]
                 teams_to_update.append(team)
         organization.teams.bulk_update(teams_to_update, ["name", "email", "avatar_url"], batch_size=5000)
 
+        metrics_bulk_update_team_label_cache(metrics_teams_to_update, organization.id)
+
 
 class Team(models.Model):
+    oncall_schedules: "RelatedManager['AlertGroupLogRecord']"
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],

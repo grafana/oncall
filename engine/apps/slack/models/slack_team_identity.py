@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.db import models
 from django.db.models import JSONField
 
@@ -9,13 +8,12 @@ from apps.slack.constants import SLACK_INVALID_AUTH_RESPONSE, SLACK_WRONG_TEAM_N
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.user_management.models.user import User
-from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
 logger = logging.getLogger(__name__)
 
 
 class SlackTeamIdentity(models.Model):
-
     id = models.AutoField(primary_key=True)
     slack_id = models.CharField(max_length=100)
     cached_name = models.CharField(max_length=100, null=True, default=None)
@@ -46,7 +44,8 @@ class SlackTeamIdentity(models.Model):
 
     def update_oauth_fields(self, user, organization, reinstall_data):
         logger.info(f"updated oauth_fields for sti {self.pk}")
-        SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
+        from apps.slack.models import SlackUserIdentity
+
         organization.slack_team_identity = self
         organization.save(update_fields=["slack_team_identity"])
         slack_user_identity, _ = SlackUserIdentity.objects.get_or_create(
@@ -65,7 +64,7 @@ class SlackTeamIdentity(models.Model):
         self.installed_via_granular_permissions = True
         self.save()
         write_chatops_insight_log(
-            author=user, event_name=ChatOpsEvent.WORKSPACE_CONNECTED, chatops_type=ChatOpsType.SLACK
+            author=user, event_name=ChatOpsEvent.WORKSPACE_CONNECTED, chatops_type=ChatOpsTypePlug.SLACK.value
         )
 
     def get_cached_channels(self, search_term=None, slack_id=None):

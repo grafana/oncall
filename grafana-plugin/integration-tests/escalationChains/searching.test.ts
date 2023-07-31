@@ -1,11 +1,6 @@
-import { test, expect, Page } from '@playwright/test';
-import { configureOnCallPlugin } from '../utils/configurePlugin';
+import { test, expect, Page } from '../fixtures';
 import { generateRandomValue } from '../utils/forms';
 import { createEscalationChain } from '../utils/escalationChain';
-
-test.beforeEach(async ({ page }) => {
-  await configureOnCallPlugin(page);
-});
 
 const assertEscalationChainSearchWorks = async (
   page: Page,
@@ -20,18 +15,20 @@ const assertEscalationChainSearchWorks = async (
   await expect(page.getByTestId('escalation-chains-list')).toHaveText(escalationChainFullName);
 };
 
-test('searching allows case-insensitive partial matches', async ({ page }) => {
+// TODO: add tests for the new filtering. Commented out as this search doesn't exist anymore
+test.skip('searching allows case-insensitive partial matches', async ({ adminRolePage }) => {
+  const { page } = adminRolePage;
+
   const escalationChainName = `${generateRandomValue()} ${generateRandomValue()}`;
-  // const [firstHalf, secondHalf] = escalationChainName.split(' ');
+  const [firstHalf, secondHalf] = escalationChainName.split(' ');
 
   await createEscalationChain(page, escalationChainName);
 
-  // Commented as this search doesn't exist anymore TODO: add tests for the new filtering
-  // await assertEscalationChainSearchWorks(page, firstHalf, escalationChainName);
-  // await assertEscalationChainSearchWorks(page, firstHalf.toUpperCase(), escalationChainName);
-  // await assertEscalationChainSearchWorks(page, firstHalf.toLowerCase(), escalationChainName);
-  //
-  // await assertEscalationChainSearchWorks(page, secondHalf, escalationChainName);
-  // await assertEscalationChainSearchWorks(page, secondHalf.toUpperCase(), escalationChainName);
-  // await assertEscalationChainSearchWorks(page, secondHalf.toLowerCase(), escalationChainName);
+  await assertEscalationChainSearchWorks(page, firstHalf, escalationChainName);
+  await assertEscalationChainSearchWorks(page, firstHalf.toUpperCase(), escalationChainName);
+  await assertEscalationChainSearchWorks(page, firstHalf.toLowerCase(), escalationChainName);
+
+  await assertEscalationChainSearchWorks(page, secondHalf, escalationChainName);
+  await assertEscalationChainSearchWorks(page, secondHalf.toUpperCase(), escalationChainName);
+  await assertEscalationChainSearchWorks(page, secondHalf.toLowerCase(), escalationChainName);
 });

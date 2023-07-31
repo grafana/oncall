@@ -1,7 +1,6 @@
 import json
 from uuid import uuid4
 
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.models import AlertReceiveChannel
@@ -17,137 +16,10 @@ MANUAL_INCIDENT_MESSAGE_INPUT_ID = "manual_incident_message_input"
 DEFAULT_TEAM_VALUE = "default_team"
 
 
-class StartCreateIncidentFromMessage(scenario_step.ScenarioStep):
-    """
-    StartCreateIncidentFromMessage triggers creation of a manual incident from the slack message via submenu
-    """
-
-    callback_id = [
-        "incident_create",
-        "incident_create_staging",
-        "incident_create_develop",
-    ]
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        input_id_prefix = _generate_input_id_prefix()
-
-        channel_id = payload["channel"]["id"]
-        try:
-            image_url = payload["message"]["files"][0]["permalink"]
-        except KeyError:
-            image_url = None
-        private_metadata = {
-            "channel_id": channel_id,
-            "image_url": image_url,
-            "message": {
-                "user": payload["message"].get("user"),
-                "text": payload["message"].get("text"),
-                "ts": payload["message"].get("ts"),
-            },
-            "input_id_prefix": input_id_prefix,
-            "with_title_and_message_inputs": False,
-            "submit_routing_uid": FinishCreateIncidentFromMessage.routing_uid(),
-        }
-
-        blocks = _get_manual_incident_initial_form_fields(
-            slack_team_identity, slack_user_identity, input_id_prefix, payload
-        )
-        view = _get_manual_incident_form_view(
-            FinishCreateIncidentFromMessage.routing_uid(), blocks, json.dumps(private_metadata)
-        )
-        self._slack_client.api_call(
-            "views.open",
-            trigger_id=payload["trigger_id"],
-            view=view,
-        )
-
-
-class FinishCreateIncidentFromMessage(scenario_step.ScenarioStep):
-    """
-    FinishCreateIncidentFromMessage creates a manual incident from the slack message via submenu
-    """
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        Alert = apps.get_model("alerts", "Alert")
-
-        private_metadata = json.loads(payload["view"]["private_metadata"])
-
-        channel_id = private_metadata["channel_id"]
-
-        input_id_prefix = private_metadata["input_id_prefix"]
-        selected_organization = _get_selected_org_from_payload(payload, input_id_prefix)
-        selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
-        selected_route = _get_selected_route_from_payload(payload, input_id_prefix)
-
-        user = slack_user_identity.get_user(selected_organization)
-        alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
-            organization=selected_organization,
-            team=selected_team,
-            integration=AlertReceiveChannel.INTEGRATION_MANUAL,
-            deleted_at=None,
-            defaults={
-                "author": user,
-                "verbal_name": f"Manual incidents ({selected_team.name if selected_team else 'General'} team)",
-            },
-        )
-
-        author_username = slack_user_identity.slack_verbal
-        try:
-            permalink = self._slack_client.api_call(
-                "chat.getPermalink",
-                channel=private_metadata["channel_id"],
-                message_ts=private_metadata["message"]["ts"],
-            )
-            permalink = permalink.get("permalink", None)
-        except SlackAPIException:
-            permalink = None
-        title = "Message from {}".format(author_username)
-        message = private_metadata["message"]["text"]
-
-        # Deprecated, use custom oncall property instead.
-        # update private metadata in payload to use it in alert rendering
-        payload["view"]["private_metadata"] = private_metadata
-        payload["view"]["private_metadata"]["author_username"] = author_username
-        # Custom oncall property in payload to simplify rendering
-        payload["oncall"] = {}
-        payload["oncall"]["title"] = title
-        payload["oncall"]["message"] = message
-        payload["oncall"]["author_username"] = author_username
-        payload["oncall"]["permalink"] = permalink
-        Alert.create(
-            title=title,
-            message=message,
-            image_url=private_metadata["image_url"],
-            # Link to the slack message is not here bc it redirects to browser
-            link_to_upstream_details=None,
-            alert_receive_channel=alert_receive_channel,
-            raw_request_data=payload,
-            integration_unique_data={"created_by": user.get_username_with_slack_verbal()},
-            force_route_id=selected_route.pk,
-        )
-
-        try:
-            self._slack_client.api_call(
-                "chat.postEphemeral",
-                channel=channel_id,
-                user=slack_user_identity.slack_id,
-                text=":white_check_mark: Alert successfully submitted",
-            )
-        except SlackAPIException as e:
-            if e.response["error"] == "channel_not_found" or e.response["error"] == "user_not_in_channel":
-                self._slack_client.api_call(
-                    "chat.postEphemeral",
-                    channel=slack_user_identity.im_channel_id,
-                    user=slack_user_identity.slack_id,
-                    text=":white_check_mark: Alert successfully submitted",
-                )
-            else:
-                raise e
-
-
 class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
     """
     StartCreateIncidentFromSlashCommand triggers creation of a manual incident from the slack message via slash command
+    THIS FEATURE IS DEPRECATED AND WILL BE REMOVED IN A FUTURE RELEASE
     """
 
     command_name = [settings.SLACK_SLASH_COMMAND_NAME]
@@ -189,7 +61,7 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
     """
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        Alert = apps.get_model("alerts", "Alert")
+        from apps.alerts.models import Alert
 
         title = _get_title_from_payload(payload)
         message = _get_message_from_payload(payload)
@@ -360,6 +232,18 @@ class OnRouteChange(scenario_step.ScenarioStep):
 
 
 def _get_manual_incident_form_view(routing_uid, blocks, private_metatada):
+    deprecation_blocks = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": f":no_entry: This command is deprecated and will be removed soon. Please use {settings.SLACK_DIRECT_PAGING_SLASH_COMMAND} command instead :no_entry:",
+                "emoji": True,
+            },
+        },
+        {"type": "divider"},
+    ]
+
     view = {
         "type": "modal",
         "callback_id": routing_uid,
@@ -376,7 +260,7 @@ def _get_manual_incident_form_view(routing_uid, blocks, private_metatada):
             "type": "plain_text",
             "text": "Submit",
         },
-        "blocks": blocks,
+        "blocks": deprecation_blocks + blocks,
         "private_metadata": private_metatada,
     }
 
@@ -460,7 +344,8 @@ def _get_organization_select(slack_team_identity, slack_user_identity, value, in
 
 
 def _get_selected_org_from_payload(payload, input_id_prefix):
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization
+
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ORG_SELECT_ID][
         OnOrgChange.routing_uid()
     ]["selected_option"]["value"]
@@ -479,7 +364,7 @@ def _get_team_select(slack_user_identity, organization, value, input_id_prefix):
         {
             "text": {
                 "type": "plain_text",
-                "text": f"General",
+                "text": "General",
                 "emoji": True,
             },
             "value": DEFAULT_TEAM_VALUE,
@@ -516,7 +401,8 @@ def _get_team_select(slack_user_identity, organization, value, input_id_prefix):
 
 
 def _get_selected_team_from_payload(payload, input_id_prefix):
-    Team = apps.get_model("user_management", "Team")
+    from apps.user_management.models import Team
+
     selected_team_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_TEAM_SELECT_ID][
         OnTeamChange.routing_uid()
     ]["selected_option"]["value"]
@@ -561,7 +447,8 @@ def _get_route_select(integration, value, input_id_prefix):
 
 
 def _get_selected_route_from_payload(payload, input_id_prefix):
-    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
+    from apps.alerts.models import ChannelFilter
+
     selected_org_id = payload["view"]["state"]["values"][input_id_prefix + MANUAL_INCIDENT_ROUTE_SELECT_ID][
         OnRouteChange.routing_uid()
     ]["selected_option"]["value"]
@@ -647,11 +534,6 @@ def _generate_input_id_prefix():
 
 STEPS_ROUTING = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_MESSAGE_ACTION,
-        "message_action_callback_id": StartCreateIncidentFromMessage.callback_id,
-        "step": StartCreateIncidentFromMessage,
-    },
-    {
         "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
         "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
         "block_action_id": OnOrgChange.routing_uid(),
@@ -668,11 +550,6 @@ STEPS_ROUTING = [
         "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
         "block_action_id": OnRouteChange.routing_uid(),
         "step": OnRouteChange,
-    },
-    {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
-        "view_callback_id": FinishCreateIncidentFromMessage.routing_uid(),
-        "step": FinishCreateIncidentFromMessage,
     },
     {
         "payload_type": scenario_step.PAYLOAD_TYPE_SLASH_COMMAND,

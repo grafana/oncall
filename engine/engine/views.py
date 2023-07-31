@@ -1,16 +1,9 @@
-import time
-
+from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.generic import View
 
 from apps.integrations.mixins import AlertChannelDefiningMixin
-from common.custom_celery_tasks import shared_dedicated_queue_retry_task
-
-
-@shared_dedicated_queue_retry_task(ignore_result=True)
-def health_check_task():
-    return "Ok"
 
 
 class HealthCheckView(View):
@@ -59,12 +52,10 @@ class StartupProbeView(View):
         return HttpResponse("Ok")
 
 
-class SlowView(View):
-    def get(self, request):
-        time.sleep(1.5)
-        return HttpResponse("Slept well.")
-
-
-class ExceptionView(View):
-    def get(self, request):
-        raise Exception("Trying exception!")
+class MaintenanceModeStatusView(View):
+    def get(self, _request):
+        return JsonResponse(
+            {
+                "currently_undergoing_maintenance_message": settings.CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE,
+            }
+        )

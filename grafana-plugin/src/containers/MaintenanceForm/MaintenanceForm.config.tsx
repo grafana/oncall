@@ -4,7 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import Emoji from 'react-emoji-render';
 
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import { MaintenanceMode } from 'models/maintenance/maintenance.types';
+import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 
 export const form: { name: string; fields: FormItem[] } = {
   name: 'Maintenance',
@@ -25,10 +25,13 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'mode',
       label: 'Mode',
+      description:
+        'Choose maintenance mode: Debug (test routing and escalations without real notifications) or Maintenance (group alerts into one during infrastructure work).',
       type: FormItemType.Select,
       validation: { required: true },
       normalize: (value) => value,
       extra: {
+        placeholder: 'Choose mode',
         options: [
           {
             value: MaintenanceMode.Debug,
@@ -36,7 +39,7 @@ export const form: { name: string; fields: FormItem[] } = {
           },
           {
             value: MaintenanceMode.Maintenance,
-            label: 'Maintenance (collect everything in one incident)',
+            label: 'Maintenance (collect everything in one alert group)',
           },
         ],
       },
@@ -44,9 +47,11 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'duration',
       label: 'Duration',
+      description: 'Specify duration of the maintenance',
       type: FormItemType.Select,
       validation: { required: true },
       extra: {
+        placeholder: 'Choose duration',
         options: [
           {
             value: 3600,

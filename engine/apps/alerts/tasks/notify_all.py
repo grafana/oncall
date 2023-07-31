@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 
 from apps.slack.tasks import check_slack_message_exists_before_post_message_to_thread
@@ -12,11 +11,9 @@ from .task_logger import task_logger
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def notify_all_task(alert_group_pk, escalation_policy_snapshot_order=None):
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-    EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
 
-    alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    alert_group = AlertGroup.objects.get(pk=alert_group_pk)
 
     # check alert group state before notifying all users in the channel
     if alert_group.resolved or alert_group.acknowledged or alert_group.silenced:

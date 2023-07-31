@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import fields, serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
@@ -6,12 +5,12 @@ from apps.api.serializers.alert_receive_channel import valid_jinja_template_for_
 from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import OrderedModelSerializerMixin
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError
+from common.ordered_model.serializer import OrderedModelSerializer
 from common.utils import is_regex_valid
 
 
-class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSerializer):
+class BaseChannelFilterSerializer(OrderedModelSerializer):
     """Base Channel Filter serializer with validation methods"""
 
     def __init__(self, *args, **kwargs):
@@ -81,7 +80,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         return validated_data
 
     def _validate_slack_channel_id(self, slack_channel_id):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         if slack_channel_id is not None:
             slack_channel_id = slack_channel_id.upper()
@@ -94,7 +93,8 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         return slack_channel_id
 
     def _validate_telegram_channel(self, telegram_channel_id):
-        TelegramToOrganizationConnector = apps.get_model("telegram", "TelegramToOrganizationConnector")
+        from apps.telegram.models import TelegramToOrganizationConnector
+
         if telegram_channel_id is not None:
             organization = self.context["request"].auth.organization
             try:
@@ -115,21 +115,6 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
                 notification_backends[backend_id] = current.get(backend_id, {}) | notification_backends[backend_id]
         return notification_backends
 
-    def validate_escalation_chain_id(self, escalation_chain):
-        if escalation_chain is None:
-            return escalation_chain
-        if self.instance is not None:
-            alert_receive_channel = self.instance.alert_receive_channel
-        else:
-            alert_receive_channel = AlertReceiveChannel.objects.get(
-                public_primary_key=self.initial_data["integration_id"]
-            )
-
-        if escalation_chain.team != alert_receive_channel.team:
-            raise BadRequest(detail="Escalation chain must be assigned to the same team as the integration")
-
-        return escalation_chain
-
 
 class RoutingTypeField(fields.CharField):
     def to_representation(self, value):
@@ -148,7 +133,6 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     telegram = serializers.DictField(required=False)
     routing_type = RoutingTypeField(allow_null=False, required=False, source="filtering_term_type")
     routing_regex = serializers.CharField(allow_null=False, required=True, source="filtering_term")
-    position = serializers.IntegerField(required=False, source="order")
     integration_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=AlertReceiveChannel.objects, source="alert_receive_channel"
     )
@@ -159,39 +143,24 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     )
 
     is_the_last_route = serializers.BooleanField(read_only=True, source="is_default")
-    manual_order = serializers.BooleanField(default=False, write_only=True)
 
     class Meta:
         model = ChannelFilter
-        fields = [
+        fields = OrderedModelSerializer.Meta.fields + [
             "id",
             "integration_id",
             "escalation_chain_id",
             "routing_type",
             "routing_regex",
-            "position",
             "is_the_last_route",
             "slack",
             "telegram",
-            "manual_order",
         ]
-        read_only_fields = ("is_the_last_route",)
+        read_only_fields = ["is_the_last_route"]
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
-        manual_order = validated_data.pop("manual_order")
-        if manual_order:
-            self._validate_manual_order(validated_data.get("order", None))
-            instance = super().create(validated_data)
-        else:
-            order = validated_data.pop("order", None)
-            alert_receive_channel_id = validated_data.get("alert_receive_channel")
-            # validate 'order' value before creation
-            self._validate_order(order, {"alert_receive_channel_id": alert_receive_channel_id, "is_default": False})
-            instance = super().create(validated_data)
-            self._change_position(order, instance)
-
-        return instance
+        return super().create(validated_data)
 
     def validate(self, data):
         filtering_term = data.get("routing_regex")
@@ -200,13 +169,13 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
             try:
                 valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
             except JinjaTemplateError:
-                raise serializers.ValidationError([f"Jinja template is incorrect"])
+                raise serializers.ValidationError(["Jinja template is incorrect"])
         elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or filtering_term_type is None:
             if filtering_term is not None:
                 if not is_regex_valid(filtering_term):
                     raise serializers.ValidationError(["Regular expression is incorrect"])
         else:
-            raise serializers.ValidationError([f"Expression type is incorrect"])
+            raise serializers.ValidationError(["Expression type is incorrect"])
         return data
 
 
@@ -224,18 +193,6 @@ class ChannelFilterUpdateSerializer(ChannelFilterSerializer):
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(validated_data)
-
-        manual_order = validated_data.pop("manual_order")
-        if manual_order:
-            self._validate_manual_order(validated_data.get("order", None))
-        else:
-            order = validated_data.pop("order", None)
-            self._validate_order(
-                order,
-                {"alert_receive_channel_id": instance.alert_receive_channel_id, "is_default": instance.is_default},
-            )
-            self._change_position(order, instance)
-
         if validated_data.get("notification_backends"):
             validated_data["notification_backends"] = self._update_notification_backends(
                 validated_data["notification_backends"]

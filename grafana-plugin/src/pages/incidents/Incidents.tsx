@@ -1,6 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip, Icon } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -98,6 +98,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
+  async componentDidMount() {
+    await this.props.store.alertGroupStore.fetchIRMPlan();
+  }
+
   componentWillUnmount(): void {
     this.clearPollingInterval();
   }
@@ -105,6 +109,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   render() {
     const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
+    const {
+      store: { alertReceiveChannelStore },
+    } = this.props;
+
     return (
       <>
         <div className={cx('root')}>
@@ -127,8 +135,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               this.setState({ showAddAlertGroupForm: false });
             }}
             onCreate={(id: Alert['pk']) => {
-              history.push(`${PLUGIN_ROOT}/incidents/${id}`);
+              history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
+            alertReceiveChannelStore={alertReceiveChannelStore}
           />
         )}
       </>
@@ -153,7 +162,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <div className={cx('cards', 'row')}>
         <div key="new" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell" size="xxxl" />}
+            icon={<Icon name="bell" size="xxl" />}
             description="Firing"
             title={newIncidentsCount}
             selected={status.includes(IncidentStatus.Firing)}
@@ -167,7 +176,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         </div>
         <div key="acknowledged" className={cx('col')}>
           <CardButton
-            icon={<Icon name="eye" size="xxxl" />}
+            icon={<Icon name="eye" size="xxl" />}
             description="Acknowledged"
             title={acknowledgedIncidentsCount}
             selected={status.includes(IncidentStatus.Acknowledged)}
@@ -181,7 +190,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         </div>
         <div key="resolved" className={cx('col')}>
           <CardButton
-            icon={<Icon name="check" size="xxxl" />}
+            icon={<Icon name="check" size="xxl" />}
             description="Resolved"
             title={resolvedIncidentsCount}
             selected={status.includes(IncidentStatus.Resolved)}
@@ -195,7 +204,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         </div>
         <div key="silenced" className={cx('col')}>
           <CardButton
-            icon={<Icon name="bell-slash" size="xxxl" />}
+            icon={<Icon name="bell-slash" size="xxl" />}
             description="Silenced"
             title={silencedIncidentsCount}
             selected={status.includes(IncidentStatus.Silenced)}
@@ -511,7 +520,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
           loading={alertGroupsLoading}
           className={cx('incidents-table')}
-          rowSelection={{ selectedRowKeys: selectedIncidentIds, onChange: this.handleSelectedIncidentIdsChange }}
+          rowSelection={{
+            selectedRowKeys: selectedIncidentIds,
+            onChange: this.handleSelectedIncidentIdsChange,
+          }}
           rowKey="pk"
           data={results}
           columns={columns}
@@ -546,7 +558,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTitle = (record: AlertType) => {
-    const { store } = this.props;
+    const { store, query } = this.props;
     const {
       pagination: { start },
     } = this.state;
@@ -557,7 +569,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <VerticalGroup spacing="none" justify="center">
         <div className={'table__wrap-column'}>
           <PluginLink
-            query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+            query={{
+              page: 'alert-groups',
+              id: record.pk,
+              cursor: incidentsCursor,
+              perpage: incidentsItemsPerPage,
+              start,
+              ...query,
+            }}
           >
             <Tooltip placement="top" content={record.render_for_web.title}>
               <span>{record.render_for_web.title}</span>
@@ -607,7 +626,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <VerticalGroup spacing="none">
         <Text type="secondary">{m.format('MMM DD, YYYY')}</Text>
-        <Text type="secondary">{m.format('hh:mm A')}</Text>
+        <Text type="secondary">{m.format('HH:mm')}</Text>
       </VerticalGroup>
     );
   }

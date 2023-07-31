@@ -1,5 +1,6 @@
 import json
 import math
+import typing
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
@@ -7,6 +8,7 @@ from django.utils.functional import cached_property
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.alerts.incident_appearance.templaters import (
@@ -139,38 +141,6 @@ class RateLimitHeadersMixin:
         return super().handle_exception(exc)
 
 
-class OrderedModelSerializerMixin:
-    def _change_position(self, order, instance):
-        if order is not None:
-            if order >= 0:
-                instance.to(order)
-            elif order == -1:
-                instance.bottom()
-            else:
-                raise BadRequest(detail="Invalid value for position field")
-
-    def _validate_order(self, order, filter_kwargs):
-        if order is not None and (self.instance is None or self.instance.order != order):
-            last_instance = self.Meta.model.objects.filter(**filter_kwargs).order_by("order").last()
-            max_order = last_instance.order if last_instance else -1
-            if self.instance is None:
-                max_order += 1
-            if order > max_order:
-                raise BadRequest(detail="Invalid value for position field")
-
-    def _validate_manual_order(self, order):
-        """
-        For manual ordering validate just that order is valid PositiveIntegrer.
-        User of manual ordering is responsible for correct ordering.
-        However, manual ordering not intended for use somewhere, except terraform provider.
-        """
-
-        # https://docs.djangoproject.com/en/4.1/ref/models/fields/#positiveintegerfield
-        MAX_POSITIVE_INTEGER = 2147483647
-        if order is not None and order < 0 or order > MAX_POSITIVE_INTEGER:
-            raise BadRequest(detail="Invalid value for position field")
-
-
 class PublicPrimaryKeyMixin:
     def get_object(self):
         pk = self.kwargs["pk"]
@@ -197,6 +167,10 @@ class TeamFilteringMixin:
 
     @property
     def available_teams_lookup_args(self):
+        """
+        This property returns a list of Q objects that are used to filter instances by teams available to the user.
+        NOTE: use .distinct() after filtering by available teams as it may return duplicate instances.
+        """
         available_teams_lookup_args = []
         if not self.request.user.role == LegacyAccessControlRole.ADMIN:
             available_teams_lookup_args = [
@@ -263,6 +237,7 @@ RESOLVE_CONDITION = "resolve_condition"
 ACKNOWLEDGE_CONDITION = "acknowledge_condition"
 GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
+ROUTE = "route"
 
 NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     SLACK: AlertSlackTemplater,
@@ -280,7 +255,12 @@ for backend_id, backend in get_messaging_backends():
 
 APPEARANCE_TEMPLATE_NAMES = [TITLE, MESSAGE, IMAGE_URL]
 BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
-ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
+ROUTE_TEMPLATE_NAMES = [ROUTE]
+ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES + ROUTE_TEMPLATE_NAMES
+
+
+class PreviewTemplateException(Exception):
+    pass
 
 
 class PreviewTemplateMixin:
@@ -288,6 +268,14 @@ class PreviewTemplateMixin:
     def preview_template(self, request, pk):
         template_body = request.data.get("template_body", None)
         template_name = request.data.get("template_name", None)
+        payload = request.data.get("payload", None)
+
+        try:
+            alert_to_template = self.get_alert_to_template(payload=payload)
+            if alert_to_template is None:
+                raise BadRequest(detail="Alert to preview does not exist")
+        except PreviewTemplateException as e:
+            raise BadRequest(detail=str(e))
 
         if template_body is None or template_name is None:
             response = {"preview": None}
@@ -295,18 +283,14 @@ class PreviewTemplateMixin:
 
         notification_channel, attr_name = self.parse_name_and_notification_channel(template_name)
         if attr_name is None:
-            raise BadRequest(detail={"template_name": "Attr name is required"})
+            raise BadRequest(detail={"template_name": "Template name is missing"})
         if attr_name not in ALL_TEMPLATE_NAMES:
-            raise BadRequest(detail={"template_name": "Unknown attr name"})
+            raise BadRequest(detail={"template_name": "Unknown template name"})
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
             if notification_channel is None:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
                 raise BadRequest(detail={"notification_channel": "Unknown notification_channel"})
-
-        alert_to_template = self.get_alert_to_template()
-        if alert_to_template is None:
-            raise BadRequest(detail="Alert to preview does not exist")
 
         if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
@@ -332,12 +316,17 @@ class PreviewTemplateMixin:
                 templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
+        elif attr_name in ROUTE_TEMPLATE_NAMES:
+            try:
+                templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
         response = {"preview": templated_attr}
         return Response(response, status=status.HTTP_200_OK)
 
-    def get_alert_to_template(self):
+    def get_alert_to_template(self, payload=None):
         raise NotImplementedError
 
     @staticmethod
@@ -346,6 +335,8 @@ class PreviewTemplateMixin:
         attr_name = None
         destination = None
         if template_param.startswith(tuple(BEHAVIOUR_TEMPLATE_NAMES)):
+            attr_name = template_param
+        if template_param.startswith(tuple(ROUTE_TEMPLATE_NAMES)):
             attr_name = template_param
         elif template_param.startswith(tuple(NOTIFICATION_CHANNEL_OPTIONS)):
             for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:
@@ -356,11 +347,25 @@ class PreviewTemplateMixin:
         return destination, attr_name
 
 
+class GrafanaContext(typing.TypedDict):
+    IsAnonymous: bool
+
+
+class InstanceContext(typing.TypedDict):
+    stack_id: int
+    org_id: int
+    grafana_token: str
+
+
 class GrafanaHeadersMixin:
-    @cached_property
-    def grafana_context(self) -> dict:
-        return json.loads(self.request.headers.get("X-Grafana-Context"))
+    request: Request
 
     @cached_property
-    def instance_context(self) -> dict:
-        return json.loads(self.request.headers["X-Instance-Context"])
+    def grafana_context(self) -> GrafanaContext:
+        grafana_context: GrafanaContext = json.loads(self.request.headers["X-Grafana-Context"])
+        return grafana_context
+
+    @cached_property
+    def instance_context(self) -> InstanceContext:
+        instance_context: InstanceContext = json.loads(self.request.headers["X-Instance-Context"])
+        return instance_context

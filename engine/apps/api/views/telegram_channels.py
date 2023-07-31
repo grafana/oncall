@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -8,7 +7,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.telegram import TelegramToOrganizationConnectorSerializer
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
-from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 
 
 class TelegramChannelViewSet(
@@ -32,7 +31,8 @@ class TelegramChannelViewSet(
     serializer_class = TelegramToOrganizationConnectorSerializer
 
     def get_queryset(self):
-        TelegramToOrganizationConnector = apps.get_model("telegram", "TelegramToOrganizationConnector")
+        from apps.telegram.models import TelegramToOrganizationConnector
+
         return TelegramToOrganizationConnector.objects.filter(organization=self.request.user.organization)
 
     @action(detail=True, methods=["post"])
@@ -47,7 +47,7 @@ class TelegramChannelViewSet(
         write_chatops_insight_log(
             author=user,
             event_name=ChatOpsEvent.CHANNEL_DISCONNECTED,
-            chatops_type=ChatOpsType.TELEGRAM,
+            chatops_type=ChatOpsTypePlug.TELEGRAM.value,
             channel_name=instance.channel_name,
         )
         instance.delete()

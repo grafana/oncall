@@ -12,15 +12,16 @@ import { getVar } from 'utils/DOM';
 
 interface ChatOpsConnectorsProps {
   channelFilterId: ChannelFilter['id'];
+  showLineNumber?: boolean;
 }
 
 export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
-  const { channelFilterId } = props;
+  const { channelFilterId, showLineNumber = true } = props;
 
   const store = useStore();
-  const { telegramChannelStore } = store;
+  const { telegramChannelStore, organizationStore } = store;
 
-  const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
+  const isSlackInstalled = Boolean(organizationStore.currentOrganization?.slack_team_identity);
   const isTelegramInstalled =
     store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
 
@@ -29,7 +30,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   }
 
   return (
-    <Timeline.Item number={0} color={getVar('--tag-secondary')}>
+    <Timeline.Item number={0} backgroundColor={getVar('--tag-secondary')} isDisabled={!showLineNumber}>
       <VerticalGroup>
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}

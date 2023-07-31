@@ -46,6 +46,49 @@ def test_list_teams(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "search,team_names",
+    [
+        ("", [GENERAL_TEAM.name, "team 1", "team 2"]),
+        ("team", [GENERAL_TEAM.name, "team 1", "team 2"]),
+        ("no team", [GENERAL_TEAM.name]),
+        ("team ", [GENERAL_TEAM.name, "team 1", "team 2"]),
+        ("team 1", [GENERAL_TEAM.name, "team 1"]),
+    ],
+)
+def test_list_teams_search_by_name(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    search,
+    team_names,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    for team_name in team_names:
+        if team_name != GENERAL_TEAM.name:
+            make_team(organization, name=team_name)
+
+    client = APIClient()
+
+    url = reverse("api-internal:team-list") + f"?search={search}"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    expected_json = [
+        get_payload_from_team(organization.teams.get(name=team_name))
+        if team_name != GENERAL_TEAM.name
+        else get_payload_from_team(GENERAL_TEAM)
+        for team_name in team_names
+    ]
+    assert response.json() == expected_json
+
+
+@pytest.mark.django_db
 def test_list_teams_for_non_member(
     make_organization,
     make_team,
@@ -88,6 +131,32 @@ def test_list_teams_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_update_team(
+    make_organization,
+    make_team,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    _, token = make_token_for_organization(organization)
+
+    team = make_team(organization)
+    team.users.add(user)
+
+    client = APIClient()
+    url = reverse("api-internal:team-detail", kwargs={"pk": team.public_primary_key})
+
+    response = client.put(
+        url, data={"is_sharing_resources_to_all": True}, format="json", **make_user_auth_headers(user, token)
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["is_sharing_resources_to_all"] is True
 
 
 @pytest.mark.django_db
@@ -186,7 +255,7 @@ def test_team_permissions_not_in_team(
         assert response.json() == {"error_code": "wrong_team"}
 
     # Editor cannot retrieve other user information
-    url = reverse(f"api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
+    url = reverse("api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
     response = client.get(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_403_FORBIDDEN

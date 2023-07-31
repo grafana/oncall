@@ -1,5 +1,4 @@
 import humanize
-from django.apps import apps
 
 from apps.slack.scenarios import scenario_step
 
@@ -10,7 +9,8 @@ class EscalationDeliveryStep(scenario_step.ScenarioStep):
     """
 
     def get_user_notification_message_for_thread_for_usergroup(self, user, notification_policy):
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        from apps.base.models import UserNotificationPolicy
+
         notification_channel = notification_policy.notify_by
         notification_step = notification_policy.step
         user_verbal = user.get_username_with_slack_verbal()

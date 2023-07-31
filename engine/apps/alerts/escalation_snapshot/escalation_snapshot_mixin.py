@@ -1,11 +1,10 @@
 import datetime
 import logging
-from typing import Optional
+import typing
 
 import pytz
 from celery import uuid as celery_uuid
 from dateutil.parser import parse
-from django.apps import apps
 from django.utils.functional import cached_property
 from rest_framework.exceptions import ValidationError
 
@@ -16,6 +15,9 @@ from apps.alerts.escalation_snapshot.snapshot_classes import (
     EscalationSnapshot,
 )
 from apps.alerts.tasks import escalate_alert_group
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import ChannelFilter
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,11 @@ class EscalationSnapshotMixin:
     """
     Mixin for AlertGroup. It contains methods related with alert group escalation
     """
+
+    # TODO: add stricter typing
+    # TODO: should this class actually be an AbstractBaseClass instead?
+    raw_escalation_snapshot: dict | None
+    channel_filter: typing.Optional["ChannelFilter"]
 
     def build_raw_escalation_snapshot(self) -> dict:
         """
@@ -91,7 +98,7 @@ class EscalationSnapshotMixin:
         data = {}
 
         if self.escalation_chain_exists:
-            channel_filter = self.channel_filter
+            channel_filter: "ChannelFilter" = self.channel_filter
             escalation_chain = channel_filter.escalation_chain
             escalation_policies = escalation_chain.escalation_policies.all()
 
@@ -116,7 +123,7 @@ class EscalationSnapshotMixin:
         return self.escalation_chain_snapshot or (self.channel_filter.escalation_chain if self.channel_filter else None)
 
     @cached_property
-    def channel_filter_snapshot(self) -> Optional[ChannelFilterSnapshot]:
+    def channel_filter_snapshot(self) -> typing.Optional[ChannelFilterSnapshot]:
         """
         in some cases we need only channel filter and don't want to serialize whole escalation
         """
@@ -132,7 +139,7 @@ class EscalationSnapshotMixin:
         return ChannelFilterSnapshot(**channel_filter_snapshot)
 
     @cached_property
-    def escalation_chain_snapshot(self) -> Optional[EscalationChainSnapshot]:
+    def escalation_chain_snapshot(self) -> typing.Optional[EscalationChainSnapshot]:
         """
         in some cases we need only escalation chain and don't want to serialize whole escalation
         escalation_chain_snapshot_object = None
@@ -149,7 +156,7 @@ class EscalationSnapshotMixin:
         return EscalationChainSnapshot(**escalation_chain_snapshot)
 
     @cached_property
-    def escalation_snapshot(self) -> Optional[EscalationSnapshot]:
+    def escalation_snapshot(self) -> typing.Optional[EscalationSnapshot]:
         raw_escalation_snapshot = self.raw_escalation_snapshot
         if raw_escalation_snapshot:
             try:
@@ -191,9 +198,7 @@ class EscalationSnapshotMixin:
 
     @property
     def escalation_chain_exists(self) -> bool:
-        if self.pause_escalation:
-            return False
-        elif not self.channel_filter:
+        if not self.channel_filter:
             return False
         return self.channel_filter.escalation_chain is not None
 
@@ -207,7 +212,7 @@ class EscalationSnapshotMixin:
         return self.raw_escalation_snapshot.get("pause_escalation", False)
 
     @property
-    def next_step_eta(self) -> Optional[datetime.datetime]:
+    def next_step_eta(self) -> typing.Optional[datetime.datetime]:
         """
         get next_step_eta field directly to avoid serialization overhead
         """
@@ -215,27 +220,23 @@ class EscalationSnapshotMixin:
             return None
 
         raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
-        if not raw_next_step_eta:
-            return None
-
-        if raw_next_step_eta:
-            return parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
+        return None if not raw_next_step_eta else parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
 
     def start_escalation_if_needed(self, countdown=START_ESCALATION_DELAY, eta=None):
         """
         :type self:AlertGroup
         """
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
 
-        is_on_maintenace_or_debug_mode = (
-            self.channel.maintenance_mode is not None or self.channel.organization.maintenance_mode is not None
-        )
-        if is_on_maintenace_or_debug_mode:
-            return
-        if self.pause_escalation:
-            return
+        is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
 
-        if not self.escalation_chain_exists:
+        if self.is_restricted or is_on_maintenace_or_debug_mode or not self.escalation_chain_exists:
+            logger.debug(
+                f"Not escalating alert group w/ pk: {self.pk}\n"
+                f"is_restricted: {self.is_restricted}\n"
+                f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
+                f"escalation_chain_exists: {self.escalation_chain_exists}"
+            )
             return
 
         logger.debug(f"Start escalation for alert group with pk: {self.pk}")
@@ -246,7 +247,7 @@ class EscalationSnapshotMixin:
         )
         task_id = celery_uuid()
 
-        AlertGroup.all_objects.filter(pk=self.pk,).update(
+        AlertGroup.objects.filter(pk=self.pk).update(
             active_escalation_id=task_id,
             is_escalation_finished=False,
             raw_escalation_snapshot=raw_escalation_snapshot,

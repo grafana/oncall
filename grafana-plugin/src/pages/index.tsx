@@ -27,24 +27,11 @@ function getPath(name = '') {
 export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'bell',
-    id: 'incidents',
+    id: 'alert-groups',
     hideFromBreadcrumbs: true,
-    text: 'Alert Groups',
+    text: 'Alert groups',
     hideTitle: true,
-    path: getPath('incidents'),
-    action: UserActions.AlertGroupsRead,
-  },
-  {
-    icon: 'bell',
-    id: 'incident',
-    text: '',
-    hideFromTabs: true,
-    hideFromBreadcrumbs: true,
-    parentItem: {
-      text: 'Incident',
-      url: `${PLUGIN_ROOT}/incidents`,
-    },
-    path: getPath('incident'),
+    path: getPath('alert-groups'),
     action: UserActions.AlertGroupsRead,
   },
   {
@@ -58,15 +45,16 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'plug',
     id: 'integrations',
-    path: getPath('integrations'),
-    hideFromBreadcrumbs: true,
     text: 'Integrations',
+    path: getPath('integrations'),
+    hideTitle: true,
+    hideFromBreadcrumbs: true,
     action: UserActions.IntegrationsRead,
   },
   {
     icon: 'list-ul',
     id: 'escalations',
-    text: 'Escalation Chains',
+    text: 'Escalation chains',
     hideFromBreadcrumbs: true,
     path: getPath('escalations'),
     action: UserActions.EscalationChainsRead,
@@ -95,7 +83,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'link',
     id: 'outgoing_webhooks',
-    text: 'Outgoing Webhooks',
+    text: 'Outgoing webhooks',
     path: getPath('outgoing_webhooks'),
     hideFromBreadcrumbs: true,
     action: UserActions.OutgoingWebhooksRead,
@@ -108,16 +96,6 @@ export const pages: { [id: string]: PageDefinition } = [
     hideFromBreadcrumbs: true,
     hideFromTabs: isTopNavbar(),
     action: UserActions.ChatOpsRead,
-  },
-
-  {
-    icon: 'link',
-    id: 'outgoing_webhooks_2',
-    text: 'Outgoing Webhooks 2',
-    path: getPath('outgoing_webhooks_2'),
-    hideFromBreadcrumbs: true,
-    hideFromTabs: true,
-    action: UserActions.OutgoingWebhooksRead,
   },
   {
     icon: 'wrench',
@@ -158,13 +136,6 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.OtherSettingsWrite,
   },
   {
-    icon: 'gf-logs',
-    id: 'organization-logs',
-    text: 'Org Logs',
-    hideFromTabs: true,
-    path: getPath('organization-logs'),
-  },
-  {
     icon: 'cog',
     id: 'test',
     text: 'Test',
@@ -189,22 +160,25 @@ export const pages: { [id: string]: PageDefinition } = [
 }, {});
 
 export const ROUTES = {
-  incidents: ['incidents'],
-  incident: ['incidents/:id'],
+  'alert-groups': ['alert-groups'],
+  'alert-group': ['alert-groups/:id'],
   users: ['users', 'users/:id'],
-  integrations: ['integrations', 'integrations/:id'],
+  integrations: ['integrations'],
+  integration: ['integrations/:id'],
   escalations: ['escalations', 'escalations/:id'],
   schedules: ['schedules'],
   schedule: ['schedules/:id'],
-  outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
-  outgoing_webhooks_2: ['outgoing_webhooks_2', 'outgoing_webhooks_2/:id', 'outgoing_webhooks_2/:action/:id'],
+  outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id', 'outgoing_webhooks/:action/:id'],
   maintenance: ['maintenance'],
   settings: ['settings'],
-  'organization-logs': ['organization-logs'],
   'chat-ops': ['chat-ops'],
   'live-settings': ['live-settings'],
   cloud: ['cloud'],
   test: ['test'],
+
+  // backwards compatible to redirect to new alert-groups
+  incident: ['incidents/:id'],
+  incidents: ['incidents'],
 };
 
 export const getRoutesForPage = (name: string) => {

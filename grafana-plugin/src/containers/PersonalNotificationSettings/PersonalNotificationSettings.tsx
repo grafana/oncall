@@ -141,7 +141,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             phoneStatus={getPhoneStatus()}
             isMobileAppConnected={isMobileAppConnected}
             showCloudConnectionWarning={showCloudConnectionWarning}
-            slackTeamIdentity={store.teamStore.currentTeam?.slack_team_identity}
+            slackTeamIdentity={store.organizationStore.currentOrganization?.slack_team_identity}
             slackUserIdentity={user.slack_user_identity}
             data={notificationPolicy}
             onChange={getNotificationPolicyUpdateHandler}
@@ -153,7 +153,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             store={store}
           />
         ))}
-        <Timeline.Item number={notificationPolicies.length + 1} color={getColor(notificationPolicies.length)}>
+        <Timeline.Item number={notificationPolicies.length + 1} backgroundColor={getColor(notificationPolicies.length)}>
           <div className={cx('step')}>
             <WithPermissionControlTooltip userAction={userAction}>
               <Button icon="plus" variant="secondary" fill="text" onClick={getAddNotificationPolicyHandler()}>

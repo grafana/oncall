@@ -1,5 +1,7 @@
 import os
 
+from .base import *  # noqa: F401, F403
+
 try:
     import uwsgi
     from prometheus_client import multiprocess
@@ -13,7 +15,6 @@ except ModuleNotFoundError:
     # Only works under uwsgi web server environment
     pass
 
-from .base import *  # noqa
 
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
@@ -45,18 +46,16 @@ SECURE_HSTS_SECONDS = 360000
 
 CELERY_TASK_ROUTES = {
     # DEFAULT
-    "apps.alerts.tasks.call_ack_url.call_ack_url": {"queue": "default"},
-    "apps.alerts.tasks.cache_alert_group_for_web.cache_alert_group_for_web": {"queue": "default"},
-    "apps.alerts.tasks.cache_alert_group_for_web.schedule_cache_for_alert_group": {"queue": "default"},
     "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
-    "apps.heartbeat.tasks.heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},
-    "apps.heartbeat.tasks.restore_heartbeat_tasks": {"queue": "default"},
+    "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
+    "apps.metrics_exporter.tasks.start_recalculation_for_new_metric": {"queue": "default"},
+    "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_file": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
@@ -75,7 +74,6 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },
-    "engine.views.health_check_task": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},
@@ -96,7 +94,6 @@ CELERY_TASK_ROUTES = {
     },
     "apps.alerts.tasks.resolve_by_last_step.resolve_by_last_step_task": {"queue": "critical"},
     "apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal": {"queue": "critical"},
-    "apps.alerts.tasks.send_update_postmortem_signal.send_update_postmortem_signal": {"queue": "critical"},
     "apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal": {"queue": "critical"},
     "apps.alerts.tasks.unsilence.unsilence_task": {"queue": "critical"},
     "apps.base.tasks.process_failed_to_invoke_celery_tasks": {"queue": "critical"},
@@ -116,6 +113,8 @@ CELERY_TASK_ROUTES = {
     "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
+    "apps.metrics_exporter.tasks.calculate_and_cache_metrics": {"queue": "long"},
+    "apps.metrics_exporter.tasks.calculate_and_cache_user_was_notified_metric": {"queue": "long"},
     # SLACK
     "apps.integrations.tasks.notify_about_integration_ratelimit_in_slack": {"queue": "slack"},
     "apps.slack.helpers.alert_group_representative.on_alert_group_action_triggered_async": {"queue": "slack"},
@@ -130,12 +129,8 @@ CELERY_TASK_ROUTES = {
     "apps.slack.tasks.populate_slack_usergroups_for_team": {"queue": "slack"},
     "apps.slack.tasks.post_or_update_log_report_message_task": {"queue": "slack"},
     "apps.slack.tasks.post_slack_rate_limit_message": {"queue": "slack"},
-    "apps.slack.tasks.refresh_slack_user_identity_emails": {"queue": "slack"},
-    "apps.slack.tasks.resolve_archived_incidents_for_organization": {"queue": "slack"},
-    "apps.slack.tasks.send_debug_message_to_thread": {"queue": "slack"},
     "apps.slack.tasks.send_message_to_thread_if_bot_not_in_channel": {"queue": "slack"},
     "apps.slack.tasks.start_update_slack_user_group_for_schedules": {"queue": "slack"},
-    "apps.slack.tasks.unarchive_incidents_for_organization": {"queue": "slack"},
     "apps.slack.tasks.unpopulate_slack_user_identities": {"queue": "slack"},
     "apps.slack.tasks.update_incident_slack_message": {"queue": "slack"},
     "apps.slack.tasks.update_slack_user_group_for_schedules": {"queue": "slack"},

@@ -8,6 +8,7 @@ from rest_framework.relations import RelatedField
 from apps.alerts.models import ChannelFilter
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
+from common.timezones import raise_exception_if_not_valid_timezone
 
 
 class OrganizationFilteredPrimaryKeyRelatedField(RelatedField):
@@ -101,35 +102,6 @@ class UsersFilteredByOrganizationField(serializers.Field):
         return queryset.filter(organization=request.user.organization, public_primary_key__in=data).distinct()
 
 
-class WritableSerializerMethodField(serializers.SerializerMethodField):
-    """
-    Please, NEVER use this field.
-    It was a mistake to create this one due to necessity to dig deep in drf to fix bugs there.
-    This field is a workaround to allow to write into SerializerMethodField.
-    """
-
-    def __init__(self, method_name=None, **kwargs):
-        self.method_name = method_name
-        self.setter_method_name = kwargs.pop("setter_method_name", None)
-        self.deserializer_field = kwargs.pop("deserializer_field")
-
-        kwargs["source"] = "*"
-        super(serializers.SerializerMethodField, self).__init__(**kwargs)
-
-    def bind(self, field_name, parent):
-        retval = super().bind(field_name, parent)
-        if not self.setter_method_name:
-            self.setter_method_name = f"set_{field_name}"
-
-        return retval
-
-    def to_internal_value(self, data):
-        value = self.deserializer_field.to_internal_value(data)
-        method = getattr(self.parent, self.setter_method_name)
-        method(value)
-        return {self.method_name: value}
-
-
 class CustomTimeField(fields.TimeField):
     def to_representation(self, value):
         result = super().to_representation(value)
@@ -182,3 +154,53 @@ class RollingUsersField(serializers.ListField):
     def to_representation(self, value):
         result = [list(d.values()) for d in value]
         return result
+
+
+class TimeZoneField(serializers.CharField):
+    def _validator(self, value: str):
+        raise_exception_if_not_valid_timezone(value, serializers.ValidationError)
+
+    def __init__(self, **kwargs):
+        super().__init__(validators=[self._validator], **kwargs)
+
+
+class TimeZoneAwareDatetimeField(serializers.DateTimeField):
+    """
+    This serializer field ensures that datetimes are always
+    passed in ISO-8601 format (https://en.wikipedia.org/wiki/ISO_8601) with one caveat, timezone information MUST
+    be passed in. ISO-8601 allows timezone information to be optional.
+
+    All of the following would be considered valid datetimes by this field:
+    2023-07-20T18:35:19+00:00
+    2023-07-20T18:35:19Z
+
+    These are not valid:
+    2023-07-20 12:00:00
+    20230720T120000Z
+
+    This allows us to capture timezone information at insert/update time. Django converts/persists this information
+    in UTC, and then when it is read back, you can be 100% sure that you are working with a UTC timezone aware datetime.
+
+    Additionally, it standardizes how we format returned datetime strings.
+    """
+
+    UTC_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+    UTC_FORMAT_WITH_MICROSECONDS = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+    UTC_OFFSET_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+    UTC_OFFSET_FORMAT_WITH_MICROSECONDS = "%Y-%m-%dT%H:%M:%S.%f%z"
+    "`%z` = UTC offset in the form +HHMM or -HHMM. (a colon separator can optionally be included)"
+
+    def __init__(self, **kwargs):
+        # we could use 'iso-8601' as a valid value to input_formats, however, see the note above about it
+        # allowing timezone naive datetimes
+        super().__init__(
+            format=self.UTC_FORMAT_WITH_MICROSECONDS,
+            input_formats=[
+                self.UTC_FORMAT,
+                self.UTC_FORMAT_WITH_MICROSECONDS,
+                self.UTC_OFFSET_FORMAT,
+                self.UTC_OFFSET_FORMAT_WITH_MICROSECONDS,
+            ],
+            **kwargs,
+        )

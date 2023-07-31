@@ -1,8 +1,11 @@
+from enum import Enum
+
+
 class ActionSource:
     (
         SLACK,
         WEB,
-        TWILIO,
+        PHONE,
         TELEGRAM,
     ) = range(4)
 
@@ -10,3 +13,11 @@ class ActionSource:
 TASK_DELAY_SECONDS = 1
 
 NEXT_ESCALATION_DELAY = 5
+
+
+# AlertGroup states verbal
+class AlertGroupState(str, Enum):
+    FIRING = "firing"
+    ACKNOWLEDGED = "acknowledged"
+    RESOLVED = "resolved"
+    SILENCED = "silenced"

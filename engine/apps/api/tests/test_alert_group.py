@@ -8,7 +8,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel
+from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models import UserNotificationPolicyLogRecord
 
@@ -43,13 +44,40 @@ def alert_group_internal_api_setup(
 
 
 @pytest.mark.django_db
+def test_get_filter_by_integration(
+    alert_group_internal_api_setup, make_alert_receive_channel, make_alert_group, make_user_auth_headers
+):
+    user, token, alert_groups = alert_group_internal_api_setup
+
+    ag = alert_groups[0]
+    # channel filter could be None, but the alert group still belongs to the original integration
+    ag.channel_filter = None
+    ag.save()
+
+    # make an alert group in other integration
+    alert_receive_channel = make_alert_receive_channel(user.organization)
+    make_alert_group(alert_receive_channel)
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-list")
+    response = client.get(
+        url + f"?integration={ag.channel.public_primary_key}",
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 4
+
+
+@pytest.mark.django_db
 def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_headers):
     user, token, _ = alert_group_internal_api_setup
     client = APIClient()
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
-        url + f"?started_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
+        url + "?started_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
         format="json",
         **make_user_auth_headers(user, token),
     )
@@ -625,7 +653,7 @@ def test_get_filter_mine(
     url = reverse("api-internal:alertgroup-list")
 
     first_response = client.get(
-        url + f"?mine=true",
+        url + "?mine=true",
         format="json",
         **make_user_auth_headers(first_user, token),
     )
@@ -633,7 +661,7 @@ def test_get_filter_mine(
     assert len(first_response.data["results"]) == 1
 
     second_response = client.get(
-        url + f"?mine=false",
+        url + "?mine=false",
         format="json",
         **make_user_auth_headers(first_user, token),
     )
@@ -1346,8 +1374,8 @@ def test_invalid_bulk_action(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @patch("apps.alerts.models.AlertGroup.start_escalation_if_needed", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_restart(
@@ -1411,8 +1439,8 @@ def test_bulk_action_restart(
     assert mocked_start_escalate_alert.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_acknowledge(
     mocked_alert_group_signal_task,
@@ -1468,8 +1496,8 @@ def test_bulk_action_acknowledge(
     assert mocked_log_report_signal_task.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_resolve(
     mocked_alert_group_signal_task,
@@ -1520,8 +1548,8 @@ def test_bulk_action_resolve(
     assert mocked_log_report_signal_task.called
 
 
-@patch("apps.alerts.tasks.send_alert_group_signal.apply_async", return_value=None)
-@patch("apps.alerts.tasks.send_update_log_report_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal.apply_async", return_value=None)
+@patch("apps.alerts.tasks.send_update_log_report_signal.send_update_log_report_signal.apply_async", return_value=None)
 @patch("apps.alerts.models.AlertGroup.start_unsilence_task", return_value=None)
 @pytest.mark.django_db
 def test_bulk_action_silence(
@@ -1786,22 +1814,39 @@ def test_alert_group_paged_users(
 
 
 @pytest.mark.django_db
-def test_direct_paging_integration_treated_as_deleted(
+def test_alert_group_resolve_resolution_note(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
-    alert_group_internal_api_setup,
     make_channel_filter,
     make_alert_group,
+    make_alert,
     make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-    )
-    alert_group = make_alert_group(alert_receive_channel)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
+    new_alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=new_alert_group, raw_request_data=alert_raw_request_data)
+
+    organization.is_resolution_note_required = True
+    organization.save()
 
     client = APIClient()
-    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+    url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
 
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.json()["alert_receive_channel"]["deleted"] is True
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
+    # check that resolution note is required
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["code"] == AlertGroupAPIError.RESOLUTION_NOTE_REQUIRED.value
+
+    with patch(
+        "apps.alerts.tasks.send_update_resolution_note_signal.send_update_resolution_note_signal.apply_async"
+    ) as mock_signal:
+        url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
+        response = client.post(
+            url, format="json", data={"resolution_note": "hi"}, **make_user_auth_headers(user, token)
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        assert new_alert_group.has_resolution_notes
+        assert mock_signal.called

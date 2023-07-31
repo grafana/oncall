@@ -1,7 +1,6 @@
 import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
@@ -13,6 +12,9 @@ export class OutgoingWebhook2Store extends BaseStore {
 
   @observable.shallow
   searchResult: { [key: string]: Array<OutgoingWebhook2['id']> } = {};
+
+  @observable
+  incidentFilters: any;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -45,7 +47,6 @@ export class OutgoingWebhook2Store extends BaseStore {
   @action
   async updateItem(id: OutgoingWebhook2['id'], fromOrganization = false) {
     const response = await this.getById(id, false, fromOrganization);
-
     this.items = {
       ...this.items,
       [id]: response,
@@ -75,8 +76,15 @@ export class OutgoingWebhook2Store extends BaseStore {
 
     this.searchResult = {
       ...this.searchResult,
-      [key]: results.map((item: OutgoingWebhook) => item.id),
+      [key]: results.map((item: OutgoingWebhook2) => item.id),
     };
+  }
+
+  @action
+  async updateOutgoingWebhooks2Filters(params: any) {
+    this.incidentFilters = params;
+
+    this.updateItems();
   }
 
   getSearchResult(query = '') {
@@ -85,5 +93,18 @@ export class OutgoingWebhook2Store extends BaseStore {
     }
 
     return this.searchResult[query].map((outgoingWebhook2Id: OutgoingWebhook2['id']) => this.items[outgoingWebhook2Id]);
+  }
+
+  async getLastResponses(id: OutgoingWebhook2['id']) {
+    const result = await makeRequest(`${this.path}${id}/responses`, {});
+
+    return result;
+  }
+
+  async renderPreview(id: OutgoingWebhook2['id'], template_name: string, template_body: string, payload) {
+    return await makeRequest(`${this.path}${id}/preview_template/`, {
+      method: 'POST',
+      data: { template_name, template_body, payload },
+    });
   }
 }

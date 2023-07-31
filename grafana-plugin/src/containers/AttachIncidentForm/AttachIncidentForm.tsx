@@ -63,15 +63,15 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
       title={
         <HorizontalGroup>
           <Icon size="lg" name="link" />
-          <Text.Title level={4}>Attach to another incident</Text.Title>
+          <Text.Title level={4}>Attach to another alert group</Text.Title>
         </HorizontalGroup>
       }
       className={cx('root')}
       onDismiss={onHide}
     >
       <Field
-        label="Incident to be attached with"
-        description="Linking incidents together can help the team investigate the underlying issue."
+        label="Alert group to be attached with"
+        description="Linking alert groups together can help the team investigate the underlying issue."
       >
         <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
           <GSelect
@@ -84,7 +84,7 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
             filterOptions={(optionId) => optionId !== id}
             value={selected}
             onChange={getChangeHandler}
-            getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm A')}
+            getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm')}
             getOptionLabel={(item: SelectableValue) => <GroupedAlertNumber value={item.value} />}
           />
         </WithPermissionControlTooltip>

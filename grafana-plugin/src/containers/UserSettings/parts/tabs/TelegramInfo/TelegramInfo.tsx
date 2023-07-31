@@ -24,12 +24,12 @@ interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
 const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const store = useStore();
-  const { userStore, teamStore } = store;
+  const { userStore, organizationStore } = store;
 
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();
 
-  const telegramConfigured = teamStore.currentTeam?.env_status.telegram_configured;
+  const telegramConfigured = organizationStore.currentOrganization?.env_status.telegram_configured;
 
   useEffect(() => {
     userStore.sendTelegramConfirmationCode(userStore.currentUserPk).then((res) => {
@@ -40,7 +40,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
 
   return (
     <WithPermissionControlDisplay
-      userAction={UserActions.OtherSettingsWrite}
+      userAction={UserActions.UserSettingsWrite}
       message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
     >
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (

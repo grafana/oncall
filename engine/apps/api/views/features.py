@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +11,7 @@ FEATURE_LIVE_SETTINGS = "live_settings"
 FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 FEATURE_WEB_SCHEDULES = "web_schedules"
+FEATURE_WEBHOOKS2 = "webhooks2"
 
 
 class FeaturesAPIView(APIView):
@@ -26,7 +26,8 @@ class FeaturesAPIView(APIView):
         return Response(self._get_enabled_features(request))
 
     def _get_enabled_features(self, request):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         enabled_features = []
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
@@ -57,5 +58,8 @@ class FeaturesAPIView(APIView):
             )[0]
             if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
                 enabled_features.append(FEATURE_WEB_SCHEDULES)
+
+        if settings.FEATURE_WEBHOOKS_2_ENABLED:
+            enabled_features.append(FEATURE_WEBHOOKS2)
 
         return enabled_features

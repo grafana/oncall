@@ -134,7 +134,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
   renderCreatedAt = (record: ApiToken) => {
     const date = moment(record.created_at);
-    return <span> {date.format('MMM DD, YYYY hh:mm A')}</span>;
+    return <span> {date.format('MMM DD, YYYY hh:mm')}</span>;
   };
 
   getRevokeTokenClickHandler = (id: ApiToken['id']) => {

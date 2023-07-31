@@ -6,6 +6,7 @@ import uuid
 from importlib import import_module, reload
 
 import pytest
+from celery import Task
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
 from pytest_factoryboy import register
@@ -18,7 +19,6 @@ from apps.alerts.models import (
     AlertReceiveChannel,
     MaintainableObject,
     ResolutionNote,
-    listen_for_alert_model_save,
     listen_for_alertgrouplogrecord,
     listen_for_alertreceivechannel_model_save,
 )
@@ -43,7 +43,7 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, PluginAuthToken
+from apps.auth_token.models import ApiAuthToken, PluginAuthToken, SlackAuthToken
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -56,15 +56,18 @@ from apps.base.tests.factories import (
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
+from apps.phone_notifications.phone_backend import PhoneBackend
+from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
+from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
     OnCallScheduleFactory,
     OnCallScheduleICalFactory,
+    ShiftSwapRequestFactory,
 )
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.tests.factories import (
-    SlackActionRecordFactory,
     SlackChannelFactory,
     SlackMessageFactory,
     SlackTeamIdentityFactory,
@@ -78,7 +81,6 @@ from apps.telegram.tests.factories import (
     TelegramToUserConnectorFactory,
     TelegramVerificationCodeFactory,
 )
-from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
 from apps.webhooks.tests.factories import CustomWebhookFactory, WebhookResponseFactory
@@ -94,6 +96,7 @@ register(EscalationPolicyFactory)
 register(OnCallScheduleICalFactory)
 register(OnCallScheduleCalendarFactory)
 register(CustomOnCallShiftFactory)
+register(ShiftSwapRequestFactory)
 register(AlertFactory)
 register(AlertGroupFactory)
 register(AlertGroupLogRecordFactory)
@@ -104,7 +107,6 @@ register(SlackUserGroupFactory)
 register(SlackUserIdentityFactory)
 register(SlackTeamIdentityFactory)
 register(SlackMessageFactory)
-register(SlackActionRecordFactory)
 
 register(TelegramToUserConnectorFactory)
 register(TelegramChannelFactory)
@@ -114,8 +116,8 @@ register(TelegramMessageFactory)
 
 register(ResolutionNoteSlackMessageFactory)
 
-register(PhoneCallFactory)
-register(SMSFactory)
+register(PhoneCallRecordFactory)
+register(SMSRecordFactory)
 register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
@@ -148,6 +150,22 @@ def mock_telegram_bot_username(monkeypatch):
         return "amixr_bot"
 
     monkeypatch.setattr(Bot, "username", mock_username)
+
+
+@pytest.fixture(autouse=True)
+def mock_phone_provider(monkeypatch):
+    def mock_get_provider(*args, **kwargs):
+        return MockPhoneProvider()
+
+    monkeypatch.setattr(PhoneBackend, "_get_phone_provider", mock_get_provider)
+
+
+@pytest.fixture(autouse=True)
+def mock_apply_async(monkeypatch):
+    def mock_apply_async(*args, **kwargs):
+        return uuid.uuid4()
+
+    monkeypatch.setattr(Task, "apply_async", mock_apply_async)
 
 
 @pytest.fixture
@@ -191,6 +209,14 @@ def make_mobile_app_auth_token_for_user():
         return MobileAppAuthToken.create_auth_token(user, organization)
 
     return _make_mobile_app_auth_token_for_user
+
+
+@pytest.fixture
+def make_slack_token_for_user():
+    def _make_slack_token_for_user(user):
+        return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
+
+    return _make_slack_token_for_user
 
 
 @pytest.fixture
@@ -292,10 +318,11 @@ ROLE_PERMISSION_MAPPING = get_user_permission_role_mapping_from_frontend_plugin_
 def make_user():
     def _make_user(role: typing.Optional[LegacyAccessControlRole] = None, **kwargs):
         role = LegacyAccessControlRole.ADMIN if role is None else role
-        permissions = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
-        return UserFactory(
-            role=role, permissions=[GrafanaAPIPermission(action=perm.value) for perm in permissions], **kwargs
-        )
+        permissions = kwargs.pop("permissions", None)
+        if permissions is None:
+            permissions_to_grant = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
+            permissions = [GrafanaAPIPermission(action=perm.value) for perm in permissions_to_grant]
+        return UserFactory(role=role, permissions=permissions, **kwargs)
 
     return _make_user
 
@@ -378,14 +405,6 @@ def make_slack_message():
 
 
 @pytest.fixture
-def make_slack_action_record():
-    def _make_slack_action_record(organization, user, **kwargs):
-        return SlackActionRecordFactory(organization=organization, user=user, **kwargs)
-
-    return _make_slack_action_record
-
-
-@pytest.fixture
 def client_with_user():
     def _client_with_user(user):
         """The client with logged in user"""
@@ -415,6 +434,17 @@ def make_alert_receive_channel():
         post_save.disconnect(listen_for_alertreceivechannel_model_save, sender=AlertReceiveChannel)
         alert_receive_channel = AlertReceiveChannelFactory(organization=organization, **kwargs)
         post_save.connect(listen_for_alertreceivechannel_model_save, sender=AlertReceiveChannel)
+        return alert_receive_channel
+
+    return _make_alert_receive_channel
+
+
+@pytest.fixture
+def make_alert_receive_channel_with_post_save_signal():
+    def _make_alert_receive_channel(organization, **kwargs):
+        if "integration" not in kwargs:
+            kwargs["integration"] = AlertReceiveChannel.INTEGRATION_GRAFANA
+        alert_receive_channel = AlertReceiveChannelFactory(organization=organization, **kwargs)
         return alert_receive_channel
 
     return _make_alert_receive_channel
@@ -579,9 +609,7 @@ def make_resolution_note_slack_message():
 @pytest.fixture
 def make_alert():
     def _make_alert(alert_group, raw_request_data, **kwargs):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = AlertFactory(group=alert_group, raw_request_data=raw_request_data, **kwargs)
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert
@@ -599,7 +627,6 @@ def make_alert_with_custom_create_method():
         raw_request_data,
         **kwargs,
     ):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = Alert.create(
             title,
             message,
@@ -610,7 +637,6 @@ def make_alert_with_custom_create_method():
             raw_request_data,
             **kwargs,
         )
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert_with_custom_create_method
@@ -756,19 +782,19 @@ def make_telegram_message():
 
 
 @pytest.fixture()
-def make_phone_call():
-    def _make_phone_call(receiver, status, **kwargs):
-        return PhoneCallFactory(receiver=receiver, status=status, **kwargs)
+def make_phone_call_record():
+    def _make_phone_call_record(receiver, **kwargs):
+        return PhoneCallRecordFactory(receiver=receiver, **kwargs)
 
-    return _make_phone_call
+    return _make_phone_call_record
 
 
 @pytest.fixture()
-def make_sms():
-    def _make_sms(receiver, status, **kwargs):
-        return SMSFactory(receiver=receiver, status=status, **kwargs)
+def make_sms_record():
+    def _make_sms_record(receiver, **kwargs):
+        return SMSRecordFactory(receiver=receiver, **kwargs)
 
-    return _make_sms
+    return _make_sms_record
 
 
 @pytest.fixture()
@@ -800,23 +826,27 @@ def make_integration_heartbeat():
     return _make_integration_heartbeat
 
 
+@pytest.fixture
 def reload_urls(settings):
     """
     Reloads Django URLs, especially useful when testing conditionally registered URLs
     """
 
-    clear_url_caches()
-    urlconf = settings.ROOT_URLCONF
-    if urlconf in sys.modules:
-        reload(sys.modules[urlconf])
-    else:
-        import_module(urlconf)
+    def _reload_urls():
+        clear_url_caches()
+        urlconf = settings.ROOT_URLCONF
+        if urlconf in sys.modules:
+            reload(sys.modules[urlconf])
+        else:
+            import_module(urlconf)
+
+    return _reload_urls
 
 
 @pytest.fixture()
-def load_slack_urls(settings):
+def load_slack_urls(settings, reload_urls):
     settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
-    reload_urls(settings)
+    reload_urls()
 
 
 @pytest.fixture
@@ -847,3 +877,11 @@ def make_organization_and_user_with_token(make_organization_and_user, make_publi
         return organization, user, token
 
     return _make_organization_and_user_with_token
+
+
+@pytest.fixture
+def make_shift_swap_request():
+    def _make_shift_swap_request(schedule, beneficiary, **kwargs):
+        return ShiftSwapRequestFactory(schedule=schedule, beneficiary=beneficiary, **kwargs)
+
+    return _make_shift_swap_request

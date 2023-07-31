@@ -21,7 +21,7 @@ exports[`DownloadIcons it renders properly 1`] = `
       <span
         class="root text text--primary text--medium"
       >
-        The Grafana IRM app is available on both the App Store and Google Play Store.
+        The Grafana OnCall app is available on both the App Store and Google Play Store.
       </span>
     </div>
     <div
@@ -41,7 +41,7 @@ exports[`DownloadIcons it renders properly 1`] = `
             target="_blank"
           >
             <div
-              class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              class="root root_bordered root--fullWidth root--withBackGround root--hover icon-block"
             >
               <img
                 alt="Apple"
@@ -49,7 +49,7 @@ exports[`DownloadIcons it renders properly 1`] = `
                 src="[object Object]"
               />
               <span
-                class="root text icon-text text--primary text--medium"
+                class="root text text--primary text--medium icon-text"
               >
                 iOS
               </span>
@@ -66,7 +66,7 @@ exports[`DownloadIcons it renders properly 1`] = `
             target="_blank"
           >
             <div
-              class="root icon-block root_bordered root--fullWidth root--hover"
+              class="root root_bordered root--fullWidth root--hover icon-block"
             >
               <img
                 alt="Play Store"
@@ -74,7 +74,7 @@ exports[`DownloadIcons it renders properly 1`] = `
                 src="[object Object]"
               />
               <span
-                class="root text icon-text text--primary text--medium"
+                class="root text text--primary text--medium icon-text"
               >
                 Android
               </span>

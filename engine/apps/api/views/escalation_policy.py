@@ -1,10 +1,8 @@
 from django.conf import settings
 from django.db.models import Q
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationPolicy
 from apps.api.permissions import RBACPermission
@@ -14,7 +12,6 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicyUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -22,10 +19,15 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.ordered_model.viewset import OrderedModelViewSet
 
 
 class EscalationPolicyView(
-    TeamFilteringMixin, PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+    TeamFilteringMixin,
+    PublicPrimaryKeyMixin,
+    CreateSerializerMixin,
+    UpdateSerializerMixin,
+    OrderedModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
@@ -108,38 +110,16 @@ class EscalationPolicyView(
         )
         instance.delete()
 
-    @action(detail=True, methods=["put"])
-    def move_to_position(self, request, pk):
-        position = request.query_params.get("position", None)
-        if position is not None:
-            try:
-                instance = EscalationPolicy.objects.get(public_primary_key=pk)
-            except EscalationPolicy.DoesNotExist:
-                raise BadRequest(detail="Step does not exist")
-            try:
-                prev_state = instance.insight_logs_serialized
-                position = int(position)
-                instance.to(position)
-                new_state = instance.insight_logs_serialized
-
-                write_resource_insight_log(
-                    instance=instance,
-                    author=self.request.user,
-                    event=EntityEvent.UPDATED,
-                    prev_state=prev_state,
-                    new_state=new_state,
-                )
-                return Response(status=status.HTTP_200_OK)
-            except ValueError as e:
-                raise BadRequest(detail=f"{e}")
-
-        else:
-            raise BadRequest(detail="Position was not provided")
-
     @action(detail=False, methods=["get"])
     def escalation_options(self, request):
         choices = []
         for step in EscalationPolicy.INTERNAL_API_STEPS:
+            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK and not settings.FEATURE_WEBHOOKS_2_ENABLED:
+                continue
+
+            if step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON and settings.FEATURE_WEBHOOKS_2_ENABLED:
+                continue
+
             verbal = EscalationPolicy.INTERNAL_API_STEPS_TO_VERBAL_MAP[step]
             can_change_importance = (
                 step in EscalationPolicy.IMPORTANT_STEPS_SET or step in EscalationPolicy.DEFAULT_STEPS_SET

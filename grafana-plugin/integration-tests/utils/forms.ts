@@ -13,6 +13,10 @@ type SelectDropdownValueArgs = {
   startingLocator?: Locator;
   // if true, when selecting the dropdown option, use an exact match, otherwise use a substring contains match
   optionExactMatch?: boolean;
+
+  // if true, will press enter in the select dropdown. Some dropdowns don't show a list of options
+  // and instead the user must press enter to trigger the search
+  pressEnterInsteadOfSelectingOption?: boolean;
 };
 
 type ClickButtonArgs = {
@@ -39,7 +43,7 @@ export const clickButton = async ({
   dataTestId,
 }: ClickButtonArgs): Promise<void> => {
   const baseLocator = dataTestId ? `button[data-testid="${dataTestId}"]` : 'button';
-  const button = (startingLocator || page).locator(`${baseLocator} >> text=${buttonText}`);
+  const button = (startingLocator || page).locator(`${baseLocator}:not([disabled]) >> text=${buttonText}`);
 
   await button.waitFor({ state: 'visible' });
   await button.click();
@@ -54,7 +58,7 @@ const openSelect = async ({
   placeholderText,
   selectType,
   startingLocator,
-}: SelectDropdownValueArgs): Promise<void> => {
+}: SelectDropdownValueArgs): Promise<Locator> => {
   /**
    * we currently mix three different dropdown components in the UI..
    * so we need to support all of them :(
@@ -73,6 +77,8 @@ const openSelect = async ({
   const selectElement: Locator = (startingLocator || page).locator(selector);
   await selectElement.waitFor({ state: 'visible' });
   await selectElement.click();
+
+  return selectElement;
 };
 
 /**
@@ -84,9 +90,19 @@ const textMatchSelector = (optionExactMatch: boolean, value: string): string =>
 const chooseDropdownValue = async ({ page, value, optionExactMatch = true }: SelectDropdownValueArgs): Promise<void> =>
   page.locator(`div[id^="react-select-"][id$="-listbox"] >> ${textMatchSelector(optionExactMatch, value)}`).click();
 
-export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<void> => {
-  await openSelect(args);
-  await chooseDropdownValue(args);
+export const selectDropdownValue = async (args: SelectDropdownValueArgs): Promise<Locator> => {
+  const { page, value, pressEnterInsteadOfSelectingOption } = args;
+
+  const selectElement = await openSelect(args);
+  await selectElement.type(value);
+
+  if (pressEnterInsteadOfSelectingOption) {
+    await page.keyboard.press('Enter');
+  } else {
+    await chooseDropdownValue(args);
+  }
+
+  return selectElement;
 };
 
 export const generateRandomValue = (): string => randomUUID();

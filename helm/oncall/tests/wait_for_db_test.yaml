@@ -1,0 +1,57 @@
+suite: test init container wait-for-db in deployments
+templates:
+  - celery/deployment-celery.yaml
+  - engine/deployment.yaml
+release:
+  name: oncall
+chart:
+  appVersion: v1.2.36
+tests:
+  - it: database.type=mysql -> should create initContainer for MySQL database (default)
+    set:
+      init.resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+           cpu: 100m
+           memory: 128Mi
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: wait-for-db
+          any: true
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: MYSQL_DB_NAME
+            value: oncall
+      - matchSnapshot:
+          path: spec.template.spec.initContainers
+
+  - it: database.type=postgresql -> should create initContainer for PostgreSQL database
+    set:
+      database.type: postgresql
+      externalPostgresql.host: some-postgresql-host
+      init.resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+           cpu: 100m
+           memory: 128Mi
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: wait-for-db
+          any: true
+      - contains:
+          path: spec.template.spec.initContainers[0].env
+          content:
+            name: DATABASE_TYPE
+            value: postgresql
+      - matchSnapshot:
+          path: spec.template.spec.initContainers
+

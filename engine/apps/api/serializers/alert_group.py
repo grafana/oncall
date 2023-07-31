@@ -6,20 +6,22 @@ from rest_framework import serializers
 
 from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord
-from apps.user_management.models import User
+from apps.alerts.models import AlertGroup
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
 
 from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
+from .alerts_field_cache_buster_mixin import AlertsFieldCacheBusterMixin
 from .user import FastUserSerializer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class AlertGroupFieldsCacheSerializerMixin:
+class AlertGroupFieldsCacheSerializerMixin(AlertsFieldCacheBusterMixin):
+    CACHE_KEY_FORMAT_TEMPLATE = "{field_name}_alert_group_{object_id}"
+
     @classmethod
     def get_or_set_web_template_field(
         cls,
@@ -29,7 +31,7 @@ class AlertGroupFieldsCacheSerializerMixin:
         renderer_class,
         cache_lifetime=60 * 60 * 24,
     ):
-        CACHE_KEY = f"{field_name}_alert_group_{obj.id}"
+        CACHE_KEY = cls.calculate_cache_key(field_name, obj)
         cached_field = cache.get(CACHE_KEY, None)
 
         web_templates_modified_at = obj.channel.web_templates_modified_at
@@ -68,7 +70,7 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             last_alert,
-            "render_for_web",
+            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_WEB_FIELD_NAME,
             AlertGroupWebRenderer,
         )
 
@@ -96,6 +98,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
 
     SELECT_RELATED = [
         "channel__organization",
+        "channel__team",
         "root_alert_group",
         "resolved_by_user",
         "acknowledged_by_user",
@@ -132,6 +135,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "status",
             "declare_incident_link",
             "team",
+            "is_restricted",
         ]
 
     def get_render_for_web(self, obj):
@@ -140,7 +144,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             obj.last_alert,
-            "render_for_web",
+            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_WEB_FIELD_NAME,
             AlertGroupWebRenderer,
         )
 
@@ -150,7 +154,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             obj.last_alert,
-            "render_for_classic_markdown",
+            AlertGroupFieldsCacheSerializerMixin.RENDER_FOR_CLASSIC_MARKDOWN_FIELD_NAME,
             AlertGroupClassicMarkdownRenderer,
         )
 
@@ -211,17 +215,4 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         return AlertSerializer(alerts, many=True).data
 
     def get_paged_users(self, obj):
-        users_ids = set()
-        for log_record in obj.log_records.filter(
-            type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
-        ):
-            # filter paging events, track still active escalations
-            info = log_record.get_step_specific_info()
-            user_id = info.get("user") if info else None
-            if user_id is not None:
-                users_ids.add(
-                    user_id
-                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else users_ids.discard(user_id)
-
-        users = [u.short() for u in User.objects.filter(public_primary_key__in=users_ids)]
-        return users
+        return [u.short() for u in obj.get_paged_users()]

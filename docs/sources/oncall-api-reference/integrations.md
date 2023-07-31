@@ -1,6 +1,4 @@
 ---
-aliases:
-  - /docs/oncall/latest/oncall-api-reference/integrations/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/integrations/
 title: Integrations HTTP API
 weight: 500
@@ -26,6 +24,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -34,7 +33,7 @@ The above command returns JSON structured in the following way:
       "channel_id": "CH23212D"
     }
   },
-    "templates": {
+  "templates": {
     "grouping_key": null,
     "resolve_signal": null,
     "acknowledge_signal": null,
@@ -75,7 +74,7 @@ The above command returns JSON structured in the following way:
 
 Integrations are sources of alerts and alert groups for Grafana OnCall.
 For example, to learn how to integrate Grafana OnCall with Alertmanager see
-[Alertmanager]({{< relref "../integrations/available-integrations/configure-alertmanager/" >}}).
+[Alertmanager][alertmanager].
 
 **HTTP request**
 
@@ -98,6 +97,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -173,6 +173,7 @@ The above command returns JSON structured in the following way:
       "name": "Grafana :blush:",
       "team_id": null,
       "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+      "inbound_email": null,
       "type": "grafana",
       "default_route": {
         "id": "RVBE4RKQSCGJ2",
@@ -218,7 +219,10 @@ The above command returns JSON structured in the following way:
         }
       }
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 
@@ -254,6 +258,7 @@ The above command returns JSON structured in the following way:
   "name": "Grafana :blush:",
   "team_id": null,
   "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "inbound_email": null,
   "type": "grafana",
   "default_route": {
     "id": "RVBE4RKQSCGJ2",
@@ -312,3 +317,8 @@ curl "{{API_URL}}/api/v1/integrations/CFRPV98RPR1U8/" \
 **HTTP request**
 
 `DELETE {{API_URL}}/api/v1/integrations/<INTEGRATION_ID>/`
+
+{{% docs/reference %}}
+[alertmanager]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager"
+[alertmanager]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager"
+{{% /docs/reference %}}

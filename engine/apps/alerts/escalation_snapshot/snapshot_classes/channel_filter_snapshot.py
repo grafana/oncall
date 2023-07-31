@@ -2,7 +2,6 @@ from apps.alerts.escalation_snapshot.serializers import ChannelFilterSnapshotSer
 
 
 class ChannelFilterSnapshot:
-
     __slots__ = ("id", "str_for_clients", "notify_in_slack", "notify_in_telegram", "notification_backends")
 
     serializer = ChannelFilterSnapshotSerializer

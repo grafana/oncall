@@ -1,0 +1,11 @@
+.regexp-template-code {
+  width: 100%;
+}
+
+.regexp-template-code-error {
+  border: var(--error-text-color) 1px solid;
+}
+
+.regexp-template-editor-modal {
+  width: 700px;
+}

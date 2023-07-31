@@ -1,7 +1,6 @@
 import logging
 from time import perf_counter
 
-from django.apps import apps
 from django.core import serializers
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
@@ -26,7 +25,8 @@ class AlertChannelDefiningMixin(object):
     CACHE_SHORT_TERM_TIMEOUT = 5
 
     def dispatch(self, *args, **kwargs):
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        from apps.alerts.models import AlertReceiveChannel
+
         logger.info("AlertChannelDefiningMixin started")
         start = perf_counter()
         alert_receive_channel = None
@@ -48,6 +48,7 @@ class AlertChannelDefiningMixin(object):
                 if cache.get(self.CACHE_DB_FALLBACK_OBSOLETE_KEY) is None:
                     cache.set(self.CACHE_DB_FALLBACK_OBSOLETE_KEY, True, self.CACHE_DB_FALLBACK_REFRESH_INTERVAL)
                     self.update_alert_receive_channel_cache()
+
         except AlertReceiveChannel.DoesNotExist:
             raise PermissionDenied("Integration key was not found. Permission denied.")
         except OperationalError:
@@ -65,16 +66,15 @@ class AlertChannelDefiningMixin(object):
             else:
                 logger.info("Cache is empty!")
                 raise
-
-        if alert_receive_channel.organization.is_moved:
-            raise OrganizationMovedException(alert_receive_channel.organization)
-        if alert_receive_channel.organization.deleted_at:
-            # It's better to raise OrganizarionDeletedException, but in legacy code PermissionDenied is returned when integration key not found.
-            # So, keep it consistent.
-            raise PermissionDenied("Integration key was not found. Permission denied.")
+        else:
+            if alert_receive_channel.organization.is_moved:
+                raise OrganizationMovedException(alert_receive_channel.organization)
+            if alert_receive_channel.organization.deleted_at:
+                # It's better to raise OrganizarionDeletedException, but in legacy code PermissionDenied is returned when integration key not found.
+                # So, keep it consistent.
+                raise PermissionDenied("Integration key was not found. Permission denied.")
 
         del kwargs["alert_channel_key"]
-        kwargs["alert_receive_channel"] = alert_receive_channel
 
         request = args[0]
         request.alert_receive_channel = alert_receive_channel
@@ -83,7 +83,8 @@ class AlertChannelDefiningMixin(object):
         return super(AlertChannelDefiningMixin, self).dispatch(*args, **kwargs)
 
     def update_alert_receive_channel_cache(self):
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        from apps.alerts.models import AlertReceiveChannel
+
         logger.info("Caching alert receive channels from database.")
         serialized = serializers.serialize("json", AlertReceiveChannel.objects.all())
         # Caching forever, re-caching is managed by "obsolete key"

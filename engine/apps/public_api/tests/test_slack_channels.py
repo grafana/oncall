@@ -32,6 +32,9 @@ def test_get_slack_channels_list(
         "next": None,
         "previous": None,
         "results": [{"name": slack_channel.name, "slack_id": slack_channel.slack_id}],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

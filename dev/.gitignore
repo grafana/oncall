@@ -1,2 +1,20 @@
-.env.dev
-grafana.dev.ini
+# Ignore everything
+*
+
+# Except
+!.env.dev.example
+!.env.mysql.dev
+!.env.postgres.dev
+!.env.sqlite.dev
+!add_env_var.sh
+!prometheus.yml
+!README.md
+!scripts/
+!scripts/*
+
+# only source control grafana/provisioning/datasources/automatic.yml
+# any other files under ./grafana will be ignored
+!grafana/
+!grafana/provisioning/
+!grafana/provisioning/datasources/
+!grafana/provisioning/datasources/automatic.yml

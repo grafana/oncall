@@ -1,0 +1,50 @@
+suite: test uwsgi environment variables
+templates:
+  - engine/deployment.yaml
+  - engine/job-migrate.yaml
+  - celery/deployment-celery.yaml
+release:
+  name: oncall
+tests:
+  - it: uwsgi.listen -> should overwrite UWSGI_LISTEN env
+    set:
+      uwsgi.listen: 128
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: UWSGI_LISTEN
+            value: "128"
+  - it: uwsgi=map[] -> should set multiple UWSGI_* envs
+    set:
+      uwsgi:
+        processes: 3
+        max-requests: 1000
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: UWSGI_LISTEN
+            value: "1024"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: UWSGI_PROCESSES
+            value: "3"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: UWSGI_MAX_REQUESTS
+            value: "1000"
+
+  - it: uwsgi=null -> should not set any UWSGI_* variable
+    set:
+      uwsgi: null
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: UWSGI_LISTEN
+
+
+
