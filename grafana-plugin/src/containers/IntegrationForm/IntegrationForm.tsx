@@ -1,6 +1,18 @@
 import React, { useState, ChangeEvent } from 'react';
 
-import { Drawer, VerticalGroup, HorizontalGroup, Input, Tag, EmptySearchResult, Button } from '@grafana/ui';
+import {
+  Drawer,
+  VerticalGroup,
+  HorizontalGroup,
+  Input,
+  Tag,
+  EmptySearchResult,
+  Button,
+  RadioButtonGroup,
+  Select,
+  Icon,
+  Label,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useHistory } from 'react-router-dom';
@@ -23,8 +35,9 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 
-import styles from './IntegrationForm.module.css';
+import styles from './IntegrationForm.module.scss';
 import { FormItem } from 'components/GForm/GForm.types';
+import { SelectableValue } from '@grafana/data';
 
 const cx = cn.bind(styles);
 
@@ -172,11 +185,68 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 export interface CustomFieldSectionRendererProps {
   control: any;
   formItem: FormItem;
-  onChange: (field: any, value: any) => void
+  onChange: (field: any, value: any) => void;
 }
 
-const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = () => {
-  return <Text type="primary">Hello, world</Text>;
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({ control, formItem, onChange }) => {
+  console.log({ control, formItem, onChange });
+
+  const radioOptions = [
+    {
+      label: 'Connect existing Contact point',
+      value: 'existing',
+    },
+    {
+      label: 'Create a new one',
+      value: 'new',
+    },
+  ];
+
+  const [selectedRadioOption, setSelectedRadioOption] = useState<string>(radioOptions[0].value);
+  const [selectedAlertManagerOption, setSelectedAlertManagerOption] = useState<string>();
+  const [selectedContactPointOption, setSelectedContactPointOption] = useState<string>();
+
+  const selectOptions = [];
+
+  return (
+    <div className={cx('extra-fields')}>
+      <VerticalGroup spacing="md">
+        <HorizontalGroup spacing="xs" align="center">
+          <Label>Grafana Alerting Contact point</Label>
+          <Icon name="info-circle" className={cx('extra-fields__icon')} />
+        </HorizontalGroup>
+
+        <div className={cx('extra-fields__radio')}>
+          <RadioButtonGroup
+            options={radioOptions}
+            value={selectedRadioOption}
+            onChange={(radioValue) => setSelectedRadioOption(radioValue)}
+          />
+        </div>
+
+        <Select
+          options={selectOptions}
+          onChange={onAlertManagerChange}
+          value={selectedAlertManagerOption}
+          placeholder="Select Alert Manager"
+        />
+        <Select
+          options={selectOptions}
+          onChange={onContactPointChange}
+          value={selectedContactPointOption}
+          placeholder="Select Contact Point"
+        />
+      </VerticalGroup>
+    </div>
+  );
+
+  function onAlertManagerChange(option: SelectableValue<string>) {
+    setSelectedAlertManagerOption(option.value);
+  }
+
+  function onContactPointChange(option: SelectableValue<string>) {
+    setSelectedContactPointOption(option.value);
+  }
 };
 
 const HowTheIntegrationWorks: React.FC<{ selectedOption: AlertReceiveChannelOption }> = ({ selectedOption }) => {

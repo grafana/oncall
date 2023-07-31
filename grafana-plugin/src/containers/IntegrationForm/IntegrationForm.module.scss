@@ -73,3 +73,15 @@
 .integration-info-item {
   margin-left: 16px;
 }
+
+.extra-fields {
+  margin-bottom: 24px;
+
+  &__radio {
+    margin-bottom: 12px;
+  }
+
+  &__icon {
+    margin-top: -4px;
+  }
+}
