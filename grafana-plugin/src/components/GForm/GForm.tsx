@@ -12,6 +12,7 @@ import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 
 import styles from './GForm.module.scss';
+import { CustomFieldSectionRendererProps } from 'containers/IntegrationForm/IntegrationForm';
 
 const cx = cn.bind(styles);
 
@@ -20,7 +21,7 @@ interface GFormProps {
   data: any;
   onSubmit: (data: any) => void;
 
-  customFieldSectionRenderer?: React.FC<{ control; formItem }>;
+  customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps>;
   onFieldRender?: (
     formItem: FormItem,
     disabled: boolean,
@@ -175,13 +176,10 @@ class GForm extends React.Component<GFormProps, {}> {
               ? formItem.getDisabled(getValues())
               : false;
 
-            const formControl = renderFormControl(formItem, register, control, disabled, (field, value) => {
-              field?.onChange(value);
-              this.forceUpdate();
-            });
+            const formControl = renderFormControl(formItem, register, control, disabled, this.onChange);
 
             if (CustomFieldSectionRenderer && formItem.type === FormItemType.Other) {
-              return <CustomFieldSectionRenderer control={control} formItem={formItem} />;
+              return <CustomFieldSectionRenderer control={control} formItem={formItem} onChange={this.onChange} />;
             }
 
             return (
@@ -216,6 +214,11 @@ class GForm extends React.Component<GFormProps, {}> {
       </Form>
     );
   }
+
+  onChange = (field, value) => {
+    field?.onChange(value);
+    this.forceUpdate();
+  };
 
   handleSubmit = (data) => {
     const { form, onSubmit } = this.props;

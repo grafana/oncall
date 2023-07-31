@@ -24,6 +24,7 @@ import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 
 import styles from './IntegrationForm.module.css';
+import { FormItem } from 'components/GForm/GForm.types';
 
 const cx = cn.bind(styles);
 
@@ -91,7 +92,12 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
-              <GForm form={form} data={data} customFieldSectionRenderer={customFieldSectionRenderer} onSubmit={handleSubmit} />
+              <GForm
+                form={form}
+                data={data}
+                customFieldSectionRenderer={CustomFieldSectionRenderer}
+                onSubmit={handleSubmit}
+              />
 
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
 
@@ -163,7 +169,13 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   }
 });
 
-const customFieldSectionRenderer: React.FC<{ control, formItem }> = () => {
+export interface CustomFieldSectionRendererProps {
+  control: any;
+  formItem: FormItem;
+  onChange: (field: any, value: any) => void
+}
+
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = () => {
   return <Text type="primary">Hello, world</Text>;
 };
 
