@@ -231,6 +231,7 @@ export class RootBaseStore {
       this.backendLicense = pluginConnectionStatus.license;
       this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
     }
+
     if (!this.userStore.currentUser) {
       try {
         await this.userStore.loadCurrentUser();
