@@ -5,10 +5,10 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
+import logo from 'assets/img/logo.svg';
 import Tag from 'components/Tag/Tag';
 import Alerts from 'containers/Alerts/Alerts';
 import IRMBanner from 'containers/IRMBanner/IRMBanner';
-import logo from 'img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { APP_SUBTITLE } from 'utils/consts';

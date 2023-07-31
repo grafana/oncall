@@ -1,11 +1,9 @@
-from django.apps import apps
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
-from apps.webhooks.utils import is_webhooks_enabled_for_organization
 
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
@@ -28,7 +26,8 @@ class FeaturesAPIView(APIView):
         return Response(self._get_enabled_features(request))
 
     def _get_enabled_features(self, request):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        from apps.base.models import DynamicSetting
+
         enabled_features = []
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
@@ -60,7 +59,7 @@ class FeaturesAPIView(APIView):
             if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
                 enabled_features.append(FEATURE_WEB_SCHEDULES)
 
-        if is_webhooks_enabled_for_organization(request.auth.organization.pk):
+        if settings.FEATURE_WEBHOOKS_2_ENABLED:
             enabled_features.append(FEATURE_WEBHOOKS2)
 
         return enabled_features

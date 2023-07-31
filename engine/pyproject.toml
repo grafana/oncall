@@ -1,14 +1,13 @@
 [tool.isort]
 profile = "black"
 line_length=120
-# TODO: upgrade this to python 3.11
-py_version=39
+float_to_top=true
+py_version=311
 extend_skip_glob = "**/migrations/**"
 
 [tool.black]
 line-length = 120
-# TODO: upgrade this to python 3.11
-target-version = ["py39"]
+target-version = ["py311"]
 force-exclude = "migrations"
 
 [tool.mypy]
@@ -32,7 +31,6 @@ disable_error_code = [
     "call-arg",
     "call-overload",
     "has-type",
-    "import",
     "index",
     "misc",
     "name-defined",
@@ -54,6 +52,7 @@ module = [
     # we can slowly either start to add library stubs ourselves, or try and upgrade these libraries to see if
     # a newer version includes type stubs
     "anymail.*",
+    "celery.utils.debug",
     "debug_toolbar.*",
     "django_deprecate_fields.*",
     "django_sns_view.*",
@@ -78,6 +77,7 @@ module = [
     "twilio.*",
     "uwsgidecorators.*",
     "whitenoise.*",
+    "uwsgi.*",
 ]
 ignore_missing_imports = true
 

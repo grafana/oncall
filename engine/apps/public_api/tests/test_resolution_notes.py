@@ -57,6 +57,9 @@ def test_get_resolution_notes(
                 "text": resolution_note_1.text,
             },
         ],
+        "current_page_number": 1,
+        "page_size": 50,
+        "total_pages": 1,
     }
 
     assert response.status_code == status.HTTP_200_OK

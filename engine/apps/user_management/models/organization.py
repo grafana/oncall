@@ -3,7 +3,6 @@ import typing
 import uuid
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -11,8 +10,6 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
-from apps.alerts.tasks import disable_maintenance
-from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsTypePlug, write_chatops_insight_log
 from common.oncall_gateway import create_oncall_connector, delete_oncall_connector, delete_slack_connector
@@ -29,7 +26,8 @@ if typing.TYPE_CHECKING:
     )
     from apps.mobile_app.models import MobileAppAuthToken
     from apps.schedules.models import OnCallSchedule
-    from apps.user_management.models import User
+    from apps.slack.models import SlackTeamIdentity
+    from apps.user_management.models import Region, Team, User
 
 logger = logging.getLogger(__name__)
 
@@ -75,16 +73,22 @@ class OrganizationManager(models.Manager):
         return OrganizationQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
 
 
+# TODO: in a subsequent PR, remove the inheritance from MaintainableObject (plus generate the database migration file)
+# this will remove the maintenance related columns that're no longer used on the organization object
+# class Organization(models.Model):
 class Organization(MaintainableObject):
     auth_tokens: "RelatedManager['ApiAuthToken']"
+    migration_destination: typing.Optional["Region"]
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
     plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    slack_team_identity: typing.Optional["SlackTeamIdentity"]
+    teams: "RelatedManager['Team']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"
 
-    objects = OrganizationManager()
+    objects: models.Manager["Organization"] = OrganizationManager()
     objects_with_deleted = models.Manager()
 
     def __init__(self, *args, **kwargs):
@@ -182,7 +186,7 @@ class Organization(MaintainableObject):
         ACKNOWLEDGE_REMIND_10H,
     ) = range(5)
     ACKNOWLEDGE_REMIND_CHOICES = (
-        (ACKNOWLEDGE_REMIND_NEVER, "Never remind about ack-ed incidents"),
+        (ACKNOWLEDGE_REMIND_NEVER, "Never remind"),
         (ACKNOWLEDGE_REMIND_1H, "Remind every 1 hour"),
         (ACKNOWLEDGE_REMIND_3H, "Remind every 3 hours"),
         (ACKNOWLEDGE_REMIND_5H, "Remind every 5 hours"),
@@ -242,7 +246,8 @@ class Organization(MaintainableObject):
         unique_together = ("stack_id", "org_id")
 
     def provision_plugin(self) -> ProvisionedPlugin:
-        PluginAuthToken = apps.get_model("auth_token", "PluginAuthToken")
+        from apps.auth_token.models import PluginAuthToken
+
         _, token = PluginAuthToken.create_auth_token(organization=self)
         return {
             "stackId": self.stack_id,
@@ -252,41 +257,9 @@ class Organization(MaintainableObject):
         }
 
     def revoke_plugin(self):
-        token_model = apps.get_model("auth_token", "PluginAuthToken")
-        token_model.objects.filter(organization=self).delete()
+        from apps.auth_token.models import PluginAuthToken
 
-    """
-    Following methods: start_disable_maintenance_task, force_disable_maintenance, get_organization, get_verbal serve for
-    MaintainableObject.
-    """
-
-    def start_disable_maintenance_task(self, countdown):
-        maintenance_uuid = disable_maintenance.apply_async(
-            args=(),
-            kwargs={
-                "organization_id": self.pk,
-            },
-            countdown=countdown,
-        )
-        return maintenance_uuid
-
-    def force_disable_maintenance(self, user):
-        disable_maintenance(organization_id=self.pk, force=True, user_id=user.pk)
-
-    def get_organization(self):
-        return self
-
-    def get_team(self):
-        return None
-
-    def get_verbal(self):
-        return self.org_title
-
-    def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
-        # TODO: this method should be refactored.
-        # It's binded to slack and sending maintenance notification only there.
-        if send_to_general_log_channel:
-            post_message_to_channel(self, self.general_log_channel_id, text)
+        PluginAuthToken.objects.filter(organization=self).delete()
 
     """
     Following methods:

@@ -57,6 +57,14 @@ engine:
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
+  ## Topology spread constraints for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+  topologySpreadConstraints: []
+
+  ## Priority class for the pods
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
+
 # Celery workers pods configuration
 celery:
   replicaCount: 1
@@ -94,6 +102,14 @@ celery:
   ## Tolerations for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
+
+  ## Topology spread constraints for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+  topologySpreadConstraints: []
+
+  ## Priority class for the pods
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
 
 oncall:
   # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
@@ -191,6 +207,7 @@ migrate:
   ttlSecondsAfterFinished: 20
   # use a helm hook to manage the migration job
   useHook: false
+  annotations: {}
 
   ## Affinity for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
@@ -422,3 +439,10 @@ init:
     # runAsGroup: 1337
     # runAsNonRoot: true
     # runAsUser: 1337
+  resources: {}
+     # limits:
+     #   cpu: 100m
+     #   memory: 128Mi
+     # requests:
+     #   cpu: 100m
+     #   memory: 128Mi

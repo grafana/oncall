@@ -125,7 +125,10 @@ The above command returns JSON structured in the following way:
         "channel_id": "CH23212D"
       }
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 25,
+  "total_pages": 1
 }
 ```
 

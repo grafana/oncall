@@ -84,7 +84,7 @@ jobs:
         # that no refs to external content can be used as these refs will not resolve in the
         # docs-base image.
         run: |
-          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'echo -e "---\\nredirectURL: /hugo/content/docs/oncall/latest/\\ntype: redirect\\nversioned: true\\n---\\n" > /hugo/content/docs/oncall/_index.md; make hugo'
 
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
@@ -401,7 +401,7 @@ jobs:
           helm install helm-testing \
             --values ./helm/simple.yml \
             --values ./helm/values-local-image.yml \
-            --set-json 'env=[{"name":"GRAFANA_CLOUD_NOTIFICATIONS_ENABLED","value":"False"}]' \
+            --set-json 'env=[{"name":"GRAFANA_CLOUD_NOTIFICATIONS_ENABLED","value":"False"},{"name":"BASE_URL","value":"http://172.17.0.1:30001"}]' \
             --set engine.replicaCount=3 \
             --set celery.replicaCount=3 \
             --set celery.worker_beat_enabled="False" \

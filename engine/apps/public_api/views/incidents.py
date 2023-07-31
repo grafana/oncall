@@ -50,7 +50,7 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
         integration_id = self.request.query_params.get("integration_id", None)
         state = self.request.query_params.get("state", None)
 
-        queryset = AlertGroup.unarchived_objects.filter(
+        queryset = AlertGroup.objects.filter(
             channel__organization=self.request.auth.organization,
         ).order_by("-started_at")
 
@@ -84,7 +84,7 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
         public_primary_key = self.kwargs["pk"]
 
         try:
-            return AlertGroup.unarchived_objects.filter(
+            return AlertGroup.objects.filter(
                 channel__organization=self.request.auth.organization,
             ).get(public_primary_key=public_primary_key)
         except AlertGroup.DoesNotExist:

@@ -5,9 +5,3 @@ export function mockUseStore() {
     }),
   }));
 }
-
-export function mockGrafanaLocationSrv() {
-  jest.mock('@grafana/runtime', () => ({
-    getLocationSrv: jest.fn(),
-  }));
-}
