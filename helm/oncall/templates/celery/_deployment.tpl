@@ -90,4 +90,7 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.celery.resources | nindent 12 }}
+      {{- with .Values.celery.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
 {{- end}}
