@@ -30,7 +30,7 @@ Read more about Jinja2 templating used in OnCall [here][jinja2-templating].
 [Behaviour Templates][behavioral-template]
 1. The Alert Group is available in Web, and can be published to messengers, based on the Route's **Publish to Chatops** configuration.
 It is rendered using [Appearance Templates][appearance-template]
-1. The Alert Group is escalated to uers based on the Escalation Chains selected for the Route
+1. The Alert Group is escalated to users based on the Escalation Chains selected for the Route
 1. Users can perform actions listed in [Learn Alert Workflow][learn-alert-workflow] section
 
 ## Configure and manage integrations
