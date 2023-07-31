@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.heartbeat.tasks import process_heartbeat_task
+from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.integrations.mixins import (
     AlertChannelDefiningMixin,
     BrowsableInstructionMixin,
@@ -104,7 +105,7 @@ class AlertManagerAPIView(
                 + str(alert_receive_channel.get_integration_display())
             )
 
-        if alert_receive_channel.is_legacy:
+        if has_legacy_prefix(alert_receive_channel):
             self.process_v1(request, alert_receive_channel)
         else:
             self.process_v2(request, alert_receive_channel)
