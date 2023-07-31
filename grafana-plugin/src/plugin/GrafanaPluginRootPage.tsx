@@ -40,7 +40,6 @@ import { rootStore } from 'state';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
-import loadJs from 'utils/loadJs';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -97,10 +96,6 @@ export const Root = observer((props: AppRootProps) => {
     return () => {
       head.removeChild(styleEl); // remove on unmount
     };
-  }, []);
-
-  useEffect(() => {
-    loadJs(`https://www.google.com/recaptcha/api.js?render=${rootStore.recaptchaSiteKey}`);
   }, []);
 
   const updateBasicData = async () => {
