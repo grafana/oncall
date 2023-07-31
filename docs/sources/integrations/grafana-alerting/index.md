@@ -92,9 +92,9 @@ Before we were using each alert from Grafana Alerting group as a separate payloa
 ```
 
 This behaviour was leading to mismatch in alert state between OnCall and Grafana Alerting and draining of rate-limits,
-since each Grafana Alerting alert was counted for them.
+since each Grafana Alerting alert was counted separately.
 
-We decided to change this behaviour to respect Grafana Alerting grouping by treating AlertManager group as one payload.
+We decided to change this behaviour to respect Grafana Alerting grouping by using AlertManager group as one payload.
 
 ```json
 {

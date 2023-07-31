@@ -136,9 +136,9 @@ Before we were using each alert from AlertManager group as a separate payload:
 ```
 
 This behaviour was leading to mismatch in alert state between OnCall and AlertManager and draining of rate-limits,
-since each AlertManager alert was counted for them.
+since each AlertManager alert was counted separately.
 
-We decided to change this behaviour to respect AlertManager grouping by treating AlertManager group as one payload.
+We decided to change this behaviour to respect AlertManager grouping by using AlertManager group as one payload.
 
 ```json
 {
