@@ -69,7 +69,8 @@ This set of permissions is supporting the ability of Grafana OnCall to match use
 - **View profile details about people in your workspace**
 #### Perform actions as you
 - **Send messages on your behalf** — this permission may sound suspicious, but it's actually a general ability 
-to send messages as the bot: https://api.slack.com/scopes/chat:write 
+to send messages as the bot: https://api.slack.com/scopes/chat:write Grafana OnCall will not impersonate or post 
+using your handle to slack. It will always post as the bot.
 #### Perform actions in channels & conversations
 - **View messages that directly mention @grafana_oncall in conversations that the app is in**
 - **Join public channels in your workspace**
