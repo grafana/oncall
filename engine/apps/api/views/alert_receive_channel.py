@@ -309,7 +309,7 @@ class AlertReceiveChannelView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
-    def validate_name(self):
+    def validate_name(self, request):
         """
         Checks if verbal_name is available.
         It is needed for OnCall <-> Alerting integration.
@@ -318,7 +318,7 @@ class AlertReceiveChannelView(
         if verbal_name is None:
             raise BadRequest("verbal_name is required")
         organization = self.request.auth.organization
-        name_used = AlertReceiveChannel.objects.exists(organization=organization, verbal_name=verbal_name)
+        name_used = AlertReceiveChannel.objects.filter(organization=organization, verbal_name=verbal_name).exists()
         if name_used:
             r = Response(status=status.HTTP_409_CONFLICT)
         else:
