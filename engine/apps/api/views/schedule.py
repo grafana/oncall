@@ -28,6 +28,7 @@ from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleSerializer,
     PolymorphicScheduleUpdateSerializer,
 )
+from apps.api.serializers.shift_swap import ShiftSwapRequestSerializer
 from apps.api.serializers.user import ScheduleUserSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
@@ -83,6 +84,7 @@ class ScheduleView(
         "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
         "events": [RBACPermission.Permissions.SCHEDULES_READ],
         "filter_events": [RBACPermission.Permissions.SCHEDULES_READ],
+        "filter_shift_swaps": [RBACPermission.Permissions.SCHEDULES_READ],
         "next_shifts_per_user": [RBACPermission.Permissions.SCHEDULES_READ],
         "related_users": [RBACPermission.Permissions.SCHEDULES_READ],
         "quality": [RBACPermission.Permissions.SCHEDULES_READ],
@@ -341,6 +343,22 @@ class ScheduleView(
             "type": PolymorphicScheduleSerializer().to_resource_type(schedule),
             "events": events,
         }
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def filter_shift_swaps(self, request: Request, pk: str) -> Response:
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
+        schedule = self.get_object()
+
+        pytz_tz = pytz.timezone(user_tz)
+        datetime_start = datetime.datetime.combine(starting_date, datetime.time.min, tzinfo=pytz_tz)
+        datetime_end = datetime_start + datetime.timedelta(days=days)
+
+        swap_requests = schedule.filter_swap_requests(datetime_start, datetime_end)
+
+        serialized_swap_requests = ShiftSwapRequestSerializer(swap_requests, many=True)
+        result = {"shift_swaps": serialized_swap_requests.data}
+
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])

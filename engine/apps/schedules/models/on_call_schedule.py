@@ -402,6 +402,17 @@ class OnCallSchedule(PolymorphicModel):
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
 
+    def filter_swap_requests(self, datetime_start, datetime_end):
+        swap_requests = self.shift_swap_requests.filter(  # starting before but ongoing
+            swap_start__lt=datetime_start, swap_end__gte=datetime_start
+        ).union(
+            self.shift_swap_requests.filter(  # starting after but before end
+                swap_start__gte=datetime_start, swap_start__lte=datetime_end
+            )
+        )
+        swap_requests = swap_requests.order_by("created_at")
+        return swap_requests
+
     def refresh_ical_final_schedule(self):
         now = timezone.now()
         # window to consider: from now, -15 days + 6 months
@@ -619,14 +630,7 @@ class OnCallSchedule(PolymorphicModel):
     def _apply_swap_requests(self, events, datetime_start, datetime_end) -> ScheduleEvents:
         """Apply swap requests details to schedule events."""
         # get swaps requests affecting this schedule / time range
-        swaps = self.shift_swap_requests.filter(  # starting before but ongoing
-            swap_start__lt=datetime_start, swap_end__gte=datetime_start
-        ).union(
-            self.shift_swap_requests.filter(  # starting after but before end
-                swap_start__gte=datetime_start, swap_start__lte=datetime_end
-            )
-        )
-        swaps = swaps.order_by("created_at")
+        swaps = self.filter_swap_requests(datetime_start, datetime_end)
 
         def _insert_event(index, event):
             # add event, if any, to events list in the specified index
