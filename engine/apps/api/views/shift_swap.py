@@ -4,9 +4,10 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import ModelViewSet
 
-from apps.api.permissions import IsOwner, RBACPermission
+from apps.api.permissions import AuthenticatedRequest, IsOwner, RBACPermission
 from apps.api.serializers.shift_swap import ShiftSwapRequestListSerializer, ShiftSwapRequestSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
@@ -21,7 +22,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 logger = logging.getLogger(__name__)
 
 
-class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
+class ShiftSwapViewSet(PublicPrimaryKeyMixin[ShiftSwapRequest], ModelViewSet):
     authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -67,7 +68,7 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
 
         update_shift_swap_request_message.apply_async((instance.pk,))
 
-    def perform_create(self, serializer: ShiftSwapRequestSerializer) -> None:
+    def perform_create(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
         beneficiary = self.request.user
         shift_swap_request = serializer.save(beneficiary=beneficiary)
 
@@ -75,7 +76,7 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
 
         create_shift_swap_request_message.apply_async((shift_swap_request.pk,))
 
-    def perform_update(self, serializer: ShiftSwapRequestSerializer) -> None:
+    def perform_update(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
         prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
         shift_swap_request = serializer.instance
@@ -91,7 +92,7 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
         update_shift_swap_request_message.apply_async((shift_swap_request.pk,))
 
     @action(methods=["post"], detail=True)
-    def take(self, request, pk) -> Response:
+    def take(self, request: AuthenticatedRequest, pk: str) -> Response:
         shift_swap = self.get_object()
 
         try:
