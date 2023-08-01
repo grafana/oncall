@@ -2329,11 +2329,16 @@ def test_swap_request_no_changes(
 
     # setup swap requests
     tomorrow = today + timezone.timedelta(days=1)
+    # user not in schedule
     make_shift_swap_request(schedule, other_user, swap_start=today, swap_end=tomorrow)
+    # deleted request
     make_shift_swap_request(schedule, user, swap_start=today, swap_end=tomorrow, deleted_at=today)
+    # swap request in the past
     make_shift_swap_request(
         schedule, user, swap_start=today - timezone.timedelta(days=7), swap_end=tomorrow - timezone.timedelta(days=7)
     )
+    # untaken swap in progress (past due)
+    make_shift_swap_request(schedule, user, swap_start=today - timezone.timedelta(days=1), swap_end=tomorrow)
 
     events_after = schedule.filter_events(today, today + timezone.timedelta(days=2))
     assert events_before == events_after
