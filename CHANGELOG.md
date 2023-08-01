@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix schedule final_events datetime filtering when splitting override ([#2715](https://github.com/grafana/oncall/pull/2715))
+- Fix swap requests event filter limits in schedule events ([#2716](https://github.com/grafana/oncall/pull/2716))
 
 ## v1.3.21 (2023-08-01)
 
