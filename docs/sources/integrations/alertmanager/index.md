@@ -42,7 +42,7 @@ You will need it when configuring Alertmanager.
 section of your Alertmanager configuration
 2. Set `url` to the **OnCall Integration URL** from previous section
 3. Set `send_resolved` to `true`, so Grafana OnCall can autoresolve alert groups when they are resolved in Alertmanager
-4. It is recommended to set `max_alerts` to less than `100` to avoid too big requests.
+4. It is recommended to set `max_alerts` to less than `100` to avoid requests that are too large.
 5. Use this receiver in your route configuration
 
 Here is the example of final configuration:
