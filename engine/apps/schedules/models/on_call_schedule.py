@@ -796,7 +796,9 @@ class OnCallSchedule(PolymorphicModel):
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
-                resolved.append(ev)
+                # only if still starts before datetime_end
+                if ev["start"] < datetime_end:
+                    resolved.append(ev)
 
             elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][0]:
                 # event starts and ends outside an already scheduled interval, add to resolved
