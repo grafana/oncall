@@ -555,7 +555,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         if payload is None:
             payload = self.config.example_payload
 
-        # TODO: AMV2: hack to keep demo alert working for integration with legacy alertmanager behaviour.
+        # hack to keep demo alert working for integration with legacy alertmanager behaviour.
         if self.integration in {
             AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
             AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
