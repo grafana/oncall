@@ -123,15 +123,15 @@ Before we were using each alert from AlertManager group as a separate payload:
 
 ```json
 {
-            "labels": {
-                "severity": "critical",
-                "alertname": "InstanceDown"
-            },
-            "annotations": {
-                "title": "Instance localhost:8081 down",
-                "description": "Node has been down for more than 1 minute"
-            },
-            ...
+  "labels": {
+    "severity": "critical",
+    "alertname": "InstanceDown"
+  },
+  "annotations": {
+    "title": "Instance localhost:8081 down",
+    "description": "Node has been down for more than 1 minute"
+  },
+  ...
 }
 ```
 
@@ -142,12 +142,19 @@ We decided to change this behaviour to respect AlertManager grouping by using Al
 
 ```json
 {
-    "alerts": [...],
-    "groupLabels": {"alertname": "InstanceDown"},
-    "commonLabels": {"job": "node",  "alertname": "InstanceDown"},
-    "commonAnnotations": {"description": "Node has been down for more than 1 minute"},
-    "groupKey": "{}:{alertname=\"InstanceDown\"}",
-    ...
+  "alerts": [...],
+  "groupLabels": {
+    "alertname": "InstanceDown"
+  },
+  "commonLabels": {
+    "job": "node", 
+    "alertname": "InstanceDown"
+  },
+  "commonAnnotations": {
+    "description": "Node has been down for more than 1 minute"
+  },
+  "groupKey": "{}:{alertname=\"InstanceDown\"}",
+  ...
 }
 ```
 
