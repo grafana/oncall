@@ -2,7 +2,7 @@ import type { Page, Response } from '@playwright/test';
 import { BASE_URL } from './constants';
 
 type GrafanaPage = '/plugins/grafana-oncall-app';
-type OnCallPage = 'incidents' | 'integrations' | 'escalations' | 'schedules' | 'users';
+type OnCallPage = 'alert-groups' | 'integrations' | 'escalations' | 'schedules' | 'users';
 
 const _goToPage = (page: Page, url = ''): Promise<Response> => page.goto(`${BASE_URL}${url}`);
 

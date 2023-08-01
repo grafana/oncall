@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
@@ -12,7 +13,6 @@ from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
 from .views.escalation_policy import EscalationPolicyView
 from .views.features import FeaturesAPIView
-from .views.gitops import TerraformGitOpsView, TerraformStateView
 from .views.integration_heartbeat import IntegrationHeartBeatView
 from .views.live_setting import LiveSettingViewSet
 from .views.on_call_shifts import OnCallShiftView
@@ -28,6 +28,7 @@ from .views.public_api_tokens import PublicApiTokenView
 from .views.resolution_note import ResolutionNoteView
 from .views.route_regex_debugger import RouteRegexDebuggerView
 from .views.schedule import ScheduleView
+from .views.shift_swap import ShiftSwapViewSet
 from .views.slack_channel import SlackChannelView
 from .views.slack_team_settings import (
     AcknowledgeReminderOptionsAPIView,
@@ -66,10 +67,15 @@ router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
 
+if settings.FEATURE_SHIFT_SWAPS_ENABLED:
+    router.register(r"shift_swaps", ShiftSwapViewSet, basename="shift_swap")
+
 urlpatterns = [
     path("", include(router.urls)),
     optional_slash_path("user", CurrentUserView.as_view(), name="api-user"),
     optional_slash_path("set_general_channel", SetGeneralChannel.as_view(), name="api-set-general-log-channel"),
+    optional_slash_path("organization", CurrentOrganizationView.as_view(), name="api-organization"),
+    # TODO: remove current_team routes in future release
     optional_slash_path("current_team", CurrentOrganizationView.as_view(), name="api-current-team"),
     optional_slash_path(
         "current_team/get_telegram_verification_code",
@@ -81,8 +87,6 @@ urlpatterns = [
         GetChannelVerificationCode.as_view(),
         name="api-get-channel-verification-code",
     ),
-    optional_slash_path("terraform_file", TerraformGitOpsView.as_view(), name="terraform_file"),
-    optional_slash_path("terraform_imports", TerraformStateView.as_view(), name="terraform_imports"),
     optional_slash_path("slack_settings", SlackTeamSettingsAPIView.as_view(), name="slack-settings"),
     optional_slash_path(
         "slack_settings/acknowledge_remind_options",
@@ -109,5 +113,3 @@ urlpatterns += [
     path(r"login/<backend>/", auth.overridden_login_slack_auth, name="slack-auth"),
     path(r"complete/<backend>/", auth.overridden_complete_slack_auth, name="complete-slack-auth"),
 ]
-
-urlpatterns += router.urls

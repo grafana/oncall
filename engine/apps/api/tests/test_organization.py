@@ -10,6 +10,23 @@ from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("rbac_enabled", [True, False])
+def test_get_organization_rbac_enabled(
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, rbac_enabled
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    organization.is_rbac_permissions_enabled = rbac_enabled
+    organization.save()
+
+    client = APIClient()
+    url = reverse("api-internal:api-organization")
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["rbac_enabled"] == rbac_enabled
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
@@ -18,7 +35,7 @@ from apps.api.permissions import LegacyAccessControlRole
         (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
-def test_current_team_retrieve_permissions(
+def test_organization_retrieve_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     role,
@@ -27,7 +44,7 @@ def test_current_team_retrieve_permissions(
     _, tester, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
-    url = reverse("api-internal:api-current-team")
+    url = reverse("api-internal:api-organization")
     with patch(
         "apps.api.views.organization.CurrentOrganizationView.get",
         return_value=Response(
@@ -48,7 +65,7 @@ def test_current_team_retrieve_permissions(
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
-def test_current_team_update_permissions(
+def test_organization_update_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     role,
@@ -57,7 +74,7 @@ def test_current_team_update_permissions(
     _, tester, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
-    url = reverse("api-internal:api-current-team")
+    url = reverse("api-internal:api-organization")
 
     with patch(
         "apps.api.views.organization.CurrentOrganizationView.put",
@@ -79,7 +96,7 @@ def test_current_team_update_permissions(
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
-def test_current_team_get_telegram_verification_code_permissions(
+def test_organization_get_telegram_verification_code_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     role,
@@ -103,7 +120,7 @@ def test_current_team_get_telegram_verification_code_permissions(
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
-def test_current_team_get_channel_verification_code_permissions(
+def test_organization_get_channel_verification_code_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     role,
@@ -119,7 +136,7 @@ def test_current_team_get_channel_verification_code_permissions(
 
 
 @pytest.mark.django_db
-def test_current_team_get_channel_verification_code_ok(
+def test_organization_get_channel_verification_code_ok(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
@@ -139,7 +156,7 @@ def test_current_team_get_channel_verification_code_ok(
 
 
 @pytest.mark.django_db
-def test_current_team_get_channel_verification_code_invalid(
+def test_organization_get_channel_verification_code_invalid(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):

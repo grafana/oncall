@@ -1,5 +1,4 @@
 import humanize
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
@@ -13,8 +12,7 @@ from .notify_user import notify_user_task
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def invite_user_to_join_incident(invitation_pk):
-    Invitation = apps.get_model("alerts", "Invitation")
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+    from apps.alerts.models import AlertGroupLogRecord, Invitation
 
     with transaction.atomic():
         try:
@@ -22,7 +20,7 @@ def invite_user_to_join_incident(invitation_pk):
         except IndexError:
             return f"invite_user_to_join_incident: Invitation with pk {invitation_pk} doesn't exist"
 
-        if not invitation.is_active or invitation.alert_group.is_archived:
+        if not invitation.is_active:
             return None
         if invitation.attempts_left <= 0 or invitation.alert_group.resolved:
             invitation.is_active = False

@@ -49,7 +49,7 @@ class DirectPagingSerializer(serializers.Serializer):
     alert_group = serializers.HiddenField(default=None)  # set in DirectPagingSerializer.validate
 
     title = serializers.CharField(required=False, default=None)
-    message = serializers.CharField(required=False, default=None)
+    message = serializers.CharField(required=False, default=None, allow_null=True)
 
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
 
@@ -70,7 +70,7 @@ class DirectPagingSerializer(serializers.Serializer):
 
         if alert_group_id:
             try:
-                attrs["alert_group"] = AlertGroup.unarchived_objects.get(
+                attrs["alert_group"] = AlertGroup.objects.get(
                     public_primary_key=alert_group_id, channel__organization=organization
                 )
             except ObjectDoesNotExist:

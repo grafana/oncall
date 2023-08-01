@@ -64,7 +64,6 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
   const onUpdateClickCallback = useCallback(() => {
     (id === 'new'
       ? alertReceiveChannelStore.createChannelFilter({
-          order: 0,
           alert_receive_channel: alertReceiveChannelId,
           filtering_term: filteringTerm,
           filtering_term_type: filteringTermType,

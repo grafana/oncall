@@ -1,7 +1,6 @@
 import logging
 
 import pytz
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
@@ -25,7 +24,12 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.serializers.user import (
+    CurrentUserSerializer,
+    FilterUserSerializer,
+    UserHiddenFieldsSerializer,
+    UserSerializer,
+)
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
@@ -79,10 +83,7 @@ UPCOMING_SHIFTS_MAX_DAYS = 65
 
 
 class CurrentUserView(APIView):
-    authentication_classes = (
-        MobileAppAuthTokenAuthentication,
-        PluginAuthentication,
-    )
+    authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -98,12 +99,12 @@ class CurrentUserView(APIView):
                 context["cloud_identities"] = cloud_identities
                 context["connector"] = connector
 
-        serializer = UserSerializer(request.user, context=context)
+        serializer = CurrentUserSerializer(request.user, context=context)
         return Response(serializer.data)
 
     def put(self, request):
         data = self.request.data
-        serializer = UserSerializer(request.user, data=data, context={"request": self.request})
+        serializer = CurrentUserSerializer(request.user, data=data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -249,9 +250,8 @@ class UserView(
 
         return queryset.order_by("id")
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
-
         page = self.paginate_queryset(queryset)
         if page is not None:
             context = {"request": self.request, "format": self.format_kwarg, "view": self}
@@ -272,7 +272,7 @@ class UserView(
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs) -> Response:
         context = {"request": self.request, "format": self.format_kwarg, "view": self}
         try:
             instance = self.get_object()
@@ -292,7 +292,7 @@ class UserView(
         serializer = self.get_serializer(instance, context=context)
         return Response(serializer.data)
 
-    def wrong_team_response(self):
+    def wrong_team_response(self) -> Response:
         """
         This method returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}.
         Used in case if a requested instance doesn't belong to user's current_team.
@@ -314,12 +314,12 @@ class UserView(
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    def current(self, request):
+    def current(self, request) -> Response:
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
-    def timezone_options(self, request):
+    def timezone_options(self, request) -> Response:
         return Response(pytz.common_timezones)
 
     @action(
@@ -327,11 +327,11 @@ class UserView(
         methods=["get"],
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
-    def get_verification_code(self, request, pk):
+    def get_verification_code(self, request, pk) -> Response:
         logger.info("get_verification_code: validating reCAPTCHA code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f"get_verification_code: invalid reCAPTCHA validation")
+            logger.warning("get_verification_code: invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
         logger.info('get_verification_code: pass reCAPTCHA validation"')
 
@@ -354,11 +354,11 @@ class UserView(
         methods=["get"],
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
-    def get_verification_call(self, request, pk):
+    def get_verification_call(self, request, pk) -> Response:
         logger.info("get_verification_code_via_call: validating reCAPTCHA code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f"get_verification_code_via_call: invalid reCAPTCHA validation")
+            logger.warning("get_verification_code_via_call: invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
         logger.info('get_verification_code_via_call: pass reCAPTCHA validation"')
 
@@ -381,7 +381,7 @@ class UserView(
         methods=["put"],
         throttle_classes=[VerifyPhoneNumberThrottlerPerUser, VerifyPhoneNumberThrottlerPerOrg],
     )
-    def verify_number(self, request, pk):
+    def verify_number(self, request, pk) -> Response:
         target_user = self.get_object()
         code = request.query_params.get("token", None)
         if not code:
@@ -407,7 +407,7 @@ class UserView(
             return Response("Verification code is not correct", status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["put"])
-    def forget_number(self, request, pk):
+    def forget_number(self, request, pk) -> Response:
         target_user = self.get_object()
         prev_state = target_user.insight_logs_serialized
 
@@ -426,7 +426,7 @@ class UserView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
-    def make_test_call(self, request, pk):
+    def make_test_call(self, request, pk) -> Response:
         user = self.get_object()
         try:
             phone_backend = PhoneBackend()
@@ -441,7 +441,7 @@ class UserView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
-    def send_test_sms(self, request, pk):
+    def send_test_sms(self, request, pk) -> Response:
         user = self.get_object()
         try:
             phone_backend = PhoneBackend()
@@ -456,7 +456,7 @@ class UserView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], throttle_classes=[TestPushThrottler])
-    def send_test_push(self, request, pk):
+    def send_test_push(self, request, pk) -> Response:
         user = self.get_object()
         critical = request.query_params.get("critical", "false") == "true"
 
@@ -475,7 +475,7 @@ class UserView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
-    def get_backend_verification_code(self, request, pk):
+    def get_backend_verification_code(self, request, pk) -> Response:
         user = self.get_object()
 
         backend_id = request.query_params.get("backend")
@@ -487,7 +487,7 @@ class UserView(
         return Response(code)
 
     @action(detail=True, methods=["get"])
-    def get_telegram_verification_code(self, request, pk):
+    def get_telegram_verification_code(self, request, pk) -> Response:
         user = self.get_object()
 
         if not user.is_telegram_connected:
@@ -511,7 +511,7 @@ class UserView(
         )
 
     @action(detail=True, methods=["post"])
-    def unlink_slack(self, request, pk):
+    def unlink_slack(self, request, pk) -> Response:
         user = self.get_object()
         user.slack_user_identity = None
         user.save(update_fields=["slack_user_identity"])
@@ -525,9 +525,10 @@ class UserView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
-    def unlink_telegram(self, request, pk):
+    def unlink_telegram(self, request, pk) -> Response:
         user = self.get_object()
-        TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
+        from apps.telegram.models import TelegramToUserConnector
+
         try:
             connector = TelegramToUserConnector.objects.get(user=user)
             connector.delete()
@@ -543,7 +544,7 @@ class UserView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
-    def unlink_backend(self, request, pk):
+    def unlink_backend(self, request, pk) -> Response:
         # TODO: insight logs support
         user = self.get_object()
 
@@ -566,7 +567,7 @@ class UserView(
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
-    def upcoming_shifts(self, request, pk):
+    def upcoming_shifts(self, request, pk) -> Response:
         user = self.get_object()
         try:
             days = int(request.query_params.get("days", UPCOMING_SHIFTS_DEFAULT_DAYS))
@@ -604,7 +605,7 @@ class UserView(
         return Response(upcoming, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post", "delete"])
-    def export_token(self, request, pk):
+    def export_token(self, request, pk) -> Response:
         user = self.get_object()
 
         if self.request.method == "GET":
@@ -643,11 +644,12 @@ class UserView(
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(detail=True, methods=["get"])
-    def check_availability(self, request, pk):
+    def check_availability(self, request, pk) -> Response:
         user = self.get_object()
-        warnings = check_user_availability(user=user, team=request.user.current_team)
+        warnings = check_user_availability(user=user)
         return Response(data={"warnings": warnings}, status=status.HTTP_200_OK)
 
 

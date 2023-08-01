@@ -12,7 +12,7 @@ import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.sc
 import TemplateResult from 'containers/TemplateResult/TemplateResult';
 import TemplatesAlertGroupsList, { TEMPLATE_PAGE } from 'containers/TemplatesAlertGroupsList/TemplatesAlertGroupsList';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { waitForElement } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
@@ -27,7 +27,7 @@ interface Template {
 
 interface WebhooksTemplateEditorProps {
   template: Template;
-  id: OutgoingWebhook2['id'];
+  id: OutgoingWebhook['id'];
   onHide: () => void;
   handleSubmit: (template: string) => void;
 }

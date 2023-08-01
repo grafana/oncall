@@ -61,7 +61,7 @@ import {
 } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
+import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from './RotationForm.module.css';
@@ -151,7 +151,7 @@ const RotationForm = observer((props: RotationFormProps) => {
 
         const offsetTop = Math.max(
           Math.min(coords.top - modal?.offsetHeight - 10, document.body.offsetHeight - modal?.offsetHeight - 10),
-          GRAFANA_HEADER_HEIGTH + 10
+          GRAFANA_HEADER_HEIGHT + 10
         );
 
         setOffsetTop(offsetTop);

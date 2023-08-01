@@ -12,7 +12,7 @@ weight: 300
 
 # Get started with Grafana OnCall
 
-Grafana OnCall is an incident response tool built to help DevOps and SRE teams improve their collaboration, and resolve incidents faster.
+Grafana OnCall was built to help DevOps and SRE teams improve their on-call management process and resolve incidents faster. With OnCall, users can create and manage on-call schedules, automate escalations, and monitor incident response from a central view, right within the Grafana UI. Teams no longer have to manage separate alerts from Grafana, Prometheus, and Alertmanager, lowering the risk of missing an important update and limiting the time spent receiving and responding to notifications.
 
 With a centralized view of all your alerts and alert groups, automated escalations and grouping, and on-call scheduling, Grafana
 OnCall helps ensure that alert notifications reach the right people, at the right time using the right notification method.

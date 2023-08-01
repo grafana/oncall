@@ -1,8 +1,8 @@
 import logging
 import time
+import typing
 import uuid
 
-from django.apps import apps
 from django.db import models
 
 from apps.slack.slack_client import SlackClientWithErrorHandling
@@ -12,11 +12,16 @@ from apps.slack.slack_client.exceptions import (
     SlackAPITokenException,
 )
 
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 class SlackMessage(models.Model):
+    alert_group: typing.Optional["AlertGroup"]
+
     id = models.CharField(primary_key=True, default=uuid.uuid4, editable=False, max_length=36)
 
     slack_id = models.CharField(max_length=100)
@@ -72,7 +77,7 @@ class SlackMessage(models.Model):
             self.save()
         return self._slack_team_identity
 
-    def get_alert_group(self):
+    def get_alert_group(self) -> "AlertGroup":
         try:
             return self._alert_group
         except SlackMessage._alert_group.RelatedObjectDoesNotExist:
@@ -111,7 +116,8 @@ class SlackMessage(models.Model):
             return self.cached_permalink
 
     def send_slack_notification(self, user, alert_group, notification_policy):
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicyLogRecord
+
         slack_message = alert_group.get_slack_message()
         user_verbal = user.get_username_with_slack_verbal(mention=True)
 

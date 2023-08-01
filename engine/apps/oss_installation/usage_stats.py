@@ -3,7 +3,6 @@ import platform
 from dataclasses import asdict, dataclass
 
 import requests
-from django.apps import apps
 from django.conf import settings
 from django.db.models import Sum
 
@@ -27,7 +26,8 @@ class UsageStatsReport:
 
 class UsageStatsService:
     def get_usage_stats_report(self):
-        OssInstallation = apps.get_model("oss_installation", "OssInstallation")
+        from apps.oss_installation.models import OssInstallation
+
         metrics = {}
         metrics["active_users_count"] = active_oss_users_count()
         total_alert_groups = AlertGroupCounter.objects.aggregate(Sum("value")).get("value__sum", None)

@@ -60,7 +60,7 @@ const IntegrationHelper = {
   },
 
   hasChatopsInstalled(store: RootStore) {
-    const hasSlack = Boolean(store.teamStore.currentTeam?.slack_team_identity);
+    const hasSlack = Boolean(store.organizationStore.currentOrganization?.slack_team_identity);
     const hasTelegram =
       store.hasFeature(AppFeature.Telegram) && store.telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
     return hasSlack || hasTelegram;
@@ -70,8 +70,8 @@ const IntegrationHelper = {
     const channels: Array<{ name: string; icon: IconName }> = [];
 
     if (store.hasFeature(AppFeature.Slack) && channelFilter.notify_in_slack) {
-      const matchingSlackChannel = store.teamStore.currentTeam?.slack_channel?.id
-        ? store.slackChannelStore.items[store.teamStore.currentTeam.slack_channel?.id]
+      const matchingSlackChannel = store.organizationStore.currentOrganization?.slack_channel?.id
+        ? store.slackChannelStore.items[store.organizationStore.currentOrganization.slack_channel?.id]
         : undefined;
       if (channelFilter.slack_channel?.display_name || matchingSlackChannel?.display_name) {
         channels.push({

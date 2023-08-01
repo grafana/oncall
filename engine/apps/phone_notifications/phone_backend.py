@@ -2,7 +2,6 @@ import logging
 from typing import Optional
 
 import requests
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
@@ -40,7 +39,8 @@ class PhoneBackend:
         notify_by_call makes a notification call to a user using configured phone provider or cloud notifications.
         It handles all business logic related to the call.
         """
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicyLogRecord
+
         log_record_error_code = None
 
         renderer = AlertGroupPhoneCallRenderer(alert_group)
@@ -120,10 +120,10 @@ class PhoneBackend:
         if response.status_code == 200:
             logger.info("PhoneBackend._notify_by_cloud_call: OK")
         elif response.status_code == 400 and response.json().get("error") == "limit-exceeded":
-            logger.info(f"PhoneBackend._notify_by_cloud_call: phone calls limit exceeded")
+            logger.info("PhoneBackend._notify_by_cloud_call: phone calls limit exceeded")
             raise CallsLimitExceeded
         elif response.status_code == 400 and response.json().get("error") == "number-not-verified":
-            logger.info(f"PhoneBackend._notify_by_cloud_call: cloud number not verified")
+            logger.info("PhoneBackend._notify_by_cloud_call: cloud number not verified")
             raise NumberNotVerified
         elif response.status_code == 404:
             logger.info(f"PhoneBackend._notify_by_cloud_call: user not found id={user.id} email={user.email}")
@@ -145,7 +145,8 @@ class PhoneBackend:
         SMS itself is handled by phone provider.
         """
 
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+        from apps.base.models import UserNotificationPolicyLogRecord
+
         log_record_error_code = None
 
         renderer = AlertGroupSmsRenderer(alert_group)

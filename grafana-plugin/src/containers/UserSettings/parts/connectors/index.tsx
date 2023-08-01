@@ -1,5 +1,7 @@
 import React, { FC } from 'react';
 
+import { Legend } from '@grafana/ui';
+
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -19,12 +21,13 @@ interface ConnectorsProps {
 export const Connectors: FC<ConnectorsProps> = (props) => {
   const store = useStore();
   return (
-    <div>
+    <>
       <PhoneConnector {...props} />
+      <MobileAppConnector {...props} />
       <SlackConnector {...props} />
       {store.hasFeature(AppFeature.Telegram) && <TelegramConnector {...props} />}
+      <Legend>Calendar export</Legend>
       <ICalConnector {...props} />
-      <MobileAppConnector {...props} />
-    </div>
+    </>
   );
 };

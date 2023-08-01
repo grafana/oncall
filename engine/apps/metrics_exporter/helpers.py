@@ -2,7 +2,6 @@ import datetime
 import random
 import typing
 
-from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 
@@ -29,7 +28,8 @@ if typing.TYPE_CHECKING:
 
 
 def get_organization_ids_from_db():
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+    from apps.alerts.models import AlertReceiveChannel
+
     # get only not deleted organizations that have integrations
     organizations_ids = (
         AlertReceiveChannel.objects.filter(organization__deleted_at__isnull=True)

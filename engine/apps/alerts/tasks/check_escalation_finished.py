@@ -3,7 +3,6 @@ import typing
 
 import requests
 from celery import shared_task
-from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
@@ -26,7 +25,7 @@ def send_alert_group_escalation_auditor_task_heartbeat() -> None:
         requests.get(heartbeat_url).raise_for_status()
         task_logger.info(f"Heartbeat successfully sent to {heartbeat_url}")
     else:
-        task_logger.info(f"Skipping sending heartbeat as no heartbeat URL is configured")
+        task_logger.info("Skipping sending heartbeat as no heartbeat URL is configured")
 
 
 def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
@@ -34,10 +33,19 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     alert_group_id = alert_group.id
     base_msg = f"Alert group {alert_group_id}"
 
-    if not escalation_snapshot:
-        raise AlertGroupEscalationPolicyExecutionAuditException(
-            f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
+    if not alert_group.escalation_chain_exists:
+        task_logger.info(
+            f"{base_msg} does not have an escalation chain associated with it, and therefore it is expected "
+            "that it will not have an escalation snapshot, skipping further validation"
         )
+        return
+
+    if not escalation_snapshot:
+        msg = f"{base_msg} does not have an escalation snapshot associated with it, this should never occur"
+
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
     task_logger.info(f"{base_msg} has an escalation snapshot associated with it, auditing if it executed properly")
 
     escalation_policies_snapshots = escalation_snapshot.escalation_policies_snapshots
@@ -100,12 +108,12 @@ def check_escalation_finished_task() -> None:
     """
     don't retry this task, the idea is to be alerted of failures
     """
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    from apps.alerts.models import AlertGroup
 
     now = timezone.now()
     two_days_ago = now - datetime.timedelta(days=2)
 
-    alert_groups = AlertGroup.all_objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(
+    alert_groups = AlertGroup.objects.using(get_random_readonly_database_key_if_present_otherwise_default()).filter(
         ~Q(silenced=True, silenced_until__isnull=True),  # filter silenced forever alert_groups
         # here we should query maintenance_uuid rather than joining on channel__integration
         # and checking for something like ~Q(channel__integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE)
@@ -118,8 +126,11 @@ def check_escalation_finished_task() -> None:
         started_at__range=(two_days_ago, now),
     )
 
-    if not alert_groups.exists():
-        task_logger.info("There are no alert groups to audit, everything is good :)")
+    task_logger.info(
+        f"There are {len(alert_groups)} alert group(s) to audit"
+        if alert_groups.exists()
+        else "There are no alert groups to audit, everything is good :)"
+    )
 
     alert_group_ids_that_failed_audit: typing.List[str] = []
 
@@ -130,8 +141,10 @@ def check_escalation_finished_task() -> None:
             alert_group_ids_that_failed_audit.append(str(alert_group.id))
 
     if alert_group_ids_that_failed_audit:
-        raise AlertGroupEscalationPolicyExecutionAuditException(
-            f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
-        )
+        msg = f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
 
+        task_logger.warning(msg)
+        raise AlertGroupEscalationPolicyExecutionAuditException(msg)
+
+    task_logger.info("There were no alert groups that failed auditing")
     send_alert_group_escalation_auditor_task_heartbeat()

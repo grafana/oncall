@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 
@@ -13,14 +12,12 @@ from .task_logger import task_logger
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def unsilence_task(alert_group_pk):
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+    from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+
     task_logger.info(f"Start unsilence_task for alert_group {alert_group_pk}")
     with transaction.atomic():
         try:
-            alert_group = AlertGroup.unarchived_objects.filter(pk=alert_group_pk).select_for_update()[
-                0
-            ]  # Lock alert_group:
+            alert_group = AlertGroup.objects.filter(pk=alert_group_pk).select_for_update()[0]  # Lock alert_group:
         except IndexError:
             task_logger.info(f"unsilence_task. alert_group {alert_group_pk} doesn't exist")
             return

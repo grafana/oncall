@@ -76,7 +76,10 @@ The above command returns JSON structured in the following way:
       "username": "alex",
       "role": "admin"
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 100,
+  "total_pages": 1
 }
 ```
 
