@@ -173,7 +173,7 @@ jobs:
       - name: Unit Test Backend
         working-directory: engine
         run: |
-          apt-get update && apt-get install -y netcat
+          apt-get update && apt-get install -y netcat-traditional
           pip install -r requirements.txt -r requirements-dev.txt
           ./wait_for_test_mysql_start.sh && pytest -x
 
@@ -261,7 +261,7 @@ jobs:
       - name: Unit Test Backend
         working-directory: engine
         run: |
-          apt-get update && apt-get install -y netcat
+          apt-get update && apt-get install -y netcat-traditional
           pip install -r requirements.txt -r requirements-dev.txt
           pytest -x
 

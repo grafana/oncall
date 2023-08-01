@@ -65,7 +65,7 @@ steps:
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
-      - apt-get update && apt-get install -y netcat
+      - apt-get update && apt-get install -y netcat-traditional
       - cd engine/
       - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
@@ -313,6 +313,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 7fd3a084921ab56dac055ceb4929378fa7c16f02f856a63fdba88b87a44ddb26
+hmac: a5412bf88ceb62fffdfb9926d3f6f066c80ccbe23114aab6540c4b748137f73a
 
 ...
