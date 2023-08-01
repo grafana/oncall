@@ -4,6 +4,7 @@ import typing
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from apps.schedules import exceptions
@@ -151,7 +152,7 @@ class ShiftSwapRequest(models.Model):
         return self.schedule.organization
 
     @property
-    def possible_benefactors(self):
+    def possible_benefactors(self) -> QuerySet["User"]:
         return self.schedule.related_users().exclude(pk=self.beneficiary_id)
 
     @property

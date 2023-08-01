@@ -641,7 +641,12 @@ def _shift_swap_request_cache_key(shift_swap_request: ShiftSwapRequest, user: Us
     return f"ssr_push:{shift_swap_request.pk}:{user.pk}"
 
 
-def _shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings):
+def _shift_swap_request_fcm_message(
+    shift_swap_request: ShiftSwapRequest,
+    user: User,
+    device_to_notify: "FCMDevice",
+    mobile_app_user_settings: "MobileAppUserSettings",
+) -> Message:
     from apps.mobile_app.models import MobileAppUserSettings
 
     thread_id = f"{shift_swap_request.public_primary_key}:{user.public_primary_key}:ssr"
