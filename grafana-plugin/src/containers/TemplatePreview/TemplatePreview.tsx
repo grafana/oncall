@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
@@ -25,7 +25,7 @@ interface TemplatePreviewProps {
   payload?: JSON;
   alertReceiveChannelId: AlertReceiveChannel['id'];
   alertGroupId?: Alert['pk'];
-  outgoingWebhookId?: OutgoingWebhook2['id'];
+  outgoingWebhookId?: OutgoingWebhook['id'];
   templatePage: TEMPLATE_PAGE;
 }
 interface ConditionalResult {
@@ -55,11 +55,11 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
-  const { alertReceiveChannelStore, alertGroupStore, outgoingWebhook2Store } = store;
+  const { alertReceiveChannelStore, alertGroupStore, outgoingWebhookStore } = store;
 
   const handleTemplateBodyChange = useDebouncedCallback(() => {
     (templatePage === TEMPLATE_PAGE.Webhooks
-      ? outgoingWebhook2Store.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
+      ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
       : alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
       : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
