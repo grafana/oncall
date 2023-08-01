@@ -253,6 +253,8 @@ def test_notify_shift_swap_request_success(
 def test_notify_user_about_shift_swap_request(
     make_organization, make_user, make_schedule, make_shift_swap_request, settings
 ):
+    settings.FEATURE_SHIFT_SWAPS_ENABLED = True
+
     organization = make_organization()
     beneficiary = make_user(organization=organization)
     benefactor = make_user(organization=organization)
@@ -279,6 +281,7 @@ def test_notify_user_about_shift_swap_request(
     assert message.data["type"] == MessageType.INFO
     assert message.data["title"] == "You have a new shift swap request"
     assert message.data["subtitle"] == "11/9/23, 7:38\u202fPM - 11/10/23, 7:38\u202fPM\nSchedule Test"
+    assert message.data["resource_url"] == f"/api/internal/v1/shift_swaps/{shift_swap_request.public_primary_key}"
     assert message.apns.payload.aps.sound.critical is False
 
 
