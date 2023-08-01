@@ -598,34 +598,9 @@ def _should_notify_user(shift_swap_request: ShiftSwapRequest, user: User, now: d
 
     return (
         mobile_app_user_settings.info_notifications_enabled
-        and _is_in_working_hours(user, now)
+        and user.is_in_working_hours(now, mobile_app_user_settings.time_zone)
         and not _already_notified(shift_swap_request, user)
     )
-
-
-def _is_in_working_hours(user: User, now: datetime.datetime) -> bool:
-    # avoid circular import
-    from apps.mobile_app.models import MobileAppUserSettings
-
-    today = now.date()
-    day_name = today.strftime("%A").lower()
-
-    # TODO: refactor working hours in User model
-    day_start_time_str = user.working_hours[day_name][0]["start"]
-    day_start_time = datetime.time.fromisoformat(day_start_time_str)
-
-    day_end_time_str = user.working_hours[day_name][0]["end"]
-    day_end_time = datetime.time.fromisoformat(day_end_time_str)
-
-    try:
-        user_settings = MobileAppUserSettings.objects.get(user=user)
-    except MobileAppUserSettings.DoesNotExist:
-        return False
-
-    day_start = datetime.datetime.combine(today, day_start_time, tzinfo=pytz.timezone(user_settings.time_zone))
-    day_end = datetime.datetime.combine(today, day_end_time, tzinfo=pytz.timezone(user_settings.time_zone))
-
-    return day_start <= now <= day_end
 
 
 def _mark_notified(shift_swap_request: ShiftSwapRequest, user: User) -> None:

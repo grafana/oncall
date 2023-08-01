@@ -1,8 +1,10 @@
+import datetime
 import json
 import logging
 import typing
 from urllib.parse import urljoin
 
+import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -282,6 +284,24 @@ class User(models.Model):
     @timezone.setter
     def timezone(self, value):
         self._timezone = value
+
+    def is_in_working_hours(self, dt: datetime.datetime, timezone: typing.Optional[str] = None) -> bool:
+        if not timezone:
+            timezone = self.timezone
+
+        today = dt.date()
+        day_name = today.strftime("%A").lower()
+
+        day_start_time_str = self.working_hours[day_name][0]["start"]
+        day_start_time = datetime.time.fromisoformat(day_start_time_str)
+
+        day_end_time_str = self.working_hours[day_name][0]["end"]
+        day_end_time = datetime.time.fromisoformat(day_end_time_str)
+
+        day_start = datetime.datetime.combine(today, day_start_time, tzinfo=pytz.timezone(timezone))
+        day_end = datetime.datetime.combine(today, day_end_time, tzinfo=pytz.timezone(timezone))
+
+        return day_start <= dt <= day_end
 
     def short(self):
         return {

@@ -246,15 +246,15 @@ def test_should_notify_user(make_organization, make_user, make_schedule, make_sh
     MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=True)
     assert _should_notify_user(shift_swap_request, benefactor, now) is False
 
-    with patch("apps.mobile_app.tasks._is_in_working_hours", return_value=True):
+    with patch.object(benefactor, "is_in_working_hours", return_value=True):
         with patch("apps.mobile_app.tasks._already_notified", return_value=True):
             assert _should_notify_user(shift_swap_request, benefactor, now) is False
 
-    with patch("apps.mobile_app.tasks._is_in_working_hours", return_value=False):
+    with patch.object(benefactor, "is_in_working_hours", return_value=False):
         with patch("apps.mobile_app.tasks._already_notified", return_value=False):
             assert _should_notify_user(shift_swap_request, benefactor, now) is False
 
-    with patch("apps.mobile_app.tasks._is_in_working_hours", return_value=True):
+    with patch.object(benefactor, "is_in_working_hours", return_value=True):
         with patch("apps.mobile_app.tasks._already_notified", return_value=False):
             assert _should_notify_user(shift_swap_request, benefactor, now) is True
 
