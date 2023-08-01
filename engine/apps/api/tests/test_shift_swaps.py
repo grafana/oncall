@@ -37,8 +37,10 @@ def ssr_setup(
     return _ssr_setup
 
 
-def _construct_serialized_object(ssr: ShiftSwapRequest, status="open", description=None, benefactor=None):
-    return {
+def _construct_serialized_object(
+    ssr: ShiftSwapRequest, status="open", description=None, benefactor=None, list_response=False
+):
+    data = {
         "id": ssr.public_primary_key,
         "created_at": serialize_datetime_as_utc_timestamp(ssr.created_at),
         "updated_at": serialize_datetime_as_utc_timestamp(ssr.updated_at),
@@ -50,6 +52,11 @@ def _construct_serialized_object(ssr: ShiftSwapRequest, status="open", descripti
         "benefactor": benefactor,
         "description": description,
     }
+
+    if not list_response:
+        data["shifts"] = ssr.shifts()
+
+    return data
 
 
 def _build_expected_update_response(ssr, modified_data, updated_at_ts, **kwargs):
@@ -73,7 +80,7 @@ def test_list(ssr_setup, make_user_auth_headers):
         "current_page_number": 1,
         "total_pages": 1,
         "results": [
-            _construct_serialized_object(ssr, description=description),
+            _construct_serialized_object(ssr, description=description, list_response=True),
         ],
     }
 
@@ -466,7 +473,6 @@ def test_partial_update_time_related_fields(ssr_setup, make_user_auth_headers):
     assert response.json() == expected_response
 
 
-@pytest.mark.skip(reason="Skipping to unblock release")
 @pytest.mark.django_db
 def test_related_shifts(ssr_setup, make_on_call_shift, make_user_auth_headers):
     ssr, beneficiary, token, _ = ssr_setup()
@@ -492,7 +498,7 @@ def test_related_shifts(ssr_setup, make_on_call_shift, make_user_auth_headers):
     on_call_shift.add_rolling_users([[user]])
 
     client = APIClient()
-    url = reverse("api-internal:shift_swap-shifts", kwargs={"pk": ssr.public_primary_key})
+    url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
     auth_headers = make_user_auth_headers(beneficiary, token)
     response = client.get(url, **auth_headers)
 
@@ -509,7 +515,7 @@ def test_related_shifts(ssr_setup, make_on_call_shift, make_user_auth_headers):
     ]
     returned_events = [
         (e["start"], e["end"], e["users"][0]["pk"], e["users"][0]["swap_request"]["pk"])
-        for e in response_json["events"]
+        for e in response_json["shifts"]
     ]
     assert returned_events == expected
 
@@ -761,29 +767,4 @@ def test_take_permissions(
     url = reverse("api-internal:shift_swap-take", kwargs={"pk": ssr.public_primary_key})
 
     response = client.post(url, format="json", **make_user_auth_headers(benefactor, token))
-    assert response.status_code == expected_status
-
-
-@patch("apps.api.views.shift_swap.ShiftSwapViewSet.shifts", return_value=mock_success_response)
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    "role,expected_status",
-    [
-        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
-        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
-    ],
-)
-def test_list_shifts_permissions(
-    mock_endpoint_handler,
-    ssr_setup,
-    make_user_auth_headers,
-    role,
-    expected_status,
-):
-    ssr, beneficiary, token, _ = ssr_setup(beneficiary_role=role)
-    client = APIClient()
-    url = reverse("api-internal:shift_swap-shifts", kwargs={"pk": ssr.public_primary_key})
-
-    response = client.get(url, format="json", **make_user_auth_headers(beneficiary, token))
     assert response.status_code == expected_status
