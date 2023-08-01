@@ -365,6 +365,34 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
   }
 
+  async getGrafanaAlertingContactPoints(): Promise<
+    { label: string; value: string; contactPoints: { label: string; value: string }[] }[]
+  > {
+    const contactPoints = [
+      {
+        label: 'cp-1',
+        value: 'cp-1',
+      },
+      {
+        label: 'cp-2',
+        value: 'cp-2',
+      },
+    ];
+
+    return Promise.resolve([
+      {
+        label: 'alertmanager-1',
+        value: 'alertmanager-1',
+        contactPoints: [...contactPoints],
+      },
+      {
+        label: 'alertmanager-2',
+        value: 'alertmanager-2',
+        contactPoints: [...contactPoints],
+      },
+    ]);
+  }
+
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const { integration_log } = await makeRequest(`/alert_receive_channel_access_log/${alertReceiveChannelId}/`, {});
 

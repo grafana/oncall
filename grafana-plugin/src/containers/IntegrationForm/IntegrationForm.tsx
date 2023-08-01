@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useEffect } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
@@ -77,6 +77,11 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       )
     : [];
 
+  let extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
+  if (selectedOption?.value === 'grafana_alerting') {
+    extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
+  }
+
   return (
     <>
       {showIntegrarionsListDrawer && (
@@ -106,12 +111,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
         <Drawer scrollableContent title={getTitle()} onClose={onHide} closeOnMaskClick={false} width="640px">
           <div className={cx('content')}>
             <VerticalGroup>
-              <GForm
-                form={form}
-                data={data}
-                customFieldSectionRenderer={CustomFieldSectionRenderer}
-                onSubmit={handleSubmit}
-              />
+              <GForm form={form} data={data} onSubmit={handleSubmit} {...extraGFormProps} />
 
               {isTableView && <HowTheIntegrationWorks selectedOption={selectedOption} />}
 
@@ -203,11 +203,20 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
     },
   ];
 
-  const [selectedRadioOption, setSelectedRadioOption] = useState<string>(radioOptions[0].value);
+  const [isExistingContactPoint, setIsExistingContactPoint] = useState(true);
   const [selectedAlertManagerOption, setSelectedAlertManagerOption] = useState<string>();
   const [selectedContactPointOption, setSelectedContactPointOption] = useState<string>();
+  const { alertReceiveChannelStore } = useStore();
 
-  const selectOptions = [];
+  const [alertManagerOptions, setAlertManagerOptions] = useState<SelectableValue<string>[]>([]);
+  const [contactPointOptions, setContactPointOptions] = useState<SelectableValue<string>[]>([]);
+
+  useEffect(() => {
+    (async function () {
+      const result = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
+      setAlertManagerOptions(result);
+    })();
+  }, []);
 
   return (
     <div className={cx('extra-fields')}>
@@ -220,19 +229,19 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
         <div className={cx('extra-fields__radio')}>
           <RadioButtonGroup
             options={radioOptions}
-            value={selectedRadioOption}
-            onChange={(radioValue) => setSelectedRadioOption(radioValue)}
+            value={isExistingContactPoint ? 'existing' : 'new'}
+            onChange={(radioValue) => setIsExistingContactPoint(radioValue === 'existing')}
           />
         </div>
 
         <Select
-          options={selectOptions}
+          options={alertManagerOptions}
           onChange={onAlertManagerChange}
           value={selectedAlertManagerOption}
           placeholder="Select Alert Manager"
         />
         <Select
-          options={selectOptions}
+          options={contactPointOptions}
           onChange={onContactPointChange}
           value={selectedContactPointOption}
           placeholder="Select Contact Point"
@@ -243,6 +252,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
   function onAlertManagerChange(option: SelectableValue<string>) {
     setSelectedAlertManagerOption(option.value);
+    setContactPointOptions((alertManagerOptions.find((o) => o.value === option.value) as any)?.contactPoints || []);
   }
 
   function onContactPointChange(option: SelectableValue<string>) {

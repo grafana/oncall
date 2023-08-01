@@ -182,6 +182,9 @@ class GForm extends React.Component<GFormProps, {}> {
               return <CustomFieldSectionRenderer control={control} formItem={formItem} onChange={this.onChange} />;
             }
 
+            // skip input render when there's no Custom Renderer
+            if (formItem.type === FormItemType.Other) return undefined;
+
             return (
               <Field
                 key={formIndex}

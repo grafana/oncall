@@ -340,6 +340,13 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     return [
       {
         isCollapsible: false,
+        customIcon: 'grafana',
+        canHoverIcon: false,
+        collapsedView: null,
+        expandedView: () => <ContactPointComponent />,
+      },
+      {
+        isCollapsible: false,
         customIcon: 'plug',
         canHoverIcon: false,
         collapsedView: null,
@@ -1082,6 +1089,16 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
     openNotification('Maintenance has been stopped');
     await alertReceiveChannelStore.updateItem(id);
   }
+};
+
+const ContactPointComponent: React.FC<{}> = ({}) => {
+  return (
+    <IntegrationBlock
+      noContent={false}
+      heading={<div className={cx('contact-point__container')}>container</div>}
+      content={<div className={cx('contact-point__content')}>content</div>}
+    />
+  );
 };
 
 const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {

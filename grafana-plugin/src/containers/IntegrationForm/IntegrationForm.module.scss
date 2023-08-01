@@ -75,7 +75,10 @@
 }
 
 .extra-fields {
+  padding: 12px;
   margin-bottom: 24px;
+  border: var(--border-weak);
+  border-radius: var(--border-radius);
 
   &__radio {
     margin-bottom: 12px;
