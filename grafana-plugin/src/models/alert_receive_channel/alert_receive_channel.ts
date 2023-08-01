@@ -228,7 +228,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   @action
-  async migrateChannelFilter(id: AlertReceiveChannel['id']) {
+  async migrateChannel(id: AlertReceiveChannel['id']) {
     return await makeRequest(`/alert_receive_channels/${id}/migrate`, {
       method: 'POST',
     });

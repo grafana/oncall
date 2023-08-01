@@ -1040,7 +1040,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
   function onIntegrationMigrate() {
     alertReceiveChannelStore
-      .migrateChannelFilter(alertReceiveChannel.id)
+      .migrateChannel(alertReceiveChannel.id)
       .then(() => {
         setConfirmModal(undefined);
         openNotification('Integration has been successfully migrated.');
