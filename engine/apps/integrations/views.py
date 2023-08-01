@@ -105,7 +105,7 @@ class AlertManagerAPIView(
                 + str(alert_receive_channel.get_integration_display())
             )
 
-        if has_legacy_prefix(alert_receive_channel):
+        if has_legacy_prefix(alert_receive_channel.integration):
             self.process_v1(request, alert_receive_channel)
         else:
             self.process_v2(request, alert_receive_channel)
