@@ -646,7 +646,7 @@ class OnCallSchedule(PolymorphicModel):
             while i < len(events):
                 event = events.pop(i)
 
-                if event["start"] > swap.swap_end or event["end"] < swap.swap_start:
+                if event["start"] >= swap.swap_end or event["end"] <= swap.swap_start:
                     # event outside the swap period, keep as it is and continue
                     i = _insert_event(i, event)
                     continue
