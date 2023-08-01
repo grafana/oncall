@@ -166,7 +166,7 @@ class GrafanaAlertingAPIView(AlertManagerAPIView):
     def check_integration_type(self, alert_receive_channel):
         return alert_receive_channel.integration in {
             AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
-            AlertReceiveChannel.INTEGRATION_LEGACGRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
         }
 
 
