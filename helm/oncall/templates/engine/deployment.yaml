@@ -81,6 +81,9 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
+      {{- with .Values.engine.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
       {{- with .Values.engine.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -93,7 +96,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.engine.topologySpreadConstraints }}
+      {{- with .Values.engine.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}

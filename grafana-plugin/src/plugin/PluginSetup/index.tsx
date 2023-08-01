@@ -9,6 +9,7 @@ import { AppRootProps } from 'types';
 import logo from 'assets/img/logo.svg';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
+import loadJs from 'utils/loadJs';
 
 export type PluginSetupProps = AppRootProps & {
   InitializedComponent: (props: AppRootProps) => JSX.Element;
@@ -35,8 +36,13 @@ const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => 
 const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
   const store = useStore();
   const setupPlugin = useCallback(() => store.setupPlugin(props.meta), [props.meta]);
+
   useEffect(() => {
-    setupPlugin();
+    (async function () {
+      await setupPlugin();
+      store.recaptchaSiteKey &&
+        loadJs(`https://www.google.com/recaptcha/api.js?render=${store.recaptchaSiteKey}`, store.recaptchaSiteKey);
+    })();
   }, [setupPlugin]);
 
   if (store.initializationError) {

@@ -18,9 +18,10 @@ from emoji import emojize
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
+from apps.alerts.tasks import disable_maintenance
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
+from apps.integrations.legacy_prefix import remove_legacy_prefix
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.metrics_exporter.helpers import (
@@ -339,7 +340,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def description(self):
-        if self.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
+        # TODO: AMV2: Remove this check after legacy integrations are migrated.
+        if self.integration == AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING:
             contact_points = self.contact_points.all()
             rendered_description = jinja_template_env.from_string(self.config.description).render(
                 is_finished_alerting_setup=self.is_finished_alerting_setup,
@@ -421,7 +423,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
             return None
-        return create_engine_url(f"integrations/v1/{self.config.slug}/{self.token}/")
+        slug = remove_legacy_prefix(self.config.slug)
+        return create_engine_url(f"integrations/v1/{slug}/{self.token}/")
 
     @property
     def inbound_email(self):
@@ -552,7 +555,12 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         if payload is None:
             payload = self.config.example_payload
 
-        if self.has_alertmanager_payload_structure:
+        # hack to keep demo alert working for integration with legacy alertmanager behaviour.
+        if self.integration in {
+            AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
+            AlertReceiveChannel.INTEGRATION_GRAFANA,
+        }:
             alerts = payload.get("alerts", None)
             if not isinstance(alerts, list) or not len(alerts):
                 raise UnableToSendDemoAlert(
@@ -573,12 +581,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             )
 
     @property
-    def has_alertmanager_payload_structure(self):
-        return self.integration in (
-            AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
-            AlertReceiveChannel.INTEGRATION_GRAFANA,
-            AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
-        )
+    def based_on_alertmanager(self):
+        return getattr(self.config, "based_on_alertmanager", False)
 
     # Insight logs
     @property
@@ -652,14 +656,3 @@ def listen_for_alertreceivechannel_model_save(
         metrics_remove_deleted_integration_from_cache(instance)
     else:
         metrics_update_integration_cache(instance)
-
-    if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
-        if created:
-            instance.grafana_alerting_sync_manager.create_contact_points()
-        # do not trigger sync contact points if field "is_finished_alerting_setup" was updated
-        elif (
-            kwargs is None
-            or not kwargs.get("update_fields")
-            or "is_finished_alerting_setup" not in kwargs["update_fields"]
-        ):
-            sync_grafana_alerting_contact_points.apply_async((instance.pk,), countdown=5)

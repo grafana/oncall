@@ -49,7 +49,7 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
@@ -59,13 +59,13 @@ steps:
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
-      - apt-get update && apt-get install -y netcat
+      - apt-get update && apt-get install -y netcat-traditional
       - cd engine/
       - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
@@ -313,6 +313,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: f09cde0461e15ca192f16ffb9d92f802ed127988643581e95a2fbdbba720fb89
+hmac: a5412bf88ceb62fffdfb9926d3f6f066c80ccbe23114aab6540c4b748137f73a
 
 ...
