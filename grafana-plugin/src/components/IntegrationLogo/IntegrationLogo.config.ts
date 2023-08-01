@@ -1,8 +1,10 @@
 export const logoCoors: { [key: string]: { x: number; y: number } } = {
   grafana: { x: 9, y: 0 },
   grafana_alerting: { x: 9, y: 0 },
+  legacy_grafana_alerting: { x: 9, y: 0 },
   webhook: { x: 2, y: 14 },
   alertmanager: { x: 12, y: 4 },
+  legacy_alertmanager: { x: 12, y: 4 },
   kapacitor: { x: 10, y: 1 },
   fabric: { x: 8, y: 7 },
   newrelic: { x: 0, y: 11 },
