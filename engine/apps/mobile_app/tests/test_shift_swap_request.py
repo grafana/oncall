@@ -50,10 +50,10 @@ def test_get_shift_swap_requests_to_notify_starts_soon(
         schedule, user, swap_start=swap_start, swap_end=swap_end, created_at=now
     )
 
-    assert list(_get_shift_swap_requests_to_notify(now - MICROSECOND)) == []
-    assert list(_get_shift_swap_requests_to_notify(now)) == [shift_swap_request]
-    assert list(_get_shift_swap_requests_to_notify(now + SSR_NOTIFICATION_WINDOW)) == [shift_swap_request]
-    assert list(_get_shift_swap_requests_to_notify(now + SSR_NOTIFICATION_WINDOW + MICROSECOND)) == []
+    assert _get_shift_swap_requests_to_notify(now - MICROSECOND) == []
+    assert _get_shift_swap_requests_to_notify(now) == [shift_swap_request]
+    assert _get_shift_swap_requests_to_notify(now + SSR_NOTIFICATION_WINDOW) == [shift_swap_request]
+    assert _get_shift_swap_requests_to_notify(now + SSR_NOTIFICATION_WINDOW + MICROSECOND) == []
 
 
 @pytest.mark.django_db
@@ -72,9 +72,9 @@ def test_get_shift_swap_requests_to_notify_starts_very_soon(
         schedule, user, swap_start=swap_start, swap_end=swap_end, created_at=now
     )
 
-    assert list(_get_shift_swap_requests_to_notify(now - MICROSECOND)) == []
-    assert list(_get_shift_swap_requests_to_notify(now)) == [shift_swap_request]
-    assert list(_get_shift_swap_requests_to_notify(now + timezone.timedelta(minutes=1))) == []
+    assert _get_shift_swap_requests_to_notify(now - MICROSECOND) == []
+    assert _get_shift_swap_requests_to_notify(now) == [shift_swap_request]
+    assert _get_shift_swap_requests_to_notify(now + timezone.timedelta(minutes=1)) == []
 
 
 @pytest.mark.django_db
@@ -93,19 +93,15 @@ def test_get_shift_swap_requests_to_notify_starts_not_soon(
         schedule, user, swap_start=swap_start, swap_end=swap_end, created_at=now
     )
 
-    assert list(_get_shift_swap_requests_to_notify(now)) == []
-    assert list(_get_shift_swap_requests_to_notify(swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET - MICROSECOND)) == []
-    assert list(_get_shift_swap_requests_to_notify(swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET)) == [
-        shift_swap_request
-    ]
-    assert list(
-        _get_shift_swap_requests_to_notify(swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET + SSR_NOTIFICATION_WINDOW)
+    assert _get_shift_swap_requests_to_notify(now) == []
+    assert _get_shift_swap_requests_to_notify(swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET - MICROSECOND) == []
+    assert _get_shift_swap_requests_to_notify(swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET) == [shift_swap_request]
+    assert _get_shift_swap_requests_to_notify(
+        swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET + SSR_NOTIFICATION_WINDOW
     ) == [shift_swap_request]
     assert (
-        list(
-            _get_shift_swap_requests_to_notify(
-                swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET + SSR_NOTIFICATION_WINDOW + MICROSECOND
-            )
+        _get_shift_swap_requests_to_notify(
+            swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET + SSR_NOTIFICATION_WINDOW + MICROSECOND
         )
         == []
     )

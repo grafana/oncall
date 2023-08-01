@@ -11,7 +11,6 @@ import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import DateTimeField, ExpressionWrapper, F, Max, QuerySet
 from django.utils import timezone
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
@@ -528,34 +527,24 @@ def notify_shift_swap_requests() -> None:
         notify_shift_swap_request.delay(shift_swap_request.pk)
 
 
-def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> QuerySet[ShiftSwapRequest]:
+def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[ShiftSwapRequest]:
     """
     Returns shifts swap requests that are open and are in the notification window.
     This method can return the same shift swap request multiple times while it's in the notification window,
     but users are only notified once per shift swap request (see _mark_shift_swap_request_notified_for_user).
     """
 
-    # This is the same as notification_window_start = max(created_at, swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET)
-    notification_window_start = Max(
-        F("created_at"),
-        ExpressionWrapper(F("swap_start") - SSR_EARLIEST_NOTIFICATION_OFFSET, output_field=DateTimeField()),
-    )
+    shift_swap_requests_in_notification_window = []
+    for shift_swap_request in ShiftSwapRequest.objects.filter(benefactor__isnull=True, swap_start__gt=now):
+        notification_window_start = max(
+            shift_swap_request.created_at, shift_swap_request.swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET
+        )
+        notification_window_end = min(notification_window_start + SSR_NOTIFICATION_WINDOW, shift_swap_request.swap_end)
 
-    # This is the same as notification_window_end = notification_window_start + SSR_NOTIFICATION_WINDOW
-    notification_window_end = ExpressionWrapper(
-        F("notification_window_start") + SSR_NOTIFICATION_WINDOW, output_field=DateTimeField()
-    )
+        if notification_window_start <= now <= notification_window_end:
+            shift_swap_requests_in_notification_window.append(shift_swap_request)
 
-    # Return shift swap requests that are not started yet, have no benefactor, and are in the notification window.
-    return ShiftSwapRequest.objects.annotate(
-        notification_window_start=notification_window_start,
-        notification_window_end=notification_window_end,
-    ).filter(
-        benefactor__isnull=True,
-        swap_start__gt=now,
-        notification_window_start__lte=now,
-        notification_window_end__gte=now,
-    )
+    return shift_swap_requests_in_notification_window
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
