@@ -55,3 +55,11 @@ To learn more, read our [Get started with Grafana OnCall and Terraform](
 [web-schedule]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/web-schedule"
 [web-schedule]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/web-schedule"
 {{% /docs/reference %}}
+
+### Shift swap requests
+
+Sometimes you may need someone to cover your scheduled on-call shifts (e.g. you are going on vacation
+for a couple of weeks). You can then create a shift swap request, which will let your teammates
+know about this as well as allowing them to volunteer and take your affected shifts for that period.
+
+Learn more about [Shift swap requests][shift-swaps]
