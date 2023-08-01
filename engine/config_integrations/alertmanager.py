@@ -1,6 +1,6 @@
 # Main
 enabled = True
-title = "AlertManager"
+title = "Alertmanager"
 slug = "alertmanager"
 short_description = "Prometheus"
 is_displayed_on_web = True
@@ -20,7 +20,7 @@ resolve_condition = """{{ payload.status == "resolved" }}"""
 
 acknowledge_condition = None
 
-
+# Web
 web_title = """\
 {%- set groupLabels = payload.groupLabels.copy() -%}
 {%- set alertname = groupLabels.pop('alertname') | default("") -%}
@@ -79,7 +79,7 @@ Annotations:
 """
 
 
-# Slack templates
+# Slack
 slack_title = """\
 {%- set groupLabels = payload.groupLabels.copy() -%}
 {%- set alertname = groupLabels.pop('alertname') | default("") -%}
@@ -151,11 +151,13 @@ slack_image_url = None
 
 web_image_url = None
 
+# SMS
 sms_title = web_title
 
-
+# Phone
 phone_call_title = """{{ payload.groupLabels|join(", ") }}"""
 
+# Telegram
 telegram_title = web_title
 
 telegram_message = """\

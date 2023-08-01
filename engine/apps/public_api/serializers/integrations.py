@@ -60,8 +60,7 @@ for backend_id, backend in get_messaging_backends():
 
 class IntegrationTypeField(fields.CharField):
     def to_representation(self, value):
-        value = remove_legacy_prefix(value)
-        return value
+        return remove_legacy_prefix(value)
 
     def to_internal_value(self, data):
         if data not in AlertReceiveChannel.INTEGRATION_TYPES:
