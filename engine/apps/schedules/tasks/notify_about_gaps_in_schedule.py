@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.schedules.ical_utils import list_of_gaps_in_schedule
-from apps.slack.utils import format_datetime_to_slack, post_message_to_channel
+from apps.slack.utils import format_datetime_to_slack_with_time, post_message_to_channel
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 task_logger = get_task_logger(__name__)
@@ -88,11 +88,11 @@ def notify_about_gaps_in_schedule(schedule_pk):
         text = f"There are time periods that are unassigned in *{schedule.name}* on-call schedule.\n"
         for idx, gap in enumerate(gaps):
             if gap.start:
-                start_verbal = format_datetime_to_slack(int(gap.start.astimezone(pytz.UTC).timestamp()))
+                start_verbal = format_datetime_to_slack_with_time(gap.start.astimezone(pytz.UTC).timestamp())
             else:
                 start_verbal = "..."
             if gap.end:
-                end_verbal = format_datetime_to_slack(int(gap.end.astimezone(pytz.UTC).timestamp()))
+                end_verbal = format_datetime_to_slack_with_time(gap.end.astimezone(pytz.UTC).timestamp())
             else:
                 end_verbal = "..."
             text += f"From {start_verbal} to {end_verbal} (your TZ)\n"

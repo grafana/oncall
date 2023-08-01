@@ -34,7 +34,6 @@ export const WebhooksDefaultAlertGroup = {
     },
     status: 'firing',
     startsAt: '2018-12-25T15:47:47.377363608Z',
-    amixr_demo: true,
     annotations: {
       description: 'This alert was sent by user for the demonstration purposes',
     },

@@ -52,6 +52,7 @@ def generate_public_primary_key_for_custom_oncall_shift():
 
 
 class CustomOnCallShift(models.Model):
+    parent_shift: typing.Optional["CustomOnCallShift"]
     schedules: "RelatedManager['OnCallSchedule']"
 
     (

@@ -12,6 +12,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
+    from apps.schedules.models.on_call_schedule import ScheduleEvents
     from apps.slack.models import SlackMessage
     from apps.user_management.models import Organization, User
 
@@ -169,9 +170,9 @@ class ShiftSwapRequest(models.Model):
         # make sure final schedule ical representation is updated
         refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
-    def shifts(self):
+    def shifts(self) -> "ScheduleEvents":
         """Return shifts affected by this swap request."""
-        schedule = self.schedule.get_real_instance()
+        schedule = typing.cast("OnCallSchedule", self.schedule.get_real_instance())
         events = schedule.final_events(self.swap_start, self.swap_end)
         related_shifts = [
             e

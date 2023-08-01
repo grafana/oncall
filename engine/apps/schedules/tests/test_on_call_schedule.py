@@ -2231,18 +2231,25 @@ def test_swap_request_whole_shift(
     swap_request = make_shift_swap_request(
         schedule,
         user,
-        swap_start=tomorrow + timezone.timedelta(hours=12),
-        swap_end=tomorrow + timezone.timedelta(hours=15),
+        # swap request starting right after shift ends
+        swap_start=tomorrow + timezone.timedelta(hours=15),
+        # swap request ending right before shift starts
+        swap_end=tomorrow + timezone.timedelta(days=2, hours=12),
     )
     if swap_taken:
         swap_request.take(other_user)
 
-    events = schedule.filter_events(today, today + timezone.timedelta(days=2))
+    events = schedule.filter_events(tomorrow, tomorrow + timezone.timedelta(days=2))
 
+    tomorrow_start = start + timezone.timedelta(days=1)
     expected = [
         # start, end, swap requested
-        (start, start + duration, False),  # today shift unchanged
-        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=3), True),  # no splits
+        (tomorrow_start, tomorrow_start + duration, False),  # today shift unchanged
+        (
+            tomorrow_start + timezone.timedelta(days=1),
+            tomorrow_start + timezone.timedelta(days=1, hours=3),
+            True,
+        ),  # no splits
     ]
     returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
     assert returned == expected
@@ -2365,11 +2372,16 @@ def test_swap_request_no_changes(
 
     # setup swap requests
     tomorrow = today + timezone.timedelta(days=1)
+    # user not in schedule
     make_shift_swap_request(schedule, other_user, swap_start=today, swap_end=tomorrow)
+    # deleted request
     make_shift_swap_request(schedule, user, swap_start=today, swap_end=tomorrow, deleted_at=today)
+    # swap request in the past
     make_shift_swap_request(
         schedule, user, swap_start=today - timezone.timedelta(days=7), swap_end=tomorrow - timezone.timedelta(days=7)
     )
+    # untaken swap in progress (past due)
+    make_shift_swap_request(schedule, user, swap_start=today - timezone.timedelta(days=1), swap_end=tomorrow)
 
     events_after = schedule.filter_events(today, today + timezone.timedelta(days=2))
     assert events_before == events_after
