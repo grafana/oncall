@@ -580,12 +580,22 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
         logger.info(f"MobileAppUserSettings does not exist for user {user_pk}")
         return
 
+    if not mobile_app_user_settings.info_notifications_enabled:
+        logger.info(f"Info notifications are not enabled for user {user_pk}")
+        return
+
     message = _get_shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
     _send_push_notification(device_to_notify, message)
 
 
 def _should_notify_user(shift_swap_request: ShiftSwapRequest, user: User, now: datetime.datetime) -> bool:
-    mobile_app_user_settings = MobileAppUserSettings.objects.get(user=user)
+    from apps.mobile_app.models import MobileAppUserSettings
+
+    try:
+        mobile_app_user_settings = MobileAppUserSettings.objects.get(user=user)
+    except MobileAppUserSettings.DoesNotExist:
+        return False
+
     return (
         mobile_app_user_settings.info_notifications_enabled
         and _is_in_working_hours(user, now)
