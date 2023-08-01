@@ -134,11 +134,11 @@ class AlertManagerAPIView(
         alerts = request.data.get("alerts", [])
 
         data = request.data
-        if "firingAlerts" not in request.data:
+        if "numFiring" not in request.data:
             # Count firing and resolved alerts manually if not present in payload
-            num_firing = len(list(filter(lambda a: a["status"] == "firing", alerts)))
-            num_resolved = len(list(filter(lambda a: a["status"] == "resolved", alerts)))
-            data = {**request.data, "firingAlerts": num_firing, "resolvedAlerts": num_resolved}
+            num_firing = len(list(filter(lambda a: a.get("status", "") == "firing", alerts)))
+            num_resolved = len(list(filter(lambda a: a.get("status", "") == "resolved", alerts)))
+            data = {**request.data, "numFiring": num_firing, "numResolved": num_resolved}
 
         create_alert.apply_async(
             [],
