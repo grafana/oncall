@@ -502,12 +502,25 @@ def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> No
         conditionally_send_going_oncall_push_notifications_for_schedule.apply_async((schedule.pk,))
 
 
+# TODO: break down tasks.py into multiple files
+
+# Don't send notifications for shift swap requests that start more than 4 weeks in the future
 SSR_EARLIEST_NOTIFICATION_OFFSET = datetime.timedelta(weeks=4)
+
+# Once it's time to send out notifications, send them over the course of a week.
+# This is because users can be in multiple timezones / have different working hours configured,
+# so we can't just send all notifications at once, but need to wait for the users to be in their working hours.
+# Once a notification is sent to a user, they won't be notified again for the same shift swap request for a week.
+# After a week, the shift swap request won't be in the notification window anymore (see _get_shift_swap_requests_to_notify).
 SSR_NOTIFICATION_WINDOW = datetime.timedelta(weeks=1)
 
 
 @shared_dedicated_queue_retry_task()
 def notify_shift_swap_requests() -> None:
+    """
+    A periodic task that notifies users about shift swap requests.
+    """
+
     if not settings.FEATURE_SHIFT_SWAPS_ENABLED:
         return
 
@@ -516,6 +529,12 @@ def notify_shift_swap_requests() -> None:
 
 
 def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> QuerySet[ShiftSwapRequest]:
+    """
+    Returns shifts swap requests that are open and are in the notification window.
+    This method can return the same shift swap request multiple times while it's in the notification window,
+    but users are only notified once per shift swap request (see _mark_shift_swap_request_notified_for_user).
+    """
+
     # This is the same as notification_window_start = max(created_at, swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET)
     notification_window_start = Max(
         F("created_at"),
@@ -527,8 +546,7 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> QuerySet[Shift
         F("notification_window_start") + SSR_NOTIFICATION_WINDOW, output_field=DateTimeField()
     )
 
-    # For every shift swap request, we assign a window of time in which we can notify users about it.
-    # Here we select all the shift swap requests for which now is within its notification window.
+    # Return shift swap requests that are not started yet, have no benefactor, and are in the notification window.
     return ShiftSwapRequest.objects.annotate(
         notification_window_start=notification_window_start,
         notification_window_end=notification_window_end,
@@ -542,6 +560,9 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> QuerySet[Shift
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def notify_shift_swap_request(shift_swap_request_pk: int) -> None:
+    """
+    Notify relevant users for an individual shift swap request.
+    """
     try:
         shift_swap_request = ShiftSwapRequest.objects.get(pk=shift_swap_request_pk)
     except ShiftSwapRequest.DoesNotExist:
@@ -552,11 +573,14 @@ def notify_shift_swap_request(shift_swap_request_pk: int) -> None:
     for user in shift_swap_request.possible_benefactors:
         if _should_notify_user_about_shift_swap_request(shift_swap_request, user, now):
             notify_user_about_shift_swap_request.delay(shift_swap_request.pk, user.pk)
-            _mark_shift_swap_request_notified(shift_swap_request, user)
+            _mark_shift_swap_request_notified_for_user(shift_swap_request, user)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: int) -> None:
+    """
+    Send a push notification about a shift swap request to an individual user.
+    """
     # avoid circular import
     from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 
@@ -598,26 +622,27 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
 def _should_notify_user_about_shift_swap_request(
     shift_swap_request: ShiftSwapRequest, user: User, now: datetime.datetime
 ) -> bool:
+    # avoid circular import
     from apps.mobile_app.models import MobileAppUserSettings
 
     try:
         mobile_app_user_settings = MobileAppUserSettings.objects.get(user=user)
     except MobileAppUserSettings.DoesNotExist:
-        return False
+        return False  # don't notify if the app is not configured
 
     return (
-        mobile_app_user_settings.info_notifications_enabled
-        and user.is_in_working_hours(now, mobile_app_user_settings.time_zone)
-        and not _is_shift_swap_request_already_notified(shift_swap_request, user)
+        mobile_app_user_settings.info_notifications_enabled  # info notifications must be enabled
+        and user.is_in_working_hours(now, mobile_app_user_settings.time_zone)  # user must be in working hours
+        and not _has_user_been_notified_for_shift_swap_request(shift_swap_request, user)  # don't notify twice
     )
 
 
-def _mark_shift_swap_request_notified(shift_swap_request: ShiftSwapRequest, user: User) -> None:
+def _mark_shift_swap_request_notified_for_user(shift_swap_request: ShiftSwapRequest, user: User) -> None:
     key = _shift_swap_request_cache_key(shift_swap_request, user)
     cache.set(key, True, timeout=SSR_NOTIFICATION_WINDOW.total_seconds())
 
 
-def _is_shift_swap_request_already_notified(shift_swap_request: ShiftSwapRequest, user: User) -> bool:
+def _has_user_been_notified_for_shift_swap_request(shift_swap_request: ShiftSwapRequest, user: User) -> bool:
     key = _shift_swap_request_cache_key(shift_swap_request, user)
     return cache.get(key) is True
 
@@ -630,7 +655,7 @@ def _shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, 
     from apps.mobile_app.models import MobileAppUserSettings
 
     thread_id = f"{shift_swap_request.public_primary_key}:{user.public_primary_key}:ssr"
-    notification_title = "You have a new shift swap request"
+    notification_title = "You have a new shift swap request"  # TODO: decide on the exact wording
     notification_subtitle = _get_shift_subtitle(
         shift_swap_request.schedule,
         shift_swap_request.swap_start,

@@ -11,8 +11,8 @@ from apps.mobile_app.tasks import (
     SSR_NOTIFICATION_WINDOW,
     MessageType,
     _get_shift_swap_requests_to_notify,
-    _is_shift_swap_request_already_notified,
-    _mark_shift_swap_request_notified,
+    _has_user_been_notified_for_shift_swap_request,
+    _mark_shift_swap_request_notified_for_user,
     _should_notify_user_about_shift_swap_request,
     notify_shift_swap_request,
     notify_shift_swap_requests,
@@ -308,15 +308,15 @@ def test_should_notify_user(make_organization, make_user, make_schedule, make_sh
     assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is False
 
     with patch.object(benefactor, "is_in_working_hours", return_value=True):
-        with patch("apps.mobile_app.tasks._is_shift_swap_request_already_notified", return_value=True):
+        with patch("apps.mobile_app.tasks._has_user_been_notified_for_shift_swap_request", return_value=True):
             assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is False
 
     with patch.object(benefactor, "is_in_working_hours", return_value=False):
-        with patch("apps.mobile_app.tasks._is_shift_swap_request_already_notified", return_value=False):
+        with patch("apps.mobile_app.tasks._has_user_been_notified_for_shift_swap_request", return_value=False):
             assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is False
 
     with patch.object(benefactor, "is_in_working_hours", return_value=True):
-        with patch("apps.mobile_app.tasks._is_shift_swap_request_already_notified", return_value=False):
+        with patch("apps.mobile_app.tasks._has_user_been_notified_for_shift_swap_request", return_value=False):
             assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is True
 
 
@@ -336,10 +336,10 @@ def test_mark_notified(make_organization, make_user, make_schedule, make_shift_s
     )
 
     cache.clear()
-    assert _is_shift_swap_request_already_notified(shift_swap_request, benefactor) is False
-    _mark_shift_swap_request_notified(shift_swap_request, benefactor)
-    assert _is_shift_swap_request_already_notified(shift_swap_request, benefactor) is True
+    assert _has_user_been_notified_for_shift_swap_request(shift_swap_request, benefactor) is False
+    _mark_shift_swap_request_notified_for_user(shift_swap_request, benefactor)
+    assert _has_user_been_notified_for_shift_swap_request(shift_swap_request, benefactor) is True
 
     with patch.object(cache, "set") as mock_cache_set:
-        _mark_shift_swap_request_notified(shift_swap_request, benefactor)
+        _mark_shift_swap_request_notified_for_user(shift_swap_request, benefactor)
         assert mock_cache_set.call_args.kwargs["timeout"] == SSR_NOTIFICATION_WINDOW.total_seconds()
