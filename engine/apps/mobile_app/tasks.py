@@ -502,8 +502,8 @@ def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> No
         conditionally_send_going_oncall_push_notifications_for_schedule.apply_async((schedule.pk,))
 
 
-EARLIEST_NOTIFICATION_OFFSET = datetime.timedelta(weeks=4)
-WINDOW = datetime.timedelta(days=1)
+SSR_EARLIEST_NOTIFICATION_OFFSET = datetime.timedelta(weeks=4)
+SSR_NOTIFICATION_WINDOW = datetime.timedelta(days=1)
 
 
 @shared_dedicated_queue_retry_task()
@@ -516,13 +516,16 @@ def notify_shift_swap_requests() -> None:
 
 
 def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> QuerySet[ShiftSwapRequest]:
-    # This is the same as notification_window_start = max(created_at, swap_start - EARLIEST_NOTIFICATION_OFFSET)
+    # This is the same as notification_window_start = max(created_at, swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET)
     notification_window_start = Max(
-        F("created_at"), ExpressionWrapper(F("swap_start") - EARLIEST_NOTIFICATION_OFFSET, output_field=DateTimeField())
+        F("created_at"),
+        ExpressionWrapper(F("swap_start") - SSR_EARLIEST_NOTIFICATION_OFFSET, output_field=DateTimeField()),
     )
 
-    # This is the same as notification_window_end = notification_window_start + WINDOW
-    notification_window_end = ExpressionWrapper(F("notification_window_start") + WINDOW, output_field=DateTimeField())
+    # This is the same as notification_window_end = notification_window_start + SSR_NOTIFICATION_WINDOW
+    notification_window_end = ExpressionWrapper(
+        F("notification_window_start") + SSR_NOTIFICATION_WINDOW, output_field=DateTimeField()
+    )
 
     # For every shift swap request, we assign a window of time in which we can notify users about it.
     # Here we select all the shift swap requests for which now is within its notification window.
@@ -547,9 +550,9 @@ def notify_shift_swap_request(shift_swap_request_pk: int) -> None:
 
     now = timezone.now()
     for user in shift_swap_request.possible_benefactors:
-        if _should_notify_user(shift_swap_request, user, now):
+        if _should_notify_user_about_shift_swap_request(shift_swap_request, user, now):
             notify_user_about_shift_swap_request.delay(shift_swap_request.pk, user.pk)
-            _mark_notified(shift_swap_request, user)
+            _mark_shift_swap_request_notified(shift_swap_request, user)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -584,11 +587,13 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
         logger.info(f"Info notifications are not enabled for user {user_pk}")
         return
 
-    message = _get_shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
+    message = _shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
     _send_push_notification(device_to_notify, message)
 
 
-def _should_notify_user(shift_swap_request: ShiftSwapRequest, user: User, now: datetime.datetime) -> bool:
+def _should_notify_user_about_shift_swap_request(
+    shift_swap_request: ShiftSwapRequest, user: User, now: datetime.datetime
+) -> bool:
     from apps.mobile_app.models import MobileAppUserSettings
 
     try:
@@ -599,25 +604,25 @@ def _should_notify_user(shift_swap_request: ShiftSwapRequest, user: User, now: d
     return (
         mobile_app_user_settings.info_notifications_enabled
         and user.is_in_working_hours(now, mobile_app_user_settings.time_zone)
-        and not _already_notified(shift_swap_request, user)
+        and not _is_shift_swap_request_already_notified(shift_swap_request, user)
     )
 
 
-def _mark_notified(shift_swap_request: ShiftSwapRequest, user: User) -> None:
-    key = _cache_key(shift_swap_request, user)
-    cache.set(key, True, timeout=WINDOW.total_seconds())
+def _mark_shift_swap_request_notified(shift_swap_request: ShiftSwapRequest, user: User) -> None:
+    key = _shift_swap_request_cache_key(shift_swap_request, user)
+    cache.set(key, True, timeout=SSR_NOTIFICATION_WINDOW.total_seconds())
 
 
-def _already_notified(shift_swap_request: ShiftSwapRequest, user: User) -> bool:
-    key = _cache_key(shift_swap_request, user)
+def _is_shift_swap_request_already_notified(shift_swap_request: ShiftSwapRequest, user: User) -> bool:
+    key = _shift_swap_request_cache_key(shift_swap_request, user)
     return cache.get(key) is True
 
 
-def _cache_key(shift_swap_request: ShiftSwapRequest, user: User) -> str:
+def _shift_swap_request_cache_key(shift_swap_request: ShiftSwapRequest, user: User) -> str:
     return f"ssr_push:{shift_swap_request.pk}:{user.pk}"
 
 
-def _get_shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings):
+def _shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings):
     from apps.mobile_app.models import MobileAppUserSettings
 
     thread_id = f"{shift_swap_request.public_primary_key}:{user.public_primary_key}:ssr"
