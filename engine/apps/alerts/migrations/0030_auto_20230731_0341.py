@@ -7,7 +7,7 @@ integration_alertmanager = "alertmanager"
 integration_grafana_alerting = "grafana_alerting"
 
 legacy_alertmanager = "legacy_alertmanager"
-legacy_grafana_alerting = "legacygrafana_alerting"
+legacy_grafana_alerting = "legacy_grafana_alerting"
 
 
 def make_integrations_legacy(apps, schema_editor):
