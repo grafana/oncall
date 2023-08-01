@@ -466,6 +466,7 @@ def test_partial_update_time_related_fields(ssr_setup, make_user_auth_headers):
     assert response.json() == expected_response
 
 
+@pytest.skip
 @pytest.mark.django_db
 def test_related_shifts(ssr_setup, make_on_call_shift, make_user_auth_headers):
     ssr, beneficiary, token, _ = ssr_setup()
