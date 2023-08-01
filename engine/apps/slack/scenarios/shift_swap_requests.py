@@ -6,6 +6,7 @@ from apps.slack.constants import DIVIDER
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
 from apps.slack.types import Block, BlockActionType, EventPayload, PayloadType, ScenarioRoute
+from apps.slack.utils import SlackDateFormat, format_datetime_to_slack, format_datetime_to_slack_with_time
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import ShiftSwapRequest
@@ -22,6 +23,26 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
         pk = shift_swap_request.pk
 
         main_message_text = f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
+
+        datetime_format = SlackDateFormat.DATE_LONG_PRETTY
+        time_format = SlackDateFormat.TIME
+
+        shift_details = ""
+        for shift in shift_swap_request.shifts():
+            shift_start = shift["start"]
+            shift_start_posix = shift_start.timestamp()
+            shift_end = shift["end"]
+            shift_end_posix = shift_end.timestamp()
+
+            time_details = ""
+            if shift_start.date() == shift_end.date():
+                # shift starts and ends on the same day
+                time_details = f"{format_datetime_to_slack_with_time(shift_start_posix, datetime_format)} - {format_datetime_to_slack(shift_end_posix, time_format)}"
+            else:
+                # shift starts and ends on different days
+                time_details = f"{format_datetime_to_slack_with_time(shift_start_posix, datetime_format)} - {format_datetime_to_slack_with_time(shift_end_posix, datetime_format)}"
+
+            shift_details += f"• {time_details}\n"
 
         blocks: Block.AnyBlocks = [
             typing.cast(
@@ -40,7 +61,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*📅 Shift Details*: {shift_swap_request.shifts_summary}",
+                        "text": f"*📅 Shift Details*:\n\n{shift_details}",
                     },
                 },
             ),

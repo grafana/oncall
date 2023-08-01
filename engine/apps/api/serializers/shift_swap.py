@@ -8,7 +8,7 @@ from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelat
 from common.api_helpers.mixins import EagerLoadingMixin
 
 
-class ShiftSwapRequestSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+class ShiftSwapRequestListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     schedule = OrganizationFilteredPrimaryKeyRelatedField(queryset=OnCallSchedule.objects)
 
@@ -40,15 +40,23 @@ class ShiftSwapRequestSerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "description",
             "beneficiary",
             "benefactor",
-            "shifts_summary",
         ]
         read_only_fields = [
             "status",
-            "shifts_summary",
         ]
 
-    def get_benefactor(self, obj) -> str | None:
+    def get_benefactor(self, obj: ShiftSwapRequest) -> str | None:
         return obj.benefactor.public_primary_key if obj.benefactor else None
+
+
+class ShiftSwapRequestSerializer(ShiftSwapRequestListSerializer):
+    class Meta(ShiftSwapRequestListSerializer.Meta):
+        fields = ShiftSwapRequestListSerializer.Meta.fields + [
+            "shifts",
+        ]
+        read_only_fields = ShiftSwapRequestListSerializer.Meta.read_only_fields + [
+            "shifts",
+        ]
 
     @staticmethod
     def validate_start_and_end_times(swap_start: datetime.datetime, swap_end: datetime.datetime) -> None:

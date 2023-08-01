@@ -1,7 +1,9 @@
+import datetime
 import json
-from unittest.mock import PropertyMock, patch
+from unittest.mock import patch
 
 import pytest
+import pytz
 
 from apps.schedules import exceptions
 from apps.slack.scenarios import shift_swap_requests as scenarios
@@ -33,23 +35,15 @@ def payload():
 class TestBaseShiftSwapRequestStep:
     @pytest.mark.django_db
     def test_generate_blocks(self, setup) -> None:
-        mocked_shifts_summary_value = "lkjmnxmcnvmznxcv"
         ssr, beneficiary, _, _ = setup()
 
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
-
-        with patch(
-            "apps.schedules.models.ShiftSwapRequest.shifts_summary", new_callable=PropertyMock
-        ) as mock_shifts_summary:
-            mock_shifts_summary.return_value = mocked_shifts_summary_value
-            blocks = step._generate_blocks(ssr)
+        blocks = step._generate_blocks(ssr)
 
         assert (
             blocks[0]["text"]["text"]
             == f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
         )
-
-        assert blocks[1]["text"]["text"] == f"*📅 Shift Details*: {mocked_shifts_summary_value}"
 
         accept_button = blocks[2]
 
@@ -65,6 +59,56 @@ class TestBaseShiftSwapRequestStep:
             context_section["elements"][0]["text"]
             == f"👀 View the shift swap within Grafana OnCall by clicking <{ssr.web_link}|here>."
         )
+
+    @patch("apps.schedules.models.ShiftSwapRequest.shifts")
+    @pytest.mark.parametrize(
+        "shifts,expected_text",
+        [
+            (
+                # shifts start and end on same day
+                [
+                    {
+                        "start": datetime.datetime(2023, 8, 29, 12, 0, 0, 0, pytz.UTC),
+                        "end": datetime.datetime(2023, 8, 29, 17, 30, 0, 0, pytz.UTC),
+                    },
+                    {
+                        "start": datetime.datetime(2023, 8, 30, 12, 0, 0, 0, pytz.UTC),
+                        "end": datetime.datetime(2023, 8, 30, 17, 30, 0, 0, pytz.UTC),
+                    },
+                ],
+                (
+                    "• <!date^1693310400^{date_long_pretty} {time}|2023-08-29 12:00 (UTC)> - <!date^1693330200^{time}|2023-08-29 17:30 (UTC)>\n"
+                    "• <!date^1693396800^{date_long_pretty} {time}|2023-08-30 12:00 (UTC)> - <!date^1693416600^{time}|2023-08-30 17:30 (UTC)>\n"
+                ),
+            ),
+            (
+                # shifts start and end on different days
+                [
+                    {
+                        "start": datetime.datetime(2023, 8, 29, 18, 0, 0, 0, pytz.UTC),
+                        "end": datetime.datetime(2023, 8, 30, 6, 30, 0, 0, pytz.UTC),
+                    },
+                    {
+                        "start": datetime.datetime(2023, 9, 1, 18, 0, 0, 0, pytz.UTC),
+                        "end": datetime.datetime(2023, 9, 2, 6, 30, 0, 0, pytz.UTC),
+                    },
+                ],
+                (
+                    "• <!date^1693332000^{date_long_pretty} {time}|2023-08-29 18:00 (UTC)> - <!date^1693377000^{date_long_pretty} {time}|2023-08-30 06:30 (UTC)>\n"
+                    "• <!date^1693591200^{date_long_pretty} {time}|2023-09-01 18:00 (UTC)> - <!date^1693636200^{date_long_pretty} {time}|2023-09-02 06:30 (UTC)>\n"
+                ),
+            ),
+        ],
+    )
+    @pytest.mark.django_db
+    def test_generate_blocks_shift_details(self, mock_shifts, setup, shifts, expected_text) -> None:
+        mock_shifts.return_value = shifts
+        ssr, _, _, _ = setup()
+
+        step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
+        blocks = step._generate_blocks(ssr)
+
+        assert blocks[1]["text"]["text"] == f"*📅 Shift Details*:\n\n{expected_text}"
 
     @pytest.mark.django_db
     def test_generate_blocks_ssr_has_description(self, setup) -> None:
