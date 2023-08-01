@@ -165,6 +165,17 @@ class ShiftSwapRequest(models.Model):
         # make sure final schedule ical representation is updated
         refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
+    def shifts(self):
+        """Return shifts affected by this swap request."""
+        schedule = self.schedule.get_real_instance()
+        events = schedule.final_events(self.swap_start, self.swap_end)
+        related_shifts = [
+            e
+            for e in events
+            if self.public_primary_key in set(u["swap_request"]["pk"] for u in e["users"] if u.get("swap_request"))
+        ]
+        return related_shifts
+
     def take(self, benefactor: "User") -> None:
         if benefactor == self.beneficiary:
             raise exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest()
