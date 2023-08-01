@@ -285,12 +285,14 @@ class User(models.Model):
     def timezone(self, value):
         self._timezone = value
 
-    def is_in_working_hours(self, dt: datetime.datetime, timezone: typing.Optional[str] = None) -> bool:
-        if not timezone:
-            timezone = self.timezone
+    def is_in_working_hours(self, dt: datetime.datetime, tz: typing.Optional[str] = None) -> bool:
+        assert dt.tzinfo == pytz.utc  # only pass in UTC
 
-        today = dt.date()
-        day_name = today.strftime("%A").lower()
+        if not tz:
+            tz = self.timezone
+
+        dt = dt.astimezone(pytz.timezone(tz))
+        day_name = dt.date().strftime("%A").lower()
 
         day_start_time_str = self.working_hours[day_name][0]["start"]
         day_start_time = datetime.time.fromisoformat(day_start_time_str)
@@ -298,8 +300,12 @@ class User(models.Model):
         day_end_time_str = self.working_hours[day_name][0]["end"]
         day_end_time = datetime.time.fromisoformat(day_end_time_str)
 
-        day_start = datetime.datetime.combine(today, day_start_time, tzinfo=pytz.timezone(timezone))
-        day_end = datetime.datetime.combine(today, day_end_time, tzinfo=pytz.timezone(timezone))
+        day_start = dt.replace(
+            hour=day_start_time.hour, minute=day_start_time.minute, second=day_start_time.second, microsecond=0
+        )
+        day_end = dt.replace(
+            hour=day_end_time.hour, minute=day_end_time.minute, second=day_end_time.second, microsecond=0
+        )
 
         return day_start <= dt <= day_end
 
