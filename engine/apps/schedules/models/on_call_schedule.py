@@ -649,6 +649,9 @@ class OnCallSchedule(PolymorphicModel):
 
         # apply swaps sequentially
         for swap in swaps:
+            if swap.is_past_due:
+                # ignore untaken expired requests
+                continue
             i = 0
             while i < len(events):
                 event = events.pop(i)
