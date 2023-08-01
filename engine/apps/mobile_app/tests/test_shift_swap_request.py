@@ -26,7 +26,12 @@ MICROSECOND = timezone.timedelta(microseconds=1)
 
 
 def test_window_more_than_24_hours():
-    assert SSR_NOTIFICATION_WINDOW >= timezone.timedelta(hours=24)
+    """
+    SSR_NOTIFICATION_WINDOW must be more than one week, otherwise it's not possible to guarantee that the
+    notification will be sent according to users' working hours. For example, if user only works on Fridays 10am-2pm,
+    and a shift swap request is created on Friday 3pm, we must wait for a whole week to send the notification.
+    """
+    assert SSR_NOTIFICATION_WINDOW >= timezone.timedelta(weeks=1)
 
 
 @pytest.mark.django_db
@@ -38,7 +43,7 @@ def test_get_shift_swap_requests_to_notify_starts_soon(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
     now = timezone.now()
-    swap_start = now + timezone.timedelta(days=7)
+    swap_start = now + timezone.timedelta(days=10)
     swap_end = swap_start + timezone.timedelta(days=1)
 
     shift_swap_request = make_shift_swap_request(

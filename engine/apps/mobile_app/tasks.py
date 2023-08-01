@@ -503,7 +503,7 @@ def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> No
 
 
 SSR_EARLIEST_NOTIFICATION_OFFSET = datetime.timedelta(weeks=4)
-SSR_NOTIFICATION_WINDOW = datetime.timedelta(days=1)
+SSR_NOTIFICATION_WINDOW = datetime.timedelta(weeks=1)
 
 
 @shared_dedicated_queue_retry_task()
@@ -585,6 +585,10 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
 
     if not mobile_app_user_settings.info_notifications_enabled:
         logger.info(f"Info notifications are not enabled for user {user_pk}")
+        return
+
+    if shift_swap_request.status != ShiftSwapRequest.Statuses.OPEN:
+        logger.info(f"Shift swap request {shift_swap_request_pk} is not open anymore")
         return
 
     message = _shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
