@@ -165,7 +165,6 @@ def test_get_youre_going_oncall_fcm_message(
     notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
 
     shift_start = shift_end = timezone.now()
-
     schedule_event = _create_schedule_event(
         shift_start,
         shift_end,
