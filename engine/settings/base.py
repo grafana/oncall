@@ -65,7 +65,7 @@ FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", defa
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
 FEATURE_WEBHOOKS_2_ENABLED = getenv_boolean("FEATURE_WEBHOOKS_2_ENABLED", default=True)
-FEATURE_SHIFT_SWAPS_ENABLED = getenv_boolean("FEATURE_SHIFT_SWAPS_ENABLED", default=False)
+FEATURE_SHIFT_SWAPS_ENABLED = getenv_boolean("FEATURE_SHIFT_SWAPS_ENABLED", default=True)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -669,10 +669,11 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager_v2",
     "config_integrations.alertmanager",
+    "config_integrations.legacy_alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",
+    "config_integrations.legacy_grafana_alerting",
     "config_integrations.formatted_webhook",
     "config_integrations.webhook",
     "config_integrations.kapacitor",

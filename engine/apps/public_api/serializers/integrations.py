@@ -6,6 +6,7 @@ from rest_framework import fields, serializers
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
+from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
@@ -59,16 +60,15 @@ for backend_id, backend in get_messaging_backends():
 
 class IntegrationTypeField(fields.CharField):
     def to_representation(self, value):
-        return AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP[value]
+        value = remove_legacy_prefix(value)
+        return value
 
     def to_internal_value(self, data):
-        try:
-            integration_type = [
-                key for key, value in AlertReceiveChannel.PUBLIC_API_INTEGRATION_MAP.items() if value == data
-            ][0]
-        except IndexError:
+        if data not in AlertReceiveChannel.INTEGRATION_TYPES:
             raise BadRequest(detail="Invalid integration type")
-        return integration_type
+        if has_legacy_prefix(data):
+            raise BadRequest("This integration type is deprecated")
+        return data
 
 
 class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, MaintainableObjectSerializerMixin):
@@ -117,10 +117,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         default_route_data = validated_data.pop("default_route", None)
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
-        # hack to block alertmanager_v2 integration, will be removed
-        if integration == "alertmanager_v2":
-            raise BadRequest
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
+            # TODO: probably only needs to check if unified alerting is on
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)

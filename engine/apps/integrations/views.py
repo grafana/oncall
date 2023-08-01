@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.heartbeat.tasks import process_heartbeat_task
+from apps.integrations.legacy_prefix import has_legacy_prefix
 from apps.integrations.mixins import (
     AlertChannelDefiningMixin,
     BrowsableInstructionMixin,
@@ -104,6 +105,17 @@ class AlertManagerAPIView(
                 + str(alert_receive_channel.get_integration_display())
             )
 
+        if has_legacy_prefix(alert_receive_channel.integration):
+            self.process_v1(request, alert_receive_channel)
+        else:
+            self.process_v2(request, alert_receive_channel)
+
+        return Response("Ok.")
+
+    def process_v1(self, request, alert_receive_channel):
+        """
+        process_v1 creates alerts from each alert in incoming AlertManager payload.
+        """
         for alert in request.data.get("alerts", []):
             if settings.DEBUG:
                 create_alertmanager_alerts(alert_receive_channel.pk, alert)
@@ -115,27 +127,78 @@ class AlertManagerAPIView(
 
                 create_alertmanager_alerts.apply_async((alert_receive_channel.pk, alert))
 
-        return Response("Ok.")
+    def process_v2(self, request, alert_receive_channel):
+        """
+        process_v2 creates one alert from one incoming AlertManager payload
+        """
+        alerts = request.data.get("alerts", [])
+
+        data = request.data
+        if "firingAlerts" not in request.data:
+            # Count firing and resolved alerts manually if not present in payload
+            num_firing = len(list(filter(lambda a: a["status"] == "firing", alerts)))
+            num_resolved = len(list(filter(lambda a: a["status"] == "resolved", alerts)))
+            data = {**request.data, "firingAlerts": num_firing, "resolvedAlerts": num_resolved}
+
+        create_alert.apply_async(
+            [],
+            {
+                "title": None,
+                "message": None,
+                "image_url": None,
+                "link_to_upstream_details": None,
+                "alert_receive_channel_pk": alert_receive_channel.pk,
+                "integration_unique_data": None,
+                "raw_request_data": data,
+            },
+        )
 
     def check_integration_type(self, alert_receive_channel):
-        return alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+        return alert_receive_channel.integration in {
+            AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+            AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
+        }
 
 
 class GrafanaAlertingAPIView(AlertManagerAPIView):
     """Grafana Alerting has the same payload structure as AlertManager"""
 
     def check_integration_type(self, alert_receive_channel):
-        return alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+        return alert_receive_channel.integration in {
+            AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACGRAFANA_ALERTING,
+        }
 
 
-class GrafanaAPIView(AlertManagerAPIView):
+class GrafanaAPIView(
+    BrowsableInstructionMixin,
+    AlertChannelDefiningMixin,
+    IntegrationRateLimitMixin,
+    APIView,
+):
     """Support both new and old versions of Grafana Alerting"""
 
     def post(self, request):
         alert_receive_channel = self.request.alert_receive_channel
-        # New Grafana has the same payload structure as AlertManager
+        if not self.check_integration_type(alert_receive_channel):
+            return HttpResponseBadRequest(
+                "This url is for integration with Grafana. Key is for "
+                + str(alert_receive_channel.get_integration_display())
+            )
+
+        # Grafana Alerting 9 has the same payload structure as AlertManager
         if "alerts" in request.data:
-            return super().post(request)
+            for alert in request.data.get("alerts", []):
+                if settings.DEBUG:
+                    create_alertmanager_alerts(alert_receive_channel.pk, alert)
+                else:
+                    self.execute_rate_limit_with_notification_logic()
+
+                    if self.request.limited and not is_ratelimit_ignored(alert_receive_channel):
+                        return self.get_ratelimit_http_response()
+
+                    create_alertmanager_alerts.apply_async((alert_receive_channel.pk, alert))
+            return Response("Ok.")
 
         """
         Example of request.data from old Grafana:
@@ -158,12 +221,6 @@ class GrafanaAPIView(AlertManagerAPIView):
             'title': '[Alerting] Test notification'
         }
         """
-        if not self.check_integration_type(alert_receive_channel):
-            return HttpResponseBadRequest(
-                "This url is for integration with Grafana. Key is for "
-                + str(alert_receive_channel.get_integration_display())
-            )
-
         if "attachments" in request.data:
             # Fallback in case user by mistake configured Slack url instead of webhook
             """
@@ -270,46 +327,3 @@ class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBea
         process_heartbeat_task.apply_async(
             (alert_receive_channel.pk,),
         )
-
-
-class AlertManagerV2View(BrowsableInstructionMixin, AlertChannelDefiningMixin, IntegrationRateLimitMixin, APIView):
-    """
-    AlertManagerV2View consumes alerts from AlertManager. It expects data to be in format of AM webhook receiver.
-    """
-
-    def post(self, request, *args, **kwargs):
-        alert_receive_channel = self.request.alert_receive_channel
-        if not alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_ALERTMANAGER_V2:
-            return HttpResponseBadRequest(
-                f"This url is for integration with {alert_receive_channel.config.title}."
-                f"Key is for {alert_receive_channel.get_integration_display()}"
-            )
-        alerts = request.data.get("alerts", [])
-
-        data = request.data
-        if "numFiring" not in request.data:
-            num_firing = 0
-            num_resolved = 0
-            for a in alerts:
-                if a["status"] == "firing":
-                    num_firing += 1
-                elif a["status"] == "resolved":
-                    num_resolved += 1
-            # Count firing and resolved alerts manually if not present in payload
-            data = {**request.data, "numFiring": num_firing, "numResolved": num_resolved}
-        else:
-            data = request.data
-
-        create_alert.apply_async(
-            [],
-            {
-                "title": None,
-                "message": None,
-                "image_url": None,
-                "link_to_upstream_details": None,
-                "alert_receive_channel_pk": alert_receive_channel.pk,
-                "integration_unique_data": None,
-                "raw_request_data": data,
-            },
-        )
-        return Response("Ok.")

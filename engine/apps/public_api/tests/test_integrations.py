@@ -871,3 +871,71 @@ def test_update_integrations_direct_paging(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
+
+
+@pytest.mark.django_db
+def test_get_integration_type_legacy(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+    am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    )
+    legacy_am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER
+    )
+
+    client = APIClient()
+    url = reverse("api-public:integrations-detail", args=[am.public_primary_key])
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["type"] == "alertmanager"
+
+    url = reverse("api-public:integrations-detail", args=[legacy_am.public_primary_key])
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["type"] == "alertmanager"
+
+
+@pytest.mark.django_db
+def test_create_integration_type_legacy(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+
+    client = APIClient()
+    url = reverse("api-public:integrations-list")
+    response = client.post(url, data={"type": "alertmanager"}, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["type"] == "alertmanager"
+
+    response = client.post(url, data={"type": "legacy_alertmanager"}, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_integration_type_legacy(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+    am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER
+    )
+    legacy_am = make_alert_receive_channel(
+        organization, verbal_name="AMV2", integration=AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER
+    )
+
+    data_for_update = {"type": "alertmanager", "description_short": "Updated description"}
+
+    client = APIClient()
+    url = reverse("api-public:integrations-detail", args=[am.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["type"] == "alertmanager"
+    assert response.data["description_short"] == "Updated description"
+
+    url = reverse("api-public:integrations-detail", args=[legacy_am.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["description_short"] == "Updated description"
+    assert response.data["type"] == "alertmanager"

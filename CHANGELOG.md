@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
+– Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
 
 ## v1.3.20 (2023-07-31)
 
