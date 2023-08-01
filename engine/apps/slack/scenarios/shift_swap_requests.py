@@ -21,7 +21,6 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
     def _generate_blocks(self, shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
         pk = shift_swap_request.pk
 
-        # TODO: come up with a better layout for this..
         main_message_text = f"Your teammate {shift_swap_request.beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
 
         blocks: Block.AnyBlocks = [
@@ -41,9 +40,7 @@ class BaseShiftSwapRequestStep(scenario_step.ScenarioStep):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        # TODO: I believe it'll be easier to wait to generate this until we have the schedule override changes in place
-                        # NOTE: use apps.slack.utils.format_datetime_to_slack method to format the datetimes
-                        "text": "*📅 Shift Details*: 9h00 - 17h00 (UTC) daily from Monday July 24, 2023 - July 28, 2023",
+                        "text": f"*📅 Shift Details*: {shift_swap_request.shifts_summary}",
                     },
                 },
             ),

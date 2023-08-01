@@ -1,3 +1,4 @@
+import datetime
 import enum
 import typing
 
@@ -12,6 +13,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
+    from apps.schedules.models.on_call_schedule import ScheduleEvents
     from apps.slack.models import SlackMessage
     from apps.user_management.models import Organization, User
 
@@ -154,6 +156,76 @@ class ShiftSwapRequest(models.Model):
         # TODO: finish this once we know the proper URL we'll need
         return f"{self.schedule.web_detail_page_link}"
 
+    @property
+    def shifts_summary(self) -> str:
+        """
+        This is a string summary representation of the shifts involved in this shift swap request.
+
+        If the shift(s) start and end on the same day it will return the following format:
+
+        `09h00 - 17h00 (UTC) on Monday July 24, 2023`
+
+        Otherwise this format:
+
+        `09h00 - 17h00 (UTC) from Monday July 24, 2023 until July 28, 2023`
+
+        NOTE: For simplicity's sake, for shift swap requests that span multiple schedule events but either:
+        - don't start at the beginning of the first shift (ex. starts halfway into the first shift)
+        - don't end at the end of the last shift (ex. ends halfway into last shift)
+
+        We simply exclude this info from the summary. Here's an example.
+
+        Say we have a schedule for user A from 09h00 - 17h00 Monday - Friday. If user A opens a shift swap request
+        for 12h on Monday until 17h on Friday we would still show:
+
+        `09h00 - 17h00 (UTC) from Monday ... until Friday ...`
+
+        The same case occurs when the `swap_end` is earlier than the last shift's end time.
+        """
+        shifts = self.shifts()
+
+        def _format_time(dt: datetime.datetime) -> str:
+            return dt.strftime("%Hh%M")
+
+        def _format_date(dt: datetime.datetime) -> str:
+            return dt.strftime("%a %B %-d, %Y")
+
+        if not shifts:
+            # TODO: is it possible that this could ever be a legitimate case?
+            return ""
+
+        first_shift = shifts[0]
+        first_shift_start_datetime = first_shift["start"]
+        first_shift_end_datetime = first_shift["end"]
+        last_shift_start_datetime = first_shift["start"]
+        last_shift_end_datetime = first_shift["end"]
+
+        for shift in self.shifts():
+            shift_start = shift["start"]
+            shift_end = shift["end"]
+
+            if shift_start < first_shift_start_datetime:
+                first_shift_start_datetime = shift_start
+                first_shift_end_datetime = shift_end
+
+            if shift_end > last_shift_end_datetime:
+                last_shift_start_datetime = shift_start
+                last_shift_end_datetime = shift_end
+
+        if first_shift_start_datetime.date() == last_shift_end_datetime.date():
+            # all of the shift(s) occur on the same day
+            return f"{_format_time(first_shift_start_datetime)} - {_format_time(last_shift_end_datetime)} (UTC) on {_format_date(first_shift_start_datetime)}"
+
+        # the following two min/max usages are here to simplify the cases pertaining to a shift swap request
+        # that spans several events, but:
+        # - doesn't start at the beginning of the first shift (ex. starts halfway into the first shift)
+        # - doesn't end at the end of the last shift  (ex. ends halfway into last shift)
+        # see function docstring comment for more details
+        start_time = min([first_shift_start_datetime.time(), last_shift_start_datetime.time()])
+        end_time = max([first_shift_end_datetime.time(), last_shift_end_datetime.time()])
+
+        return f"{_format_time(start_time)} - {_format_time(end_time)} (UTC) from {_format_date(first_shift_start_datetime)} until {_format_date(last_shift_end_datetime)}"
+
     def delete(self):
         self.deleted_at = timezone.now()
         self.save()
@@ -165,9 +237,9 @@ class ShiftSwapRequest(models.Model):
         # make sure final schedule ical representation is updated
         refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
-    def shifts(self):
+    def shifts(self) -> "ScheduleEvents":
         """Return shifts affected by this swap request."""
-        schedule = self.schedule.get_real_instance()
+        schedule = typing.cast("OnCallSchedule", self.schedule.get_real_instance())
         events = schedule.final_events(self.swap_start, self.swap_end)
         related_shifts = [
             e

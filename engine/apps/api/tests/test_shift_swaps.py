@@ -49,6 +49,7 @@ def _construct_serialized_object(ssr: ShiftSwapRequest, status="open", descripti
         "status": status,
         "benefactor": benefactor,
         "description": description,
+        "shifts_summary": ssr.shifts_summary,
     }
 
 

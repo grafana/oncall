@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import pytest
 
@@ -33,20 +33,23 @@ def payload():
 class TestBaseShiftSwapRequestStep:
     @pytest.mark.django_db
     def test_generate_blocks(self, setup) -> None:
+        mocked_shifts_summary_value = "lkjmnxmcnvmznxcv"
         ssr, beneficiary, _, _ = setup()
 
         step = scenarios.BaseShiftSwapRequestStep(ssr.organization.slack_team_identity, ssr.organization)
-        blocks = step._generate_blocks(ssr)
+
+        with patch(
+            "apps.schedules.models.ShiftSwapRequest.shifts_summary", new_callable=PropertyMock
+        ) as mock_shifts_summary:
+            mock_shifts_summary.return_value = mocked_shifts_summary_value
+            blocks = step._generate_blocks(ssr)
 
         assert (
             blocks[0]["text"]["text"]
             == f"Your teammate {beneficiary.get_username_with_slack_verbal()} has submitted a shift swap request."
         )
 
-        assert (
-            blocks[1]["text"]["text"]
-            == "*📅 Shift Details*: 9h00 - 17h00 (UTC) daily from Monday July 24, 2023 - July 28, 2023"
-        )
+        assert blocks[1]["text"]["text"] == f"*📅 Shift Details*: {mocked_shifts_summary_value}"
 
         accept_button = blocks[2]
 

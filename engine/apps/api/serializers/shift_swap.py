@@ -40,9 +40,11 @@ class ShiftSwapRequestSerializer(EagerLoadingMixin, serializers.ModelSerializer)
             "description",
             "beneficiary",
             "benefactor",
+            "shifts_summary",
         ]
         read_only_fields = [
             "status",
+            "shifts_summary",
         ]
 
     def get_benefactor(self, obj) -> str | None:
