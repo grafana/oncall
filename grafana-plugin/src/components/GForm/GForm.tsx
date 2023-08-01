@@ -41,7 +41,6 @@ function renderFormControl(
 ) {
   switch (formItem.type) {
     case FormItemType.Input:
-      console.log({ ...register(formItem.name, formItem.validation) });
       return (
         <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
       );
