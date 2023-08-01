@@ -59,7 +59,7 @@ class ShiftSwapRequest(models.Model):
         default=generate_public_primary_key_for_shift_swap_request,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True)
 
@@ -148,6 +148,10 @@ class ShiftSwapRequest(models.Model):
     @property
     def organization(self) -> "Organization":
         return self.schedule.organization
+
+    @property
+    def possible_benefactors(self):
+        return self.schedule.related_users().exclude(pk=self.beneficiary_id)
 
     @property
     def web_link(self) -> str:

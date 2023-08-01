@@ -11,7 +11,7 @@ import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import DateTimeField, ExpressionWrapper, F, Max
+from django.db.models import DateTimeField, ExpressionWrapper, F, Max, QuerySet
 from django.utils import timezone
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
@@ -515,13 +515,13 @@ def notify_shift_swap_requests() -> None:
         notify_shift_swap_request.delay(shift_swap_request.pk)
 
 
-def _get_shift_swap_requests_to_notify(now: datetime.datetime):
+def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> QuerySet[ShiftSwapRequest]:
     # This is the same as notification_window_start = max(created_at, swap_start - EARLIEST_NOTIFICATION_OFFSET)
     notification_window_start = Max(
         F("created_at"), ExpressionWrapper(F("swap_start") - EARLIEST_NOTIFICATION_OFFSET, output_field=DateTimeField())
     )
 
-    # This is the same as notification_window_end = swap_start + WINDOW
+    # This is the same as notification_window_end = notification_window_start + WINDOW
     notification_window_end = ExpressionWrapper(F("notification_window_start") + WINDOW, output_field=DateTimeField())
 
     # For every shift swap request, we assign a window of time in which we can notify users about it.
@@ -530,8 +530,8 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime):
         notification_window_start=notification_window_start,
         notification_window_end=notification_window_end,
     ).filter(
-        swap_start__lt=now,
         benefactor__isnull=True,
+        swap_start__gt=now,
         notification_window_start__lte=now,
         notification_window_end__gte=now,
     )
@@ -546,8 +546,7 @@ def notify_shift_swap_request(shift_swap_request_pk: int) -> None:
         return
 
     now = timezone.now()
-    users_to_notify = shift_swap_request.schedule.related_users().exclude(pk=shift_swap_request.beneficiary_id)
-    for user in users_to_notify:
+    for user in shift_swap_request.possible_benefactors:
         if _should_notify_user(shift_swap_request, user, now):
             notify_user_about_shift_swap_request.delay(shift_swap_request.pk, user.pk)
             _mark_notified(shift_swap_request, user)
@@ -586,7 +585,12 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
 
 
 def _should_notify_user(shift_swap_request: ShiftSwapRequest, user: User, now: datetime.datetime) -> bool:
-    return _is_in_working_hours(user, now) and not _already_notified(shift_swap_request, user)
+    mobile_app_user_settings = MobileAppUserSettings.objects.get(user=user)
+    return (
+        mobile_app_user_settings.info_notifications_enabled
+        and _is_in_working_hours(user, now)
+        and not _already_notified(shift_swap_request, user)
+    )
 
 
 def _is_in_working_hours(user: User, now: datetime.datetime) -> bool:
