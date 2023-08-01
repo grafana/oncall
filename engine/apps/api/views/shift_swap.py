@@ -36,6 +36,7 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
         "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "take": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "shifts": [RBACPermission.Permissions.SCHEDULES_READ],
     }
 
     is_beneficiary = IsOwner(ownership_field="beneficiary")
@@ -86,6 +87,13 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
         )
 
         update_shift_swap_request_message.apply_async((shift_swap_request.pk,))
+
+    @action(methods=["get"], detail=True)
+    def shifts(self, request, pk) -> Response:
+        shift_swap = self.get_object()
+        result = {"events": shift_swap.shifts()}
+
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(methods=["post"], detail=True)
     def take(self, request, pk) -> Response:

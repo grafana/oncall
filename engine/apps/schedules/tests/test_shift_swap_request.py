@@ -2,9 +2,10 @@ import datetime
 from unittest.mock import patch
 
 import pytest
+from django.utils import timezone
 
 from apps.schedules import exceptions
-from apps.schedules.models import ShiftSwapRequest
+from apps.schedules.models import CustomOnCallShift, ShiftSwapRequest
 
 
 @pytest.mark.django_db
@@ -116,3 +117,37 @@ def test_take_own_ssr(shift_swap_request_setup) -> None:
     ssr, beneficiary, _ = shift_swap_request_setup()
     with pytest.raises(exceptions.BeneficiaryCannotTakeOwnShiftSwapRequest):
         ssr.take(beneficiary)
+
+
+@pytest.mark.django_db
+def test_related_shifts(shift_swap_request_setup, make_on_call_shift) -> None:
+    ssr, beneficiary, _ = shift_swap_request_setup()
+
+    schedule = ssr.schedule
+    organization = schedule.organization
+    user = beneficiary
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(days=2)
+    duration = timezone.timedelta(hours=8)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    events = ssr.shifts()
+
+    expected = [
+        # start, end, user, swap request ID
+        (start, start + duration, user.public_primary_key, ssr.public_primary_key),
+    ]
+    returned_events = [(e["start"], e["end"], e["users"][0]["pk"], e["users"][0]["swap_request"]["pk"]) for e in events]
+    assert returned_events == expected

@@ -9,11 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
+
+## v1.3.20 (2023-07-31)
+
+### Added
+
 - Add filter_shift_swaps endpoint to schedules API ([#2684](https://github.com/grafana/oncall/pull/2684))
+- Add shifts endpoint to shift swap API ([#2697](https://github.com/grafana/oncall/pull/2697/))
 
 ### Fixed
 
 - Fix helm env variable validation logic when specifying Twilio auth related values by @njohnstone2 ([#2674](https://github.com/grafana/oncall/pull/2674))
+- Fixed mobile app verification not sending SMS to phone number ([#2687](https://github.com/grafana/oncall/issues/2687))
 
 ## v1.3.19 (2023-07-28)
 

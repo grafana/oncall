@@ -1,7 +1,6 @@
 import { omit } from 'lodash-es';
 import { action, observable } from 'mobx';
 
-import { ActionDTO } from 'models/action';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
@@ -364,28 +363,6 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...this.templates,
       [alertReceiveChannelId]: response,
     };
-  }
-
-  @action
-  async updateCustomButtons(alertReceiveChannelId: AlertReceiveChannel['id']) {
-    const response = await makeRequest(`/custom_buttons/`, {
-      params: {
-        alert_receive_channel: alertReceiveChannelId,
-      },
-      withCredentials: true,
-    });
-
-    this.actions = {
-      ...this.actions,
-      [alertReceiveChannelId]: response,
-    };
-  }
-
-  async deleteCustomButton(id: ActionDTO['id']) {
-    await makeRequest(`/custom_buttons/${id}/`, {
-      method: 'DELETE',
-      withCredentials: true,
-    });
   }
 
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {

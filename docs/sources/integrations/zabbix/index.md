@@ -39,13 +39,13 @@ This integration is available for Grafana Cloud OnCall. You must have an Admin r
          -d zabbix/zabbix-appliance:latest
    ```
 
-1. Establish an ssh connection to a Zabbix server.
+2. Establish an ssh connection to a Zabbix server.
 
    ```bash
    docker exec -it zabbix-appliance bash
    ```
 
-1. Place the [grafana_oncall.sh](#grafana_oncallsh-script) script in the `AlertScriptsPath` directory specified within
+3. Place the [grafana_oncall.sh](#grafana_oncallsh-script) script in the `AlertScriptsPath` directory specified within
    the Zabbix server configuration file (zabbix_server.conf).
 
    ```bash
@@ -67,7 +67,8 @@ Within Zabbix web interface, do the following:
 1. In a browser, open localhost:80.
 
 1. Navigate to **Adminitstration > Media Types > Create Media Type**.
-<!--![](../_images/zabbix-1.png)-->
+
+   <!--![](../_images/zabbix-1.png)-->
 
 1. Create a Media Type with the following fields.
 
@@ -87,13 +88,16 @@ To send alerts to Grafana OnCall, the {ALERT.SEND_TO} value must be set in the [
 1. In the web UI, navigate to **Administration > Users** and open the **user properties** form.
 
 1. In the **Media** tab, click **Add** and copy the link from Grafana OnCall in the `Send to` field.
-<!--![](../_images/zabbix-7.png)-->
+
+   <!--![](../_images/zabbix-7.png)-->
 
 1. Click **Test** in the last column to send a test alert to Grafana OnCall.
-<!--![](../_images/zabbix-3.png)-->
+
+   <!--![](../_images/zabbix-3.png)-->
 
 1. Specify **Send to** OnCall using the unique integration URL from the above step in the testing window that opens.  
    Create a test message with a body and optional subject and click **Test**.
+
    <!--![](../_images/zabbix-4.png)
 
         WHERE DID SLACK COME FROM?! 1. View the Grafana OnCall incident that appears in the Slack channel.
@@ -106,11 +110,11 @@ Use the following procedure to configure grouping and auto-resolve.
 
 1. Provide a parameter as an identifier for group differentiation to Grafana OnCall.
 
-1. Append that variable to the subject of the action as `ONCALL_GROUP: ID`, where `ID` is any of the Zabbix [macros](https://www.zabbix.com/documentation/4.2/manual/appendix/macros/supported_by_location).
+2. Append that variable to the subject of the action as `ONCALL_GROUP: ID`, where `ID` is any of the Zabbix [macros](https://www.zabbix.com/documentation/4.2/manual/appendix/macros/supported_by_location).
    For example, `{EVENT.ID}`. The Grafana OnCall script [grafana_oncall.sh](#grafana_oncallsh-script) extracts this event
    and passes the `alert_uid` to Grafana OnCall.
 
-1. To enable auto-resolve within Grafana Oncall, the "Resolved" keyword is required in the **Default subject** field
+3. To enable auto-resolve within Grafana Oncall, the "Resolved" keyword is required in the **Default subject** field
    in **Recovered operations**.
 
 <!--![](../_images/zabbix-6.png)-->
