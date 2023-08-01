@@ -16,8 +16,8 @@ weight: 100
 
 > ⚠️ A note about **(Legacy)** integrations:
 > We are changing internal behaviour of Grafana Alerting integration.
-> Integrations that were created before version **VERSION** are marked as **(Legacy)**.
-> These integrations are still receiving and escalating alerts but will be automatically migrated after DEPRECATION_DATE.
+> Integrations that were created before version 1.3.21 are marked as **(Legacy)**.
+> These integrations are still receiving and escalating alerts but will be automatically migrated after 1 November 2023.
 > <br/><br/>
 > To ensure a smooth transition you can migrate them by yourself now.
 > [Here][migration] you can read more about changes and migration process.
@@ -120,6 +120,6 @@ You can read more about AlertManager Data model [here](https://prometheus.io/doc
 3. Adjust routes to the new shape of payload.
 
 {{% docs/reference %}}
-[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/alertmanager#migrating-from-legacy-alertmanager-integration"
-[migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/alertmanager#migrating-from-legacy-alertmanager-integration"
+[migration]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/integrations/grafana-alerting#migrating-from-legacy-integration"
+[migration]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/integrations/grafana-alerting#migrating-from-legacy-integration"
 {{% /docs/reference %}}
