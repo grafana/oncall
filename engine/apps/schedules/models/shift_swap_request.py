@@ -130,6 +130,10 @@ class ShiftSwapRequest(models.Model):
         return timezone.now() > self.swap_start
 
     @property
+    def is_open(self) -> bool:
+        return not any((self.is_deleted, self.is_taken, self.is_past_due))
+
+    @property
     def status(self) -> str:
         if self.is_deleted:
             return self.Statuses.DELETED

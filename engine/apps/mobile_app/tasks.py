@@ -601,7 +601,7 @@ def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: in
         logger.info(f"Info notifications are not enabled for user {user_pk}")
         return
 
-    if shift_swap_request.status != ShiftSwapRequest.Statuses.OPEN:
+    if not shift_swap_request.is_open:
         logger.info(f"Shift swap request {shift_swap_request_pk} is not open anymore")
         return
 
