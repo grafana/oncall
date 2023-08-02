@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from apps.schedules import exceptions
 from apps.schedules.models import CustomOnCallShift, ShiftSwapRequest
+from apps.user_management.models import User
 
 ROTATION_START = datetime.datetime(2150, 8, 29, 0, 0, 0, 0, tzinfo=pytz.UTC)
 
@@ -154,3 +155,12 @@ def test_related_shifts(shift_swap_request_setup, make_on_call_shift) -> None:
     ]
     returned_events = [(e["start"], e["end"], e["users"][0]["pk"], e["users"][0]["swap_request"]["pk"]) for e in events]
     assert returned_events == expected
+
+
+@pytest.mark.django_db
+def test_possible_benefactors(shift_swap_request_setup) -> None:
+    ssr, beneficiary, benefactor = shift_swap_request_setup()
+
+    with patch.object(ssr.schedule, "related_users") as mock_related_users:
+        mock_related_users.return_value = User.objects.filter(pk__in=[beneficiary.pk, benefactor.pk])
+        assert list(ssr.possible_benefactors) == [benefactor]
