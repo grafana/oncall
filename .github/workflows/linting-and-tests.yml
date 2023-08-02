@@ -135,7 +135,7 @@ jobs:
       - name: Install helm unittest plugin
         run: helm plugin install https://github.com/helm-unittest/helm-unittest.git
       - name: Run tests
-        run: helm helm unittest ./helm/oncall
+        run: helm unittest ./helm/oncall
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
