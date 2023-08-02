@@ -89,4 +89,4 @@ def integration_heartbeat_checkup(heartbeat_id: int) -> None:
 def process_heartbeat_task(alert_receive_channel_pk):
     IntegrationHeartBeat.objects.filter(
         alert_receive_channel__pk=alert_receive_channel_pk,
-    ).first().update(last_heartbeat=timezone().now())
+    ).update(last_heartbeat_time=timezone.now())

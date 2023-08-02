@@ -488,6 +488,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60 * 30,
         "args": (),
     },
+    "check_heartbeats": {
+        "task": "apps.heartbeat.tasks.check_heartbeats",
+        "schedule": 5,
+        "args": (),
+    },
 }
 
 if ESCALATION_AUDITOR_ENABLED:
