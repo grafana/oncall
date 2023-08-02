@@ -19,8 +19,7 @@ test.describe('Users screen actions', () => {
   test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
 
-    // , 'tab-mobile-app', 'tab-slack', 'tab-telegram'
-    await _accessProfileTabs(page, ['tab-phone-verification', 'tab-mobile-app'], false);
+    await _accessProfileTabs(page, ['tab-mobile-app', 'tab-slack', 'tab-telegram'], false);
   });
 
   test("Editor cannot view other users' data", async ({ editorRolePage }) => {
@@ -45,12 +44,12 @@ test.describe('Users screen actions', () => {
     }
   });
 
-  // test('Editor can access tabs from View My Profile', async ({ editorRolePage }) => {
-  //   const { page } = editorRolePage;
+  test('Editor can access tabs from View My Profile', async ({ editorRolePage }) => {
+    const { page } = editorRolePage;
 
-  //   // the other tabs depend on Cloud, skip for now
-  //   await _accessProfileTabs(page, ['tab-slack', 'tab-telegram'], true);
-  // });
+    // the other tabs depend on Cloud, skip for now
+    await _accessProfileTabs(page, ['tab-slack', 'tab-telegram'], true);
+  });
 
   test("Editor is not allowed to edit other users' profile", async ({ editorRolePage }) => {
     await _testButtons(editorRolePage.page, 'button.edit-other-profile-button:not([disabled])');
