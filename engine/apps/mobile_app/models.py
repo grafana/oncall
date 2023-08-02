@@ -142,7 +142,7 @@ class MobileAppUserSettings(models.Model):
 
     # Push notification settings for info notifications
     # this is used for non escalation related push notifications such as the
-    # "You're going OnCall soon" push notification
+    # "You're going OnCall soon" and "You have a new shift swap request" push notifications
     info_notifications_enabled = models.BooleanField(default=False)
 
     info_notification_sound_name = models.CharField(max_length=100, default="default_sound", null=True)
