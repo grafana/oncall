@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.alerts.tasks.notify_ical_schedule_shift import notify_ical_schedule_shift
 from apps.schedules.ical_utils import memoized_users_in_ical
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleICal
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 
 ICAL_DATA = """
 BEGIN:VCALENDAR
@@ -687,3 +687,74 @@ def test_current_shift_changes_trigger_notification_from_old_to_new_task_version
         notify_ical_schedule_shift(schedule.pk)
 
     assert mock_slack_api_call.called
+
+
+@pytest.mark.django_db
+def test_next_shift_notification_long_and_short_shifts(
+    make_organization_and_user_with_slack_identities,
+    make_user,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    user1 = make_user(organization=organization, username="user1")
+    user2 = make_user(organization=organization, username="user2")
+    user3 = make_user(organization=organization, username="user3")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_schedule",
+        channel="channel",
+        prev_ical_file_overrides=None,
+        cached_ical_file_overrides=None,
+    )
+
+    now = timezone.now().replace(microsecond=0)
+    start_date_1 = now - datetime.timedelta(days=1)
+    data_1 = {
+        "start": start_date_1,
+        "rotation_start": start_date_1,
+        "duration": datetime.timedelta(seconds=3600 * 24 * 7),  # one week duration
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "schedule": schedule,
+    }
+    on_call_shift_1 = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data_1
+    )
+    on_call_shift_1.add_rolling_users([[user1], [user2]])
+
+    start_date_2 = now - datetime.timedelta(hours=1)
+    data_2 = {
+        "start": start_date_2,
+        "rotation_start": start_date_2,
+        "duration": datetime.timedelta(seconds=3600 * 24),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "schedule": schedule,
+    }
+    on_call_shift_2 = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data_2
+    )
+    on_call_shift_2.add_rolling_users([[user3]])
+
+    schedule.refresh_ical_file()
+
+    # setup empty current shifts before checking/triggering for notifications
+    schedule.current_shifts = json.dumps({}, default=str)
+    schedule.empty_oncall = False
+    schedule.save()
+
+    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+        notify_ical_schedule_shift(schedule.pk)
+
+    assert mock_slack_api_call.called
+    notification = mock_slack_api_call.call_args[1]["blocks"][0]["text"]["text"]
+    new_shift_notification, next_shift_notification = notification.split("\n\n")
+
+    assert "*New on-call shift:*\n[L1] user1" in new_shift_notification
+    assert "[L1] user3" in new_shift_notification
+    assert "*Next on-call shift:*\n[L1] user2" in notification
