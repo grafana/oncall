@@ -54,6 +54,8 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     organization, user = make_organization_and_user()
     user2 = make_user(organization=organization)
     schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
+    shift_pk = "mncvmnvc"
+    user_pk = user.public_primary_key
     user_locale = "fr_CA"
     seconds_until_going_oncall = 600
     humanized_time_until_going_oncall = "10 minutes"
@@ -64,6 +66,28 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     multiple_day_shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
     multiple_day_shift_end = timezone.datetime(2023, 7, 12, 17, 0, 0)
 
+    same_day_shift = _create_schedule_event(
+        same_day_shift_start,
+        same_day_shift_end,
+        shift_pk,
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
+    multiple_day_shift = _create_schedule_event(
+        multiple_day_shift_start,
+        multiple_day_shift_end,
+        shift_pk,
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
     maus = MobileAppUserSettings.objects.create(user=user, locale=user_locale)
     maus_no_locale = MobileAppUserSettings.objects.create(user=user2)
 
@@ -71,9 +95,9 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     # same day shift
     ##################
     same_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
-    same_day_shift_subtitle = tasks._get_shift_subtitle(schedule, same_day_shift_start, same_day_shift_end, maus)
-    same_day_shift_no_locale_subtitle = tasks._get_shift_subtitle(
-        schedule, same_day_shift_start, same_day_shift_end, maus_no_locale
+    same_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(schedule, same_day_shift, maus)
+    same_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, same_day_shift, maus_no_locale
     )
 
     assert same_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
@@ -84,11 +108,11 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     # multiple day shift
     ##################
     multiple_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
-    multiple_day_shift_subtitle = tasks._get_shift_subtitle(
-        schedule, multiple_day_shift_start, multiple_day_shift_end, maus
+    multiple_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, multiple_day_shift, maus
     )
-    multiple_day_shift_no_locale_subtitle = tasks._get_shift_subtitle(
-        schedule, multiple_day_shift_start, multiple_day_shift_end, maus_no_locale
+    multiple_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
+        schedule, multiple_day_shift, maus_no_locale
     )
 
     assert multiple_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
@@ -107,13 +131,14 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     ],
 )
 @pytest.mark.django_db
-def test_get_shift_subtitle(
+def test_get_youre_going_oncall_notification_subtitle(
     make_organization, make_user_for_organization, make_schedule, user_timezone, expected_shift_times
 ):
     schedule_name = "asdfasdfasdfasdf"
 
     organization = make_organization()
     user = make_user_for_organization(organization)
+    user_pk = user.public_primary_key
     maus = MobileAppUserSettings.objects.create(user=user, time_zone=user_timezone)
 
     schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
@@ -121,13 +146,24 @@ def test_get_shift_subtitle(
     shift_start = timezone.datetime(2023, 7, 8, 9, 0, 0)
     shift_end = timezone.datetime(2023, 7, 8, 17, 0, 0)
 
+    shift = _create_schedule_event(
+        shift_start,
+        shift_end,
+        "asdfasdfasdf",
+        [
+            {
+                "pk": user_pk,
+            },
+        ],
+    )
+
     assert (
-        tasks._get_shift_subtitle(schedule, shift_start, shift_end, maus)
+        tasks._get_youre_going_oncall_notification_subtitle(schedule, shift, maus)
         == f"{expected_shift_times}\nSchedule {schedule_name}"
     )
 
 
-@mock.patch("apps.mobile_app.tasks._get_shift_subtitle")
+@mock.patch("apps.mobile_app.tasks._get_youre_going_oncall_notification_subtitle")
 @mock.patch("apps.mobile_app.tasks._get_youre_going_oncall_notification_title")
 @mock.patch("apps.mobile_app.tasks._construct_fcm_message")
 @mock.patch("apps.mobile_app.tasks.APNSPayload")
@@ -142,7 +178,7 @@ def test_get_youre_going_oncall_fcm_message(
     mock_apns_payload,
     mock_construct_fcm_message,
     mock_get_youre_going_oncall_notification_title,
-    mock_get_shift_subtitle,
+    mock_get_youre_going_oncall_notification_subtitle,
     make_organization,
     make_user_for_organization,
     make_schedule,
@@ -155,7 +191,7 @@ def test_get_youre_going_oncall_fcm_message(
 
     mock_construct_fcm_message.return_value = mock_fcm_message
     mock_get_youre_going_oncall_notification_title.return_value = mock_notification_title
-    mock_get_shift_subtitle.return_value = mock_notification_subtitle
+    mock_get_youre_going_oncall_notification_subtitle.return_value = mock_notification_subtitle
 
     organization = make_organization()
     user_tz = "Europe/Amsterdam"
@@ -164,10 +200,9 @@ def test_get_youre_going_oncall_fcm_message(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
 
-    shift_start = shift_end = timezone.now()
     schedule_event = _create_schedule_event(
-        shift_start,
-        shift_end,
+        timezone.now(),
+        timezone.now(),
         shift_pk,
         [
             {
@@ -210,7 +245,7 @@ def test_get_youre_going_oncall_fcm_message(
     )
     mock_apns_payload.assert_called_once_with(aps=mock_aps.return_value)
 
-    mock_get_shift_subtitle.assert_called_once_with(schedule, shift_start, shift_end, maus)
+    mock_get_youre_going_oncall_notification_subtitle.assert_called_once_with(schedule, schedule_event, maus)
     mock_get_youre_going_oncall_notification_title.assert_called_once_with(seconds_until_going_oncall)
 
     mock_construct_fcm_message.assert_called_once_with(

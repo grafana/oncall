@@ -232,12 +232,14 @@ def _get_youre_going_oncall_notification_title(seconds_until_going_oncall: int) 
     return f"Your on-call shift starts in {humanize.naturaldelta(seconds_until_going_oncall)}"
 
 
-def _get_shift_subtitle(
+def _get_youre_going_oncall_notification_subtitle(
     schedule: OnCallSchedule,
-    shift_start: datetime.datetime,
-    shift_end: datetime.datetime,
+    schedule_event: ScheduleEvent,
     mobile_app_user_settings: "MobileAppUserSettings",
 ) -> str:
+    shift_start = schedule_event["start"]
+    shift_end = schedule_event["end"]
+
     shift_starts_and_ends_on_same_day = shift_start.date() == shift_end.date()
     dt_formatter_func = format_localized_time if shift_starts_and_ends_on_same_day else format_localized_datetime
 
@@ -270,8 +272,8 @@ def _get_youre_going_oncall_fcm_message(
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
     notification_title = _get_youre_going_oncall_notification_title(seconds_until_going_oncall)
-    notification_subtitle = _get_shift_subtitle(
-        schedule, schedule_event["start"], schedule_event["end"], mobile_app_user_settings
+    notification_subtitle = _get_youre_going_oncall_notification_subtitle(
+        schedule, schedule_event, mobile_app_user_settings
     )
 
     data: FCMMessageData = {
