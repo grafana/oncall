@@ -1,5 +1,6 @@
 import datetime
 import json
+from typing import TYPE_CHECKING
 
 from django.utils import timezone
 
@@ -10,6 +11,41 @@ from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenE
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
+
+if TYPE_CHECKING:
+    from apps.schedules.models import OnCallSchedule
+
+
+def convert_prev_shifts_to_new_format(prev_shifts: dict, schedule: "OnCallSchedule") -> list:
+    new_prev_shifts = []
+    user_ids = []
+    users_info = {}
+    for shift in prev_shifts.values():
+        user_ids.extend(shift.get("users", []))
+    prev_users = schedule.organization.users.filter(id__in=user_ids)
+    for user in prev_users:
+        users_info.setdefault(
+            user.id,
+            {
+                "display_name": user.username,
+                "email": user.email,
+                "pk": user.public_primary_key,
+                "avatar_full": user.avatar_full_url,
+            },
+        )
+    for uid, shift in prev_shifts.items():
+        shift_pk, _ = parse_event_uid(uid)
+        new_prev_shifts.append(
+            {
+                "users": [users_info[user_pk] for user_pk in shift["users"]],
+                "start": shift["start"],
+                "end": shift["end"],
+                "all_day": shift["all_day"],
+                "priority_level": shift["priority"],
+                "shift": {"pk": shift_pk},
+            }
+        )
+    return new_prev_shifts
 
 
 @shared_dedicated_queue_retry_task()
@@ -50,35 +86,7 @@ def notify_ical_schedule_shift(schedule_pk):
     prev_shifts_updated = False
     # convert prev_shifts to new events format for compatibility with the previous version of this task
     if prev_shifts and isinstance(prev_shifts, dict):
-        new_prev_shifts = []
-        user_ids = []
-        users_info = {}
-        for shift in prev_shifts.values():
-            user_ids.extend(shift.get("users", []))
-        prev_users = schedule.organization.users.filter(id__in=user_ids)
-        for user in prev_users:
-            users_info.setdefault(
-                user.id,
-                {
-                    "display_name": user.username,
-                    "email": user.email,
-                    "pk": user.public_primary_key,
-                    "avatar_full": user.avatar_full_url,
-                },
-            )
-        for uid, shift in prev_shifts.items():
-            shift_pk, _ = parse_event_uid(uid)
-            new_prev_shifts.append(
-                {
-                    "users": [users_info[user_pk] for user_pk in shift["users"]],
-                    "start": shift["start"],
-                    "end": shift["end"],
-                    "all_day": shift["all_day"],
-                    "priority_level": shift["priority"],
-                    "shift": {"pk": shift_pk},
-                }
-            )
-        prev_shifts = new_prev_shifts
+        prev_shifts = convert_prev_shifts_to_new_format(prev_shifts, schedule)
         prev_shifts_updated = True
 
     # convert datetimes which was dumped to str back to datetime to calculate shift diff correct
@@ -98,12 +106,12 @@ def notify_ical_schedule_shift(schedule_pk):
             schedule.save(update_fields=["current_shifts"])
         return
 
-    # Get only new/changed shifts to send a reminder message.
     new_shifts = sorted(diff_shifts, key=lambda shift: shift["start"])
 
     # get days_to_lookup for next shifts
     if len(new_shifts) != 0:
-        days_to_lookup = (new_shifts[-1]["end"].date() - now.date()).days + 1
+        max_end_date = max([shift["end"].date() for shift in new_shifts])
+        days_to_lookup = (max_end_date - now.date()).days + 1
         days_to_lookup = max([days_to_lookup, MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT])
     else:
         days_to_lookup = MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT
@@ -117,8 +125,6 @@ def notify_ical_schedule_shift(schedule_pk):
         if now < next_shift["start"]:
             next_shifts.append(next_shift)
 
-    next_shifts = sorted(next_shifts, key=lambda shift: shift["start"])
-
     upcoming_shifts = []
     # Add the earliest next_shift
     if len(next_shifts) > 0:
@@ -129,21 +135,18 @@ def notify_ical_schedule_shift(schedule_pk):
             if shift["start"] == earliest_shift["start"]:
                 upcoming_shifts.append(shift)
 
-    empty_oncall = len(current_shifts) == 0
-    if empty_oncall:
-        schedule.empty_oncall = True
-    else:
-        schedule.empty_oncall = False
+    schedule.empty_oncall = len(current_shifts) == 0
+    if not schedule.empty_oncall:
         schedule.current_shifts = json.dumps(current_shifts, default=str)
 
     schedule.save(update_fields=["current_shifts", "empty_oncall"])
 
-    if len(new_shifts) > 0 or empty_oncall:
+    if len(new_shifts) > 0 or schedule.empty_oncall:
         task_logger.info(f"new_shifts: {new_shifts}")
         if schedule.notify_oncall_shift_freq != OnCallSchedule.NotifyOnCallShiftFreq.NEVER:
             slack_client = SlackClientWithErrorHandling(schedule.organization.slack_team_identity.bot_access_token)
             step = scenario_step.ScenarioStep.get_step("schedules", "EditScheduleShiftNotifyStep")
-            report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, empty_oncall)
+            report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, schedule.empty_oncall)
 
             try:
                 slack_client.api_call(
