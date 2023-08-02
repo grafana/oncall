@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { rootStore } from 'state';
@@ -187,31 +188,28 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   }
 
   return (
-    <>
-      {isPhoneValid && !user.verified_phone_number && (
-        <>
-          <Alert severity="info" title="You will receive alerts to a new number after verification" />
-          <br />
-        </>
-      )}
-
-      {!isPhoneProviderConfigured && store.hasFeature(AppFeature.LiveSettings) && (
-        <>
-          <Alert
-            severity="warning"
-            // @ts-ignore
-            title={
-              <>
-                Can't verify phone. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink> to
-                configure your provider.
-              </>
-            }
-          />
-          <br />
-        </>
-      )}
-
+    <WithPermissionControlDisplay userAction={UserActions.OtherSettingsWrite}>
       <VerticalGroup>
+        {isPhoneValid && !user.verified_phone_number && (
+          <Alert severity="info" title="You will receive alerts to a new number after verification" />
+        )}
+
+        {!isPhoneProviderConfigured && store.hasFeature(AppFeature.LiveSettings) && (
+          <>
+            <Alert
+              severity="warning"
+              title={
+                (
+                  <Text type="primary">
+                    Can't verify phone. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink>{' '}
+                    to configure your provider.
+                  </Text>
+                ) as any
+              }
+            />
+          </>
+        )}
+
         <Field
           className={cx('phone__field')}
           invalid={showPhoneInputError}
@@ -224,8 +222,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
               required
               disabled={!isPhoneProviderConfigured || isPhoneDisabled}
               placeholder="Please enter the phone number with country code, e.g. +12451111111"
-              // @ts-ignore
-              prefix={<Icon name="phone" />}
+              prefix={<Icon name={'phone' as any} />}
               value={phone}
               onChange={onChangePhoneCallback}
             />
@@ -263,25 +260,23 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             <label className={cx('switch__label')}>Hide my phone number from teammates</label>
           </div>
         )}
+
+        <PhoneVerificationButtonsGroup
+          action={action}
+          isCodeSent={isCodeSent}
+          isPhoneCallInitiated={isPhoneCallInitiated}
+          isButtonDisabled={isButtonDisabled}
+          isTestCallInProgress={userStore.isTestCallInProgress}
+          providerConfiguration={providerConfiguration}
+          onSubmitCallback={onSubmitCallback}
+          onVerifyCallback={onVerifyCallback}
+          handleMakeTestCallClick={handleMakeTestCallClick}
+          handleSendTestSmsClick={handleSendTestSmsClick}
+          onShowForgetScreen={() => setState({ showForgetScreen: true })}
+          user={user}
+        />
       </VerticalGroup>
-
-      <br />
-
-      <PhoneVerificationButtonsGroup
-        action={action}
-        isCodeSent={isCodeSent}
-        isPhoneCallInitiated={isPhoneCallInitiated}
-        isButtonDisabled={isButtonDisabled}
-        isTestCallInProgress={userStore.isTestCallInProgress}
-        providerConfiguration={providerConfiguration}
-        onSubmitCallback={onSubmitCallback}
-        onVerifyCallback={onVerifyCallback}
-        handleMakeTestCallClick={handleMakeTestCallClick}
-        handleSendTestSmsClick={handleSendTestSmsClick}
-        onShowForgetScreen={() => setState({ showForgetScreen: true })}
-        user={user}
-      />
-    </>
+    </WithPermissionControlDisplay>
   );
 });
 
@@ -363,7 +358,6 @@ function PhoneVerificationButtonsGroup({
             </>
           ) : (
             <HorizontalGroup>
-              {' '}
               {providerConfiguration.verification_sms && (
                 <WithPermissionControlTooltip userAction={action}>
                   <Button

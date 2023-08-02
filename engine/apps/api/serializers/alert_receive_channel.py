@@ -227,7 +227,7 @@ class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AlertReceiveChannel
-        fields = ["value", "display_name", "integration_url"]
+        fields = ["value", "display_name"]
 
     def get_value(self, obj):
         return obj.public_primary_key
