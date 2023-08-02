@@ -239,7 +239,6 @@ def _get_youre_going_oncall_notification_subtitle(
 ) -> str:
     shift_start = schedule_event["start"]
     shift_end = schedule_event["end"]
-
     shift_starts_and_ends_on_same_day = shift_start.date() == shift_end.date()
     dt_formatter_func = format_localized_time if shift_starts_and_ends_on_same_day else format_localized_datetime
 
