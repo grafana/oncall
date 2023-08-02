@@ -15,7 +15,7 @@ from common.api_helpers.utils import serialize_datetime_as_utc_timestamp
 from common.insight_log import EntityEvent
 
 description = "my shift swap request"
-tomorrow = timezone.now() + datetime.timedelta(days=1)
+tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
 two_days_from_now = tomorrow + datetime.timedelta(days=1)
 
 mock_success_response = Response(status=status.HTTP_200_OK)
@@ -482,7 +482,7 @@ def test_related_shifts(ssr_setup, make_on_call_shift, make_user_auth_headers):
     user = beneficiary
 
     today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    start = today + timezone.timedelta(days=2)
+    start = today + timezone.timedelta(days=1)
     duration = timezone.timedelta(hours=8)
     data = {
         "start": start,
