@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { rootStore } from 'state';
@@ -14,7 +15,6 @@ import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
 
 import styles from './PhoneVerification.module.css';
-import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 
 const cx = cn.bind(styles);
 
