@@ -133,7 +133,7 @@ jobs:
         with:
           version: v3.8.0
       - name: Install helm unittest plugin
-        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --version=v0.3.3
       - name: Run tests
         run: helm unittest ./helm/oncall
 
