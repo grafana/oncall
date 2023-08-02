@@ -47,12 +47,21 @@ class IntegrationHeartBeat(models.Model):
     """
     Stores the latest received heartbeat signal time
     """
-    # Deprecated. This field is not used. TODO: remove it
+
     last_checkup_task_time = models.DateTimeField(default=None, null=True)
-    # Deprecated. Stored the latest scheduled `integration_heartbeat_checkup` task id. TODO: remove it
+    """
+    Deprecated. This field is not used. TODO: remove it
+    """
+
     actual_check_up_task_id = models.CharField(max_length=100)
-    # Last status of the heartbeat. Determines if integration was alive on latest checkup
+    """
+    Deprecated. Stored the latest scheduled `integration_heartbeat_checkup` task id. TODO: remove it
+    """
+
     previous_alerted_state_was_life = models.BooleanField(default=True)
+    """
+    Last status of the heartbeat. Determines if integration was alive on latest checkup
+    """
 
     public_primary_key = models.CharField(
         max_length=20,
