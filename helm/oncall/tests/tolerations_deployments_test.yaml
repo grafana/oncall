@@ -9,7 +9,7 @@ tests:
   - it: tolerations={} -> should set tolerations null
     asserts:
       - notExists:
-            path: spec.template.spec.tolerations
+          path: spec.template.spec.tolerations
 
   - it: tolerations -> should use custom tolerations
     set:
