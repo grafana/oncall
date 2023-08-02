@@ -129,10 +129,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: d3adb5/helm-unittest-action@v2
+      - uses: azure/setup-helm@v3
         with:
-          helm-version: v3.8.0
-          charts: ./helm/oncall
+          version: v3.8.0
+      - name: Install helm unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git
+      - name: Run tests
+        run: helm helm unittest ./helm/oncall
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
