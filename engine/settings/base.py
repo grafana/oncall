@@ -669,10 +669,11 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager_v2",
     "config_integrations.alertmanager",
+    "config_integrations.legacy_alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",
+    "config_integrations.legacy_grafana_alerting",
     "config_integrations.formatted_webhook",
     "config_integrations.webhook",
     "config_integrations.kapacitor",

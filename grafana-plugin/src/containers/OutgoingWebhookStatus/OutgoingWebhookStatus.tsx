@@ -7,15 +7,15 @@ import { observer } from 'mobx-react';
 import Block from 'components/GBlock/Block';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
-import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 
-import styles from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form.module.css';
+import styles from 'containers/OutgoingWebhookForm/OutgoingWebhookForm.module.css';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhook2StatusProps {
-  id: OutgoingWebhook2['id'];
+interface OutgoingWebhookStatusProps {
+  id: OutgoingWebhook['id'];
   onUpdate: () => void;
 }
 
@@ -47,14 +47,14 @@ function format_response_field(str) {
   }
 }
 
-const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => {
+const OutgoingWebhookStatus = observer((props: OutgoingWebhookStatusProps) => {
   const { id } = props;
 
   const store = useStore();
 
-  const { outgoingWebhook2Store } = store;
+  const { outgoingWebhookStore } = store;
 
-  const data = outgoingWebhook2Store.items[id];
+  const data = outgoingWebhookStore.items[id];
 
   return (
     <div className={cx('content')}>
@@ -119,4 +119,4 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
   );
 });
 
-export default OutgoingWebhook2Status;
+export default OutgoingWebhookStatus;

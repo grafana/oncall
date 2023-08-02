@@ -9,13 +9,13 @@ import Text from 'components/Text/Text';
 import styles from 'containers/IntegrationTemplate/IntegrationTemplate.module.scss';
 import TemplatePreview, { TEMPLATE_PAGE } from 'containers/TemplatePreview/TemplatePreview';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 
 const cx = cn.bind(styles);
 
 interface ResultProps {
   alertReceiveChannelId?: AlertReceiveChannel['id'];
-  outgoingWebhookId?: OutgoingWebhook2['id'];
+  outgoingWebhookId?: OutgoingWebhook['id'];
   templateBody: string;
   template: TemplateForEdit;
   isAlertGroupExisting?: boolean;

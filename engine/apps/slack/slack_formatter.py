@@ -13,9 +13,6 @@ class SlackFormatter(SlackFormatterBase):
         self.user_mention_format = "@{}"
         self.hyperlink_mention_format = '<a href="{url}">{title}</a>'
 
-    def find_user(self, message):
-        raise NotImplementedError()
-
     def format(self, message):
         """
         Overriden original render_text method.

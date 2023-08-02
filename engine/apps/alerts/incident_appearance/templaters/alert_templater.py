@@ -172,9 +172,7 @@ class AlertTemplater(ABC):
                 "source_link": templated_alert.source_link,
                 "grafana_oncall_alert_group_id": self.alert_group_id,
                 "grafana_oncall_incident_id": self.alert_group_id,  # Keep for backward compatibility
-                "amixr_incident_id": self.alert_group_id,  # Keep for backward compatibility
                 "grafana_oncall_link": self.link,
-                "amixr_link": self.link,  # Keep for backward compatibility
             }
             # Hardcoding, as AlertWebTemplater.RENDER_FOR_WEB cause circular import
             render_for_web = "web"
