@@ -7,7 +7,7 @@
   - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
-- [UI Integration Tests](#ui-integration-tests)
+- [UI E2E Tests](#ui-e2e-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -189,7 +189,7 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
-## UI Integration Tests
+## UI E2E Tests
 
 We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
 are run on pull request CI builds. New features should ideally include a new/modified integration test.
@@ -198,10 +198,10 @@ To run these tests locally simply do the following:
 
 ```bash
 npx playwright install  # install playwright dependencies
-cp ./grafana-plugin/integration-tests/.env.example ./grafana-plugin/integration-tests/.env
+cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
 cd grafana-plugin
-yarn test:integration
+yarn test:e2e
 ```
 
 ## Useful `make` commands

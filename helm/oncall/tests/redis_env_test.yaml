@@ -76,7 +76,7 @@ tests:
               secretKeyRef:
                 key: redis-password
                 name: oncall-redis
-  
+
   - it: redis.enabled=false -> should fail if host not set
     set:
       redis.enabled: false

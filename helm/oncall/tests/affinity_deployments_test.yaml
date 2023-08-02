@@ -9,7 +9,7 @@ tests:
   - it: affinity={} -> should set afffinity null
     asserts:
       - notExists:
-            path: spec.template.spec.affinity
+          path: spec.template.spec.affinity
 
   - it: affinity -> should use custom affinity
     set:

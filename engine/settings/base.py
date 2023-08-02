@@ -481,6 +481,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
         "schedule": 10 * 60,
     },
+    "notify_shift_swap_requests": {
+        "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
+        "schedule": 10 * 60,
+    },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
         "schedule": 60 * 30,
