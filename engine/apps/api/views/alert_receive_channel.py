@@ -37,7 +37,7 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
-    integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
+    integration = filters.MultipleChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
     team = TeamModelMultipleChoiceFilter()
 
     class Meta:
