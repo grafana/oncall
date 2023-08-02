@@ -44,31 +44,31 @@ class _TextBase(typing.TypedDict):
     """
 
 
-class _PlainText(_TextBase):
+class CompositionObjectPlainText(_TextBase):
     type: typing.Literal["plain_text"]
     """
     The formatting to use for this text object.
     """
 
 
-class _MrkdwnText(_TextBase):
+class CompositionObjectMrkdwnText(_TextBase):
     type: typing.Literal["mrkdwn"]
     """
     The formatting to use for this text object.
     """
 
 
-_Text = _PlainText | _MrkdwnText
+CompositionObjectText = CompositionObjectPlainText | CompositionObjectMrkdwnText
 
 
-class _Option(typing.TypedDict):
+class CompositionObjectOption(typing.TypedDict):
     """
     An object that represents a single selectable item in a select menu, multi-select menu, checkbox group, radio button group, or overflow menu.
 
     [Documentation](https://api.slack.com/reference/block-kit/composition-objects#option)
     """
 
-    text: _Text
+    text: CompositionObjectText
     """
     A [text object](https://api.slack.com/reference/block-kit/composition-objects#text) that defines the text shown in
     the option on the menu.
@@ -84,7 +84,7 @@ class _Option(typing.TypedDict):
     Maximum length for this field is 75 characters.
     """
 
-    description: typing.Optional[_PlainText]
+    description: typing.Optional[CompositionObjectPlainText]
     """
     A [plain_text-only text object](https://api.slack.com/reference/block-kit/composition-objects#confirm:~:text=A-,plain_text,%2Donly%20text%20object,-that%20defines%20the)
     that defines a line of descriptive text shown below the `text` field beside the radio button.
@@ -104,7 +104,7 @@ class _Option(typing.TypedDict):
     """
 
 
-class _OptionGroup(typing.TypedDict):
+class CompositionObjectOptionGroup(typing.TypedDict):
     """
     Provides a way to group options in a [select menu](https://api.slack.com/reference/block-kit/block-elements#select)
     or [multi-select menu](https://api.slack.com/reference/block-kit/block-elements#multi_select).
@@ -112,7 +112,7 @@ class _OptionGroup(typing.TypedDict):
     [Documentation](https://api.slack.com/reference/block-kit/composition-objects#option_group)
     """
 
-    label: _PlainText
+    label: CompositionObjectPlainText
     """
     A [plain_text only text object](https://api.slack.com/reference/block-kit/composition-objects#text) that defines
     the label shown above this group of options.
@@ -120,7 +120,7 @@ class _OptionGroup(typing.TypedDict):
     Maximum length for the `text` in this field is 75 characters.
     """
 
-    options: typing.List[_Option]
+    options: typing.List[CompositionObjectOption]
     """
     An array of [option objects](https://api.slack.com/reference/block-kit/composition-objects#option) that belong to
     this specific group.
@@ -129,7 +129,7 @@ class _OptionGroup(typing.TypedDict):
     """
 
 
-class _Confirm(typing.TypedDict):
+class CompositionObjectConfirm(typing.TypedDict):
     """
     An object that defines a dialog that provides a confirmation step to any interactive element.
     This dialog will ask the user to confirm their action by offering a confirm and deny buttons.
@@ -137,7 +137,7 @@ class _Confirm(typing.TypedDict):
     [Documentation](https://api.slack.com/reference/block-kit/composition-objects#confirm)
     """
 
-    title: _PlainText
+    title: CompositionObjectPlainText
     """
     A [plain_text-only text object](https://api.slack.com/reference/block-kit/composition-objects#confirm:~:text=A-,plain_text,%2Donly%20text%20object,-that%20defines%20the)
     that defines the dialog's title.
@@ -145,7 +145,7 @@ class _Confirm(typing.TypedDict):
     Maximum length for this field is 100 characters.
     """
 
-    text: _PlainText
+    text: CompositionObjectPlainText
     """
     A [plain_text-only text object](https://api.slack.com/reference/block-kit/composition-objects#confirm:~:text=A-,plain_text,%2Donly%20text%20object,-that%20defines%20the)
     that defines the explanatory text that appears in the confirm dialog.
@@ -153,7 +153,7 @@ class _Confirm(typing.TypedDict):
     Maximum length for the text in this field is 300 characters.
     """
 
-    confirm: _PlainText
+    confirm: CompositionObjectPlainText
     """
     A [plain_text-only text object](https://api.slack.com/reference/block-kit/composition-objects#confirm:~:text=A-,plain_text,%2Donly%20text%20object,-that%20defines%20the)
     to define the text of the button that confirms the action.
@@ -161,7 +161,7 @@ class _Confirm(typing.TypedDict):
     Maximum length for the text in this field is 30 characters.
     """
 
-    deny: _PlainText
+    deny: CompositionObjectPlainText
     """
     A [plain_text-only text object](https://api.slack.com/reference/block-kit/composition-objects#confirm:~:text=A-,plain_text,%2Donly%20text%20object,-that%20defines%20the)
     to define the text of the button that cancels the action.
@@ -178,17 +178,3 @@ class _Confirm(typing.TypedDict):
 
     If this field is not provided, the default value will be `primary`.
     """
-
-
-class CompositionObjects:
-    Confirm = _Confirm
-    MrkdwnText = _MrkdwnText
-    Option = _Option
-    OptionGroup = _OptionGroup
-    PlainText = _PlainText
-    Text = _Text
-
-
-__all__ = [
-    "CompositionObjects",
-]

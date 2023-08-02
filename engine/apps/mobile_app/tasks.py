@@ -274,11 +274,14 @@ def _get_youre_going_oncall_fcm_message(
         schedule, schedule_event, mobile_app_user_settings
     )
 
+    # safe to cast this as the model has a default value assigned to it
+    info_notification_sound_name = typing.cast(str, mobile_app_user_settings.info_notification_sound_name)
+
     data: FCMMessageData = {
         "title": notification_title,
         "subtitle": notification_subtitle,
         "info_notification_sound_name": (
-            mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+            info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
         ),
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
@@ -291,8 +294,7 @@ def _get_youre_going_oncall_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.info_notification_sound_name
-                + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+                name=info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
             ),
             custom_data={
                 "interruption-level": "time-sensitive",

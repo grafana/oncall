@@ -20,7 +20,7 @@ class NotifiedUserNotInChannelStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         logger.info("Gracefully handle NotifiedUserNotInChannelStep. Do nothing.")
         pass

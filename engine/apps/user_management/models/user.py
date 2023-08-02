@@ -66,7 +66,7 @@ def default_working_hours():
     return working_hours
 
 
-class UserManager(models.Manager):
+class UserManager(models.Manager["User"]):
     @staticmethod
     def sync_for_team(team, api_members: list[dict]):
         user_ids = tuple(member["userId"] for member in api_members)
@@ -161,7 +161,7 @@ class User(models.Model):
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     wiped_alert_groups: "RelatedManager['AlertGroup']"
 
-    objects: models.Manager["User"] = UserManager.from_queryset(UserQuerySet)()
+    objects = UserManager.from_queryset(UserQuerySet)()
 
     class Meta:
         # For some reason there are cases when Grafana user gets deleted,
