@@ -4,6 +4,7 @@ import typing
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from apps.schedules import exceptions
@@ -60,7 +61,7 @@ class ShiftSwapRequest(models.Model):
         default=generate_public_primary_key_for_shift_swap_request,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True)
 
@@ -129,6 +130,10 @@ class ShiftSwapRequest(models.Model):
         return timezone.now() > self.swap_start
 
     @property
+    def is_open(self) -> bool:
+        return not any((self.is_deleted, self.is_taken, self.is_past_due))
+
+    @property
     def status(self) -> str:
         if self.is_deleted:
             return self.Statuses.DELETED
@@ -149,6 +154,10 @@ class ShiftSwapRequest(models.Model):
     @property
     def organization(self) -> "Organization":
         return self.schedule.organization
+
+    @property
+    def possible_benefactors(self) -> QuerySet["User"]:
+        return self.schedule.related_users().exclude(pk=self.beneficiary_id)
 
     @property
     def web_link(self) -> str:
