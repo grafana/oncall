@@ -11,7 +11,6 @@ import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
-from django.urls import reverse
 from django.utils import timezone
 from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
@@ -655,13 +654,13 @@ def _shift_swap_request_fcm_message(
     beneficiary_name = shift_swap_request.beneficiary.name or shift_swap_request.beneficiary.username
     notification_subtitle = f"{beneficiary_name}, {shift_swap_request.schedule.name}"
 
-    # TODO: check with the mobile team
-    resource_url = reverse("api-internal:shift_swap-detail", kwargs={"pk": shift_swap_request.public_primary_key})
+    # The mobile app will use this route to open the shift swap request
+    route = f"/schedules/{shift_swap_request.schedule.public_primary_key}/ssrs/{shift_swap_request.public_primary_key}"
 
     data: FCMMessageData = {
         "title": notification_title,
         "subtitle": notification_subtitle,
-        "resource_url": resource_url,
+        "route": route,
         "info_notification_sound_name": (
             mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
         ),

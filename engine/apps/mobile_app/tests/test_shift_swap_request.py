@@ -281,7 +281,10 @@ def test_notify_user_about_shift_swap_request(
     assert message.data["type"] == MessageType.INFO
     assert message.data["title"] == "New shift swap request"
     assert message.data["subtitle"] == "John Doe, Test Schedule"
-    assert message.data["resource_url"] == f"/api/internal/v1/shift_swaps/{shift_swap_request.public_primary_key}"
+    assert (
+        message.data["route"]
+        == f"/schedules/{schedule.public_primary_key}/ssrs/{shift_swap_request.public_primary_key}"
+    )
     assert message.apns.payload.aps.sound.critical is False
 
 
