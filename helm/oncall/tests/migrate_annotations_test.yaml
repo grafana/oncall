@@ -33,7 +33,9 @@ tests:
             some-annotation: some-value
             other-annotation: other-value
 
-  - it: migrate.useHook=true and annotations set -> should contain the custom annotations and the "helm.sh/hook" annotation
+  - it: >
+      migrate.useHook=true and annotations set -> should contain the custom annotations
+      and the "helm.sh/hook" annotation
     set:
       migrate.useHook: true
       migrate.annotations:

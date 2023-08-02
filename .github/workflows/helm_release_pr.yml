@@ -1,6 +1,6 @@
 name: Create PR to release updated oncall Helm chart
 
-on:
+"on":
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
@@ -22,19 +22,19 @@ jobs:
       - name: Update oncall Helm chart Chart.yaml
         uses: fjogeleit/yaml-update-action@v0.12.3
         with:
-          valueFile: 'helm/oncall/Chart.yaml'
+          valueFile: "helm/oncall/Chart.yaml"
           branch: helm-release/${{ steps.tags.outputs.helm_version }}
           targetBranch: main
           masterBranchName: main
-          createPR: 'true'
-          description: "Merge this PR to `main` branch to start another 
-            [github actions job](https://github.com/grafana/oncall/blob/dev/.github/workflows/helm_release.yml) 
-            that will release the updated version of the chart 
-            (version: ${{ steps.tags.outputs.helm_version }}, appVersion: ${{ steps.tags.outputs.app_version }}) 
+          createPR: "true"
+          description: "Merge this PR to `main` branch to start another
+            [github actions job](https://github.com/grafana/oncall/blob/dev/.github/workflows/helm_release.yml)
+            that will release the updated version of the chart
+            (version: ${{ steps.tags.outputs.helm_version }}, appVersion: ${{ steps.tags.outputs.app_version }})
             into `grafana/helm-charts` helm repository. \n\n
-            This PR was created automatically by this 
+            This PR was created automatically by this
             [github action](https://github.com/grafana/oncall/blob/dev/.github/workflows/helm_release_pr.yml)."
-          message: 'Release oncall Helm chart ${{ steps.tags.outputs.helm_version }}'
+          message: "Release oncall Helm chart ${{ steps.tags.outputs.helm_version }}"
           changes: |
             {
               "version": "${{ steps.tags.outputs.helm_version }}",
