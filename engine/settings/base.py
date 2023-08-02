@@ -11,6 +11,7 @@ from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
+ADMIN_ENABLED = False  # disable django admin panel
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
@@ -524,11 +525,6 @@ if SILK_PROFILER_ENABLED:
 
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
-
-# get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
-ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
-
-ADMIN_SITE_HEADER = "OnCall Admin Panel"
 
 # Social auth settings
 SOCIAL_AUTH_USER_MODEL = "user_management.User"
