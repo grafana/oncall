@@ -19,7 +19,7 @@ test.describe('Users screen actions', () => {
   test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
 
-    await _accessProfileTabs(page, ['tab-mobile-app', 'tab-slack', 'tab-telegram'], false);
+    await _accessProfileTabs(page, ['tab-mobile-app', 'tab-phone-verification', 'tab-slack', 'tab-telegram'], false);
   });
 
   test("Editor cannot view other users' data", async ({ editorRolePage }) => {

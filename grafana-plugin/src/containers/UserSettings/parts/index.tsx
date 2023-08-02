@@ -8,13 +8,11 @@ import Block from 'components/GBlock/Block';
 import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
-import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
 import PhoneVerification from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import TelegramInfo from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
 import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/UserInfoTab';
 import { User } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/index.module.css';
