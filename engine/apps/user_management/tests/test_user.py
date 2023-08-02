@@ -77,3 +77,20 @@ def test_is_in_working_hours_next_day(make_organization, make_user_for_organizat
     assert user.is_in_working_hours(_17_utc, tz=tz) is True
     assert user.is_in_working_hours(_18_utc, tz=tz) is True
     assert user.is_in_working_hours(_18_01_utc, tz=tz) is False
+
+
+@pytest.mark.django_db
+def test_is_in_working_hours_no_timezone(make_organization, make_user_for_organization):
+    organization = make_organization()
+    user = make_user_for_organization(organization, _timezone=None)
+
+    assert user.is_in_working_hours(timezone.now()) is False
+
+
+@pytest.mark.django_db
+def test_is_in_working_hours_weekend(make_organization, make_user_for_organization):
+    organization = make_organization()
+    user = make_user_for_organization(organization, working_hours={"saturday": []}, _timezone=None)
+
+    on_saturday = timezone.datetime(2023, 8, 5, 12, 0, 0, tzinfo=timezone.utc)
+    assert user.is_in_working_hours(on_saturday, "UTC") is False
