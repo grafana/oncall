@@ -45,6 +45,3 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: UWSGI_LISTEN
-
-
-

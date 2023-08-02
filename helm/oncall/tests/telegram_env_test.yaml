@@ -52,4 +52,3 @@ tests:
               secretKeyRef:
                 name: some-secret
                 key: token
-
