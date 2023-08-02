@@ -10,7 +10,7 @@ tests:
     asserts:
       - lengthEqual:
           path: spec.template.spec.containers
-          count : 1
+          count: 1
 
   - it: engine.extraContainers -> should add sidecar containers
     set:
