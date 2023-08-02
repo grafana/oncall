@@ -3,6 +3,7 @@ import os
 import time
 
 import celery
+from celery import Celery
 from celery.app.log import TaskFormatter
 from celery.utils.debug import memdump, sample_mem
 from celery.utils.log import get_task_logger
@@ -19,7 +20,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
-from celery import Celery  # noqa: E402
 
 app = Celery("proj")
 

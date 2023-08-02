@@ -77,7 +77,8 @@ def test_build_raw_escalation_snapshot_escalation_chain_does_not_exist_escalatio
     channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
     alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
 
-    assert alert_group.build_raw_escalation_snapshot() == EMPTY_RAW_ESCALATION_SNAPSHOT
+    # Check that setting pause_escalation to True doesn't make the snapshot empty
+    assert alert_group.build_raw_escalation_snapshot() != EMPTY_RAW_ESCALATION_SNAPSHOT
 
 
 @pytest.mark.django_db

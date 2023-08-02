@@ -10,7 +10,7 @@ export enum MaintenanceMode {
 
 export interface AlertReceiveChannelOption {
   display_name: string;
-  value: number;
+  value: string;
   featured: boolean;
   short_description: string;
   featured_tag_name: string;

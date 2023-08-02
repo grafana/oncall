@@ -60,7 +60,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
         )
-        logger.error(f"Error while sending email: empty EMAIL_HOST env variable")
+        logger.error("Error while sending email: empty EMAIL_HOST env variable")
         return
 
     emails_left = user.organization.emails_left(user)

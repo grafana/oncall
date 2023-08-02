@@ -1,4 +1,3 @@
-from django.apps import apps
 from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
@@ -63,13 +62,13 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             try:
                 valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
             except JinjaTemplateError:
-                raise serializers.ValidationError([f"Jinja template is incorrect"])
+                raise serializers.ValidationError(["Jinja template is incorrect"])
         elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or filtering_term_type is None:
             if filtering_term is not None:
                 if not is_regex_valid(filtering_term):
                     raise serializers.ValidationError(["Regular expression is incorrect"])
         else:
-            raise serializers.ValidationError([f"Expression type is incorrect"])
+            raise serializers.ValidationError(["Expression type is incorrect"])
         return data
 
     def get_slack_channel(self, obj):
@@ -95,7 +94,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return None
 
     def validate_slack_channel(self, slack_channel_id):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
+        from apps.slack.models import SlackChannel
 
         if slack_channel_id is not None:
             slack_channel_id = slack_channel_id.upper()

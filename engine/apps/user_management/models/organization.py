@@ -3,7 +3,6 @@ import typing
 import uuid
 from urllib.parse import urljoin
 
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -26,8 +25,9 @@ if typing.TYPE_CHECKING:
         UserScheduleExportAuthToken,
     )
     from apps.mobile_app.models import MobileAppAuthToken
-    from apps.schedules.models import OnCallSchedule
-    from apps.user_management.models import User
+    from apps.schedules.models import CustomOnCallShift, OnCallSchedule
+    from apps.slack.models import SlackTeamIdentity
+    from apps.user_management.models import Region, Team, User
 
 logger = logging.getLogger(__name__)
 
@@ -78,14 +78,18 @@ class OrganizationManager(models.Manager):
 # class Organization(models.Model):
 class Organization(MaintainableObject):
     auth_tokens: "RelatedManager['ApiAuthToken']"
+    custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
+    migration_destination: typing.Optional["Region"]
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"
     plugin_auth_tokens: "RelatedManager['PluginAuthToken']"
     schedule_export_token: "RelatedManager['ScheduleExportAuthToken']"
+    slack_team_identity: typing.Optional["SlackTeamIdentity"]
+    teams: "RelatedManager['Team']"
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     users: "RelatedManager['User']"
 
-    objects = OrganizationManager()
+    objects: models.Manager["Organization"] = OrganizationManager()
     objects_with_deleted = models.Manager()
 
     def __init__(self, *args, **kwargs):
@@ -243,7 +247,8 @@ class Organization(MaintainableObject):
         unique_together = ("stack_id", "org_id")
 
     def provision_plugin(self) -> ProvisionedPlugin:
-        PluginAuthToken = apps.get_model("auth_token", "PluginAuthToken")
+        from apps.auth_token.models import PluginAuthToken
+
         _, token = PluginAuthToken.create_auth_token(organization=self)
         return {
             "stackId": self.stack_id,
@@ -253,8 +258,9 @@ class Organization(MaintainableObject):
         }
 
     def revoke_plugin(self):
-        token_model = apps.get_model("auth_token", "PluginAuthToken")
-        token_model.objects.filter(organization=self).delete()
+        from apps.auth_token.models import PluginAuthToken
+
+        PluginAuthToken.objects.filter(organization=self).delete()
 
     """
     Following methods:

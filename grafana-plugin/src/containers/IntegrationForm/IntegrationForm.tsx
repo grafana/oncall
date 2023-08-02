@@ -51,7 +51,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const data =
     id === 'new'
-      ? { integration: selectedOption?.value, team: user.current_team }
+      ? { integration: selectedOption?.value, team: user?.current_team }
       : prepareForEdit(alertReceiveChannelStore.items[id]);
 
   const handleSubmit = useCallback(
@@ -93,8 +93,10 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
 
   const options = alertReceiveChannelOptions
-    ? alertReceiveChannelOptions.filter((option: AlertReceiveChannelOption) =>
-        option.display_name.toLowerCase().includes(filterValue.toLowerCase())
+    ? alertReceiveChannelOptions.filter(
+        (option: AlertReceiveChannelOption) =>
+          option.display_name.toLowerCase().includes(filterValue.toLowerCase()) &&
+          !option.value.toLowerCase().startsWith('legacy_')
       )
     : [];
 

@@ -57,6 +57,24 @@ engine:
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
+  ## Topology spread constraints for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+  topologySpreadConstraints: []
+
+  ## Priority class for the pods
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
+
+  # Extra containers which runs as sidecar
+  extraContainers: ""
+  # extraContainers: |
+  # - name: cloud-sql-proxy
+  #   image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.2
+  #   args:
+  #     - --private-ip
+  #     - --port=5432
+  #     - example:europe-west3:grafana-oncall-db
+
 # Celery workers pods configuration
 celery:
   replicaCount: 1
@@ -94,6 +112,24 @@ celery:
   ## Tolerations for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
+
+  ## Topology spread constraints for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+  topologySpreadConstraints: []
+
+  ## Priority class for the pods
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+  priorityClassName: ""
+
+  # Extra containers which runs as sidecar
+  extraContainers: ""
+  # extraContainers: |
+  # - name: cloud-sql-proxy
+  #   image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.2
+  #   args:
+  #     - --private-ip
+  #     - --port=5432
+  #     - example:europe-west3:grafana-oncall-db
 
 oncall:
   # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
@@ -191,6 +227,7 @@ migrate:
   ttlSecondsAfterFinished: 20
   # use a helm hook to manage the migration job
   useHook: false
+  annotations: {}
 
   ## Affinity for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
@@ -204,6 +241,15 @@ migrate:
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
+  # Extra containers which runs as sidecar
+  extraContainers: ""
+  # extraContainers: |
+  # - name: cloud-sql-proxy
+  #   image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.2
+  #   args:
+  #     - --private-ip
+  #     - --port=5432
+  #     - example:europe-west3:grafana-oncall-db
 
 # Sets environment variables with name capitalized and prefixed with UWSGI_, and dashes are substituted with underscores.
 # see more: https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#environment-variables

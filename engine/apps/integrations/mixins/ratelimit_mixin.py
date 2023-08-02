@@ -2,7 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 from functools import wraps
 
-from django.apps import apps
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.views import View
@@ -86,7 +85,8 @@ def ratelimit(group=None, key=None, rate=None, method=ALL, block=False, reason=N
 
 
 def is_ratelimit_ignored(alert_receive_channel):
-    DynamicSetting = apps.get_model("base", "DynamicSetting")
+    from apps.base.models import DynamicSetting
+
     integration_token_to_ignore_ratelimit = DynamicSetting.objects.get_or_create(
         name="integration_tokens_to_ignore_ratelimit",
         defaults={

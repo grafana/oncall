@@ -6,7 +6,15 @@ from django.db import transaction
 from apps.alerts.models import Alert, AlertGroup
 
 
-class AlertGroupForAlertManager(AlertGroup):
+# NOTE: mypy was complaining about the following for both of these models. Likely because they subclass
+# a model and django-mypy can't yet properly handle this
+#
+# error: Couldn't resolve related manager for relation 'users'
+# (from apps.user_management.models.user.User.user_management.User.notification).  [django-manager-missing]
+#
+# error: Couldn't resolve related manager for relation 'dependent_alert_groups'
+# (from apps.alerts.models.alert_group.AlertGroup.alerts.AlertGroup.root_alert_group).  [django-manager-missing]
+class AlertGroupForAlertManager(AlertGroup):  # type: ignore[django-manager-missing]
     MAX_ALERTS_IN_GROUP_FOR_AUTO_RESOLVE = 500
 
     def is_alert_a_resolve_signal(self, alert):
@@ -38,7 +46,7 @@ class AlertGroupForAlertManager(AlertGroup):
         proxy = True
 
 
-class AlertForAlertManager(Alert):
+class AlertForAlertManager(Alert):  # type: ignore[django-manager-missing]
     def get_integration_optimization_hash(self):
         if self.integration_optimization_hash is None:
             with transaction.atomic():

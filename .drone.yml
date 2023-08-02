@@ -34,19 +34,6 @@ steps:
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
 
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-    when:
-      ref:
-        - refs/tags/v*.*.*
-
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
     settings:
@@ -62,7 +49,7 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
@@ -72,13 +59,13 @@ steps:
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
-      - apt-get update && apt-get install -y netcat
+      - apt-get update && apt-get install -y netcat-traditional
       - cd engine/
       - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
@@ -280,14 +267,6 @@ get:
   name: .dockerconfigjson
 
 ---
-# Secret for GitHub
-get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
-
----
 # Slack webhook
 get:
   name: slack-plugin
@@ -334,6 +313,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 1ca79af7b8ada54237e4fb78fffb9314babc00b3a8a4866ec454d32356bc067b
+hmac: a5412bf88ceb62fffdfb9926d3f6f066c80ccbe23114aab6540c4b748137f73a
 
 ...

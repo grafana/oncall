@@ -7,17 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Skip past due swap requests when calculating events ([2718](https://github.com/grafana/oncall/pull/2718))
+
 ### Fixed
 
-- Bring heartbeats back to UI
-- Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
-  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
-  by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
+- Fix schedule final_events datetime filtering when splitting override ([#2715](https://github.com/grafana/oncall/pull/2715))
+- Fix swap requests event filter limits in schedule events ([#2716](https://github.com/grafana/oncall/pull/2716))
+
+## v1.3.21 (2023-08-01)
+
+### Added
+
+- [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
+– Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
+
+## v1.3.20 (2023-07-31)
+
+### Added
+
+- Add filter_shift_swaps endpoint to schedules API ([#2684](https://github.com/grafana/oncall/pull/2684))
+- Add shifts endpoint to shift swap API ([#2697](https://github.com/grafana/oncall/pull/2697/))
+
+### Fixed
+
+- Fix helm env variable validation logic when specifying Twilio auth related values by @njohnstone2 ([#2674](https://github.com/grafana/oncall/pull/2674))
+- Fixed mobile app verification not sending SMS to phone number ([#2687](https://github.com/grafana/oncall/issues/2687))
+
+## v1.3.19 (2023-07-28)
+
+### Fixed
+
+- Fix one of the latest migrations failing on SQLite by @vadimkerr ([#2680](https://github.com/grafana/oncall/pull/2680))
+
+### Added
+
+- Apply swap requests details to schedule events ([#2677](https://github.com/grafana/oncall/pull/2677))
+
+## v1.3.18 (2023-07-28)
+
+### Changed
+
+- Update the direct paging feature to page for acknowledged & silenced alert groups,
+  and show a warning for resolved alert groups by @vadimkerr ([#2639](https://github.com/grafana/oncall/pull/2639))
+- Change calls to get instances from GCOM to paginate by @mderynck ([#2669](https://github.com/grafana/oncall/pull/2669))
+- Update checking on-call users to use schedule final events ([#2651](https://github.com/grafana/oncall/pull/2651))
+
+### Fixed
+
+- Remove checks delaying plugin load and cause "Initializing plugin..." ([2624](https://github.com/grafana/oncall/pull/2624))
+- Fix "Continue escalation if >X alerts per Y minutes" escalation step by @vadimkerr ([#2636](https://github.com/grafana/oncall/pull/2636))
+- Post to Telegram ChatOps channel option is not showing in the integrations page
+  by @alexintech ([#2498](https://github.com/grafana/oncall/pull/2498))
+
+## v1.3.17 (2023-07-25)
 
 ### Added
 
 - Added banner on the ChatOps screen for OSS to let the user know if no chatops integration is enabled
   ([#1735](https://github.com/grafana/oncall/issues/1735))
+- Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
+  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
+
+### Fixed
+
+- Bring heartbeats back to UI by @maskin25 ([#2550](https://github.com/grafana/oncall/pull/2550))
+- Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
+  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
+  by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
 
 ## v1.3.16 (2023-07-21)
 
@@ -26,8 +84,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
   ([#2601](https://github.com/grafana/oncall/pull/2601))
 - Add filter integrations by type ([2609](https://github.com/grafana/oncall/pull/2609))
-- Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
-  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
 
 ### Changed
 

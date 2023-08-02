@@ -2,7 +2,6 @@ import datetime
 import json
 from copy import copy
 
-from django.apps import apps
 from django.utils import timezone
 
 from apps.schedules.ical_events import ical_events
@@ -173,7 +172,7 @@ def recalculate_shifts_with_respect_to_priority(shifts, users=None):
 @shared_dedicated_queue_retry_task()
 def notify_ical_schedule_shift(schedule_pk):
     task_logger.info(f"Notify ical schedule shift {schedule_pk}")
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
+    from apps.schedules.models import OnCallSchedule
 
     try:
         schedule = OnCallSchedule.objects.get(

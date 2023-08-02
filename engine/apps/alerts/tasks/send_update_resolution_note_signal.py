@@ -1,6 +1,5 @@
 import logging
 
-from django.apps import apps
 from django.conf import settings
 
 from apps.alerts.signals import alert_group_update_resolution_note_signal
@@ -14,8 +13,7 @@ logger = logging.getLogger(__name__)
 )
 def send_update_resolution_note_signal(alert_group_pk, resolution_note_pk):
     """Sends a signal to update messages associated with resolution note"""
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
-    ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+    from apps.alerts.models import AlertGroup, ResolutionNote
 
     alert_group = AlertGroup.objects.filter(pk=alert_group_pk).first()
     if alert_group is None:

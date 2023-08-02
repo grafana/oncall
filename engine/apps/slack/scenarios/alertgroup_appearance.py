@@ -1,30 +1,46 @@
 import json
-
-from django.apps import apps
+import typing
 
 from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import (
+    Block,
+    BlockActionType,
+    EventPayload,
+    InteractiveMessageActionType,
+    ModalView,
+    PayloadType,
+    ScenarioRoute,
+)
 
 from .step_mixins import AlertGroupActionsMixin
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 
 class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload.Any,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
             return
 
         private_metadata = {
-            "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
+            "organization_id": self.organization.pk,
             "alert_group_pk": alert_group.pk,
             "message_ts": payload.get("message_ts") or payload["container"]["message_ts"],
         }
 
         alert_receive_channel = alert_group.channel
-        blocks = [
+        blocks: typing.List[Block.Section] = [
             {
                 "type": "section",
                 "text": {
@@ -35,7 +51,7 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
             {"type": "section", "text": {"type": "mrkdwn", "text": "Once changed Refresh the alert group"}},
         ]
 
-        view = {
+        view: ModalView = {
             "callback_id": UpdateAppearanceStep.routing_uid(),
             "blocks": blocks,
             "type": "modal",
@@ -58,8 +74,13 @@ class OpenAlertAppearanceDialogStep(AlertGroupActionsMixin, scenario_step.Scenar
 
 
 class UpdateAppearanceStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload.Any,
+    ) -> None:
+        from apps.alerts.models import AlertGroup
 
         private_metadata = json.loads(payload["view"]["private_metadata"])
         alert_group_pk = private_metadata["alert_group_pk"]
@@ -78,21 +99,21 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
         )
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
-        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.INTERACTIVE_MESSAGE,
+        "action_type": InteractiveMessageActionType.BUTTON,
         "action_name": OpenAlertAppearanceDialogStep.routing_uid(),
         "step": OpenAlertAppearanceDialogStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": OpenAlertAppearanceDialogStep.routing_uid(),
         "step": OpenAlertAppearanceDialogStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
+        "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": UpdateAppearanceStep.routing_uid(),
         "step": UpdateAppearanceStep,
     },
