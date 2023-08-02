@@ -80,7 +80,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
     now = datetime.datetime.now(timezone.utc)
 
-    current_shifts = schedule.final_events(now, now, False, False)
+    current_shifts = schedule.final_events(now, now, with_empty=False, with_gap=False)
 
     prev_shifts = json.loads(schedule.current_shifts) if not schedule.empty_oncall else []
     prev_shifts_updated = False
@@ -118,7 +118,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
     datetime_end = now + datetime.timedelta(days=days_to_lookup)
 
-    next_shifts_unfiltered = schedule.final_events(now, datetime_end, False, False)
+    next_shifts_unfiltered = schedule.final_events(now, datetime_end, with_empty=False, with_gap=False)
     # drop events that already started
     next_shifts = []
     for next_shift in next_shifts_unfiltered:

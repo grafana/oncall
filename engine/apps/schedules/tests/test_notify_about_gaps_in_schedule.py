@@ -55,6 +55,7 @@ def test_no_gaps_no_triggering_notification(
 
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
+    assert schedule.check_gaps_for_next_week() is False
 
 
 @pytest.mark.django_db
@@ -119,6 +120,7 @@ def test_gaps_in_the_past_no_triggering_notification(
 
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
+    assert schedule.check_gaps_for_next_week() is False
 
 
 @pytest.mark.django_db
@@ -171,6 +173,7 @@ def test_gaps_now_trigger_notification(
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
     assert schedule.has_gaps is True
+    assert schedule.check_gaps_for_next_week() is True
 
 
 @pytest.mark.django_db
@@ -224,10 +227,11 @@ def test_gaps_near_future_trigger_notification(
     schedule.refresh_from_db()
     assert gaps_report_sent_at != schedule.gaps_report_sent_at
     assert schedule.has_gaps is True
+    assert schedule.check_gaps_for_next_week() is True
 
 
 @pytest.mark.django_db
-def test_check_gaps_for_next_week_no_gaps(
+def test_gaps_later_than_7_days_no_triggering_notification(
     make_organization_and_user_with_slack_identities,
     make_user,
     make_schedule,
@@ -240,172 +244,7 @@ def test_check_gaps_for_next_week_no_gaps(
 
     now = timezone.now().replace(microsecond=0)
 
-    schedule_no_gaps = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        name="test_schedule",
-        channel="channel",
-        prev_ical_file_overrides=None,
-        cached_ical_file_overrides=None,
-    )
-
-    start_date = now - datetime.timedelta(days=7, minutes=1)
-    data = {
-        "start": start_date,
-        "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=3600 * 24),
-        "priority_level": 1,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "schedule": schedule_no_gaps,
-    }
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users([[user1]])
-    schedule_no_gaps.refresh_ical_file()
-
-    assert schedule_no_gaps.check_gaps_for_next_week() is False
-
-
-@pytest.mark.django_db
-def test_check_gaps_for_next_week_had_gaps(
-    make_organization_and_user_with_slack_identities,
-    make_user,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
-    user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
-
-    now = timezone.now().replace(microsecond=0)
-
-    schedule_had_gaps = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        name="test_schedule",
-        channel="channel",
-        prev_ical_file_overrides=None,
-        cached_ical_file_overrides=None,
-    )
-    start_date = now - datetime.timedelta(days=1, minutes=1)
-    data = {
-        "start": start_date,
-        "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=3600 * 24),
-        "priority_level": 1,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "schedule": schedule_had_gaps,
-    }
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users([[user1]])
-    schedule_had_gaps.refresh_ical_file()
-
-    assert schedule_had_gaps.check_gaps_for_next_week() is False
-
-
-@pytest.mark.django_db
-def test_check_gaps_for_next_week_has_gaps_now(
-    make_organization_and_user_with_slack_identities,
-    make_user,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
-    user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
-
-    now = timezone.now().replace(microsecond=0)
-
-    schedule_has_gaps_now = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        name="test_schedule",
-        channel="channel",
-        prev_ical_file_overrides=None,
-        cached_ical_file_overrides=None,
-    )
-
-    start_date = now + datetime.timedelta(days=1)
-    data = {
-        "start": start_date,
-        "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=3600 * 24),
-        "priority_level": 1,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "schedule": schedule_has_gaps_now,
-    }
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users([[user1]])
-    schedule_has_gaps_now.refresh_ical_file()
-
-    assert schedule_has_gaps_now.check_gaps_for_next_week() is True
-
-
-@pytest.mark.django_db
-def test_check_gaps_for_next_week_has_gaps_in_7_days(
-    make_organization_and_user_with_slack_identities,
-    make_user,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
-    user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
-
-    now = timezone.now().replace(microsecond=0)
-
-    schedule_has_in_7_days = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        name="test_schedule",
-        channel="channel",
-        prev_ical_file_overrides=None,
-        cached_ical_file_overrides=None,
-    )
-
-    start_date = now - datetime.timedelta(days=7, minutes=1)
-    until_date = now + datetime.timedelta(days=5)
-    data = {
-        "start": start_date,
-        "rotation_start": start_date,
-        "duration": datetime.timedelta(seconds=3600 * 24),
-        "priority_level": 1,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "schedule": schedule_has_in_7_days,
-        "until": until_date,
-    }
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users([[user1]])
-    schedule_has_in_7_days.refresh_ical_file()
-
-    assert schedule_has_in_7_days.check_gaps_for_next_week() is True
-
-
-@pytest.mark.django_db
-def test_check_gaps_for_next_week_has_gaps_later_than_7_days(
-    make_organization_and_user_with_slack_identities,
-    make_user,
-    make_schedule,
-    make_on_call_shift,
-):
-    organization, _, _, _ = make_organization_and_user_with_slack_identities()
-    user1 = make_user(organization=organization, username="user1")
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
-
-    now = timezone.now().replace(microsecond=0)
-
-    schedule_has_later_than_7_days = make_schedule(
+    schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleWeb,
         name="test_schedule",
@@ -421,13 +260,22 @@ def test_check_gaps_for_next_week_has_gaps_later_than_7_days(
         "duration": datetime.timedelta(seconds=3600 * 24),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
-        "schedule": schedule_has_later_than_7_days,
+        "schedule": schedule,
         "until": until_date,
     }
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
     on_call_shift.add_rolling_users([[user1]])
-    schedule_has_later_than_7_days.refresh_ical_file()
+    schedule.refresh_ical_file()
 
-    assert schedule_has_later_than_7_days.check_gaps_for_next_week() is False
+    gaps_report_sent_at = schedule.gaps_report_sent_at
+
+    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+        notify_about_gaps_in_schedule(schedule.pk)
+
+    assert not mock_slack_api_call.called
+
+    schedule.refresh_from_db()
+    assert gaps_report_sent_at != schedule.gaps_report_sent_at
+    assert schedule.check_gaps_for_next_week() is False

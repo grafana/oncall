@@ -81,8 +81,8 @@ def notify_about_gaps_in_schedule(schedule_pk):
         return
 
     now = timezone.now()
-    events = schedule.final_events(now, now + datetime.timedelta(days=7), with_empty=False)
-    gaps = [event for event in events if event["is_gap"]]
+    events = schedule.final_events(now, now + datetime.timedelta(days=7))
+    gaps = [event for event in events if event["is_gap"] and not event["is_empty"]]
     schedule.gaps_report_sent_at = now.date()
 
     if len(gaps) != 0:

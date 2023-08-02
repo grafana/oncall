@@ -273,7 +273,7 @@ class OnCallSchedule(PolymorphicModel):
 
     def check_gaps_for_next_week(self) -> bool:
         today = timezone.now()
-        events = self.final_events(today, today + datetime.timedelta(days=7), False, True)
+        events = self.final_events(today, today + datetime.timedelta(days=7))
         gaps = [event for event in events if event["is_gap"] and not event["is_empty"]]
         has_gaps = len(gaps) != 0
         self.has_gaps = has_gaps
