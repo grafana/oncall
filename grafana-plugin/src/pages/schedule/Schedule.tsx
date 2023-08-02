@@ -65,6 +65,7 @@ interface SchedulePageState extends PageBaseState {
   showScheduleICalSettings: boolean;
   lastUpdated: number;
   filters: ScheduleFiltersType;
+  shiftSwapIdToShowForm?: ShiftSwap['id'] | 'new';
   shiftSwapParamsToShowForm?: Partial<ShiftSwap>;
 }
 
@@ -136,6 +137,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftStartToShowOverrideForm,
       shiftEndToShowOverrideForm,
       filters,
+      shiftSwapIdToShowForm,
       shiftSwapParamsToShowForm,
     } = this.state;
 
@@ -285,6 +287,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
                       filters={filters}
+                      onShowShiftSwapForm={this.handleShowShiftSwapForm}
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -337,11 +340,13 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <ScheduleICalSettings id={scheduleId} />
               </Modal>
             )}
-            {shiftSwapParamsToShowForm && (
+            {shiftSwapIdToShowForm && (
               <ShiftSwapForm
+                id={shiftSwapIdToShowForm}
+                scheduleId={scheduleId}
                 params={shiftSwapParamsToShowForm}
-                onHide={() => this.setState({ shiftSwapParamsToShowForm: undefined })}
-                onCreate={this.addShiftSwap}
+                onHide={() => this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined })}
+                onUpdate={this.updateEvents}
               />
             )}
           </>
@@ -551,19 +556,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     store.scheduleStore.delete(id).then(() => history.replace(`${PLUGIN_ROOT}/schedules`));
   };
 
-  handleShowShiftSwapForm = (params: Partial<ShiftSwap>) => {
-    this.setState({ shiftSwapParamsToShowForm: params });
-  };
-
-  addShiftSwap = (params: Partial<ShiftSwap>) => {
-    const {
-      store: { scheduleStore },
-      match: {
-        params: { id },
-      },
-    } = this.props;
-
-    scheduleStore.createShiftSwap({ schedule: id, ...params });
+  handleShowShiftSwapForm = (id: ShiftSwap['id'], params: Partial<ShiftSwap>) => {
+    this.setState({ shiftSwapIdToShowForm: id, shiftSwapParamsToShowForm: params });
   };
 }
 

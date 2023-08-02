@@ -1,14 +1,25 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, IconButton, TextArea, VerticalGroup } from '@grafana/ui';
+import { dateTime } from '@grafana/data';
+import {
+  Button,
+  DateTimePicker,
+  Field,
+  HorizontalGroup,
+  IconButton,
+  Input,
+  TextArea,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
+import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
-import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { ShiftSwap } from 'models/schedule/schedule.types';
+import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
@@ -17,28 +28,56 @@ import styles from './RotationForm.module.css';
 const cx = cn.bind(styles);
 
 interface ShiftSwapFormProps {
+  id: ShiftSwap['id'] | 'new';
+  scheduleId: Schedule['id'];
   params: Partial<ShiftSwap>;
 
-  onCreate: (params: Partial<ShiftSwap>) => void;
+  onUpdate: () => void;
+
   onHide: () => void;
 }
 
 const ShiftSwapForm = (props: ShiftSwapFormProps) => {
-  const { onCreate, onHide, params: defaultParams } = props;
+  const { onUpdate, onHide, id, scheduleId, params: defaultParams } = props;
 
-  const [params] = useState(defaultParams);
+  const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
 
   const store = useStore();
-  const {} = store;
+  const { scheduleStore } = store;
 
   const allowDelete = true;
 
-  console.log('params', params);
+  useEffect(() => {
+    if (id !== 'new') {
+      scheduleStore.loadShiftSwap(id).then(setShiftSwap);
+    }
+  }, [id]);
+
+  const isShiftSwapInThePast = useMemo(() => shiftSwap && dayjs(shiftSwap.swap_start).isBefore(dayjs()), [shiftSwap]);
 
   const handleCreate = useCallback(() => {
+    scheduleStore.createShiftSwap({ schedule: scheduleId, ...shiftSwap });
+
     onHide();
-    onCreate(params);
-  }, [params]);
+    onUpdate();
+  }, [shiftSwap]);
+
+  const handleDelete = useCallback(() => {
+    scheduleStore.deleteShiftSwap(id);
+
+    onHide();
+    onUpdate();
+  }, [id]);
+
+  const handleTake = useCallback(() => {
+    scheduleStore.takeShiftSwap(id);
+
+    onHide();
+    onUpdate();
+  }, [id]);
+
+  const beneficiaryName = shiftSwap?.beneficiary && store.userStore.items[shiftSwap.beneficiary]?.name;
+  const benefactorName = shiftSwap?.benefactor && store.userStore.items[shiftSwap.benefactor]?.name;
 
   return (
     <Modal
@@ -57,7 +96,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               <Text.Title level={5} editable>
-                Shift swap details
+                {id === 'new' ? 'New' : ''} Shift swap
               </Text.Title>
             </HorizontalGroup>
             <HorizontalGroup>
@@ -73,61 +112,58 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
             </HorizontalGroup>
           </HorizontalGroup>
 
-          <HorizontalGroup align="flex-start">
-            <div className={cx('details-icon')}>
-              <Icon className={cx('icon')} name="info-circle" />
-            </div>
-            <VerticalGroup>
-              <Text type="primary">Current status and deadline</Text>
-              <HorizontalGroup>
-                <TooltipBadge borderType="warning" text="Open" />
-                <TooltipBadge borderType="primary" text="? till deadline" />
-              </HorizontalGroup>
-            </VerticalGroup>
-          </HorizontalGroup>
+          <div className={cx('fields')}>
+            <Field label="Creator">
+              <Input disabled value={beneficiaryName}></Input>
+            </Field>
 
-          <HorizontalGroup align="flex-start">
-            <div className={cx('details-icon')}>
-              <Icon className={cx('icon')} name="user" />
-            </div>
-            <VerticalGroup>
-              <Text type="primary">Swap pair</Text>
-              <Text>{params.beneficiary}</Text>
-            </VerticalGroup>
-          </HorizontalGroup>
+            <HorizontalGroup height="auto">
+              <Field disabled label="Swap start">
+                <DateTimePicker disabled date={dateTime(shiftSwap.swap_start)} />
+              </Field>
+              <Field disabled label="Swap end">
+                <DateTimePicker disabled date={dateTime(shiftSwap.swap_end)} />
+              </Field>
+            </HorizontalGroup>
 
-          <HorizontalGroup align="flex-start">
-            <div className={cx('details-icon')}>
-              <Icon className={cx('icon')} name="arrows-h" />
-            </div>
-            <VerticalGroup>
-              <Text type="primary">Swap settings</Text>
-              <Text>
-                from {params.swap_start} to {params.swap_end}
-              </Text>
-            </VerticalGroup>
-          </HorizontalGroup>
+            <Field label="Description">
+              <TextArea disabled>{shiftSwap.description}</TextArea>
+            </Field>
 
-          <HorizontalGroup align="flex-start">
-            <div className={cx('details-icon')}>
-              <Icon className={cx('icon')} name="text-fields" />
-            </div>
-            <VerticalGroup>
-              <Text type="primary">Description</Text>
-              <div style={{ width: '100%' }}>
-                <TextArea />
-              </div>
-            </VerticalGroup>
-          </HorizontalGroup>
+            <Field label="Taken by">
+              <Input disabled value={benefactorName}></Input>
+            </Field>
+          </div>
 
           <HorizontalGroup justify="space-between">
-            <Text type="secondary">Blabla</Text>
+            <Text type="secondary"></Text>
             <HorizontalGroup>
-              <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                <Button variant="secondary" onClick={handleCreate}>
-                  Request
-                </Button>
-              </WithPermissionControlTooltip>
+              {id !== 'new' && (
+                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                  <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Delete
+                    </Button>
+                  </WithConfirm>
+                </WithPermissionControlTooltip>
+              )}
+              {id === 'new' ? (
+                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                  <Button variant="primary" onClick={handleCreate}>
+                    Request
+                  </Button>
+                </WithPermissionControlTooltip>
+              ) : (
+                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                  <Button
+                    variant="primary"
+                    onClick={handleTake}
+                    disabled={Boolean(isShiftSwapInThePast || shiftSwap?.benefactor)}
+                  >
+                    Take
+                  </Button>
+                </WithPermissionControlTooltip>
+              )}
             </HorizontalGroup>
           </HorizontalGroup>
         </VerticalGroup>

@@ -27,6 +27,7 @@ interface RotationProps {
   onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddShiftSwap?: (params: Partial<ShiftSwap>) => void;
+  onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
   days?: number;
   transparent?: boolean;
   tutorialParams?: RotationFormLiveParams;
@@ -47,6 +48,7 @@ const Rotation: FC<RotationProps> = (props) => {
     onClick,
     handleAddOverride,
     handleAddShiftSwap,
+    onShiftSwapClick,
     simplified,
     filters,
   } = props;
@@ -79,7 +81,6 @@ const Rotation: FC<RotationProps> = (props) => {
       event.stopPropagation();
 
       handleAddShiftSwap({
-        beneficiary: scheduleEvent.users[0].pk,
         swap_start: scheduleEvent.start,
         swap_end: scheduleEvent.end,
       });
@@ -119,6 +120,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     color={color}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
+                    onShiftSwapClick={onShiftSwapClick}
                     simplified={simplified}
                     filters={filters}
                   />

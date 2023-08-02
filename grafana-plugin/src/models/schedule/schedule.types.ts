@@ -92,7 +92,11 @@ export interface Event {
   shift: { pk: Shift['id'] | null };
   source: string;
   start: string;
-  users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  users: Array<{
+    display_name: User['username'];
+    pk: User['pk'];
+    swap_request?: { pk: ShiftSwap['id']; user: Partial<User> };
+  }>;
   is_override: boolean;
 }
 

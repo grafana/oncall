@@ -1,12 +1,8 @@
 .root {
   display: block;
+  width: 100%;
 }
 
-.icon {
-  color: var(--secondary-text-color);
-}
-
-.details-icon {
-  width: 16px;
-  margin-right: 4px;
+.fields {
+  width: 100%;
 }

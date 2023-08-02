@@ -36,7 +36,7 @@ interface RotationsProps extends WithStoreProps {
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
   onClick: (id: Shift['id'] | 'new') => void;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
-  onShowShiftSwapForm: (params: Partial<ShiftSwap>) => void;
+  onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
@@ -179,7 +179,10 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                   this.onRotationClick(shiftId, shiftStart, shiftEnd);
                                 }}
                                 handleAddOverride={this.handleShowOverrideForm}
-                                handleAddShiftSwap={onShowShiftSwapForm}
+                                handleAddShiftSwap={(params) => {
+                                  onShowShiftSwapForm('new', params);
+                                }}
+                                onShiftSwapClick={onShowShiftSwapForm}
                                 color={getColor(layerIndex, rotationIndex)}
                                 events={events}
                                 layerIndex={layerIndex}

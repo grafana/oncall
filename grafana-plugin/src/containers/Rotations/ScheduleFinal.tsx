@@ -11,7 +11,7 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Schedule, Shift } from 'models/schedule/schedule.types';
+import { Schedule, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -30,6 +30,7 @@ interface ScheduleFinalProps extends WithStoreProps {
   simplified?: boolean;
   onClick: (shiftId: Shift['id']) => void;
   onShowOverrideForm: (shiftId: 'new', shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => void;
+  onShowShiftSwapForm: (id: ShiftSwap['id'] | 'new', params?: Partial<ShiftSwap>) => void;
   disabled?: boolean;
   filters: ScheduleFiltersType;
 }
@@ -45,7 +46,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   };
 
   render() {
-    const { startMoment, currentTimezone, store, simplified, scheduleId, filters } = this.props;
+    const { startMoment, currentTimezone, store, simplified, scheduleId, filters, onShowShiftSwapForm } = this.props;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -91,6 +92,10 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                         color={findColor(shiftId, layers, overrides)}
                         onClick={this.getRotationClickHandler(shiftId)}
                         handleAddOverride={this.handleShowOverrideForm}
+                        handleAddShiftSwap={(params) => {
+                          onShowShiftSwapForm('new', params);
+                        }}
+                        onShiftSwapClick={onShowShiftSwapForm}
                         simplified={simplified}
                         filters={filters}
                       />

@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useEffect, useMemo } from 'react';
 
 import { Button, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -9,7 +9,7 @@ import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getShiftName } from 'models/schedule/schedule.helpers';
-import { Event, Schedule } from 'models/schedule/schedule.types';
+import { Event, Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
@@ -26,6 +26,7 @@ interface ScheduleSlotProps {
   currentTimezone: Timezone;
   handleAddOverride: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleAddShiftSwap: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onShiftSwapClick: (id: ShiftSwap['id']) => void;
   color?: string;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
@@ -34,9 +35,26 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { event, scheduleId, currentTimezone, color, handleAddOverride, handleAddShiftSwap, simplified, filters } =
-    props;
+  const {
+    event,
+    scheduleId,
+    currentTimezone,
+    color,
+    handleAddOverride,
+    handleAddShiftSwap,
+    onShiftSwapClick,
+    simplified,
+    filters,
+  } = props;
   const { users } = event;
+
+  const getShiftSwapClickHandler = useCallback((swapId: ShiftSwap['id']) => {
+    return (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+
+      onShiftSwapClick(swapId);
+    };
+  }, []);
 
   const start = dayjs(event.start);
   const end = dayjs(event.end);
@@ -50,6 +68,14 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const width = duration / base;
 
   const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
+
+  useEffect(() => {
+    users.forEach((user) => {
+      if (user.swap_request && !store.scheduleStore.shiftSwaps[user.swap_request.pk]) {
+        store.scheduleStore.loadShiftSwap(user.swap_request.pk);
+      }
+    });
+  }, [users]);
 
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
@@ -65,9 +91,10 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           }}
         />
       ) : (
-        users.map(({ display_name, pk: userPk }) => {
+        users.map(({ display_name, pk: userPk, swap_request }) => {
           const storeUser = store.userStore.items[userPk];
 
+          const isCurrentUserSlot = userPk === store.userStore.currentUserPk;
           const inactive = filters && filters.users.length && !filters.users.includes(userPk);
 
           const title = storeUser ? getTitle(storeUser) : display_name;
@@ -76,12 +103,18 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
             storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk)
           );
 
+          let backgroundColor = color;
+          if (swap_request) {
+            backgroundColor = '#C69B06';
+          }
+
           const scheduleSlotContent = (
             <div
               className={cx('root', { root__inactive: inactive })}
               style={{
-                backgroundColor: color,
+                backgroundColor,
               }}
+              onClick={swap_request ? getShiftSwapClickHandler(swap_request.pk) : undefined}
             >
               {storeUser && (
                 <WorkingHours
@@ -92,7 +125,9 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   duration={duration}
                 />
               )}
-              <div className={cx('title')}>{title}</div>
+              <div className={cx('title')}>
+                {swap_request && !swap_request.user ? <Icon name="user-arrows" /> : title}
+              </div>
             </div>
           );
 
@@ -111,7 +146,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   currentTimezone={currentTimezone}
                   event={event}
                   handleAddOverride={handleAddOverride}
-                  handleAddShiftSwap={handleAddShiftSwap}
+                  handleAddShiftSwap={isCurrentUserSlot ? handleAddShiftSwap : undefined}
                   simplified={simplified}
                   color={color}
                 />
@@ -204,7 +239,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           </Text>
         </HorizontalGroup>
         <HorizontalGroup justify="flex-end">
-          {!simplified && (
+          {!simplified && handleAddShiftSwap && (
             <Button size="sm" variant="secondary" onClick={handleAddShiftSwap}>
               Request shift swap
             </Button>

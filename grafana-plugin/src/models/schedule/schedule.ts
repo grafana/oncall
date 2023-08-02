@@ -46,6 +46,9 @@ export class ScheduleStore extends BaseStore {
   relatedUsers: { [id: string]: { [key: string]: Event } } = {};
 
   @observable.shallow
+  shiftSwaps: { [id: string]: ShiftSwap } = {};
+
+  @observable.shallow
   rotations: {
     [id: string]: {
       [startMoment: string]: Rotation;
@@ -438,7 +441,23 @@ export class ScheduleStore extends BaseStore {
     return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params });
   }
 
+  async deleteShiftSwap(shiftSwapId: ShiftSwap['id']) {
+    return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' });
+  }
+
+  async takeShiftSwap(shiftSwapId: ShiftSwap['id']) {
+    return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' });
+  }
+
   async updateShiftSwaps() {
     return await makeRequest(`/shift_swaps/`, {});
+  }
+
+  async loadShiftSwap(id: ShiftSwap['id']) {
+    const result = await makeRequest(`/shift_swaps/${id}`, {});
+
+    this.shiftSwaps = { ...this.shiftSwaps, [id]: result };
+
+    return result;
   }
 }
