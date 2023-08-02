@@ -8,7 +8,7 @@ tests:
   - it: priorityClassName="" -> should exclude priorityClassName
     asserts:
       - notExists:
-            path: spec.template.spec.priorityClassName
+          path: spec.template.spec.priorityClassName
 
   - it: priorityClassName -> should use the custom priorityClassName
     set:

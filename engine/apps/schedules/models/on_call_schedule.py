@@ -57,7 +57,7 @@ if typing.TYPE_CHECKING:
 
 
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
-RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?(\w+)")
+RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?([^\s]+)")
 
 
 # Utility classes for schedule quality report
@@ -649,6 +649,9 @@ class OnCallSchedule(PolymorphicModel):
 
         # apply swaps sequentially
         for swap in swaps:
+            if swap.is_past_due:
+                # ignore untaken expired requests
+                continue
             i = 0
             while i < len(events):
                 event = events.pop(i)
