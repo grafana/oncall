@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Skip past due swap requests when calculating events ([2718](https://github.com/grafana/oncall/pull/2718))
+
+### Fixed
+
+- Fix schedule final_events datetime filtering when splitting override ([#2715](https://github.com/grafana/oncall/pull/2715))
+- Fix swap requests event filter limits in schedule events ([#2716](https://github.com/grafana/oncall/pull/2716))
+
+## v1.3.21 (2023-08-01)
+
+### Added
+
+- [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
+– Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
+
+## v1.3.20 (2023-07-31)
+
+### Added
+
+- Add filter_shift_swaps endpoint to schedules API ([#2684](https://github.com/grafana/oncall/pull/2684))
+- Add shifts endpoint to shift swap API ([#2697](https://github.com/grafana/oncall/pull/2697/))
+
+### Fixed
+
+- Fix helm env variable validation logic when specifying Twilio auth related values by @njohnstone2 ([#2674](https://github.com/grafana/oncall/pull/2674))
+- Fixed mobile app verification not sending SMS to phone number ([#2687](https://github.com/grafana/oncall/issues/2687))
+
 ## v1.3.19 (2023-07-28)
 
 ### Fixed

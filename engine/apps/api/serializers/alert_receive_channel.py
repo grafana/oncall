@@ -12,6 +12,7 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
+from apps.integrations.legacy_prefix import has_legacy_prefix
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
@@ -52,6 +53,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
+    is_legacy = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -90,6 +92,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "is_legacy",
         ]
         read_only_fields = [
             "created_at",
@@ -105,12 +108,15 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "is_legacy",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
+        if has_legacy_prefix(integration):
+            raise BadRequest(detail="This integration is deprecated")
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
@@ -184,6 +190,9 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
 
     def get_routes_count(self, obj) -> int:
         return obj.channel_filters.count()
+
+    def get_is_legacy(self, obj) -> bool:
+        return has_legacy_prefix(obj.integration)
 
     def get_connected_escalations_chains_count(self, obj) -> int:
         return (
@@ -262,7 +271,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 return None
 
     def get_is_based_on_alertmanager(self, obj):
-        return obj.has_alertmanager_payload_structure
+        return obj.based_on_alertmanager
 
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
     def to_internal_value(self, data):

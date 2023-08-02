@@ -5,5 +5,4 @@ export enum AppFeature {
   CloudNotifications = 'grafana_cloud_notifications',
   CloudConnection = 'grafana_cloud_connection',
   WebSchedules = 'web_schedules',
-  Webhooks2 = 'webhooks2',
 }

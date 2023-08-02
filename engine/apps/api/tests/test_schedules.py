@@ -20,7 +20,7 @@ from apps.schedules.models import (
     OnCallScheduleICal,
     OnCallScheduleWeb,
 )
-from common.api_helpers.utils import create_engine_url
+from common.api_helpers.utils import create_engine_url, serialize_datetime_as_utc_timestamp
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
 
@@ -1248,6 +1248,92 @@ def test_filter_events_final_schedule(
 
 
 @pytest.mark.django_db
+def test_filter_swap_requests(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_shift_swap_request,
+):
+    organization, admin, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    other_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="other_web_schedule",
+    )
+    user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = today - timezone.timedelta(days=7)
+    request_date = start_date
+
+    # swap for other schedule
+    make_shift_swap_request(
+        other_schedule,
+        user_a,
+        swap_start=start_date + timezone.timedelta(days=1),
+        swap_end=start_date + timezone.timedelta(days=3),
+    )
+    # swap out of range
+    make_shift_swap_request(
+        schedule,
+        user_a,
+        swap_start=start_date + timezone.timedelta(days=10),
+        swap_end=start_date + timezone.timedelta(days=13),
+    )
+    # expected swaps
+    swap_a = make_shift_swap_request(
+        schedule,
+        user_a,
+        swap_start=start_date + timezone.timedelta(days=1),
+        swap_end=start_date + timezone.timedelta(days=3),
+    )
+    swap_b = make_shift_swap_request(
+        schedule,
+        user_b,
+        swap_start=start_date,
+        swap_end=start_date + timezone.timedelta(days=1),
+        benefactor=user_c,
+    )
+
+    url = reverse("api-internal:schedule-filter-shift-swaps", kwargs={"pk": schedule.public_primary_key})
+    url += "?date={}&days=1".format(request_date.strftime("%Y-%m-%d"))
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    expected = [
+        {
+            "pk": swap.public_primary_key,
+            "swap_start": serialize_datetime_as_utc_timestamp(swap.swap_start),
+            "swap_end": serialize_datetime_as_utc_timestamp(swap.swap_end),
+            "beneficiary": swap.beneficiary.public_primary_key,
+            "benefactor": swap.benefactor.public_primary_key if swap.benefactor else None,
+        }
+        for swap in (swap_a, swap_b)
+    ]
+    returned = [
+        {
+            "pk": s["id"],
+            "swap_start": s["swap_start"],
+            "swap_end": s["swap_end"],
+            "beneficiary": s["beneficiary"],
+            "benefactor": s["benefactor"],
+        }
+        for s in response.data["shift_swaps"]
+    ]
+    assert returned == expected
+
+
+@pytest.mark.django_db
 def test_next_shifts_per_user(
     make_organization_and_user_with_plugin_token,
     make_user_for_organization,
@@ -1756,6 +1842,44 @@ def test_events_permissions(
 
     with patch(
         "apps.api.views.schedule.ScheduleView.events",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_filter_shift_swaps_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleICal,
+        name="test_ical_schedule",
+        ical_url_primary=ICAL_URL,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-filter-shift-swaps", kwargs={"pk": schedule.public_primary_key})
+
+    with patch(
+        "apps.api.views.schedule.ScheduleView.filter_shift_swaps",
         return_value=Response(
             status=status.HTTP_200_OK,
         ),
