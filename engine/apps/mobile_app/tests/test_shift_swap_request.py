@@ -256,9 +256,9 @@ def test_notify_user_about_shift_swap_request(
     settings.FEATURE_SHIFT_SWAPS_ENABLED = True
 
     organization = make_organization()
-    beneficiary = make_user(organization=organization)
+    beneficiary = make_user(organization=organization, name="John Doe", username="john.doe")
     benefactor = make_user(organization=organization)
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, name="Test")
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, name="Test Schedule")
 
     device_to_notify = FCMDevice.objects.create(user=benefactor, registration_id="test_device_id")
     MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=True)
@@ -279,8 +279,8 @@ def test_notify_user_about_shift_swap_request(
 
     message: Message = mock_send_push_notification.call_args.args[1]
     assert message.data["type"] == MessageType.INFO
-    assert message.data["title"] == "You have a new shift swap request"
-    assert message.data["subtitle"] == "11/9/23, 7:38\u202fPM - 11/10/23, 7:38\u202fPM\nSchedule Test"
+    assert message.data["title"] == "New shift swap request"
+    assert message.data["subtitle"] == "John Doe, Test Schedule"
     assert message.data["resource_url"] == f"/api/internal/v1/shift_swaps/{shift_swap_request.public_primary_key}"
     assert message.apns.payload.aps.sound.critical is False
 

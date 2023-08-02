@@ -650,13 +650,9 @@ def _shift_swap_request_fcm_message(
     from apps.mobile_app.models import MobileAppUserSettings
 
     thread_id = f"{shift_swap_request.public_primary_key}:{user.public_primary_key}:ssr"
-    notification_title = "You have a new shift swap request"  # TODO: decide on the exact wording
-    notification_subtitle = _get_shift_subtitle(
-        shift_swap_request.schedule,
-        shift_swap_request.swap_start,
-        shift_swap_request.swap_end,
-        mobile_app_user_settings,
-    )
+    notification_title = "New shift swap request"
+    beneficiary_name = shift_swap_request.beneficiary.name or shift_swap_request.beneficiary.username
+    notification_subtitle = f"{beneficiary_name}, {shift_swap_request.schedule.name}"
 
     # TODO: check with the mobile team
     resource_url = reverse("api-internal:shift_swap-detail", kwargs={"pk": shift_swap_request.public_primary_key})
