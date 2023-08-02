@@ -306,8 +306,11 @@ def test_should_notify_user(make_organization, make_user, make_schedule, make_sh
     assert not MobileAppUserSettings.objects.exists()
     assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is False
 
-    MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=True)
+    mobile_app_settings = MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=False)
     assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is False
+
+    mobile_app_settings.info_notifications_enabled = True
+    mobile_app_settings.save(update_fields=["info_notifications_enabled"])
 
     with patch.object(benefactor, "is_in_working_hours", return_value=True):
         with patch("apps.mobile_app.tasks._has_user_been_notified_for_shift_swap_request", return_value=True):
