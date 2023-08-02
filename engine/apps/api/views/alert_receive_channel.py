@@ -38,7 +38,7 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
-    integration = filters.MultipleChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
+    integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
     team = TeamModelMultipleChoiceFilter()
 
     class Meta:
@@ -80,7 +80,7 @@ class AlertReceiveChannelView(
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ("verbal_name",)
+    search_fields = ("verbal_name", "integration")
 
     filterset_class = AlertReceiveChannelFilter
     pagination_class = FifteenPageSizePaginator
@@ -102,7 +102,6 @@ class AlertReceiveChannelView(
         "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "validate_name": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "migrate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
@@ -144,16 +143,6 @@ class AlertReceiveChannelView(
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         return queryset
-
-    def paginate_queryset(self, queryset):
-        """
-        Override to apply pagination only if ?page= is present in query params
-        Required for Grafana Alerting.
-        """
-        page_number = self.request.query_params.get("page", None)
-        if not page_number:
-            return None
-        return super().paginate_queryset(queryset)
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
@@ -344,21 +333,3 @@ class AlertReceiveChannelView(
 
         instance.save()
         return Response(status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=["get"])
-    def validate_name(self, request):
-        """
-        Checks if verbal_name is available.
-        It is needed for OnCall <-> Alerting integration.
-        """
-        verbal_name = self.request.query_params.get("verbal_name")
-        if verbal_name is None:
-            raise BadRequest("verbal_name is required")
-        organization = self.request.auth.organization
-        name_used = AlertReceiveChannel.objects.filter(organization=organization, verbal_name=verbal_name).exists()
-        if name_used:
-            r = Response(status=status.HTTP_409_CONFLICT)
-        else:
-            r = Response(status=status.HTTP_200_OK)
-
-        return r

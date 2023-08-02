@@ -12,7 +12,6 @@ FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 FEATURE_WEB_SCHEDULES = "web_schedules"
 FEATURE_WEBHOOKS2 = "webhooks2"
-FEATURE_GRAFANA_ALERTING_V2 = "grafana_alerting_v2"
 
 
 class FeaturesAPIView(APIView):
@@ -63,6 +62,4 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_WEBHOOKS_2_ENABLED:
             enabled_features.append(FEATURE_WEBHOOKS2)
 
-        if settings.FEATURE_GRAFANA_ALERTING_V2_ENABLED:
-            enabled_features.append(FEATURE_GRAFANA_ALERTING_V2)
         return enabled_features
