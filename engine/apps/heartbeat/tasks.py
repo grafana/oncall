@@ -1,3 +1,4 @@
+import datetime
 from time import perf_counter
 
 from celery.utils.log import get_task_logger
@@ -34,14 +35,25 @@ def process_heartbeat_task(alert_receive_channel_pk):
         logger.info(
             f"IntegrationHeartBeat selected for alert_receive_channel {alert_receive_channel_pk} in {heartbeat_selected - start}"
         )
-        task = integration_heartbeat_checkup.apply_async(
-            (heartbeat.pk,),
-            countdown=heartbeat.timeout_seconds + 1,
-        )
+        countdown = heartbeat.timeout_seconds + 1
+
+        update_fields = ["actual_check_up_task_id", "last_heartbeat_time"]
+        # Only schedule a new task if the previous one has finished
+        if (
+            heartbeat.last_checkup_task_time is None
+            or timezone.now() > heartbeat.last_checkup_task_time + datetime.timedelta(seconds=countdown)
+        ):
+            task = integration_heartbeat_checkup.apply_async(
+                (heartbeat.pk,),
+                countdown=countdown,
+            )
+            heartbeat.last_checkup_task_time = timezone.now()
+            update_fields.append("last_checkup_task_time")
+
         is_touched = heartbeat.last_heartbeat_time is not None
         heartbeat.actual_check_up_task_id = task.id
         heartbeat.last_heartbeat_time = timezone.now()
-        update_fields = ["actual_check_up_task_id", "last_heartbeat_time"]
+
         task_started = perf_counter()
         logger.info(
             f"heartbeat_checkup task started for alert_receive_channel {alert_receive_channel_pk} in {task_started - start}"
