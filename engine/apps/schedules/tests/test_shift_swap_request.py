@@ -2,10 +2,13 @@ import datetime
 from unittest.mock import patch
 
 import pytest
+import pytz
 from django.utils import timezone
 
 from apps.schedules import exceptions
 from apps.schedules.models import CustomOnCallShift, ShiftSwapRequest
+
+ROTATION_START = datetime.datetime(2150, 8, 29, 0, 0, 0, 0, tzinfo=pytz.UTC)
 
 
 @pytest.mark.django_db

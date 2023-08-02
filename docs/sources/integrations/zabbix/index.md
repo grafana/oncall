@@ -66,11 +66,11 @@ Within Zabbix web interface, do the following:
 
 1. In a browser, open localhost:80.
 
-1. Navigate to **Adminitstration > Media Types > Create Media Type**.
+2. Navigate to **Adminitstration > Media Types > Create Media Type**.
 
    <!--![](../_images/zabbix-1.png)-->
 
-1. Create a Media Type with the following fields.
+3. Create a Media Type with the following fields.
 
    - Name: Grafana OnCall
    - Type: script
@@ -87,15 +87,15 @@ To send alerts to Grafana OnCall, the {ALERT.SEND_TO} value must be set in the [
 
 1. In the web UI, navigate to **Administration > Users** and open the **user properties** form.
 
-1. In the **Media** tab, click **Add** and copy the link from Grafana OnCall in the `Send to` field.
+2. In the **Media** tab, click **Add** and copy the link from Grafana OnCall in the `Send to` field.
 
    <!--![](../_images/zabbix-7.png)-->
 
-1. Click **Test** in the last column to send a test alert to Grafana OnCall.
+3. Click **Test** in the last column to send a test alert to Grafana OnCall.
 
    <!--![](../_images/zabbix-3.png)-->
 
-1. Specify **Send to** OnCall using the unique integration URL from the above step in the testing window that opens.  
+4. Specify **Send to** OnCall using the unique integration URL from the above step in the testing window that opens.  
    Create a test message with a body and optional subject and click **Test**.
 
    <!--![](../_images/zabbix-4.png)

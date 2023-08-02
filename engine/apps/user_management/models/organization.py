@@ -25,7 +25,7 @@ if typing.TYPE_CHECKING:
         UserScheduleExportAuthToken,
     )
     from apps.mobile_app.models import MobileAppAuthToken
-    from apps.schedules.models import OnCallSchedule
+    from apps.schedules.models import CustomOnCallShift, OnCallSchedule
     from apps.slack.models import SlackTeamIdentity
     from apps.user_management.models import Region, Team, User
 
@@ -78,6 +78,7 @@ class OrganizationManager(models.Manager):
 # class Organization(models.Model):
 class Organization(MaintainableObject):
     auth_tokens: "RelatedManager['ApiAuthToken']"
+    custom_on_call_shifts: "RelatedManager['CustomOnCallShift']"
     migration_destination: typing.Optional["Region"]
     mobile_app_auth_tokens: "RelatedManager['MobileAppAuthToken']"
     oncall_schedules: "RelatedManager['OnCallSchedule']"

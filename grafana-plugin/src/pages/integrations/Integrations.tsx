@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal } from '@grafana/ui';
+import { HorizontalGroup, Button, VerticalGroup, Icon, ConfirmModal, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -26,6 +26,7 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { HeartIcon, HeartRedIcon } from 'icons';
+import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import IntegrationHelper from 'pages/integration/Integration.helper';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -126,54 +127,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   render() {
     const { store, query } = this.props;
     const { alertReceiveChannelId, page, confirmationModal } = this.state;
-    const { grafanaTeamStore, alertReceiveChannelStore } = store;
+    const { alertReceiveChannelStore } = store;
 
     const { count, results } = alertReceiveChannelStore.getPaginatedSearchResult();
-
-    const columns = [
-      {
-        width: '35%',
-        title: 'Name',
-        key: 'name',
-        render: this.renderName,
-      },
-
-      {
-        width: '15%',
-        title: 'Status',
-        key: 'status',
-        render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
-      },
-      {
-        width: '20%',
-        title: 'Type',
-        key: 'datasource',
-        render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
-      },
-      {
-        width: '10%',
-        title: 'Maintenance',
-        key: 'maintenance',
-        render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
-      },
-      {
-        width: '5%',
-        title: 'Heartbeat',
-        key: 'heartbeat',
-        render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
-      },
-      {
-        width: '15%',
-        title: 'Team',
-        render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
-      },
-      {
-        width: '50px',
-        key: 'buttons',
-        render: (item: AlertReceiveChannel) => this.renderButtons(item),
-        className: cx('buttons'),
-      },
-    ];
 
     return (
       <>
@@ -211,7 +167,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               data-testid="integrations-table"
               rowKey="id"
               data={results}
-              columns={columns}
+              columns={this.getTableColumns()}
               className={cx('integrations-table')}
               rowClassName={cx('integrations-table-row')}
               pagination={{
@@ -253,10 +209,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  handleChangePage = (page: number) => {
-    this.setState({ page }, this.update);
-  };
-
   renderNotFound() {
     return (
       <div className={cx('loader')}>
@@ -286,11 +238,26 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   };
 
-  renderDatasource(item: AlertReceiveChannel, alertReceiveChannelStore) {
+  renderDatasource(item: AlertReceiveChannel, alertReceiveChannelStore: AlertReceiveChannelStore) {
     const alertReceiveChannel = alertReceiveChannelStore.items[item.id];
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+    const isLegacyIntegration = (integration?.value as string)?.toLowerCase().startsWith('legacy_');
+
+    if (isLegacyIntegration) {
+      return (
+        <HorizontalGroup>
+          <Tooltip placement="top" content={'This integration has been deprecated, consider migrating it.'}>
+            <Icon name="info-circle" className="u-opacity" />
+          </Tooltip>
+          <Text type="secondary">
+            <span className="u-opacity">{integration?.display_name}</span>
+          </Text>
+        </HorizontalGroup>
+      );
+    }
+
     return (
-      <HorizontalGroup spacing="xs">
+      <HorizontalGroup>
         <IntegrationLogo scale={0.08} integration={integration} />
         <Text type="secondary">{integration?.display_name}</Text>
       </HorizontalGroup>
@@ -451,6 +418,59 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         {({ openMenu }) => <HamburgerMenu openMenu={openMenu} listBorder={2} listWidth={200} />}
       </WithContextMenu>
     );
+  };
+
+  getTableColumns = () => {
+    const { grafanaTeamStore, alertReceiveChannelStore } = this.props.store;
+
+    return [
+      {
+        width: '35%',
+        title: 'Name',
+        key: 'name',
+        render: this.renderName,
+      },
+
+      {
+        width: '15%',
+        title: 'Status',
+        key: 'status',
+        render: (item: AlertReceiveChannel) => this.renderIntegrationStatus(item, alertReceiveChannelStore),
+      },
+      {
+        width: '20%',
+        title: 'Type',
+        key: 'datasource',
+        render: (item: AlertReceiveChannel) => this.renderDatasource(item, alertReceiveChannelStore),
+      },
+      {
+        width: '10%',
+        title: 'Maintenance',
+        key: 'maintenance',
+        render: (item: AlertReceiveChannel) => this.renderMaintenance(item),
+      },
+      {
+        width: '5%',
+        title: 'Heartbeat',
+        key: 'heartbeat',
+        render: (item: AlertReceiveChannel) => this.renderHeartbeat(item),
+      },
+      {
+        width: '15%',
+        title: 'Team',
+        render: (item: AlertReceiveChannel) => this.renderTeam(item, grafanaTeamStore.items),
+      },
+      {
+        width: '50px',
+        key: 'buttons',
+        render: (item: AlertReceiveChannel) => this.renderButtons(item),
+        className: cx('buttons'),
+      },
+    ];
+  };
+
+  handleChangePage = (page: number) => {
+    this.setState({ page }, this.update);
   };
 
   onIntegrationEditClick = (id: AlertReceiveChannel['id']) => {

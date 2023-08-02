@@ -3,6 +3,7 @@ import math
 import typing
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
 from rest_framework import status
@@ -141,8 +142,11 @@ class RateLimitHeadersMixin:
         return super().handle_exception(exc)
 
 
-class PublicPrimaryKeyMixin:
-    def get_object(self):
+_MT = typing.TypeVar("_MT", bound=models.Model)
+
+
+class PublicPrimaryKeyMixin(typing.Generic[_MT]):
+    def get_object(self) -> _MT:
         pk = self.kwargs["pk"]
         queryset = self.filter_queryset(self.get_queryset())
 

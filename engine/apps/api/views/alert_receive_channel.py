@@ -18,6 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
 )
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
+from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -102,6 +103,7 @@ class AlertReceiveChannelView(
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "validate_name": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "migrate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -306,6 +308,41 @@ class AlertReceiveChannelView(
         instance = self.get_object()
         user = request.user
         instance.force_disable_maintenance(user)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def migrate(self, request, pk):
+        instance = self.get_object()
+        integration_type = instance.integration
+        if not has_legacy_prefix(integration_type):
+            raise BadRequest(detail="Integration is not legacy")
+
+        instance.integration = remove_legacy_prefix(instance.integration)
+
+        # drop all templates since they won't work for new payload shape
+        templates = [
+            "web_title_template",
+            "web_message_template",
+            "web_image_url_template",
+            "sms_title_template",
+            "phone_call_title_template",
+            "source_link_template",
+            "grouping_id_template",
+            "resolve_condition_template",
+            "acknowledge_condition_template",
+            "slack_title_template",
+            "slack_message_template",
+            "slack_image_url_template",
+            "telegram_title_template",
+            "telegram_message_template",
+            "telegram_image_url_template",
+            "messaging_backends_templates",
+        ]
+
+        for f in templates:
+            setattr(instance, f, None)
+
+        instance.save()
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])

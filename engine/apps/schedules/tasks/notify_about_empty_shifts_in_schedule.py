@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.schedules.ical_utils import list_of_empty_shifts_in_schedule
-from apps.slack.utils import format_datetime_to_slack, post_message_to_channel
+from apps.slack.utils import format_datetime_to_slack_with_time, post_message_to_channel
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 from common.utils import trim_if_needed
 
@@ -91,8 +91,8 @@ def notify_about_empty_shifts_in_schedule(schedule_pk):
             f"The user should have Editor or Admin access.\n\n"
         )
         for idx, empty_shift in enumerate(empty_shifts):
-            start_timestamp = int(empty_shift.start.astimezone(pytz.UTC).timestamp())
-            end_timestamp = int(empty_shift.end.astimezone(pytz.UTC).timestamp())
+            start_timestamp = empty_shift.start.astimezone(pytz.UTC).timestamp()
+            end_timestamp = empty_shift.end.astimezone(pytz.UTC).timestamp()
 
             if empty_shift.summary:
                 text += f"*Title*: {trim_if_needed(empty_shift.summary)}\n"
@@ -111,7 +111,7 @@ def notify_about_empty_shifts_in_schedule(schedule_pk):
                 text += all_day_text
                 text += f"*All-day* event in {empty_shift.calendar_tz} TZ\n"
             else:
-                text += f"From {format_datetime_to_slack(start_timestamp)} to {format_datetime_to_slack(end_timestamp)} (your TZ)\n"
+                text += f"From {format_datetime_to_slack_with_time(start_timestamp)} to {format_datetime_to_slack_with_time(end_timestamp)} (your TZ)\n"
             text += f"_From {OnCallSchedule.CALENDAR_TYPE_VERBAL[empty_shift.calendar_type]} calendar_\n"
             if idx != len(empty_shifts) - 1:
                 text += "\n\n"
