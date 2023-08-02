@@ -6,20 +6,22 @@ test.describe('Users screen actions', () => {
     await _testButtons(adminRolePage.page, 'button.edit-other-profile-button[disabled]');
   });
 
+  test('Admin is allowed to view the list of users', async ({ adminRolePage }) => {
+    await _viewUsers(adminRolePage.page);
+  });
+
   test('Viewer is not allowed to view the list of users', async ({ viewerRolePage }) => {
-    const { page } = viewerRolePage;
-
-    await goToOnCallPage(page, 'users');
-
-    await expect(page.getByTestId('users-missing-permissions')).toBeVisible();
-    await expect(page.getByTestId('users-filters')).not.toBeVisible();
-    await expect(page.getByTestId('users-table')).not.toBeVisible();
+    await _viewUsers(viewerRolePage.page, false);
   });
 
   test('Viewer cannot access restricted tabs from View My Profile', async ({ viewerRolePage }) => {
     const { page } = viewerRolePage;
 
     await _accessProfileTabs(page, ['tab-mobile-app', 'tab-phone-verification', 'tab-slack', 'tab-telegram'], false);
+  });
+
+  test('Editor is allowed to view the list of users', async ({ editorRolePage }) => {
+    await _viewUsers(editorRolePage.page);
   });
 
   test("Editor cannot view other users' data", async ({ editorRolePage }) => {
@@ -95,6 +97,24 @@ test.describe('Users screen actions', () => {
           await expect(query).toBeVisible();
         }
       }
+    }
+  }
+
+  async function _viewUsers(page: Page, isAllowedToView = true): Promise<void> {
+    await goToOnCallPage(page, 'users');
+
+    if (isAllowedToView) {
+      const usersTableElement = page.getByTestId('users-table');
+      await usersTableElement.waitFor({ state: 'visible' });
+
+      const userRowsContext = await usersTableElement.locator('tbody > tr').allTextContents();
+      expect(userRowsContext.length).toBeGreaterThan(0);
+    } else {
+      const missingPermissionsMessageElement = page.getByTestId('view-users-missing-permission-message');
+      await missingPermissionsMessageElement.waitFor({ state: 'visible' });
+
+      const missingPermissionMessage = await missingPermissionsMessageElement.textContent();
+      expect(missingPermissionMessage).toMatch(/You are missing the .* to be able to view OnCall users/);
     }
   }
 });
