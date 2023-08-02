@@ -525,6 +525,88 @@ def test_final_schedule_override_no_priority_shift(
 
 
 @pytest.mark.django_db
+def test_final_schedule_override_split(
+    make_organization, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    user_a, user_b = (make_user_for_organization(organization, username=i) for i in "AB")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    shifts = (
+        # user, priority, start time (h), duration (hs)
+        (user_a, 0, 10, 5),  # 10-15 / A
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+    # override: 10-14 / B
+    override_start = start_date + timezone.timedelta(hours=10)
+    override_data = {
+        "start": override_start,
+        "rotation_start": override_start,
+        "duration": timezone.timedelta(hours=4),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_b]])
+
+    override_started = override_start + timezone.timedelta(seconds=1)
+    returned_events = schedule.final_events(override_started, override_started)
+
+    expected = (
+        # start (h), duration (H), user, priority, is_override
+        (10, 4, "B", None, True),  # 10-14 B
+    )
+    expected_events = [
+        {
+            "calendar_type": 1 if is_override else 0,
+            "end": start_date + timezone.timedelta(hours=start + duration),
+            "is_override": is_override,
+            "priority_level": priority,
+            "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
+            "user": user,
+        }
+        for start, duration, user, priority, is_override in expected
+    ]
+    returned_events = [
+        {
+            "calendar_type": e["calendar_type"],
+            "end": e["end"],
+            "is_override": e["is_override"],
+            "priority_level": e["priority_level"],
+            "start": e["start"],
+            "user": e["users"][0]["display_name"] if e["users"] else None,
+        }
+        for e in returned_events
+        if not e["is_gap"]
+    ]
+    assert returned_events == expected_events
+
+
+@pytest.mark.django_db
 def test_final_schedule_splitting_events(
     make_organization, make_user_for_organization, make_on_call_shift, make_schedule
 ):
@@ -2106,18 +2188,25 @@ def test_swap_request_whole_shift(
     swap_request = make_shift_swap_request(
         schedule,
         user,
-        swap_start=tomorrow + timezone.timedelta(hours=12),
-        swap_end=tomorrow + timezone.timedelta(hours=15),
+        # swap request starting right after shift ends
+        swap_start=tomorrow + timezone.timedelta(hours=15),
+        # swap request ending right before shift starts
+        swap_end=tomorrow + timezone.timedelta(days=2, hours=12),
     )
     if swap_taken:
         swap_request.take(other_user)
 
-    events = schedule.filter_events(today, today + timezone.timedelta(days=2))
+    events = schedule.filter_events(tomorrow, tomorrow + timezone.timedelta(days=2))
 
+    tomorrow_start = start + timezone.timedelta(days=1)
     expected = [
         # start, end, swap requested
-        (start, start + duration, False),  # today shift unchanged
-        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=3), True),  # no splits
+        (tomorrow_start, tomorrow_start + duration, False),  # today shift unchanged
+        (
+            tomorrow_start + timezone.timedelta(days=1),
+            tomorrow_start + timezone.timedelta(days=1, hours=3),
+            True,
+        ),  # no splits
     ]
     returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
     assert returned == expected
@@ -2240,11 +2329,16 @@ def test_swap_request_no_changes(
 
     # setup swap requests
     tomorrow = today + timezone.timedelta(days=1)
+    # user not in schedule
     make_shift_swap_request(schedule, other_user, swap_start=today, swap_end=tomorrow)
+    # deleted request
     make_shift_swap_request(schedule, user, swap_start=today, swap_end=tomorrow, deleted_at=today)
+    # swap request in the past
     make_shift_swap_request(
         schedule, user, swap_start=today - timezone.timedelta(days=7), swap_end=tomorrow - timezone.timedelta(days=7)
     )
+    # untaken swap in progress (past due)
+    make_shift_swap_request(schedule, user, swap_start=today - timezone.timedelta(days=1), swap_end=tomorrow)
 
     events_after = schedule.filter_events(today, today + timezone.timedelta(days=2))
     assert events_before == events_after

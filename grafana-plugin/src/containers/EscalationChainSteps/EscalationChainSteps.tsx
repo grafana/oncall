@@ -90,7 +90,6 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
               teamStore={store.grafanaTeamStore}
               scheduleStore={store.scheduleStore}
               outgoingWebhookStore={store.outgoingWebhookStore}
-              outgoingWebhook2Store={store.outgoingWebhook2Store}
               isDisabled={isDisabled}
             />
           );

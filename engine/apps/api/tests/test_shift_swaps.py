@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.schedules.models import OnCallScheduleWeb, ShiftSwapRequest
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb, ShiftSwapRequest
 from common.api_helpers.utils import serialize_datetime_as_utc_timestamp
 from common.insight_log import EntityEvent
 
@@ -37,8 +37,10 @@ def ssr_setup(
     return _ssr_setup
 
 
-def _construct_serialized_object(ssr: ShiftSwapRequest, status="open", description=None, benefactor=None):
-    return {
+def _construct_serialized_object(
+    ssr: ShiftSwapRequest, status="open", description=None, benefactor=None, list_response=False
+):
+    data = {
         "id": ssr.public_primary_key,
         "created_at": serialize_datetime_as_utc_timestamp(ssr.created_at),
         "updated_at": serialize_datetime_as_utc_timestamp(ssr.updated_at),
@@ -50,6 +52,11 @@ def _construct_serialized_object(ssr: ShiftSwapRequest, status="open", descripti
         "benefactor": benefactor,
         "description": description,
     }
+
+    if not list_response:
+        data["shifts"] = ssr.shifts()
+
+    return data
 
 
 def _build_expected_update_response(ssr, modified_data, updated_at_ts, **kwargs):
@@ -73,7 +80,7 @@ def test_list(ssr_setup, make_user_auth_headers):
         "current_page_number": 1,
         "total_pages": 1,
         "results": [
-            _construct_serialized_object(ssr, description=description),
+            _construct_serialized_object(ssr, description=description, list_response=True),
         ],
     }
 
@@ -464,6 +471,53 @@ def test_partial_update_time_related_fields(ssr_setup, make_user_auth_headers):
     response = client.get(url, format="json", **auth_headers)
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_related_shifts(ssr_setup, make_on_call_shift, make_user_auth_headers):
+    ssr, beneficiary, token, _ = ssr_setup()
+
+    schedule = ssr.schedule
+    organization = schedule.organization
+    user = beneficiary
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(days=2)
+    duration = timezone.timedelta(hours=8)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    client = APIClient()
+    url = reverse("api-internal:shift_swap-detail", kwargs={"pk": ssr.public_primary_key})
+    auth_headers = make_user_auth_headers(beneficiary, token)
+    response = client.get(url, **auth_headers)
+
+    assert response.status_code == status.HTTP_200_OK
+    response_json = response.json()
+    expected = [
+        # start, end, user, swap request ID
+        (
+            start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            (start + duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            user.public_primary_key,
+            ssr.public_primary_key,
+        ),
+    ]
+    returned_events = [
+        (e["start"], e["end"], e["users"][0]["pk"], e["users"][0]["swap_request"]["pk"])
+        for e in response_json["shifts"]
+    ]
+    assert returned_events == expected
 
 
 @pytest.mark.django_db
