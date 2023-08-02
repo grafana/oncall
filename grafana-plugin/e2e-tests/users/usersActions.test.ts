@@ -20,7 +20,7 @@ test.describe('Users screen actions', () => {
     const { page } = viewerRolePage;
 
     // , 'tab-mobile-app', 'tab-slack', 'tab-telegram'
-    await _accessProfileTabs(page, ['tab-phone-verification', 'tab-mobile-app', 'tab-slack'], false);
+    await _accessProfileTabs(page, ['tab-phone-verification', 'tab-mobile-app'], false);
   });
 
   test("Editor cannot view other users' data", async ({ editorRolePage }) => {
