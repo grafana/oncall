@@ -43,8 +43,10 @@ class IntegrationHeartBeat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     timeout_seconds = models.IntegerField(default=0)
 
-    # Stores the latest received heartbeat signal time
     last_heartbeat_time = models.DateTimeField(default=None, null=True)
+    """
+    Stores the latest received heartbeat signal time
+    """
     # Deprecated. This field is not used. TODO: remove it
     last_checkup_task_time = models.DateTimeField(default=None, null=True)
     # Deprecated. Stored the latest scheduled `integration_heartbeat_checkup` task id. TODO: remove it
