@@ -40,10 +40,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
   // Show link to cloud page for OSS instances with no cloud connection
   if (store.hasFeature(AppFeature.CloudConnection) && !cloudStore.cloudConnectionStatus.cloud_connection_status) {
     return (
-      <WithPermissionControlDisplay
-        userAction={UserActions.UserSettingsWrite}
-        message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
-      >
+      <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
         <VerticalGroup spacing="lg">
           <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
           <WithPermissionControlDisplay

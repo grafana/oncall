@@ -50,12 +50,13 @@ if typing.TYPE_CHECKING:
 
     from apps.alerts.models import EscalationPolicy
     from apps.auth_token.models import ScheduleExportAuthToken
+    from apps.schedules.models import ShiftSwapRequest
     from apps.slack.models import SlackUserGroup
     from apps.user_management.models import Organization, Team
 
 
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
-RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?(\w+)")
+RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?([^\s]+)")
 
 
 # Utility classes for schedule quality report
@@ -164,7 +165,9 @@ class OnCallScheduleQuerySet(PolymorphicQuerySet):
 
 
 class OnCallSchedule(PolymorphicModel):
+    custom_shifts: "RelatedManager['CustomOnCallShift']"
     organization: "Organization"
+    shift_swap_requests: "RelatedManager['ShiftSwapRequest']"
     slack_user_group: typing.Optional["SlackUserGroup"]
     team: typing.Optional["Team"]
 
@@ -331,13 +334,13 @@ class OnCallSchedule(PolymorphicModel):
 
     def filter_events(
         self,
-        datetime_start,
-        datetime_end,
-        with_empty=False,
-        with_gap=False,
-        filter_by=None,
-        all_day_datetime=False,
-        from_cached_final=False,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        with_empty: bool = False,
+        with_gap: bool = False,
+        filter_by: str | None = None,
+        all_day_datetime: bool = False,
+        from_cached_final: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
         shifts = (
@@ -398,7 +401,13 @@ class OnCallSchedule(PolymorphicModel):
 
         return events
 
-    def final_events(self, datetime_start, datetime_end, with_empty=True, with_gap=True):
+    def final_events(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        with_empty: bool = True,
+        with_gap: bool = True,
+    ) -> ScheduleEvents:
         """Return schedule final events, after resolving shifts and overrides."""
         events = self.filter_events(
             datetime_start, datetime_end, with_empty=with_empty, with_gap=with_gap, all_day_datetime=True
@@ -406,7 +415,9 @@ class OnCallSchedule(PolymorphicModel):
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
 
-    def filter_swap_requests(self, datetime_start, datetime_end):
+    def filter_swap_requests(
+        self, datetime_start: datetime.datetime, datetime_end: datetime.time
+    ) -> "RelatedManager['ShiftSwapRequest']":
         swap_requests = self.shift_swap_requests.filter(  # starting before but ongoing
             swap_start__lt=datetime_start, swap_end__gte=datetime_start
         ).union(
@@ -631,12 +642,14 @@ class OnCallSchedule(PolymorphicModel):
             "overloaded_users": overloaded_users,
         }
 
-    def _apply_swap_requests(self, events, datetime_start, datetime_end) -> ScheduleEvents:
+    def _apply_swap_requests(
+        self, events: ScheduleEvents, datetime_start: datetime.datetime, datetime_end: datetime.datetime
+    ) -> ScheduleEvents:
         """Apply swap requests details to schedule events."""
         # get swaps requests affecting this schedule / time range
         swaps = self.filter_swap_requests(datetime_start, datetime_end)
 
-        def _insert_event(index, event):
+        def _insert_event(index: int, event: ScheduleEvent) -> int:
             # add event, if any, to events list in the specified index
             # return incremented index if the event was added
             if event is None:
@@ -646,11 +659,14 @@ class OnCallSchedule(PolymorphicModel):
 
         # apply swaps sequentially
         for swap in swaps:
+            if swap.is_past_due:
+                # ignore untaken expired requests
+                continue
             i = 0
             while i < len(events):
                 event = events.pop(i)
 
-                if event["start"] > swap.swap_end or event["end"] < swap.swap_start:
+                if event["start"] >= swap.swap_end or event["end"] <= swap.swap_start:
                     # event outside the swap period, keep as it is and continue
                     i = _insert_event(i, event)
                     continue
@@ -793,7 +809,9 @@ class OnCallSchedule(PolymorphicModel):
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
-                resolved.append(ev)
+                # only if still starts before datetime_end
+                if ev["start"] < datetime_end:
+                    resolved.append(ev)
 
             elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][0]:
                 # event starts and ends outside an already scheduled interval, add to resolved

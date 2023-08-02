@@ -14,7 +14,7 @@ from apps.slack.types import (
     PayloadType,
     ScenarioRoute,
 )
-from apps.slack.utils import format_datetime_to_slack
+from apps.slack.utils import format_datetime_to_slack_with_time
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 if typing.TYPE_CHECKING:
@@ -257,13 +257,13 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     all_day_text = f'From {shift["start"].strftime("%b %d")} to {shift["end"].strftime("%b %d")}'
                 user_notification += f' {all_day_text} _All-day event in timezone "UTC"_\n'
             else:
-                shift_start_timestamp = int(shift["start"].astimezone(pytz.UTC).timestamp())
-                shift_end_timestamp = int(shift["end"].astimezone(pytz.UTC).timestamp())
+                shift_start_timestamp = shift["start"].astimezone(pytz.UTC).timestamp()
+                shift_end_timestamp = shift["end"].astimezone(pytz.UTC).timestamp()
 
                 user_notification = (
                     user.get_username_with_slack_verbal(mention=mention)
-                    + f" from {format_datetime_to_slack(shift_start_timestamp)}"
-                    f" to {format_datetime_to_slack(shift_end_timestamp)}\n"
+                    + f" from {format_datetime_to_slack_with_time(shift_start_timestamp)}"
+                    f" to {format_datetime_to_slack_with_time(shift_end_timestamp)}\n"
                 )
             if not shift["is_override"]:
                 priority = shift.get("priority_level", 0) or 0
