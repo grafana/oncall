@@ -1,6 +1,6 @@
 name: Helm Release
 
-on:
+"on":
   push:
     branches:
       - main
