@@ -22,7 +22,7 @@ from apps.metrics_exporter.tests.conftest import (
 )
 
 
-@patch("apps.alerts.models.alert_group_log_record.send_update_log_report_signal.apply_async")
+@patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
 @patch("apps.alerts.models.alert_group.alert_group_action_triggered_signal.send")
 @pytest.mark.django_db
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
@@ -130,7 +130,7 @@ def test_update_metric_alert_groups_total_cache_on_action(
         get_called_arg_index_and_compare_results(expected_result_firing)
 
 
-@patch("apps.alerts.models.alert_group_log_record.send_update_log_report_signal.apply_async")
+@patch("apps.alerts.models.alert_group_log_record.tasks.send_update_log_report_signal.apply_async")
 @patch("apps.alerts.models.alert_group.alert_group_action_triggered_signal.send")
 @pytest.mark.django_db
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)

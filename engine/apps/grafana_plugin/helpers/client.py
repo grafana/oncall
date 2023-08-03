@@ -50,7 +50,7 @@ class GCOMInstanceInfo(typing.TypedDict):
     url: str
     status: str
     clusterSlug: str
-    config: GCOMInstanceInfoConfig | None
+    config: typing.NotRequired[GCOMInstanceInfoConfig]
 
 
 class ApiClientResponseCallStatus(typing.TypedDict):
@@ -60,10 +60,11 @@ class ApiClientResponseCallStatus(typing.TypedDict):
     message: str
 
 
-# TODO: come back and make the typing.Dict strongly typed once we switch to Python 3.12
-# which has better support for generics
-_APIClientResponse = typing.Optional[typing.Dict | typing.List]
-APIClientResponse = typing.Tuple[_APIClientResponse, ApiClientResponseCallStatus]
+_RT = typing.TypeVar("_RT")
+
+
+class APIClientResponse(typing.Generic[_RT], typing.Tuple[typing.Optional[_RT], ApiClientResponseCallStatus]):
+    pass
 
 
 # can't define this using class syntax because one of the keys contains a dash
@@ -96,18 +97,18 @@ class APIClient:
         self.api_url = api_url
         self.api_token = api_token
 
-    def api_head(self, endpoint: str, body: typing.Optional[typing.Dict] = None, **kwargs) -> APIClientResponse:
+    def api_head(self, endpoint: str, body: typing.Optional[typing.Dict] = None, **kwargs) -> APIClientResponse[_RT]:
         return self.call_api(endpoint, requests.head, body, **kwargs)
 
-    def api_get(self, endpoint: str, **kwargs) -> APIClientResponse:
+    def api_get(self, endpoint: str, **kwargs) -> APIClientResponse[_RT]:
         return self.call_api(endpoint, requests.get, **kwargs)
 
-    def api_post(self, endpoint: str, body: typing.Optional[typing.Dict] = None, **kwargs) -> APIClientResponse:
+    def api_post(self, endpoint: str, body: typing.Optional[typing.Dict] = None, **kwargs) -> APIClientResponse[_RT]:
         return self.call_api(endpoint, requests.post, body, **kwargs)
 
     def call_api(
         self, endpoint: str, http_method: HttpMethod, body: typing.Optional[typing.Dict] = None, **kwargs
-    ) -> APIClientResponse:
+    ) -> APIClientResponse[_RT]:
         request_start = time.perf_counter()
         call_status: ApiClientResponseCallStatus = {
             "url": urljoin(self.api_url, endpoint),
@@ -157,6 +158,23 @@ class APIClient:
 
 class GrafanaAPIClient(APIClient):
     USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={ACTION_PREFIX}"
+
+    class Types:
+        class _BaseGrafanaAPIResponse(typing.TypedDict):
+            totalCount: int
+            page: int
+            perPage: int
+
+        class GrafanaTeam(typing.TypedDict):
+            id: int
+            orgId: int
+            name: str
+            email: str
+            avatarUrl: str
+            memberCount: int
+
+        class TeamsResponse(_BaseGrafanaAPIResponse):
+            teams: typing.List["GrafanaAPIClient.Types.GrafanaTeam"]
 
     def __init__(self, api_url: str, api_token: str) -> None:
         super().__init__(api_url, api_token)
@@ -219,7 +237,10 @@ class GrafanaAPIClient(APIClient):
             user["permissions"] = user_permissions.get(str(user["userId"]), [])
         return users
 
-    def get_teams(self, **kwargs) -> APIClientResponse:
+    def get_teams(self, **kwargs) -> APIClientResponse["GrafanaAPIClient.Types.TeamsResponse"]:
+        """
+        [Grafana API Docs](https://grafana.com/docs/grafana/latest/developers/http_api/team/#team-search-with-paging)
+        """
         return self.api_get("api/teams/search?perpage=1000000", **kwargs)
 
     def get_team_members(self, team_id: int) -> APIClientResponse:

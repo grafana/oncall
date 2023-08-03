@@ -208,7 +208,9 @@ services:
     container_name: mysql
     labels: *oncall-labels
     image: mysql:8.0.32
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max_connections=1024
+    command: >
+      --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci --max_connections=1024
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: empty
@@ -234,7 +236,9 @@ services:
     container_name: mysql_to_create_grafana_db
     labels: *oncall-labels
     image: mysql:8.0.32
-    command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
+    command: >
+      bash -c "mysql -h mysql -uroot -pempty
+      -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
         condition: service_healthy
@@ -272,7 +276,10 @@ services:
     container_name: postgres_to_create_grafana_db
     labels: *oncall-labels
     image: postgres:14.4
-    command: bash -c "PGPASSWORD=empty psql -U postgres -h postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'grafana'\" | grep -q 1 || PGPASSWORD=empty psql -U postgres -h postgres -c \"CREATE DATABASE grafana\""
+    command: >
+      bash -c "PGPASSWORD=empty psql -U postgres
+      -h postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'grafana'\" | grep -q 1 || PGPASSWORD=empty psql
+      -U postgres -h postgres -c \"CREATE DATABASE grafana\""
     depends_on:
       postgres:
         condition: service_healthy

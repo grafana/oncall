@@ -8,13 +8,13 @@ from apps.slack.scenarios import scenario_step
 from apps.slack.types import (
     Block,
     BlockActionType,
-    CompositionObjects,
+    CompositionObjectOption,
     EventPayload,
     ModalView,
     PayloadType,
     ScenarioRoute,
 )
-from apps.slack.utils import format_datetime_to_slack
+from apps.slack.utils import format_datetime_to_slack_with_time
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 if typing.TYPE_CHECKING:
@@ -31,14 +31,14 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         if payload["actions"][0].get("value", None) and payload["actions"][0]["value"].startswith("edit"):
             self.open_settings_modal(payload)
         elif payload["actions"][0].get("type", None) and payload["actions"][0]["type"] == "static_select":
             self.set_selected_value(slack_user_identity, payload)
 
-    def open_settings_modal(self, payload: EventPayload.Any) -> None:
+    def open_settings_modal(self, payload: EventPayload) -> None:
         schedule_id = payload["actions"][0]["value"].split("_")[1]
         try:
             _ = OnCallSchedule.objects.get(pk=schedule_id)  # noqa
@@ -67,7 +67,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             view=view,
         )
 
-    def set_selected_value(self, slack_user_identity: "SlackUserIdentity", payload: EventPayload.Any) -> None:
+    def set_selected_value(self, slack_user_identity: "SlackUserIdentity", payload: EventPayload) -> None:
         action = payload["actions"][0]
         private_metadata = json.loads(payload["view"]["private_metadata"])
         schedule_id = private_metadata["schedule_id"]
@@ -138,20 +138,20 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
         return blocks
 
-    def get_options(self, select_name: str) -> typing.List[CompositionObjects.Option]:
+    def get_options(self, select_name: str) -> typing.List[CompositionObjectOption]:
         select_options = getattr(self, f"{select_name}_options")
         return [
             {"text": {"type": "plain_text", "text": select_options[option]}, "value": str(option)}
             for option in select_options
         ]
 
-    def get_initial_option(self, schedule_id: str, select_name: str) -> CompositionObjects.Option:
+    def get_initial_option(self, schedule_id: str, select_name: str) -> CompositionObjectOption:
         schedule = OnCallSchedule.objects.get(pk=schedule_id)
 
         current_value = getattr(schedule, select_name)
         text = getattr(self, f"{select_name}_options")[current_value]
 
-        initial_option: CompositionObjects.Option = {
+        initial_option: CompositionObjectOption = {
             "text": {
                 "type": "plain_text",
                 "text": f"{text}",
@@ -255,13 +255,13 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                 f" {all_day_text} _All-day event in *{user_verbal}'s* timezone_ " f'- {shift["users"][0].timezone}.\n'
             )
         else:
-            shift_start_timestamp = int(shift["start"].astimezone(pytz.UTC).timestamp())
-            shift_end_timestamp = int(shift["end"].astimezone(pytz.UTC).timestamp())
+            shift_start_timestamp = shift["start"].astimezone(pytz.UTC).timestamp()
+            shift_end_timestamp = shift["end"].astimezone(pytz.UTC).timestamp()
 
             notification = (
                 " ".join([f"{user.get_username_with_slack_verbal(mention=mention)}" for user in users])
-                + f" from {format_datetime_to_slack(shift_start_timestamp)}"
-                f" to {format_datetime_to_slack(shift_end_timestamp)}\n"
+                + f" from {format_datetime_to_slack_with_time(shift_start_timestamp)}"
+                f" to {format_datetime_to_slack_with_time(shift_end_timestamp)}\n"
             )
         priority = shift.get("priority", 0) - shift.get("priority_increased_by", 0)
         if priority != 0:

@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from django.conf import settings
 from django.db.models import Max
 from django.urls import reverse
 from django.utils.timezone import timedelta
@@ -915,23 +914,17 @@ def test_escalation_policy_filter_by_slack_channel(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("enabled", [True, False])
 def test_escalation_policy_escalation_options_webhooks(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    enabled,
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
     url = reverse("api-internal:escalation_policy-escalation-options")
 
-    settings.FEATURE_WEBHOOKS_2_ENABLED = enabled
-
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     returned_options = [option["value"] for option in response.json()]
-    if enabled:
-        assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK in returned_options
-    else:
-        assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK not in returned_options
+
+    assert EscalationPolicy.STEP_TRIGGER_CUSTOM_WEBHOOK in returned_options

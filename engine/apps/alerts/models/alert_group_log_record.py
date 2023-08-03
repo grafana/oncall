@@ -9,7 +9,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.fields import DateTimeField
 
-from apps.alerts.tasks import send_update_log_report_signal
+from apps.alerts import tasks
 from apps.alerts.utils import render_relative_timeline
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
@@ -587,4 +587,4 @@ def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
             f"send_update_log_report_signal for alert_group {alert_group_pk}, "
             f"alert group event: {instance.get_type_display()}"
         )
-        send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)
+        tasks.send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)

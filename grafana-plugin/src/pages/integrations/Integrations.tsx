@@ -243,23 +243,23 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const isLegacyIntegration = (integration?.value as string)?.toLowerCase().startsWith('legacy_');
 
+    if (isLegacyIntegration) {
+      return (
+        <HorizontalGroup>
+          <Tooltip placement="top" content={'This integration has been deprecated, consider migrating it.'}>
+            <Icon name="info-circle" className="u-opacity" />
+          </Tooltip>
+          <Text type="secondary">
+            <span className="u-opacity">{integration?.display_name}</span>
+          </Text>
+        </HorizontalGroup>
+      );
+    }
+
     return (
-      <HorizontalGroup spacing="xs">
-        {isLegacyIntegration ? (
-          <>
-            <Tooltip placement="top" content={'This integration has been deprecated, consider migrating it.'}>
-              <Icon name="info-circle" className="u-opacity" />
-            </Tooltip>
-            <Text type="secondary">
-              <span className="u-opacity">{integration?.display_name}</span>
-            </Text>
-          </>
-        ) : (
-          <>
-            <IntegrationLogo scale={0.08} integration={integration} />
-            <Text type="secondary">{integration?.display_name}</Text>
-          </>
-        )}
+      <HorizontalGroup>
+        <IntegrationLogo scale={0.08} integration={integration} />
+        <Text type="secondary">{integration?.display_name}</Text>
       </HorizontalGroup>
     );
   }

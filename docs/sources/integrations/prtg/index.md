@@ -60,20 +60,20 @@ Param(
 
 # PRTG Server
 $PRTGServer = "localhost:8080"
-$PRTGUsername = "amixr"
+$PRTGUsername = "oncall"
 $PRTGPasshash  = *****
 
 #Directory for logging
 $LogDirectory = "C:\temp\prtg-notifications-msteam.log"
 
 #Acknowledgement Message for alerts ack'd via Teams
-$ackmessage = "Problem has been acknowledged via Amixr."
+$ackmessage = "Problem has been acknowledged via OnCall."
 
 # the acknowledgement URL
 $ackURL = [string]::Format("{0}/api/acknowledgealarm.htm?id={1}&ackmsg={2}&username={3}&passhash={4}",
 $PRTGServer,$sensorID,$ackmessage,$PRTGUsername,$PRTGPasshash);
 
-# Autoresolve an alert in Amixr
+# Autoresolve an alert in OnCall
 if($status -eq "Up")
 { $state = "ok" }
 ElseIf($status -match "now: Up")

@@ -8,12 +8,17 @@ import { isUserActionAllowed, UserAction } from 'utils/authorization';
 interface WithPermissionControlDisplayProps {
   userAction: UserAction;
   children: ReactElement;
-  message: string;
+  message?: string;
   title?: string;
 }
 
 export const WithPermissionControlDisplay: React.FC<WithPermissionControlDisplayProps> = (props) => {
-  const { userAction, children, title, message } = props;
+  const {
+    userAction,
+    children,
+    title,
+    message = 'You do not have permission to perform this action. Ask an admin to upgrade your permissions.',
+  } = props;
 
   const hasPermission = isUserActionAllowed(userAction);
 

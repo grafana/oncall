@@ -41,7 +41,7 @@ class AddToResolutionNoteStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         from apps.alerts.models import ResolutionNote, ResolutionNoteSlackMessage
         from apps.slack.models import SlackMessage, SlackUserIdentity
@@ -401,7 +401,7 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
         data: ScenarioData | None = None,
     ) -> None:
         if data:
@@ -599,54 +599,58 @@ class ResolutionNoteModalStep(AlertGroupActionsMixin, scenario_step.ScenarioStep
                 message_timestamp = datetime.datetime.timestamp(resolution_note.created_at)
                 blocks.append(DIVIDER)
                 source = "web" if resolution_note.source == ResolutionNote.Source.WEB else "slack"
-                message_block: Block.Section = {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "{} <!date^{:.0f}^{{date_num}} {{time_secs}}|note_created_at> (from {})\n{}".format(
-                            user_verbal,
-                            float(message_timestamp),
-                            source,
-                            resolution_note.message_text,
-                        ),
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "style": "danger",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Remove",
-                            "emoji": True,
-                        },
-                        "action_id": AddRemoveThreadMessageStep.routing_uid(),
-                        "value": json.dumps(
-                            {
-                                "resolution_note_window_action": "edit",
-                                "msg_value": "remove",
-                                "message_pk": None
-                                if not resolution_note_slack_message
-                                else resolution_note_slack_message.pk,
-                                "resolution_note_pk": resolution_note.pk,
-                                "alert_group_pk": alert_group.pk,
-                            }
-                        ),
-                        "confirm": {
-                            "title": {"type": "plain_text", "text": "Are you sure?"},
+
+                blocks.append(
+                    typing.cast(
+                        Block.Section,
+                        {
+                            "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": "This operation will permanently delete this Resolution Note.",
+                                "text": "{} <!date^{:.0f}^{{date_num}} {{time_secs}}|note_created_at> (from {})\n{}".format(
+                                    user_verbal,
+                                    float(message_timestamp),
+                                    source,
+                                    resolution_note.message_text,
+                                ),
                             },
-                            "confirm": {"type": "plain_text", "text": "Delete"},
-                            "deny": {
-                                "type": "plain_text",
-                                "text": "Stop, I've changed my mind!",
+                            "accessory": {
+                                "type": "button",
+                                "style": "danger",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Remove",
+                                    "emoji": True,
+                                },
+                                "action_id": AddRemoveThreadMessageStep.routing_uid(),
+                                "value": json.dumps(
+                                    {
+                                        "resolution_note_window_action": "edit",
+                                        "msg_value": "remove",
+                                        "message_pk": None
+                                        if not resolution_note_slack_message
+                                        else resolution_note_slack_message.pk,
+                                        "resolution_note_pk": resolution_note.pk,
+                                        "alert_group_pk": alert_group.pk,
+                                    }
+                                ),
+                                "confirm": {
+                                    "title": {"type": "plain_text", "text": "Are you sure?"},
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": "This operation will permanently delete this Resolution Note.",
+                                    },
+                                    "confirm": {"type": "plain_text", "text": "Delete"},
+                                    "deny": {
+                                        "type": "plain_text",
+                                        "text": "Stop, I've changed my mind!",
+                                    },
+                                    "style": "danger",
+                                },
                             },
-                            "style": "danger",
                         },
-                    },
-                }
-
-                blocks.append(message_block)
+                    )
+                )
 
         if not blocks:
             # there aren't any resolution notes yet, display a hint instead
@@ -711,7 +715,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         from apps.alerts.models import AlertGroup, ResolutionNote, ResolutionNoteSlackMessage
 
