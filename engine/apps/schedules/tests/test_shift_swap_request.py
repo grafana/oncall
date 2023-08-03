@@ -123,6 +123,9 @@ def test_take_own_ssr(shift_swap_request_setup) -> None:
         ssr.take(beneficiary)
 
 
+@pytest.mark.skip(
+    "Skipping as flaky based on time of day that the test runs. Example failure here https://github.com/grafana/oncall/actions/runs/5747168275/job/15577755519?pr=2725#step:5:1005"
+)
 @pytest.mark.django_db
 def test_related_shifts(shift_swap_request_setup, make_on_call_shift) -> None:
     ssr, beneficiary, _ = shift_swap_request_setup()
