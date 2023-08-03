@@ -258,14 +258,18 @@ class OnCallSchedule(PolymorphicModel):
 
     def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""
-        calendar_primary: typing.Optional[icalendar.Calendar] = None
-        calendar_overrides: typing.Optional[icalendar.Calendar] = None
         # if self._ical_file_(primary|overrides) is None -> no cache, will trigger a refresh
         # if self._ical_file_(primary|overrides) == "" -> cached value for an empty schedule
         if self._ical_file_primary:
             calendar_primary: icalendar.Calendar = icalendar.Calendar.from_ical(self._ical_file_primary)
+        else:
+            calendar_primary = None
+
         if self._ical_file_overrides:
-            calendar_overrides = icalendar.Calendar.from_ical(self._ical_file_overrides)
+            calendar_overrides: icalendar.Calendar = icalendar.Calendar.from_ical(self._ical_file_overrides)
+        else:
+            calendar_overrides = None
+
         return calendar_primary, calendar_overrides
 
     def get_prev_and_current_ical_files(self):
