@@ -1,6 +1,6 @@
 name: Linting and Unit/e2e Tests
 
-on:
+"on":
   push:
     branches:
       - main
@@ -83,8 +83,12 @@ jobs:
         # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
         # that no refs to external content can be used as these refs will not resolve in the
         # docs-base image.
-        run: |
-          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'echo -e "---\\nredirectURL: /hugo/content/docs/oncall/latest/\\ntype: redirect\\nversioned: true\\n---\\n" > /hugo/content/docs/oncall/_index.md; make hugo'
+        run: >
+          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest
+          -e HUGO_REFLINKSERRORLEVEL=ERROR
+          --rm grafana/docs-base:latest /bin/bash
+          -c 'echo -e "---\\nredirectURL: /hugo/content/docs/oncall/latest/\\ntype: redirect\\nversioned: true\\n---\\n"
+          > /hugo/content/docs/oncall/_index.md; make hugo'
 
   lint-migrations-backend-mysql-rabbitmq:
     name: "Lint database migrations"
@@ -390,7 +394,8 @@ jobs:
 
       # spin up 3 engine and 3 celery pods, this will allow us to parralelize the integration tests,
       # and complete them much faster by using multiple test processes
-      # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized integration test process
+      # With just 1 engine/celery/grafana pod, the backend crawls to a halt when there is > 1 parallelized
+      # integration test process
       # NOTE: it appears that using > 1 grafana container w/ SQLite as the database sometimes leads to failed
       # grafana database migrations (this is documented in this GitHub issue
       # https://github.com/bitnami/charts/issues/10905)
@@ -400,6 +405,7 @@ jobs:
       # the /oncall-plugin hostPath refers to the kind volumeMount that points to the ./grafana-plugin dir
       # see ./helm/kind.yml for more details
       - name: Install helm chart
+        # yamllint disable rule:line-length
         run: |
           helm install helm-testing \
             --values ./helm/simple.yml \
@@ -421,13 +427,16 @@ jobs:
             --set-json "grafana.plugins=[]" \
             --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
+        # yamllint enable rule:line-length
 
       # helpful reference for properly caching the playwright binaries/dependencies
       # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
       - name: Get installed Playwright version
         id: playwright-version
         working-directory: grafana-plugin
-        run: echo "PLAYWRIGHT_VERSION=$(cat ./package.json | jq -r '.devDependencies["@playwright/test"]')" >> $GITHUB_ENV
+        run: >
+          echo "PLAYWRIGHT_VERSION=$(cat ./package.json |
+          jq -r '.devDependencies["@playwright/test"]')" >> $GITHUB_ENV
 
       - name: Cache Playwright binaries/dependencies
         id: playwright-cache
@@ -488,7 +497,8 @@ jobs:
         uses: jupyterhub/action-k8s-namespace-report@v1
         if: failure()
         with:
-          important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery deploy/helm-testing-grafana"
+          important-workloads: >
+            deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery deploy/helm-testing-grafana
 
       - uses: actions/upload-artifact@v3
         if: failure()
