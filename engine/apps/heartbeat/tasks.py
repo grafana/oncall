@@ -1,7 +1,7 @@
 from celery.utils.log import get_task_logger
 from django.db import transaction
-from django.db.models import DurationField, ExpressionWrapper, F
-from django.db.models.functions import Now
+from django.db.models import DateTimeField, DurationField, ExpressionWrapper, F
+from django.db.models.functions import Cast
 from django.utils import timezone
 
 from apps.heartbeat.models import IntegrationHeartBeat
@@ -33,7 +33,7 @@ def check_heartbeats() -> None:
         # * has not received a checkup for timeout period
         expired_heartbeats = (
             enabled_heartbeats.select_for_update()
-            .filter(last_heartbeat_time__lte=(Now() - F("timeout")))
+            .filter(last_heartbeat_time__lte=(Cast(timezone.now(), DateTimeField()) - F("timeout")))
             .filter(previous_alerted_state_was_life=True)
         )
         # Schedule alert creation for each expired heartbeat after transaction commit
@@ -60,7 +60,7 @@ def check_heartbeats() -> None:
         # * was is alerted state (previous_alerted_state_was_life is False)
         restored_heartbeats = (
             enabled_heartbeats.select_for_update()
-            .filter(last_heartbeat_time__gte=(Now() - F("timeout")))
+            .filter(last_heartbeat_time__gte=(Cast(timezone.now(), DateTimeField()) - F("timeout")))
             .filter(previous_alerted_state_was_life=False)
         )
         # Schedule auto-resolve alert creation for each expired heartbeat after transaction commit
