@@ -299,13 +299,13 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
             True,
             ["@Alex"],
             datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
-            datetime.datetime(2021, 1, 27, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 27, 23, 59, 59, tzinfo=pytz.UTC),
         ),
         (
             True,
             ["@Alice"],
             datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
-            datetime.datetime(2021, 1, 28, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 28, 23, 59, 59, tzinfo=pytz.UTC),
         ),
         (
             False,

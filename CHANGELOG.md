@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Skip past due swap requests when calculating events ([2718](https://github.com/grafana/oncall/pull/2718))
+- Update schedule slack notifications to use schedule final events by @Ferril ([#2710](https://github.com/grafana/oncall/pull/2710))
 
 ### Fixed
 
