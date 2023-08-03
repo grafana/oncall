@@ -405,7 +405,7 @@ class SlackEventApiEndpointView(APIView):
         return Response(status=200)
 
     @staticmethod
-    def _get_slack_team_identity_from_payload(payload: EventPayload.Any) -> SlackTeamIdentity | None:
+    def _get_slack_team_identity_from_payload(payload: EventPayload) -> SlackTeamIdentity | None:
         def _slack_team_id() -> str | None:
             with suppress(KeyError):
                 return payload["team"]["id"]
@@ -422,7 +422,7 @@ class SlackEventApiEndpointView(APIView):
 
     @staticmethod
     def _get_organization_from_payload(
-        payload: EventPayload.Any, slack_team_identity: SlackTeamIdentity
+        payload: EventPayload, slack_team_identity: SlackTeamIdentity
     ) -> Organization | None:
         """
         Extract organization from Slack payload.
@@ -492,7 +492,7 @@ class SlackEventApiEndpointView(APIView):
         return None
 
     def _open_warning_window_if_needed(
-        self, payload: EventPayload.Any, slack_team_identity: SlackTeamIdentity, warning_text: str
+        self, payload: EventPayload, slack_team_identity: SlackTeamIdentity, warning_text: str
     ) -> None:
         if payload.get("trigger_id") is not None:
             step = ScenarioStep(slack_team_identity)
@@ -504,7 +504,7 @@ class SlackEventApiEndpointView(APIView):
                 )
 
     def _open_warning_for_unconnected_user(
-        self, slack_client: SlackClientWithErrorHandling, payload: EventPayload.Any
+        self, slack_client: SlackClientWithErrorHandling, payload: EventPayload
     ) -> None:
         if payload.get("trigger_id") is None:
             return

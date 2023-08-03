@@ -1,7 +1,7 @@
 import typing
 
 from .blocks import Block
-from .composition_objects import CompositionObjects
+from .composition_objects import CompositionObjectPlainText
 
 
 class ModalView(typing.TypedDict):
@@ -14,7 +14,7 @@ class ModalView(typing.TypedDict):
     Required. The type of view. Set to `modal` for modals.
     """
 
-    title: CompositionObjects.PlainText
+    title: CompositionObjectPlainText
     """
     Required. The title that appears in the top-left of the modal.
 
@@ -30,7 +30,7 @@ class ModalView(typing.TypedDict):
     Max of 100 blocks.
     """
 
-    close: CompositionObjects.PlainText
+    close: CompositionObjectPlainText
     """
     An optional [plain_text text element](https://api.slack.com/reference/block-kit/composition-objects#text) that
     defines the text displayed in the close button at the bottom-right of the view.
@@ -38,7 +38,7 @@ class ModalView(typing.TypedDict):
     Max length of 24 characters.
     """
 
-    submit: CompositionObjects.PlainText
+    submit: CompositionObjectPlainText
     """
     An optional [plain_text text element](https://api.slack.com/reference/block-kit/composition-objects#text) that
     defines the text displayed in the submit button at the bottom-right of the view.
