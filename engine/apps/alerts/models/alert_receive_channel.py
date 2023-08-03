@@ -18,7 +18,7 @@ from emoji import emojize
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
+from apps.alerts.tasks import disable_maintenance
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.integrations.legacy_prefix import remove_legacy_prefix
@@ -287,6 +287,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     @cached_property
     def grafana_alerting_sync_manager(self):
         return GrafanaAlertingSyncManager(self)
+
+    @property
+    def is_alerting_integration(self):
+        return self.integration in {
+            AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+        }
 
     @cached_property
     def team_name(self):
@@ -651,20 +658,20 @@ def listen_for_alertreceivechannel_model_save(
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
         metrics_add_integration_to_cache(instance)
-
-    if instance.integration in {
-        AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
-        AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
-    }:
-        if created:
-            instance.grafana_alerting_sync_manager.create_contact_points()
-        # do not trigger sync contact points if field "is_finished_alerting_setup" was updated
-        elif (
-            kwargs is None
-            or not kwargs.get("update_fields")
-            or "is_finished_alerting_setup" not in kwargs["update_fields"]
-        ):
-            sync_grafana_alerting_contact_points.apply_async((instance.pk,), countdown=5)
+    # todo
+    # if instance.integration in {
+    #     AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+    #     AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+    # }:
+    #     if created:
+    #         instance.grafana_alerting_sync_manager.create_contact_points()
+    #     # do not trigger sync contact points if field "is_finished_alerting_setup" was updated
+    #     elif (
+    #         kwargs is None
+    #         or not kwargs.get("update_fields")
+    #         or "is_finished_alerting_setup" not in kwargs["update_fields"]
+    #     ):
+    #         sync_grafana_alerting_contact_points.apply_async((instance.pk,), countdown=5)
 
     elif instance.deleted_at:
         metrics_remove_deleted_integration_from_cache(instance)

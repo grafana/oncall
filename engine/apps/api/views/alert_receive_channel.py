@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.permissions import RBACPermission
@@ -104,6 +105,11 @@ class AlertReceiveChannelView(
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "validate_name": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "migrate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_contact_points": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "contact_points": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -361,3 +367,40 @@ class AlertReceiveChannelView(
             r = Response(status=status.HTTP_200_OK)
 
         return r
+
+    @action(detail=True, methods=["get"])
+    def connected_contact_points(self, request, pk):
+        instance = self.get_object()
+        if not instance.is_alerting_integration:
+            raise BadRequest(detail="invalid integration")
+        contact_points = instance.grafana_alerting_sync_manager.get_connected_contact_points()
+        return Response(contact_points)
+
+    @action(detail=False, methods=["get"])
+    def contact_points(self, request):
+        organization = request.auth.organization
+        contact_points = GrafanaAlertingSyncManager.get_contact_points(organization)
+        return Response(contact_points)
+
+    @action(detail=True, methods=["post"])
+    def connect_contact_point(self, request, pk):
+        instance = self.get_object()
+        if not instance.is_alerting_integration:
+            raise BadRequest(detail="invalid integration")
+
+        datasource_uid = request.data.get("datasource_uid")
+        contact_point_name = request.data.get("contact_point_name")
+        if not datasource_uid or not contact_point_name:
+            raise BadRequest(detail="datasource_uid and contact_point_name are required")
+        connected = instance.grafana_alerting_sync_manager.connect_contact_point(datasource_uid, contact_point_name)
+        if not connected:
+            raise BadRequest(detail="connection failed")  # todo
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+    @action(detail=True, methods=["post"])
+    def create_contact_point(self, request, pk):
+        pass  # todo
+
+    @action(detail=True, methods=["post"])
+    def disconnect_contact_point(self, request, pk):
+        pass  # todo
