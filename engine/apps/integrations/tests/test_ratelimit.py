@@ -74,8 +74,11 @@ def test_ratelimit_alerts_per_team(
 
 
 @mock.patch("ratelimit.utils._split_rate", return_value=(1, 60))
+@mock.patch("apps.heartbeat.tasks.process_heartbeat_task.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_ratelimit_integration_heartbeats(
+    mocked_task,
+    mocked_rate,
     make_organization,
     make_alert_receive_channel,
 ):
