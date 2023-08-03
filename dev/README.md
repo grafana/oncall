@@ -35,7 +35,7 @@ environment variable.
    **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose
    v2. For instructions on how to enable this (if you haven't already done so),
    see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/). Ensure you have Docker Compose
-   version 2.10 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
+   version 2.20.2 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
 2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
