@@ -1,5 +1,6 @@
 import datetime
 import json
+import typing
 from typing import TYPE_CHECKING
 
 from django.utils import timezone
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 def convert_prev_shifts_to_new_format(prev_shifts: dict, schedule: "OnCallSchedule") -> list:
     new_prev_shifts = []
     user_ids = []
-    users_info = {}
+    users_info: typing.Dict[int, typing.Dict[str, str]] = {}
     for shift in prev_shifts.values():
         user_ids.extend(shift.get("users", []))
     prev_users = schedule.organization.users.filter(id__in=user_ids)
