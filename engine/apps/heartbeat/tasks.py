@@ -33,7 +33,9 @@ def check_heartbeats() -> None:
         # * has not received a checkup for timeout period
         expired_heartbeats = (
             enabled_heartbeats.select_for_update()
-            .filter(last_heartbeat_time__lte=(Cast(timezone.now(), DateTimeField()) - F("timeout")))
+            .filter(
+                last_heartbeat_time__lte=(Cast(timezone.now(), DateTimeField()) - Cast(F("timeout"), DurationField()))
+            )
             .filter(previous_alerted_state_was_life=True)
         )
         # Schedule alert creation for each expired heartbeat after transaction commit
@@ -60,7 +62,9 @@ def check_heartbeats() -> None:
         # * was is alerted state (previous_alerted_state_was_life is False)
         restored_heartbeats = (
             enabled_heartbeats.select_for_update()
-            .filter(last_heartbeat_time__gte=(Cast(timezone.now(), DateTimeField()) - F("timeout")))
+            .filter(
+                last_heartbeat_time__gte=(Cast(timezone.now(), DateTimeField()) - Cast(F("timeout"), DurationField()))
+            )
             .filter(previous_alerted_state_was_life=False)
         )
         # Schedule auto-resolve alert creation for each expired heartbeat after transaction commit
