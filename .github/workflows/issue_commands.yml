@@ -1,5 +1,5 @@
 name: Run commands when issues are labeled
-on:
+"on":
   issues:
     types: [labeled]
   pull_request:
