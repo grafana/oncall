@@ -108,6 +108,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   isOncall={isOncall}
                   currentTimezone={currentTimezone}
                   event={event}
+                  scheduleId={scheduleId}
                   handleAddOverride={handleAddOverride}
                   simplified={simplified}
                   color={color}
@@ -130,13 +131,14 @@ interface ScheduleSlotDetailsProps {
   isOncall: boolean;
   currentTimezone: Timezone;
   event: Event;
+  scheduleId: Schedule['id'];
   handleAddOverride: (event: React.SyntheticEvent) => void;
   simplified?: boolean;
   color: string;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentTimezone, event, handleAddOverride, simplified, color } = props;
+  const { user, currentTimezone, event, scheduleId, handleAddOverride, simplified, color } = props;
 
   const store = useStore();
   const { scheduleStore } = store;
@@ -144,6 +146,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
   const currentMoment = useMemo(() => dayjs(), []);
 
   const shift = scheduleStore.shifts[event.shift?.pk];
+  const enableWebOverrides = scheduleStore.items[scheduleId]?.enable_web_overrides;
 
   return (
     <div className={cx('details')}>
@@ -199,7 +202,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             {dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}
           </Text>
         </HorizontalGroup>
-        {!simplified && !event.is_override && (
+        {!simplified && !event.is_override && enableWebOverrides && (
           <HorizontalGroup justify="flex-end">
             <Button size="sm" variant="secondary" onClick={handleAddOverride}>
               + Override
