@@ -1,7 +1,6 @@
 from celery.utils.log import get_task_logger
 from django.db import transaction
 from django.db.models import DurationField, ExpressionWrapper, F
-from django.db.models.functions import Now
 from django.utils import timezone
 
 from apps.heartbeat.models import IntegrationHeartBeat
@@ -31,8 +30,10 @@ def check_heartbeats() -> None:
         # * is enabled,
         # * is not already expired,
         # * has not received a checkup for timeout period
-        expired_heartbeats = enabled_heartbeats.filter(last_heartbeat_time__lte=(timezone.now() - F("timeout"))).filter(
-            previous_alerted_state_was_life=True
+        expired_heartbeats = (
+            enabled_heartbeats.select_for_update()
+            .filter(last_heartbeat_time__lte=(timezone.now() - F("timeout")))
+            .filter(previous_alerted_state_was_life=True)
         )
         # Schedule alert creation for each expired heartbeat after transaction commit
         for heartbeat in expired_heartbeats:
@@ -50,7 +51,7 @@ def check_heartbeats() -> None:
                 )
             )
         # Update previous_alerted_state_was_life to False
-        expired_heartbeats.update(previous_alerted_state_was_life=False)
+        expired_count = expired_heartbeats.update(previous_alerted_state_was_life=False)
     with transaction.atomic():
         # Heartbeat is considered restored if it
         # * is enabled, expired,
@@ -58,7 +59,7 @@ def check_heartbeats() -> None:
         # * was is alerted state (previous_alerted_state_was_life is False)
         restored_heartbeats = (
             enabled_heartbeats.select_for_update()
-            .filter(last_heartbeat_time__gte=(Now() - F("timeout")))
+            .filter(last_heartbeat_time__gte=(timezone.now() - F("timeout")))
             .filter(previous_alerted_state_was_life=False)
         )
         # Schedule auto-resolve alert creation for each expired heartbeat after transaction commit
@@ -76,7 +77,8 @@ def check_heartbeats() -> None:
                     },
                 )
             )
-        restored_heartbeats.update(previous_alerted_state_was_life=True)
+        restored_count = restored_heartbeats.update(previous_alerted_state_was_life=True)
+    return f"Found {expired_count} expired and {restored_count} restored heartbeats"
 
 
 @shared_dedicated_queue_retry_task()

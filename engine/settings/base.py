@@ -490,7 +490,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "check_heartbeats": {
         "task": "apps.heartbeat.tasks.check_heartbeats",
-        "schedule": 5,
+        "schedule": crontab(minute="*/2"),  # every 2 minutes
         "args": (),
     },
 }
