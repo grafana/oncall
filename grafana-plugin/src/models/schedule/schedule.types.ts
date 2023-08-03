@@ -81,6 +81,11 @@ export interface Rotation {
 
 export type RotationType = 'final' | 'rotation' | 'override';
 
+export interface SwapRequest {
+  pk: ShiftSwap['id'];
+  user: Partial<User> & { display_name: string };
+}
+
 export interface Event {
   all_day: boolean;
   calendar_type: ScheduleType;
@@ -95,7 +100,7 @@ export interface Event {
   users: Array<{
     display_name: User['username'];
     pk: User['pk'];
-    swap_request?: { pk: ShiftSwap['id']; user: Partial<User> };
+    swap_request?: SwapRequest;
   }>;
   is_override: boolean;
 }

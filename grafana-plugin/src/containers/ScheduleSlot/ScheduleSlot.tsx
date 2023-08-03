@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 
 import { Button, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { getShiftName } from 'models/schedule/schedule.helpers';
+import { getShiftName, SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Event, Schedule, ShiftSwap } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -69,14 +69,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
 
-  useEffect(() => {
-    users.forEach((user) => {
-      if (user.swap_request && !store.scheduleStore.shiftSwaps[user.swap_request.pk]) {
-        store.scheduleStore.loadShiftSwap(user.swap_request.pk);
-      }
-    });
-  }, [users]);
-
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
       {event.is_gap ? (
@@ -103,9 +95,11 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
             storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk)
           );
 
+          const isShiftSwap = Boolean(swap_request);
+
           let backgroundColor = color;
-          if (swap_request) {
-            backgroundColor = '#C69B06';
+          if (isShiftSwap) {
+            backgroundColor = SHIFT_SWAP_COLOR;
           }
 
           const scheduleSlotContent = (
@@ -141,14 +135,19 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
               key={userPk}
               content={
                 <ScheduleSlotDetails
+                  isShiftSwap={isShiftSwap}
+                  beneficiaryName={
+                    isShiftSwap ? (swap_request.user ? swap_request.user.display_name : display_name) : undefined
+                  }
+                  benefactorName={isShiftSwap ? (swap_request.user ? display_name : undefined) : undefined}
                   user={storeUser}
                   isOncall={isOncall}
                   currentTimezone={currentTimezone}
                   event={event}
-                  handleAddOverride={handleAddOverride}
-                  handleAddShiftSwap={isCurrentUserSlot ? handleAddShiftSwap : undefined}
+                  handleAddOverride={simplified || event.is_override ? undefined : handleAddOverride}
+                  handleAddShiftSwap={simplified || isShiftSwap || !isCurrentUserSlot ? undefined : handleAddShiftSwap}
                   simplified={simplified}
-                  color={color}
+                  color={backgroundColor}
                 />
               }
             >
@@ -172,10 +171,23 @@ interface ScheduleSlotDetailsProps {
   handleAddShiftSwap: (event: React.SyntheticEvent) => void;
   simplified?: boolean;
   color: string;
+  isShiftSwap?: boolean;
+  beneficiaryName?: string;
+  benefactorName?: string;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentTimezone, event, handleAddOverride, handleAddShiftSwap, simplified, color } = props;
+  const {
+    user,
+    currentTimezone,
+    event,
+    handleAddOverride,
+    handleAddShiftSwap,
+    color,
+    isShiftSwap,
+    beneficiaryName,
+    benefactorName,
+  } = props;
 
   const store = useStore();
   const { scheduleStore } = store;
@@ -192,16 +204,34 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
             <div className={cx('badge')} style={{ backgroundColor: color }} />
           </div>
           <Text type="primary" maxWidth="222px">
-            {getShiftName(shift)}
+            {isShiftSwap ? 'Shift swap' : getShiftName(shift)}
           </Text>
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
           <div className={cx('details-icon')}>
-            <Icon className={cx('icon')} name="user" />
+            <Icon className={cx('icon')} name={isShiftSwap ? 'user-arrows' : 'user'} />
           </div>
-          <Text type="primary" className={cx('username')}>
-            {user?.username}
-          </Text>
+          {isShiftSwap ? (
+            <VerticalGroup spacing="xs">
+              <Text type="primary">Swap pair</Text>
+              <Text type="primary" className={cx('username')}>
+                {beneficiaryName} <Text type="secondary">(creator)</Text>
+              </Text>
+              {benefactorName ? (
+                <Text type="primary" className={cx('username')}>
+                  {benefactorName} <Text type="secondary">(taken by)</Text>
+                </Text>
+              ) : (
+                <Text type="secondary" className={cx('username')}>
+                  Not taken yet
+                </Text>
+              )}
+            </VerticalGroup>
+          ) : (
+            <Text type="primary" className={cx('username')}>
+              {user?.username}
+            </Text>
+          )}
         </HorizontalGroup>
         <HorizontalGroup align="flex-start">
           <div className={cx('details-icon')}>
@@ -239,12 +269,12 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           </Text>
         </HorizontalGroup>
         <HorizontalGroup justify="flex-end">
-          {!simplified && handleAddShiftSwap && (
+          {handleAddShiftSwap && (
             <Button size="sm" variant="secondary" onClick={handleAddShiftSwap}>
               Request shift swap
             </Button>
           )}
-          {!simplified && !event.is_override && (
+          {handleAddOverride && (
             <Button size="sm" variant="secondary" onClick={handleAddOverride}>
               + Override
             </Button>

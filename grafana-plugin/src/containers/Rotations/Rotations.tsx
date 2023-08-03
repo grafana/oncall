@@ -17,6 +17,7 @@ import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
@@ -109,15 +110,20 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 </Text.Title>
               </div>
               <HorizontalGroup>
-                {/*  <Button
+                <Button
                   variant="secondary"
-                  icon="plus"
+                  icon="user-arrows"
                   onClick={() => {
-                    onShowShiftSwapForm({});
+                    const swapStart = dayjs().tz(currentTimezone).add(5, 'minutes');
+                    const swapEnd = dayjs().tz(currentTimezone).startOf('day').add(1, 'day');
+                    onShowShiftSwapForm('new', {
+                      swap_start: getUTCString(swapStart),
+                      swap_end: getUTCString(swapEnd),
+                    });
                   }}
                 >
                   Request shift swap
-                </Button> */}
+                </Button>
                 {disabled ? (
                   isTypeReadOnly ? (
                     <Tooltip content="Ical and API/Terraform rotations are read-only here" placement="top">

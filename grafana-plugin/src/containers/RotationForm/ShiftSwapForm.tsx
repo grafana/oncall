@@ -1,27 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { dateTime } from '@grafana/data';
-import {
-  Button,
-  DateTimePicker,
-  Field,
-  HorizontalGroup,
-  IconButton,
-  Input,
-  TextArea,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, Field, HorizontalGroup, IconButton, Input, TextArea, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
+import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { SHIFT_SWAP_COLOR } from 'models/schedule/schedule.helpers';
 import { Schedule, ShiftSwap } from 'models/schedule/schedule.types';
+import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { Timezone } from 'models/timezone/timezone.types';
+import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
+
+import DateTimePicker from './parts/DateTimePicker';
+import UserItem from './parts/UserItem';
 
 import styles from './RotationForm.module.css';
 
@@ -31,6 +29,7 @@ interface ShiftSwapFormProps {
   id: ShiftSwap['id'] | 'new';
   scheduleId: Schedule['id'];
   params: Partial<ShiftSwap>;
+  currentTimezone: Timezone;
 
   onUpdate: () => void;
 
@@ -38,14 +37,12 @@ interface ShiftSwapFormProps {
 }
 
 const ShiftSwapForm = (props: ShiftSwapFormProps) => {
-  const { onUpdate, onHide, id, scheduleId, params: defaultParams } = props;
+  const { onUpdate, onHide, id, scheduleId, params: defaultParams, currentTimezone } = props;
 
   const [shiftSwap, setShiftSwap] = useState({ ...defaultParams });
 
   const store = useStore();
   const { scheduleStore } = store;
-
-  const allowDelete = true;
 
   useEffect(() => {
     if (id !== 'new') {
@@ -53,31 +50,52 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     }
   }, [id]);
 
-  const isShiftSwapInThePast = useMemo(() => shiftSwap && dayjs(shiftSwap.swap_start).isBefore(dayjs()), [shiftSwap]);
+  const handleShiftSwapStartChange = useCallback(
+    (value) => {
+      setShiftSwap({ ...shiftSwap, swap_start: getUTCString(value) });
+    },
+    [shiftSwap]
+  );
 
-  const handleCreate = useCallback(() => {
-    scheduleStore.createShiftSwap({ schedule: scheduleId, ...shiftSwap });
+  const handleShiftSwapEndChange = useCallback(
+    (value) => {
+      setShiftSwap({ ...shiftSwap, swap_end: getUTCString(value) });
+    },
+    [shiftSwap]
+  );
+
+  const handleDescriptionChange = useCallback(
+    (event) => {
+      setShiftSwap({ ...shiftSwap, description: event.target.value });
+    },
+    [shiftSwap]
+  );
+
+  const handleCreate = useCallback(async () => {
+    await scheduleStore.createShiftSwap({ schedule: scheduleId, ...shiftSwap });
 
     onHide();
     onUpdate();
   }, [shiftSwap]);
 
-  const handleDelete = useCallback(() => {
-    scheduleStore.deleteShiftSwap(id);
+  const handleDelete = useCallback(async () => {
+    await scheduleStore.deleteShiftSwap(id);
 
     onHide();
     onUpdate();
   }, [id]);
 
-  const handleTake = useCallback(() => {
-    scheduleStore.takeShiftSwap(id);
+  const handleTake = useCallback(async () => {
+    await scheduleStore.takeShiftSwap(id);
 
     onHide();
     onUpdate();
   }, [id]);
 
   const beneficiaryName = shiftSwap?.beneficiary && store.userStore.items[shiftSwap.beneficiary]?.name;
-  const benefactorName = shiftSwap?.benefactor && store.userStore.items[shiftSwap.benefactor]?.name;
+
+  const readOnly = id !== 'new';
+  const isPastDue = useMemo(() => shiftSwap && dayjs(shiftSwap.swap_start).isBefore(dayjs()), [shiftSwap]);
 
   return (
     <Modal
@@ -95,71 +113,83 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
+              {id === 'new' && <Tag color={SHIFT_SWAP_COLOR}>New</Tag>}
               <Text.Title level={5} editable>
-                {id === 'new' ? 'New' : ''} Shift swap
+                Shift swap
               </Text.Title>
             </HorizontalGroup>
             <HorizontalGroup>
-              <IconButton
-                disabled={!allowDelete}
-                variant="secondary"
-                tooltip="Delete"
-                name="trash-alt"
-                //onClick={() => setShowDeleteRotationConfirmation(true)}
-              />
+              {id !== 'new' && (
+                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                  <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
+                    <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDelete} />
+                  </WithConfirm>
+                </WithPermissionControlTooltip>
+              )}
               <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
               <IconButton name="times" variant="secondary" tooltip="Close" onClick={onHide} />
             </HorizontalGroup>
           </HorizontalGroup>
 
           <div className={cx('fields')}>
-            <Field label="Creator">
-              <Input disabled value={beneficiaryName}></Input>
-            </Field>
+            {id !== 'new' && (
+              <Field label="Creator">
+                <Input disabled={readOnly} value={beneficiaryName}></Input>
+              </Field>
+            )}
 
             <HorizontalGroup height="auto">
-              <Field disabled label="Swap start">
-                <DateTimePicker disabled date={dateTime(shiftSwap.swap_start)} />
+              <Field label="Swap start">
+                <DateTimePicker
+                  timezone={store.currentTimezone}
+                  disabled={readOnly}
+                  value={dayjs(shiftSwap.swap_start)}
+                  onChange={handleShiftSwapStartChange}
+                />
               </Field>
-              <Field disabled label="Swap end">
-                <DateTimePicker disabled date={dateTime(shiftSwap.swap_end)} />
+              <Field label="Swap end">
+                <DateTimePicker
+                  timezone={store.currentTimezone}
+                  disabled={readOnly}
+                  value={dayjs(shiftSwap.swap_end)}
+                  onChange={handleShiftSwapEndChange}
+                />
               </Field>
             </HorizontalGroup>
 
             <Field label="Description">
-              <TextArea disabled>{shiftSwap.description}</TextArea>
+              <TextArea rows={4} disabled={readOnly} value={shiftSwap.description} onChange={handleDescriptionChange}>
+                {shiftSwap.description}
+              </TextArea>
             </Field>
-
-            <Field label="Taken by">
-              <Input disabled value={benefactorName}></Input>
-            </Field>
+            {id !== 'new' && (
+              <Field label="Taken by">
+                {shiftSwap?.benefactor ? (
+                  <UserItem
+                    pk={shiftSwap?.benefactor}
+                    shiftColor={SHIFT_SWAP_COLOR}
+                    shiftStart={shiftSwap.swap_start}
+                    shiftEnd={shiftSwap.swap_end}
+                  />
+                ) : (
+                  <Text type="secondary">Not taken yet</Text>
+                )}
+              </Field>
+            )}
           </div>
 
           <HorizontalGroup justify="space-between">
-            <Text type="secondary"></Text>
+            <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
             <HorizontalGroup>
-              {id !== 'new' && (
-                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                  <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
-                    <Button variant="destructive" onClick={handleDelete}>
-                      Delete
-                    </Button>
-                  </WithConfirm>
-                </WithPermissionControlTooltip>
-              )}
               {id === 'new' ? (
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={handleCreate}>
-                    Request
+                    Create
                   </Button>
                 </WithPermissionControlTooltip>
               ) : (
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
-                  <Button
-                    variant="primary"
-                    onClick={handleTake}
-                    disabled={Boolean(isShiftSwapInThePast || shiftSwap?.benefactor)}
-                  >
+                  <Button variant="primary" onClick={handleTake} disabled={Boolean(isPastDue || shiftSwap?.benefactor)}>
                     Take
                   </Button>
                 </WithPermissionControlTooltip>

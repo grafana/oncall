@@ -105,8 +105,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     await store.scheduleStore.updateOncallShifts(id); // TODO we should know shifts to render Rotations
     await this.updateEvents();
 
-    store.scheduleStore.updateShiftSwaps(id);
-
     this.setState({ isLoading: false });
   }
 
@@ -344,6 +342,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               <ShiftSwapForm
                 id={shiftSwapIdToShowForm}
                 scheduleId={scheduleId}
+                currentTimezone={currentTimezone}
                 params={shiftSwapParamsToShowForm}
                 onHide={() => this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined })}
                 onUpdate={this.updateEvents}
@@ -490,6 +489,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     this.setState((oldState) => {
       const wDiff = oldState.startMoment.diff(getStartOfWeek(oldTimezone), 'weeks');
+
+      console.log(oldTimezone, value);
+      console.log('wDiff', wDiff);
 
       return { ...oldState, startMoment: getStartOfWeek(value).add(wDiff, 'weeks') };
     }, this.updateEvents);

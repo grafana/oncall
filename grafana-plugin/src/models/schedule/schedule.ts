@@ -438,19 +438,15 @@ export class ScheduleStore extends BaseStore {
   }
 
   async createShiftSwap(params: Partial<ShiftSwap>) {
-    return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params });
+    return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params }).catch(this.onApiError);
   }
 
   async deleteShiftSwap(shiftSwapId: ShiftSwap['id']) {
-    return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' });
+    return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' }).catch(this.onApiError);
   }
 
   async takeShiftSwap(shiftSwapId: ShiftSwap['id']) {
-    return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' });
-  }
-
-  async updateShiftSwaps() {
-    return await makeRequest(`/shift_swaps/`, {});
+    return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' }).catch(this.onApiError);
   }
 
   async loadShiftSwap(id: ShiftSwap['id']) {
