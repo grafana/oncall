@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v1.3.22 (2023-08-03)
+
 ### Added
 
 - Add mobile app push notifications for shift swap requests by @vadimkerr ([#2717](https://github.com/grafana/oncall/pull/2717))
