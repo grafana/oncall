@@ -268,21 +268,17 @@ def _get_youre_going_oncall_fcm_message(
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
+    info_notification_sound_name = mobile_app_user_settings.info_notification_sound_name
 
     notification_title = _get_youre_going_oncall_notification_title(seconds_until_going_oncall)
     notification_subtitle = _get_youre_going_oncall_notification_subtitle(
         schedule, schedule_event, mobile_app_user_settings
     )
 
-    # safe to cast this as the model has a default value assigned to it
-    info_notification_sound_name = typing.cast(str, mobile_app_user_settings.info_notification_sound_name)
-
     data: FCMMessageData = {
         "title": notification_title,
         "subtitle": notification_subtitle,
-        "info_notification_sound_name": (
-            info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
+        "info_notification_sound_name": f"{info_notification_sound_name}{MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION}",
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
         "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
@@ -294,7 +290,7 @@ def _get_youre_going_oncall_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+                name=f"{info_notification_sound_name}{MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION}",
             ),
             custom_data={
                 "interruption-level": "time-sensitive",

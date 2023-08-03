@@ -4,7 +4,7 @@ import typing
 from uuid import uuid4
 
 from django.conf import settings
-from django.db.models import Model
+from django.db.models import Model, QuerySet
 
 from apps.alerts.models import AlertReceiveChannel, EscalationChain
 from apps.alerts.paging import (
@@ -110,7 +110,7 @@ def get_current_items(
     payload: EventPayload, key: DataKey, qs: "RelatedManager['T']"
 ) -> typing.List[typing.Tuple[T, Policy]]:
     metadata = json.loads(payload["view"]["private_metadata"])
-    items: typing.List[T] = []
+    items: typing.List[typing.Tuple[T, Policy]] = []
     for u, p in metadata[key].items():
         item = qs.filter(pk=u).first()
         items.append((item, p))
@@ -504,11 +504,11 @@ def _get_form_view(routing_uid: str, blocks: Block.AnyBlocks, private_metadata: 
 
 
 def _get_organization_select(
-    organizations: "RelatedManager['Organization']", value: "Organization", input_id_prefix: str
+    organizations: QuerySet["Organization"], value: "Organization", input_id_prefix: str
 ) -> Block.Input:
     organizations_options: typing.List[CompositionObjectOption] = []
     initial_option_idx = 0
-    for idx, org in enumerate(list(organizations)):
+    for idx, org in enumerate(organizations):
         if org == value:
             initial_option_idx = idx
         organizations_options.append(
@@ -1068,7 +1068,7 @@ def _get_message_from_payload(payload: EventPayload) -> str:
 
 def _get_available_organizations(
     slack_team_identity: "SlackTeamIdentity", slack_user_identity: "SlackUserIdentity"
-) -> "RelatedManager['Organization']":
+) -> QuerySet["Organization"]:
     return (
         slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
         .order_by("pk")
