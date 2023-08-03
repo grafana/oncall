@@ -34,6 +34,41 @@ def test_get_alert_receive_channel(alert_receive_channel_internal_api_setup, mak
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query_param,should_be_unpaginated",
+    [
+        ("True", True),
+        ("true", True),
+        ("TRUE", True),
+        ("", False),
+        ("False", False),
+        ("false", False),
+        ("FALSE", False),
+    ],
+)
+def test_list_alert_receive_channel_skip_pagination_for_grafana_alerting(
+    alert_receive_channel_internal_api_setup,
+    make_user_auth_headers,
+    query_param,
+    should_be_unpaginated,
+):
+    user, token, _ = alert_receive_channel_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-list")
+    response = client.get(f"{url}?skip_pagination={query_param}", format="json", **make_user_auth_headers(user, token))
+    results = response.json()
+    assert response.status_code == status.HTTP_200_OK
+
+    if should_be_unpaginated:
+        assert type(results) == list
+        assert len(results) > 0
+    else:
+        assert type(results["results"]) == list
+        assert len(results["results"]) > 0
+
+
+@pytest.mark.django_db
 def test_heartbeat_data_absence_alert_receive_channel(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     """
     We get AlertReceiveChannel and there is no related heartbeat model object.

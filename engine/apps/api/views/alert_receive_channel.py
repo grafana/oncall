@@ -147,11 +147,10 @@ class AlertReceiveChannelView(
 
     def paginate_queryset(self, queryset):
         """
-        Override to apply pagination only if ?page= is present in query params
-        Required for Grafana Alerting.
+        If `skip_pagination` is provided and is equal to "true" (or "True"), it will return
+        a non paginated list of results. This is useful for Grafana Alerting
         """
-        page_number = self.request.query_params.get("page", None)
-        if not page_number:
+        if self.request.query_params.get("skip_pagination", "false").lower() == "true":
             return None
         return super().paginate_queryset(queryset)
 
