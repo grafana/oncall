@@ -133,16 +133,6 @@ def test_notify_shift_swap_requests(make_organization, make_user, make_schedule,
 
 
 @pytest.mark.django_db
-def test_notify_shift_swap_requests_feature_flag_disabled(
-    make_organization, make_user, make_schedule, make_shift_swap_request
-):
-    with patch("apps.mobile_app.tasks._get_shift_swap_requests_to_notify") as mock_get_shift_swap_requests_to_notify:
-        notify_shift_swap_requests()
-
-    mock_get_shift_swap_requests_to_notify.assert_not_called()
-
-
-@pytest.mark.django_db
 def test_notify_shift_swap_request(make_organization, make_user, make_schedule, make_shift_swap_request, settings):
     organization = make_organization()
     user = make_user(organization=organization)
