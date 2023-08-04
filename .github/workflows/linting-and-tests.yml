@@ -493,11 +493,20 @@ jobs:
       # spit out the engine, celery, and grafana logs, if the the e2e tests have failed (or were flaky)
       # can be helpful for debugging these tests
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
-      - name: Kubernetes namespace report
+      - name: oncall-engine logs
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
-          important-workloads: >
-            deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery deploy/helm-testing-grafana
+          important-workloads: deploy/helm-testing-oncall-engine
+
+      - name: oncall-celery logs
+        uses: jupyterhub/action-k8s-namespace-report@v1
+        with:
+          important-workloads: deploy/helm-testing-oncall-celery
+
+      - name: grafana logs
+        uses: jupyterhub/action-k8s-namespace-report@v1
+        with:
+          important-workloads: deploy/helm-testing-grafana
 
       - uses: actions/upload-artifact@v3
         if: failure()
