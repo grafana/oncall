@@ -50,6 +50,12 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (defaultParams) {
+      setShiftSwap({ ...shiftSwap, swap_start: defaultParams.swap_start, swap_end: defaultParams.swap_end });
+    }
+  }, [defaultParams]);
+
   const handleShiftSwapStartChange = useCallback(
     (value) => {
       setShiftSwap({ ...shiftSwap, swap_start: getUTCString(value) });

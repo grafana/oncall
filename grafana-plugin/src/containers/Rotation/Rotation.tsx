@@ -26,13 +26,14 @@ interface RotationProps {
   events: Event[];
   onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
-  handleAddShiftSwap?: (params: Partial<ShiftSwap>) => void;
+  handleAddShiftSwap?: (id: 'new', params: Partial<ShiftSwap>) => void;
   onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
   days?: number;
   transparent?: boolean;
   tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
+  onSlotClick?: (event: Event) => void;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
@@ -51,6 +52,7 @@ const Rotation: FC<RotationProps> = (props) => {
     onShiftSwapClick,
     simplified,
     filters,
+    onSlotClick,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
@@ -80,10 +82,18 @@ const Rotation: FC<RotationProps> = (props) => {
     return (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
 
-      handleAddShiftSwap({
+      handleAddShiftSwap('new', {
         swap_start: scheduleEvent.start,
         swap_end: scheduleEvent.end,
       });
+    };
+  };
+
+  const getSlotClickHandler = (event: Event) => {
+    return (e) => {
+      e.stopPropagation();
+
+      onSlotClick(event);
     };
   };
 
@@ -123,6 +133,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     onShiftSwapClick={onShiftSwapClick}
                     simplified={simplified}
                     filters={filters}
+                    onClick={onSlotClick && getSlotClickHandler(event)}
                   />
                 );
               })}

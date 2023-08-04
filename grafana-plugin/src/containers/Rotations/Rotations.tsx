@@ -14,7 +14,7 @@ import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getColor, getLayersFromStore } from 'models/schedule/schedule.helpers';
-import { Layer, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { Layer, Schedule, ScheduleType, Shift, ShiftSwap, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
@@ -44,6 +44,7 @@ interface RotationsProps extends WithStoreProps {
   onShiftSwapRequest: (beneficiary: User['pk'], swap_start: string, swap_end: string) => void;
   disabled: boolean;
   filters: ScheduleFiltersType;
+  onSlotClick?: (event: Event) => void;
 }
 
 interface RotationsState {
@@ -73,6 +74,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       disabled,
       filters,
       onShowShiftSwapForm,
+      onSlotClick,
     } = this.props;
     const { layerPriority, shiftStartToShowRotationForm, shiftEndToShowRotationForm } = this.state;
 
@@ -112,7 +114,6 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               <HorizontalGroup>
                 <Button
                   variant="secondary"
-                  icon="user-arrows"
                   onClick={() => {
                     const swapStart = dayjs().tz(currentTimezone).add(5, 'minutes');
                     const swapEnd = dayjs().tz(currentTimezone).startOf('day').add(1, 'day');
@@ -185,9 +186,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                   this.onRotationClick(shiftId, shiftStart, shiftEnd);
                                 }}
                                 handleAddOverride={this.handleShowOverrideForm}
-                                handleAddShiftSwap={(params) => {
-                                  onShowShiftSwapForm('new', params);
-                                }}
+                                handleAddShiftSwap={onShowShiftSwapForm}
                                 onShiftSwapClick={onShowShiftSwapForm}
                                 color={getColor(layerIndex, rotationIndex)}
                                 events={events}
@@ -198,6 +197,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                 transparent={isPreview}
                                 tutorialParams={isPreview && store.scheduleStore.rotationFormLiveParams}
                                 filters={filters}
+                                onSlotClick={onSlotClick}
                               />
                             </CSSTransition>
                           ))}

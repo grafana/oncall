@@ -30,6 +30,7 @@ interface ScheduleSlotProps {
   color?: string;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 const cx = cn.bind(styles);
@@ -45,6 +46,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     onShiftSwapClick,
     simplified,
     filters,
+    onClick,
   } = props;
   const { users } = event;
 
@@ -70,7 +72,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
 
   return (
-    <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
+    <div className={cx('stack')} style={{ width: `${width * 100}%` }} onClick={onClick}>
       {event.is_gap ? (
         <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
           <div className={cx('root', 'root__type_gap')} />
@@ -110,7 +112,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
               }}
               onClick={swap_request ? getShiftSwapClickHandler(swap_request.pk) : undefined}
             >
-              {storeUser && (
+              {storeUser && (!swap_request || swap_request.user) && (
                 <WorkingHours
                   className={cx('working-hours')}
                   timezone={storeUser.timezone}
@@ -144,7 +146,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   isOncall={isOncall}
                   currentTimezone={currentTimezone}
                   event={event}
-                  handleAddOverride={simplified || event.is_override ? undefined : handleAddOverride}
+                  handleAddOverride={simplified || event.is_override || isShiftSwap ? undefined : handleAddOverride}
                   handleAddShiftSwap={simplified || isShiftSwap || !isCurrentUserSlot ? undefined : handleAddShiftSwap}
                   simplified={simplified}
                   color={backgroundColor}

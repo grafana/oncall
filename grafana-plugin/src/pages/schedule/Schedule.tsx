@@ -35,7 +35,7 @@ import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
+import { Event, Schedule, ScheduleType, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -71,6 +71,8 @@ interface SchedulePageState extends PageBaseState {
 
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
+  highlightMyShiftsWasToggled = false;
+
   constructor(props: SchedulePageProps) {
     super(props);
 
@@ -286,6 +288,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onShowOverrideForm={this.handleShowOverridesForm}
                       filters={filters}
                       onShowShiftSwapForm={this.handleShowShiftSwapForm}
+                      onSlotClick={shiftSwapIdToShowForm ? this.onSlotClick : undefined}
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -300,6 +303,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledRotationForm}
                       filters={filters}
                       onShowShiftSwapForm={this.handleShowShiftSwapForm}
+                      onSlotClick={shiftSwapIdToShowForm ? this.onSlotClick : undefined}
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
@@ -344,7 +348,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 scheduleId={scheduleId}
                 currentTimezone={currentTimezone}
                 params={shiftSwapParamsToShowForm}
-                onHide={() => this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined })}
+                onHide={this.handleHideShiftSwapForm}
                 onUpdate={this.updateEvents}
               />
             )}
@@ -559,7 +563,51 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleShowShiftSwapForm = (id: ShiftSwap['id'], params: Partial<ShiftSwap>) => {
+    const { filters } = this.state;
+
+    const {
+      store: { userStore },
+    } = this.props;
+
+    if (!filters.users.includes(userStore.currentUserPk)) {
+      this.setState({ filters: { ...filters, users: [...this.state.filters.users, userStore.currentUserPk] } });
+      this.highlightMyShiftsWasToggled = true;
+    }
+
     this.setState({ shiftSwapIdToShowForm: id, shiftSwapParamsToShowForm: params });
+  };
+
+  handleHideShiftSwapForm = () => {
+    const { filters } = this.state;
+
+    const {
+      store: { userStore },
+    } = this.props;
+
+    if (this.highlightMyShiftsWasToggled) {
+      this.highlightMyShiftsWasToggled = false;
+      const index = filters.users.indexOf(userStore.currentUserPk);
+
+      if (index > -1) {
+        const newUsers = [...filters.users];
+        newUsers.splice(index, 1);
+
+        this.setState({ filters: { ...filters, users: newUsers } }, () => {
+          console.log(this.state);
+        });
+      }
+    }
+    this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined });
+  };
+
+  onSlotClick = (event: Event) => {
+    this.setState({
+      shiftSwapParamsToShowForm: {
+        ...this.state.shiftSwapParamsToShowForm,
+        swap_start: event.start,
+        swap_end: event.end,
+      },
+    });
   };
 }
 
