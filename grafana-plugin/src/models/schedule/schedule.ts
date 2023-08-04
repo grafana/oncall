@@ -26,6 +26,7 @@ import {
   ShiftEvents,
   RotationFormLiveParams,
   ScheduleScoreQualityResponse,
+  ShiftSwap,
 } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
@@ -43,6 +44,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable.shallow
   relatedUsers: { [id: string]: { [key: string]: Event } } = {};
+
+  @observable.shallow
+  shiftSwaps: { [id: string]: ShiftSwap } = {};
 
   @observable.shallow
   rotations: {
@@ -431,5 +435,25 @@ export class ScheduleStore extends BaseStore {
     this.byDayOptions = await makeRequest(`/oncall_shifts/days_options/`, {
       method: 'GET',
     });
+  }
+
+  async createShiftSwap(params: Partial<ShiftSwap>) {
+    return await makeRequest(`/shift_swaps/`, { method: 'POST', data: params }).catch(this.onApiError);
+  }
+
+  async deleteShiftSwap(shiftSwapId: ShiftSwap['id']) {
+    return await makeRequest(`/shift_swaps/${shiftSwapId}`, { method: 'DELETE' }).catch(this.onApiError);
+  }
+
+  async takeShiftSwap(shiftSwapId: ShiftSwap['id']) {
+    return await makeRequest(`/shift_swaps/${shiftSwapId}/take`, { method: 'POST' }).catch(this.onApiError);
+  }
+
+  async loadShiftSwap(id: ShiftSwap['id']) {
+    const result = await makeRequest(`/shift_swaps/${id}`, {});
+
+    this.shiftSwaps = { ...this.shiftSwaps, [id]: result };
+
+    return result;
   }
 }
