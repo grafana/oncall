@@ -108,9 +108,7 @@ def test_get_shift_swap_requests_to_notify_starts_not_soon(
 
 
 @pytest.mark.django_db
-def test_notify_shift_swap_requests(make_organization, make_user, make_schedule, make_shift_swap_request, settings):
-    settings.FEATURE_SHIFT_SWAPS_ENABLED = True
-
+def test_notify_shift_swap_requests(make_organization, make_user, make_schedule, make_shift_swap_request):
     organization = make_organization()
     user = make_user(organization=organization)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -136,9 +134,8 @@ def test_notify_shift_swap_requests(make_organization, make_user, make_schedule,
 
 @pytest.mark.django_db
 def test_notify_shift_swap_requests_feature_flag_disabled(
-    make_organization, make_user, make_schedule, make_shift_swap_request, settings
+    make_organization, make_user, make_schedule, make_shift_swap_request
 ):
-    settings.FEATURE_SHIFT_SWAPS_ENABLED = False
     with patch("apps.mobile_app.tasks._get_shift_swap_requests_to_notify") as mock_get_shift_swap_requests_to_notify:
         notify_shift_swap_requests()
 
@@ -250,11 +247,7 @@ def test_notify_shift_swap_request_success(
 
 
 @pytest.mark.django_db
-def test_notify_user_about_shift_swap_request(
-    make_organization, make_user, make_schedule, make_shift_swap_request, settings
-):
-    settings.FEATURE_SHIFT_SWAPS_ENABLED = True
-
+def test_notify_user_about_shift_swap_request(make_organization, make_user, make_schedule, make_shift_swap_request):
     organization = make_organization()
     beneficiary = make_user(organization=organization, name="John Doe", username="john.doe")
     benefactor = make_user(organization=organization)
