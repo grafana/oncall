@@ -1,4 +1,7 @@
+import datetime
+
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.db import transaction
 from django.db.models import DateTimeField, DurationField, ExpressionWrapper, F
 from django.db.models.functions import Cast
@@ -7,6 +10,7 @@ from django.utils import timezone
 from apps.heartbeat.models import IntegrationHeartBeat
 from apps.integrations.tasks import create_alert
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+from settings.base import DatabaseTypes
 
 logger = get_task_logger(__name__)
 
@@ -18,25 +22,31 @@ def check_heartbeats() -> None:
     """
     # Heartbeat is considered enabled if it
     # * has timeout_seconds set to non-zero (non-default) value,
-    # * received at least one checkup (last_heartbeat_time set to non-null value)
-    enabled_heartbeats = (
-        IntegrationHeartBeat.objects.filter(last_heartbeat_time__isnull=False).exclude(timeout_seconds=0)
-        # Convert integer `timeout_seconds`` to datetime.timedelta `timeout`
-        # microseconds = seconds * 10**6
+    # * received at least one checkup (last_heartbeat_time set to non-null value)\
+
+    def _get_timeout_expression() -> ExpressionWrapper:
         # TODO: consider migrate timeout_seconds from IntegerField to DurationField
-        .annotate(timeout=(ExpressionWrapper(F("timeout_seconds") * 10**6, output_field=DurationField())))
+        if settings.DATABASES["default"]["ENGINE"] == f"django.db.backends.{DatabaseTypes.SQLITE3}":
+            # Current Django version (3.2) does not support DurationField multiplying on SQLite
+            # https://github.com/django/django/commit/54e94640ace261b14cf8cdb1fae3dc6f068a5f87
+            # Convert integer `timeout_seconds` to datetime.timedelta `timeout`
+            # microseconds = seconds * 10**6
+            return ExpressionWrapper(F("timeout_seconds") * 10**6, output_field=DurationField())
+        else:
+            return ExpressionWrapper(datetime.timedelta(seconds=1) * F("timeout_seconds"), output_field=DurationField())
+
+    enabled_heartbeats = (
+        IntegrationHeartBeat.objects.filter(last_heartbeat_time__isnull=False)
+        .exclude(timeout_seconds=0)
+        .annotate(period_start=(Cast(timezone.now() - _get_timeout_expression(), DateTimeField())))
     )
     with transaction.atomic():
         # Heartbeat is considered expired if it
         # * is enabled,
         # * is not already expired,
-        # * has not received a checkup for timeout period
-        expired_heartbeats = (
-            enabled_heartbeats.select_for_update()
-            .filter(
-                last_heartbeat_time__lte=(Cast(timezone.now(), DateTimeField()) - Cast(F("timeout"), DurationField()))
-            )
-            .filter(previous_alerted_state_was_life=True)
+        # * last check in was before the timeout period start
+        expired_heartbeats = enabled_heartbeats.select_for_update().filter(
+            last_heartbeat_time__lte=F("period_start"), previous_alerted_state_was_life=True
         )
         # Schedule alert creation for each expired heartbeat after transaction commit
         for heartbeat in expired_heartbeats:
@@ -57,15 +67,11 @@ def check_heartbeats() -> None:
         expired_count = expired_heartbeats.update(previous_alerted_state_was_life=False)
     with transaction.atomic():
         # Heartbeat is considered restored if it
-        # * is enabled, expired,
-        # * has received a checkup in timeout period from now,
-        # * was is alerted state (previous_alerted_state_was_life is False)
-        restored_heartbeats = (
-            enabled_heartbeats.select_for_update()
-            .filter(
-                last_heartbeat_time__gte=(Cast(timezone.now(), DateTimeField()) - Cast(F("timeout"), DurationField()))
-            )
-            .filter(previous_alerted_state_was_life=False)
+        # * is enabled,
+        # * last check in was after the timeout period start,
+        # * was is alerted state (previous_alerted_state_was_life is False), i.e. was expired
+        restored_heartbeats = enabled_heartbeats.select_for_update().filter(
+            last_heartbeat_time__gte=F("period_start"), previous_alerted_state_was_life=False
         )
         # Schedule auto-resolve alert creation for each expired heartbeat after transaction commit
         for heartbeat in restored_heartbeats:
