@@ -14,7 +14,8 @@ if TYPE_CHECKING:
     from apps.user_management.models import Organization
 
 
-class GrafanaAlertingSyncManager:
+# todo: remove
+class GrafanaAlertingSyncManagerOld:
     """
     Create or update Grafana Alerting contact points and notification policies for INTEGRATION_GRAFANA_ALERTING
     by updating Grafana Alerting config for each datasource with type 'alertmanager'
@@ -570,3 +571,258 @@ class GrafanaAlertingSyncManager:
             # For old Grafana versions (< 9) try to use deprecated endpoint
             datasource, _ = self.client.get_datasource_by_id(datasource_id)
         return datasource["name"]
+
+
+# todo: correct logs
+class GrafanaAlertingSyncManager:
+    """
+    Create or update Grafana Alerting contact points and notification policies for INTEGRATION_GRAFANA_ALERTING
+    by updating Grafana Alerting config for each datasource with type 'alertmanager'
+    """
+
+    GRAFANA_ALERTING_DATASOURCE = "grafana"
+    ALERTING_DATASOURCE = "alertmanager"
+
+    def __init__(self, alert_receive_channel: "AlertReceiveChannel") -> None:
+        self.alert_receive_channel = alert_receive_channel
+        self.grafana_url = self.alert_receive_channel.organization.grafana_url
+        self.client = GrafanaAPIClient(
+            api_url=self.grafana_url,
+            api_token=self.alert_receive_channel.organization.api_token,
+        )
+        self.integration_url = self.alert_receive_channel.integration_url
+
+    @classmethod
+    def check_for_connection_errors(cls, organization: "Organization") -> Optional[str]:
+        """Check if it possible to connect to alerting, otherwise return error message"""
+        client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        recipient = cls.GRAFANA_ALERTING_DATASOURCE
+        config, response_info = client.get_alerting_config(recipient)
+        if config is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Failed to connect to contact point (GET): Is unified alerting enabled "
+                f"on instance? {response_info}"
+            )
+            return (
+                "Failed to create the integration with current Grafana Alerting. "
+                "Please reach out to our support team"
+            )
+
+        return None
+
+    @classmethod
+    def get_contact_points(cls, organization):
+        client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        datasources = cls.get_datasources(client)
+        contact_points_with_datasource = []
+        for datasource in datasources:
+            connected_contact_points = cls.get_contact_points_for_datasource(client, datasource["uid"])
+            if connected_contact_points:
+                contact_points_with_datasource.append(
+                    {
+                        "name": datasource.get("name"),
+                        "uid": datasource.get("uid"),
+                        "contact_points": connected_contact_points,
+                    }
+                )
+        return contact_points_with_datasource
+
+    def get_connected_contact_points(self):
+        datasources = self.get_datasources(self.client)
+        contact_points_with_datasource = []
+        for datasource in datasources:
+            connected_contact_points = self.get_connected_contact_points_for_datasource(datasource.get("uid"))
+            if connected_contact_points:
+                contact_points_with_datasource.append(
+                    {
+                        "name": datasource.get("name"),
+                        "uid": datasource.get("uid"),
+                        "contact_points": connected_contact_points,
+                    }
+                )
+        return contact_points_with_datasource
+
+    @classmethod
+    def get_datasources(cls, client):
+        alerting_datasources = []
+        grafana_alerting_datasource = {
+            "uid": cls.GRAFANA_ALERTING_DATASOURCE,
+            "name": "Grafana",
+            # "logo": "public/img/grafana_icon.svg",  # todo: +grafana_url
+        }
+        alerting_datasources.append(grafana_alerting_datasource)
+
+        datasources, response_info = client.get_datasources()
+        if datasources is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Failed to get datasource list for organization, {response_info}"
+            )
+            return alerting_datasources
+
+        for datasource in datasources:
+            if datasource["type"] == cls.ALERTING_DATASOURCE:
+                datasource_data = {
+                    "uid": datasource["uid"],
+                    "name": datasource["name"],
+                    # "logo": datasource["typeLogoUrl"],  # todo: +grafana_url
+                }
+                alerting_datasources.append(datasource_data)
+        return alerting_datasources
+
+    @classmethod
+    def get_contact_points_for_datasource(cls, client, datasource_uid):
+        config, response_info = client.get_alerting_config(datasource_uid)
+        if config is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
+                f"for is_grafana_datasource {datasource_uid==cls.GRAFANA_ALERTING_DATASOURCE}, "
+                f"response: {response_info}"
+            )
+            return
+        alertmanager_config = config.get("alertmanager_config")
+        if not alertmanager_config:
+            return
+        alerting_receivers = alertmanager_config.get("receivers", [])
+        contact_points = [receiver["name"] for receiver in alerting_receivers]
+        return contact_points
+
+    def get_connected_contact_points_for_datasource(self, datasource_uid):
+        is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
+
+        contact_points = []
+
+        config, response_info = self.client.get_alerting_config(datasource_uid)
+        if config is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
+                f"for is_grafana_datasource {is_grafana_datasource} "
+                f"for integration {self.alert_receive_channel.pk}; response: {response_info}"
+            )
+            return contact_points
+        alertmanager_config = config.get("alertmanager_config")
+        if not alertmanager_config:
+            return contact_points
+        alerting_receivers = alertmanager_config.get("receivers", [])
+        route_config = alertmanager_config.get("route", {})
+
+        # parse Alertmanager config
+        if is_grafana_datasource:  # Grafana Alertmanager
+            for receiver in alerting_receivers:
+                for receiver_config in receiver.get("grafana_managed_receiver_configs", []):
+                    if (
+                        receiver_config["type"] in ["webhook", "oncall"]
+                        and receiver_config["settings"]["url"] == self.integration_url
+                    ):
+                        receiver_name = receiver["name"]
+                        contact_points.append(
+                            {
+                                "name": receiver_name,
+                                "notification_connected": self._recursive_check_contact_point_is_in_routes(
+                                    route_config, receiver_name
+                                ),
+                            }
+                        )
+                        break
+        else:  # other Alertmanagers
+            for receiver in alerting_receivers:
+                config_types = ["webhook_configs", "oncall_configs"]  # todo: check oncall_configs after mimir updates?
+                contact_point_found = False
+                for config_type in config_types:
+                    if contact_point_found:
+                        break
+                    for receiver_config in receiver.get(config_type, []):
+                        if receiver_config["url"] == self.integration_url:
+                            receiver_name = receiver["name"]
+
+                            contact_points.append(
+                                {
+                                    "name": receiver_name,
+                                    "notification_connected": self._recursive_check_contact_point_is_in_routes(
+                                        route_config, receiver_name
+                                    ),
+                                }
+                            )
+                            contact_point_found = True
+                            break
+
+        return contact_points
+
+    def _recursive_check_contact_point_is_in_routes(self, route_config, receiver_name) -> bool:
+        if route_config.get("receiver") == receiver_name:
+            return True
+        routes = route_config.get("routes", [])
+        for route in routes:
+            if route["receiver"] == receiver_name:
+                return True
+            if route.get("routes"):
+                if self._recursive_check_contact_point_is_in_routes(route, receiver_name):
+                    return True
+        return False
+
+    def connect_contact_point(self, datasource_uid, contact_point_name):
+        is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
+        config, response_info = self.client.get_alerting_config(datasource_uid)
+        if config is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
+                f"for is_grafana_datasource {is_grafana_datasource} "
+                f"for integration {self.alert_receive_channel.pk}; response: {response_info}"
+            )
+            return
+
+        updated_config = copy.deepcopy(config)
+        alertmanager_config = updated_config.get("alertmanager_config")
+        if not alertmanager_config:
+            return
+        alerting_receivers = alertmanager_config.get("receivers", [])
+
+        oncall_config, config_field = self._get_oncall_config_and_config_field_for_datasource_type(
+            contact_point_name, is_grafana_datasource
+        )
+        for receiver in alerting_receivers:
+            if receiver["name"] == contact_point_name:
+                receiver.setdefault(config_field, []).append(oncall_config)
+                break
+
+        response, response_info = self.client.update_alerting_config(datasource_uid, updated_config)
+        if response is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Failed to update contact point for integration "
+                f"{self.alert_receive_channel.pk} (POST). Response: {response_info}"
+            )
+            if response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
+                logger.warning(f"GrafanaAlertingSyncManager: Config: {config}, Updated config: {updated_config}")
+        if response_info["status_code"] not in (
+            status.HTTP_200_OK,
+            status.HTTP_201_CREATED,
+            status.HTTP_202_ACCEPTED,
+        ):
+            return
+        return True
+
+    def _get_oncall_config_and_config_field_for_datasource_type(self, contact_point_name, is_grafana_datasource):
+        if is_grafana_datasource:  # Grafana Alertmanager
+            oncall_config = {
+                "name": contact_point_name,
+                "type": "webhook",  # todo: "oncall" type
+                "disableResolveMessage": False,
+                "settings": {
+                    "httpMethod": "POST",
+                    "url": self.integration_url,
+                },
+                "secureFields": {},
+            }
+            config_field = "grafana_managed_receiver_configs"
+        else:  # other Alertmanagers
+            oncall_config = {
+                "url": self.integration_url,
+                "send_resolved": True,
+            }
+            config_field = "webhook_configs"
+        return oncall_config, config_field
+
+    def create_contact_point(self, datasource_uid):
+        pass  # todo
+
+    def disconnect_contact_point(self, datasource_uid):
+        pass  # todo

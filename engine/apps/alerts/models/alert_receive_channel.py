@@ -288,6 +288,13 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def grafana_alerting_sync_manager(self):
         return GrafanaAlertingSyncManager(self)
 
+    @property
+    def is_alerting_integration(self):
+        return self.integration in {
+            AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+            AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+        }
+
     @cached_property
     def team_name(self):
         return self.team.name if self.team else "No team"
@@ -651,6 +658,20 @@ def listen_for_alertreceivechannel_model_save(
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
         metrics_add_integration_to_cache(instance)
+    # todo
+    # if instance.integration in {
+    #     AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+    #     AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
+    # }:
+    #     if created:
+    #         instance.grafana_alerting_sync_manager.create_contact_points()
+    #     # do not trigger sync contact points if field "is_finished_alerting_setup" was updated
+    #     elif (
+    #         kwargs is None
+    #         or not kwargs.get("update_fields")
+    #         or "is_finished_alerting_setup" not in kwargs["update_fields"]
+    #     ):
+    #         sync_grafana_alerting_contact_points.apply_async((instance.pk,), countdown=5)
 
     elif instance.deleted_at:
         metrics_remove_deleted_integration_from_cache(instance)

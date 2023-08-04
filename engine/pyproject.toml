@@ -34,13 +34,10 @@ disable_error_code = [
     "index",
     "misc",
     "name-defined",
-    "no-redef",
     "operator",
     "return-value",
     "typeddict-item",
     "union-attr",
-    "valid-type",
-    "var-annotated",
 ]
 
 # mypy per-module options
@@ -55,6 +52,7 @@ module = [
     "celery.utils.debug",
     "debug_toolbar.*",
     "django_deprecate_fields.*",
+    "django_migration_linter",
     "django_sns_view.*",
     "factory.*",
     "fcm_django.*",

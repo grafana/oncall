@@ -1,8 +1,10 @@
+import datetime
 import json
 import logging
 import typing
 from urllib.parse import urljoin
 
+import pytz
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -64,7 +66,7 @@ def default_working_hours():
     return working_hours
 
 
-class UserManager(models.Manager):
+class UserManager(models.Manager["User"]):
     @staticmethod
     def sync_for_team(team, api_members: list[dict]):
         user_ids = tuple(member["userId"] for member in api_members)
@@ -159,7 +161,7 @@ class User(models.Model):
     user_schedule_export_token: "RelatedManager['UserScheduleExportAuthToken']"
     wiped_alert_groups: "RelatedManager['AlertGroup']"
 
-    objects: models.Manager["User"] = UserManager.from_queryset(UserQuerySet)()
+    objects = UserManager.from_queryset(UserQuerySet)()
 
     class Meta:
         # For some reason there are cases when Grafana user gets deleted,
@@ -282,6 +284,42 @@ class User(models.Model):
     @timezone.setter
     def timezone(self, value):
         self._timezone = value
+
+    def is_in_working_hours(self, dt: datetime.datetime, tz: typing.Optional[str] = None) -> bool:
+        assert dt.tzinfo == pytz.utc, "dt must be in UTC"
+
+        # Default to user's timezone
+        if not tz:
+            tz = self.timezone
+
+        # If user has no timezone set, any time is considered non-working hours
+        if not tz:
+            return False
+
+        # Convert to user's timezone and get day name (e.g. monday)
+        dt = dt.astimezone(pytz.timezone(tz))
+        day_name = dt.date().strftime("%A").lower()
+
+        # If no working hours for the day, return False
+        if day_name not in self.working_hours or not self.working_hours[day_name]:
+            return False
+
+        # Extract start and end time for the day from working hours
+        day_start_time_str = self.working_hours[day_name][0]["start"]
+        day_start_time = datetime.time.fromisoformat(day_start_time_str)
+
+        day_end_time_str = self.working_hours[day_name][0]["end"]
+        day_end_time = datetime.time.fromisoformat(day_end_time_str)
+
+        # Calculate day start and end datetime
+        day_start = dt.replace(
+            hour=day_start_time.hour, minute=day_start_time.minute, second=day_start_time.second, microsecond=0
+        )
+        day_end = dt.replace(
+            hour=day_end_time.hour, minute=day_end_time.minute, second=day_end_time.second, microsecond=0
+        )
+
+        return day_start <= dt <= day_end
 
     def short(self):
         return {

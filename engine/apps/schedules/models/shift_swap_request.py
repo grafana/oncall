@@ -4,6 +4,7 @@ import typing
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from apps.schedules import exceptions
@@ -12,6 +13,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 
 if typing.TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
+    from apps.schedules.models.on_call_schedule import ScheduleEvents
     from apps.slack.models import SlackMessage
     from apps.user_management.models import Organization, User
 
@@ -59,7 +61,7 @@ class ShiftSwapRequest(models.Model):
         default=generate_public_primary_key_for_shift_swap_request,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True)
 
@@ -128,6 +130,10 @@ class ShiftSwapRequest(models.Model):
         return timezone.now() > self.swap_start
 
     @property
+    def is_open(self) -> bool:
+        return not any((self.is_deleted, self.is_taken, self.is_past_due))
+
+    @property
     def status(self) -> str:
         if self.is_deleted:
             return self.Statuses.DELETED
@@ -150,6 +156,10 @@ class ShiftSwapRequest(models.Model):
         return self.schedule.organization
 
     @property
+    def possible_benefactors(self) -> QuerySet["User"]:
+        return self.schedule.related_users().exclude(pk=self.beneficiary_id)
+
+    @property
     def web_link(self) -> str:
         # TODO: finish this once we know the proper URL we'll need
         return f"{self.schedule.web_detail_page_link}"
@@ -165,9 +175,9 @@ class ShiftSwapRequest(models.Model):
         # make sure final schedule ical representation is updated
         refresh_ical_final_schedule.apply_async((self.schedule.pk,))
 
-    def shifts(self):
+    def shifts(self) -> "ScheduleEvents":
         """Return shifts affected by this swap request."""
-        schedule = self.schedule.get_real_instance()
+        schedule = typing.cast("OnCallSchedule", self.schedule.get_real_instance())
         events = schedule.final_events(self.swap_start, self.swap_end)
         related_shifts = [
             e

@@ -3,7 +3,7 @@ import logging
 
 from django.db import models, transaction
 
-from apps.alerts.tasks import invite_user_to_join_incident, send_alert_group_signal
+from apps.alerts import tasks
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -91,9 +91,9 @@ class Invitation(models.Model):
             f"call send_alert_group_signal for alert_group {alert_group.pk}, "
             f"log record {log_record.pk} with type '{log_record.get_type_display()}'"
         )
-        send_alert_group_signal.apply_async((log_record.pk,))
 
-        invite_user_to_join_incident.apply_async((invitation.pk,))
+        tasks.send_alert_group_signal.apply_async((log_record.pk,))
+        tasks.invite_user_to_join_incident.apply_async((invitation.pk,))
 
     @staticmethod
     def stop_invitation(invitation_pk, user):
@@ -119,4 +119,4 @@ class Invitation(models.Model):
             f"call send_alert_group_signal for alert_group {invitation.alert_group.pk}, "
             f"log record {log_record.pk} with type '{log_record.get_type_display()}'"
         )
-        send_alert_group_signal.apply_async((log_record.pk,))
+        tasks.send_alert_group_signal.apply_async((log_record.pk,))

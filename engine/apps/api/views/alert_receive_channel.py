@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.api.permissions import RBACPermission
@@ -38,7 +39,7 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
-    integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
+    integration = filters.MultipleChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
     team = TeamModelMultipleChoiceFilter()
 
     class Meta:
@@ -80,7 +81,7 @@ class AlertReceiveChannelView(
     update_serializer_class = AlertReceiveChannelUpdateSerializer
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ("verbal_name", "integration")
+    search_fields = ("verbal_name",)
 
     filterset_class = AlertReceiveChannelFilter
     pagination_class = FifteenPageSizePaginator
@@ -102,7 +103,13 @@ class AlertReceiveChannelView(
         "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "validate_name": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "migrate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "connected_contact_points": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "contact_points": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "connect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "create_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "disconnect_contact_point": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def perform_update(self, serializer):
@@ -143,6 +150,15 @@ class AlertReceiveChannelView(
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         return queryset
+
+    def paginate_queryset(self, queryset):
+        """
+        If `skip_pagination` is provided and is equal to "true" (or "True"), it will return
+        a non paginated list of results. This is useful for Grafana Alerting
+        """
+        if self.request.query_params.get("skip_pagination", "false").lower() == "true":
+            return None
+        return super().paginate_queryset(queryset)
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
@@ -333,3 +349,58 @@ class AlertReceiveChannelView(
 
         instance.save()
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"])
+    def validate_name(self, request):
+        """
+        Checks if verbal_name is available.
+        It is needed for OnCall <-> Alerting integration.
+        """
+        verbal_name = self.request.query_params.get("verbal_name")
+        if verbal_name is None:
+            raise BadRequest("verbal_name is required")
+        organization = self.request.auth.organization
+        name_used = AlertReceiveChannel.objects.filter(organization=organization, verbal_name=verbal_name).exists()
+        if name_used:
+            r = Response(status=status.HTTP_409_CONFLICT)
+        else:
+            r = Response(status=status.HTTP_200_OK)
+
+        return r
+
+    @action(detail=True, methods=["get"])
+    def connected_contact_points(self, request, pk):
+        instance = self.get_object()
+        if not instance.is_alerting_integration:
+            raise BadRequest(detail="invalid integration")
+        contact_points = instance.grafana_alerting_sync_manager.get_connected_contact_points()
+        return Response(contact_points)
+
+    @action(detail=False, methods=["get"])
+    def contact_points(self, request):
+        organization = request.auth.organization
+        contact_points = GrafanaAlertingSyncManager.get_contact_points(organization)
+        return Response(contact_points)
+
+    @action(detail=True, methods=["post"])
+    def connect_contact_point(self, request, pk):
+        instance = self.get_object()
+        if not instance.is_alerting_integration:
+            raise BadRequest(detail="invalid integration")
+
+        datasource_uid = request.data.get("datasource_uid")
+        contact_point_name = request.data.get("contact_point_name")
+        if not datasource_uid or not contact_point_name:
+            raise BadRequest(detail="datasource_uid and contact_point_name are required")
+        connected = instance.grafana_alerting_sync_manager.connect_contact_point(datasource_uid, contact_point_name)
+        if not connected:
+            raise BadRequest(detail="connection failed")  # todo
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+    @action(detail=True, methods=["post"])
+    def create_contact_point(self, request, pk):
+        pass  # todo
+
+    @action(detail=True, methods=["post"])
+    def disconnect_contact_point(self, request, pk):
+        pass  # todo

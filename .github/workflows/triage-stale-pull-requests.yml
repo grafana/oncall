@@ -1,5 +1,5 @@
 name: "Triage stale pull requests"
-on:
+"on":
   schedule:
     - cron: "30 1 * * *"
 
@@ -18,6 +18,10 @@ jobs:
           ascending: true # start processing older pull requests first
           stale-pr-label: "pr:stale"
           stale-pr-message: >
-            This pull request has been automatically marked as stale because it has not had activity in the last 30 days. It will be closed in 30 days if no further activity occurs. Please feel free to give a status update now, ping for review, or re-open when it's ready. Thank you for your contributions!
+            This pull request has been automatically marked as stale because it has not had activity in the last
+            30 days. It will be closed in 30 days if no further activity occurs. Please feel free to give a status
+            update now, ping for review, or re-open when it's ready. Thank you for your contributions!
           close-pr-message: >
-            This pull request has been automatically closed because it has not had activity in the last 30 days. Please feel free to give a status update now, ping for review, or re-open when it's ready. Thank you for your contributions!
+            This pull request has been automatically closed because it has not had activity in the last 30 days.
+            Please feel free to give a status update now, ping for review, or re-open when it's ready.
+            Thank you for your contributions!

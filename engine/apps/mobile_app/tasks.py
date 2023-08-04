@@ -20,6 +20,7 @@ from rest_framework import status
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
 from apps.mobile_app.alert_rendering import get_push_notification_subtitle
+from apps.schedules.models import ShiftSwapRequest
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
@@ -267,6 +268,7 @@ def _get_youre_going_oncall_fcm_message(
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
+    info_notification_sound_name = mobile_app_user_settings.info_notification_sound_name
 
     notification_title = _get_youre_going_oncall_notification_title(seconds_until_going_oncall)
     notification_subtitle = _get_youre_going_oncall_notification_subtitle(
@@ -276,9 +278,7 @@ def _get_youre_going_oncall_fcm_message(
     data: FCMMessageData = {
         "title": notification_title,
         "subtitle": notification_subtitle,
-        "info_notification_sound_name": (
-            mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
+        "info_notification_sound_name": f"{info_notification_sound_name}{MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION}",
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
         "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
@@ -290,8 +290,7 @@ def _get_youre_going_oncall_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.info_notification_sound_name
-                + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+                name=f"{info_notification_sound_name}{MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION}",
             ),
             custom_data={
                 "interruption-level": "time-sensitive",
@@ -499,3 +498,188 @@ def conditionally_send_going_oncall_push_notifications_for_schedule(schedule_pk)
 def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> None:
     for schedule in OnCallSchedule.objects.all():
         conditionally_send_going_oncall_push_notifications_for_schedule.apply_async((schedule.pk,))
+
+
+# TODO: break down tasks.py into multiple files
+
+# Don't send notifications for shift swap requests that start more than 4 weeks in the future
+SSR_EARLIEST_NOTIFICATION_OFFSET = datetime.timedelta(weeks=4)
+
+# Once it's time to send out notifications, send them over the course of a week.
+# This is because users can be in multiple timezones / have different working hours configured,
+# so we can't just send all notifications at once, but need to wait for the users to be in their working hours.
+# Once a notification is sent to a user, they won't be notified again for the same shift swap request for a week.
+# After a week, the shift swap request won't be in the notification window anymore (see _get_shift_swap_requests_to_notify).
+SSR_NOTIFICATION_WINDOW = datetime.timedelta(weeks=1)
+
+
+@shared_dedicated_queue_retry_task()
+def notify_shift_swap_requests() -> None:
+    """
+    A periodic task that notifies users about shift swap requests.
+    """
+
+    if not settings.FEATURE_SHIFT_SWAPS_ENABLED:
+        return
+
+    for shift_swap_request in _get_shift_swap_requests_to_notify(timezone.now()):
+        notify_shift_swap_request.delay(shift_swap_request.pk)
+
+
+def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[ShiftSwapRequest]:
+    """
+    Returns shifts swap requests that are open and are in the notification window.
+    This method can return the same shift swap request multiple times while it's in the notification window,
+    but users are only notified once per shift swap request (see _mark_shift_swap_request_notified_for_user).
+    """
+
+    shift_swap_requests_in_notification_window = []
+    for shift_swap_request in ShiftSwapRequest.objects.filter(benefactor__isnull=True, swap_start__gt=now):
+        notification_window_start = max(
+            shift_swap_request.created_at, shift_swap_request.swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET
+        )
+        notification_window_end = min(notification_window_start + SSR_NOTIFICATION_WINDOW, shift_swap_request.swap_end)
+
+        if notification_window_start <= now <= notification_window_end:
+            shift_swap_requests_in_notification_window.append(shift_swap_request)
+
+    return shift_swap_requests_in_notification_window
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def notify_shift_swap_request(shift_swap_request_pk: int) -> None:
+    """
+    Notify relevant users for an individual shift swap request.
+    """
+    try:
+        shift_swap_request = ShiftSwapRequest.objects.get(pk=shift_swap_request_pk)
+    except ShiftSwapRequest.DoesNotExist:
+        logger.info(f"ShiftSwapRequest {shift_swap_request_pk} does not exist")
+        return
+
+    now = timezone.now()
+    for user in shift_swap_request.possible_benefactors:
+        if _should_notify_user_about_shift_swap_request(shift_swap_request, user, now):
+            notify_user_about_shift_swap_request.delay(shift_swap_request.pk, user.pk)
+            _mark_shift_swap_request_notified_for_user(shift_swap_request, user)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
+def notify_user_about_shift_swap_request(shift_swap_request_pk: int, user_pk: int) -> None:
+    """
+    Send a push notification about a shift swap request to an individual user.
+    """
+    # avoid circular import
+    from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
+
+    try:
+        shift_swap_request = ShiftSwapRequest.objects.get(pk=shift_swap_request_pk)
+    except ShiftSwapRequest.DoesNotExist:
+        logger.info(f"ShiftSwapRequest {shift_swap_request_pk} does not exist")
+        return
+
+    try:
+        user = User.objects.get(pk=user_pk)
+    except User.DoesNotExist:
+        logger.info(f"User {user_pk} does not exist")
+        return
+
+    device_to_notify = FCMDevice.get_active_device_for_user(user)
+    if not device_to_notify:
+        logger.info(f"FCMDevice does not exist for user {user_pk}")
+        return
+
+    try:
+        mobile_app_user_settings = MobileAppUserSettings.objects.get(user=user)
+    except MobileAppUserSettings.DoesNotExist:
+        logger.info(f"MobileAppUserSettings does not exist for user {user_pk}")
+        return
+
+    if not mobile_app_user_settings.info_notifications_enabled:
+        logger.info(f"Info notifications are not enabled for user {user_pk}")
+        return
+
+    if not shift_swap_request.is_open:
+        logger.info(f"Shift swap request {shift_swap_request_pk} is not open anymore")
+        return
+
+    message = _shift_swap_request_fcm_message(shift_swap_request, user, device_to_notify, mobile_app_user_settings)
+    _send_push_notification(device_to_notify, message)
+
+
+def _should_notify_user_about_shift_swap_request(
+    shift_swap_request: ShiftSwapRequest, user: User, now: datetime.datetime
+) -> bool:
+    # avoid circular import
+    from apps.mobile_app.models import MobileAppUserSettings
+
+    try:
+        mobile_app_user_settings = MobileAppUserSettings.objects.get(user=user)
+    except MobileAppUserSettings.DoesNotExist:
+        return False  # don't notify if the app is not configured
+
+    return (
+        mobile_app_user_settings.info_notifications_enabled  # info notifications must be enabled
+        and user.is_in_working_hours(now, mobile_app_user_settings.time_zone)  # user must be in working hours
+        and not _has_user_been_notified_for_shift_swap_request(shift_swap_request, user)  # don't notify twice
+    )
+
+
+def _mark_shift_swap_request_notified_for_user(shift_swap_request: ShiftSwapRequest, user: User) -> None:
+    key = _shift_swap_request_cache_key(shift_swap_request, user)
+    cache.set(key, True, timeout=SSR_NOTIFICATION_WINDOW.total_seconds())
+
+
+def _has_user_been_notified_for_shift_swap_request(shift_swap_request: ShiftSwapRequest, user: User) -> bool:
+    key = _shift_swap_request_cache_key(shift_swap_request, user)
+    return cache.get(key) is True
+
+
+def _shift_swap_request_cache_key(shift_swap_request: ShiftSwapRequest, user: User) -> str:
+    return f"ssr_push:{shift_swap_request.pk}:{user.pk}"
+
+
+def _shift_swap_request_fcm_message(
+    shift_swap_request: ShiftSwapRequest,
+    user: User,
+    device_to_notify: "FCMDevice",
+    mobile_app_user_settings: "MobileAppUserSettings",
+) -> Message:
+    from apps.mobile_app.models import MobileAppUserSettings
+
+    thread_id = f"{shift_swap_request.public_primary_key}:{user.public_primary_key}:ssr"
+    notification_title = "New shift swap request"
+    beneficiary_name = shift_swap_request.beneficiary.name or shift_swap_request.beneficiary.username
+    notification_subtitle = f"{beneficiary_name}, {shift_swap_request.schedule.name}"
+
+    # The mobile app will use this route to open the shift swap request
+    route = f"/schedules/{shift_swap_request.schedule.public_primary_key}/ssrs/{shift_swap_request.public_primary_key}"
+
+    data: FCMMessageData = {
+        "title": notification_title,
+        "subtitle": notification_subtitle,
+        "route": route,
+        "info_notification_sound_name": (
+            mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        ),
+        "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
+        "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
+        "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
+    }
+
+    apns_payload = APNSPayload(
+        aps=Aps(
+            thread_id=thread_id,
+            alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
+            sound=CriticalSound(
+                critical=False,
+                name=mobile_app_user_settings.info_notification_sound_name
+                + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+            ),
+            custom_data={
+                "interruption-level": "time-sensitive",
+            },
+        ),
+    )
+
+    return _construct_fcm_message(MessageType.INFO, device_to_notify, thread_id, data, apns_payload)

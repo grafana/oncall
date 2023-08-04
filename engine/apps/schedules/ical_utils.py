@@ -589,8 +589,8 @@ def _get_ical_data_final_schedule(schedule: "OnCallSchedule") -> str | None:
     ical_data = schedule.cached_ical_final_schedule
     if ical_data is None:
         schedule.refresh_ical_final_schedule()
-        # typing is safe here. cached_ical_final_schedule is updated inside of refresh_ical_final_schedule
-        ical_data: str = schedule.cached_ical_final_schedule
+        # casting is safe here. cached_ical_final_schedule is updated inside of refresh_ical_final_schedule
+        return typing.cast(str, schedule.cached_ical_final_schedule)
     return ical_data
 
 

@@ -1,7 +1,6 @@
 import json
 
-from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist
 from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.decorators import action
@@ -90,22 +89,6 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         self.check_object_permissions(self.request, obj)
 
         return obj
-
-    def perform_create(self, serializer):
-        self.check_webhooks_2_enabled()
-        serializer.save()
-
-    def perform_update(self, serializer):
-        self.check_webhooks_2_enabled()
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        self.check_webhooks_2_enabled()
-        instance.delete()
-
-    def check_webhooks_2_enabled(self):
-        if not settings.FEATURE_WEBHOOKS_2_ENABLED:
-            raise PermissionDenied("Webhooks 2 not enabled. Permission denied.")
 
     @action(methods=["get"], detail=False)
     def filters(self, request):

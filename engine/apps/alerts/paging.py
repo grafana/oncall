@@ -56,6 +56,18 @@ class DirectPagingAlertGroupResolvedError(Exception):
     DETAIL = "Cannot add responders for a resolved alert group"  # Returned in BadRequest responses and Slack warnings
 
 
+class _OnCall(typing.TypedDict):
+    title: str
+    message: str
+    uid: str
+    author_username: str
+    permalink: str
+
+
+class DirectPagingAlertPayload(typing.TypedDict):
+    oncall: _OnCall
+
+
 def _trigger_alert(
     organization: Organization,
     team: Team | None,
@@ -98,15 +110,17 @@ def _trigger_alert(
     if not title:
         title = "Message from {}".format(from_user.username)
 
-    payload = {}
-    # Custom oncall property in payload to simplify rendering
-    payload["oncall"] = {}
-    payload["oncall"]["title"] = title
-    payload["oncall"]["message"] = message
-    # avoid grouping
-    payload["oncall"]["uid"] = str(uuid4())
-    payload["oncall"]["author_username"] = from_user.username
-    payload["oncall"]["permalink"] = permalink
+    payload: DirectPagingAlertPayload = {
+        # Custom oncall property in payload to simplify rendering
+        "oncall": {
+            "title": title,
+            "message": message,
+            "uid": str(uuid4()),  # avoid grouping
+            "author_username": from_user.username,
+            "permalink": permalink,
+        },
+    }
+
     alert = Alert.create(
         title=title,
         message=message,
