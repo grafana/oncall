@@ -168,7 +168,8 @@ def _get_alert_group_escalation_fcm_message(
 
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
-    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(critical, ios=True)
+    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
+    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, ios=True)
 
     fcm_message_data: FCMMessageData = {
         "title": alert_title,
@@ -180,7 +181,7 @@ def _get_alert_group_escalation_fcm_message(
         "status": str(alert_group.status),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            critical=False, ios=False
+            MessageType.NORMAL, ios=False
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
@@ -188,7 +189,7 @@ def _get_alert_group_escalation_fcm_message(
             mobile_app_user_settings.default_notification_volume_override
         ),
         "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            critical=True, ios=False
+            MessageType.CRITICAL, ios=False
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
@@ -215,8 +216,6 @@ def _get_alert_group_escalation_fcm_message(
             },
         ),
     )
-
-    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
 
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
@@ -270,7 +269,9 @@ def _get_youre_going_oncall_fcm_message(
     data: FCMMessageData = {
         "title": notification_title,
         "subtitle": notification_subtitle,
-        "info_notification_sound_name": mobile_app_user_settings.get_info_notification_sound_name(ios=False),
+        "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.INFO, ios=False
+        ),
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
         "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
@@ -282,7 +283,7 @@ def _get_youre_going_oncall_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.get_info_notification_sound_name(ios=True),
+                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, ios=True),
             ),
             custom_data={
                 "interruption-level": "time-sensitive",
@@ -649,7 +650,9 @@ def _shift_swap_request_fcm_message(
         "title": notification_title,
         "subtitle": notification_subtitle,
         "route": route,
-        "info_notification_sound_name": mobile_app_user_settings.get_info_notification_sound_name(ios=False),
+        "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.INFO, ios=False
+        ),
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
         "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
@@ -661,7 +664,7 @@ def _shift_swap_request_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.get_info_notification_sound_name(ios=True),
+                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, ios=True),
             ),
             custom_data={
                 "interruption-level": "time-sensitive",

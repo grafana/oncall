@@ -38,13 +38,14 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
 
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
-    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(critical, ios=True)
+    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
+    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, ios=True)
 
     fcm_message_data: FCMMessageData = {
         "title": get_test_push_title(critical),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            critical=False, ios=False
+            MessageType.NORMAL, ios=False
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
@@ -52,7 +53,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
             mobile_app_user_settings.default_notification_volume_override
         ),
         "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            critical=True, ios=False
+            MessageType.CRITICAL, ios=False
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
@@ -77,8 +78,6 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
             },
         ),
     )
-
-    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
 
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
