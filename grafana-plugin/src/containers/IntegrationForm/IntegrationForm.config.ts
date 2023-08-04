@@ -29,8 +29,17 @@ export const form: { name: string; fields: FormItem[] } = {
       },
     },
     {
+      name: 'alert_manager',
+      type: FormItemType.Other,
+    },
+    {
       name: 'contact_point',
       type: FormItemType.Other,
+    },
+    {
+      name: 'alerting',
+      type: FormItemType.Other,
+      render: true,
     },
   ],
 };

@@ -26,4 +26,5 @@ export interface FormItem {
   };
   extra?: any;
   collapsed?: boolean;
+  render?: boolean;
 }

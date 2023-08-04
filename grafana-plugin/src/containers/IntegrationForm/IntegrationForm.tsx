@@ -186,11 +186,17 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 export interface CustomFieldSectionRendererProps {
   control: any;
   formItem: FormItem;
-  onChange: (field: any, value: any) => void;
+  setValue: (fieldName: string, fieldValue: string) => void;
 }
 
-const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({ control, formItem, onChange }) => {
-  console.log({ control, formItem, onChange });
+export interface ContactPointsResult {
+  name: string;
+  uid: string;
+  contact_points: string[];
+}
+
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({ control, formItem, setValue }) => {
+  console.log({ control, formItem, setValue });
 
   const radioOptions = [
     {
@@ -203,18 +209,25 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
     },
   ];
 
-  const [isExistingContactPoint, setIsExistingContactPoint] = useState(true);
-  const [selectedAlertManagerOption, setSelectedAlertManagerOption] = useState<string>();
-  const [selectedContactPointOption, setSelectedContactPointOption] = useState<string>();
   const { alertReceiveChannelStore } = useStore();
 
-  const [alertManagerOptions, setAlertManagerOptions] = useState<SelectableValue<string>[]>([]);
-  const [contactPointOptions, setContactPointOptions] = useState<SelectableValue<string>[]>([]);
+  const [isExistingContactPoint, setIsExistingContactPoint] = useState(true);
+
+  const [selectedAlertManagerOption, setSelectedAlertManagerOption] = useState<string>();
+  const [selectedContactPointOption, setSelectedContactPointOption] = useState<string>();
+
+  const [dataSources, setDataSources] = useState([]);
+  const [contactPoints, setContactPoints] = useState([]);
+
+  const [response, setResponse] = useState<ContactPointsResult[]>([]);
 
   useEffect(() => {
     (async function () {
-      const result = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
-      setAlertManagerOptions(result);
+      const resp = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
+      setResponse(resp);
+
+      setDataSources(resp.map((res) => ({ label: res.name, value: res.uid })));
+      setContactPoints([]);
     })();
   }, []);
 
@@ -235,13 +248,13 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
         </div>
 
         <Select
-          options={alertManagerOptions}
+          options={dataSources}
           onChange={onAlertManagerChange}
           value={selectedAlertManagerOption}
           placeholder="Select Alert Manager"
         />
         <Select
-          options={contactPointOptions}
+          options={contactPoints}
           onChange={onContactPointChange}
           value={selectedContactPointOption}
           placeholder="Select Contact Point"
@@ -252,11 +265,15 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
   function onAlertManagerChange(option: SelectableValue<string>) {
     setSelectedAlertManagerOption(option.value);
-    setContactPointOptions((alertManagerOptions.find((o) => o.value === option.value) as any)?.contactPoints || []);
+    setContactPoints(
+      response.find((res) => res.uid === option.value)?.contact_points.map((cp) => ({ value: cp, label: cp }))
+    );
+    setValue('alert_manager', option.value);
   }
 
   function onContactPointChange(option: SelectableValue<string>) {
     setSelectedContactPointOption(option.value);
+    setValue('contact_point', option.value);
   }
 };
 

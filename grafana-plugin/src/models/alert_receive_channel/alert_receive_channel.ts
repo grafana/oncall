@@ -21,6 +21,7 @@ import {
   AlertReceiveChannelCounters,
   MaintenanceMode,
 } from './alert_receive_channel.types';
+import { ContactPointsResult } from 'containers/IntegrationForm/IntegrationForm';
 
 export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
@@ -365,32 +366,8 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
   }
 
-  async getGrafanaAlertingContactPoints(): Promise<
-    { label: string; value: string; contactPoints: { label: string; value: string }[] }[]
-  > {
-    const contactPoints = [
-      {
-        label: 'cp-1',
-        value: 'cp-1',
-      },
-      {
-        label: 'cp-2',
-        value: 'cp-2',
-      },
-    ];
-
-    return Promise.resolve([
-      {
-        label: 'alertmanager-1',
-        value: 'alertmanager-1',
-        contactPoints: [...contactPoints],
-      },
-      {
-        label: 'alertmanager-2',
-        value: 'alertmanager-2',
-        contactPoints: [...contactPoints],
-      },
-    ]);
+  async getGrafanaAlertingContactPoints(): Promise<ContactPointsResult[]> {
+    return await makeRequest(`${this.path}contact_points/`, {}).catch(showApiError);
   }
 
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {

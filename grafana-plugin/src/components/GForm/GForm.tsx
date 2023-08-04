@@ -170,6 +170,7 @@ class GForm extends React.Component<GFormProps, {}> {
               setValue(formItem.name, undefined); // clear input value on hide
               return null;
             }
+
             const disabled = formItem.disabled
               ? true
               : formItem.getDisabled
@@ -178,12 +179,24 @@ class GForm extends React.Component<GFormProps, {}> {
 
             const formControl = renderFormControl(formItem, register, control, disabled, this.onChange);
 
-            if (CustomFieldSectionRenderer && formItem.type === FormItemType.Other) {
-              return <CustomFieldSectionRenderer control={control} formItem={formItem} onChange={this.onChange} />;
+            if (CustomFieldSectionRenderer && formItem.type === FormItemType.Other && formItem.render) {
+              return (
+                <CustomFieldSectionRenderer
+                  control={control}
+                  formItem={formItem}
+                  setValue={(fName: string, fValue: string) => {
+                    setValue(fName, fValue);
+                    this.forceUpdate();
+                  }}
+                />
+              );
             }
 
             // skip input render when there's no Custom Renderer
             if (formItem.type === FormItemType.Other) return undefined;
+
+            console.log('[Render]');
+            console.log(getValues());
 
             return (
               <Field
@@ -218,7 +231,7 @@ class GForm extends React.Component<GFormProps, {}> {
     );
   }
 
-  onChange = (field, value) => {
+  onChange = (field: any, value: string) => {
     field?.onChange(value);
     this.forceUpdate();
   };
