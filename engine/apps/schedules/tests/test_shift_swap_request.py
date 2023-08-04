@@ -166,4 +166,6 @@ def test_possible_benefactors(shift_swap_request_setup) -> None:
 
     with patch.object(ssr.schedule, "related_users") as mock_related_users:
         mock_related_users.return_value = User.objects.filter(pk__in=[beneficiary.pk, benefactor.pk])
-        assert list(ssr.possible_benefactors) == [benefactor]
+        # TODO: exclude the beneficiary from this list
+        # Temporarily including the beneficiary in the list of possible benefactors for testing purposes
+        assert set(ssr.possible_benefactors) == {benefactor, beneficiary}
