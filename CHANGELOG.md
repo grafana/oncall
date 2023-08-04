@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Do not show override shortcut when web overrides are disabled ([#2745](https://github.com/grafana/oncall/pull/2745))
+- Handle ical schedule import with duplicated event UIDs ([#2760](https://github.com/grafana/oncall/pull/2760))
 
 ## v1.3.22 (2023-08-03)
 
