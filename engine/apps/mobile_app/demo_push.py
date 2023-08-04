@@ -6,7 +6,14 @@ import typing
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.exceptions import DeviceNotSet
-from apps.mobile_app.tasks import FCMMessageData, MessageType, _construct_fcm_message, _send_push_notification, logger
+from apps.mobile_app.tasks import (
+    FCMMessageData,
+    MessageType,
+    Platform,
+    _construct_fcm_message,
+    _send_push_notification,
+    logger,
+)
 from apps.user_management.models import User
 
 if typing.TYPE_CHECKING:
@@ -39,13 +46,13 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
     message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
-    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, ios=True)
+    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
         "title": get_test_push_title(critical),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.NORMAL, ios=False
+            MessageType.NORMAL, Platform.ANDROID
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
@@ -53,7 +60,7 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
             mobile_app_user_settings.default_notification_volume_override
         ),
         "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.CRITICAL, ios=False
+            MessageType.CRITICAL, Platform.ANDROID
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),

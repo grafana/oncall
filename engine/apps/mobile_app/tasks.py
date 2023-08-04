@@ -42,6 +42,11 @@ class MessageType(str, Enum):
     INFO = "oncall.info"
 
 
+class Platform(str, Enum):
+    ANDROID = "android"
+    IOS = "ios"
+
+
 class FCMMessageData(typing.TypedDict):
     title: str
     subtitle: typing.Optional[str]
@@ -169,7 +174,7 @@ def _get_alert_group_escalation_fcm_message(
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
     message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
-    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, ios=True)
+    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
         "title": alert_title,
@@ -181,7 +186,7 @@ def _get_alert_group_escalation_fcm_message(
         "status": str(alert_group.status),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.NORMAL, ios=False
+            MessageType.NORMAL, Platform.ANDROID
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
@@ -189,7 +194,7 @@ def _get_alert_group_escalation_fcm_message(
             mobile_app_user_settings.default_notification_volume_override
         ),
         "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.CRITICAL, ios=False
+            MessageType.CRITICAL, Platform.ANDROID
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
@@ -270,7 +275,7 @@ def _get_youre_going_oncall_fcm_message(
         "title": notification_title,
         "subtitle": notification_subtitle,
         "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.INFO, ios=False
+            MessageType.INFO, Platform.ANDROID
         ),
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
@@ -283,7 +288,7 @@ def _get_youre_going_oncall_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, ios=True),
+                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, Platform.IOS),
             ),
             custom_data={
                 "interruption-level": "time-sensitive",
@@ -647,7 +652,7 @@ def _shift_swap_request_fcm_message(
         "subtitle": notification_subtitle,
         "route": route,
         "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.INFO, ios=False
+            MessageType.INFO, Platform.ANDROID
         ),
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
@@ -660,7 +665,7 @@ def _shift_swap_request_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, ios=True),
+                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, Platform.IOS),
             ),
             custom_data={
                 "interruption-level": "time-sensitive",
