@@ -299,13 +299,13 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
             True,
             ["@Alex"],
             datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
-            datetime.datetime(2021, 1, 27, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 27, 23, 59, 59, tzinfo=pytz.UTC),
         ),
         (
             True,
             ["@Alice"],
             datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
-            datetime.datetime(2021, 1, 28, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 28, 23, 59, 59, tzinfo=pytz.UTC),
         ),
         (
             False,
@@ -1156,6 +1156,49 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
 
     users = schedule.related_users()
     assert set(users) == set([user_a, user_d, user_e])
+
+
+@pytest.mark.django_db
+def test_schedule_related_users_usernames(
+    make_organization, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    """
+    Check different usernames, including those with special characters and uppercase letters
+    """
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    # Check different usernames, including those with special characters and uppercase letters
+    usernames = ["test", "test.test", "test.test@test.test", "TEST.TEST@TEST.TEST"]
+    users = [make_user_for_organization(organization, username=u) for u in usernames]
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    for user in users:
+        data = {
+            "start": start_date,
+            "rotation_start": start_date,
+            "duration": timezone.timedelta(hours=1),
+            "priority_level": 1,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+    schedule.refresh_ical_file()
+    schedule.refresh_from_db()
+
+    assert set(schedule.related_users()) == set(users)
 
 
 @pytest.mark.django_db(transaction=True)

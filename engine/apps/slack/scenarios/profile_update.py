@@ -13,7 +13,7 @@ class ProfileUpdateStep(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         """
         Triggered by action: Any update in Slack Profile.

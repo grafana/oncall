@@ -5,7 +5,7 @@
 import typing
 
 from .block_elements import BlockElement
-from .composition_objects import CompositionObjects
+from .composition_objects import CompositionObjectPlainText, CompositionObjectText
 
 
 class Block:
@@ -57,7 +57,7 @@ class Block:
         The type of block. For a context block, `type` is always `context`.
         """
 
-        elements: typing.List[CompositionObjects.Text | BlockElement.Image]
+        elements: typing.List[CompositionObjectText | BlockElement.Image]
         """
         An array of [image elements](https://api.slack.com/reference/messaging/block-elements#image) and
         [text objects](https://api.slack.com/reference/messaging/composition-objects#text).
@@ -91,7 +91,7 @@ class Block:
         The type of block. For a header block, `type` is always `header`.
         """
 
-        text: CompositionObjects.Text
+        text: CompositionObjectText
         """
         The text for the block, in the form of a [text object](https://api.slack.com/reference/block-kit/composition-objects#text).
 
@@ -124,7 +124,7 @@ class Block:
         Maximum length for this field is 2000 characters.
         """
 
-        title: CompositionObjects.PlainText
+        title: CompositionObjectPlainText
         """
         An optional title for the image in the form of a
         [text object](https://api.slack.com/reference/messaging/composition-objects#text) that can only be of
@@ -146,7 +146,7 @@ class Block:
         The type of block. For an input block, `type` is always `input`.
         """
 
-        label: CompositionObjects.PlainText
+        label: CompositionObjectPlainText
         """
         A label that appears above an input element in the form of a
         [text object](https://api.slack.com/reference/messaging/composition-objects#text) that must
@@ -169,7 +169,7 @@ class Block:
         Defaults to `false`.
         """
 
-        hint: CompositionObjects.PlainText
+        hint: CompositionObjectPlainText
         """
         An optional hint that appears below an input element in a lighter grey.
 
@@ -197,7 +197,7 @@ class Block:
         The type of block. For a section block, `type` will always be `section`.
         """
 
-        text: CompositionObjects.Text
+        text: CompositionObjectText
         """
         The text for the block, in the form of a [text object](https://api.slack.com/reference/block-kit/composition-objects#text).
 
@@ -205,7 +205,7 @@ class Block:
         This field is not required if a valid array of fields objects is provided instead.
         """
 
-        fields: typing.List[CompositionObjects.Text]
+        fields: typing.List[CompositionObjectText]
         """
         Required if no `text` is provided.
 

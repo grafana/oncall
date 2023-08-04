@@ -38,7 +38,7 @@ class StartManageResponders(AlertGroupActionsMixin, scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
@@ -60,7 +60,7 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -111,7 +111,7 @@ class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -144,7 +144,7 @@ class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_schedule = _get_selected_schedule_from_payload(payload)
@@ -177,7 +177,7 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
@@ -255,7 +255,7 @@ def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False)
     return view
 
 
-def _get_selected_user_from_payload(payload: EventPayload.Any) -> "User":
+def _get_selected_user_from_payload(payload: EventPayload) -> "User":
     from apps.user_management.models import User
 
     try:
@@ -274,7 +274,7 @@ def _get_selected_user_from_payload(payload: EventPayload.Any) -> "User":
     return User.objects.get(pk=selected_user_id)
 
 
-def _get_selected_schedule_from_payload(payload: EventPayload.Any) -> "OnCallSchedule":
+def _get_selected_schedule_from_payload(payload: EventPayload) -> "OnCallSchedule":
     from apps.schedules.models import OnCallSchedule
 
     input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
@@ -285,7 +285,7 @@ def _get_selected_schedule_from_payload(payload: EventPayload.Any) -> "OnCallSch
     return OnCallSchedule.objects.get(pk=selected_schedule_id)
 
 
-def _get_alert_group_from_payload(payload: EventPayload.Any) -> "AlertGroup":
+def _get_alert_group_from_payload(payload: EventPayload) -> "AlertGroup":
     from apps.alerts.models import AlertGroup
 
     alert_group_pk = json.loads(payload["view"]["private_metadata"])[ALERT_GROUP_DATA_KEY]

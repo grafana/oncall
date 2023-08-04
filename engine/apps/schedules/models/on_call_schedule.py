@@ -38,7 +38,6 @@ from apps.schedules.ical_utils import (
     fetch_ical_file_or_get_error,
     get_oncall_users_for_multiple_schedules,
     list_of_empty_shifts_in_schedule,
-    list_of_gaps_in_schedule,
     list_of_oncall_shifts_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
@@ -57,7 +56,7 @@ if typing.TYPE_CHECKING:
 
 
 RE_ICAL_SEARCH_USERNAME = r"SUMMARY:(\[L[0-9]+\] )?{}"
-RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?(\w+)")
+RE_ICAL_FETCH_USERNAME = re.compile(r"SUMMARY:(?:\[L[0-9]+\] )?([^\s]+)")
 
 
 # Utility classes for schedule quality report
@@ -258,14 +257,18 @@ class OnCallSchedule(PolymorphicModel):
 
     def get_icalendars(self) -> typing.Tuple[typing.Optional[icalendar.Calendar], typing.Optional[icalendar.Calendar]]:
         """Returns list of calendars. Primary calendar should always be the first"""
-        calendar_primary: typing.Optional[icalendar.Calendar] = None
-        calendar_overrides: typing.Optional[icalendar.Calendar] = None
         # if self._ical_file_(primary|overrides) is None -> no cache, will trigger a refresh
         # if self._ical_file_(primary|overrides) == "" -> cached value for an empty schedule
         if self._ical_file_primary:
             calendar_primary: icalendar.Calendar = icalendar.Calendar.from_ical(self._ical_file_primary)
+        else:
+            calendar_primary = None
+
         if self._ical_file_overrides:
-            calendar_overrides = icalendar.Calendar.from_ical(self._ical_file_overrides)
+            calendar_overrides: icalendar.Calendar = icalendar.Calendar.from_ical(self._ical_file_overrides)
+        else:
+            calendar_overrides = None
+
         return calendar_primary, calendar_overrides
 
     def get_prev_and_current_ical_files(self):
@@ -275,9 +278,10 @@ class OnCallSchedule(PolymorphicModel):
             (self.prev_ical_file_overrides, self.cached_ical_file_overrides),
         ]
 
-    def check_gaps_for_next_week(self):
-        today = timezone.now().date()
-        gaps = list_of_gaps_in_schedule(self, today, today + datetime.timedelta(days=7))
+    def check_gaps_for_next_week(self) -> bool:
+        today = timezone.now()
+        events = self.final_events(today, today + datetime.timedelta(days=7))
+        gaps = [event for event in events if event["is_gap"] and not event["is_empty"]]
         has_gaps = len(gaps) != 0
         self.has_gaps = has_gaps
         self.save(update_fields=["has_gaps"])
@@ -363,7 +367,9 @@ class OnCallSchedule(PolymorphicModel):
             end = shift["end"] - datetime.timedelta(days=1) if all_day else shift["end"]
             if all_day and all_day_datetime:
                 start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
-                end = datetime.datetime.combine(end, datetime.datetime.max.time(), tzinfo=pytz.UTC)
+                end = datetime.datetime.combine(end, datetime.datetime.max.time(), tzinfo=pytz.UTC).replace(
+                    microsecond=0
+                )
             is_gap = shift.get("is_gap", False)
             shift_json: ScheduleEvent = {
                 "all_day": all_day,
@@ -399,9 +405,17 @@ class OnCallSchedule(PolymorphicModel):
 
         return events
 
-    def final_events(self, datetime_start: datetime.datetime, datetime_end: datetime.datetime) -> ScheduleEvents:
+    def final_events(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        with_empty: bool = True,
+        with_gap: bool = True,
+    ) -> ScheduleEvents:
         """Return schedule final events, after resolving shifts and overrides."""
-        events = self.filter_events(datetime_start, datetime_end, with_empty=True, with_gap=True, all_day_datetime=True)
+        events = self.filter_events(
+            datetime_start, datetime_end, with_empty=with_empty, with_gap=with_gap, all_day_datetime=True
+        )
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
 

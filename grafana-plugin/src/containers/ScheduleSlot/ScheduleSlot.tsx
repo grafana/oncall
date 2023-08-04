@@ -71,6 +71,8 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
 
+  const enableWebOverrides = store.scheduleStore.items[scheduleId]?.enable_web_overrides;
+
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` }} onClick={onClick}>
       {event.is_gap ? (
@@ -146,7 +148,11 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   isOncall={isOncall}
                   currentTimezone={currentTimezone}
                   event={event}
-                  handleAddOverride={simplified || event.is_override || isShiftSwap ? undefined : handleAddOverride}
+                  handleAddOverride={
+                    !enableWebOverrides || simplified || event.is_override || isShiftSwap
+                      ? undefined
+                      : handleAddOverride
+                  }
                   handleAddShiftSwap={simplified || isShiftSwap || !isCurrentUserSlot ? undefined : handleAddShiftSwap}
                   simplified={simplified}
                   color={backgroundColor}

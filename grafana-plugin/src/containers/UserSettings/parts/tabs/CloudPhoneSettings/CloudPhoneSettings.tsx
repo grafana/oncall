@@ -111,27 +111,24 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   };
 
   return (
-    <>
-      <WithPermissionControlDisplay
-        userAction={UserActions.OtherSettingsWrite}
-        title="OnCall uses Grafana Cloud for SMS and phone call notifications"
-        message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
-      >
-        <VerticalGroup spacing="lg">
-          <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
-          {syncing ? (
-            <Button icon="sync" variant="secondary" disabled>
-              Updating...
-            </Button>
-          ) : (
-            <Button icon="sync" variant="secondary" onClick={syncUser} disabled={userStatus === 0}>
-              Reload from Cloud
-            </Button>
-          )}
-          {!syncing ? <UserCloudStatus /> : <LoadingPlaceholder text="Loading..." />}
-        </VerticalGroup>
-      </WithPermissionControlDisplay>
-    </>
+    <WithPermissionControlDisplay
+      userAction={UserActions.OtherSettingsWrite}
+      title="OnCall uses Grafana Cloud for SMS and phone call notifications"
+    >
+      <VerticalGroup spacing="lg">
+        <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
+        {syncing ? (
+          <Button icon="sync" variant="secondary" disabled>
+            Updating...
+          </Button>
+        ) : (
+          <Button icon="sync" variant="secondary" onClick={syncUser} disabled={userStatus === 0}>
+            Reload from Cloud
+          </Button>
+        )}
+        {!syncing ? <UserCloudStatus /> : <LoadingPlaceholder text="Loading..." />}
+      </VerticalGroup>
+    </WithPermissionControlDisplay>
   );
 });
 
