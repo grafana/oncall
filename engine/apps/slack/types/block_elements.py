@@ -5,7 +5,12 @@
 import typing
 
 from .common import Style
-from .composition_objects import CompositionObjects
+from .composition_objects import (
+    CompositionObjectConfirm,
+    CompositionObjectOption,
+    CompositionObjectPlainText,
+    CompositionObjectText,
+)
 
 
 class _BaseBlockElement(typing.TypedDict):
@@ -31,7 +36,7 @@ class BlockElement:
         The type of element. In this case `type` is always `button`.
         """
 
-        text: CompositionObjects.Text
+        text: CompositionObjectText
         """
         A [text object](https://api.slack.com/reference/block-kit/composition-objects#text) that defines the button's text.
 
@@ -63,20 +68,20 @@ class BlockElement:
         The type of element. In this case `type` is always `checkboxes`.
         """
 
-        options: typing.List[CompositionObjects.Option]
+        options: typing.List[CompositionObjectOption]
         """
         An array of [option objects](https://api.slack.com/reference/block-kit/composition-objects#option).
         A maximum of 10 options are allowed.
         """
 
-        initial_options: typing.Optional[typing.List[CompositionObjects.Option]]
+        initial_options: typing.Optional[typing.List[CompositionObjectOption]]
         """
         An array of [option objects](https://api.slack.com/reference/block-kit/composition-objects#option) that exactly
         matches one or more of the options within `options`. These options will be selected when the checkbox group
         initially loads.
         """
 
-        confirm: typing.Optional[CompositionObjects.Confirm]
+        confirm: typing.Optional[CompositionObjectConfirm]
         """
         A [confirm object](https://api.slack.com/reference/block-kit/composition-objects#confirm) that defines an optional
         confirmation dialog that appears after clicking one of the checkboxes in this element.
@@ -106,7 +111,7 @@ class BlockElement:
         The initial date that is selected when the element is loaded. This should be in the format `YYYY-MM-DD`.
         """
 
-        confirm: CompositionObjects.Confirm
+        confirm: CompositionObjectConfirm
         """
         A [confirm object](https://api.slack.com/reference/block-kit/composition-objects#confirm) that defines an
         optional confirmation dialog that appears after a menu item is selected.
@@ -120,7 +125,7 @@ class BlockElement:
         Only one element can be set to `true`. Defaults to `false`.
         """
 
-        placeholder: CompositionObjects.PlainText
+        placeholder: CompositionObjectPlainText
         """
         A [plain_text only text object](https://api.slack.com/reference/block-kit/composition-objects#text) that
         defines the placeholder text shown on the datepicker.
@@ -171,13 +176,13 @@ class BlockElement:
         The type of element. In this case `type` is always `overflow`.
         """
 
-        options: typing.List[CompositionObjects.Option]
+        options: typing.List[CompositionObjectOption]
         """
         An array of up to five [option objects](https://api.slack.com/reference/block-kit/composition-objects#option)
         to display in the menu.
         """
 
-        confirm: CompositionObjects.Confirm
+        confirm: CompositionObjectConfirm
         """
         A [confirm object](https://api.slack.com/reference/block-kit/composition-objects#confirm) that defines an
         optional confirmation dialog that appears after a menu item is selected.

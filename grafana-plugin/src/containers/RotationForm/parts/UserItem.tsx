@@ -37,7 +37,7 @@ const UserItem = ({ pk, shiftColor, shiftStart, shiftEnd }: UserItemProps) => {
   const duration = dayjs(shiftEnd).diff(dayjs(shiftStart), 'seconds');
 
   return (
-    <div style={{ backgroundColor: shiftColor, width: '100%' }}>
+    <div className={cx('user-item')} style={{ backgroundColor: shiftColor, width: '100%' }}>
       {duration <= WEEK_IN_SECONDS && (
         <WorkingHours
           timezone={timezone}

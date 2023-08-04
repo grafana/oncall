@@ -12,11 +12,12 @@ if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
     from apps.alerts.models import AlertGroupLogRecord
+    from apps.grafana_plugin.helpers.client import GrafanaAPIClient
     from apps.schedules.models import CustomOnCallShift
-    from apps.user_management.models import User
+    from apps.user_management.models import Organization, User
 
 
-def generate_public_primary_key_for_team():
+def generate_public_primary_key_for_team() -> str:
     prefix = "T"
     new_public_primary_key = generate_public_primary_key(prefix)
 
@@ -30,11 +31,13 @@ def generate_public_primary_key_for_team():
     return new_public_primary_key
 
 
-class TeamManager(models.Manager):
+class TeamManager(models.Manager["Team"]):
     @staticmethod
-    def sync_for_organization(organization, api_teams: list[dict]):
+    def sync_for_organization(
+        organization: "Organization", api_teams: typing.List["GrafanaAPIClient.Types.GrafanaTeam"]
+    ) -> None:
         grafana_teams = {team["id"]: team for team in api_teams}
-        existing_team_ids = set(organization.teams.all().values_list("team_id", flat=True))
+        existing_team_ids: typing.Set[int] = set(organization.teams.all().values_list("team_id", flat=True))
 
         # create missing teams
         teams_to_create = tuple(
@@ -55,7 +58,7 @@ class TeamManager(models.Manager):
         organization.teams.filter(team_id__in=team_ids_to_delete).delete()
 
         # collect teams diffs to update metrics cache
-        metrics_teams_to_update = {}
+        metrics_teams_to_update: MetricsCacheManager.TeamsDiffMap = {}
         for team_id in team_ids_to_delete:
             metrics_teams_to_update = MetricsCacheManager.update_team_diff(
                 metrics_teams_to_update, team_id, deleted=True
@@ -97,7 +100,7 @@ class Team(models.Model):
         default=generate_public_primary_key_for_team,
     )
 
-    objects: models.Manager["Team"] = TeamManager()
+    objects = TeamManager()
 
     team_id = models.PositiveIntegerField()
     organization = models.ForeignKey(

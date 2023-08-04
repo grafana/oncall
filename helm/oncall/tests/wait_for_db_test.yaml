@@ -14,8 +14,8 @@ tests:
           cpu: 100m
           memory: 128Mi
         requests:
-           cpu: 100m
-           memory: 128Mi
+          cpu: 100m
+          memory: 128Mi
     asserts:
       - contains:
           path: spec.template.spec.initContainers
@@ -39,8 +39,8 @@ tests:
           cpu: 100m
           memory: 128Mi
         requests:
-           cpu: 100m
-           memory: 128Mi
+          cpu: 100m
+          memory: 128Mi
     asserts:
       - contains:
           path: spec.template.spec.initContainers
@@ -54,4 +54,3 @@ tests:
             value: postgresql
       - matchSnapshot:
           path: spec.template.spec.initContainers
-

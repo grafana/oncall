@@ -322,6 +322,8 @@ const L3_COLORS = ['#377277', '#638282', '#364E4E', '#423220'];
 
 const OVERRIDE_COLORS = ['#C69B06', '#C2C837'];
 
+export const SHIFT_SWAP_COLOR = '#C69B06';
+
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
 
 export const getColor = (layerIndex: number, rotationIndex: number) => {

@@ -7,17 +7,17 @@ import { devices } from '@playwright/test';
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-require('dotenv').config({ path: path.resolve(process.cwd(), 'integration-tests/.env') });
+require('dotenv').config({ path: path.resolve(process.cwd(), 'e2e-tests/.env') });
 
-export const VIEWER_USER_STORAGE_STATE = path.join(__dirname, 'integration-tests/.auth/viewer.json');
-export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'integration-tests/.auth/editor.json');
-export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'integration-tests/.auth/admin.json');
+export const VIEWER_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/viewer.json');
+export const EDITOR_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/editor.json');
+export const ADMIN_USER_STORAGE_STATE = path.join(__dirname, 'e2e-tests/.auth/admin.json');
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
-  testDir: './integration-tests',
+  testDir: './e2e-tests',
 
   /* Maximum time all the tests can run for. */
   globalTimeout: 20 * 60 * 1000, // 20 minutes

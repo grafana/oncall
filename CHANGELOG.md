@@ -7,21 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Shift Swap Requests Web UI ([#2593](https://github.com/grafana/oncall/issues/2593))
+
+### Changed
+
+- Add stack slug to organization options for direct paging Slash command by @vadimkerr ([#2743](https://github.com/grafana/oncall/pull/2743))
+
+### Fixed
+
+- Do not show override shortcut when web overrides are disabled ([#2745](https://github.com/grafana/oncall/pull/2745))
+
+## v1.3.22 (2023-08-03)
+
+### Added
+
+- Add mobile app push notifications for shift swap requests by @vadimkerr ([#2717](https://github.com/grafana/oncall/pull/2717))
+
 ### Changed
 
 - Skip past due swap requests when calculating events ([2718](https://github.com/grafana/oncall/pull/2718))
+- Update schedule slack notifications to use schedule final events by @Ferril ([#2710](https://github.com/grafana/oncall/pull/2710))
 
 ### Fixed
 
 - Fix schedule final_events datetime filtering when splitting override ([#2715](https://github.com/grafana/oncall/pull/2715))
 - Fix swap requests event filter limits in schedule events ([#2716](https://github.com/grafana/oncall/pull/2716))
+- Fix Alerting contact point auto-creation ([2721](https://github.com/grafana/oncall/pull/2721))
 
 ## v1.3.21 (2023-08-01)
 
 ### Added
 
 - [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
-– Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
+  – Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
 
 ## v1.3.20 (2023-07-31)
 

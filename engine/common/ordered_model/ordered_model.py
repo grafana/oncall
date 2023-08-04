@@ -29,9 +29,6 @@ def _retry(exc: typing.Type[Exception] | tuple[typing.Type[Exception], ...], max
     return _retry_with_params
 
 
-Self = typing.TypeVar("Self", bound="OrderedModel")
-
-
 class OrderedModel(models.Model):
     """
     This class is intended to be used as a mixin for models that need to be ordered.
@@ -95,7 +92,7 @@ class OrderedModel(models.Model):
         """
         with transaction.atomic():
             instances = self._lock_ordering_queryset()  # lock ordering queryset to prevent reading inconsistent data
-            max_order = max(instance.order for instance in instances) if instances else -1
+            max_order = max(typing.cast(int, instance.order) for instance in instances) if instances else -1
             self.order = max_order + 1
             super().save(*args, **kwargs)
 
@@ -137,7 +134,7 @@ class OrderedModel(models.Model):
             order = instances[index].order  # get order of the instance at the given index
             self._move_instances_to_order(instances, order)
 
-    def _move_instances_to_order(self, instances: list[Self], order: int) -> None:
+    def _move_instances_to_order(self, instances: list[typing.Self], order: int) -> None:
         """
         Helper method for moving self to a given order, adjusting other instances' orders if necessary.
         Must be called within a transaction that locks the ordering queryset.
@@ -230,7 +227,7 @@ class OrderedModel(models.Model):
             self.order, other.order = other.order, self.order
             self._manager.filter(pk__in=[self.pk, other.pk]).bulk_update([self, other], fields=["order"])
 
-    def next(self) -> Self | None:
+    def next(self) -> typing.Self | None:
         """
         Return the next instance in the ordering queryset, or None if there's no next instance.
         Example:
@@ -253,10 +250,10 @@ class OrderedModel(models.Model):
         if value is None or not isinstance(value, int) or value < 0:
             raise ValueError("Value must be a positive integer.")
 
-    def _get_ordering_queryset(self) -> models.QuerySet[Self]:
+    def _get_ordering_queryset(self) -> models.QuerySet[typing.Self]:
         return self._manager.filter(**self._ordering_params)
 
-    def _lock_ordering_queryset(self) -> list[Self]:
+    def _lock_ordering_queryset(self) -> list[typing.Self]:
         """
         Locks the ordering queryset with SELECT FOR UPDATE and returns the queryset as a list.
         This allows to prevent concurrent updates from different transactions.

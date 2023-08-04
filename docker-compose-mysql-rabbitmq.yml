@@ -28,8 +28,7 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    command: >
-      sh -c "uwsgi --ini uwsgi.ini"
+    command: sh -c "uwsgi --ini uwsgi.ini"
     environment: *oncall-environment
     depends_on:
       mysql:
@@ -68,7 +67,9 @@ services:
 
   mysql:
     image: mysql:8.0.32
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: >-
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     expose:
       - 3306
@@ -121,7 +122,9 @@ services:
 
   mysql_to_create_grafana_db:
     image: mysql:8.0.32
-    command: bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err} -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
+    command: >-
+      bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err}
+      -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
         condition: service_healthy

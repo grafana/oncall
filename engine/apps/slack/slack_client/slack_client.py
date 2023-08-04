@@ -12,7 +12,6 @@ from .exceptions import (
     SlackAPIException,
     SlackAPIRateLimitException,
     SlackAPITokenException,
-    SlackClientException,
 )
 from .slack_client_server import SlackClientServer
 
@@ -88,17 +87,6 @@ class SlackClientWithErrorHandling(SlackClient):
         return cumulative_response, cursor, rate_limited
 
     def api_call(self, *args, **kwargs):
-        from apps.base.models import DynamicSetting
-
-        simulate_slack_downtime = DynamicSetting.objects.get_or_create(
-            name="simulate_slack_downtime", defaults={"boolean_value": False}
-        )[0]
-
-        if simulate_slack_downtime.boolean_value:
-            # When slack is down it returns 503 with no response.text which leads to JSONDecodeError.
-            # We handle it in SlackClientServer and raise SlackClientException instead
-            raise SlackClientException("Slack Downtime Simulation")
-
         response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
 
         if not response["ok"]:
