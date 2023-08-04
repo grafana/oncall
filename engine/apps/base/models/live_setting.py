@@ -223,7 +223,10 @@ class LiveSetting(models.Model):
             return
 
         for setting_name in setting_names_to_populate:
-            cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+            # we're using get_or _create here to prevent the rare case where concurrent requests try inserting the
+            # same live setting and lead to:
+            # django.db.utils.IntegrityError: duplicate key value violates unique constraint "base_livesetting_name_key"
+            cls.objects.get_or_create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
 
         cls.validate_settings()
 

@@ -54,6 +54,13 @@ const config: PlaywrightTestConfig = {
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',
+
+    /**
+     * NOTE: currently videos are not generated anymore because of how we generate a browserContext within our
+     * auth fixtures (which is how Playwright suggested setting up multi-role authnz tests..). There's a GitHub
+     * Issue here that tracks this issue
+     * https://github.com/microsoft/playwright/issues/24542
+     */
     video: 'on',
     headless: !!process.env.CI,
   },
