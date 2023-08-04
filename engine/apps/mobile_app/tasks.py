@@ -518,10 +518,6 @@ def notify_shift_swap_requests() -> None:
     """
     A periodic task that notifies users about shift swap requests.
     """
-
-    if not settings.FEATURE_SHIFT_SWAPS_ENABLED:
-        return
-
     for shift_swap_request in _get_shift_swap_requests_to_notify(timezone.now()):
         notify_shift_swap_request.delay(shift_swap_request.pk)
 
