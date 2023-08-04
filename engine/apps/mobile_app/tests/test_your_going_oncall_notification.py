@@ -217,9 +217,7 @@ def test_get_youre_going_oncall_fcm_message(
     data = {
         "title": mock_notification_title,
         "subtitle": mock_notification_subtitle,
-        "info_notification_sound_name": (
-            maus.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
+        "info_notification_sound_name": maus.get_info_notification_sound_name(ios=False),
         "info_notification_volume_type": maus.info_notification_volume_type,
         "info_notification_volume": str(maus.info_notification_volume),
         "info_notification_volume_override": json.dumps(maus.info_notification_volume_override),
@@ -232,9 +230,7 @@ def test_get_youre_going_oncall_fcm_message(
     assert fcm_message == mock_fcm_message
 
     mock_aps_alert.assert_called_once_with(title=mock_notification_title, subtitle=mock_notification_subtitle)
-    mock_critical_sound.assert_called_once_with(
-        critical=False, name=maus.info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION
-    )
+    mock_critical_sound.assert_called_once_with(critical=False, name=maus.get_info_notification_sound_name(ios=True))
     mock_aps.assert_called_once_with(
         thread_id=notification_thread_id,
         alert=mock_aps_alert.return_value,

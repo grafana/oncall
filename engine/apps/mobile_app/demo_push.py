@@ -38,27 +38,21 @@ def _get_test_escalation_fcm_message(user: User, device_to_notify: "FCMDevice", 
 
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
-    apns_sound_name = (
-        mobile_app_user_settings.important_notification_sound_name
-        if critical
-        else mobile_app_user_settings.default_notification_sound_name
-    ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
+    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(critical, ios=True)
 
     fcm_message_data: FCMMessageData = {
         "title": get_test_push_title(critical),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
-        "default_notification_sound_name": (
-            mobile_app_user_settings.default_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            critical=False, ios=False
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
         "default_notification_volume_override": json.dumps(
             mobile_app_user_settings.default_notification_volume_override
         ),
-        "important_notification_sound_name": (
-            mobile_app_user_settings.important_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            critical=True, ios=False
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),

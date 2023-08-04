@@ -175,3 +175,32 @@ class MobileAppUserSettings(models.Model):
 
     locale = models.CharField(max_length=50, null=True)
     time_zone = models.CharField(max_length=100, default="UTC")
+
+    def get_notification_sound_name(self, critical: bool, ios: bool):
+        if critical:
+            sound_name = self.important_notification_sound_name
+        else:
+            sound_name = self.default_notification_sound_name
+
+        if "." in sound_name:
+            return sound_name
+
+        if ios:
+            extension = self.IOS_SOUND_NAME_EXTENSION
+        else:
+            extension = self.ANDROID_SOUND_NAME_EXTENSION
+
+        return f"{sound_name}{extension}"
+
+    def get_info_notification_sound_name(self, ios: bool):
+        sound_name = self.info_notification_sound_name
+
+        if "." in sound_name:
+            return sound_name
+
+        if ios:
+            extension = self.IOS_SOUND_NAME_EXTENSION
+        else:
+            extension = self.ANDROID_SOUND_NAME_EXTENSION
+
+        return f"{sound_name}{extension}"
