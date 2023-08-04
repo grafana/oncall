@@ -22,6 +22,8 @@ from apps.schedules.constants import (
     ICAL_DATETIME_START,
     ICAL_DESCRIPTION,
     ICAL_LOCATION,
+    ICAL_RECURRENCE_ID,
+    ICAL_SEQUENCE,
     ICAL_SUMMARY,
     ICAL_UID,
     RE_EVENT_UID_V1,
@@ -198,8 +200,12 @@ def get_shifts_dict(
     result_datetime = []
     result_date = []
     for event in events:
+        sequence = event.get(ICAL_SEQUENCE)
+        recurrence_id = event.get(ICAL_RECURRENCE_ID)
+        if recurrence_id:
+            recurrence_id = recurrence_id.dt.isoformat()
         priority = parse_priority_from_string(event.get(ICAL_SUMMARY, "[L0]"))
-        pk, source = parse_event_uid(event.get(ICAL_UID))
+        pk, source = parse_event_uid(event.get(ICAL_UID), sequence=sequence, recurrence_id=recurrence_id)
         users = get_users_from_ical_event(event, schedule.organization)
         missing_users = get_missing_users_from_ical_event(event, schedule.organization)
         event_calendar_type = calendar_type
@@ -394,7 +400,7 @@ def parse_priority_from_string(string: str) -> int:
     return priority
 
 
-def parse_event_uid(string: str):
+def parse_event_uid(string: str, sequence: str = None, recurrence_id: str = None):
     pk = None
     source = None
     source_verbal = None
@@ -411,6 +417,13 @@ def parse_event_uid(string: str):
         else:
             # fallback to use the UID string as the rotation ID
             pk = string
+            # in ical imported calendars, sequence and/or recurrence_id
+            # distinguish main recurring event vs instance modification
+            # (see https://icalendar.org/iCalendar-RFC-5545/3-8-4-4-recurrence-id.html)
+            if sequence:
+                pk = f"{pk}_{sequence}"
+            if recurrence_id:
+                pk = f"{pk}_{recurrence_id}"
 
     if source is not None:
         source = int(source)
