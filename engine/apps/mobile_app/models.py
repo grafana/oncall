@@ -179,15 +179,19 @@ class MobileAppUserSettings(models.Model):
 
     def get_notification_sound_name(self, message_type: MessageType, platform: Platform) -> str:
         sound_name = {
-            MessageType.NORMAL: self.default_notification_sound_name,
-            MessageType.CRITICAL: self.important_notification_sound_name,
+            MessageType.DEFAULT: self.default_notification_sound_name,
+            MessageType.IMPORTANT: self.important_notification_sound_name,
             MessageType.INFO: self.info_notification_sound_name,
         }[message_type]
 
+        # If sound name already contains an extension, return it as is
         if "." in sound_name:
             return sound_name
 
-        extension = {Platform.IOS: self.IOS_SOUND_NAME_EXTENSION, Platform.ANDROID: self.ANDROID_SOUND_NAME_EXTENSION}[
-            platform
-        ]
+        # Add appropriate extension based on platform, for cases when no extension is specified in the sound name
+        extension = {
+            Platform.IOS: self.IOS_SOUND_NAME_EXTENSION,
+            Platform.ANDROID: self.ANDROID_SOUND_NAME_EXTENSION,
+        }[platform]
+
         return f"{sound_name}{extension}"

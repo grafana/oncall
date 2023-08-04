@@ -3,7 +3,7 @@ import json
 import logging
 import math
 import typing
-from enum import Enum
+from enum import StrEnum
 
 import humanize
 import pytz
@@ -36,13 +36,13 @@ logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-class MessageType(str, Enum):
-    NORMAL = "oncall.message"
-    CRITICAL = "oncall.critical_message"
+class MessageType(StrEnum):
+    DEFAULT = "oncall.message"
+    IMPORTANT = "oncall.critical_message"
     INFO = "oncall.info"
 
 
-class Platform(str, Enum):
+class Platform(StrEnum):
     ANDROID = "android"
     IOS = "ios"
 
@@ -173,7 +173,7 @@ def _get_alert_group_escalation_fcm_message(
 
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
-    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
+    message_type = MessageType.IMPORTANT if critical else MessageType.DEFAULT
     apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
@@ -186,7 +186,7 @@ def _get_alert_group_escalation_fcm_message(
         "status": str(alert_group.status),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
         "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.NORMAL, Platform.ANDROID
+            MessageType.DEFAULT, Platform.ANDROID
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
@@ -194,7 +194,7 @@ def _get_alert_group_escalation_fcm_message(
             mobile_app_user_settings.default_notification_volume_override
         ),
         "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
-            MessageType.CRITICAL, Platform.ANDROID
+            MessageType.IMPORTANT, Platform.ANDROID
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
