@@ -126,14 +126,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
     );
   }
 
-  handleRotationClick = (shiftId: Shift['id']) => {
-    const { onClick, disabled } = this.props;
-    if (disabled) {
-      return;
-    }
-    onClick(shiftId);
-  };
-
   onSearchTermChangeCallback = () => {};
 
   handleShowOverrideForm = (shiftStart: dayjs.Dayjs, shiftEnd: dayjs.Dayjs) => {

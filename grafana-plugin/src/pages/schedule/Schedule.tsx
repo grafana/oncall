@@ -283,12 +283,17 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       scheduleId={scheduleId}
                       currentTimezone={currentTimezone}
                       startMoment={startMoment}
-                      onClick={this.handleShowForm}
                       disabled={disabledRotationForm}
                       onShowOverrideForm={this.handleShowOverridesForm}
                       filters={filters}
                       onShowShiftSwapForm={this.handleShowShiftSwapForm}
-                      onSlotClick={shiftSwapIdToShowForm ? this.onSlotClick : undefined}
+                      onSlotClick={
+                        shiftSwapIdToShowForm
+                          ? this.adjustShiftSwapForm
+                          : (event: Event) => {
+                              this.handleShowForm(event.shift.pk);
+                            }
+                      }
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -303,7 +308,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       disabled={disabledRotationForm}
                       filters={filters}
                       onShowShiftSwapForm={this.handleShowShiftSwapForm}
-                      onSlotClick={shiftSwapIdToShowForm ? this.onSlotClick : undefined}
+                      onSlotClick={shiftSwapIdToShowForm ? this.adjustShiftSwapForm : undefined}
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
@@ -595,7 +600,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined });
   };
 
-  onSlotClick = (event: Event) => {
+  adjustShiftSwapForm = (event: Event) => {
     this.setState({
       shiftSwapParamsToShowForm: {
         ...this.state.shiftSwapParamsToShowForm,
