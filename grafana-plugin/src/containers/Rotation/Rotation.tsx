@@ -90,6 +90,9 @@ const Rotation: FC<RotationProps> = (props) => {
   };
 
   const getSlotClickHandler = (event: Event) => {
+    if (!onSlotClick) {
+      return undefined;
+    }
     return (e) => {
       e.stopPropagation();
 
@@ -133,7 +136,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     onShiftSwapClick={onShiftSwapClick}
                     simplified={simplified}
                     filters={filters}
-                    onClick={onSlotClick && getSlotClickHandler(event)}
+                    onClick={getSlotClickHandler(event)}
                   />
                 );
               })}

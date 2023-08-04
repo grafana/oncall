@@ -100,7 +100,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
 
   const beneficiaryName = shiftSwap?.beneficiary && store.userStore.items[shiftSwap.beneficiary]?.name;
 
-  const readOnly = id !== 'new';
+  const isNew = id === 'new';
   const isPastDue = useMemo(() => shiftSwap && dayjs(shiftSwap.swap_start).isBefore(dayjs()), [shiftSwap]);
 
   return (
@@ -119,13 +119,13 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
-              {id === 'new' && <Tag color={SHIFT_SWAP_COLOR}>New</Tag>}
+              {isNew && <Tag color={SHIFT_SWAP_COLOR}>New</Tag>}
               <Text.Title level={5} editable>
                 Shift swap
               </Text.Title>
             </HorizontalGroup>
             <HorizontalGroup>
-              {id !== 'new' && (
+              {!isNew && (
                 <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <WithConfirm title="Are you sure to delete shift swap request?" confirmText="Delete">
                     <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDelete} />
@@ -138,9 +138,9 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
           </HorizontalGroup>
 
           <div className={cx('fields')}>
-            {id !== 'new' && (
+            {!isNew && (
               <Field label="Creator">
-                <Input disabled={readOnly} value={beneficiaryName}></Input>
+                <Input disabled value={beneficiaryName}></Input>
               </Field>
             )}
 
@@ -148,7 +148,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               <Field label="Swap start">
                 <DateTimePicker
                   timezone={store.currentTimezone}
-                  disabled={readOnly}
+                  disabled={!isNew}
                   value={dayjs(shiftSwap.swap_start)}
                   onChange={handleShiftSwapStartChange}
                 />
@@ -156,7 +156,7 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
               <Field label="Swap end">
                 <DateTimePicker
                   timezone={store.currentTimezone}
-                  disabled={readOnly}
+                  disabled={!isNew}
                   value={dayjs(shiftSwap.swap_end)}
                   onChange={handleShiftSwapEndChange}
                 />
@@ -164,11 +164,11 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
             </HorizontalGroup>
 
             <Field label="Description">
-              <TextArea rows={4} disabled={readOnly} value={shiftSwap.description} onChange={handleDescriptionChange}>
+              <TextArea rows={4} disabled={!isNew} value={shiftSwap.description} onChange={handleDescriptionChange}>
                 {shiftSwap.description}
               </TextArea>
             </Field>
-            {id !== 'new' && (
+            {!isNew && (
               <Field label="Taken by">
                 {shiftSwap?.benefactor ? (
                   <UserItem
@@ -187,19 +187,17 @@ const ShiftSwapForm = (props: ShiftSwapFormProps) => {
           <HorizontalGroup justify="space-between">
             <Text type="secondary">Current timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
             <HorizontalGroup>
-              {id === 'new' ? (
-                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                {isNew ? (
                   <Button variant="primary" onClick={handleCreate}>
                     Create
                   </Button>
-                </WithPermissionControlTooltip>
-              ) : (
-                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                ) : (
                   <Button variant="primary" onClick={handleTake} disabled={Boolean(isPastDue || shiftSwap?.benefactor)}>
                     Take
                   </Button>
-                </WithPermissionControlTooltip>
-              )}
+                )}
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </HorizontalGroup>
         </VerticalGroup>

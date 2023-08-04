@@ -44,24 +44,27 @@ export const findColor = (shiftId: Shift['id'], layers: Layer[], overrides?) => 
 export const findClosestUserEvent = (startMoment: dayjs.Dayjs, userPk: User['pk'], layers: Layer[]) => {
   let minDiff;
   let closestEvent;
-  if (layers) {
-    for (let i = 0; i < layers.length; i++) {
-      for (let j = 0; j < layers[i].shifts.length; j++) {
-        const shift = layers[i].shifts[j];
-        const events = shift.events;
-        for (let k = 0; k < events.length; k++) {
-          const event = events[k];
-          const diff = dayjs(event.start).diff(startMoment, 'seconds');
 
-          if (
-            event.users.some((user) => user.pk === userPk) &&
-            !event.users.some((user) => user.swap_request) &&
-            diff > 0 &&
-            (minDiff === undefined || diff < minDiff)
-          ) {
-            minDiff = diff;
-            closestEvent = event;
-          }
+  if (!layers) {
+    return undefined;
+  }
+
+  for (let i = 0; i < layers.length; i++) {
+    for (let j = 0; j < layers[i].shifts.length; j++) {
+      const shift = layers[i].shifts[j];
+      const events = shift.events;
+      for (let k = 0; k < events.length; k++) {
+        const event = events[k];
+        const diff = dayjs(event.start).diff(startMoment, 'seconds');
+
+        if (
+          event.users.some((user) => user.pk === userPk) &&
+          !event.users.some((user) => user.swap_request) &&
+          diff > 0 &&
+          (minDiff === undefined || diff < minDiff)
+        ) {
+          minDiff = diff;
+          closestEvent = event;
         }
       }
     }

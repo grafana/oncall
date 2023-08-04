@@ -494,9 +494,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.setState((oldState) => {
       const wDiff = oldState.startMoment.diff(getStartOfWeek(oldTimezone), 'weeks');
 
-      console.log(oldTimezone, value);
-      console.log('wDiff', wDiff);
-
       return { ...oldState, startMoment: getStartOfWeek(value).add(wDiff, 'weeks') };
     }, this.updateEvents);
 
@@ -592,9 +589,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
         const newUsers = [...filters.users];
         newUsers.splice(index, 1);
 
-        this.setState({ filters: { ...filters, users: newUsers } }, () => {
-          console.log(this.state);
-        });
+        this.setState({ filters: { ...filters, users: newUsers } });
       }
     }
     this.setState({ shiftSwapIdToShowForm: undefined, shiftSwapParamsToShowForm: undefined });
