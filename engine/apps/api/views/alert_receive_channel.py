@@ -395,12 +395,38 @@ class AlertReceiveChannelView(
         connected = instance.grafana_alerting_sync_manager.connect_contact_point(datasource_uid, contact_point_name)
         if not connected:
             raise BadRequest(detail="connection failed")  # todo
-        return Response(status=status.HTTP_202_ACCEPTED)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
     def create_contact_point(self, request, pk):
-        pass  # todo
+        instance = self.get_object()
+        if not instance.is_alerting_integration:
+            raise BadRequest(detail="invalid integration")
+
+        datasource_uid = request.data.get("datasource_uid")
+        contact_point_name = request.data.get("contact_point_name")
+        if not datasource_uid or not contact_point_name:
+            raise BadRequest(detail="datasource_uid and contact_point_name are required")
+        created = instance.grafana_alerting_sync_manager.connect_contact_point(
+            datasource_uid, contact_point_name, create_new=True
+        )
+        if not created:
+            raise BadRequest(detail="creation failed")  # todo
+        return Response(status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def disconnect_contact_point(self, request, pk):
-        pass  # todo
+        instance = self.get_object()
+        if not instance.is_alerting_integration:
+            raise BadRequest(detail="invalid integration")
+
+        datasource_uid = request.data.get("datasource_uid")
+        contact_point_name = request.data.get("contact_point_name")
+        if not datasource_uid or not contact_point_name:
+            raise BadRequest(detail="datasource_uid and contact_point_name are required")
+        disconnected = instance.grafana_alerting_sync_manager.disconnect_contact_point(
+            datasource_uid, contact_point_name
+        )
+        if not disconnected:
+            raise BadRequest(detail="disconnection failed")  # todo
+        return Response(status=status.HTTP_200_OK)
