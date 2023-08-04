@@ -7,7 +7,7 @@ import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Schedule, Event, RotationFormLiveParams, ShiftSwap } from 'models/schedule/schedule.types';
+import { Schedule, Event, RotationFormLiveParams, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
@@ -33,6 +33,7 @@ interface RotationProps {
   tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
+  getColor?: (shiftId: Shift['id']) => string;
   onSlotClick?: (event: Event) => void;
 }
 
@@ -42,7 +43,7 @@ const Rotation: FC<RotationProps> = (props) => {
     scheduleId,
     startMoment,
     currentTimezone,
-    color,
+    color: propsColor,
     days = 7,
     transparent = false,
     tutorialParams,
@@ -52,6 +53,7 @@ const Rotation: FC<RotationProps> = (props) => {
     onShiftSwapClick,
     simplified,
     filters,
+    getColor,
     onSlotClick,
   } = props;
 
@@ -113,7 +115,7 @@ const Rotation: FC<RotationProps> = (props) => {
   }, [events]);
 
   return (
-    <div className={cx('root')} onClick={handleRotationClick}>
+    <div className={cx('root')} onClick={onClick && handleRotationClick}>
       <div className={cx('timeline')}>
         {tutorialParams && <RotationTutorial startMoment={startMoment} {...tutorialParams} />}
         {events ? (
@@ -130,7 +132,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     event={event}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
-                    color={color}
+                    color={propsColor || getColor(event.shift?.pk)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
                     handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
                     onShiftSwapClick={onShiftSwapClick}

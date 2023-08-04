@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Shift Swap Requests Web UI ([#2593](https://github.com/grafana/oncall/issues/2593))
+- Final schedule shifts should lay in one line [1665](https://github.com/grafana/oncall/issues/1665)
 
 ### Changed
 
