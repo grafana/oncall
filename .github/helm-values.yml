@@ -5,20 +5,69 @@ ingress-nginx:
   enabled: false
 cert-manager:
   enabled: false
+
 service:
   enabled: true
   type: NodePort
   port: 8080
   nodePort: 30001
+env:
+  - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+    value: "False"
+  - name: BASE_URL
+    value: http://172.17.0.1:30001
+image:
+  tag: latest
+  pullPolicy: Always
+engine:
+  replicaCount: 3
+celery:
+  replicaCount: 3
+  worker_beat_enabled: false
+
 grafana:
+  replicas: 3
+  extraInitContainers:
+    - name: create-db-if-not-exists
+      image: mysql:8.0.32
+      command:
+        # yamllint disable rule:line-length
+        [
+          "bash",
+          "-c",
+          'while ! mysqladmin ping -h "$DATABASE_HOST" --silent; do echo ''awaiting mysql db to be available'' && sleep 1; done && mysql -h "$DATABASE_HOST" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -e ''CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;''',
+        ]
+        # yamllint enable rule:line-length
+      env:
+        - name: DATABASE_HOST
+          value: helm-testing-mariadb
+        - name: DATABASE_USER
+          value: root
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: helm-testing-mariadb
+              key: mariadb-root-password
+  env:
+    GF_FEATURE_TOGGLES_ENABLE: topnav
+    GF_SECURITY_ADMIN_PASSWORD: oncall
+    GF_SECURITY_ADMIN_USER: oncall
+    GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+    GF_DATABASE_TYPE: mysql
+    GF_DATABASE_HOST: helm-testing-mariadb:3306
+    GF_DATABASE_USER: root
+    GF_DATABASE_SSL_MODE: disable
+  envValueFrom:
+    GF_DATABASE_PASSWORD:
+      secretKeyRef:
+        name: helm-testing-mariadb
+        key: mariadb-root-password
+  plugins: []
   service:
     type: NodePort
     nodePort: 30002
+
 database:
   type: mysql
 mariadb:
   enabled: true
-image:
-  repository: oncall/engine
-  tag: latest
-  pullPolicy: IfNotPresent
