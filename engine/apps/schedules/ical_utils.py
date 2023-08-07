@@ -504,20 +504,23 @@ def ical_date_to_datetime(date, tz, start):
     return date, all_day
 
 
-def calculate_shift_diff(first_shift, second_shift):
-    fields_to_compare = ["users", "end", "start", "all_day", "priority"]
+def calculate_shift_diff(shifts: list, prev_shifts: list) -> typing.Tuple[bool, list]:
+    """
+    Get shifts diff comparing with the previous shifts
+    """
+    fields_to_compare = ["users", "end", "start", "all_day", "priority_level", "shift"]
 
-    shift_changed = set(first_shift.keys()) != set(second_shift.keys())
-    if not shift_changed:
-        diff = set()
-        for k, v in first_shift.items():
-            for f in fields_to_compare:
-                if v.get(f) != second_shift[k].get(f):
-                    shift_changed = True
-                    diff.add(k)
-                    break
-    else:
-        diff = set(first_shift.keys()) - set(second_shift.keys())
+    shifts_fields = [{k: v for k, v in shift.items() if k in fields_to_compare} for shift in shifts]
+    prev_shifts_fields = [{k: v for k, v in shift.items() if k in fields_to_compare} for shift in prev_shifts]
+
+    shift_changed = len(shifts) != len(prev_shifts)
+
+    diff = []
+
+    for idx, shift in enumerate(shifts_fields):
+        if shift not in prev_shifts_fields:
+            shift_changed = True
+            diff.append(shifts[idx])
 
     return shift_changed, diff
 
@@ -609,29 +612,6 @@ def user_ical_export(user: "User", schedules: "OnCallScheduleQuerySet") -> bytes
         get_user_events_from_calendars(ical_obj, Calendar.from_ical(ical_data), user, name=name)
 
     return ical_obj.to_ical()
-
-
-def list_of_gaps_in_schedule(
-    schedule: "OnCallSchedule", start_date: datetime.date, end_date: datetime.date
-) -> DatetimeIntervals:
-    calendars = schedule.get_icalendars()
-    intervals: DatetimeIntervals = []
-    start_datetime = datetime.datetime.combine(start_date, datetime.time.min) + datetime.timedelta(milliseconds=1)
-    start_datetime = start_datetime.astimezone(pytz.UTC)
-    end_datetime = datetime.datetime.combine(end_date, datetime.time.max).astimezone(pytz.UTC)
-
-    for calendar in calendars:
-        if calendar is not None:
-            calendar_tz = get_icalendar_tz_or_utc(calendar)
-            events = ical_events.get_events_from_ical_between(
-                calendar,
-                start_datetime,
-                end_datetime,
-            )
-            for event in events:
-                start, end, _ = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
-                intervals.append(DatetimeInterval(start, end))
-    return detect_gaps(intervals, start_datetime, end_datetime)
 
 
 def detect_gaps(intervals: DatetimeIntervals, start: datetime.datetime, end: datetime.datetime) -> DatetimeIntervals:

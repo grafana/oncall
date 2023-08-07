@@ -127,7 +127,7 @@ class ShiftSwapRequest(models.Model):
 
     @property
     def is_past_due(self) -> bool:
-        return timezone.now() > self.swap_start
+        return not self.is_taken and timezone.now() > self.swap_start
 
     @property
     def is_open(self) -> bool:

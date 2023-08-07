@@ -34,6 +34,7 @@ def test_test_escalation_fcm_message_user_settings(
     assert message.apns.payload.aps.badge is None
     assert message.apns.payload.aps.alert.title == get_test_push_title(critical=False)
     assert message.data["title"] == get_test_push_title(critical=False)
+    assert message.data["type"] == "oncall.message"
 
 
 @pytest.mark.django_db
@@ -67,6 +68,7 @@ def test_escalation_fcm_message_user_settings_critical(
     assert message.apns.payload.aps.badge is None
     assert message.apns.payload.aps.alert.title == get_test_push_title(critical=True)
     assert message.data["title"] == get_test_push_title(critical=True)
+    assert message.data["type"] == "oncall.critical_message"
 
 
 @pytest.mark.django_db
