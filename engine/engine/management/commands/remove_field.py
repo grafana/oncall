@@ -25,7 +25,10 @@ class Command(BaseCommand):
         # Check that the app, the model, and the field to be removed exist
         project_state = MigrationLoader(connection).project_state()
         model_state = project_state.apps.get_model(app_label, model_name)
-        model_state._meta.get_field(field_name)
+        field = model_state._meta.get_field(field_name)
+
+        # This command only works for nullable fields for now
+        assert field.null is True, "Field must be nullable"
 
         # Write migration that removes the field from the state
         remove_state_migration = self.write_operation(
