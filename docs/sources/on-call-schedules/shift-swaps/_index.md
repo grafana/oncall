@@ -31,7 +31,7 @@ consider creating a higher level layer rotation with the desired updates.
 [screenshot swap request button / config screen]
 
 Upon submitting the request, a Slack notification will be sent to the channel associated to the correspondent
-schedule, if there is one. Besides, people participating in the schedule will receive a mobile push notification
+schedule, if there is one. Besides, people participating in the schedule may receive a [mobile push notification][shift-swap-notifications]
 with the details.
 
 [screenshot slack/mobile notification]
@@ -62,3 +62,8 @@ Before taking a swap, you can review the involved shifts times.
 Once a swap is taken, the affected rotations and the final schedule will reflect the changes.
 
 [screenshot swap taken]
+
+{{% docs/reference %}}
+[shift-swap-notifications]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/mobile-app/push-notifications#shift-swap-notifications"
+[shift-swap-notifications]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/mobile-app/push-notifications#shift-swap-notifications"
+{{% /docs/reference %}}
