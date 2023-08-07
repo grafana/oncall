@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from apps.mobile_app import tasks
 from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
+from apps.mobile_app.types import MessageType, Platform
 from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.models.on_call_schedule import ScheduleEvent
 
@@ -217,9 +218,7 @@ def test_get_youre_going_oncall_fcm_message(
     data = {
         "title": mock_notification_title,
         "subtitle": mock_notification_subtitle,
-        "info_notification_sound_name": (
-            maus.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
+        "info_notification_sound_name": maus.get_notification_sound_name(MessageType.INFO, Platform.ANDROID),
         "info_notification_volume_type": maus.info_notification_volume_type,
         "info_notification_volume": str(maus.info_notification_volume),
         "info_notification_volume_override": json.dumps(maus.info_notification_volume_override),
@@ -233,7 +232,7 @@ def test_get_youre_going_oncall_fcm_message(
 
     mock_aps_alert.assert_called_once_with(title=mock_notification_title, subtitle=mock_notification_subtitle)
     mock_critical_sound.assert_called_once_with(
-        critical=False, name=maus.info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION
+        critical=False, name=maus.get_notification_sound_name(MessageType.INFO, Platform.IOS)
     )
     mock_aps.assert_called_once_with(
         thread_id=notification_thread_id,
@@ -249,7 +248,7 @@ def test_get_youre_going_oncall_fcm_message(
     mock_get_youre_going_oncall_notification_title.assert_called_once_with(seconds_until_going_oncall)
 
     mock_construct_fcm_message.assert_called_once_with(
-        tasks.MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
+        MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
     )
 
 
