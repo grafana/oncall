@@ -43,7 +43,9 @@ Upon submitting the request, a Slack notification will be sent to the channel as
 schedule, if there is one. Besides, people participating in the schedule may receive a [mobile push notification][shift-swap-notifications]
 with the details.
 
-[screenshot slack/mobile notification]
+<img src="/static/img/oncall/swap-slack-notification.png">
+
+[screenshot mobile notification]
 
 You can delete the swap request at any time. If the swap has been taken, it will automatically be undone upon removal.
 
