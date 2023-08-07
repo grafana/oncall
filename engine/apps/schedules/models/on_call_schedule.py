@@ -344,6 +344,7 @@ class OnCallSchedule(PolymorphicModel):
         with_gap: bool = False,
         filter_by: str | None = None,
         all_day_datetime: bool = False,
+        ignore_untaken_swaps: bool = False,
         from_cached_final: bool = False,
     ) -> ScheduleEvents:
         """Return filtered events from schedule."""
@@ -401,7 +402,9 @@ class OnCallSchedule(PolymorphicModel):
         events = self._merge_events(events)
 
         # annotate events with swap request details swapping users as needed
-        events = self._apply_swap_requests(events, datetime_start, datetime_end)
+        events = self._apply_swap_requests(
+            events, datetime_start, datetime_end, ignore_untaken_swaps=ignore_untaken_swaps
+        )
 
         return events
 
@@ -411,10 +414,16 @@ class OnCallSchedule(PolymorphicModel):
         datetime_end: datetime.datetime,
         with_empty: bool = True,
         with_gap: bool = True,
+        ignore_untaken_swaps: bool = False,
     ) -> ScheduleEvents:
         """Return schedule final events, after resolving shifts and overrides."""
         events = self.filter_events(
-            datetime_start, datetime_end, with_empty=with_empty, with_gap=with_gap, all_day_datetime=True
+            datetime_start,
+            datetime_end,
+            with_empty=with_empty,
+            with_gap=with_gap,
+            all_day_datetime=True,
+            ignore_untaken_swaps=ignore_untaken_swaps,
         )
         events = self._resolve_schedule(events, datetime_start, datetime_end)
         return events
@@ -442,7 +451,7 @@ class OnCallSchedule(PolymorphicModel):
 
         # setup calendar with final schedule shift events
         calendar = create_base_icalendar(self.name)
-        events = self.final_events(datetime_start, datetime_end)
+        events = self.final_events(datetime_start, datetime_end, ignore_untaken_swaps=True)
         updated_ids = set()
         for e in events:
             for u in e["users"]:
@@ -647,7 +656,11 @@ class OnCallSchedule(PolymorphicModel):
         }
 
     def _apply_swap_requests(
-        self, events: ScheduleEvents, datetime_start: datetime.datetime, datetime_end: datetime.datetime
+        self,
+        events: ScheduleEvents,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        ignore_untaken_swaps: bool = False,
     ) -> ScheduleEvents:
         """Apply swap requests details to schedule events."""
         # get swaps requests affecting this schedule / time range
@@ -663,8 +676,8 @@ class OnCallSchedule(PolymorphicModel):
 
         # apply swaps sequentially
         for swap in swaps:
-            if swap.is_past_due:
-                # ignore untaken expired requests
+            if swap.is_past_due or (ignore_untaken_swaps and not swap.is_taken):
+                # ignore expired requests, or untaken if specified
                 continue
             i = 0
             while i < len(events):
