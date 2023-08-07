@@ -192,16 +192,19 @@ jobs:
       # can be helpful for debugging these tests
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: oncall-engine logs
+        if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
           important-workloads: deploy/helm-testing-oncall-engine
 
       - name: oncall-celery logs
+        if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
           important-workloads: deploy/helm-testing-oncall-celery
 
       - name: grafana logs
+        if: always()
         uses: jupyterhub/action-k8s-namespace-report@v1
         with:
           important-workloads: deploy/helm-testing-grafana
