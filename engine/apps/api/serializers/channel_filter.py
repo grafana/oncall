@@ -1,3 +1,5 @@
+import typing
+
 from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
@@ -81,7 +83,7 @@ class ChannelFilterSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "id": obj.slack_channel_pk,
         }
 
-    def get_telegram_channel_details(self, obj) -> dict[str, any] | None:
+    def get_telegram_channel_details(self, obj) -> dict[str, typing.Any] | None:
         if obj.telegram_channel_id is None:
             return None
         try:

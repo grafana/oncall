@@ -117,9 +117,9 @@ def test_send_demo_alert(mocked_create_alert, make_organization, make_alert_rece
 @pytest.mark.parametrize(
     "integration",
     [
-        AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+        AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
         AlertReceiveChannel.INTEGRATION_GRAFANA,
-        AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
+        AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
     ],
 )
 @pytest.mark.parametrize(

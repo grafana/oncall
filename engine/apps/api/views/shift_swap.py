@@ -4,14 +4,16 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import ModelViewSet
 
-from apps.api.permissions import IsOwner, RBACPermission
-from apps.api.serializers.shift_swap import ShiftSwapRequestSerializer
+from apps.api.permissions import AuthenticatedRequest, IsOwner, RBACPermission
+from apps.api.serializers.shift_swap import ShiftSwapRequestListSerializer, ShiftSwapRequestSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.schedules import exceptions
 from apps.schedules.models import ShiftSwapRequest
+from apps.schedules.tasks.shift_swaps import create_shift_swap_request_message, update_shift_swap_request_message
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -20,7 +22,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 logger = logging.getLogger(__name__)
 
 
-class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
+class ShiftSwapViewSet(PublicPrimaryKeyMixin[ShiftSwapRequest], ModelViewSet):
     authentication_classes = (MobileAppAuthTokenAuthentication, PluginAuthentication)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -51,33 +53,46 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin, ModelViewSet):
     serializer_class = ShiftSwapRequestSerializer
     pagination_class = FiftyPageSizePaginator
 
+    def get_serializer_class(self):
+        return ShiftSwapRequestListSerializer if self.action == "list" else super().get_serializer_class()
+
     def get_queryset(self):
         queryset = ShiftSwapRequest.objects.filter(schedule__organization=self.request.auth.organization)
         return self.serializer_class.setup_eager_loading(queryset)
 
-    def perform_destroy(self, instance):
+    def perform_destroy(self, instance: ShiftSwapRequest) -> None:
+        # TODO: should we allow deleting a taken request?
+
         super().perform_destroy(instance)
         write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
 
-    def perform_create(self, serializer):
-        beneficiary = self.request.user
-        serializer.save(beneficiary=beneficiary)
-        write_resource_insight_log(instance=serializer.instance, author=beneficiary, event=EntityEvent.CREATED)
+        update_shift_swap_request_message.apply_async((instance.pk,))
 
-    def perform_update(self, serializer):
+    def perform_create(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
+        beneficiary = self.request.user
+        shift_swap_request = serializer.save(beneficiary=beneficiary)
+
+        write_resource_insight_log(instance=shift_swap_request, author=beneficiary, event=EntityEvent.CREATED)
+
+        create_shift_swap_request_message.apply_async((shift_swap_request.pk,))
+
+    def perform_update(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
         prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_serialized
+        shift_swap_request = serializer.instance
+
         write_resource_insight_log(
-            instance=serializer.instance,
+            instance=shift_swap_request,
             author=self.request.user,
             event=EntityEvent.UPDATED,
             prev_state=prev_state,
-            new_state=new_state,
+            new_state=shift_swap_request.insight_logs_serialized,
         )
 
+        update_shift_swap_request_message.apply_async((shift_swap_request.pk,))
+
     @action(methods=["post"], detail=True)
-    def take(self, request, pk) -> Response:
+    def take(self, request: AuthenticatedRequest, pk: str) -> Response:
         shift_swap = self.get_object()
 
         try:

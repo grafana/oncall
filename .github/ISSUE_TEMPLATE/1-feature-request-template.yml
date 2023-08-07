@@ -8,13 +8,16 @@ body:
       value: |
         Hi 👋, thanks for taking the time to request a new feature!
 
-        Please try to give your feature request a good title. Try using a brief description of what you'd like to see. Like this:
+        Please try to give your feature request a good title. Try using a brief description of what you'd like to see.
+        Like this:
         - `Add the ability to easily swap an OnCall shift with one of my teammates` or
         - `Within Slack, push a button and magically fix my alert`
   - type: markdown
     attributes:
-      value: |
-        **HINT:** Have you tried [searching](https://github.com/grafana/oncall/issues?q=is%3Aopen+is%3Aissue+label%3A%22feature+request%22) for similar feature requests? Duplicate requests are common.
+      value: >
+        **HINT:** Have you tried
+        [searching](https://github.com/grafana/oncall/issues?q=is%3Aopen+is%3Aissue+label%3A%22feature+request%22) for
+        similar feature requests? Duplicate requests are common.
   - type: textarea
     id: feature-describe
     attributes:

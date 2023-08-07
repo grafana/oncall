@@ -10,7 +10,9 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -32,20 +34,9 @@ steps:
       - yarn ci-package
       - cd ci/dist
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
-
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-    when:
-      ref:
-        - refs/tags/v*.*.*
+      # yamllint enable rule:line-length
 
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
@@ -62,7 +53,7 @@ steps:
         - refs/tags/v*.*.*
 
   - name: Lint Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
     commands:
@@ -72,13 +63,13 @@ steps:
       - pre-commit run flake8 --all-files
 
   - name: Unit Test Backend
-    image: python:3.11.3
+    image: python:3.11.4
     environment:
       RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
-      - apt-get update && apt-get install -y netcat
+      - apt-get update && apt-get install -y netcat-traditional
       - cd engine/
       - pip install -r requirements.txt -r requirements-dev.txt
       - ./wait_for_test_mysql_start.sh && pytest
@@ -93,7 +84,9 @@ steps:
       - chmod +x ./tools/image-tag.sh
       - echo $(./tools/image-tag.sh)
       - echo $(./tools/image-tag.sh) > .tags
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint enable rule:line-length
       - cat engine/settings/base.py | grep VERSION | head -1
     when:
       ref:
@@ -103,7 +96,8 @@ steps:
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker
     environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
       # https://github.com/docker/cli/issues/1134#issuecomment-406449342
       DOCKER_BUILDKIT: 1
     settings:
@@ -121,7 +115,8 @@ steps:
   - name: Build and Push Engine Docker Image Backend to Dockerhub
     image: plugins/docker
     environment:
-      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # force docker to use buildkit feature, this will skip build stages that aren't required in
+      # the final image (ie. dev & dev-enterprise)
       # https://github.com/docker/cli/issues/1134#issuecomment-406449342
       DOCKER_BUILDKIT: 1
     settings:
@@ -179,7 +174,9 @@ steps:
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq ".version=\"${DRONE_TAG#v}\"" package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      # yamllint enable rule:line-length
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
@@ -201,7 +198,9 @@ steps:
       - yarn ci-package
       - cd ci/dist
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
+      # yamllint enable rule:line-length
 
   - name: publish plugin to grafana.com (release)
     image: curlimages/curl:7.73.0
@@ -209,7 +208,9 @@ steps:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
     commands:
+      # yamllint disable rule:line-length
       - 'curl -f -s -H "Authorization: Bearer $${GRAFANA_API_KEY}" -d "download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip" -d "download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins'
+      # yamllint enable rule:line-length
     depends_on:
       - sign and package plugin
 
@@ -231,7 +232,9 @@ steps:
     image: alpine
     commands:
       - apk add --no-cache bash sed
+      # yamllint disable rule:line-length
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG#v}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      # yamllint enable rule:line-length
       - cat engine/settings/base.py | grep VERSION | head -1
 
   - name: build and push docker image
@@ -280,14 +283,6 @@ get:
   name: .dockerconfigjson
 
 ---
-# Secret for GitHub
-get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
-
----
 # Slack webhook
 get:
   name: slack-plugin
@@ -334,6 +329,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 1ca79af7b8ada54237e4fb78fffb9314babc00b3a8a4866ec454d32356bc067b
+hmac: 8b387638ef35f86ed9f8c8c964726e0ae703beb7d0f18e053b5041ab8ee9bed2
 
 ...

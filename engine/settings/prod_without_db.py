@@ -56,6 +56,9 @@ CELERY_TASK_ROUTES = {
     "apps.metrics_exporter.tasks.start_calculate_and_cache_metrics": {"queue": "default"},
     "apps.metrics_exporter.tasks.start_recalculation_for_new_metric": {"queue": "default"},
     "apps.metrics_exporter.tasks.save_organizations_ids_in_cache": {"queue": "default"},
+    "apps.mobile_app.tasks.notify_shift_swap_requests": {"queue": "default"},
+    "apps.mobile_app.tasks.notify_shift_swap_request": {"queue": "default"},
+    "apps.mobile_app.tasks.notify_user_about_shift_swap_request": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.refresh_ical_file": {"queue": "default"},
     "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_files": {"queue": "default"},
     "apps.schedules.tasks.notify_about_gaps_in_schedule.check_empty_shifts_in_schedule": {"queue": "default"},
@@ -74,6 +77,8 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.notify_about_empty_shifts_in_schedule.start_notify_about_empty_shifts_in_schedule": {
         "queue": "default"
     },
+    "apps.schedules.tasks.shift_swaps.slack_messages.post_shift_swap_request_creation_message": {"queue": "default"},
+    "apps.schedules.tasks.shift_swaps.slack_messages.update_shift_swap_request_message": {"queue": "default"},
     # CRITICAL
     "apps.alerts.tasks.acknowledge_reminder.acknowledge_reminder_task": {"queue": "critical"},
     "apps.alerts.tasks.acknowledge_reminder.unacknowledge_timeout_task": {"queue": "critical"},

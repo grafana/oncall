@@ -190,7 +190,7 @@ def test_get_schedule_score_weekdays(
     assert response.json() == {
         "total_score": 86,
         "comments": [
-            {"type": "warning", "text": "Schedule has gaps (29% not covered)"},
+            {"type": "warning", "text": "Schedule has gaps (28% not covered)"},
             {"type": "info", "text": "Schedule is perfectly balanced"},
         ],
         "overloaded_users": [],
@@ -351,7 +351,7 @@ def test_get_schedule_score_all_week_imbalanced_weekends(
             {
                 "id": user.public_primary_key,
                 "username": user.username,
-                "score": 29,
+                "score": 28,
             }
             for user in users[:4]
         ],

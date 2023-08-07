@@ -1,11 +1,12 @@
 import json
+import typing
 
 from apps.alerts.paging import DirectPagingAlertGroupResolvedError, check_user_availability, direct_paging, unpage_user
+from apps.slack.constants import DIVIDER
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.paging import (
     DIRECT_PAGING_SCHEDULE_SELECT_ID,
     DIRECT_PAGING_USER_SELECT_ID,
-    DIVIDER_BLOCK,
     _generate_input_id_prefix,
     _get_availability_warnings_view,
     _get_schedules_select,
@@ -13,6 +14,13 @@ from apps.slack.scenarios.paging import (
     _get_users_select,
 )
 from apps.slack.scenarios.step_mixins import AlertGroupActionsMixin
+from apps.slack.types import Block, BlockActionType, EventPayload, ModalView, PayloadType, ScenarioRoute
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup
+    from apps.schedules.models import OnCallSchedule
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
+    from apps.user_management.models import User
 
 MANAGE_RESPONDERS_USER_SELECT_ID = "responders_user_select"
 MANAGE_RESPONDERS_SCHEDULE_SELECT_ID = "responders_schedule_select"
@@ -26,7 +34,12 @@ ALERT_GROUP_DATA_KEY = "alert_group_pk"
 class StartManageResponders(AlertGroupActionsMixin, scenario_step.ScenarioStep):
     """Handle "Responders" button click."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = self.get_alert_group(slack_team_identity, payload)
         if not self.is_authorized(alert_group):
             self.open_unauthorized_warning(payload)
@@ -43,7 +56,12 @@ class StartManageResponders(AlertGroupActionsMixin, scenario_step.ScenarioStep):
 class ManageRespondersUserChange(scenario_step.ScenarioStep):
     """Handle user selection in responders modal."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
         organization = alert_group.channel.organization
@@ -89,7 +107,12 @@ class ManageRespondersUserChange(scenario_step.ScenarioStep):
 class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
     """Handle user confirmation on availability warnings modal."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
         organization = alert_group.channel.organization
@@ -117,7 +140,12 @@ class ManageRespondersConfirmUserChange(scenario_step.ScenarioStep):
 class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
     """Handle schedule selection in responders modal."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_schedule = _get_selected_schedule_from_payload(payload)
         organization = alert_group.channel.organization
@@ -145,7 +173,12 @@ class ManageRespondersScheduleChange(scenario_step.ScenarioStep):
 class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
     """Handle user removal in responders modal."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         alert_group = _get_alert_group_from_payload(payload)
         selected_user = _get_selected_user_from_payload(payload)
         from_user = slack_user_identity.get_user(alert_group.channel.organization)
@@ -163,34 +196,40 @@ class ManageRespondersRemoveUser(scenario_step.ScenarioStep):
 # slack view/blocks rendering helpers
 
 
-def render_dialog(alert_group, alert_group_resolved_warning=False):
-    blocks = []
+def render_dialog(alert_group: "AlertGroup", alert_group_resolved_warning=False) -> ModalView:
+    blocks: Block.AnyBlocks = []
 
     # Show list of users that are currently paged
     paged_users = alert_group.get_paged_users()
     for user in alert_group.get_paged_users():
         blocks += [
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": f":bust_in_silhouette: *{user.name or user.username}*"},
-                "accessory": {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Remove", "emoji": True},
-                    "action_id": ManageRespondersRemoveUser.routing_uid(),
-                    "value": str(user.pk),
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f":bust_in_silhouette: *{user.name or user.username}*"},
+                    "accessory": {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "Remove", "emoji": True},
+                        "action_id": ManageRespondersRemoveUser.routing_uid(),
+                        "value": str(user.pk),
+                    },
                 },
-            }
+            ),
         ]
     if paged_users:
-        blocks += [DIVIDER_BLOCK]
+        blocks += [DIVIDER]
 
     # Show a warning when trying to add responders for a resolved alert group
     if alert_group_resolved_warning:
         blocks += [
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": f":no_entry: {DirectPagingAlertGroupResolvedError.DETAIL}"},
-            }
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": f":no_entry: {DirectPagingAlertGroupResolvedError.DETAIL}"},
+                },
+            ),
         ]
 
     # Show user and schedule dropdowns
@@ -204,7 +243,7 @@ def render_dialog(alert_group, alert_group_resolved_warning=False):
         )
     ]
 
-    view = {
+    view: ModalView = {
         "type": "modal",
         "title": {
             "type": "plain_text",
@@ -216,7 +255,7 @@ def render_dialog(alert_group, alert_group_resolved_warning=False):
     return view
 
 
-def _get_selected_user_from_payload(payload):
+def _get_selected_user_from_payload(payload: EventPayload) -> "User":
     from apps.user_management.models import User
 
     try:
@@ -235,7 +274,7 @@ def _get_selected_user_from_payload(payload):
     return User.objects.get(pk=selected_user_id)
 
 
-def _get_selected_schedule_from_payload(payload):
+def _get_selected_schedule_from_payload(payload: EventPayload) -> "OnCallSchedule":
     from apps.schedules.models import OnCallSchedule
 
     input_id_prefix = json.loads(payload["view"]["private_metadata"])["input_id_prefix"]
@@ -246,40 +285,40 @@ def _get_selected_schedule_from_payload(payload):
     return OnCallSchedule.objects.get(pk=selected_schedule_id)
 
 
-def _get_alert_group_from_payload(payload):
+def _get_alert_group_from_payload(payload: EventPayload) -> "AlertGroup":
     from apps.alerts.models import AlertGroup
 
     alert_group_pk = json.loads(payload["view"]["private_metadata"])[ALERT_GROUP_DATA_KEY]
     return AlertGroup.objects.get(pk=alert_group_pk)
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": ManageRespondersUserChange.routing_uid(),
         "step": ManageRespondersUserChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_VIEW_SUBMISSION,
+        "payload_type": PayloadType.VIEW_SUBMISSION,
         "view_callback_id": ManageRespondersConfirmUserChange.routing_uid(),
         "step": ManageRespondersConfirmUserChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.STATIC_SELECT,
         "block_action_id": ManageRespondersScheduleChange.routing_uid(),
         "step": ManageRespondersScheduleChange,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": ManageRespondersRemoveUser.routing_uid(),
         "step": ManageRespondersRemoveUser,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
-        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "payload_type": PayloadType.BLOCK_ACTIONS,
+        "block_action_type": BlockActionType.BUTTON,
         "block_action_id": StartManageResponders.routing_uid(),
         "step": StartManageResponders,
     },

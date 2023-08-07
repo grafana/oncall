@@ -1,4 +1,5 @@
 import { OrgRole } from '@grafana/data';
+import { locationService } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
@@ -20,7 +21,6 @@ import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
 import { OrganizationStore } from 'models/organization/organization';
 import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
-import { OutgoingWebhook2Store } from 'models/outgoing_webhook_2/outgoing_webhook_2';
 import { ResolutionNotesStore } from 'models/resolution_note/resolution_note';
 import { ScheduleStore } from 'models/schedule/schedule';
 import { SlackStore } from 'models/slack/slack';
@@ -32,7 +32,13 @@ import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { APP_VERSION, CLOUD_VERSION_REGEX, GRAFANA_LICENSE_CLOUD, GRAFANA_LICENSE_OSS } from 'utils/consts';
+import {
+  APP_VERSION,
+  CLOUD_VERSION_REGEX,
+  GRAFANA_LICENSE_CLOUD,
+  GRAFANA_LICENSE_OSS,
+  PLUGIN_ROOT,
+} from 'utils/consts';
 import FaroHelper from 'utils/faro';
 
 // ------ Dashboard ------ //
@@ -77,15 +83,12 @@ export class RootBaseStore {
   onCallApiUrl: string;
 
   // --------------------------
-
   userStore = new UserStore(this);
   cloudStore = new CloudStore(this);
   directPagingStore = new DirectPagingStore(this);
   grafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore = new OutgoingWebhookStore(this);
-
-  outgoingWebhook2Store = new OutgoingWebhook2Store(this);
   alertReceiveChannelFiltersStore = new AlertReceiveChannelFiltersStore(this);
   escalationChainStore = new EscalationChainStore(this);
   escalationPolicyStore = new EscalationPolicyStore(this);
@@ -101,6 +104,7 @@ export class RootBaseStore {
   apiTokenStore = new ApiTokenStore(this);
   globalSettingStore = new GlobalSettingStore(this);
   filtersStore = new FiltersStore(this);
+
   // stores
 
   async updateBasicData() {
@@ -199,7 +203,7 @@ export class RootBaseStore {
            * therefore there is no need to trigger an additional/separate sync, nor poll a status
            */
           await PluginState.installPlugin();
-          this.updateBasicData();
+          locationService.push(PLUGIN_ROOT);
         } catch (e) {
           return this.setupPluginError(
             PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install')
@@ -224,6 +228,7 @@ export class RootBaseStore {
       this.backendLicense = pluginConnectionStatus.license;
       this.recaptchaSiteKey = pluginConnectionStatus.recaptcha_site_key;
     }
+
     if (!this.userStore.currentUser) {
       try {
         await this.userStore.loadCurrentUser();

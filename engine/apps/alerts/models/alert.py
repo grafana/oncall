@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import typing
 from uuid import uuid4
 
 from django.conf import settings
@@ -7,12 +8,17 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField
 
+from apps.alerts import tasks
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
-from apps.alerts.tasks import distribute_alert, send_alert_group_signal
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+if typing.TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from apps.alerts.models import AlertGroup
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -33,6 +39,9 @@ def generate_public_primary_key_for_alert():
 
 
 class Alert(models.Model):
+    group: typing.Optional["AlertGroup"]
+    resolved_alert_groups: "RelatedManager['AlertGroup']"
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
@@ -130,9 +139,9 @@ class Alert(models.Model):
             group.save(update_fields=["resolved_by_alert"])
 
         if settings.DEBUG:
-            distribute_alert(alert.pk)
+            tasks.distribute_alert(alert.pk)
         else:
-            distribute_alert.apply_async((alert.pk,), countdown=TASK_DELAY_SECONDS)
+            tasks.distribute_alert.apply_async((alert.pk,), countdown=TASK_DELAY_SECONDS)
 
         if group_created:
             # all code below related to maintenance mode
@@ -154,7 +163,7 @@ class Alert(models.Model):
                         f"log record {log_record_for_root_incident.pk} with type "
                         f"'{log_record_for_root_incident.get_type_display()}'"
                     )
-                    send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
+                    tasks.send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
                 except AlertGroup.DoesNotExist:
                     pass
 

@@ -1,10 +1,21 @@
+import typing
+
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.types import EventPayload, EventType, PayloadType, ScenarioRoute
+
+if typing.TYPE_CHECKING:
+    from apps.slack.models import SlackTeamIdentity, SlackUserIdentity
 
 
 class SlackUserGroupEventStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: creation user groups or changes in user groups except its members.
         """
@@ -30,7 +41,12 @@ class SlackUserGroupEventStep(scenario_step.ScenarioStep):
 
 
 class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
+    def process_scenario(
+        self,
+        slack_user_identity: "SlackUserIdentity",
+        slack_team_identity: "SlackTeamIdentity",
+        payload: EventPayload,
+    ) -> None:
         """
         Triggered by action: changed members in user group.
         """
@@ -54,20 +70,20 @@ class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
             user_group.save(update_fields=["members"])
 
 
-STEPS_ROUTING = [
+STEPS_ROUTING: ScenarioRoute.RoutingSteps = [
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_SUBTEAM_CREATED,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.SUBTEAM_CREATED,
         "step": SlackUserGroupEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_SUBTEAM_UPDATED,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.SUBTEAM_UPDATED,
         "step": SlackUserGroupEventStep,
     },
     {
-        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
-        "event_type": scenario_step.EVENT_TYPE_SUBTEAM_MEMBERS_CHANGED,
+        "payload_type": PayloadType.EVENT_CALLBACK,
+        "event_type": EventType.SUBTEAM_MEMBERS_CHANGED,
         "step": SlackUserGroupMembersChangedEventStep,
     },
 ]

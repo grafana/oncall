@@ -7,15 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Shift Swap Requests Web UI ([#2593](https://github.com/grafana/oncall/issues/2593))
+- Final schedule shifts should lay in one line ([#1665](https://github.com/grafana/oncall/issues/1665))
+- Add backend support for push notification sounds with custom extensions by @vadimkerr ([#2759](https://github.com/grafana/oncall/pull/2759))
+
+### Changed
+
+- Add stack slug to organization options for direct paging Slash command by @vadimkerr ([#2743](https://github.com/grafana/oncall/pull/2743))
+- Avoid creating (or notifying about) potential event splits resulting from untaken swap requests ([#2748](https://github.com/grafana/oncall/pull/2748))
+
+### Fixed
+
+- Do not show override shortcut when web overrides are disabled ([#2745](https://github.com/grafana/oncall/pull/2745))
+- Handle ical schedule import with duplicated event UIDs ([#2760](https://github.com/grafana/oncall/pull/2760))
+
+## v1.3.22 (2023-08-03)
+
+### Added
+
+- Add mobile app push notifications for shift swap requests by @vadimkerr ([#2717](https://github.com/grafana/oncall/pull/2717))
+
+### Changed
+
+- Skip past due swap requests when calculating events ([2718](https://github.com/grafana/oncall/pull/2718))
+- Update schedule slack notifications to use schedule final events by @Ferril ([#2710](https://github.com/grafana/oncall/pull/2710))
+
+### Fixed
+
+- Fix schedule final_events datetime filtering when splitting override ([#2715](https://github.com/grafana/oncall/pull/2715))
+- Fix swap requests event filter limits in schedule events ([#2716](https://github.com/grafana/oncall/pull/2716))
+- Fix Alerting contact point auto-creation ([2721](https://github.com/grafana/oncall/pull/2721))
+
+## v1.3.21 (2023-08-01)
+
+### Added
+
+- [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
+  – Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
+
+## v1.3.20 (2023-07-31)
+
+### Added
+
+- Add filter_shift_swaps endpoint to schedules API ([#2684](https://github.com/grafana/oncall/pull/2684))
+- Add shifts endpoint to shift swap API ([#2697](https://github.com/grafana/oncall/pull/2697/))
+
+### Fixed
+
+- Fix helm env variable validation logic when specifying Twilio auth related values by @njohnstone2 ([#2674](https://github.com/grafana/oncall/pull/2674))
+- Fixed mobile app verification not sending SMS to phone number ([#2687](https://github.com/grafana/oncall/issues/2687))
+
+## v1.3.19 (2023-07-28)
+
+### Fixed
+
+- Fix one of the latest migrations failing on SQLite by @vadimkerr ([#2680](https://github.com/grafana/oncall/pull/2680))
+
+### Added
+
+- Apply swap requests details to schedule events ([#2677](https://github.com/grafana/oncall/pull/2677))
+
+## v1.3.18 (2023-07-28)
+
 ### Changed
 
 - Update the direct paging feature to page for acknowledged & silenced alert groups,
   and show a warning for resolved alert groups by @vadimkerr ([#2639](https://github.com/grafana/oncall/pull/2639))
+- Change calls to get instances from GCOM to paginate by @mderynck ([#2669](https://github.com/grafana/oncall/pull/2669))
+- Update checking on-call users to use schedule final events ([#2651](https://github.com/grafana/oncall/pull/2651))
 
 ### Fixed
 
 - Remove checks delaying plugin load and cause "Initializing plugin..." ([2624](https://github.com/grafana/oncall/pull/2624))
 - Fix "Continue escalation if >X alerts per Y minutes" escalation step by @vadimkerr ([#2636](https://github.com/grafana/oncall/pull/2636))
+- Post to Telegram ChatOps channel option is not showing in the integrations page
+  by @alexintech ([#2498](https://github.com/grafana/oncall/pull/2498))
 
 ## v1.3.17 (2023-07-25)
 

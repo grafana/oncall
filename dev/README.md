@@ -7,7 +7,7 @@
   - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
-- [UI Integration Tests](#ui-integration-tests)
+- [UI E2E Tests](#ui-e2e-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -35,7 +35,7 @@ environment variable.
    **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose
    v2. For instructions on how to enable this (if you haven't already done so),
    see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/). Ensure you have Docker Compose
-   version 2.10 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
+   version 2.20.2 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
 2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
@@ -189,7 +189,7 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
-## UI Integration Tests
+## UI E2E Tests
 
 We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
 are run on pull request CI builds. New features should ideally include a new/modified integration test.
@@ -198,10 +198,10 @@ To run these tests locally simply do the following:
 
 ```bash
 npx playwright install  # install playwright dependencies
-cp ./grafana-plugin/integration-tests/.env.example ./grafana-plugin/integration-tests/.env
+cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
 cd grafana-plugin
-yarn test:integration
+yarn test:e2e
 ```
 
 ## Useful `make` commands

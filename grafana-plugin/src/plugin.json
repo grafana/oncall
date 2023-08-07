@@ -339,6 +339,7 @@
           { "action": "grafana-oncall-app.chatops:read" },
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
           { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.notifications:read" },
           { "action": "grafana-oncall-app.notification-settings:read" },
           { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.other-settings:read" }

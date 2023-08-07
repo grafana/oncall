@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import classnames from 'classnames';
 import dayjs from 'dayjs';
@@ -28,7 +28,6 @@ import Integration from 'pages/integration/Integration';
 import Integrations from 'pages/integrations/Integrations';
 import Maintenance from 'pages/maintenance/Maintenance';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
-import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
 import Schedule from 'pages/schedule/Schedule';
 import Schedules from 'pages/schedules/Schedules';
 import SettingsPage from 'pages/settings/SettingsPage';
@@ -37,10 +36,8 @@ import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import Users from 'pages/users/Users';
 import { rootStore } from 'state';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
-import loadJs from 'utils/loadJs';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -73,6 +70,8 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => {
 export const Root = observer((props: AppRootProps) => {
   const store = useStore();
 
+  const [basicDataLoaded, setBasicDataLoaded] = useState(false);
+
   useEffect(() => {
     updateBasicData();
   }, []);
@@ -97,12 +96,9 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  useEffect(() => {
-    loadJs(`https://www.google.com/recaptcha/api.js?render=${rootStore.recaptchaSiteKey}`);
-  }, []);
-
   const updateBasicData = async () => {
     await store.updateBasicData();
+    setBasicDataLoaded(true);
   };
 
   const location = useLocation();
@@ -153,14 +149,10 @@ export const Root = observer((props: AppRootProps) => {
               <Schedules query={query} />
             </Route>
             <Route path={getRoutesForPage('schedule')} exact>
-              <Schedule query={query} />
+              <Schedule query={query} basicDataLoaded={basicDataLoaded} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-              {rootStore.hasFeature(AppFeature.Webhooks2) ? (
-                <OutgoingWebhooks2 query={query} />
-              ) : (
-                <OutgoingWebhooks query={query} />
-              )}
+              <OutgoingWebhooks query={query} />
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
               <Maintenance />

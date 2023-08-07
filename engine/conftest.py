@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import sys
@@ -9,6 +10,7 @@ import pytest
 from celery import Task
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
+from django.utils import timezone
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 from telegram import Bot
@@ -59,6 +61,7 @@ from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToke
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
 from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
+from apps.schedules.models import OnCallScheduleWeb
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
@@ -147,7 +150,7 @@ def mock_slack_api_call(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_telegram_bot_username(monkeypatch):
     def mock_username(*args, **kwargs):
-        return "amixr_bot"
+        return "oncall_bot"
 
     monkeypatch.setattr(Bot, "username", mock_username)
 
@@ -391,8 +394,8 @@ def make_slack_user_identity():
 
 @pytest.fixture
 def make_slack_message():
-    def _make_slack_message(alert_group, **kwargs):
-        organization = alert_group.channel.organization
+    def _make_slack_message(alert_group=None, organization=None, **kwargs):
+        organization = organization or alert_group.channel.organization
         slack_message = SlackMessageFactory(
             alert_group=alert_group,
             organization=organization,
@@ -885,3 +888,22 @@ def make_shift_swap_request():
         return ShiftSwapRequestFactory(schedule=schedule, beneficiary=beneficiary, **kwargs)
 
     return _make_shift_swap_request
+
+
+@pytest.fixture
+def shift_swap_request_setup(
+    make_schedule, make_organization_and_user, make_user_for_organization, make_shift_swap_request
+):
+    def _shift_swap_request_setup(**kwargs):
+        organization, beneficiary = make_organization_and_user()
+        benefactor = make_user_for_organization(organization)
+
+        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+        tomorrow = timezone.now() + datetime.timedelta(days=1)
+        two_days_from_now = tomorrow + datetime.timedelta(days=1)
+
+        ssr = make_shift_swap_request(schedule, beneficiary, swap_start=tomorrow, swap_end=two_days_from_now, **kwargs)
+
+        return ssr, beneficiary, benefactor
+
+    return _shift_swap_request_setup

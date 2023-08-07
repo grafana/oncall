@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
@@ -66,9 +65,7 @@ router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_h
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
-
-if settings.FEATURE_SHIFT_SWAPS_ENABLED:
-    router.register(r"shift_swaps", ShiftSwapViewSet, basename="shift_swap")
+router.register(r"shift_swaps", ShiftSwapViewSet, basename="shift_swap")
 
 urlpatterns = [
     path("", include(router.urls)),

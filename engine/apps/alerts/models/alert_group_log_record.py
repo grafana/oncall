@@ -1,5 +1,6 @@
 import json
 import logging
+import typing
 
 import humanize
 from django.db import models
@@ -8,16 +9,28 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.fields import DateTimeField
 
-from apps.alerts.tasks import send_update_log_report_signal
+from apps.alerts import tasks
 from apps.alerts.utils import render_relative_timeline
 from apps.slack.slack_formatter import SlackFormatter
 from common.utils import clean_markup
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroup, CustomButton, EscalationPolicy, Invitation
+    from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 class AlertGroupLogRecord(models.Model):
+    alert_group: "AlertGroup"
+    author: typing.Optional["User"]
+    custom_button: typing.Optional["CustomButton"]
+    dependent_alert_group: typing.Optional["AlertGroup"]
+    escalation_policy: typing.Optional["EscalationPolicy"]
+    invitation: typing.Optional["Invitation"]
+    root_alert_group: typing.Optional["AlertGroup"]
+
     (
         TYPE_ACK,
         TYPE_UN_ACK,
@@ -574,4 +587,4 @@ def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
             f"send_update_log_report_signal for alert_group {alert_group_pk}, "
             f"alert group event: {instance.get_type_display()}"
         )
-        send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)
+        tasks.send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)

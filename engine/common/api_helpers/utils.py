@@ -161,3 +161,7 @@ def get_date_range_from_request(request: Request) -> typing.Tuple[str, datetime.
 
 def check_phone_number_is_valid(phone_number):
     return re.match(r"^\+\d{8,15}$", phone_number) is not None
+
+
+def serialize_datetime_as_utc_timestamp(dt: datetime.datetime) -> str:
+    return dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")

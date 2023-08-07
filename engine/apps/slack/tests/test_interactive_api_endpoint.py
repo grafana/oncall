@@ -8,7 +8,7 @@ from rest_framework.test import APIClient
 
 from apps.slack.scenarios.manage_responders import ManageRespondersUserChange
 from apps.slack.scenarios.paging import OnPagingTeamChange
-from apps.slack.scenarios.scenario_step import PAYLOAD_TYPE_BLOCK_ACTIONS
+from apps.slack.types import PayloadType
 
 EVENT_TRIGGER_ID = "5333959822612.4122782784722.4734ff484b2ac4d36a185bb242ee9932"
 WARNING_TEXT = (
@@ -74,7 +74,7 @@ def test_organization_not_found_scenario_properly_handled(
     ]
 
     event_payload = {
-        "type": PAYLOAD_TYPE_BLOCK_ACTIONS,
+        "type": PayloadType.BLOCK_ACTIONS,
         "trigger_id": EVENT_TRIGGER_ID,
         "user": {
             "id": SLACK_USER_ID,
