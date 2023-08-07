@@ -2477,3 +2477,22 @@ def test_swap_request_no_changes(
 
     events_after = schedule.filter_events(today, today + timezone.timedelta(days=2))
     assert events_before == events_after
+
+
+@pytest.mark.django_db
+def test_filter_events_ical_duplicated_uid(make_organization, make_user_for_organization, make_schedule, get_ical):
+    calendar = get_ical("modified_recurring_event.ics")
+    organization = make_organization()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    schedule.cached_ical_file_primary = calendar.to_ical()
+    make_user_for_organization(organization, username="user")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    datetime_start = datetime.datetime(2023, 7, 17, 0, 0, tzinfo=pytz.UTC)
+    datetime_end = datetime_start + datetime.timedelta(days=7)
+    events = schedule.final_events(datetime_start, datetime_end)
+
+    assert len(events) == 2
+    assert events[0]["shift"]["pk"] == "eventuid@google.com_1"
+    assert events[1]["shift"]["pk"] == "eventuid@google.com_2_1970-01-01T01:00:00+01:00"
