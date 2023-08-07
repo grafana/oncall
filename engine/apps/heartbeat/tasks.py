@@ -25,15 +25,15 @@ def check_heartbeats() -> None:
     # * received at least one checkup (last_heartbeat_time set to non-null value)\
 
     def _get_timeout_expression() -> ExpressionWrapper:
-        # TODO: consider migrate timeout_seconds from IntegerField to DurationField
-        if settings.DATABASES["default"]["ENGINE"] == f"django.db.backends.{DatabaseTypes.SQLITE3}":
-            # Current Django version (3.2) does not support DurationField multiplying on SQLite
-            # https://github.com/django/django/commit/54e94640ace261b14cf8cdb1fae3dc6f068a5f87
-            # Convert integer `timeout_seconds` to datetime.timedelta `timeout`
-            # microseconds = seconds * 10**6
-            return ExpressionWrapper(F("timeout_seconds") * 10**6, output_field=DurationField())
-        else:
+        if settings.DATABASES["default"]["ENGINE"] == f"django.db.backends.{DatabaseTypes.POSTGRESQL}":
+            # DurationField: When used on PostgreSQL, the data type used is an interval
+            # https://docs.djangoproject.com/en/3.2/ref/models/fields/#durationfield
             return ExpressionWrapper(datetime.timedelta(seconds=1) * F("timeout_seconds"), output_field=DurationField())
+        else:
+            # DurationField: ...Otherwise a bigint of microseconds is used...
+            # microseconds = seconds * 10**6
+            # https://docs.djangoproject.com/en/3.2/ref/models/fields/#durationfield
+            return ExpressionWrapper(F("timeout_seconds") * 10**6, output_field=DurationField())
 
     enabled_heartbeats = (
         IntegrationHeartBeat.objects.filter(last_heartbeat_time__isnull=False)
