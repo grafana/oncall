@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.mobile_app import tasks
 from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
-from apps.mobile_app.tasks import MessageType, Platform
+from apps.mobile_app.types import MessageType, Platform
 from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.models.on_call_schedule import ScheduleEvent
 
@@ -248,7 +248,7 @@ def test_get_youre_going_oncall_fcm_message(
     mock_get_youre_going_oncall_notification_title.assert_called_once_with(seconds_until_going_oncall)
 
     mock_construct_fcm_message.assert_called_once_with(
-        tasks.MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
+        MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
     )
 
 

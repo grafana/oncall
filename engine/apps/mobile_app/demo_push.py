@@ -6,14 +6,8 @@ import typing
 from firebase_admin.messaging import APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.mobile_app.exceptions import DeviceNotSet
-from apps.mobile_app.tasks import (
-    FCMMessageData,
-    MessageType,
-    Platform,
-    _construct_fcm_message,
-    _send_push_notification,
-    logger,
-)
+from apps.mobile_app.tasks import _construct_fcm_message, _send_push_notification, logger
+from apps.mobile_app.types import FCMMessageData, MessageType, Platform
 from apps.user_management.models import User
 
 if typing.TYPE_CHECKING:

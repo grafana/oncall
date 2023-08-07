@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.mobile_app.models import MobileAppUserSettings
-from apps.mobile_app.tasks import MessageType, Platform
+from apps.mobile_app.types import MessageType, Platform
 
 
 @pytest.mark.django_db

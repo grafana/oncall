@@ -10,7 +10,7 @@ from fcm_django.models import FCMDevice as BaseFCMDevice
 
 from apps.auth_token import constants, crypto
 from apps.auth_token.models import BaseAuthToken
-from apps.mobile_app.tasks import MessageType, Platform
+from apps.mobile_app.types import MessageType, Platform
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, User

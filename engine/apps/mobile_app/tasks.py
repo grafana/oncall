@@ -3,7 +3,6 @@ import json
 import logging
 import math
 import typing
-from enum import StrEnum
 
 import humanize
 import pytz
@@ -20,6 +19,7 @@ from rest_framework import status
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
 from apps.mobile_app.alert_rendering import get_push_notification_subtitle
+from apps.mobile_app.types import FCMMessageData, MessageType, Platform
 from apps.schedules.models import ShiftSwapRequest
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
@@ -34,23 +34,6 @@ if typing.TYPE_CHECKING:
 MAX_RETRIES = 1 if settings.DEBUG else 10
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
-
-
-class MessageType(StrEnum):
-    DEFAULT = "oncall.message"
-    IMPORTANT = "oncall.critical_message"
-    INFO = "oncall.info"
-
-
-class Platform(StrEnum):
-    ANDROID = "android"
-    IOS = "ios"
-
-
-class FCMMessageData(typing.TypedDict):
-    title: str
-    subtitle: typing.Optional[str]
-    body: typing.Optional[str]
 
 
 def send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
