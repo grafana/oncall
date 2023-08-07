@@ -9,7 +9,6 @@ from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 from apps.mobile_app.tasks import (
     SSR_EARLIEST_NOTIFICATION_OFFSET,
     SSR_NOTIFICATION_WINDOW,
-    MessageType,
     _get_shift_swap_requests_to_notify,
     _has_user_been_notified_for_shift_swap_request,
     _mark_shift_swap_request_notified_for_user,
@@ -261,7 +260,7 @@ def test_notify_user_about_shift_swap_request(make_organization, make_user, make
     assert mock_send_push_notification.call_args.args[0] == device_to_notify
 
     message: Message = mock_send_push_notification.call_args.args[1]
-    assert message.data["type"] == MessageType.INFO
+    assert message.data["type"] == "oncall.info"
     assert message.data["title"] == "New shift swap request"
     assert message.data["subtitle"] == "John Doe, Test Schedule"
     assert (

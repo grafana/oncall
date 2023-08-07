@@ -10,6 +10,7 @@ from fcm_django.models import FCMDevice as BaseFCMDevice
 
 from apps.auth_token import constants, crypto
 from apps.auth_token.models import BaseAuthToken
+from apps.mobile_app.types import MessageType, Platform
 
 if typing.TYPE_CHECKING:
     from apps.user_management.models import Organization, User
@@ -175,3 +176,22 @@ class MobileAppUserSettings(models.Model):
 
     locale = models.CharField(max_length=50, null=True)
     time_zone = models.CharField(max_length=100, default="UTC")
+
+    def get_notification_sound_name(self, message_type: MessageType, platform: Platform) -> str:
+        sound_name = {
+            MessageType.DEFAULT: self.default_notification_sound_name,
+            MessageType.IMPORTANT: self.important_notification_sound_name,
+            MessageType.INFO: self.info_notification_sound_name,
+        }[message_type]
+
+        # If sound name already contains an extension, return it as is
+        if "." in sound_name:
+            return sound_name
+
+        # Add appropriate extension based on platform, for cases when no extension is specified in the sound name
+        extension = {
+            Platform.IOS: self.IOS_SOUND_NAME_EXTENSION,
+            Platform.ANDROID: self.ANDROID_SOUND_NAME_EXTENSION,
+        }[platform]
+
+        return f"{sound_name}{extension}"
