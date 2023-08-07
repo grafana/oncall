@@ -725,10 +725,10 @@ class GrafanaAlertingSyncManager:
                         break
         else:  # other Alertmanagers
             for receiver in alerting_receivers:
-                config_types = ["webhook_configs", "oncall_configs"]  # todo: check oncall_configs after mimir updates?
-                contact_point_found = False
+                config_types = ["webhook_configs", "oncall_configs"]  # todo: check oncall_configs after mimir updates
+                contact_point_connected = False
                 for config_type in config_types:
-                    if contact_point_found:
+                    if contact_point_connected:
                         break
                     for receiver_config in receiver.get(config_type, []):
                         if receiver_config["url"] == self.integration_url:
@@ -742,7 +742,7 @@ class GrafanaAlertingSyncManager:
                                     ),
                                 }
                             )
-                            contact_point_found = True
+                            contact_point_connected = True
                             break
 
         return contact_points
@@ -759,7 +759,7 @@ class GrafanaAlertingSyncManager:
                     return True
         return False
 
-    def connect_contact_point(self, datasource_uid, contact_point_name):
+    def connect_contact_point(self, datasource_uid, contact_point_name, create_new=False):
         is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
         config, response_info = self.client.get_alerting_config(datasource_uid)
         if config is None:
@@ -779,10 +779,15 @@ class GrafanaAlertingSyncManager:
         oncall_config, config_field = self._get_oncall_config_and_config_field_for_datasource_type(
             contact_point_name, is_grafana_datasource
         )
-        for receiver in alerting_receivers:
-            if receiver["name"] == contact_point_name:
-                receiver.setdefault(config_field, []).append(oncall_config)
-                break
+        if create_new:
+            if contact_point_name in [receiver["name"] for receiver in alerting_receivers]:
+                return
+            alerting_receivers.append({"name": contact_point_name, config_field: [oncall_config]})
+        else:
+            for receiver in alerting_receivers:
+                if receiver["name"] == contact_point_name:
+                    receiver.setdefault(config_field, []).append(oncall_config)
+                    break
 
         response, response_info = self.client.update_alerting_config(datasource_uid, updated_config)
         if response is None:
@@ -821,8 +826,78 @@ class GrafanaAlertingSyncManager:
             config_field = "webhook_configs"
         return oncall_config, config_field
 
-    def create_contact_point(self, datasource_uid):
-        pass  # todo
+    def disconnect_contact_point(self, datasource_uid, contact_point_name):
+        is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
+        config, response_info = self.client.get_alerting_config(datasource_uid)
+        if config is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
+                f"for is_grafana_datasource {is_grafana_datasource} "
+                f"for integration {self.alert_receive_channel.pk}; response: {response_info}"
+            )
+            return
+        updated_config = copy.deepcopy(config)
+        alertmanager_config = updated_config.get("alertmanager_config")
+        if not alertmanager_config:
+            return
+        _, contact_point_found = self._remove_oncall_config_from_contact_point(
+            contact_point_name, is_grafana_datasource, alertmanager_config
+        )
+        if not contact_point_found:
+            return
+        response, response_info = self.client.update_alerting_config(datasource_uid, updated_config)
+        if response is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Failed to update contact point for integration "
+                f"{self.alert_receive_channel.pk} (POST). Response: {response_info}"
+            )
+            if response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
+                logger.warning(f"GrafanaAlertingSyncManager: Config: {config}, Updated config: {updated_config}")
+        if response_info["status_code"] not in (
+            status.HTTP_200_OK,
+            status.HTTP_201_CREATED,
+            status.HTTP_202_ACCEPTED,
+        ):
+            return
+        return True
 
-    def disconnect_contact_point(self, datasource_uid):
-        pass  # todo
+    def _remove_oncall_config_from_contact_point(self, contact_point_name, is_grafana_datasource, alertmanager_config):
+        alerting_receivers = alertmanager_config.get("receivers", [])
+        contact_point_found = False
+        if is_grafana_datasource:
+            for receiver in alerting_receivers:
+                if receiver["name"] == contact_point_name:
+                    receiver_configs = receiver.get("grafana_managed_receiver_configs")
+                    if not receiver_configs:
+                        break
+                    updated_receiver_configs = []
+                    for receiver_config in receiver_configs:
+                        if not (
+                            receiver_config["type"] in ["webhook", "oncall"]
+                            and receiver_config.get("settings", {}).get("url") == self.integration_url
+                        ):
+                            updated_receiver_configs.append(receiver_config)
+                    receiver["grafana_managed_receiver_configs"] = updated_receiver_configs
+                    contact_point_found = True
+                elif contact_point_found:
+                    break
+        else:
+            config_types = ["webhook_configs", "oncall_configs"]  # todo: check oncall_configs after mimir updates
+            for receiver in alerting_receivers:
+                if receiver["name"] == contact_point_name:
+                    for config_type in config_types:
+                        receiver_configs = receiver.get(config_types, [])
+                        if not receiver_configs:
+                            continue
+                        updated_receiver_configs = []
+                        for receiver_config in receiver_configs:
+                            if not receiver_config.get("url") == self.integration_url:
+                                updated_receiver_configs.append(receiver_config)
+                        if updated_receiver_configs:
+                            receiver[config_type] = updated_receiver_configs
+                        else:
+                            del receiver[config_type]
+                    contact_point_found = True
+                elif contact_point_found:
+                    break
+        return alertmanager_config, contact_point_found
