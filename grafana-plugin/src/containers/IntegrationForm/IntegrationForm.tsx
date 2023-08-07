@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useEffect } from 'react';
+import React, { useState, ChangeEvent, useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import {
@@ -77,8 +77,9 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
       )
     : [];
 
-  let extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
-  if (selectedOption?.value === 'grafana_alerting') {
+  const extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
+  const isGrafanaAlerting = selectedOption?.value === 'grafana_alerting';
+  if (isGrafanaAlerting) {
     extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
   }
 
@@ -145,19 +146,33 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     </>
   );
 
-  function handleSubmit(data: Partial<AlertReceiveChannel>) {
-    (id === 'new'
-      ? alertReceiveChannelStore
-          .create(data)
-          .then((response) => {
-            history.push(`${PLUGIN_ROOT}/integrations/${response.id}`);
-          })
-          .catch(onCatch)
-      : alertReceiveChannelStore.update(id, data)
-    ).then(() => {
+  function handleSubmit(data) {
+    (id === 'new' ? createNewIntegration() : alertReceiveChannelStore.update(id, data)).then(() => {
       onHide();
       onUpdate();
     });
+
+    function createNewIntegration(): Promise<void> {
+      let promise = alertReceiveChannelStore.create(data);
+
+      const pushHistory = (id) => history.push(`${PLUGIN_ROOT}/integrations/${id}`);
+
+      promise
+        .then((response) => {
+          if (!isGrafanaAlerting) return pushHistory(response.id);
+
+          return (
+            data.is_existing
+              ? alertReceiveChannelStore.connectContactPoint(response.id, data.alert_manager, data.contact_point)
+              : alertReceiveChannelStore.createContactPoint(response.id)
+          )
+            .then(() => pushHistory(response.id))
+            .catch(onCatch);
+        })
+        .catch(onCatch);
+
+      return promise;
+    }
 
     function onCatch(err: any) {
       if (err.response?.data?.length > 0) {
@@ -186,7 +201,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 export interface CustomFieldSectionRendererProps {
   control: any;
   formItem: FormItem;
-  setValue: (fieldName: string, fieldValue: string) => void;
+  setValue: (fieldName: string, fieldValue: any) => void;
 }
 
 export interface ContactPointsResult {
@@ -195,8 +210,22 @@ export interface ContactPointsResult {
   contact_points: string[];
 }
 
-const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({ control, formItem, setValue }) => {
-  console.log({ control, formItem, setValue });
+interface CustomFieldSectionRendererState {
+  isExistingContactPoint: boolean;
+  selectedAlertManagerOption: string;
+  selectedContactPointOption: string;
+
+  dataSources: { label: string; value: string }[];
+  contactPoints: { label: string; value: string }[];
+  response: ContactPointsResult[];
+}
+
+const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
+  control: _control,
+  formItem: _formItem,
+  setValue,
+}) => {
+  // console.log({ control, formItem, setValue });
 
   const radioOptions = [
     {
@@ -209,26 +238,44 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
     },
   ];
 
+  const [
+    {
+      isExistingContactPoint,
+      dataSources,
+      contactPoints,
+      selectedAlertManagerOption,
+      selectedContactPointOption,
+      response,
+    },
+    setState,
+  ] = useReducer(
+    (state: CustomFieldSectionRendererState, newState: Partial<CustomFieldSectionRendererState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      isExistingContactPoint: true,
+      selectedAlertManagerOption: undefined,
+      selectedContactPointOption: undefined,
+      dataSources: [],
+      contactPoints: [],
+      response: [],
+    }
+  );
+
   const { alertReceiveChannelStore } = useStore();
-
-  const [isExistingContactPoint, setIsExistingContactPoint] = useState(true);
-
-  const [selectedAlertManagerOption, setSelectedAlertManagerOption] = useState<string>();
-  const [selectedContactPointOption, setSelectedContactPointOption] = useState<string>();
-
-  const [dataSources, setDataSources] = useState([]);
-  const [contactPoints, setContactPoints] = useState([]);
-
-  const [response, setResponse] = useState<ContactPointsResult[]>([]);
 
   useEffect(() => {
     (async function () {
       const resp = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
-      setResponse(resp);
-
-      setDataSources(resp.map((res) => ({ label: res.name, value: res.uid })));
-      setContactPoints([]);
+      setState({
+        response: resp,
+        dataSources: resp.map((res) => ({ label: res.name, value: res.uid })),
+        contactPoints: [],
+      });
     })();
+
+    setValue('is_existing', true);
   }, []);
 
   return (
@@ -243,7 +290,15 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
           <RadioButtonGroup
             options={radioOptions}
             value={isExistingContactPoint ? 'existing' : 'new'}
-            onChange={(radioValue) => setIsExistingContactPoint(radioValue === 'existing')}
+            onChange={(radioValue) => {
+              setState({
+                isExistingContactPoint: radioValue === 'existing',
+                selectedAlertManagerOption: undefined,
+                selectedContactPointOption: undefined,
+              });
+
+              setValue('is_existing', radioValue === 'existing');
+            }}
           />
         </div>
 
@@ -253,26 +308,50 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
           value={selectedAlertManagerOption}
           placeholder="Select Alert Manager"
         />
-        <Select
-          options={contactPoints}
-          onChange={onContactPointChange}
-          value={selectedContactPointOption}
-          placeholder="Select Contact Point"
-        />
+
+        {isExistingContactPoint ? (
+          <Select
+            options={contactPoints}
+            onChange={onContactPointChange}
+            value={selectedContactPointOption}
+            placeholder="Select Contact Point"
+          />
+        ) : (
+          <Input
+            value={selectedContactPointOption}
+            placeholder="Choose Contact Point"
+            onChange={(event) => setState({ selectedContactPointOption: (event.target as HTMLInputElement).value })}
+          />
+        )}
       </VerticalGroup>
     </div>
   );
 
   function onAlertManagerChange(option: SelectableValue<string>) {
-    setSelectedAlertManagerOption(option.value);
-    setContactPoints(
-      response.find((res) => res.uid === option.value)?.contact_points.map((cp) => ({ value: cp, label: cp }))
-    );
+    const contactPointsForCurrentOption = response
+      .find((res) => res.uid === option.value)
+      ?.contact_points.map((cp) => ({ value: cp, label: cp }));
+
+    const newState: Partial<CustomFieldSectionRendererState> = {
+      selectedAlertManagerOption: option.value,
+      contactPoints: contactPointsForCurrentOption,
+    };
+
+    if (!isExistingContactPoint) {
+      // reset it if it's a create new contact point
+      newState.selectedContactPointOption = undefined;
+    } else if (!contactPointsForCurrentOption.find((opt) => opt.value === selectedContactPointOption)) {
+      // if we cannot find the contact point in the new alert manager's list of contact points then reset it
+      newState.selectedContactPointOption = undefined;
+    }
+
+    setState(newState);
+
     setValue('alert_manager', option.value);
   }
 
   function onContactPointChange(option: SelectableValue<string>) {
-    setSelectedContactPointOption(option.value);
+    setState({ selectedContactPointOption: option.value });
     setValue('contact_point', option.value);
   }
 };
@@ -300,7 +379,7 @@ const HowTheIntegrationWorks: React.FC<{ selectedOption: AlertReceiveChannelOpti
           <li className={cx('integration-info-item')}>{selectedOption.display_name} contact point </li>
           <li className={cx('integration-info-item')}>{selectedOption.display_name} notification</li>
         </ul>
-        What you’ll need to do next:
+        What you'll need to do next:
         <ul className={cx('integration-info-list')}>
           <li className={cx('integration-info-item')}>
             Finish connecting Monitoring system using Unique URL that will be provided on the next step{' '}

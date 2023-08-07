@@ -7,12 +7,14 @@ export const form: { name: string; fields: FormItem[] } = {
       label: 'Name',
       name: 'verbal_name',
       type: FormItemType.Input,
+      placeholder: 'Integration Name',
       validation: { required: true },
     },
     {
       label: 'Description',
       name: 'description_short',
       type: FormItemType.TextArea,
+      placeholder: 'Integration Description',
     },
     {
       name: 'team',
@@ -34,6 +36,10 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'contact_point',
+      type: FormItemType.Other,
+    },
+    {
+      name: 'is_existing',
       type: FormItemType.Other,
     },
     {

@@ -17,6 +17,7 @@ export interface FormItem {
   type: FormItemType;
   disabled?: boolean;
   description?: string;
+  placeholder?: string;
   normalize?: (value: any) => any;
   isVisible?: (data: any) => any;
   getDisabled?: (value: any) => any;

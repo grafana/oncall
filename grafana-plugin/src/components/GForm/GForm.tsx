@@ -45,13 +45,18 @@ function renderFormControl(
   switch (formItem.type) {
     case FormItemType.Input:
       return (
-        <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+        <Input
+          {...register(formItem.name, formItem.validation)}
+          placeholder={formItem.placeholder}
+          onChange={(value) => onChangeFn(undefined, value)}
+        />
       );
 
     case FormItemType.Password:
       return (
         <Input
           {...register(formItem.name, formItem.validation)}
+          placeholder={formItem.placeholder}
           type="password"
           onChange={(value) => onChangeFn(undefined, value)}
         />
@@ -61,6 +66,7 @@ function renderFormControl(
       return (
         <TextArea
           rows={formItem.extra?.rows || 4}
+          placeholder={formItem.placeholder}
           {...register(formItem.name, formItem.validation)}
           onChange={(value) => onChangeFn(undefined, value)}
         />
@@ -184,7 +190,7 @@ class GForm extends React.Component<GFormProps, {}> {
                 <CustomFieldSectionRenderer
                   control={control}
                   formItem={formItem}
-                  setValue={(fName: string, fValue: string) => {
+                  setValue={(fName: string, fValue: any) => {
                     setValue(fName, fValue);
                     this.forceUpdate();
                   }}
@@ -194,9 +200,6 @@ class GForm extends React.Component<GFormProps, {}> {
 
             // skip input render when there's no Custom Renderer
             if (formItem.type === FormItemType.Other) return undefined;
-
-            console.log('[Render]');
-            console.log(getValues());
 
             return (
               <Field
