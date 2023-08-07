@@ -18,13 +18,15 @@ image:
   tag: latest
   pullPolicy: Always
 engine:
-  replicaCount: 2
+  replicaCount: 3
 celery:
-  replicaCount: 2
+  replicaCount: 3
   worker_beat_enabled: false
 
 grafana:
-  replicas: 2
+  replicas: 3
+  image:
+    tag: latest
   extraInitContainers:
     - name: create-db-if-not-exists
       image: mysql:8.0.32
@@ -38,13 +40,13 @@ grafana:
         # yamllint enable rule:line-length
       env:
         - name: DATABASE_HOST
-          value: helm-testing-mariadb
+          value: oncall-dev-mariadb
         - name: DATABASE_USER
           value: root
         - name: DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: helm-testing-mariadb
+              name: oncall-dev-mariadb
               key: mariadb-root-password
   env:
     GF_FEATURE_TOGGLES_ENABLE: topnav
@@ -52,13 +54,13 @@ grafana:
     GF_SECURITY_ADMIN_USER: oncall
     GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
     GF_DATABASE_TYPE: mysql
-    GF_DATABASE_HOST: helm-testing-mariadb:3306
+    GF_DATABASE_HOST: oncall-dev-mariadb:3306
     GF_DATABASE_USER: root
     GF_DATABASE_SSL_MODE: disable
   envValueFrom:
     GF_DATABASE_PASSWORD:
       secretKeyRef:
-        name: helm-testing-mariadb
+        name: oncall-dev-mariadb
         key: mariadb-root-password
   plugins: []
   service:
@@ -69,3 +71,8 @@ database:
   type: mysql
 mariadb:
   enabled: true
+
+redis:
+  image:
+    repository: redis # the default, bitnami/redis does not support ARM64
+    tag: 7.0.5

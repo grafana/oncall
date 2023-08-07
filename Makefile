@@ -23,10 +23,18 @@ DEV_ENV_DIR = ./dev
 DEV_ENV_FILE = $(DEV_ENV_DIR)/.env.dev
 DEV_ENV_EXAMPLE_FILE = $(DEV_ENV_FILE).example
 
+DEV_HELM_FILE = $(DEV_ENV_DIR)/helm-local.dev.yml
+
 ENGINE_DIR = ./engine
 REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
 REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
+
+HELM_RELEASE_NAME = oncall-dev
+K8S_NAMESPACE = oncall-dev
+
+# make sure that DEV_HELM_FILE always exists (NOTE: touch will only create the file if it doesn't already exist)
+$(shell touch $(DEV_HELM_FILE))
 
 # -n flag only copies DEV_ENV_EXAMPLE_FILE-> DEV_ENV_FILE if it doesn't already exist
 $(shell cp -n $(DEV_ENV_EXAMPLE_FILE) $(DEV_ENV_FILE))
@@ -78,6 +86,24 @@ endef
 define run_backend_tests
 	$(call run_engine_docker_command,pytest --ds=settings.ci-test $(1))
 endef
+
+# TODO: use local engine image/volume instead of deployed image
+start-k8s:  ## NOTE: beta - deploy all containers locally via helm
+	helm upgrade $(HELM_RELEASE_NAME) \
+		--install \
+		--create-namespace \
+		--wait \
+		--wait-for-jobs \
+		--timeout 30m \
+		--namespace $(K8S_NAMESPACE) \
+		--values ./dev/helm-local.yml \
+		--values $(DEV_HELM_FILE) \
+		--set-json "grafana.extraVolumeMounts=[{\"name\":\"plugins\",\"mountPath\":\"/var/lib/grafana/plugins/grafana-plugin\",\"hostPath\":\"$(shell pwd)/grafana-plugin\",\"readOnly\":true}]" \
+		./helm/oncall
+
+cleanup-k8s: ## NOTE: beta - remove all k8s resources
+	helm delete $(HELM_RELEASE_NAME) --namespace $(K8S_NAMESPACE)
+	kubectl delete pvc --all --namespace $(K8S_NAMESPACE)
 
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
 start:  ## start all of the docker containers
