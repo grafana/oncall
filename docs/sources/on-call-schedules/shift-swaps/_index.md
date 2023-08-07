@@ -18,17 +18,24 @@ in a schedule for a specified time span.
 
 ## Make a swap request
 
-To request a shift swap, you can use the OnCall mobile app. Clicking on one of your shifts will show you an option
-to setup a swap request for that event. You can customize other parameters from there too.
+To request a shift swap, you can use the OnCall mobile app or the web UI in a schedule details page.
+
+In the app, clicking on one of your shifts will show you an option to setup a swap request for that
+event. You can customize other parameters from there too.
 
 It is also possible to setup a request from a schedule view, tapping on the `request a swap` button.
 You will need to specify a starting and ending datetimes and an optional description that will be
 displayed when notifying other users about the request.
 
-NOTE: no recurrence rules support is available when requesting a shift swap. If you need to recurrently change a shift,
-consider creating a higher level layer rotation with the desired updates.
+[screenshot swap request button / config screen]
+
+In the web UI, you can follow a similar flow via the `Request shift swap` button, available in the `Rotations` lane
+of a schedule, or clicking the button shown when hovering on a particular shift event in which you are on-call.
 
 [screenshot swap request button / config screen]
+
+>**Note**: no recurrence rules support is available when requesting a shift swap. If you need to recurrently change a shift,
+consider creating a higher level layer rotation with the desired updates.
 
 Upon submitting the request, a Slack notification will be sent to the channel associated to the correspondent
 schedule, if there is one. Besides, people participating in the schedule may receive a [mobile push notification][shift-swap-notifications]
