@@ -164,7 +164,7 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
           return (
             data.is_existing
               ? alertReceiveChannelStore.connectContactPoint(response.id, data.alert_manager, data.contact_point)
-              : alertReceiveChannelStore.createContactPoint(response.id)
+              : alertReceiveChannelStore.createContactPoint(response.id, data.alert_manager, data.contact_point)
           )
             .then(() => pushHistory(response.id))
             .catch(onCatch);
@@ -320,7 +320,11 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
           <Input
             value={selectedContactPointOption}
             placeholder="Choose Contact Point"
-            onChange={(event) => setState({ selectedContactPointOption: (event.target as HTMLInputElement).value })}
+            onChange={({ target }) => {
+              const value = (target as HTMLInputElement).value;
+              setState({ selectedContactPointOption: value });
+              setValue('contact_point', value);
+            }}
           />
         )}
       </VerticalGroup>

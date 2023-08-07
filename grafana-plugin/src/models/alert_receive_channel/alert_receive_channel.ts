@@ -380,9 +380,17 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async createContactPoint(alertReceiveChannelId: AlertReceiveChannel['id']) {
+  async createContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
     return await makeRequest(`${this.path}${alertReceiveChannelId}/create_contact_point`, {
       method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
     });
   }
 
