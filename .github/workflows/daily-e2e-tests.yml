@@ -7,6 +7,7 @@ name: Daily e2e tests
 
 jobs:
   end-to-end-tests:
+    name: End to end tests
     strategy:
       matrix:
         grafana-image-tag:
