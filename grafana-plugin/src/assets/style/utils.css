@@ -16,6 +16,10 @@
   align-items: center;
 }
 
+.u-flex-space-between {
+  justify-content: space-between;
+}
+
 .u-flex-grow-1 {
   flex-grow: 1;
 }
@@ -33,7 +37,7 @@
 }
 
 .u-padding-top-md {
-  padding-top: 16px;
+  padding-top: 12px;
 }
 
 .u-pull-right {
@@ -107,4 +111,12 @@
 
 .buttons {
   padding-bottom: 24px;
+}
+
+/* -----
+ * Icons
+ */
+
+.icon-exclamation {
+  color: var(--error-text-color);
 }

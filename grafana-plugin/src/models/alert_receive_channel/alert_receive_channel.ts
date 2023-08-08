@@ -19,9 +19,9 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
+  ContactPoint,
   MaintenanceMode,
 } from './alert_receive_channel.types';
-import { ContactPointsResult } from 'containers/IntegrationForm/IntegrationForm';
 
 export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
@@ -55,6 +55,9 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   @observable.shallow
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
+
+  @observable.shallow
+  connectedContactPoints: { [id: AlertReceiveChannel['id']]: ContactPoint[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -366,11 +369,26 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
   }
 
-  async getGrafanaAlertingContactPoints(): Promise<ContactPointsResult[]> {
+  async getGrafanaAlertingContactPoints() {
     return await makeRequest(`${this.path}contact_points/`, {}).catch(showApiError);
   }
 
-  async connectContactPoint(alertReceiveChannelId: string, datasource_uid: string, contact_point_name: string) {
+  @action
+  async updateConnectedContactPoints(alertReceiveChannelId: AlertReceiveChannel['id']) {
+    const response = await makeRequest(`${this.path}${alertReceiveChannelId}/connected_contact_points `, {});
+
+    this.connectedContactPoints = {
+      ...this.connectedContactPoints,
+
+      [alertReceiveChannelId]: response,
+    };
+  }
+
+  async connectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
     return await makeRequest(`${this.path}${alertReceiveChannelId}/connect_contact_point`, {
       method: 'POST',
       data: {

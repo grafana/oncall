@@ -28,6 +28,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
+  ContactPoint,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
@@ -37,6 +38,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
+import IntegrationHelper from 'pages/integration/Integration.helper';
 
 const cx = cn.bind(styles);
 
@@ -78,8 +80,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
     : [];
 
   const extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
-  const isGrafanaAlerting = selectedOption?.value === 'grafana_alerting';
-  if (isGrafanaAlerting) {
+
+  if (selectedOption && IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
     extraGFormProps.customFieldSectionRenderer = CustomFieldSectionRenderer;
   }
 
@@ -159,7 +161,9 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
       promise
         .then((response) => {
-          if (!isGrafanaAlerting) return pushHistory(response.id);
+          if (!IntegrationHelper.isGrafanaAlerting(selectedOption.value)) {
+            return pushHistory(response.id);
+          }
 
           return (
             data.is_existing
@@ -204,12 +208,6 @@ export interface CustomFieldSectionRendererProps {
   setValue: (fieldName: string, fieldValue: any) => void;
 }
 
-export interface ContactPointsResult {
-  name: string;
-  uid: string;
-  contact_points: string[];
-}
-
 interface CustomFieldSectionRendererState {
   isExistingContactPoint: boolean;
   selectedAlertManagerOption: string;
@@ -217,7 +215,7 @@ interface CustomFieldSectionRendererState {
 
   dataSources: { label: string; value: string }[];
   contactPoints: { label: string; value: string }[];
-  response: ContactPointsResult[];
+  allContactPoints: ContactPoint[];
 }
 
 const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
@@ -225,8 +223,6 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
   formItem: _formItem,
   setValue,
 }) => {
-  // console.log({ control, formItem, setValue });
-
   const radioOptions = [
     {
       label: 'Connect existing Contact point',
@@ -245,7 +241,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
       contactPoints,
       selectedAlertManagerOption,
       selectedContactPointOption,
-      response,
+      allContactPoints,
     },
     setState,
   ] = useReducer(
@@ -259,7 +255,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
       selectedContactPointOption: undefined,
       dataSources: [],
       contactPoints: [],
-      response: [],
+      allContactPoints: [],
     }
   );
 
@@ -267,10 +263,10 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
   useEffect(() => {
     (async function () {
-      const resp = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
+      const response = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
       setState({
-        response: resp,
-        dataSources: resp.map((res) => ({ label: res.name, value: res.uid })),
+        allContactPoints: response,
+        dataSources: response.map((res) => ({ label: res.name, value: res.uid })),
         contactPoints: [],
       });
     })();
@@ -332,7 +328,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
   );
 
   function onAlertManagerChange(option: SelectableValue<string>) {
-    const contactPointsForCurrentOption = response
+    const contactPointsForCurrentOption = allContactPoints
       .find((res) => res.uid === option.value)
       ?.contact_points.map((cp) => ({ value: cp, label: cp }));
 

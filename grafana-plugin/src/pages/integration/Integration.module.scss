@@ -59,6 +59,16 @@ $LARGE-MARGIN: 24px;
   }
 }
 
+.contactpoints-warning {
+  padding-top: 12px;
+}
+
+.contact-point__container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
 .integration__actionItem {
   padding: 8px;
   display: flex;
@@ -120,8 +130,7 @@ $LARGE-MARGIN: 24px;
   align-items: center;
   gap: 8px;
 }
-.tag,
-.how-to-connect__tag {
+.tag {
   height: 25px;
 }
 

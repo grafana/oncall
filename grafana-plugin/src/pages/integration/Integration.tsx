@@ -76,6 +76,7 @@ const cx = cn.bind(styles);
 interface IntegrationProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface IntegrationState extends PageBaseState {
+  isLoading: boolean;
   isDemoModalOpen: boolean;
   isEditTemplateModalOpen: boolean;
   selectedTemplate: TemplateForEdit;
@@ -94,6 +95,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     super(props);
 
     this.state = {
+      isLoading: true,
       errorData: initErrorDataState(),
       isDemoModalOpen: false,
       isEditTemplateModalOpen: false,
@@ -132,6 +134,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
   render() {
     const {
+      isLoading,
       errorData,
       isEditTemplateModalOpen,
       selectedTemplate,
@@ -150,10 +153,9 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const { isNotFoundError, isWrongTeamError } = errorData;
 
     const alertReceiveChannel = alertReceiveChannelStore.items[id];
-    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
     const templates = alertReceiveChannelStore.templates[id];
 
-    if ((!alertReceiveChannel && !isNotFoundError && !isWrongTeamError) || !channelFilterIds || !templates) {
+    if (isLoading && !isNotFoundError && !isWrongTeamError) {
       return (
         <div className={cx('root')}>
           <LoadingPlaceholder text="Loading Integration..." />
@@ -213,6 +215,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
+              {this.renderContactPointsWarningMaybe(alertReceiveChannel)}
+
               <div className={cx('no-wrap')}>
                 <IntegrationHeader
                   alertReceiveChannel={alertReceiveChannel}
@@ -224,7 +228,6 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               {alertReceiveChannel.description && (
                 <div className={cx('integration__description-alert')}>
                   <Alert
-                    style={{ marginBottom: '0' }}
                     title={
                       (
                         <div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>
@@ -336,6 +339,36 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     );
   }
 
+  renderContactPointsWarningMaybe(alertReceiveChannel: AlertReceiveChannel) {
+    const { alertReceiveChannelStore } = this.props.store;
+
+    if (
+      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) &&
+      !alertReceiveChannelStore.connectedContactPoints[alertReceiveChannel.id]
+    ) {
+      return (
+        <div className={cx('u-padding-top-md')}>
+          <Alert
+            title={
+              (
+                <Text type="primary">
+                  Contact point connection required. Click{' '}
+                  <a href="#" onClick={noop}>
+                    <Text type="link">here</Text>
+                  </a>{' '}
+                  to connect Contact point from Alerting.
+                </Text>
+              ) as any
+            }
+            severity="error"
+          />
+        </div>
+      );
+    }
+
+    return undefined;
+  }
+
   getConfigForTreeComponent(id: string, templates: AlertTemplatesDTO[]) {
     return [
       {
@@ -343,7 +376,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         customIcon: 'grafana',
         canHoverIcon: false,
         collapsedView: null,
-        expandedView: () => <ContactPointComponent />,
+        expandedView: () => <ContactPointComponent id={id} />,
       },
       {
         isCollapsible: false,
@@ -659,12 +692,17 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       promises.push(await alertReceiveChannelStore.updateChannelFilters(id));
     }
 
-    await Promise.all(promises).catch(() => {
-      if (!alertReceiveChannelStore.items[id]) {
-        // failed fetching the integration (most likely it's not existent)
-        history.push(`${PLUGIN_ROOT}/integrations`);
-      }
-    });
+    // skip checking for grafana alerting so that we don't wait for first request to complete
+    promises.push(alertReceiveChannelStore.updateConnectedContactPoints(id));
+
+    await Promise.all(promises)
+      .catch(() => {
+        if (!alertReceiveChannelStore.items[id]) {
+          // failed fetching the integration (most likely it's not existent)
+          history.push(`${PLUGIN_ROOT}/integrations`);
+        }
+      })
+      .finally(() => this.setState({ isLoading: false }));
   }
 }
 
@@ -1091,12 +1129,42 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 };
 
-const ContactPointComponent: React.FC<{}> = ({}) => {
+const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
+  const { alertReceiveChannelStore } = useStore();
+  const contactPointsNum = alertReceiveChannelStore.connectedContactPoints[id]?.length;
+
   return (
     <IntegrationBlock
-      noContent={false}
-      heading={<div className={cx('contact-point__container')}>container</div>}
-      content={<div className={cx('contact-point__content')}>content</div>}
+      noContent={true}
+      heading={
+        <div className={cx('u-flex', 'u-flex-space-between')}>
+          <HorizontalGroup spacing="md">
+            <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
+              <Text type="primary" size="small" className={cx('radius')}>
+                Contact point
+              </Text>
+            </Tag>
+
+            {contactPointsNum ? (
+              <Text type="primary">
+                {contactPointsNum} contact point{contactPointsNum === 1 ? '' : 's'} connected
+              </Text>
+            ) : (
+              <HorizontalGroup spacing="xs">
+                <div className={cx('icon-exclamation')}>
+                  <Icon name="exclamation-triangle" />
+                </div>
+                <Text type="primary" data-testid="integration-escalation-chain-not-selected">
+                  Connect Alerting Contact point to receive alerts
+                </Text>
+              </HorizontalGroup>
+            )}
+          </HorizontalGroup>
+
+          <Button variant={'secondary'} icon="edit" size={'sm'} tooltip="Edit" onClick={noop} />
+        </div>
+      }
+      content={undefined}
     />
   );
 };
@@ -1126,11 +1194,7 @@ const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       toggle={noop}
       heading={
         <div className={cx('how-to-connect__container')}>
-          <Tag
-            color={getVar('--tag-secondary-transparent')}
-            border={getVar('--border-weak')}
-            className={cx('how-to-connect__tag')}
-          >
+          <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
             <Text type="primary" size="small" className={cx('radius')}>
               {howToConnectTagName(item?.integration)}
             </Text>

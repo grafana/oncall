@@ -55,3 +55,9 @@ export interface AlertReceiveChannelChoice {
   display_name: string;
   value: number;
 }
+
+export interface ContactPoint {
+  name: string;
+  uid: string;
+  contact_points: string[];
+}
