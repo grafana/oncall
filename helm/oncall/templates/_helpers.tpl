@@ -100,6 +100,11 @@ Create the name of the service account to use
     {{- include "snippet.rabbitmq.env" . | nindent 4 }}
     {{- include "snippet.redis.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
+  {{- if .Values.dev_mode }}
+  volumeMounts:
+    - mountPath: /etc/app
+      name: dev-reloaded-engine
+  {{- end }}
 {{- end }}
 
 {{- define "oncall.postgresql.wait-for-db" }}
@@ -117,6 +122,11 @@ Create the name of the service account to use
     {{- include "snippet.rabbitmq.env" . | nindent 4 }}
     {{- include "snippet.redis.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
+  {{- if .Values.dev_mode }}
+  volumeMounts:
+    - mountPath: /etc/app
+      name: dev-reloaded-engine
+  {{- end }}
 {{- end }}
 
 {{- define "oncall.extraEnvs" -}}

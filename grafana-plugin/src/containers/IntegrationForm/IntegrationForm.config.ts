@@ -1,4 +1,5 @@
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { generateAssignToTeamInputDescription } from 'utils/consts';
 
 export const form: { name: string; fields: FormItem[] } = {
   name: 'Integration',
@@ -17,8 +18,7 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'team',
       label: 'Assign to team',
-      description:
-        'Assigning to the teams allows you to filter Integrations and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      description: generateAssignToTeamInputDescription('Integrations'),
       type: FormItemType.GSelect,
       extra: {
         modelName: 'grafanaTeamStore',

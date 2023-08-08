@@ -1,4 +1,4 @@
-import { test, Page, expect, Locator } from '../fixtures';
+import { test, Page, expect } from '../fixtures';
 
 import { generateRandomValue, selectDropdownValue } from '../utils/forms';
 import { createIntegration } from '../utils/integrations';
@@ -6,17 +6,13 @@ import { createIntegration } from '../utils/integrations';
 test.describe("updating an integration's heartbeat interval works", async () => {
   test.slow();
 
-  const _openIntegrationSettingsPopup = async (page: Page): Promise<Locator> => {
+  const _openIntegrationSettingsPopup = async (page: Page): Promise<void> => {
     const integrationSettingsPopupElement = page.getByTestId('integration-settings-context-menu');
     await integrationSettingsPopupElement.click();
-    return integrationSettingsPopupElement;
   };
 
   const _openHeartbeatSettingsForm = async (page: Page) => {
-    const integrationSettingsPopupElement = await _openIntegrationSettingsPopup(page);
-
-    await integrationSettingsPopupElement.click();
-
+    await _openIntegrationSettingsPopup(page);
     await page.getByTestId('integration-heartbeat-settings').click();
   };
 

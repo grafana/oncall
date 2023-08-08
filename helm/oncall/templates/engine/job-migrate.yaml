@@ -93,7 +93,18 @@ spec:
           {{- include "oncall.extraEnvs" . | nindent 12 }}
         resources:
           {{- toYaml .Values.engine.resources | nindent 12 }}
+        {{- if .Values.dev_mode }}
+        volumeMounts:
+          - mountPath: /etc/app
+            name: dev-reloaded-engine
+        {{- end }}
       {{- with .Values.migrate.extraContainers }}
       {{- tpl . $ | nindent 6 }}
+      {{- end }}
+      {{- if .Values.dev_mode }}
+      volumes:
+        - name: dev-reloaded-engine
+          hostPath:
+            path: {{ .Values.cwd }}/engine
       {{- end }}
 {{- end }}

@@ -1,27 +1,23 @@
-base_url: 172.17.0.1:30001
-ingress:
-  enabled: false
-ingress-nginx:
-  enabled: false
-cert-manager:
-  enabled: false
+dev_mode: true
 
-service:
-  enabled: true
-  type: NodePort
-  port: 8080
-  nodePort: 30001
+base_url: 172.17.0.1:30001
 env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
     value: "False"
 image:
-  tag: latest
-  pullPolicy: Always
+  repository: oncall/engine
+  tag: dev
+  pullPolicy: IfNotPresent
 engine:
   replicaCount: 3
 celery:
   replicaCount: 3
   worker_beat_enabled: false
+
+ui:
+  env:
+    ONCALL_API_URL: http://oncall-dev-engine-external:8080
+    MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
 
 grafana:
   replicas: 3
@@ -76,3 +72,15 @@ redis:
   image:
     repository: redis # the default, bitnami/redis does not support ARM64
     tag: 7.0.5
+
+ingress:
+  enabled: false
+ingress-nginx:
+  enabled: false
+cert-manager:
+  enabled: false
+service:
+  enabled: true
+  type: NodePort
+  port: 8080
+  nodePort: 30001

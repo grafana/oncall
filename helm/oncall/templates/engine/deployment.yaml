@@ -41,6 +41,9 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.dev_mode }}
+          command: ["sh", "-c", "uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini"]
+          {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -81,6 +84,11 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
+          {{- if .Values.dev_mode }}
+          volumeMounts:
+            - mountPath: /etc/app
+              name: dev-reloaded-engine
+          {{- end }}
       {{- with .Values.engine.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
@@ -102,4 +110,10 @@ spec:
       {{- end }}
       {{- with .Values.engine.priorityClassName }}
       priorityClassName: {{ . }}
+      {{- end }}
+      {{- if .Values.dev_mode }}
+      volumes:
+        - name: dev-reloaded-engine
+          hostPath:
+            path: {{ .Values.cwd }}/engine
       {{- end }}
