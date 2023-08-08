@@ -306,6 +306,71 @@ def test_current_shift_changes_trigger_notification(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("swap_taken", [False, True])
+def test_current_shift_changes_swap_split(
+    make_organization_and_user_with_slack_identities,
+    make_user,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+    swap_taken,
+):
+    organization, _, _, _ = make_organization_and_user_with_slack_identities()
+    user1 = make_user(organization=organization, username="user1")
+    user2 = make_user(organization=organization, username="user2")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_schedule",
+        channel="channel",
+        prev_ical_file_overrides=None,
+        cached_ical_file_overrides=None,
+    )
+
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    duration = timezone.timedelta(hours=23, minutes=59, seconds=59)
+    data = {
+        "start": today,
+        "rotation_start": today,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user1]])
+
+    # setup in progress swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user1,
+        swap_start=today,
+        swap_end=today + timezone.timedelta(days=2),
+    )
+    if swap_taken:
+        swap_request.benefactor = user2
+        swap_request.save()
+
+    schedule.refresh_ical_file()
+
+    # setup empty current shifts before checking/triggering for notifications
+    schedule.current_shifts = json.dumps({}, default=str)
+    schedule.empty_oncall = False
+    schedule.save()
+
+    with patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call") as mock_slack_api_call:
+        notify_ical_schedule_shift(schedule.pk)
+
+    text_block = mock_slack_api_call.call_args_list[0][1]["blocks"][0]["text"]["text"]
+    assert "user2" in text_block if swap_taken else "user1" in text_block
+
+
+@pytest.mark.django_db
 def test_next_shift_changes_no_triggering_notification(
     make_organization_and_user_with_slack_identities,
     make_user,

@@ -2169,21 +2169,36 @@ def test_swap_request_split_both(
         with patch("apps.schedules.models.on_call_schedule.EXPORT_WINDOW_DAYS_BEFORE", 0):
             schedule.refresh_ical_final_schedule()
     assert schedule.cached_ical_final_schedule
-    expected_events = [
-        # start, end, user
-        (start, start + duration, user.username),  # today shift unchanged
-        (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=1), user.username),  # first split
-        (
-            start + timezone.timedelta(days=1, hours=1),
-            start + timezone.timedelta(days=1, hours=2),
-            other_user.username if swap_taken else user.username,
-        ),  # second split
-        (
-            start + timezone.timedelta(days=1, hours=2),
-            start + timezone.timedelta(days=1, hours=3),
-            user.username,
-        ),  # third split
-    ]
+    if swap_taken:
+        expected_events = [
+            # start, end, user
+            (start, start + duration, user.username),  # today shift unchanged
+            (
+                start + timezone.timedelta(days=1),
+                start + timezone.timedelta(days=1, hours=1),
+                user.username,
+            ),  # first split
+            (
+                start + timezone.timedelta(days=1, hours=1),
+                start + timezone.timedelta(days=1, hours=2),
+                other_user.username if swap_taken else user.username,
+            ),  # second split
+            (
+                start + timezone.timedelta(days=1, hours=2),
+                start + timezone.timedelta(days=1, hours=3),
+                user.username,
+            ),  # third split
+        ]
+    else:
+        expected_events = [
+            # start, end, user
+            (start, start + duration, user.username),  # today shift unchanged
+            (
+                start + timezone.timedelta(days=1),
+                start + timezone.timedelta(days=1) + duration,
+                user.username,
+            ),  # no split
+        ]
     calendar = icalendar.Calendar.from_ical(schedule.cached_ical_final_schedule)
     for component in calendar.walk():
         if component.name == ICAL_COMPONENT_VEVENT:
@@ -2193,6 +2208,83 @@ def test_swap_request_split_both(
                 component[ICAL_SUMMARY],
             )
             assert event in expected_events
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("swap_taken", [False, True])
+def test_swap_request_ignore_untaken(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+    swap_taken,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=12)
+    duration = timezone.timedelta(hours=3)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    tomorrow = today + timezone.timedelta(days=1)
+    # setup swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=tomorrow + timezone.timedelta(hours=13),
+        swap_end=tomorrow + timezone.timedelta(hours=14),
+    )
+    if swap_taken:
+        swap_request.take(other_user)
+
+    # set flag to ignore untaken swaps
+    events = schedule.filter_events(today, today + timezone.timedelta(days=2), ignore_untaken_swaps=True)
+
+    if swap_taken:
+        expected = [
+            # start, end, swap requested
+            (start, start + duration, False),  # today shift unchanged
+            (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1, hours=1), False),  # first split
+            (
+                start + timezone.timedelta(days=1, hours=1),
+                start + timezone.timedelta(days=1, hours=2),
+                True,
+            ),  # second split
+            (
+                start + timezone.timedelta(days=1, hours=2),
+                start + timezone.timedelta(days=1, hours=3),
+                False,
+            ),  # third split
+        ]
+    else:
+        expected = [
+            # start, end, swap requested
+            (start, start + duration, False),  # today shift unchanged
+            (start + timezone.timedelta(days=1), start + timezone.timedelta(days=1) + duration, False),  # no split
+        ]
+
+    returned = [(e["start"], e["end"], bool(e["users"][0].get("swap_request", False))) for e in events]
+    assert returned == expected
+    # check swap request details
+    if swap_taken:
+        assert events[2]["users"][0]["swap_request"]["pk"] == swap_request.public_primary_key
+        assert events[2]["users"][0]["pk"] == other_user.public_primary_key
+        assert events[2]["users"][0]["swap_request"]["user"]["pk"] == user.public_primary_key
 
 
 @pytest.mark.django_db
@@ -2385,3 +2477,22 @@ def test_swap_request_no_changes(
 
     events_after = schedule.filter_events(today, today + timezone.timedelta(days=2))
     assert events_before == events_after
+
+
+@pytest.mark.django_db
+def test_filter_events_ical_duplicated_uid(make_organization, make_user_for_organization, make_schedule, get_ical):
+    calendar = get_ical("modified_recurring_event.ics")
+    organization = make_organization()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    schedule.cached_ical_file_primary = calendar.to_ical()
+    make_user_for_organization(organization, username="user")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    datetime_start = datetime.datetime(2023, 7, 17, 0, 0, tzinfo=pytz.UTC)
+    datetime_end = datetime_start + datetime.timedelta(days=7)
+    events = schedule.final_events(datetime_start, datetime_end)
+
+    assert len(events) == 2
+    assert events[0]["shift"]["pk"] == "eventuid@google.com_1"
+    assert events[1]["shift"]["pk"] == "eventuid@google.com_2_1970-01-01T01:00:00+01:00"

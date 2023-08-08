@@ -81,6 +81,11 @@ export interface Rotation {
 
 export type RotationType = 'final' | 'rotation' | 'override';
 
+export interface SwapRequest {
+  pk: ShiftSwap['id'];
+  user: Partial<User> & { display_name: string };
+}
+
 export interface Event {
   all_day: boolean;
   calendar_type: ScheduleType;
@@ -92,7 +97,11 @@ export interface Event {
   shift: { pk: Shift['id'] | null };
   source: string;
   start: string;
-  users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  users: Array<{
+    display_name: User['username'];
+    pk: User['pk'];
+    swap_request?: SwapRequest;
+  }>;
   is_override: boolean;
 }
 
@@ -111,6 +120,7 @@ export interface Layer {
 export interface ShiftEvents {
   shiftId: string;
   events: Event[];
+  priority: number;
   isPreview?: boolean;
 }
 
@@ -118,6 +128,19 @@ export interface ScheduleScoreQualityResponse {
   total_score: number;
   comments: Array<{ type: 'warning' | 'info'; text: string }>;
   overloaded_users: Array<{ id: string; username: string; score: number }>;
+}
+
+export interface ShiftSwap {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  schedule: Schedule['id'];
+  swap_start: string;
+  swap_end: string;
+  beneficiary: User['pk'];
+  status: 'open' | 'taken' | 'past_due';
+  benefactor: User['pk'];
+  description: string;
 }
 
 export enum ScheduleScoreQualityResult {

@@ -80,8 +80,8 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
         light
         startMoment={currentMoment.startOf('day')}
         duration={24 * 60 * 60}
-        timezone={userStore.currentUser.timezone}
-        workingHours={userStore.currentUser.working_hours}
+        timezone={userStore.currentUser?.timezone}
+        workingHours={userStore.currentUser?.working_hours}
         className={cx('working-hours')}
       />
       {/*  <div className={cx('shades', 'shades--left')} />
