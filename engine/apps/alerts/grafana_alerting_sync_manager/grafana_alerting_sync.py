@@ -582,6 +582,7 @@ class GrafanaAlertingSyncManager:
 
     GRAFANA_ALERTING_DATASOURCE = "grafana"
     ALERTING_DATASOURCE = "alertmanager"
+    CLOUD_ALERTING_DATASOURCE_UID = "grafanacloud-ngalertmanager"
 
     def __init__(self, alert_receive_channel: "AlertReceiveChannel") -> None:
         self.alert_receive_channel = alert_receive_channel
@@ -609,6 +610,49 @@ class GrafanaAlertingSyncManager:
             )
 
         return None
+
+    @classmethod
+    def get_alerting_config_for_datasource(cls, client, datasource_uid):
+        config, response_info = client.get_alerting_config(datasource_uid)
+        if config is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Got config None in get_alerting_config_for_datasource "
+                f"for is_grafana_datasource {datasource_uid==cls.GRAFANA_ALERTING_DATASOURCE}, "
+                f"response: {response_info}"
+            )
+            return
+        return config
+
+    @classmethod
+    def get_default_mimir_alertmanager_config_for_datasource(cls, client, datasource_uid) -> Optional[dict]:
+        # Get default config for Mimir/Cortex Alertmanager
+        default_config, response_info = client.get_alertmanager_status_with_config(datasource_uid)
+        if default_config is None or not default_config.get("config"):
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Got default config None in get_alerting_config_for_datasource "
+                f"for is_grafana_datasource False; response: {response_info}"
+            )
+            return
+        default_config = {"alertmanager_config": copy.deepcopy(default_config["config"])}
+        return default_config
+
+    @classmethod
+    def update_alerting_config_for_datasource(cls, client, datasource_uid, config, updated_config):
+        response, response_info = client.update_alerting_config(datasource_uid, updated_config)
+        if response is None:
+            logger.warning(
+                f"GrafanaAlertingSyncManager: Failed to update contact point (POST) for is_grafana_datasource "
+                f"{datasource_uid==cls.GRAFANA_ALERTING_DATASOURCE}; response: {response_info}"
+            )
+            if response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
+                logger.warning(f"GrafanaAlertingSyncManager: Config: {config}, Updated config: {updated_config}")
+        if response_info["status_code"] not in (
+            status.HTTP_200_OK,
+            status.HTTP_201_CREATED,
+            status.HTTP_202_ACCEPTED,
+        ):
+            return
+        return response
 
     @classmethod
     def get_contact_points(cls, organization):
@@ -645,6 +689,8 @@ class GrafanaAlertingSyncManager:
     @classmethod
     def get_datasources(cls, client):
         alerting_datasources = []
+
+        # Add Grafana Alerting Alertmanager
         grafana_alerting_datasource = {
             "uid": cls.GRAFANA_ALERTING_DATASOURCE,
             "name": "Grafana",
@@ -660,24 +706,27 @@ class GrafanaAlertingSyncManager:
             return alerting_datasources
 
         for datasource in datasources:
+            # Get only Alertmanager datasources
             if datasource["type"] == cls.ALERTING_DATASOURCE:
-                datasource_data = {
-                    "uid": datasource["uid"],
-                    "name": datasource["name"],
-                    # "logo": datasource["typeLogoUrl"],  # todo: +grafana_url
-                }
-                alerting_datasources.append(datasource_data)
+                # Check datasource implementation in "jsonData" field. Only "cortex" and "mimir" implementations have
+                # editable config. Also check if it is preinstalled Alertmanager on cloud since it is editable, but has
+                # empty "jsonData" (probably will be fixed by Alerting)
+                if (
+                    datasource.get("jsonData", {}).get("implementation") in ["mimir", "cortex"]
+                    or datasource.get("uid") == cls.CLOUD_ALERTING_DATASOURCE_UID
+                ):
+                    datasource_data = {
+                        "uid": datasource["uid"],
+                        "name": datasource["name"],
+                        # "logo": datasource["typeLogoUrl"],  # todo: +grafana_url
+                    }
+                    alerting_datasources.append(datasource_data)
         return alerting_datasources
 
     @classmethod
     def get_contact_points_for_datasource(cls, client, datasource_uid):
-        config, response_info = client.get_alerting_config(datasource_uid)
+        config = cls.get_alerting_config_for_datasource(client, datasource_uid)
         if config is None:
-            logger.warning(
-                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
-                f"for is_grafana_datasource {datasource_uid==cls.GRAFANA_ALERTING_DATASOURCE}, "
-                f"response: {response_info}"
-            )
             return
         alertmanager_config = config.get("alertmanager_config")
         if not alertmanager_config:
@@ -686,22 +735,19 @@ class GrafanaAlertingSyncManager:
         contact_points = [receiver["name"] for receiver in alerting_receivers]
         return contact_points
 
-    def get_connected_contact_points_for_datasource(self, datasource_uid):
+    def get_connected_contact_points_for_datasource(self, datasource_uid: str) -> list:
         is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
-
-        contact_points = []
-
-        config, response_info = self.client.get_alerting_config(datasource_uid)
+        config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
         if config is None:
-            logger.warning(
-                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
-                f"for is_grafana_datasource {is_grafana_datasource} "
-                f"for integration {self.alert_receive_channel.pk}; response: {response_info}"
-            )
-            return contact_points
+            return []
         alertmanager_config = config.get("alertmanager_config")
         if not alertmanager_config:
-            return contact_points
+            return []
+        contact_points = self._get_connected_contact_points_from_config(alertmanager_config, is_grafana_datasource)
+        return contact_points
+
+    def _get_connected_contact_points_from_config(self, alertmanager_config: dict, is_grafana_datasource: bool) -> list:
+        contact_points = []
         alerting_receivers = alertmanager_config.get("receivers", [])
         route_config = alertmanager_config.get("route", {})
 
@@ -725,7 +771,7 @@ class GrafanaAlertingSyncManager:
                         break
         else:  # other Alertmanagers
             for receiver in alerting_receivers:
-                config_types = ["webhook_configs", "oncall_configs"]  # todo: check oncall_configs after mimir updates
+                config_types = ["webhook_configs", "oncall_configs"]
                 contact_point_connected = False
                 for config_type in config_types:
                     if contact_point_connected:
@@ -744,7 +790,6 @@ class GrafanaAlertingSyncManager:
                             )
                             contact_point_connected = True
                             break
-
         return contact_points
 
     def _recursive_check_contact_point_is_in_routes(self, route_config, receiver_name) -> bool:
@@ -761,55 +806,68 @@ class GrafanaAlertingSyncManager:
 
     def connect_contact_point(self, datasource_uid, contact_point_name, create_new=False):
         is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
-        config, response_info = self.client.get_alerting_config(datasource_uid)
-        if config is None:
-            logger.warning(
-                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
-                f"for is_grafana_datasource {is_grafana_datasource} "
-                f"for integration {self.alert_receive_channel.pk}; response: {response_info}"
+        config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
+        if config is None or config.get("alertmanager_config") is None:
+            # Config was probably deleted. Grafana Alertmanager should return config in any case. Try to get default
+            # config from another endpoint if it's not Grafana Alertmanager and it's needed to create new contact point
+            if not create_new or is_grafana_datasource:
+                return
+            default_config, response_info = self.get_default_mimir_alertmanager_config_for_datasource(
+                self.client, datasource_uid
             )
-            return
+            updated_config = default_config
+        else:
+            updated_config = copy.deepcopy(config)
 
-        updated_config = copy.deepcopy(config)
         alertmanager_config = updated_config.get("alertmanager_config")
         if not alertmanager_config:
             return
         alerting_receivers = alertmanager_config.get("receivers", [])
 
+        is_oncall_type_available = self.check_if_oncall_type_is_available(is_grafana_datasource)
+
         oncall_config, config_field = self._get_oncall_config_and_config_field_for_datasource_type(
-            contact_point_name, is_grafana_datasource
+            contact_point_name, is_grafana_datasource, is_oncall_type_available
         )
         if create_new:
             if contact_point_name in [receiver["name"] for receiver in alerting_receivers]:
                 return
             alerting_receivers.append({"name": contact_point_name, config_field: [oncall_config]})
         else:
+            receiver_found = False
             for receiver in alerting_receivers:
                 if receiver["name"] == contact_point_name:
+                    receiver_found = True
                     receiver.setdefault(config_field, []).append(oncall_config)
                     break
+            if not receiver_found:
+                return
 
-        response, response_info = self.client.update_alerting_config(datasource_uid, updated_config)
-        if response is None:
-            logger.warning(
-                f"GrafanaAlertingSyncManager: Failed to update contact point for integration "
-                f"{self.alert_receive_channel.pk} (POST). Response: {response_info}"
-            )
-            if response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
-                logger.warning(f"GrafanaAlertingSyncManager: Config: {config}, Updated config: {updated_config}")
-        if response_info["status_code"] not in (
-            status.HTTP_200_OK,
-            status.HTTP_201_CREATED,
-            status.HTTP_202_ACCEPTED,
-        ):
-            return
-        return True
+        response = self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
+        return response is not None
 
-    def _get_oncall_config_and_config_field_for_datasource_type(self, contact_point_name, is_grafana_datasource):
+    def check_if_oncall_type_is_available(self, is_grafana_datasource: bool) -> bool:
+        """
+        `oncall` type is a new contact point type. Check if it is available in the current version of Grafana.
+        If it's not - use `webhook` contact point type instead.
+        """
+        if is_grafana_datasource:
+            response, response_info = self.client.get_alerting_notifiers()
+            if response:
+                receiver_types = [receiver_type["type"] for receiver_type in response]
+                if "oncall" in receiver_types:
+                    return True
+        # todo: update for mimir when support for "oncall" receiver is added
+        return False
+
+    def _get_oncall_config_and_config_field_for_datasource_type(
+        self, contact_point_name, is_grafana_datasource, is_oncall_type_available
+    ):
         if is_grafana_datasource:  # Grafana Alertmanager
+            receiver_type = "oncall" if is_oncall_type_available else "webhook"
             oncall_config = {
                 "name": contact_point_name,
-                "type": "webhook",  # todo: "oncall" type
+                "type": receiver_type,
                 "disableResolveMessage": False,
                 "settings": {
                     "httpMethod": "POST",
@@ -818,23 +876,18 @@ class GrafanaAlertingSyncManager:
                 "secureFields": {},
             }
             config_field = "grafana_managed_receiver_configs"
-        else:  # other Alertmanagers
+        else:  # mimir/cortex Alertmanagers
             oncall_config = {
                 "url": self.integration_url,
                 "send_resolved": True,
             }
-            config_field = "webhook_configs"
+            config_field = "oncall_configs" if is_oncall_type_available else "webhook_configs"
         return oncall_config, config_field
 
     def disconnect_contact_point(self, datasource_uid, contact_point_name):
         is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
-        config, response_info = self.client.get_alerting_config(datasource_uid)
+        config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
         if config is None:
-            logger.warning(
-                f"GrafanaAlertingSyncManager: Got config None in get_contact_points_for_datasource "
-                f"for is_grafana_datasource {is_grafana_datasource} "
-                f"for integration {self.alert_receive_channel.pk}; response: {response_info}"
-            )
             return
         updated_config = copy.deepcopy(config)
         alertmanager_config = updated_config.get("alertmanager_config")
@@ -845,21 +898,8 @@ class GrafanaAlertingSyncManager:
         )
         if not contact_point_found:
             return
-        response, response_info = self.client.update_alerting_config(datasource_uid, updated_config)
-        if response is None:
-            logger.warning(
-                f"GrafanaAlertingSyncManager: Failed to update contact point for integration "
-                f"{self.alert_receive_channel.pk} (POST). Response: {response_info}"
-            )
-            if response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
-                logger.warning(f"GrafanaAlertingSyncManager: Config: {config}, Updated config: {updated_config}")
-        if response_info["status_code"] not in (
-            status.HTTP_200_OK,
-            status.HTTP_201_CREATED,
-            status.HTTP_202_ACCEPTED,
-        ):
-            return
-        return True
+        response = self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
+        return response is not None
 
     def _remove_oncall_config_from_contact_point(self, contact_point_name, is_grafana_datasource, alertmanager_config):
         alerting_receivers = alertmanager_config.get("receivers", [])
