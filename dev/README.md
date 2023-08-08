@@ -427,3 +427,32 @@ backwards compatible
 
 See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
 for the common mistakes and best practices
+
+### Removing a nullable field from a model
+
+> This only works for nullable fields (fields with `null=True` in the field definition).
+>
+> DO NOT USE THIS APPROACH FOR NON-NULLABLE FIELDS, IT CAN BREAK THINGS!
+
+1. Remove all usages of the field you want to remove. Make sure the field is not used anywhere, including filtering,
+querying, or explicit field referencing from views, models, forms, serializers, etc.
+2. Remove the field from the model definition.
+3. Generate migrations using the following management command:
+
+    ```python
+    python manage.py remove_field <APP_LABEL> <MODEL_NAME> <FIELD_NAME>
+    ```
+
+    Example: `python manage.py remove_field alerts AlertReceiveChannel restricted_at`
+
+    This command will generate two migrations that **MUST BE DEPLOYED IN TWO SEPARATE RELEASES**:
+   - Migration #1 will remove the field from Django's state, but not from the database. Release #1 must include
+   migration #1, and must not include migration #2.
+   - Migration #2 will remove the field from the database. Stash this migration for use in a future release.
+
+4. Make release #1 (removal of the field + migration #1). Once released and deployed, Django will not be
+aware of this field anymore, but the field will be still present in the database. This allows for a gradual migration,
+where the field is no longer used in new code, but still exists in the database for backward compatibility with old code.
+5. In any subsequent release, include migration #2 (the one that removes the field from the database).
+6. After releasing and deploying migration #2, the field will be removed both from the database and Django state,
+without backward compatibility issues or downtime 🎉
