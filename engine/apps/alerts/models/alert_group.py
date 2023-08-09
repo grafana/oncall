@@ -1600,6 +1600,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         if not self.is_root_alert_group:
             return
 
+        # Check if the "Remind every N hours" setting is enabled
         countdown = Organization.ACKNOWLEDGE_REMIND_DELAY[self.channel.organization.acknowledge_remind_timeout]
         if not countdown:
             return

@@ -14,6 +14,8 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord
     from apps.user_management.models import Organization
 
+    # This block is meant to prevent the task from being executed multiple times, but I'm not sure it works
+    # TODO: review this block, maybe refactor to use Django's cache instead of a DB field
     with transaction.atomic():
         try:
             alert_group = AlertGroup.objects.select_for_update().get(pk=alert_group_pk)  # Lock alert_group
@@ -24,6 +26,7 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
         if unacknowledge_process_id != alert_group.last_unique_unacknowledge_process_id:
             return
 
+    # Get timeout values
     acknowledge_reminder_timeout = Organization.ACKNOWLEDGE_REMIND_DELAY[
         alert_group.channel.organization.acknowledge_remind_timeout
     ]
@@ -31,6 +34,7 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
         alert_group.channel.organization.unacknowledge_timeout
     ]
 
+    # Don't proceed if the alert group is not in a state for acknowledgement reminder
     acknowledge_reminder_required = (
         alert_group.is_root_alert_group
         and alert_group.status == AlertGroup.ACKNOWLEDGED
@@ -38,13 +42,15 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
         and acknowledge_reminder_timeout
     )
     if not acknowledge_reminder_required:
-        task_logger.info("AlertGroup is not in a state for acknowledge reminder")
+        task_logger.info("AlertGroup is not in a state for acknowledgement reminder")
         return
 
+    # unacknowledge_timeout_task uses acknowledged_by_confirmed to check if acknowledgement reminder has been confirmed
+    # by the user. Setting to None here to indicate that the user has not confirmed the acknowledgement reminder
     alert_group.acknowledged_by_confirmed = None
     alert_group.save(update_fields=["acknowledged_by_confirmed"])
 
-    if unacknowledge_timeout:
+    if unacknowledge_timeout:  # "unack in N minutes if no response" is enabled
         unacknowledge_timeout_task.apply_async(
             (alert_group.pk, unacknowledge_process_id), countdown=unacknowledge_timeout
         )
@@ -64,6 +70,8 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord
     from apps.user_management.models import Organization
 
+    # This block is meant to prevent the task from being executed multiple times, but I'm not sure it works
+    # TODO: review this block, maybe refactor to use Django's cache instead of a DB field
     with transaction.atomic():
         try:
             alert_group = AlertGroup.objects.select_for_update().get(pk=alert_group_pk)  # Lock alert_group
@@ -74,6 +82,7 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
         if unacknowledge_process_id != alert_group.last_unique_unacknowledge_process_id:
             return
 
+    # Get timeout values
     acknowledge_reminder_timeout = Organization.ACKNOWLEDGE_REMIND_DELAY[
         alert_group.channel.organization.acknowledge_remind_timeout
     ]
@@ -81,6 +90,7 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
         alert_group.channel.organization.unacknowledge_timeout
     ]
 
+    # Don't proceed if the alert group is not in a state for auto-unacknowledge
     unacknowledge_required = (
         alert_group.is_root_alert_group
         and alert_group.status == AlertGroup.ACKNOWLEDGED
@@ -92,16 +102,16 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
         task_logger.info("AlertGroup is not in a state for unacknowledge")
         return
 
-    if alert_group.acknowledged_by_confirmed:
+    if alert_group.acknowledged_by_confirmed:  # acknowledgement reminder was confirmed by the user
         acknowledge_reminder_task.apply_async(
             (alert_group_pk, unacknowledge_process_id), countdown=acknowledge_reminder_timeout - unacknowledge_timeout
         )
         return
 
+    # If acknowledgement reminder wasn't confirmed by the user, unacknowledge the alert group and start escalation again
     log_record = alert_group.log_records.create(
         type=AlertGroupLogRecord.TYPE_AUTO_UN_ACK, author=alert_group.acknowledged_by_user
     )
     transaction.on_commit(lambda: send_alert_group_signal.delay(log_record.pk))
-
     alert_group.unacknowledge()
     alert_group.start_escalation_if_needed()
