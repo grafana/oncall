@@ -14,7 +14,6 @@ import {
   Drawer,
   Alert,
   Select,
-  Label,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get, noop } from 'lodash-es';
@@ -1142,6 +1141,7 @@ interface ContactPointTableRow {
 
 interface ContactPointComponentState {
   isDrawerOpen: boolean;
+  isConnectOpen: boolean;
   allContactPoints: ContactPoint[];
   tableData: ContactPointTableRow[];
 
@@ -1167,6 +1167,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       contactPointOptions,
       selectedAlertManager,
       selectedContactPoint,
+      isConnectOpen,
     },
     setState,
   ] = useReducer(
@@ -1182,6 +1183,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       allContactPoints: [],
       selectedAlertManager: undefined,
       selectedContactPoint: undefined,
+      isConnectOpen: false,
     }
   );
 
@@ -1231,23 +1233,38 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
 
                 <div className={cx('contactpoints__connect')}>
                   <VerticalGroup spacing="md">
-                    <HorizontalGroup spacing="xs" align="center">
-                      <Label>Grafana Alerting Contact point</Label>
-                      <Icon name="info-circle" className={cx('extra-fields__icon')} />
-                    </HorizontalGroup>
-                    <Select
-                      options={dataSourceOptions}
-                      onChange={onAlertManagerChange}
-                      value={selectedAlertManager}
-                      placeholder="Select Alert Manager"
-                    />
+                    <div
+                      className={cx('contactpoints__connect-toggler')}
+                      onClick={() => setState({ isConnectOpen: !isConnectOpen })}
+                    >
+                      <HorizontalGroup spacing="xs">
+                        <Text type="primary">Connect existing contact point</Text>
+                        {isConnectOpen ? <Icon name="arrow-down" /> : <Icon name="arrow-right" />}
+                      </HorizontalGroup>
+                    </div>
 
-                    <Select
-                      options={contactPointOptions}
-                      onChange={onContactPointChange}
-                      value={selectedContactPoint}
-                      placeholder="Select Contact Point"
-                    />
+                    {isConnectOpen && (
+                      <VerticalGroup spacing="md">
+                        <Select
+                          options={dataSourceOptions}
+                          onChange={onAlertManagerChange}
+                          value={selectedAlertManager}
+                          placeholder="Select Alert Manager"
+                        />
+
+                        <Select
+                          options={contactPointOptions}
+                          onChange={onContactPointChange}
+                          value={selectedContactPoint}
+                          placeholder="Select Contact Point"
+                        />
+
+                        <HorizontalGroup>
+                          <Button variant="primary">Connect contact point</Button>
+                          <Button variant="secondary">Cancel</Button>
+                        </HorizontalGroup>
+                      </VerticalGroup>
+                    )}
                   </VerticalGroup>
                 </div>
               </div>
