@@ -248,7 +248,7 @@ def test_unacknowledge_timeout_task_skip(
         acknowledge_remind_timeout=acknowledge_remind_timeout,
         unacknowledge_timeout=unacknowledge_timeout,
     )
-    unacknowledge_timeout_task(alert_group.pk, task_id)
+    unacknowledge_timeout_task(alert_group.pk, TASK_ID)
 
     mock_unacknowledge_timeout_task.assert_not_called()
     mock_acknowledge_reminder_task.assert_not_called()
@@ -256,11 +256,17 @@ def test_unacknowledge_timeout_task_skip(
     assert not alert_group.log_records.exists()
 
 
+@patch.object(AlertGroup, "start_escalation_if_needed")
+@patch.object(AlertGroup, "unacknowledge")
 @patch.object(unacknowledge_timeout_task, "apply_async")
 @patch.object(acknowledge_reminder_task, "apply_async")
 @pytest.mark.django_db
 def test_unacknowledge_timeout_task_unacknowledge(
-    mock_acknowledge_reminder_task, mock_unacknowledge_timeout_task, ack_reminder_test_setup
+    mock_acknowledge_reminder_task,
+    mock_unacknowledge_timeout_task,
+    mock_unacknowledge,
+    mock_start_escalation_if_needed,
+    ack_reminder_test_setup,
 ):
     organization, alert_group, user = ack_reminder_test_setup()
     unacknowledge_timeout_task(alert_group.pk, TASK_ID)
@@ -271,6 +277,9 @@ def test_unacknowledge_timeout_task_unacknowledge(
     log_record = alert_group.log_records.get()
     assert log_record.type == AlertGroupLogRecord.TYPE_AUTO_UN_ACK
     assert log_record.author == alert_group.acknowledged_by_user
+
+    mock_unacknowledge.assert_called_once_with()
+    mock_start_escalation_if_needed.assert_called_once_with()
 
 
 @patch.object(unacknowledge_timeout_task, "apply_async")
