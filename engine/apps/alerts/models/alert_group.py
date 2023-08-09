@@ -4,7 +4,6 @@ import typing
 import urllib
 from collections import namedtuple
 from urllib.parse import urljoin
-from uuid import UUID, uuid1
 
 from celery import uuid as celery_uuid
 from django.conf import settings
@@ -330,9 +329,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="dependent_alert_groups",
     )
 
-    # NOTE: we should probably migrate this field to models.UUIDField as it's ONLY ever being
-    # set to the result of uuid.uuid1
-    last_unique_unacknowledge_process_id: UUID | None = models.CharField(max_length=100, null=True, default=None)
+    last_unique_unacknowledge_process_id = models.CharField(max_length=100, null=True, default=None)
 
     wiped_at = models.DateTimeField(null=True, default=None)
     wiped_by = models.ForeignKey(
@@ -568,8 +565,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         self._update_metrics(organization_id=user.organization_id, previous_state=initial_state, state=self.state)
 
         self.stop_escalation()
-        if self.is_root_alert_group:
-            self.start_ack_reminder(user)
+        self.start_ack_reminder_if_needed()
 
         log_record = self.log_records.create(type=AlertGroupLogRecord.TYPE_ACK, author=user)
 
@@ -1218,8 +1214,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 state=AlertGroupState.ACKNOWLEDGED,
             )
 
-            if alert_group.is_root_alert_group:
-                alert_group.start_ack_reminder(user)
+            alert_group.start_ack_reminder_if_needed()
 
             log_record = alert_group.log_records.create(type=AlertGroupLogRecord.TYPE_ACK, author=user)
             send_alert_group_signal.apply_async((log_record.pk,))
@@ -1599,28 +1594,19 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             AlertGroup._bulk_silence(user, root_alert_groups_to_silence, silence_delay)
             AlertGroup._bulk_silence(user, dependent_alert_groups_to_silence, silence_delay)
 
-    def start_ack_reminder(self, user: User):
+    def start_ack_reminder_if_needed(self) -> None:
         from apps.user_management.models import Organization
 
-        unique_unacknowledge_process_id = uuid1()
-        logger.info(
-            f"AlertGroup acknowledged by user with pk "
-            f"{user.pk}, "
-            f"acknowledge timeout task has been started with process id {unique_unacknowledge_process_id}"
-        )
+        if not self.is_root_alert_group:
+            return
 
-        seconds = Organization.ACKNOWLEDGE_REMIND_DELAY[self.channel.organization.acknowledge_remind_timeout]
-        if seconds > 0:
-            delay = datetime.timedelta(seconds=seconds).total_seconds()
-            acknowledge_reminder_task.apply_async(
-                (
-                    self.pk,
-                    unique_unacknowledge_process_id,
-                ),
-                countdown=delay,
-            )
-            self.last_unique_unacknowledge_process_id = unique_unacknowledge_process_id
-            self.save(update_fields=["last_unique_unacknowledge_process_id"])
+        countdown = Organization.ACKNOWLEDGE_REMIND_DELAY[self.channel.organization.acknowledge_remind_timeout]
+        if not countdown:
+            return
+
+        self.last_unique_unacknowledge_process_id = celery_uuid()
+        self.save(update_fields=["last_unique_unacknowledge_process_id"])
+        acknowledge_reminder_task.apply_async((self.pk, self.last_unique_unacknowledge_process_id), countdown=countdown)
 
     def start_unsilence_task(self, countdown):
         task_id = celery_uuid()
