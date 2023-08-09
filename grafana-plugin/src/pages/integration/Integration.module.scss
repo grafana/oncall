@@ -219,3 +219,15 @@ $LARGE-MARGIN: 24px;
 .inline-switch {
   height: 34px;
 }
+
+.contactpoints {
+  &__table {
+    margin-bottom: 24px;
+  }
+  &__connect {
+    padding: 12px;
+    margin-bottom: 24px;
+    border: var(--border-weak);
+    border-radius: var(--border-radius);
+  }
+}

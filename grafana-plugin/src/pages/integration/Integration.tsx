@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 
 import {
   Button,
@@ -13,6 +13,8 @@ import {
   ConfirmModal,
   Drawer,
   Alert,
+  Select,
+  Label,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get, noop } from 'lodash-es';
@@ -55,6 +57,7 @@ import { HeartIcon, HeartRedIcon } from 'icons';
 import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
+  ContactPoint,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
@@ -70,6 +73,8 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+import GTable from 'components/GTable/GTable';
+import { SelectableValue } from '@grafana/data';
 
 const cx = cn.bind(styles);
 
@@ -1129,15 +1134,126 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 };
 
+interface ContactPointTableRow {
+  dataSource: string;
+  dataSourceId: string;
+  contactPoint: { name: string; notification_connected: boolean };
+}
+
+interface ContactPointComponentState {
+  isDrawerOpen: boolean;
+  allContactPoints: ContactPoint[];
+  tableData: ContactPointTableRow[];
+
+  // dropdown selected values
+  selectedAlertManager: string;
+  selectedContactPoint: string;
+
+  // dropdown options
+  dataSourceOptions: Array<{ label: string; value: string }>;
+  contactPointOptions: Array<{ label: string; value: string }>;
+}
+
 const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
-  const contactPointsNum = alertReceiveChannelStore.connectedContactPoints[id]?.length;
+  const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
+
+  const [
+    {
+      isDrawerOpen,
+      allContactPoints,
+      tableData,
+      dataSourceOptions,
+      contactPointOptions,
+      selectedAlertManager,
+      selectedContactPoint,
+    },
+    setState,
+  ] = useReducer(
+    (state: ContactPointComponentState, newState: Partial<ContactPointComponentState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      tableData: [],
+      isDrawerOpen: false,
+      contactPointOptions: [],
+      dataSourceOptions: [],
+      allContactPoints: [],
+      selectedAlertManager: undefined,
+      selectedContactPoint: undefined,
+    }
+  );
+
+  useEffect(() => {
+    (async function () {
+      const response = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
+      setState({
+        allContactPoints: response,
+        dataSourceOptions: response.map((res) => ({ label: res.name, value: res.uid })),
+      });
+    })();
+  }, []);
+
+  useEffect(() => {
+    let tableData = [];
+    contactPoints.forEach((ds) =>
+      ds.contact_points.forEach((cp) =>
+        tableData.push({
+          dataSource: ds.name,
+          dataSourceId: ds.uid,
+          contactPoint: cp,
+        })
+      )
+    );
+    setState({ tableData });
+  }, [id]);
 
   return (
     <IntegrationBlock
       noContent={true}
       heading={
         <div className={cx('u-flex', 'u-flex-space-between')}>
+          {isDrawerOpen && (
+            <Drawer
+              scrollableContent
+              title="Contact Points"
+              onClose={() => setState({ isDrawerOpen: false })}
+              closeOnMaskClick={false}
+            >
+              <div className={cx('contactpoints__drawer')}>
+                <GTable
+                  className={cx('contactpoints__table')}
+                  rowKey="pk"
+                  data={tableData}
+                  columns={getTableColumns()}
+                />
+
+                <div className={cx('contactpoints__connect')}>
+                  <VerticalGroup spacing="md">
+                    <HorizontalGroup spacing="xs" align="center">
+                      <Label>Grafana Alerting Contact point</Label>
+                      <Icon name="info-circle" className={cx('extra-fields__icon')} />
+                    </HorizontalGroup>
+                    <Select
+                      options={dataSourceOptions}
+                      onChange={onAlertManagerChange}
+                      value={selectedAlertManager}
+                      placeholder="Select Alert Manager"
+                    />
+
+                    <Select
+                      options={contactPointOptions}
+                      onChange={onContactPointChange}
+                      value={selectedContactPoint}
+                      placeholder="Select Contact Point"
+                    />
+                  </VerticalGroup>
+                </div>
+              </div>
+            </Drawer>
+          )}
+
           <HorizontalGroup spacing="md">
             <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
               <Text type="primary" size="small" className={cx('radius')}>
@@ -1145,9 +1261,9 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
               </Text>
             </Tag>
 
-            {contactPointsNum ? (
+            {contactPoints?.length ? (
               <Text type="primary">
-                {contactPointsNum} contact point{contactPointsNum === 1 ? '' : 's'} connected
+                {contactPoints.length} contact point{contactPoints.length === 1 ? '' : 's'} connected
               </Text>
             ) : (
               <HorizontalGroup spacing="xs">
@@ -1161,12 +1277,67 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             )}
           </HorizontalGroup>
 
-          <Button variant={'secondary'} icon="edit" size={'sm'} tooltip="Edit" onClick={noop} />
+          <Button
+            variant={'secondary'}
+            icon="edit"
+            size={'sm'}
+            tooltip="Edit"
+            onClick={() => setState({ isDrawerOpen: true })}
+          />
         </div>
       }
       content={undefined}
     />
   );
+
+  function onAlertManagerChange(option: SelectableValue<string>) {
+    setState({
+      selectedAlertManager: option.value,
+      selectedContactPoint: undefined,
+      contactPointOptions: allContactPoints
+        .find((res) => res.uid === option.value)
+        ?.contact_points.map((cp) => ({ value: cp, label: cp })),
+    });
+  }
+
+  function onContactPointChange(option: SelectableValue<string>) {
+    setState({ selectedContactPoint: option.value });
+  }
+
+  function getTableColumns(): Array<{ width: string; key: string; title?: string; render }> {
+    return [
+      {
+        width: '25%',
+        key: 'name',
+        title: 'Name',
+        render: renderContactPointName,
+      },
+      {
+        width: '20%',
+        title: 'Alert Manager',
+        key: 'alertmanager',
+        render: renderAlertManager,
+      },
+    ];
+  }
+
+  function renderContactPointName(item: ContactPointTableRow) {
+    return (
+      <HorizontalGroup spacing="xs">
+        <Text type="primary">{item.contactPoint.name}</Text>
+
+        {!item.contactPoint.notification_connected && (
+          <div className={cx('icon-exclamation')}>
+            <Icon name="exclamation-triangle" />
+          </div>
+        )}
+      </HorizontalGroup>
+    );
+  }
+
+  function renderAlertManager(item: ContactPointTableRow) {
+    return item.dataSource;
+  }
 };
 
 const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {

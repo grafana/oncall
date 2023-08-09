@@ -334,6 +334,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
     const newState: Partial<CustomFieldSectionRendererState> = {
       selectedAlertManagerOption: option.value,
+      selectedContactPointOption: undefined,
       contactPoints: contactPointsForCurrentOption,
     };
 
