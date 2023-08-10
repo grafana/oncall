@@ -74,6 +74,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 import GTable from 'components/GTable/GTable';
 import { SelectableValue } from '@grafana/data';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 
 const cx = cn.bind(styles);
 
@@ -1202,6 +1203,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
     contactPoints.forEach((ds) =>
       ds.contact_points.forEach((cp) =>
         tableData.push({
+          id: `${ds.uid}-${cp.name}`,
           dataSource: ds.name,
           dataSourceId: ds.uid,
           contactPoint: cp,
@@ -1226,7 +1228,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
               <div className={cx('contactpoints__drawer')}>
                 <GTable
                   className={cx('contactpoints__table')}
-                  rowKey="pk"
+                  rowKey="id"
                   data={tableData}
                   columns={getTableColumns()}
                 />
@@ -1313,7 +1315,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       selectedContactPoint: undefined,
       contactPointOptions: allContactPoints
         .find((res) => res.uid === option.value)
-        ?.contact_points.map((cp) => ({ value: cp, label: cp })),
+        ?.contact_points.map((cp) => ({ value: cp.name, label: cp.name })),
     });
   }
 
@@ -1324,18 +1326,59 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
   function getTableColumns(): Array<{ width: string; key: string; title?: string; render }> {
     return [
       {
-        width: '25%',
+        width: '40%',
         key: 'name',
         title: 'Name',
         render: renderContactPointName,
       },
       {
-        width: '20%',
+        width: '40%',
         title: 'Alert Manager',
         key: 'alertmanager',
         render: renderAlertManager,
       },
+      {
+        width: '20%',
+        title: '',
+        key: 'actions',
+        render: renderActions,
+      },
     ];
+  }
+
+  function renderActions(item: ContactPointTableRow) {
+    console.log({ item });
+
+    return (
+      <HorizontalGroup spacing="md">
+        <IconButton
+          name="external-link-alt"
+          onClick={() => {
+            window.open(
+              `${window.location.host}/alerting/notifications/receivers/${item.contactPoint.name}/edit?alertmanager=${item.dataSourceId}`,
+              '_blank'
+            );
+          }}
+        />
+        <WithConfirm
+          title={`Disconnect Contact point`}
+          confirmText="Disconnect"
+          onConfirm={() =>
+            alertReceiveChannelStore.disconnectContactPoint(id, item.dataSourceId, item.contactPoint.name)
+          }
+          description={
+            <VerticalGroup spacing="md">
+              <Text type="primary">
+                When the contact point will be disconnected, the Integration will no longer receive alerts for it.
+              </Text>
+              <Text type="primary">You can add new contact point at any time.</Text>
+            </VerticalGroup>
+          }
+        >
+          <IconButton name="trash-alt" />
+        </WithConfirm>
+      </HorizontalGroup>
+    );
   }
 
   function renderContactPointName(item: ContactPointTableRow) {

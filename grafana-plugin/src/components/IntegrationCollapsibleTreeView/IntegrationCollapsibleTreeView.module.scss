@@ -45,4 +45,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  path {
+    // this will overwrite all icons below to be gray
+    fill: var(--always-gray);
+  }
 }

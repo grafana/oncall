@@ -398,6 +398,20 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
+  async disconnectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/connect_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
   async createContactPoint(
     alertReceiveChannelId: AlertReceiveChannel['id'],
     datasource_uid: string,
