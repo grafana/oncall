@@ -192,6 +192,9 @@ backend-bootstrap:
 		pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
 	fi
 
+backend-gen-openapi-schema:
+	$(call backend_command,python manage.py spectacular --color --file api-internal-openapi-schema.yml --api-version api-internal)
+
 backend-migrate:
 	$(call backend_command,python manage.py migrate)
 
