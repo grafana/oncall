@@ -18,7 +18,7 @@ from emoji import emojize
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.alerts.tasks import disable_maintenance
+from apps.alerts.tasks import disable_maintenance, disconnect_integration_from_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.integrations.legacy_prefix import remove_legacy_prefix
@@ -41,7 +41,7 @@ from common.public_primary_keys import generate_public_primary_key, increase_pub
 if typing.TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from apps.alerts.models import AlertGroup, ChannelFilter, GrafanaAlertingContactPoint
+    from apps.alerts.models import AlertGroup, ChannelFilter
     from apps.user_management.models import Organization, Team
 
 logger = logging.getLogger(__name__)
@@ -117,7 +117,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     alert_groups: "RelatedManager['AlertGroup']"
     channel_filters: "RelatedManager['ChannelFilter']"
-    contact_points: "RelatedManager['GrafanaAlertingContactPoint']"
     organization: "Organization"
     team: typing.Optional["Team"]
 
@@ -165,7 +164,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     verbal_name = models.CharField(max_length=150, null=True, default=None)
     description_short = models.CharField(max_length=250, null=True, default=None)
 
-    is_finished_alerting_setup = models.BooleanField(default=False)
+    is_finished_alerting_setup = models.BooleanField(default=False)  # deprecated
 
     # *_*_template fields are legacy way of storing templates
     # messaging_backends_templates for new integrations' templates
@@ -658,22 +657,11 @@ def listen_for_alertreceivechannel_model_save(
             write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
         metrics_add_integration_to_cache(instance)
-    # todo
-    # if instance.integration in {
-    #     AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
-    #     AlertReceiveChannel.INTEGRATION_LEGACY_GRAFANA_ALERTING,
-    # }:
-    #     if created:
-    #         instance.grafana_alerting_sync_manager.create_contact_points()
-    #     # do not trigger sync contact points if field "is_finished_alerting_setup" was updated
-    #     elif (
-    #         kwargs is None
-    #         or not kwargs.get("update_fields")
-    #         or "is_finished_alerting_setup" not in kwargs["update_fields"]
-    #     ):
-    #         sync_grafana_alerting_contact_points.apply_async((instance.pk,), countdown=5)
 
     elif instance.deleted_at:
+        if instance.is_alerting_integration:
+            disconnect_integration_from_alerting_contact_points.apply_async((instance.pk,), countdown=5)
+
         metrics_remove_deleted_integration_from_cache(instance)
     else:
         metrics_update_integration_cache(instance)
