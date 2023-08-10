@@ -50,6 +50,154 @@ class GrafanaAlertingSyncManager:
 
         return None
 
+    # Actions with Alerting contact points
+    @classmethod
+    def get_contact_points(cls, organization: "Organization") -> list:
+        """Get names of all available contact points from alerting configs, sorted by datasource"""
+        logger.info(f"GrafanaAlertingSyncManager: start get_contact_points for organization {organization.id}")
+        client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+        datasources = cls.get_datasources(client)
+        contact_points_with_datasource = []
+        for datasource in datasources:
+            contact_points = cls.get_contact_points_for_datasource(client, datasource["uid"])
+            if contact_points:
+                contact_points_with_datasource.append(
+                    {
+                        "name": datasource.get("name"),
+                        "uid": datasource.get("uid"),
+                        "contact_points": contact_points,
+                    }
+                )
+        return contact_points_with_datasource
+
+    def get_connected_contact_points(self) -> list:
+        """
+        Get names and their active status (using in alerting notifications) of all contact points connected
+        to selected OnCall integration from alerting configs, sorted by datasource
+        """
+        logger.info(
+            f"GrafanaAlertingSyncManager: start get_connected_contact_points for integration "
+            f"{self.alert_receive_channel.id} for organization {self.alert_receive_channel.organization.id}"
+        )
+        datasources = self.get_datasources(self.client)
+        contact_points_with_datasource = []
+        for datasource in datasources:
+            connected_contact_points = self.get_connected_contact_points_for_datasource(datasource.get("uid"))
+            if connected_contact_points:
+                contact_points_with_datasource.append(
+                    {
+                        "name": datasource.get("name"),
+                        "uid": datasource.get("uid"),
+                        "contact_points": connected_contact_points,
+                    }
+                )
+        return contact_points_with_datasource
+
+    def connect_contact_point(
+        self, datasource_uid: str, contact_point_name: str, create_new: bool = False
+    ) -> Tuple[bool, str]:
+        """
+        Connect OnCall integration to selected contact point or create a new one if `create_new` is True
+        """
+        logger.info(
+            f"GrafanaAlertingSyncManager: start connect_contact_point for integration {self.alert_receive_channel.id} "
+            f"for organization {self.alert_receive_channel.organization.id}"
+        )
+        is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
+        config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
+        if config is None or config.get("alertmanager_config") is None:
+            # Config was probably deleted. Grafana Alertmanager should return config in any case. Try to get default
+            # config from another endpoint if it's not Grafana Alertmanager and it's needed to create new contact point
+            if not create_new or is_grafana_datasource:
+                return False, "Failed to get Alertmanager config"
+            default_config, response_info = self.get_default_mimir_alertmanager_config_for_datasource(
+                self.client, datasource_uid
+            )
+            updated_config = default_config
+        else:
+            updated_config = copy.deepcopy(config)
+
+        alertmanager_config = updated_config.get("alertmanager_config")
+        if not alertmanager_config:
+            return False, "Failed to get Alertmanager config"
+        alerting_receivers = alertmanager_config.get("receivers", [])
+
+        is_oncall_type_available = self.check_if_oncall_type_is_available(is_grafana_datasource)
+
+        oncall_config, config_field = self._get_oncall_config_and_config_field_for_datasource_type(
+            contact_point_name, is_grafana_datasource, is_oncall_type_available
+        )
+        if create_new:
+            if contact_point_name in [receiver["name"] for receiver in alerting_receivers]:
+                return False, "Contact point already exists"
+            alerting_receivers.append({"name": contact_point_name, config_field: [oncall_config]})
+        else:
+            receiver_found = False
+            for receiver in alerting_receivers:
+                if receiver["name"] == contact_point_name:
+                    receiver_found = True
+                    receiver.setdefault(config_field, []).append(oncall_config)
+                    break
+            if not receiver_found:
+                return False, "Contact point was not found "
+
+        response = self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
+        if response is None:
+            return False, "Failed to update Alertmanager config"
+        return True, ""
+
+    def disconnect_contact_point(self, datasource_uid: str, contact_point_name: str) -> Tuple[bool, str]:
+        """
+        Disconnect OnCall integration from selected contact point
+        """
+        logger.info(
+            f"GrafanaAlertingSyncManager: start disconnect_contact_point for integration "
+            f"{self.alert_receive_channel.id} for organization {self.alert_receive_channel.organization.id}"
+        )
+        is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
+        config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
+        if config is None:
+            return False, "Failed to get Alertmanager config"
+        updated_config = copy.deepcopy(config)
+        alertmanager_config = updated_config.get("alertmanager_config")
+        if not alertmanager_config:
+            return False, "Failed to get Alertmanager config"
+        _, contact_point_found, receiver_found = self._remove_oncall_config_from_contact_point(
+            contact_point_name, is_grafana_datasource, alertmanager_config
+        )
+        if not contact_point_found:
+            return False, "Contact point was not found"
+        elif not receiver_found:
+            return False, "OnCall connection was not found in selected contact point"
+        response = self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
+        if response is None:
+            return False, "Failed to update Alertmanager config"
+        return True, ""
+
+    def disconnect_all_contact_points(self) -> None:
+        """
+        Disconnect OnCall integration from all contact points (used for deleted OnCall integrations)
+        """
+        logger.info(
+            f"GrafanaAlertingSyncManager: start disconnect_all_contact_points for integration "
+            f"{self.alert_receive_channel.id} for organization {self.alert_receive_channel.organization.id}"
+        )
+        datasources = self.get_datasources(self.client)
+        for datasource in datasources:
+            datasource_uid = datasource["uid"]
+            is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
+            config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
+            if config is None:
+                continue
+            updated_config = copy.deepcopy(config)
+            alertmanager_config = updated_config.get("alertmanager_config")
+            if not alertmanager_config:
+                continue
+            self._remove_integration_config_from_each_contact_point(is_grafana_datasource, alertmanager_config)
+            self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
+        return
+
+    # API requests to get/update Alertmanager config
     @classmethod
     def get_alerting_config_for_datasource(cls, client: "GrafanaAPIClient", datasource_uid: str) -> Optional[dict]:
         config, response_info = client.get_alerting_config(datasource_uid)
@@ -96,38 +244,6 @@ class GrafanaAlertingSyncManager:
         ):
             return
         return response
-
-    @classmethod
-    def get_contact_points(cls, organization: "Organization") -> list:
-        client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
-        datasources = cls.get_datasources(client)
-        contact_points_with_datasource = []
-        for datasource in datasources:
-            contact_points = cls.get_contact_points_for_datasource(client, datasource["uid"])
-            if contact_points:
-                contact_points_with_datasource.append(
-                    {
-                        "name": datasource.get("name"),
-                        "uid": datasource.get("uid"),
-                        "contact_points": contact_points,
-                    }
-                )
-        return contact_points_with_datasource
-
-    def get_connected_contact_points(self) -> list:
-        datasources = self.get_datasources(self.client)
-        contact_points_with_datasource = []
-        for datasource in datasources:
-            connected_contact_points = self.get_connected_contact_points_for_datasource(datasource.get("uid"))
-            if connected_contact_points:
-                contact_points_with_datasource.append(
-                    {
-                        "name": datasource.get("name"),
-                        "uid": datasource.get("uid"),
-                        "contact_points": connected_contact_points,
-                    }
-                )
-        return contact_points_with_datasource
 
     @classmethod
     def get_datasources(cls, client: "GrafanaAPIClient") -> list[dict]:
@@ -187,6 +303,21 @@ class GrafanaAlertingSyncManager:
         contact_points = self._get_connected_contact_points_from_config(alertmanager_config, is_grafana_datasource)
         return contact_points
 
+    def check_if_oncall_type_is_available(self, is_grafana_datasource: bool) -> bool:
+        """
+        `oncall` type is a new contact point type. Check if it is available in the current version of Grafana.
+        If it's not - use `webhook` contact point type instead.
+        """
+        if is_grafana_datasource:
+            response, response_info = self.client.get_alerting_notifiers()
+            if response:
+                receiver_types = [receiver_type["type"] for receiver_type in response]
+                if "oncall" in receiver_types:
+                    return True
+        # todo: update for mimir when support for "oncall" receiver is added
+        return False
+
+    # Parsing Alertmanager config
     def _get_connected_contact_points_from_config(self, alertmanager_config: dict, is_grafana_datasource: bool) -> list:
         contact_points = []
         alerting_receivers = alertmanager_config.get("receivers", [])
@@ -245,66 +376,6 @@ class GrafanaAlertingSyncManager:
                     return True
         return False
 
-    def connect_contact_point(
-        self, datasource_uid: str, contact_point_name: str, create_new: bool = False
-    ) -> Tuple[bool, str]:
-        is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
-        config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
-        if config is None or config.get("alertmanager_config") is None:
-            # Config was probably deleted. Grafana Alertmanager should return config in any case. Try to get default
-            # config from another endpoint if it's not Grafana Alertmanager and it's needed to create new contact point
-            if not create_new or is_grafana_datasource:
-                return False, "Failed to get Alertmanager config"
-            default_config, response_info = self.get_default_mimir_alertmanager_config_for_datasource(
-                self.client, datasource_uid
-            )
-            updated_config = default_config
-        else:
-            updated_config = copy.deepcopy(config)
-
-        alertmanager_config = updated_config.get("alertmanager_config")
-        if not alertmanager_config:
-            return False, "Failed to get Alertmanager config"
-        alerting_receivers = alertmanager_config.get("receivers", [])
-
-        is_oncall_type_available = self.check_if_oncall_type_is_available(is_grafana_datasource)
-
-        oncall_config, config_field = self._get_oncall_config_and_config_field_for_datasource_type(
-            contact_point_name, is_grafana_datasource, is_oncall_type_available
-        )
-        if create_new:
-            if contact_point_name in [receiver["name"] for receiver in alerting_receivers]:
-                return False, "Contact point already exists"
-            alerting_receivers.append({"name": contact_point_name, config_field: [oncall_config]})
-        else:
-            receiver_found = False
-            for receiver in alerting_receivers:
-                if receiver["name"] == contact_point_name:
-                    receiver_found = True
-                    receiver.setdefault(config_field, []).append(oncall_config)
-                    break
-            if not receiver_found:
-                return False, "Contact point was not found "
-
-        response = self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
-        if response is None:
-            return False, "Failed to update Alertmanager config"
-        return True, ""
-
-    def check_if_oncall_type_is_available(self, is_grafana_datasource: bool) -> bool:
-        """
-        `oncall` type is a new contact point type. Check if it is available in the current version of Grafana.
-        If it's not - use `webhook` contact point type instead.
-        """
-        if is_grafana_datasource:
-            response, response_info = self.client.get_alerting_notifiers()
-            if response:
-                receiver_types = [receiver_type["type"] for receiver_type in response]
-                if "oncall" in receiver_types:
-                    return True
-        # todo: update for mimir when support for "oncall" receiver is added
-        return False
-
     def _get_oncall_config_and_config_field_for_datasource_type(
         self, contact_point_name: str, is_grafana_datasource: bool, is_oncall_type_available: bool
     ) -> Tuple[dict, str]:
@@ -329,30 +400,10 @@ class GrafanaAlertingSyncManager:
             config_field = "oncall_configs" if is_oncall_type_available else "webhook_configs"
         return oncall_config, config_field
 
-    def disconnect_contact_point(self, datasource_uid: str, contact_point_name: str) -> Tuple[bool, str]:
-        is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
-        config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
-        if config is None:
-            return False, "Failed to get Alertmanager config"
-        updated_config = copy.deepcopy(config)
-        alertmanager_config = updated_config.get("alertmanager_config")
-        if not alertmanager_config:
-            return False, "Failed to get Alertmanager config"
-        _, contact_point_found, receiver_found = self._remove_oncall_config_from_contact_point(
-            contact_point_name, is_grafana_datasource, alertmanager_config
-        )
-        if not contact_point_found:
-            return False, "Contact point was not found"
-        elif not receiver_found:
-            return False, "OnCall connection was not found in selected contact point"
-        response = self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
-        if response is None:
-            return False, "Failed to update Alertmanager config"
-        return True, ""
-
     def _remove_oncall_config_from_contact_point(
         self, contact_point_name: str, is_grafana_datasource: bool, alertmanager_config: dict
     ) -> Tuple[dict, bool, bool]:
+        """Remove OnCall integration config from selected contact point"""
         alerting_receivers = alertmanager_config.get("receivers", [])
         contact_point_found = False
         receiver_found = False
@@ -402,25 +453,10 @@ class GrafanaAlertingSyncManager:
                     break
         return alertmanager_config, contact_point_found, receiver_found
 
-    def disconnect_all_contact_points(self) -> None:
-        datasources = self.get_datasources(self.client)
-        for datasource in datasources:
-            datasource_uid = datasource["uid"]
-            is_grafana_datasource = datasource_uid == self.GRAFANA_ALERTING_DATASOURCE
-            config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
-            if config is None:
-                continue
-            updated_config = copy.deepcopy(config)
-            alertmanager_config = updated_config.get("alertmanager_config")
-            if not alertmanager_config:
-                continue
-            self._remove_integration_config_from_each_contact_point(is_grafana_datasource, alertmanager_config)
-            self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
-        return
-
     def _remove_integration_config_from_each_contact_point(
         self, is_grafana_datasource: bool, alertmanager_config: dict
     ) -> dict:
+        """Remove OnCall integration config from all contact points"""
         alerting_receivers = alertmanager_config.get("receivers", [])
         receiver_found = False
         if is_grafana_datasource:
