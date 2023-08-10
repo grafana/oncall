@@ -488,6 +488,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 60 * 30,
         "args": (),
     },
+    "check_heartbeats": {
+        "task": "apps.heartbeat.tasks.check_heartbeats",
+        "schedule": crontab(minute="*/2"),  # every 2 minutes
+        "args": (),
+    },
 }
 
 if ESCALATION_AUDITOR_ENABLED:

@@ -4,10 +4,9 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.utils import timezone
 
-from apps.integrations.tasks import create_alert
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -43,10 +42,26 @@ class IntegrationHeartBeat(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     timeout_seconds = models.IntegerField(default=0)
+
     last_heartbeat_time = models.DateTimeField(default=None, null=True)
+    """
+    Stores the latest received heartbeat signal time
+    """
+
     last_checkup_task_time = models.DateTimeField(default=None, null=True)
+    """
+    Deprecated. This field is not used. TODO: remove it
+    """
+
     actual_check_up_task_id = models.CharField(max_length=100)
+    """
+    Deprecated. Stored the latest scheduled `integration_heartbeat_checkup` task id. TODO: remove it
+    """
+
     previous_alerted_state_was_life = models.BooleanField(default=True)
+    """
+    Last status of the heartbeat. Determines if integration was alive on latest checkup
+    """
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -82,73 +97,6 @@ class IntegrationHeartBeat(models.Model):
     @property
     def link(self) -> str:
         return urljoin(self.alert_receive_channel.integration_url, "heartbeat/")
-
-    @classmethod
-    def perform_heartbeat_check(cls, heartbeat_id: int, task_request_id: str) -> None:
-        with transaction.atomic():
-            heartbeats = cls.objects.filter(pk=heartbeat_id).select_for_update()
-            if len(heartbeats) == 0:
-                logger.info(f"Heartbeat {heartbeat_id} not found {task_request_id}")
-                return
-            heartbeat = heartbeats[0]
-            if task_request_id == heartbeat.actual_check_up_task_id:
-                heartbeat.check_heartbeat_state_and_save()
-            else:
-                logger.info(f"Heartbeat {heartbeat_id} is not actual {task_request_id}")
-
-    def check_heartbeat_state_and_save(self) -> bool:
-        """
-        Use this method if you want just check heartbeat status.
-        """
-        state_changed = self.check_heartbeat_state()
-        if state_changed:
-            self.save(update_fields=["previous_alerted_state_was_life"])
-        return state_changed
-
-    def check_heartbeat_state(self) -> bool:
-        """
-        Actually checking heartbeat.
-        Use this method if you want to do changes of heartbeat instance while checking its status.
-        ( See IntegrationHeartBeatAPIView.post() for example )
-        """
-        state_changed = False
-        if self.is_expired:
-            if self.previous_alerted_state_was_life:
-                self.on_heartbeat_expired()
-                self.previous_alerted_state_was_life = False
-                state_changed = True
-        else:
-            if not self.previous_alerted_state_was_life:
-                self.on_heartbeat_restored()
-                self.previous_alerted_state_was_life = True
-                state_changed = True
-        return state_changed
-
-    def on_heartbeat_restored(self) -> None:
-        create_alert.apply_async(
-            kwargs={
-                "title": self.alert_receive_channel.heartbeat_restored_title,
-                "message": self.alert_receive_channel.heartbeat_restored_message,
-                "image_url": None,
-                "link_to_upstream_details": None,
-                "alert_receive_channel_pk": self.alert_receive_channel.pk,
-                "integration_unique_data": {},
-                "raw_request_data": self.alert_receive_channel.heartbeat_restored_payload,
-            },
-        )
-
-    def on_heartbeat_expired(self) -> None:
-        create_alert.apply_async(
-            kwargs={
-                "title": self.alert_receive_channel.heartbeat_expired_title,
-                "message": self.alert_receive_channel.heartbeat_expired_message,
-                "image_url": None,
-                "link_to_upstream_details": None,
-                "alert_receive_channel_pk": self.alert_receive_channel.pk,
-                "integration_unique_data": {},
-                "raw_request_data": self.alert_receive_channel.heartbeat_expired_payload,
-            },
-        )
 
     # Insight logs
     @property

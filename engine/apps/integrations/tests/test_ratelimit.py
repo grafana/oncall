@@ -96,5 +96,3 @@ def test_ratelimit_integration_heartbeats(
 
     response = c.get(url)
     assert response.status_code == 429
-
-    assert mocked_task.call_count == 1
