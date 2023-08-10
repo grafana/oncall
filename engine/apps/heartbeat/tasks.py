@@ -16,7 +16,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_dedicated_queue_retry_task()
-def check_heartbeats() -> None:
+def check_heartbeats() -> str:
     """
     Periodic task to check heartbeats status change and create alerts (or auto-resolve alerts) if needed
     """
