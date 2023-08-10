@@ -392,9 +392,11 @@ class AlertReceiveChannelView(
         contact_point_name = request.data.get("contact_point_name")
         if not datasource_uid or not contact_point_name:
             raise BadRequest(detail="datasource_uid and contact_point_name are required")
-        connected = instance.grafana_alerting_sync_manager.connect_contact_point(datasource_uid, contact_point_name)
+        connected, error = instance.grafana_alerting_sync_manager.connect_contact_point(
+            datasource_uid, contact_point_name
+        )
         if not connected:
-            raise BadRequest(detail="connection failed")  # todo
+            raise BadRequest(detail=error)
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
@@ -407,11 +409,11 @@ class AlertReceiveChannelView(
         contact_point_name = request.data.get("contact_point_name")
         if not datasource_uid or not contact_point_name:
             raise BadRequest(detail="datasource_uid and contact_point_name are required")
-        created = instance.grafana_alerting_sync_manager.connect_contact_point(
+        created, error = instance.grafana_alerting_sync_manager.connect_contact_point(
             datasource_uid, contact_point_name, create_new=True
         )
         if not created:
-            raise BadRequest(detail="creation failed")  # todo
+            raise BadRequest(detail=error)
         return Response(status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
@@ -424,9 +426,9 @@ class AlertReceiveChannelView(
         contact_point_name = request.data.get("contact_point_name")
         if not datasource_uid or not contact_point_name:
             raise BadRequest(detail="datasource_uid and contact_point_name are required")
-        disconnected = instance.grafana_alerting_sync_manager.disconnect_contact_point(
+        disconnected, error = instance.grafana_alerting_sync_manager.disconnect_contact_point(
             datasource_uid, contact_point_name
         )
         if not disconnected:
-            raise BadRequest(detail="disconnection failed")  # todo
+            raise BadRequest(detail=error)
         return Response(status=status.HTTP_200_OK)
