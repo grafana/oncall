@@ -188,7 +188,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   }
 
   return (
-    <WithPermissionControlDisplay userAction={UserActions.OtherSettingsWrite}>
+    <WithPermissionControlDisplay userAction={UserActions.UserSettingsWrite}>
       <VerticalGroup>
         {isPhoneValid && !user.verified_phone_number && (
           <Alert severity="info" title="You will receive alerts to a new number after verification" />
