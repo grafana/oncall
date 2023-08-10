@@ -1198,12 +1198,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
       heading={
         <div className={cx('u-flex', 'u-flex-space-between')}>
           {isDrawerOpen && (
-            <Drawer
-              scrollableContent
-              title="Contact Points"
-              onClose={() => setState({ isDrawerOpen: false })}
-              closeOnMaskClick={false}
-            >
+            <Drawer scrollableContent title="Contact Points" onClose={closeDrawer} closeOnMaskClick={false}>
               <div className={cx('contactpoints__drawer')}>
                 <GTable
                   className={cx('contactpoints__table')}
@@ -1248,7 +1243,9 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
                           >
                             Connect contact point
                           </Button>
-                          <Button variant="secondary">Cancel</Button>
+                          <Button variant="secondary" onClick={closeDrawer}>
+                            Cancel
+                          </Button>
                           {isLoading && <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />}
                         </HorizontalGroup>
                       </VerticalGroup>
@@ -1295,12 +1292,23 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
     />
   );
 
+  function closeDrawer() {
+    setState({
+      isDrawerOpen: false,
+      isConnectOpen: false,
+      contactPointOptions: [],
+      dataSourceOptions: [],
+      selectedAlertManager: undefined,
+      selectedContactPoint: undefined,
+    });
+  }
+
   function onContactPointConnect() {
     setState({ isLoading: true });
     alertReceiveChannelStore
       .connectContactPoint(id, selectedAlertManager, selectedContactPoint)
       .then(() => {
-        setState({ isDrawerOpen: false });
+        closeDrawer();
         openNotification('A new contact point has been connected to your integration');
         alertReceiveChannelStore.updateConnectedContactPoints(id);
       })
@@ -1311,12 +1319,17 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
   }
 
   function onAlertManagerChange(option: SelectableValue<string>) {
+    const currentContactPoints = contactPoints
+      .filter((p) => p.dataSourceId === option.value)
+      .map((p) => p.contactPoint);
+
     setState({
       selectedAlertManager: option.value,
       selectedContactPoint: undefined,
       contactPointOptions: allContactPoints
         .find((opt) => opt.uid == option.value)
-        .contact_points?.map((cp) => ({ value: cp, label: cp })),
+        .contact_points?.filter((cp) => currentContactPoints.indexOf(cp) === -1)
+        .map((cp) => ({ value: cp, label: cp })),
     });
   }
 
@@ -1377,7 +1390,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
               alertReceiveChannelStore
                 .disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
                 .then(() => {
-                  setState({ isDrawerOpen: false });
+                  closeDrawer();
                   openNotification('Contact point has been removed');
                   alertReceiveChannelStore.updateConnectedContactPoints(id);
                 })
