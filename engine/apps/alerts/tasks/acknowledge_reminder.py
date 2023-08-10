@@ -14,8 +14,6 @@ def acknowledge_reminder_task(alert_group_pk: int, unacknowledge_process_id: str
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord
     from apps.user_management.models import Organization
 
-    # This block is meant to prevent the task from being executed multiple times, but I'm not sure it works
-    # TODO: review this block, maybe refactor to use Django's cache instead of a DB field
     with transaction.atomic():
         try:
             alert_group = AlertGroup.objects.select_for_update().get(pk=alert_group_pk)  # Lock alert_group
@@ -70,8 +68,6 @@ def unacknowledge_timeout_task(alert_group_pk: int, unacknowledge_process_id: st
     from apps.alerts.models import AlertGroup, AlertGroupLogRecord
     from apps.user_management.models import Organization
 
-    # This block is meant to prevent the task from being executed multiple times, but I'm not sure it works
-    # TODO: review this block, maybe refactor to use Django's cache instead of a DB field
     with transaction.atomic():
         try:
             alert_group = AlertGroup.objects.select_for_update().get(pk=alert_group_pk)  # Lock alert_group
