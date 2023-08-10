@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.23 (2023-08-10)
 
 ### Added
 
@@ -17,11 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add stack slug to organization options for direct paging Slash command by @vadimkerr ([#2743](https://github.com/grafana/oncall/pull/2743))
 - Avoid creating (or notifying about) potential event splits resulting from untaken swap requests ([#2748](https://github.com/grafana/oncall/pull/2748))
+- Refactor heartbeats into a periodic task ([2723](https://github.com/grafana/oncall/pull/2723))
 
 ### Fixed
 
 - Do not show override shortcut when web overrides are disabled ([#2745](https://github.com/grafana/oncall/pull/2745))
 - Handle ical schedule import with duplicated event UIDs ([#2760](https://github.com/grafana/oncall/pull/2760))
+- Allow Editor to access Phone Verification ([#2772](https://github.com/grafana/oncall/pull/2772))
 
 ## v1.3.22 (2023-08-03)
 
