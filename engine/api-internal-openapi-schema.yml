@@ -1,0 +1,1174 @@
+openapi: 3.0.3
+info:
+  title: Grafana OnCall Private API
+  version: 1.0.0 (api-internal)
+  description: Internal API docs. This is not meant to be used by end users. API endpoints
+    will be kept added/removed/changed without notice.
+paths:
+  /api/internal/v1/alertgroups/:
+    get:
+      operationId: alertgroups_list
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - name: acknowledged_by
+        required: false
+        in: query
+        description: acknowledged_by
+        schema:
+          type: string
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: integer
+      - name: escalation_chain
+        required: false
+        in: query
+        description: escalation_chain
+        schema:
+          type: string
+      - name: id__in
+        required: false
+        in: query
+        description: id__in
+        schema:
+          type: string
+      - name: integration
+        required: false
+        in: query
+        description: integration
+        schema:
+          type: string
+      - name: invitees_are
+        required: false
+        in: query
+        description: invitees_are
+        schema:
+          type: string
+      - name: involved_users_are
+        required: false
+        in: query
+        description: involved_users_are
+        schema:
+          type: string
+      - name: is_root
+        required: false
+        in: query
+        description: is_root
+        schema:
+          type: string
+      - name: mine
+        required: false
+        in: query
+        description: mine
+        schema:
+          type: string
+      - name: perpage
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: resolved_at
+        required: false
+        in: query
+        description: resolved_at
+        schema:
+          type: string
+      - name: resolved_at_lte
+        required: false
+        in: query
+        description: resolved_at_lte
+        schema:
+          type: string
+      - name: resolved_by
+        required: false
+        in: query
+        description: resolved_by
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: silenced_at
+        required: false
+        in: query
+        description: silenced_at
+        schema:
+          type: string
+      - name: silenced_by
+        required: false
+        in: query
+        description: silenced_by
+        schema:
+          type: string
+      - name: started_at
+        required: false
+        in: query
+        description: started_at
+        schema:
+          type: string
+      - name: started_at_gte
+        required: false
+        in: query
+        description: started_at_gte
+        schema:
+          type: string
+      - name: started_at_lte
+        required: false
+        in: query
+        description: started_at_lte
+        schema:
+          type: string
+      - name: started_at_range
+        required: false
+        in: query
+        description: started_at_range
+        schema:
+          type: string
+      - name: status
+        required: false
+        in: query
+        description: status
+        schema:
+          type: string
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+      - name: team
+        required: false
+        in: query
+        description: team
+        schema:
+          type: string
+      - name: with_resolution_note
+        required: false
+        in: query
+        description: with_resolution_note
+        schema:
+          type: string
+      tags:
+      - alertgroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAlertGroupListList'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/:
+    get:
+      operationId: alertgroups_retrieve
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/acknowledge/:
+    post:
+      operationId: alertgroups_acknowledge_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/attach/:
+    post:
+      operationId: alertgroups_attach_create
+      description: Attach alert group to another alert group
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/preview_template/:
+    post:
+      operationId: alertgroups_preview_template_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/resolve/:
+    post:
+      operationId: alertgroups_resolve_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/silence/:
+    post:
+      operationId: alertgroups_silence_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/unacknowledge/:
+    post:
+      operationId: alertgroups_unacknowledge_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/unattach/:
+    post:
+      operationId: alertgroups_unattach_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/unpage_user/:
+    post:
+      operationId: alertgroups_unpage_user_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/unresolve/:
+    post:
+      operationId: alertgroups_unresolve_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/{id}/unsilence/:
+    post:
+      operationId: alertgroups_unsilence_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/bulk_action/:
+    post:
+      operationId: alertgroups_bulk_action_create
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      tags:
+      - alertgroups
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AlertGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/bulk_action_options/:
+    get:
+      operationId: alertgroups_bulk_action_options_retrieve
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      tags:
+      - alertgroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/filters/:
+    get:
+      operationId: alertgroups_filters_retrieve
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      tags:
+      - alertgroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroup'
+          description: ''
+  /api/internal/v1/alertgroups/silence_options/:
+    get:
+      operationId: alertgroups_silence_options_list
+      description: |-
+        This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+        in case a requested instance doesn't belong to user's current_team.
+      parameters:
+      - name: acknowledged_by
+        required: false
+        in: query
+        description: acknowledged_by
+        schema:
+          type: string
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: integer
+      - name: escalation_chain
+        required: false
+        in: query
+        description: escalation_chain
+        schema:
+          type: string
+      - name: id__in
+        required: false
+        in: query
+        description: id__in
+        schema:
+          type: string
+      - name: integration
+        required: false
+        in: query
+        description: integration
+        schema:
+          type: string
+      - name: invitees_are
+        required: false
+        in: query
+        description: invitees_are
+        schema:
+          type: string
+      - name: involved_users_are
+        required: false
+        in: query
+        description: involved_users_are
+        schema:
+          type: string
+      - name: is_root
+        required: false
+        in: query
+        description: is_root
+        schema:
+          type: string
+      - name: mine
+        required: false
+        in: query
+        description: mine
+        schema:
+          type: string
+      - name: perpage
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: resolved_at
+        required: false
+        in: query
+        description: resolved_at
+        schema:
+          type: string
+      - name: resolved_at_lte
+        required: false
+        in: query
+        description: resolved_at_lte
+        schema:
+          type: string
+      - name: resolved_by
+        required: false
+        in: query
+        description: resolved_by
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - name: silenced_at
+        required: false
+        in: query
+        description: silenced_at
+        schema:
+          type: string
+      - name: silenced_by
+        required: false
+        in: query
+        description: silenced_by
+        schema:
+          type: string
+      - name: started_at
+        required: false
+        in: query
+        description: started_at
+        schema:
+          type: string
+      - name: started_at_gte
+        required: false
+        in: query
+        description: started_at_gte
+        schema:
+          type: string
+      - name: started_at_lte
+        required: false
+        in: query
+        description: started_at_lte
+        schema:
+          type: string
+      - name: started_at_range
+        required: false
+        in: query
+        description: started_at_range
+        schema:
+          type: string
+      - name: status
+        required: false
+        in: query
+        description: status
+        schema:
+          type: string
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+      - name: team
+        required: false
+        in: query
+        description: team
+        schema:
+          type: string
+      - name: with_resolution_note
+        required: false
+        in: query
+        description: with_resolution_note
+        schema:
+          type: string
+      tags:
+      - alertgroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paginatedsilence_optionsList'
+          description: ''
+  /api/internal/v1/alertgroups/stats/:
+    get:
+      operationId: alertgroups_stats_retrieve
+      description: Return number of alert groups capped at 100001
+      tags:
+      - alertgroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertGroupStats'
+          description: ''
+  /api/internal/v1/features/:
+    get:
+      operationId: features_retrieve
+      description: |-
+        Return whitelist of enabled features.
+        It is needed to disable features for On-prem installations.
+      tags:
+      - features
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+components:
+  schemas:
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        link_to_upstream_details:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 500
+        render_for_web:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - render_for_web
+    AlertGroup:
+      type: object
+      properties:
+        pk:
+          type: string
+          readOnly: true
+        alerts_count:
+          type: integer
+          readOnly: true
+        inside_organization_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        alert_receive_channel:
+          $ref: '#/components/schemas/FastAlertReceiveChannel'
+        resolved:
+          type: boolean
+        resolved_by:
+          allOf:
+          - $ref: '#/components/schemas/ResolvedByEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        resolved_by_user:
+          $ref: '#/components/schemas/FastUser'
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
+        acknowledged:
+          type: boolean
+        acknowledged_on_source:
+          type: boolean
+        acknowledged_by_user:
+          $ref: '#/components/schemas/FastUser'
+        silenced:
+          type: boolean
+        silenced_by_user:
+          $ref: '#/components/schemas/FastUser'
+        silenced_at:
+          type: string
+          format: date-time
+          nullable: true
+        silenced_until:
+          type: string
+          format: date-time
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        related_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserShort'
+          readOnly: true
+        render_for_web:
+          allOf:
+          - $ref: '#/components/schemas/render_for_web'
+          readOnly: true
+        render_for_classic_markdown:
+          type: string
+          readOnly: true
+        dependent_alert_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShortAlertGroup'
+        root_alert_group:
+          $ref: '#/components/schemas/ShortAlertGroup'
+        status:
+          type: string
+          readOnly: true
+        declare_incident_link:
+          type: string
+          description: Generate a link for AlertGroup to declare Grafana Incident
+            by click
+          readOnly: true
+        team:
+          type: string
+          nullable: true
+        is_restricted:
+          type: boolean
+          nullable: true
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+        render_after_resolve_report_json:
+          type: string
+          readOnly: true
+        slack_permalink:
+          type: string
+          nullable: true
+          readOnly: true
+        permalinks:
+          type: object
+          properties:
+            slack:
+              type: string
+              nullable: true
+            telegram:
+              type: string
+              nullable: true
+            web:
+              type: string
+          required:
+          - slack
+          - telegram
+          - web
+          readOnly: true
+        last_alert_at:
+          type: string
+          format: date-time
+          readOnly: true
+        paged_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserShort'
+          readOnly: true
+      required:
+      - alert_receive_channel
+      - alerts
+      - alerts_count
+      - declare_incident_link
+      - dependent_alert_groups
+      - last_alert_at
+      - paged_users
+      - permalinks
+      - pk
+      - related_users
+      - render_after_resolve_report_json
+      - render_for_classic_markdown
+      - render_for_web
+      - root_alert_group
+      - slack_permalink
+      - started_at
+      - status
+      - team
+    AlertGroupList:
+      type: object
+      properties:
+        pk:
+          type: string
+          readOnly: true
+        alerts_count:
+          type: integer
+          readOnly: true
+        inside_organization_number:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        alert_receive_channel:
+          $ref: '#/components/schemas/FastAlertReceiveChannel'
+        resolved:
+          type: boolean
+        resolved_by:
+          allOf:
+          - $ref: '#/components/schemas/ResolvedByEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        resolved_by_user:
+          $ref: '#/components/schemas/FastUser'
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
+        acknowledged:
+          type: boolean
+        acknowledged_on_source:
+          type: boolean
+        acknowledged_by_user:
+          $ref: '#/components/schemas/FastUser'
+        silenced:
+          type: boolean
+        silenced_by_user:
+          $ref: '#/components/schemas/FastUser'
+        silenced_at:
+          type: string
+          format: date-time
+          nullable: true
+        silenced_until:
+          type: string
+          format: date-time
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        related_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserShort'
+          readOnly: true
+        render_for_web:
+          allOf:
+          - $ref: '#/components/schemas/render_for_web'
+          readOnly: true
+        render_for_classic_markdown:
+          type: string
+          readOnly: true
+        dependent_alert_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShortAlertGroup'
+        root_alert_group:
+          $ref: '#/components/schemas/ShortAlertGroup'
+        status:
+          type: string
+          readOnly: true
+        declare_incident_link:
+          type: string
+          description: Generate a link for AlertGroup to declare Grafana Incident
+            by click
+          readOnly: true
+        team:
+          type: string
+          nullable: true
+        is_restricted:
+          type: boolean
+          nullable: true
+      required:
+      - alert_receive_channel
+      - alerts_count
+      - declare_incident_link
+      - dependent_alert_groups
+      - pk
+      - related_users
+      - render_for_classic_markdown
+      - render_for_web
+      - root_alert_group
+      - started_at
+      - status
+      - team
+    AlertGroupStats:
+      type: object
+      properties:
+        count:
+          type: integer
+      required:
+      - count
+    FastAlertReceiveChannel:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        integration:
+          type: string
+          readOnly: true
+        verbal_name:
+          type: string
+          nullable: true
+          maxLength: 150
+        deleted:
+          type: string
+          readOnly: true
+      required:
+      - deleted
+      - id
+      - integration
+    FastUser:
+      type: object
+      properties:
+        pk:
+          type: string
+        username:
+          type: string
+          readOnly: true
+      required:
+      - pk
+      - username
+    PaginatedAlertGroupListList:
+      type: object
+      properties:
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlertGroupList'
+    Paginatedsilence_optionsList:
+      type: object
+      properties:
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/silence_options'
+    ResolvedByEnum:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      type: integer
+      description: |-
+        * `0` - source
+        * `1` - user
+        * `2` - not yet
+        * `3` - last escalation step
+        * `4` - archived
+        * `5` - wiped
+        * `6` - stop maintenance
+        * `7` - not yet, autoresolve disabled
+    ShortAlertGroup:
+      type: object
+      properties:
+        pk:
+          type: string
+          readOnly: true
+        render_for_web:
+          allOf:
+          - $ref: '#/components/schemas/render_for_web'
+          readOnly: true
+        alert_receive_channel:
+          $ref: '#/components/schemas/FastAlertReceiveChannel'
+        inside_organization_number:
+          type: integer
+          readOnly: true
+      required:
+      - alert_receive_channel
+      - inside_organization_number
+      - pk
+      - render_for_web
+    UserShort:
+      type: object
+      properties:
+        username:
+          type: string
+        pk:
+          type: string
+        avatar:
+          type: string
+        avatar_full:
+          type: string
+      required:
+      - avatar
+      - avatar_full
+      - pk
+      - username
+    render_for_web:
+      type: object
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+        image_url:
+          type: string
+        source_link:
+          type: string
+      required:
+      - image_url
+      - message
+      - source_link
+      - title
+    silence_options:
+      type: object
+      properties:
+        value:
+          type: string
+        display_name:
+          type: string
+      required:
+      - display_name
+      - value
