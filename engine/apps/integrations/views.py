@@ -3,6 +3,7 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.db import OperationalError
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -324,6 +325,10 @@ class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBea
         return Response(status=200)
 
     def _process_heartbeat_signal(self, request, alert_receive_channel):
-        process_heartbeat_task.apply_async(
-            (alert_receive_channel.pk,),
-        )
+        try:
+            process_heartbeat_task(alert_receive_channel.pk)
+        # If database is not ready, fallback to celery task
+        except OperationalError:
+            process_heartbeat_task.apply_async(
+                (alert_receive_channel.pk,),
+            )

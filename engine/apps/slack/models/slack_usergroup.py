@@ -80,27 +80,34 @@ class SlackUserGroup(models.Model):
     @property
     def oncall_slack_user_identities(self):
         users = set(user for schedule in self.oncall_schedules.get_oncall_users().values() for user in schedule)
-        slack_user_identities = [user.slack_user_identity for user in users if user.slack_user_identity is not None]
+        slack_user_identities = []
+        for user in users:
+            if user.slack_user_identity is not None:
+                slack_user_identities.append(user.slack_user_identity)
+            else:
+                logger.warning(f"User {user.pk} does not have a Slack account connected")
+
         return slack_user_identities
 
     def update_oncall_members(self):
         slack_ids = [slack_user_identity.slack_id for slack_user_identity in self.oncall_slack_user_identities]
+        logger.info(f"Updating usergroup {self.slack_id}, members {slack_ids}")
 
         # Slack doesn't allow user groups to be empty
         if len(slack_ids) == 0:
+            logger.info(f"Skipping usergroup {self.slack_id}, the list of members is empty")
             return
 
         # Do not send requests to Slack API in case user group is populated correctly already
         if self.members is not None and set(self.members) == set(slack_ids):
+            logger.info(f"Skipping usergroup {self.slack_id}, already populated correctly")
             return
 
         try:
             self.update_members(slack_ids)
         except SlackAPIException as e:
             if e.response["error"] == "permission_denied":
-                logger.warning(
-                    "Could not update the usergroup with Slack ID: {} due to permission_denied".format(self.slack_id)
-                )
+                logger.warning(f"Could not update usergroup {self.slack_id} due to permission_denied")
 
     def update_members(self, slack_ids):
         sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)

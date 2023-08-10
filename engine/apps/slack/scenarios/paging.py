@@ -515,7 +515,7 @@ def _get_organization_select(
             {
                 "text": {
                     "type": "plain_text",
-                    "text": f"{org.org_title}",
+                    "text": f"{org.org_title} ({org.stack_slug})",
                     "emoji": True,
                 },
                 "value": f"{org.pk}",

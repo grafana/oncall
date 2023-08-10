@@ -304,6 +304,20 @@ def test_parse_event_uid_fallback():
     assert source is None
 
 
+def test_parse_recurrent_event_uid_fallback_modified():
+    # use ical existing UID for imported events
+    event_uid = "someid@google.com"
+    pk, source = parse_event_uid(event_uid, sequence="2")
+    assert pk == f"{event_uid}_2"
+    assert source is None
+    pk, source = parse_event_uid(event_uid, recurrence_id="other-id")
+    assert pk == f"{event_uid}_other-id"
+    assert source is None
+    pk, source = parse_event_uid(event_uid, sequence="3", recurrence_id="other-id")
+    assert pk == f"{event_uid}_3_other-id"
+    assert source is None
+
+
 def test_is_icals_equal_compare_events():
     with_vtimezone = textwrap.dedent(
         """

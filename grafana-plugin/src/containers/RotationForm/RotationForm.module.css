@@ -40,6 +40,10 @@
   width: 200px;
 }
 
+.user-item {
+  position: relative;
+}
+
 .user-title {
   padding: 6px 10px;
   color: #fff;
