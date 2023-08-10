@@ -11,6 +11,7 @@ from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
+ADMIN_ENABLED = False  # disable django admin panel
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
@@ -60,12 +61,10 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
-FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
-FEATURE_WEBHOOKS_2_ENABLED = getenv_boolean("FEATURE_WEBHOOKS_2_ENABLED", default=True)
-FEATURE_SHIFT_SWAPS_ENABLED = getenv_boolean("FEATURE_SHIFT_SWAPS_ENABLED", default=False)
+FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -496,6 +495,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
         "schedule": 10 * 60,
     },
+    "notify_shift_swap_requests": {
+        "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
+        "schedule": 10 * 60,
+    },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
         "schedule": 60 * 30,
@@ -540,11 +543,6 @@ if SILK_PROFILER_ENABLED:
 
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
-
-# get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
-ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
-
-ADMIN_SITE_HEADER = "OnCall Admin Panel"
 
 # Social auth settings
 SOCIAL_AUTH_USER_MODEL = "user_management.User"

@@ -122,7 +122,8 @@ tests:
       rabbitmq.enabled: false
       asserts:
         - failedTemplate:
-            errorMessage: externalRabbitmq.password is required if not rabbitmq.enabled and not externalRabbitmq.existingSecret
+            errorMessage: >
+              externalRabbitmq.password is required if not rabbitmq.enabled and not externalRabbitmq.existingSecret
           template: secrets.yaml
 
   - it: rabbitmq.enabled=false -> should use internal custom values

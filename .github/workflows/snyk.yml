@@ -1,6 +1,6 @@
 name: snyk
 
-on:
+"on":
   push:
     branches: [main, dev]
   pull_request:

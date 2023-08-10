@@ -9,7 +9,7 @@ tests:
   - it: nodeSelector={} -> should set nodeSelector null
     asserts:
       - notExists:
-            path: spec.template.spec.nodeSelector
+          path: spec.template.spec.nodeSelector
 
   - it: nodeSelector -> should use custom nodeSelector
     set:

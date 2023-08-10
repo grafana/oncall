@@ -48,8 +48,7 @@ class ScenarioStep(object):
         # https://stackoverflow.com/posts/36442015/revisions
         try:
             module = importlib.import_module("apps.slack.scenarios." + scenario)
-            step = getattr(module, step)
-            return step
+            return getattr(module, step)
         except ImportError as e:
             raise Exception("Check import spelling! Scenario: {}, Step:{}, Error: {}".format(scenario, step, e))
 

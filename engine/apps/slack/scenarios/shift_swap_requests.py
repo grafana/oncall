@@ -184,7 +184,7 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
         self,
         slack_user_identity: "SlackUserIdentity",
         slack_team_identity: "SlackTeamIdentity",
-        payload: EventPayload.Any,
+        payload: EventPayload,
     ) -> None:
         from apps.schedules import exceptions
         from apps.schedules.models import ShiftSwapRequest

@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from apps.schedules import exceptions
 from apps.schedules.models import CustomOnCallShift, ShiftSwapRequest
+from apps.user_management.models import User
 
 ROTATION_START = datetime.datetime(2150, 8, 29, 0, 0, 0, 0, tzinfo=pytz.UTC)
 
@@ -44,6 +45,14 @@ def test_status_taken(shift_swap_request_setup) -> None:
     ssr.save()
     assert ssr.status == ShiftSwapRequest.Statuses.TAKEN
     assert ssr.is_taken is True
+
+    # taken in the past it's still taken
+    now = timezone.now()
+    ssr.swap_start = now - timezone.timedelta(days=2)
+    ssr.save()
+    assert ssr.status == ShiftSwapRequest.Statuses.TAKEN
+    assert ssr.is_taken is True
+    assert ssr.is_past_due is False
 
 
 @pytest.mark.django_db
@@ -122,6 +131,9 @@ def test_take_own_ssr(shift_swap_request_setup) -> None:
         ssr.take(beneficiary)
 
 
+@pytest.mark.skip(
+    "Skipping as flaky based on time of day that the test runs. Example failure here https://github.com/grafana/oncall/actions/runs/5747168275/job/15577755519?pr=2725#step:5:1005"
+)
 @pytest.mark.django_db
 def test_related_shifts(shift_swap_request_setup, make_on_call_shift) -> None:
     ssr, beneficiary, _ = shift_swap_request_setup()
@@ -154,3 +166,12 @@ def test_related_shifts(shift_swap_request_setup, make_on_call_shift) -> None:
     ]
     returned_events = [(e["start"], e["end"], e["users"][0]["pk"], e["users"][0]["swap_request"]["pk"]) for e in events]
     assert returned_events == expected
+
+
+@pytest.mark.django_db
+def test_possible_benefactors(shift_swap_request_setup) -> None:
+    ssr, beneficiary, benefactor = shift_swap_request_setup()
+
+    with patch.object(ssr.schedule, "related_users") as mock_related_users:
+        mock_related_users.return_value = User.objects.filter(pk__in=[beneficiary.pk, benefactor.pk])
+        assert list(ssr.possible_benefactors) == [benefactor]
