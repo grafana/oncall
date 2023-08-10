@@ -28,7 +28,6 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
-  ContactPoint,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
@@ -215,7 +214,7 @@ interface CustomFieldSectionRendererState {
 
   dataSources: { label: string; value: string }[];
   contactPoints: { label: string; value: string }[];
-  allContactPoints: ContactPoint[];
+  allContactPoints: { name: string; uid: string; contact_points: string[] }[];
 }
 
 const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
@@ -329,8 +328,8 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
   function onAlertManagerChange(option: SelectableValue<string>) {
     const contactPointsForCurrentOption = allContactPoints
-      .find((res) => res.uid === option.value)
-      ?.contact_points.map((cp) => ({ value: cp.name, label: cp.name }));
+      .find((opt) => opt.uid == option.value)
+      .contact_points?.map((cp) => ({ value: cp, label: cp }));
 
     const newState: Partial<CustomFieldSectionRendererState> = {
       selectedAlertManagerOption: option.value,

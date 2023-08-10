@@ -56,8 +56,8 @@ export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
 
-  @observable.shallow
-  connectedContactPoints: { [id: AlertReceiveChannel['id']]: ContactPoint[] } = {};
+  @observable
+  connectedContactPoints: { [id: string]: Array<ContactPoint> } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -380,7 +380,18 @@ export class AlertReceiveChannelStore extends BaseStore {
     this.connectedContactPoints = {
       ...this.connectedContactPoints,
 
-      [alertReceiveChannelId]: response,
+      [alertReceiveChannelId]: response.reduce((list: ContactPoint[], payload) => {
+        payload.contact_points.forEach((contactPoint: { name: string; notification_connected: boolean }) => {
+          list.push({
+            dataSourceName: payload.name,
+            dataSourceId: payload.uid,
+            contactPoint: contactPoint.name,
+            notificationConnected: contactPoint.notification_connected,
+          } as ContactPoint);
+        });
+
+        return list;
+      }, []),
     };
   }
 
@@ -403,7 +414,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     datasource_uid: string,
     contact_point_name: string
   ) {
-    return await makeRequest(`${this.path}${alertReceiveChannelId}/connect_contact_point`, {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/disconnect_contact_point`, {
       method: 'POST',
       data: {
         datasource_uid,

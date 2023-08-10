@@ -57,7 +57,8 @@ export interface AlertReceiveChannelChoice {
 }
 
 export interface ContactPoint {
-  name: string;
-  uid: string;
-  contact_points: { name: string; notification_connected: boolean }[];
+  dataSourceName: string;
+  dataSourceId: string;
+  contactPoint: string;
+  notificationConnected: boolean;
 }

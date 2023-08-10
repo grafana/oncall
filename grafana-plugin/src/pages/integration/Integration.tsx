@@ -1134,17 +1134,11 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
   }
 };
 
-interface ContactPointTableRow {
-  dataSource: string;
-  dataSourceId: string;
-  contactPoint: { name: string; notification_connected: boolean };
-}
-
 interface ContactPointComponentState {
+  isLoading: boolean;
   isDrawerOpen: boolean;
   isConnectOpen: boolean;
-  allContactPoints: ContactPoint[];
-  tableData: ContactPointTableRow[];
+  allContactPoints: { name: string; uid: string; contact_points: string[] }[];
 
   // dropdown selected values
   selectedAlertManager: string;
@@ -1155,15 +1149,15 @@ interface ContactPointComponentState {
   contactPointOptions: Array<{ label: string; value: string }>;
 }
 
-const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
+const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = observer(({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
 
   const [
     {
+      isLoading,
       isDrawerOpen,
       allContactPoints,
-      tableData,
       dataSourceOptions,
       contactPointOptions,
       selectedAlertManager,
@@ -1177,7 +1171,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
       ...newState,
     }),
     {
-      tableData: [],
+      isLoading: false,
       isDrawerOpen: false,
       contactPointOptions: [],
       dataSourceOptions: [],
@@ -1198,21 +1192,6 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
     })();
   }, []);
 
-  useEffect(() => {
-    let tableData = [];
-    contactPoints.forEach((ds) =>
-      ds.contact_points.forEach((cp) =>
-        tableData.push({
-          id: `${ds.uid}-${cp.name}`,
-          dataSource: ds.name,
-          dataSourceId: ds.uid,
-          contactPoint: cp,
-        })
-      )
-    );
-    setState({ tableData });
-  }, [id]);
-
   return (
     <IntegrationBlock
       noContent={true}
@@ -1229,7 +1208,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
                 <GTable
                   className={cx('contactpoints__table')}
                   rowKey="id"
-                  data={tableData}
+                  data={contactPoints}
                   columns={getTableColumns()}
                 />
 
@@ -1261,9 +1240,16 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
                           placeholder="Select Contact Point"
                         />
 
-                        <HorizontalGroup>
-                          <Button variant="primary">Connect contact point</Button>
+                        <HorizontalGroup align="center">
+                          <Button
+                            variant="primary"
+                            disabled={!selectedAlertManager || !selectedContactPoint || isLoading}
+                            onClick={onContactPointConnect}
+                          >
+                            Connect contact point
+                          </Button>
                           <Button variant="secondary">Cancel</Button>
+                          {isLoading && <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />}
                         </HorizontalGroup>
                       </VerticalGroup>
                     )}
@@ -1309,13 +1295,28 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
     />
   );
 
+  function onContactPointConnect() {
+    setState({ isLoading: true });
+    alertReceiveChannelStore
+      .connectContactPoint(id, selectedAlertManager, selectedContactPoint)
+      .then(() => {
+        setState({ isDrawerOpen: false });
+        openNotification('A new contact point has been connected to your integration');
+        alertReceiveChannelStore.updateConnectedContactPoints(id);
+      })
+      .catch(() => {
+        openErrorNotification('An error has occurred. Please try again.');
+      })
+      .finally(() => setState({ isLoading: false }));
+  }
+
   function onAlertManagerChange(option: SelectableValue<string>) {
     setState({
       selectedAlertManager: option.value,
       selectedContactPoint: undefined,
       contactPointOptions: allContactPoints
-        .find((res) => res.uid === option.value)
-        ?.contact_points.map((cp) => ({ value: cp.name, label: cp.name })),
+        .find((opt) => opt.uid == option.value)
+        .contact_points?.map((cp) => ({ value: cp, label: cp })),
     });
   }
 
@@ -1346,16 +1347,14 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
     ];
   }
 
-  function renderActions(item: ContactPointTableRow) {
-    console.log({ item });
-
+  function renderActions(item: ContactPoint) {
     return (
       <HorizontalGroup spacing="md">
         <IconButton
           name="external-link-alt"
           onClick={() => {
             window.open(
-              `${window.location.host}/alerting/notifications/receivers/${item.contactPoint.name}/edit?alertmanager=${item.dataSourceId}`,
+              `${window.location.host}/alerting/notifications/receivers/${item.contactPoint}/edit?alertmanager=${item.dataSourceId}`,
               '_blank'
             );
           }}
@@ -1363,9 +1362,6 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
         <WithConfirm
           title={`Disconnect Contact point`}
           confirmText="Disconnect"
-          onConfirm={() =>
-            alertReceiveChannelStore.disconnectContactPoint(id, item.dataSourceId, item.contactPoint.name)
-          }
           description={
             <VerticalGroup spacing="md">
               <Text type="primary">
@@ -1375,18 +1371,30 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
             </VerticalGroup>
           }
         >
-          <IconButton name="trash-alt" />
+          <IconButton
+            name="trash-alt"
+            onClick={() => {
+              alertReceiveChannelStore
+                .disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
+                .then(() => {
+                  setState({ isDrawerOpen: false });
+                  openNotification('Contact point has been removed');
+                  alertReceiveChannelStore.updateConnectedContactPoints(id);
+                })
+                .catch(() => openErrorNotification('An error has occurred. Please try again.'));
+            }}
+          />
         </WithConfirm>
       </HorizontalGroup>
     );
   }
 
-  function renderContactPointName(item: ContactPointTableRow) {
+  function renderContactPointName(item: ContactPoint) {
     return (
       <HorizontalGroup spacing="xs">
-        <Text type="primary">{item.contactPoint.name}</Text>
+        <Text type="primary">{item.contactPoint}</Text>
 
-        {!item.contactPoint.notification_connected && (
+        {!item.notificationConnected && (
           <div className={cx('icon-exclamation')}>
             <Icon name="exclamation-triangle" />
           </div>
@@ -1395,10 +1403,10 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id
     );
   }
 
-  function renderAlertManager(item: ContactPointTableRow) {
-    return item.dataSource;
+  function renderAlertManager(item: ContactPoint) {
+    return item.dataSourceName;
   }
-};
+});
 
 const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
   const { alertReceiveChannelStore } = useStore();
