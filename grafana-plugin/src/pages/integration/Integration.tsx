@@ -1152,6 +1152,7 @@ interface ContactPointComponentState {
 const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = observer(({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
+  const warnings = contactPoints.filter((cp) => !cp.notificationConnected);
 
   const [
     {
@@ -1264,14 +1265,20 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
             </Tag>
 
             {contactPoints?.length ? (
-              <Text type="primary">
-                {contactPoints.length} contact point{contactPoints.length === 1 ? '' : 's'} connected
-              </Text>
+              <HorizontalGroup>
+                <Text type="primary">
+                  {contactPoints.length} contact point{contactPoints.length === 1 ? '' : 's'} connected
+                </Text>
+                {warnings.length > 0 && (
+                  <HorizontalGroup spacing="xs">
+                    {renderExclamationIcon()}
+                    <Text type="primary">{warnings.length} with error</Text>
+                  </HorizontalGroup>
+                )}
+              </HorizontalGroup>
             ) : (
               <HorizontalGroup spacing="xs">
-                <div className={cx('icon-exclamation')}>
-                  <Icon name="exclamation-triangle" />
-                </div>
+                {renderExclamationIcon()}
                 <Text type="primary" data-testid="integration-escalation-chain-not-selected">
                   Connect Alerting Contact point to receive alerts
                 </Text>
@@ -1292,12 +1299,78 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
     />
   );
 
+  function renderActions(item: ContactPoint) {
+    return (
+      <HorizontalGroup spacing="md">
+        <IconButton
+          name="external-link-alt"
+          onClick={() => {
+            window.open(
+              `${window.location.host}/alerting/notifications/receivers/${item.contactPoint}/edit?alertmanager=${item.dataSourceId}`,
+              '_blank'
+            );
+          }}
+        />
+        <WithConfirm
+          title={`Disconnect Contact point`}
+          confirmText="Disconnect"
+          description={
+            <VerticalGroup spacing="md">
+              <Text type="primary">
+                When the contact point will be disconnected, the Integration will no longer receive alerts for it.
+              </Text>
+              <Text type="primary">You can add new contact point at any time.</Text>
+            </VerticalGroup>
+          }
+        >
+          <IconButton
+            name="trash-alt"
+            onClick={() => {
+              alertReceiveChannelStore
+                .disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
+                .then(() => {
+                  closeDrawer();
+                  openNotification('Contact point has been removed');
+                  alertReceiveChannelStore.updateConnectedContactPoints(id);
+                })
+                .catch(() => openErrorNotification('An error has occurred. Please try again.'));
+            }}
+          />
+        </WithConfirm>
+      </HorizontalGroup>
+    );
+  }
+
+  function renderContactPointName(item: ContactPoint) {
+    return (
+      <HorizontalGroup spacing="xs">
+        <Text type="primary">{item.contactPoint}</Text>
+
+        {!item.notificationConnected && (
+          <div className={cx('icon-exclamation')}>
+            <Icon name="exclamation-triangle" />
+          </div>
+        )}
+      </HorizontalGroup>
+    );
+  }
+
+  function renderAlertManager(item: ContactPoint) {
+    return item.dataSourceName;
+  }
+
+  function renderExclamationIcon() {
+    return (
+      <div className={cx('icon-exclamation')}>
+        <Icon name="exclamation-triangle" />
+      </div>
+    );
+  }
+
   function closeDrawer() {
     setState({
       isDrawerOpen: false,
       isConnectOpen: false,
-      contactPointOptions: [],
-      dataSourceOptions: [],
       selectedAlertManager: undefined,
       selectedContactPoint: undefined,
     });
@@ -1358,66 +1431,6 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
         render: renderActions,
       },
     ];
-  }
-
-  function renderActions(item: ContactPoint) {
-    return (
-      <HorizontalGroup spacing="md">
-        <IconButton
-          name="external-link-alt"
-          onClick={() => {
-            window.open(
-              `${window.location.host}/alerting/notifications/receivers/${item.contactPoint}/edit?alertmanager=${item.dataSourceId}`,
-              '_blank'
-            );
-          }}
-        />
-        <WithConfirm
-          title={`Disconnect Contact point`}
-          confirmText="Disconnect"
-          description={
-            <VerticalGroup spacing="md">
-              <Text type="primary">
-                When the contact point will be disconnected, the Integration will no longer receive alerts for it.
-              </Text>
-              <Text type="primary">You can add new contact point at any time.</Text>
-            </VerticalGroup>
-          }
-        >
-          <IconButton
-            name="trash-alt"
-            onClick={() => {
-              alertReceiveChannelStore
-                .disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
-                .then(() => {
-                  closeDrawer();
-                  openNotification('Contact point has been removed');
-                  alertReceiveChannelStore.updateConnectedContactPoints(id);
-                })
-                .catch(() => openErrorNotification('An error has occurred. Please try again.'));
-            }}
-          />
-        </WithConfirm>
-      </HorizontalGroup>
-    );
-  }
-
-  function renderContactPointName(item: ContactPoint) {
-    return (
-      <HorizontalGroup spacing="xs">
-        <Text type="primary">{item.contactPoint}</Text>
-
-        {!item.notificationConnected && (
-          <div className={cx('icon-exclamation')}>
-            <Icon name="exclamation-triangle" />
-          </div>
-        )}
-      </HorizontalGroup>
-    );
-  }
-
-  function renderAlertManager(item: ContactPoint) {
-    return item.dataSourceName;
   }
 });
 
