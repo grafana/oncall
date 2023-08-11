@@ -14,6 +14,8 @@ from common.utils import clean_markup
 if typing.TYPE_CHECKING:
     from apps.alerts.models import AlertGroup
 
+RESOLUTION_NOTE_MESSAGE_LIMIT = 3000
+
 
 def generate_public_primary_key_for_alert_group_postmortem():
     prefix = "P"
@@ -72,7 +74,7 @@ class ResolutionNoteSlackMessage(models.Model):
         on_delete=models.SET_NULL,
         related_name="added_resolution_note_slack_messages",
     )
-    text = models.TextField(max_length=3000, default=None, null=True)
+    text = models.TextField(max_length=RESOLUTION_NOTE_MESSAGE_LIMIT, default=None, null=True)
     slack_channel_id = models.CharField(max_length=100, null=True, default=None)
     ts = models.CharField(max_length=100, null=True, default=None)
     thread_ts = models.CharField(max_length=100, null=True, default=None)

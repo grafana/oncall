@@ -1,8 +1,10 @@
 import json
+import logging
 import typing
 from json import JSONDecodeError
 
 import requests
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -11,6 +13,8 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
+from apps.alerts.models.resolution_note import RESOLUTION_NOTE_MESSAGE_LIMIT, ResolutionNote
+from apps.alerts.tasks import send_update_resolution_note_signal
 from apps.webhooks.utils import (
     OUTGOING_WEBHOOK_TIMEOUT,
     InvalidWebhookData,
@@ -30,6 +34,10 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import EscalationPolicy
 
 WEBHOOK_FIELD_PLACEHOLDER = "****************"
+PUBLIC_WEBHOOK_HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+
+logger = get_task_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def generate_public_primary_key_for_webhook():
@@ -88,6 +96,19 @@ class Webhook(models.Model):
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
 
+    PUBLIC_TRIGGER_TYPES_MAP = {
+        TRIGGER_ESCALATION_STEP: "escalation step",
+        TRIGGER_ALERT_GROUP_CREATED: "alert group created",
+        TRIGGER_ACKNOWLEDGE: "acknowledged",
+        TRIGGER_RESOLVE: "resolved",
+        TRIGGER_SILENCE: "silenced",
+        TRIGGER_UNSILENCE: "unsilenced",
+        TRIGGER_UNRESOLVE: "unresolved",
+        TRIGGER_UNACKNOWLEDGE: "unacknowledged",
+    }
+
+    PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
@@ -123,6 +144,9 @@ class Webhook(models.Model):
     is_webhook_enabled = models.BooleanField(null=True, default=True)
     integration_filter = models.JSONField(default=None, null=True, blank=True)
     is_legacy = models.BooleanField(null=True, default=False)
+    append_to_alert_group = models.BooleanField(null=True, default=False)
+    append_full_response = models.BooleanField(null=True, default=True)
+    append_to_alert_group_template = models.TextField(null=True, default=None)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -236,6 +260,34 @@ class Webhook(models.Model):
         else:
             raise Exception(f"Unsupported http method: {self.http_method}")
         return r
+
+    def append_response_to_alert_group(self, event_data, alert_group, response):
+        if not self.append_to_alert_group:
+            return
+
+        content = ""
+        if self.append_full_response:
+            content = json.dumps(response)
+        elif self.append_to_alert_group_template:
+            context_data = event_data.copy()
+            context_data["response"] = response
+            content = apply_jinja_template_for_json(
+                self.append_to_alert_group_template,
+                context_data,
+            )
+
+        if content:
+            resolution_note = ResolutionNote.objects.create(
+                alert_group=alert_group,
+                source=ResolutionNote.Source.WEB,
+                message_text=content[:RESOLUTION_NOTE_MESSAGE_LIMIT],
+            )
+            send_update_resolution_note_signal.apply_async(
+                kwargs={
+                    "alert_group_pk": alert_group.pk,
+                    "resolution_note_pk": resolution_note.pk,
+                }
+            )
 
     # Insight logs
     @property

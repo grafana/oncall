@@ -135,7 +135,11 @@ def make_request(webhook, alert_group, data):
             content_length = len(response.content)
             if content_length <= WEBHOOK_RESPONSE_LIMIT:
                 try:
-                    status["content"] = json.dumps(response.json())
+                    content = response.json()
+                    status["content"] = json.dumps(content)
+                    logger.warning(f"alert group {alert_group}")
+                    if alert_group:
+                        webhook.append_response_to_alert_group(data, alert_group, content)
                 except JSONDecodeError:
                     status["content"] = response.content.decode("utf-8")
             else:

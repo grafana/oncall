@@ -14,6 +14,7 @@ from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain, ResolutionNote
+from apps.alerts.models.resolution_note import RESOLUTION_NOTE_MESSAGE_LIMIT
 from apps.alerts.paging import unpage_user
 from apps.alerts.tasks import send_update_resolution_note_signal
 from apps.api.errors import AlertGroupAPIError
@@ -454,7 +455,9 @@ class AlertGroupView(
                     alert_group=alert_group,
                     author=self.request.user,
                     source=ResolutionNote.Source.WEB,
-                    message_text=resolution_note_text[:3000],  # trim text to fit in the db field
+                    message_text=resolution_note_text[
+                        :RESOLUTION_NOTE_MESSAGE_LIMIT
+                    ],  # trim text to fit in the db field
                 )
                 send_update_resolution_note_signal.apply_async(
                     kwargs={
