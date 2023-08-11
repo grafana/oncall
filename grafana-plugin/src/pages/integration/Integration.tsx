@@ -75,6 +75,7 @@ import sanitize from 'utils/sanitize';
 import GTable from 'components/GTable/GTable';
 import { SelectableValue } from '@grafana/data';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
@@ -349,7 +350,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
     if (
       IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) &&
-      !alertReceiveChannelStore.connectedContactPoints[alertReceiveChannel.id]
+      !alertReceiveChannelStore.connectedContactPoints[alertReceiveChannel.id]?.length
     ) {
       return (
         <div className={cx('u-padding-top-md')}>
@@ -365,6 +366,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                 </Text>
               ) as any
             }
+            className={cx('u-margin-bottom-none')}
             severity="error"
           />
         </div>
@@ -375,8 +377,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   getConfigForTreeComponent(id: string, templates: AlertTemplatesDTO[]) {
+    const {
+      store: { alertReceiveChannelStore },
+    } = this.props;
+
+    const alertReceiveChannel = alertReceiveChannelStore.items[id];
+
     return [
-      {
+      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) && {
         isCollapsible: false,
         customIcon: 'grafana',
         canHoverIcon: false,
@@ -488,7 +496,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         ),
       },
       this.renderRoutesFn(),
-    ];
+    ].filter((opt) => opt);
   }
 
   getRoutingTemplate = (channelFilterId: ChannelFilter['id']) => {

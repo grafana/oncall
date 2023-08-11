@@ -40,6 +40,10 @@
   padding-top: 12px;
 }
 
+.u-margin-bottom-none {
+  margin-bottom: 0;
+}
+
 .u-pull-right {
   margin-left: auto;
 }
