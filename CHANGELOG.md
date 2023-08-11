@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Ignore ical cancelled events when calculating shifts ([#2776](https://github.com/grafana/oncall/pull/2776))
 - Fix Slack acknowledgment reminders by @vadimkerr ([#2769](https://github.com/grafana/oncall/pull/2769))
 - Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
 
