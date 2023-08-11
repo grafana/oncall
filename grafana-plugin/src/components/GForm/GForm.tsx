@@ -89,7 +89,14 @@ function renderFormControl(
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value.value)} />;
+            return (
+              <Select
+                {...field}
+                {...formItem.extra}
+                {...register(formItem.name, formItem.validation)}
+                onChange={(value) => onChangeFn(field, value.value)}
+              />
+            );
           }}
           control={control}
           name={formItem.name}
@@ -194,6 +201,8 @@ class GForm extends React.Component<GFormProps, {}> {
                     setValue(fName, fValue);
                     this.forceUpdate();
                   }}
+                  errors={errors}
+                  register={register}
                 />
               );
             }

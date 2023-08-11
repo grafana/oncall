@@ -13,6 +13,7 @@ import {
   Select,
   Icon,
   Label,
+  Field,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -204,6 +205,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 export interface CustomFieldSectionRendererProps {
   control: any;
   formItem: FormItem;
+  errors: any;
+  register: any;
   setValue: (fieldName: string, fieldValue: any) => void;
 }
 
@@ -220,6 +223,8 @@ interface CustomFieldSectionRendererState {
 const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
   control: _control,
   formItem: _formItem,
+  errors,
+  register,
   setValue,
 }) => {
   const radioOptions = [
@@ -297,30 +302,39 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
           />
         </div>
 
-        <Select
-          options={dataSources}
-          onChange={onAlertManagerChange}
-          value={selectedAlertManagerOption}
-          placeholder="Select Alert Manager"
-        />
+        <Field invalid={!!errors['alert_manager']} error={'Alert Manager is required'}>
+          <Select
+            {...register('alert_manager', { required: true })}
+            options={dataSources}
+            onChange={onAlertManagerChange}
+            value={selectedAlertManagerOption}
+            placeholder="Select Alert Manager"
+          />
+        </Field>
 
         {isExistingContactPoint ? (
-          <Select
-            options={contactPoints}
-            onChange={onContactPointChange}
-            value={selectedContactPointOption}
-            placeholder="Select Contact Point"
-          />
+          <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+            <Select
+              {...register('contact_point', { required: true })}
+              options={contactPoints}
+              onChange={onContactPointChange}
+              value={selectedContactPointOption}
+              placeholder="Select Contact Point"
+            />
+          </Field>
         ) : (
-          <Input
-            value={selectedContactPointOption}
-            placeholder="Choose Contact Point"
-            onChange={({ target }) => {
-              const value = (target as HTMLInputElement).value;
-              setState({ selectedContactPointOption: value });
-              setValue('contact_point', value);
-            }}
-          />
+          <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+            <Input
+              {...register('contact_point', { required: true })}
+              value={selectedContactPointOption}
+              placeholder="Choose Contact Point"
+              onChange={({ target }) => {
+                const value = (target as HTMLInputElement).value;
+                setState({ selectedContactPointOption: value });
+                setValue('contact_point', value);
+              }}
+            />
+          </Field>
         )}
       </VerticalGroup>
     </div>

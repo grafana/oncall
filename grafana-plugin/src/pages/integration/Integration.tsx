@@ -75,7 +75,6 @@ import sanitize from 'utils/sanitize';
 import GTable from 'components/GTable/GTable';
 import { SelectableValue } from '@grafana/data';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 
