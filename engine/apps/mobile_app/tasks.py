@@ -595,11 +595,11 @@ def _should_notify_user_about_shift_swap_request(
     except MobileAppUserSettings.DoesNotExist:
         return False  # don't notify if the app is not configured
 
-    return user.is_in_working_hours(
+    return user.is_in_working_hours(  # user must be in working hours
         now, mobile_app_user_settings.time_zone
-    ) and not _has_user_been_notified_for_shift_swap_request(  # user must be in working hours
+    ) and not _has_user_been_notified_for_shift_swap_request(  # don't notify twice
         shift_swap_request, user
-    )  # don't notify twice
+    )
 
 
 def _mark_shift_swap_request_notified_for_user(shift_swap_request: ShiftSwapRequest, user: User) -> None:
