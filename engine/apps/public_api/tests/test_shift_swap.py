@@ -95,7 +95,7 @@ def test_list_filters(
     assert response.status_code == status.HTTP_200_OK
     assert_expected(response, (swap1,))
 
-    url = base_url + "?untaken=true"
+    url = base_url + "?open_only=true"
     response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_200_OK
     assert_expected(response, (swap1,))
@@ -149,12 +149,8 @@ def test_create(
     mock_create_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
 
 
-@patch("apps.api.views.shift_swap.write_resource_insight_log")
-@patch("apps.api.views.shift_swap.create_shift_swap_request_message")
 @pytest.mark.django_db
-def test_create_default_token_user(
-    mock_create_shift_swap_request_message,
-    mock_write_resource_insight_log,
+def test_create_requires_beneficiary(
     make_organization_and_user_with_token,
     make_schedule,
 ):
@@ -176,12 +172,8 @@ def test_create_default_token_user(
     url = reverse("api-public:shift_swap-list")
     response = client.post(url, data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
-    assert response.status_code == status.HTTP_201_CREATED
-    assert_swap_response(response, data)
-
-    ssr = ShiftSwapRequest.objects.get(public_primary_key=response.json()["id"])
-    mock_write_resource_insight_log.assert_called_once_with(instance=ssr, author=user, event=EntityEvent.CREATED)
-    mock_create_shift_swap_request_message.apply_async.assert_called_once_with((ssr.pk,))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert ShiftSwapRequest.objects.count() == 0
 
 
 @patch("apps.api.views.shift_swap.write_resource_insight_log")
@@ -362,7 +354,7 @@ def test_take(
 
 
 @pytest.mark.django_db
-def test_take_default_token_user(
+def test_take_requires_benefactor(
     make_organization_and_user_with_token,
     setup_swap,
 ):
@@ -374,12 +366,11 @@ def test_take_default_token_user(
 
     data = {}
     response = client.post(url, data, format="json", HTTP_AUTHORIZATION=f"{token}")
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    assert_swap_response(response, data)
     swap.refresh_from_db()
-    assert swap.status == ShiftSwapRequest.Statuses.TAKEN
-    assert swap.benefactor == user
+    assert swap.status == ShiftSwapRequest.Statuses.OPEN
+    assert swap.benefactor is None
 
 
 @pytest.mark.django_db

@@ -34,15 +34,16 @@ class ShiftSwapViewSet(RateLimitHeadersMixin, BaseShiftSwapViewSet):
         beneficiary = self.request.query_params.get("beneficiary", None)
         benefactor = self.request.query_params.get("benefactor", None)
         starting_after = self.request.query_params.get("starting_after", None)
-        untaken = self.request.query_params.get("untaken", "false") == "true"
+        open_only = self.request.query_params.get("open_only", "false") == "true"
 
+        now = timezone.now()
         if starting_after:
             f = TimeZoneAwareDatetimeField()
             # trigger datetime format validation
             # will raise ValidationError if invalid timestamp is provided
             starting_after = f.to_internal_value(starting_after)
         else:
-            starting_after = timezone.now()
+            starting_after = now
 
         # base queryset filters by organization
         queryset = super().get_queryset()
@@ -60,8 +61,8 @@ class ShiftSwapViewSet(RateLimitHeadersMixin, BaseShiftSwapViewSet):
         if benefactor:
             queryset = queryset.filter(benefactor__public_primary_key=benefactor)
 
-        if untaken:
-            queryset = queryset.filter(benefactor__isnull=True)
+        if open_only:
+            queryset = queryset.filter(benefactor__isnull=True, deleted_at__isnull=True, swap_start__gt=now)
 
         return queryset.order_by("swap_start")
 
@@ -73,18 +74,14 @@ class ShiftSwapViewSet(RateLimitHeadersMixin, BaseShiftSwapViewSet):
             raise NotFound
 
     def _get_user(self, field_name: str):
-        """Return user from ID given by field_name.
-
-        Fallback to request.user if no ID is provided.
-        """
+        """Require and return user from ID given by field_name."""
         user_pk = self.request.data.pop(field_name, None)
         if not user_pk:
-            user = self.request.user
-        else:
-            try:
-                user = User.objects.get(organization=self.request.auth.organization, public_primary_key=user_pk)
-            except User.DoesNotExist:
-                raise BadRequest(detail=f"Invalid {field_name} user ID")
+            raise BadRequest(detail=f"{field_name} user ID is required")
+        try:
+            user = User.objects.get(organization=self.request.auth.organization, public_primary_key=user_pk)
+        except User.DoesNotExist:
+            raise BadRequest(detail=f"Invalid {field_name} user ID")
         return user
 
     def perform_create(self, serializer: BaseSerializer[ShiftSwapRequest]) -> None:
@@ -93,6 +90,8 @@ class ShiftSwapViewSet(RateLimitHeadersMixin, BaseShiftSwapViewSet):
 
     @action(methods=["post"], detail=True)
     def take(self, request: AuthenticatedRequest, pk: str) -> Response:
+        # check the swap request exists and it's accessible
+        self.get_object()
         benefactor = self._get_user("benefactor")
         serialized_shift_swap = self._do_take(benefactor=benefactor)
         return Response(serialized_shift_swap, status=status.HTTP_200_OK)
