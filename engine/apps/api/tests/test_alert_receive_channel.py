@@ -1106,9 +1106,13 @@ def test_alert_receive_channel_disconnect_contact_point_permissions(
     "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.get_connected_contact_points",
     return_value=True,
 )
-@patch("apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.connect_contact_point", return_value=True)
 @patch(
-    "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.disconnect_contact_point", return_value=True
+    "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.connect_contact_point",
+    return_value=(True, ""),
+)
+@patch(
+    "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.disconnect_contact_point",
+    return_value=(True, ""),
 )
 @pytest.mark.django_db
 @pytest.mark.parametrize(
