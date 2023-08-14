@@ -1,5 +1,6 @@
 import React, { useEffect, useReducer, useState } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import {
   Button,
   HorizontalGroup,
@@ -25,6 +26,7 @@ import { debounce } from 'throttle-debounce';
 
 import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
+import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
@@ -40,6 +42,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
@@ -72,9 +75,6 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
-import GTable from 'components/GTable/GTable';
-import { SelectableValue } from '@grafana/data';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 
 const cx = cn.bind(styles);
 
@@ -171,6 +171,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
     const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
     const isLegacyIntegration = integration && (integration?.value as string).toLowerCase().startsWith('legacy_');
+    const contactPoints = alertReceiveChannelStore.connectedContactPoints?.[alertReceiveChannel.id];
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -220,7 +221,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
               {this.renderDescriptionMaybe(alertReceiveChannel)}
 
-              {this.renderContactPointsWarningMaybe(alertReceiveChannel)}
+              {/* MobX seems to have issues updating contact points if we don't reference it here */}
+              {!contactPoints?.length && this.renderContactPointsWarningMaybe(alertReceiveChannel)}
 
               <div className={cx('no-wrap')}>
                 <IntegrationHeader
@@ -345,12 +347,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   renderContactPointsWarningMaybe(alertReceiveChannel: AlertReceiveChannel) {
-    const { alertReceiveChannelStore } = this.props.store;
-
-    if (
-      IntegrationHelper.isGrafanaAlerting(alertReceiveChannel) &&
-      !alertReceiveChannelStore.connectedContactPoints[alertReceiveChannel.id]?.length
-    ) {
+    if (IntegrationHelper.isGrafanaAlerting(alertReceiveChannel)) {
       return (
         <div className={cx('u-padding-top-md')}>
           <Alert
@@ -704,7 +701,8 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       promises.push(await alertReceiveChannelStore.updateChannelFilters(id));
     }
 
-    // skip checking for grafana alerting so that we don't wait for first request to complete
+    // skip checking for grafana alerting so that we don't wait for the first request to complete
+    // at the cost of getting a failed network request for all other types other than alerting
     promises.push(alertReceiveChannelStore.updateConnectedContactPoints(id));
 
     await Promise.all(promises)
@@ -1145,7 +1143,7 @@ interface ContactPointComponentState {
   isLoading: boolean;
   isDrawerOpen: boolean;
   isConnectOpen: boolean;
-  allContactPoints: { name: string; uid: string; contact_points: string[] }[];
+  allContactPoints: Array<{ name: string; uid: string; contact_points: string[] }>;
 
   // dropdown selected values
   selectedAlertManager: string;

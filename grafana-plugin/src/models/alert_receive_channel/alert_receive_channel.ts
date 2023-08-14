@@ -57,7 +57,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
 
   @observable
-  connectedContactPoints: { [id: string]: Array<ContactPoint> } = {};
+  connectedContactPoints: { [id: string]: ContactPoint[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);

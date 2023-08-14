@@ -208,7 +208,9 @@ class GForm extends React.Component<GFormProps, {}> {
             }
 
             // skip input render when there's no Custom Renderer
-            if (formItem.type === FormItemType.Other) return undefined;
+            if (formItem.type === FormItemType.Other) {
+              return undefined;
+            }
 
             return (
               <Field

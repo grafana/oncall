@@ -30,6 +30,7 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
+import IntegrationHelper from 'pages/integration/Integration.helper';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -38,7 +39,6 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { form } from './IntegrationForm.config';
 import { prepareForEdit } from './IntegrationForm.helpers';
 import styles from './IntegrationForm.module.scss';
-import IntegrationHelper from 'pages/integration/Integration.helper';
 
 const cx = cn.bind(styles);
 
@@ -220,9 +220,9 @@ interface CustomFieldSectionRendererState {
   selectedAlertManagerOption: string;
   selectedContactPointOption: string;
 
-  dataSources: { label: string; value: string }[];
-  contactPoints: { label: string; value: string }[];
-  allContactPoints: { name: string; uid: string; contact_points: string[] }[];
+  dataSources: Array<{ label: string; value: string }>;
+  contactPoints: Array<{ label: string; value: string }>;
+  allContactPoints: Array<{ name: string; uid: string; contact_points: string[] }>;
 }
 
 const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
