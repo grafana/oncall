@@ -283,8 +283,6 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
     setValue('is_existing', true);
   }, []);
 
-  console.log(window.grafanaBootData);
-
   return (
     <div className={cx('extra-fields')}>
       <VerticalGroup spacing="md">

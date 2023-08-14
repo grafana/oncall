@@ -229,3 +229,9 @@ $LARGE-MARGIN: 24px;
     cursor: pointer;
   }
 }
+
+.link-flex {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+}

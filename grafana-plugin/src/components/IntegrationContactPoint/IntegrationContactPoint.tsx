@@ -138,6 +138,19 @@ const IntegrationContactPoint: React.FC<{
                     )}
                   </VerticalGroup>
                 </div>
+
+                <Text type="secondary">
+                  If you didn't find relevant Alerting Contact point, you can{' '}
+                  <a
+                    className={cx('link-flex')}
+                    href={`${window.location.host}/alerting/notifications`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Text type="link">create a new one</Text>
+                    <Icon name="external-link-alt" />
+                  </a>
+                </Text>
               </div>
             </Drawer>
           )}
