@@ -1,48 +1,38 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useState } from 'react';
 
-import { SelectableValue } from '@grafana/data';
 import {
   Button,
   HorizontalGroup,
   VerticalGroup,
   Icon,
   LoadingPlaceholder,
-  Tooltip,
-  Modal,
   CascaderOption,
   IconButton,
   ConfirmModal,
   Drawer,
   Alert,
-  Select,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get, noop } from 'lodash-es';
+import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, useHistory, withRouter } from 'react-router-dom';
-import { debounce } from 'throttle-debounce';
 
 import { templateForEdit } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { TemplateForEdit } from 'components/AlertTemplates/CommonAlertTemplatesForm.config';
-import GTable from 'components/GTable/GTable';
 import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
-import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import TooltipBadge from 'components/TooltipBadge/TooltipBadge';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import EditRegexpRouteTemplateModal from 'containers/EditRegexpRouteTemplateModal/EditRegexpRouteTemplateModal';
 import CollapsedIntegrationRouteDisplay from 'containers/IntegrationContainers/CollapsedIntegrationRouteDisplay/CollapsedIntegrationRouteDisplay';
@@ -59,7 +49,6 @@ import { HeartIcon, HeartRedIcon } from 'icons';
 import {
   AlertReceiveChannel,
   AlertReceiveChannelCounters,
-  ContactPoint,
 } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertTemplatesDTO } from 'models/alert_templates';
 import { ChannelFilter } from 'models/channel_filter';
@@ -75,6 +64,9 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
+import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
+import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
+import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
 
 const cx = cn.bind(styles);
 
@@ -385,14 +377,14 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
         customIcon: 'grafana',
         canHoverIcon: false,
         collapsedView: null,
-        expandedView: () => <ContactPointComponent id={id} />,
+        expandedView: () => <IntegrationContactPoint id={id} />,
       },
       {
         isCollapsible: false,
         customIcon: 'plug',
         canHoverIcon: false,
         collapsedView: null,
-        expandedView: () => <HowToConnectComponent id={id} />,
+        expandedView: () => <IntegrationHowToConnect id={id} />,
       },
       {
         customIcon: 'layer-group',
@@ -716,120 +708,6 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 }
 
-const DemoNotification: React.FC = () => {
-  return (
-    <div data-testid="demo-alert-sent-notification">
-      Demo alert was generated. Find it on the
-      <PluginLink query={{ page: 'alert-groups' }}> "Alert Groups" </PluginLink>
-      page and make sure it didn't freak out your colleagues 😉
-    </div>
-  );
-};
-
-interface IntegrationSendDemoPayloadModalProps {
-  isOpen: boolean;
-  alertReceiveChannel: AlertReceiveChannel;
-  onHideOrCancel: () => void;
-}
-
-const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
-  alertReceiveChannel,
-  isOpen,
-  onHideOrCancel,
-}) => {
-  const store = useStore();
-  const { alertReceiveChannelStore } = store;
-  const initialDemoJSON = JSON.stringify(alertReceiveChannel.demo_alert_payload, null, 2);
-  const [demoPayload, setDemoPayload] = useState<string>(initialDemoJSON);
-  let onPayloadChangeDebounced = debounce(100, onPayloadChange);
-
-  return (
-    <Modal
-      closeOnBackdropClick={false}
-      closeOnEscape
-      isOpen={isOpen}
-      onDismiss={onHideOrCancel}
-      title={
-        <HorizontalGroup>
-          <Text.Title level={4}>
-            Send demo alert to integration: {''}
-            <strong>
-              <Emoji text={alertReceiveChannel.verbal_name} />
-            </strong>
-          </Text.Title>
-        </HorizontalGroup>
-      }
-    >
-      <VerticalGroup>
-        <HorizontalGroup spacing={'xs'}>
-          <Text type={'secondary'}>Alert Payload</Text>
-          <Tooltip
-            content={
-              <>
-                Modify the provided payload to test integration routes, templates, and escalations. Enable Debug
-                maintenance on the integration to prevent real notifications.
-              </>
-            }
-            placement={'top-start'}
-          >
-            <Icon name={'info-circle'} />
-          </Tooltip>
-        </HorizontalGroup>
-
-        <div className={cx('integration__payloadInput')}>
-          <MonacoEditor
-            value={initialDemoJSON}
-            disabled={true}
-            height={`60vh`}
-            useAutoCompleteList={false}
-            language={MONACO_LANGUAGE.json}
-            data={undefined}
-            monacoOptions={MONACO_EDITABLE_CONFIG}
-            showLineNumbers={false}
-            onChange={onPayloadChangeDebounced}
-          />
-        </div>
-
-        <HorizontalGroup justify={'flex-end'} spacing={'md'}>
-          <Button variant={'secondary'} onClick={onHideOrCancel}>
-            Cancel
-          </Button>
-          <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL has been copied')}>
-            <Button variant={'secondary'}>Copy as CURL</Button>
-          </CopyToClipboard>
-          <Button variant={'primary'} onClick={sendDemoAlert} data-testid="submit-send-alert">
-            Send Alert
-          </Button>
-        </HorizontalGroup>
-      </VerticalGroup>
-    </Modal>
-  );
-
-  function onPayloadChange(value: string) {
-    setDemoPayload(value);
-  }
-
-  function sendDemoAlert() {
-    let parsedPayload = undefined;
-    try {
-      parsedPayload = JSON.parse(demoPayload);
-    } catch (ex) {}
-
-    alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id, parsedPayload).then(() => {
-      alertReceiveChannelStore.updateCounters();
-      openNotification(<DemoNotification />);
-      onHideOrCancel();
-    });
-  }
-
-  function getCurlText() {
-    return `curl -X POST \
-    ${alertReceiveChannel?.integration_url} \
-    -H 'Content-Type: Application/json' \
-    -d '${demoPayload}'`;
-  }
-};
-
 interface IntegrationActionsProps {
   isLegacyIntegration: boolean;
   alertReceiveChannel: AlertReceiveChannel;
@@ -883,7 +761,7 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
       )}
 
       {alertReceiveChannel.demo_alert_enabled && (
-        <IntegrationSendDemoPayloadModal
+        <IntegrationSendDemoAlertModal
           alertReceiveChannel={alertReceiveChannel}
           isOpen={isDemoModalOpen}
           onHideOrCancel={() => setIsDemoModalOpen(false)}
@@ -1136,408 +1014,6 @@ const IntegrationActions: React.FC<IntegrationActionsProps> = ({
 
     openNotification('Maintenance has been stopped');
     await alertReceiveChannelStore.updateItem(id);
-  }
-};
-
-interface ContactPointComponentState {
-  isLoading: boolean;
-  isDrawerOpen: boolean;
-  isConnectOpen: boolean;
-  allContactPoints: Array<{ name: string; uid: string; contact_points: string[] }>;
-
-  // dropdown selected values
-  selectedAlertManager: string;
-  selectedContactPoint: string;
-
-  // dropdown options
-  dataSourceOptions: Array<{ label: string; value: string }>;
-  contactPointOptions: Array<{ label: string; value: string }>;
-}
-
-const ContactPointComponent: React.FC<{
-  id: AlertReceiveChannel['id'];
-}> = observer(({ id }) => {
-  const { alertReceiveChannelStore } = useStore();
-  const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
-  const warnings = contactPoints.filter((cp) => !cp.notificationConnected);
-
-  const [
-    {
-      isLoading,
-      isDrawerOpen,
-      allContactPoints,
-      dataSourceOptions,
-      contactPointOptions,
-      selectedAlertManager,
-      selectedContactPoint,
-      isConnectOpen,
-    },
-    setState,
-  ] = useReducer(
-    (state: ContactPointComponentState, newState: Partial<ContactPointComponentState>) => ({
-      ...state,
-      ...newState,
-    }),
-    {
-      isLoading: false,
-      isDrawerOpen: false,
-      contactPointOptions: [],
-      dataSourceOptions: [],
-      allContactPoints: [],
-      selectedAlertManager: undefined,
-      selectedContactPoint: undefined,
-      isConnectOpen: false,
-    }
-  );
-
-  useEffect(() => {
-    (async function () {
-      const response = await alertReceiveChannelStore.getGrafanaAlertingContactPoints();
-      setState({
-        allContactPoints: response,
-        dataSourceOptions: response.map((res) => ({ label: res.name, value: res.uid })),
-      });
-    })();
-  }, []);
-
-  return (
-    <IntegrationBlock
-      noContent={true}
-      heading={
-        <div className={cx('u-flex', 'u-flex-space-between')}>
-          {isDrawerOpen && (
-            <Drawer scrollableContent title="Contact Points" onClose={closeDrawer} closeOnMaskClick={false}>
-              <div className={cx('contactpoints__drawer')}>
-                <GTable
-                  className={cx('contactpoints__table')}
-                  rowKey="id"
-                  data={contactPoints}
-                  columns={getTableColumns()}
-                />
-
-                <div className={cx('contactpoints__connect')}>
-                  <VerticalGroup spacing="md">
-                    <div
-                      className={cx('contactpoints__connect-toggler')}
-                      onClick={() => setState({ isConnectOpen: !isConnectOpen })}
-                    >
-                      <HorizontalGroup spacing="xs">
-                        <Text type="primary">Connect existing contact point</Text>
-                        {isConnectOpen ? <Icon name="arrow-down" /> : <Icon name="arrow-right" />}
-                      </HorizontalGroup>
-                    </div>
-
-                    {isConnectOpen && (
-                      <VerticalGroup spacing="md">
-                        <Select
-                          options={dataSourceOptions}
-                          onChange={onAlertManagerChange}
-                          value={selectedAlertManager}
-                          placeholder="Select Alert Manager"
-                        />
-
-                        <Select
-                          options={contactPointOptions}
-                          onChange={onContactPointChange}
-                          value={selectedContactPoint}
-                          placeholder="Select Contact Point"
-                        />
-
-                        <HorizontalGroup align="center">
-                          <Button
-                            variant="primary"
-                            disabled={!selectedAlertManager || !selectedContactPoint || isLoading}
-                            onClick={onContactPointConnect}
-                          >
-                            Connect contact point
-                          </Button>
-                          <Button variant="secondary" onClick={closeDrawer}>
-                            Cancel
-                          </Button>
-                          {isLoading && <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />}
-                        </HorizontalGroup>
-                      </VerticalGroup>
-                    )}
-                  </VerticalGroup>
-                </div>
-              </div>
-            </Drawer>
-          )}
-
-          <HorizontalGroup spacing="md">
-            <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
-              <Text type="primary" size="small" className={cx('radius')}>
-                Contact point
-              </Text>
-            </Tag>
-
-            {contactPoints?.length ? (
-              <HorizontalGroup>
-                <Text type="primary">
-                  {contactPoints.length} contact point{contactPoints.length === 1 ? '' : 's'} connected
-                </Text>
-                {warnings.length > 0 && (
-                  <HorizontalGroup spacing="xs">
-                    {renderExclamationIcon()}
-                    <Text type="primary">{warnings.length} with error</Text>
-                  </HorizontalGroup>
-                )}
-              </HorizontalGroup>
-            ) : (
-              <HorizontalGroup spacing="xs">
-                {renderExclamationIcon()}
-                <Text type="primary" data-testid="integration-escalation-chain-not-selected">
-                  Connect Alerting Contact point to receive alerts
-                </Text>
-              </HorizontalGroup>
-            )}
-          </HorizontalGroup>
-
-          <Button
-            variant={'secondary'}
-            icon="edit"
-            size={'sm'}
-            tooltip="Edit"
-            id={'openContactPoint'}
-            onClick={() => setState({ isDrawerOpen: true })}
-          />
-        </div>
-      }
-      content={undefined}
-    />
-  );
-
-  function renderActions(item: ContactPoint) {
-    return (
-      <HorizontalGroup spacing="md">
-        <IconButton
-          name="external-link-alt"
-          onClick={() => {
-            window.open(
-              `${window.location.host}/alerting/notifications/receivers/${item.contactPoint}/edit?alertmanager=${item.dataSourceId}`,
-              '_blank'
-            );
-          }}
-        />
-        <WithConfirm
-          title={`Disconnect Contact point`}
-          confirmText="Disconnect"
-          description={
-            <VerticalGroup spacing="md">
-              <Text type="primary">
-                When the contact point will be disconnected, the Integration will no longer receive alerts for it.
-              </Text>
-              <Text type="primary">You can add new contact point at any time.</Text>
-            </VerticalGroup>
-          }
-        >
-          <IconButton
-            name="trash-alt"
-            onClick={() => {
-              alertReceiveChannelStore
-                .disconnectContactPoint(id, item.dataSourceId, item.contactPoint)
-                .then(() => {
-                  closeDrawer();
-                  openNotification('Contact point has been removed');
-                  alertReceiveChannelStore.updateConnectedContactPoints(id);
-                })
-                .catch(() => openErrorNotification('An error has occurred. Please try again.'));
-            }}
-          />
-        </WithConfirm>
-      </HorizontalGroup>
-    );
-  }
-
-  function renderContactPointName(item: ContactPoint) {
-    return (
-      <HorizontalGroup spacing="xs">
-        <Text type="primary">{item.contactPoint}</Text>
-
-        {!item.notificationConnected && (
-          <div className={cx('icon-exclamation')}>
-            <Icon name="exclamation-triangle" />
-          </div>
-        )}
-      </HorizontalGroup>
-    );
-  }
-
-  function renderAlertManager(item: ContactPoint) {
-    return item.dataSourceName;
-  }
-
-  function renderExclamationIcon() {
-    return (
-      <div className={cx('icon-exclamation')}>
-        <Icon name="exclamation-triangle" />
-      </div>
-    );
-  }
-
-  function closeDrawer() {
-    setState({
-      isDrawerOpen: false,
-      isConnectOpen: false,
-      selectedAlertManager: undefined,
-      selectedContactPoint: undefined,
-    });
-  }
-
-  function onContactPointConnect() {
-    setState({ isLoading: true });
-    alertReceiveChannelStore
-      .connectContactPoint(id, selectedAlertManager, selectedContactPoint)
-      .then(() => {
-        closeDrawer();
-        openNotification('A new contact point has been connected to your integration');
-        alertReceiveChannelStore.updateConnectedContactPoints(id);
-      })
-      .catch(() => {
-        openErrorNotification('An error has occurred. Please try again.');
-      })
-      .finally(() => setState({ isLoading: false }));
-  }
-
-  function onAlertManagerChange(option: SelectableValue<string>) {
-    const currentContactPoints = contactPoints
-      .filter((p) => p.dataSourceId === option.value)
-      .map((p) => p.contactPoint);
-
-    setState({
-      selectedAlertManager: option.value,
-      selectedContactPoint: undefined,
-      contactPointOptions: allContactPoints
-        .find((opt) => opt.uid == option.value)
-        .contact_points?.filter((cp) => currentContactPoints.indexOf(cp) === -1)
-        .map((cp) => ({ value: cp, label: cp })),
-    });
-  }
-
-  function onContactPointChange(option: SelectableValue<string>) {
-    setState({ selectedContactPoint: option.value });
-  }
-
-  function getTableColumns(): Array<{ width: string; key: string; title?: string; render }> {
-    return [
-      {
-        width: '40%',
-        key: 'name',
-        title: 'Name',
-        render: renderContactPointName,
-      },
-      {
-        width: '40%',
-        title: 'Alert Manager',
-        key: 'alertmanager',
-        render: renderAlertManager,
-      },
-      {
-        width: '20%',
-        title: '',
-        key: 'actions',
-        render: renderActions,
-      },
-    ];
-  }
-});
-
-const HowToConnectComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = ({ id }) => {
-  const { alertReceiveChannelStore } = useStore();
-  const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
-  const hasAlerts = !!alertReceiveChannelCounter?.alerts_count;
-
-  const item = alertReceiveChannelStore.items[id];
-  const url = item?.integration_url || item?.inbound_email;
-
-  const howToConnectTagName = (integration: string) => {
-    switch (integration) {
-      case 'direct_paging':
-        return 'Manual';
-      case 'email':
-        return 'Inbound Email';
-      default:
-        return 'HTTP Endpoint';
-    }
-  };
-
-  return (
-    <IntegrationBlock
-      noContent={hasAlerts}
-      toggle={noop}
-      heading={
-        <div className={cx('how-to-connect__container')}>
-          <Tag color={getVar('--tag-secondary-transparent')} border={getVar('--border-weak')} className={cx('tag')}>
-            <Text type="primary" size="small" className={cx('radius')}>
-              {howToConnectTagName(item?.integration)}
-            </Text>
-          </Tag>
-          {item?.integration === 'direct_paging' ? (
-            <>
-              <Text type="secondary">Alert Groups raised manually via Web or ChatOps</Text>
-              <a
-                href="https://grafana.com/docs/oncall/latest/integrations/manual"
-                target="_blank"
-                rel="noreferrer"
-                className={cx('u-pull-right')}
-              >
-                <Text type="link" size="small">
-                  <HorizontalGroup>
-                    How it works
-                    <Icon name="external-link-alt" />
-                  </HorizontalGroup>
-                </Text>
-              </a>
-            </>
-          ) : (
-            <>
-              {url && (
-                <IntegrationInputField
-                  value={url}
-                  className={cx('integration__input-field')}
-                  showExternal={!!item?.integration_url}
-                />
-              )}
-              <a
-                href="https://grafana.com/docs/oncall/latest/integrations/"
-                target="_blank"
-                rel="noreferrer"
-                className={cx('u-pull-right')}
-              >
-                <Text type="link" size="small">
-                  <HorizontalGroup>
-                    How to connect
-                    <Icon name="external-link-alt" />
-                  </HorizontalGroup>
-                </Text>
-              </a>
-            </>
-          )}
-        </div>
-      }
-      content={hasAlerts ? null : renderContent()}
-    />
-  );
-
-  function renderContent() {
-    const callToAction = () => {
-      if (item?.integration === 'direct_paging') {
-        return <Text type={'primary'}>try to raise a demo alert group via Web or Chatops</Text>;
-      } else {
-        return item.demo_alert_enabled && <Text type={'primary'}>try to send a demo alert</Text>;
-      }
-    };
-
-    return (
-      <VerticalGroup justify={'flex-start'} spacing={'xs'}>
-        {!hasAlerts && (
-          <HorizontalGroup spacing={'xs'}>
-            <Icon name="fa fa-spinner" size="md" className={cx('loadingPlaceholder')} />
-            <Text type={'primary'}>No alerts yet;</Text> {callToAction()}
-          </HorizontalGroup>
-        )}
-      </VerticalGroup>
-    );
   }
 };
 
