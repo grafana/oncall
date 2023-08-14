@@ -25,9 +25,8 @@ class GrafanaAlertingSyncManager:
 
     def __init__(self, alert_receive_channel: "AlertReceiveChannel") -> None:
         self.alert_receive_channel = alert_receive_channel
-        self.grafana_url = self.alert_receive_channel.organization.grafana_url
         self.client = GrafanaAPIClient(
-            api_url=self.grafana_url,
+            api_url=self.alert_receive_channel.organization.grafana_url,
             api_token=self.alert_receive_channel.organization.api_token,
         )
         self.integration_url = self.alert_receive_channel.integration_url
