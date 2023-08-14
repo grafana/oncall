@@ -1,8 +1,10 @@
 import json
+import logging
 import typing
 from json import JSONDecodeError
 
 import requests
+from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -30,6 +32,10 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import EscalationPolicy
 
 WEBHOOK_FIELD_PLACEHOLDER = "****************"
+PUBLIC_WEBHOOK_HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+
+logger = get_task_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def generate_public_primary_key_for_webhook():
@@ -87,6 +93,19 @@ class Webhook(models.Model):
         (TRIGGER_UNRESOLVE, "Unresolved"),
         (TRIGGER_UNACKNOWLEDGE, "Unacknowledged"),
     )
+
+    PUBLIC_TRIGGER_TYPES_MAP = {
+        TRIGGER_ESCALATION_STEP: "escalation step",
+        TRIGGER_ALERT_GROUP_CREATED: "alert group created",
+        TRIGGER_ACKNOWLEDGE: "acknowledged",
+        TRIGGER_RESOLVE: "resolved",
+        TRIGGER_SILENCE: "silenced",
+        TRIGGER_UNSILENCE: "unsilenced",
+        TRIGGER_UNRESOLVE: "unresolved",
+        TRIGGER_UNACKNOWLEDGE: "unacknowledged",
+    }
+
+    PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]
 
     public_primary_key = models.CharField(
         max_length=20,

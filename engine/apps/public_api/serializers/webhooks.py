@@ -1,11 +1,12 @@
 from collections import defaultdict
 
-from rest_framework import serializers
+from rest_framework import fields, serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.webhooks.models import Webhook, WebhookResponse
-from apps.webhooks.models.webhook import WEBHOOK_FIELD_PLACEHOLDER
+from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -26,15 +27,28 @@ class WebhookResponseSerializer(serializers.ModelSerializer):
         ]
 
 
-class WebhookSerializer(serializers.ModelSerializer):
+class WebhookTriggerTypeField(fields.CharField):
+    def to_representation(self, value):
+        return Webhook.PUBLIC_TRIGGER_TYPES_MAP[value]
+
+    def to_internal_value(self, data):
+        try:
+            trigger_type = [
+                key
+                for key, value in Webhook.PUBLIC_TRIGGER_TYPES_MAP.items()
+                if value == data and key in Webhook.PUBLIC_TRIGGER_TYPES_MAP
+            ][0]
+        except IndexError:
+            raise BadRequest(detail=f"trigger_type must one of {Webhook.PUBLIC_ALL_TRIGGER_TYPES}")
+        return trigger_type
+
+
+class WebhookCreateSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
     user = serializers.HiddenField(default=CurrentUserDefault())
-    trigger_type = serializers.CharField(required=True)
-    forward_all = serializers.BooleanField(allow_null=True, required=False)
-    last_response_log = serializers.SerializerMethodField()
-    trigger_type_name = serializers.SerializerMethodField()
+    trigger_type = WebhookTriggerTypeField()
 
     class Meta:
         model = Webhook
@@ -42,33 +56,35 @@ class WebhookSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "is_webhook_enabled",
-            "is_legacy",
+            "organization",
             "team",
             "user",
+            "data",
             "username",
             "password",
             "authorization_header",
-            "organization",
             "trigger_template",
             "headers",
             "url",
-            "data",
             "forward_all",
             "http_method",
             "trigger_type",
-            "trigger_type_name",
-            "last_response_log",
             "integration_filter",
         ]
         extra_kwargs = {
             "name": {"required": True, "allow_null": False, "allow_blank": False},
             "url": {"required": True, "allow_null": False, "allow_blank": False},
+            "http_method": {"required": True, "allow_null": False, "allow_blank": False},
         }
 
         validators = [UniqueTogetherValidator(queryset=Webhook.objects.all(), fields=["name", "organization"])]
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
+        if instance.trigger_type:
+            result["trigger_type"] = next(
+                filter(lambda trigger_type: trigger_type[0] == instance.trigger_type, Webhook.TRIGGER_TYPES)
+            )[1]
         if instance.password:
             result["password"] = WEBHOOK_FIELD_PLACEHOLDER
         if instance.authorization_header:
@@ -125,11 +141,27 @@ class WebhookSerializer(serializers.ModelSerializer):
             return False
         return data
 
-    def get_last_response_log(self, obj):
-        return WebhookResponseSerializer(obj.responses.all().last()).data
+    def validate_http_method(self, http_method):
+        if http_method not in PUBLIC_WEBHOOK_HTTP_METHODS:
+            raise serializers.ValidationError(f"Must be one of {PUBLIC_WEBHOOK_HTTP_METHODS}")
+        return http_method
 
-    def get_trigger_type_name(self, obj):
-        trigger_type_name = ""
-        if obj.trigger_type is not None:
-            trigger_type_name = Webhook.TRIGGER_TYPES[int(obj.trigger_type)][1]
-        return trigger_type_name
+
+class WebhookUpdateSerializer(WebhookCreateSerializer):
+    trigger_type = WebhookTriggerTypeField(required=False)
+
+    class Meta(WebhookCreateSerializer.Meta):
+        extra_kwargs = {
+            "name": {"required": False, "allow_null": False, "allow_blank": False},
+            "is_webhook_enabled": {"required": False, "allow_null": False},
+            "username": {"required": False, "allow_null": True, "allow_blank": False},
+            "password": {"required": False, "allow_null": True, "allow_blank": False},
+            "authorization_header": {"required": False, "allow_null": True, "allow_blank": False},
+            "trigger_template": {"required": False, "allow_null": True, "allow_blank": False},
+            "headers": {"required": False, "allow_null": True, "allow_blank": False},
+            "url": {"required": False, "allow_null": False, "allow_blank": False},
+            "data": {"required": False, "allow_null": True, "allow_blank": False},
+            "forward_all": {"required": False, "allow_null": False},
+            "http_method": {"required": False, "allow_null": False, "allow_blank": False},
+            "integration_filter": {"required": False, "allow_null": True},
+        }
