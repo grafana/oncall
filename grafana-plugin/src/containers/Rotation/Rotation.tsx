@@ -7,7 +7,7 @@ import hash from 'object-hash';
 
 import { ScheduleFiltersType } from 'components/ScheduleFilters/ScheduleFilters.types';
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
+import { Schedule, Event, RotationFormLiveParams, Shift, ShiftSwap } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import RotationTutorial from './RotationTutorial';
@@ -26,11 +26,15 @@ interface RotationProps {
   events: Event[];
   onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
+  handleAddShiftSwap?: (id: 'new', params: Partial<ShiftSwap>) => void;
+  onShiftSwapClick?: (swapId: ShiftSwap['id']) => void;
   days?: number;
   transparent?: boolean;
   tutorialParams?: RotationFormLiveParams;
   simplified?: boolean;
   filters?: ScheduleFiltersType;
+  getColor?: (shiftId: Shift['id']) => string;
+  onSlotClick?: (event: Event) => void;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
@@ -39,14 +43,18 @@ const Rotation: FC<RotationProps> = (props) => {
     scheduleId,
     startMoment,
     currentTimezone,
-    color,
+    color: propsColor,
     days = 7,
     transparent = false,
     tutorialParams,
     onClick,
     handleAddOverride,
+    handleAddShiftSwap,
+    onShiftSwapClick,
     simplified,
     filters,
+    getColor,
+    onSlotClick,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
@@ -72,6 +80,28 @@ const Rotation: FC<RotationProps> = (props) => {
     };
   };
 
+  const getAddShiftSwapClickHandler = (scheduleEvent: Event) => {
+    return (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+
+      handleAddShiftSwap('new', {
+        swap_start: scheduleEvent.start,
+        swap_end: scheduleEvent.end,
+      });
+    };
+  };
+
+  const getSlotClickHandler = (event: Event) => {
+    if (!onSlotClick) {
+      return undefined;
+    }
+    return (e) => {
+      e.stopPropagation();
+
+      onSlotClick(event);
+    };
+  };
+
   const x = useMemo(() => {
     if (!events || !events.length) {
       return 0;
@@ -85,7 +115,7 @@ const Rotation: FC<RotationProps> = (props) => {
   }, [events]);
 
   return (
-    <div className={cx('root')} onClick={handleRotationClick}>
+    <div className={cx('root')} onClick={onClick && handleRotationClick}>
       <div className={cx('timeline')}>
         {tutorialParams && <RotationTutorial startMoment={startMoment} {...tutorialParams} />}
         {events ? (
@@ -102,10 +132,13 @@ const Rotation: FC<RotationProps> = (props) => {
                     event={event}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
-                    color={color}
+                    color={propsColor || getColor(event.shift?.pk)}
                     handleAddOverride={getAddOverrideClickHandler(event)}
+                    handleAddShiftSwap={getAddShiftSwapClickHandler(event)}
+                    onShiftSwapClick={onShiftSwapClick}
                     simplified={simplified}
                     filters={filters}
+                    onClick={getSlotClickHandler(event)}
                   />
                 );
               })}

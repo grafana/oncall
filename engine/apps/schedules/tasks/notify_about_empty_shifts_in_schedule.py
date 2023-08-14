@@ -109,7 +109,7 @@ def notify_about_empty_shifts_in_schedule(schedule_pk):
                         f'From {empty_shift.start.strftime("%b %d")} to {empty_shift.end.strftime("%b %d")}\n'
                     )
                 text += all_day_text
-                text += f"*All-day* event in {empty_shift.calendar_tz} TZ\n"
+                text += '*All-day* event in "UTC" TZ\n'
             else:
                 text += f"From {format_datetime_to_slack_with_time(start_timestamp)} to {format_datetime_to_slack_with_time(end_timestamp)} (your TZ)\n"
             text += f"_From {OnCallSchedule.CALENDAR_TYPE_VERBAL[empty_shift.calendar_type]} calendar_\n"

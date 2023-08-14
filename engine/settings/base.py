@@ -64,7 +64,6 @@ FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_EN
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
-FEATURE_SHIFT_SWAPS_ENABLED = getenv_boolean("FEATURE_SHIFT_SWAPS_ENABLED", default=False)
 FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
@@ -210,7 +209,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
-    "ordered_model",
     "mirage",
     "engine",
     "apps.user_management",
@@ -482,11 +480,16 @@ CELERY_BEAT_SCHEDULE = {
     },
     "notify_shift_swap_requests": {
         "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
-        "schedule": 10 * 60,
+        "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
     },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
         "schedule": 60 * 30,
+        "args": (),
+    },
+    "check_heartbeats": {
+        "task": "apps.heartbeat.tasks.check_heartbeats",
+        "schedule": crontab(minute="*/2"),  # every 2 minutes
         "args": (),
     },
 }

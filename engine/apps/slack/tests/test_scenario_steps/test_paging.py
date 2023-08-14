@@ -24,7 +24,9 @@ from apps.slack.scenarios.paging import (
     OnPagingUserChange,
     Policy,
     StartDirectPaging,
+    _get_organization_select,
 )
+from apps.user_management.models import Organization
 
 
 def make_slack_payload(
@@ -401,3 +403,13 @@ def test_remove_schedule(make_organization_and_user_with_slack_identities, make_
     metadata = json.loads(mock_slack_api_call.call_args.kwargs["view"]["private_metadata"])
     assert metadata[DataKey.SCHEDULES] == {}
     assert metadata[DataKey.USERS] == {str(user.pk): Policy.DEFAULT}
+
+
+@pytest.mark.django_db
+def test_get_organization_select(make_organization):
+    organization = make_organization(org_title="Organization", stack_slug="stack_slug")
+    select = _get_organization_select(Organization.objects.filter(pk=organization.pk), organization, "test")
+
+    assert len(select["element"]["options"]) == 1
+    assert select["element"]["options"][0]["value"] == str(organization.pk)
+    assert select["element"]["options"][0]["text"]["text"] == "Organization (stack_slug)"

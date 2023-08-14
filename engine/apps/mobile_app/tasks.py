@@ -3,7 +3,6 @@ import json
 import logging
 import math
 import typing
-from enum import Enum
 
 import humanize
 import pytz
@@ -20,6 +19,7 @@ from rest_framework import status
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
 from apps.mobile_app.alert_rendering import get_push_notification_subtitle
+from apps.mobile_app.types import FCMMessageData, MessageType, Platform
 from apps.schedules.models import ShiftSwapRequest
 from apps.schedules.models.on_call_schedule import OnCallSchedule, ScheduleEvent
 from apps.user_management.models import User
@@ -34,18 +34,6 @@ if typing.TYPE_CHECKING:
 MAX_RETRIES = 1 if settings.DEBUG else 10
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
-
-
-class MessageType(str, Enum):
-    NORMAL = "oncall.message"
-    CRITICAL = "oncall.critical_message"
-    INFO = "oncall.info"
-
-
-class FCMMessageData(typing.TypedDict):
-    title: str
-    subtitle: typing.Optional[str]
-    body: typing.Optional[str]
 
 
 def send_push_notification_to_fcm_relay(message: Message) -> requests.Response:
@@ -168,11 +156,8 @@ def _get_alert_group_escalation_fcm_message(
 
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
-    apns_sound_name = (
-        mobile_app_user_settings.important_notification_sound_name
-        if critical
-        else mobile_app_user_settings.default_notification_sound_name
-    ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
+    message_type = MessageType.IMPORTANT if critical else MessageType.DEFAULT
+    apns_sound_name = mobile_app_user_settings.get_notification_sound_name(message_type, Platform.IOS)
 
     fcm_message_data: FCMMessageData = {
         "title": alert_title,
@@ -183,18 +168,16 @@ def _get_alert_group_escalation_fcm_message(
         # alert_group.status is an int so it must be casted...
         "status": str(alert_group.status),
         # Pass user settings, so the Android app can use them to play the correct sound and volume
-        "default_notification_sound_name": (
-            mobile_app_user_settings.default_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        "default_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.DEFAULT, Platform.ANDROID
         ),
         "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
         "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
         "default_notification_volume_override": json.dumps(
             mobile_app_user_settings.default_notification_volume_override
         ),
-        "important_notification_sound_name": (
-            mobile_app_user_settings.important_notification_sound_name
-            + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        "important_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.IMPORTANT, Platform.ANDROID
         ),
         "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
         "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
@@ -221,8 +204,6 @@ def _get_alert_group_escalation_fcm_message(
             },
         ),
     )
-
-    message_type = MessageType.CRITICAL if critical else MessageType.NORMAL
 
     return _construct_fcm_message(message_type, device_to_notify, thread_id, fcm_message_data, apns_payload)
 
@@ -268,8 +249,6 @@ def _get_youre_going_oncall_fcm_message(
     thread_id = f"{schedule.public_primary_key}:{user.public_primary_key}:going-oncall"
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
-    info_notification_sound_name = mobile_app_user_settings.info_notification_sound_name
-
     notification_title = _get_youre_going_oncall_notification_title(seconds_until_going_oncall)
     notification_subtitle = _get_youre_going_oncall_notification_subtitle(
         schedule, schedule_event, mobile_app_user_settings
@@ -278,7 +257,9 @@ def _get_youre_going_oncall_fcm_message(
     data: FCMMessageData = {
         "title": notification_title,
         "subtitle": notification_subtitle,
-        "info_notification_sound_name": f"{info_notification_sound_name}{MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION}",
+        "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.INFO, Platform.ANDROID
+        ),
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
         "info_notification_volume_override": json.dumps(mobile_app_user_settings.info_notification_volume_override),
@@ -290,7 +271,7 @@ def _get_youre_going_oncall_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=f"{info_notification_sound_name}{MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION}",
+                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, Platform.IOS),
             ),
             custom_data={
                 "interruption-level": "time-sensitive",
@@ -518,10 +499,6 @@ def notify_shift_swap_requests() -> None:
     """
     A periodic task that notifies users about shift swap requests.
     """
-
-    if not settings.FEATURE_SHIFT_SWAPS_ENABLED:
-        return
-
     for shift_swap_request in _get_shift_swap_requests_to_notify(timezone.now()):
         notify_shift_swap_request.delay(shift_swap_request.pk)
 
@@ -618,10 +595,10 @@ def _should_notify_user_about_shift_swap_request(
     except MobileAppUserSettings.DoesNotExist:
         return False  # don't notify if the app is not configured
 
-    return (
-        mobile_app_user_settings.info_notifications_enabled  # info notifications must be enabled
-        and user.is_in_working_hours(now, mobile_app_user_settings.time_zone)  # user must be in working hours
-        and not _has_user_been_notified_for_shift_swap_request(shift_swap_request, user)  # don't notify twice
+    return user.is_in_working_hours(  # user must be in working hours
+        now, mobile_app_user_settings.time_zone
+    ) and not _has_user_been_notified_for_shift_swap_request(  # don't notify twice
+        shift_swap_request, user
     )
 
 
@@ -645,8 +622,6 @@ def _shift_swap_request_fcm_message(
     device_to_notify: "FCMDevice",
     mobile_app_user_settings: "MobileAppUserSettings",
 ) -> Message:
-    from apps.mobile_app.models import MobileAppUserSettings
-
     thread_id = f"{shift_swap_request.public_primary_key}:{user.public_primary_key}:ssr"
     notification_title = "New shift swap request"
     beneficiary_name = shift_swap_request.beneficiary.name or shift_swap_request.beneficiary.username
@@ -659,8 +634,8 @@ def _shift_swap_request_fcm_message(
         "title": notification_title,
         "subtitle": notification_subtitle,
         "route": route,
-        "info_notification_sound_name": (
-            mobile_app_user_settings.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+        "info_notification_sound_name": mobile_app_user_settings.get_notification_sound_name(
+            MessageType.INFO, Platform.ANDROID
         ),
         "info_notification_volume_type": mobile_app_user_settings.info_notification_volume_type,
         "info_notification_volume": str(mobile_app_user_settings.info_notification_volume),
@@ -673,8 +648,7 @@ def _shift_swap_request_fcm_message(
             alert=ApsAlert(title=notification_title, subtitle=notification_subtitle),
             sound=CriticalSound(
                 critical=False,
-                name=mobile_app_user_settings.info_notification_sound_name
-                + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION,
+                name=mobile_app_user_settings.get_notification_sound_name(MessageType.INFO, Platform.IOS),
             ),
             custom_data={
                 "interruption-level": "time-sensitive",

@@ -234,6 +234,7 @@ def test_fcm_message_user_settings(
     assert message.data["important_notification_volume"] == "0.8"
     assert message.data["important_notification_volume_override"] == "true"
     assert message.data["important_notification_override_dnd"] == "true"
+    assert message.data["type"] == "oncall.message"
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
@@ -265,6 +266,7 @@ def test_fcm_message_user_settings_critical(
     assert message.data["important_notification_volume"] == "0.8"
     assert message.data["important_notification_volume_override"] == "true"
     assert message.data["important_notification_override_dnd"] == "true"
+    assert message.data["type"] == "oncall.critical_message"
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound

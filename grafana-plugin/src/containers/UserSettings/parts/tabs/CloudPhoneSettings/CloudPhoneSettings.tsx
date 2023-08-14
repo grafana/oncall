@@ -112,7 +112,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
 
   return (
     <WithPermissionControlDisplay
-      userAction={UserActions.OtherSettingsWrite}
+      userAction={UserActions.UserSettingsWrite}
       title="OnCall uses Grafana Cloud for SMS and phone call notifications"
     >
       <VerticalGroup spacing="lg">

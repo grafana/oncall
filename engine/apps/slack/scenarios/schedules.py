@@ -169,9 +169,10 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                 now_text = "Inviting <!channel>. No one on-call now!\n"
             elif schedule.notify_empty_oncall == schedule.NotifyEmptyOnCall.PREV:
                 user_ids: typing.List[str] = []
-                for item in json.loads(schedule.current_shifts).values():
-                    user_ids.extend(item.get("users", []))
-                prev_users = organization.users.filter(id__in=user_ids)
+                for item in json.loads(schedule.current_shifts):
+                    user_ids_from_shift = [u["pk"] for u in item.get("users", [])]
+                    user_ids.extend(user_ids_from_shift)
+                prev_users = organization.users.filter(public_primary_key__in=user_ids)
                 users_verbal = "  ".join(
                     [f"{user.get_username_with_slack_verbal(mention=True)}" for user in prev_users]
                 )
@@ -183,6 +184,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             now_text = ""
             for shift in new_shifts:
                 users = shift["users"]
+                user_ids_from_shift = [u["pk"] for u in users]
+                users = organization.users.filter(public_primary_key__in=user_ids_from_shift)
                 now_text += cls.get_ical_shift_notification_text(shift, schedule.mention_oncall_start, users)
             now_text = "*New on-call shift:*\n" + now_text
 
@@ -195,6 +198,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             next_text = ""
             for shift in next_shifts:
                 users = shift["users"]
+                user_ids_from_shift = [u["pk"] for u in users]
+                users = organization.users.filter(public_primary_key__in=user_ids_from_shift)
                 next_text += cls.get_ical_shift_notification_text(shift, schedule.mention_oncall_next, users)
             next_text = "\n*Next on-call shift:*\n" + next_text
 
@@ -242,30 +247,29 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
     @classmethod
     def get_ical_shift_notification_text(cls, shift, mention, users) -> str:
-        if shift["all_day"]:
-            notification = " ".join([f"{user.get_username_with_slack_verbal(mention=mention)}" for user in users])
-            user_verbal = shift["users"][0].get_username_with_slack_verbal(
-                mention=False,
-            )
-            if shift["start"].day == shift["end"].day:
-                all_day_text = shift["start"].strftime("%b %d")
+        notification = ""
+        for user in users:
+            if shift["all_day"]:
+                user_notification = user.get_username_with_slack_verbal(mention=mention)
+                if shift["start"].day == shift["end"].day:
+                    all_day_text = shift["start"].strftime("%b %d")
+                else:
+                    all_day_text = f'From {shift["start"].strftime("%b %d")} to {shift["end"].strftime("%b %d")}'
+                user_notification += f' {all_day_text} _All-day event in timezone "UTC"_\n'
             else:
-                all_day_text = f'From {shift["start"].strftime("%b %d")} to {shift["end"].strftime("%b %d")}'
-            notification += (
-                f" {all_day_text} _All-day event in *{user_verbal}'s* timezone_ " f'- {shift["users"][0].timezone}.\n'
-            )
-        else:
-            shift_start_timestamp = shift["start"].astimezone(pytz.UTC).timestamp()
-            shift_end_timestamp = shift["end"].astimezone(pytz.UTC).timestamp()
+                shift_start_timestamp = shift["start"].astimezone(pytz.UTC).timestamp()
+                shift_end_timestamp = shift["end"].astimezone(pytz.UTC).timestamp()
 
-            notification = (
-                " ".join([f"{user.get_username_with_slack_verbal(mention=mention)}" for user in users])
-                + f" from {format_datetime_to_slack_with_time(shift_start_timestamp)}"
-                f" to {format_datetime_to_slack_with_time(shift_end_timestamp)}\n"
-            )
-        priority = shift.get("priority", 0) - shift.get("priority_increased_by", 0)
-        if priority != 0:
-            notification = f"[L{shift.get('priority')}] {notification}"
+                user_notification = (
+                    user.get_username_with_slack_verbal(mention=mention)
+                    + f" from {format_datetime_to_slack_with_time(shift_start_timestamp)}"
+                    f" to {format_datetime_to_slack_with_time(shift_end_timestamp)}\n"
+                )
+            if not shift["is_override"]:
+                priority = shift.get("priority_level", 0) or 0
+                if priority != 0:
+                    user_notification = f"[L{priority}] {user_notification}"
+            notification += user_notification
         return notification
 
 

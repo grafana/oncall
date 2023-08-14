@@ -9,7 +9,6 @@ from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 from apps.mobile_app.tasks import (
     SSR_EARLIEST_NOTIFICATION_OFFSET,
     SSR_NOTIFICATION_WINDOW,
-    MessageType,
     _get_shift_swap_requests_to_notify,
     _has_user_been_notified_for_shift_swap_request,
     _mark_shift_swap_request_notified_for_user,
@@ -108,9 +107,7 @@ def test_get_shift_swap_requests_to_notify_starts_not_soon(
 
 
 @pytest.mark.django_db
-def test_notify_shift_swap_requests(make_organization, make_user, make_schedule, make_shift_swap_request, settings):
-    settings.FEATURE_SHIFT_SWAPS_ENABLED = True
-
+def test_notify_shift_swap_requests(make_organization, make_user, make_schedule, make_shift_swap_request):
     organization = make_organization()
     user = make_user(organization=organization)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -132,17 +129,6 @@ def test_notify_shift_swap_requests(make_organization, make_user, make_schedule,
 
     mock_get_shift_swap_requests_to_notify.assert_called_once()
     mock_notify_shift_swap_request.assert_called_once_with(shift_swap_request.pk)
-
-
-@pytest.mark.django_db
-def test_notify_shift_swap_requests_feature_flag_disabled(
-    make_organization, make_user, make_schedule, make_shift_swap_request, settings
-):
-    settings.FEATURE_SHIFT_SWAPS_ENABLED = False
-    with patch("apps.mobile_app.tasks._get_shift_swap_requests_to_notify") as mock_get_shift_swap_requests_to_notify:
-        notify_shift_swap_requests()
-
-    mock_get_shift_swap_requests_to_notify.assert_not_called()
 
 
 @pytest.mark.django_db
@@ -250,11 +236,7 @@ def test_notify_shift_swap_request_success(
 
 
 @pytest.mark.django_db
-def test_notify_user_about_shift_swap_request(
-    make_organization, make_user, make_schedule, make_shift_swap_request, settings
-):
-    settings.FEATURE_SHIFT_SWAPS_ENABLED = True
-
+def test_notify_user_about_shift_swap_request(make_organization, make_user, make_schedule, make_shift_swap_request):
     organization = make_organization()
     beneficiary = make_user(organization=organization, name="John Doe", username="john.doe")
     benefactor = make_user(organization=organization)
@@ -263,7 +245,7 @@ def test_notify_user_about_shift_swap_request(
     device_to_notify = FCMDevice.objects.create(user=benefactor, registration_id="test_device_id")
     MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=True)
 
-    now = timezone.datetime(2023, 8, 1, 19, 38, tzinfo=timezone.utc)
+    now = timezone.now()
     swap_start = now + timezone.timedelta(days=100)
     swap_end = swap_start + timezone.timedelta(days=1)
 
@@ -278,7 +260,7 @@ def test_notify_user_about_shift_swap_request(
     assert mock_send_push_notification.call_args.args[0] == device_to_notify
 
     message: Message = mock_send_push_notification.call_args.args[1]
-    assert message.data["type"] == MessageType.INFO
+    assert message.data["type"] == "oncall.info"
     assert message.data["title"] == "New shift swap request"
     assert message.data["subtitle"] == "John Doe, Test Schedule"
     assert (
@@ -286,6 +268,32 @@ def test_notify_user_about_shift_swap_request(
         == f"/schedules/{schedule.public_primary_key}/ssrs/{shift_swap_request.public_primary_key}"
     )
     assert message.apns.payload.aps.sound.critical is False
+
+
+@pytest.mark.django_db
+def test_notify_user_about_shift_swap_request_info_notifications_disabled(
+    make_organization, make_user, make_schedule, make_shift_swap_request
+):
+    organization = make_organization()
+    beneficiary = make_user(organization=organization)
+    benefactor = make_user(organization=organization)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    FCMDevice.objects.create(user=benefactor, registration_id="test_device_id")
+    MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=False)
+
+    now = timezone.now()
+    swap_start = now + timezone.timedelta(days=100)
+    swap_end = swap_start + timezone.timedelta(days=1)
+
+    shift_swap_request = make_shift_swap_request(
+        schedule, beneficiary, swap_start=swap_start, swap_end=swap_end, created_at=now
+    )
+
+    with patch("apps.mobile_app.tasks._send_push_notification") as mock_send_push_notification:
+        notify_user_about_shift_swap_request(shift_swap_request.pk, benefactor.pk)
+
+    mock_send_push_notification.assert_not_called()
 
 
 @pytest.mark.django_db
@@ -306,8 +314,11 @@ def test_should_notify_user(make_organization, make_user, make_schedule, make_sh
     assert not MobileAppUserSettings.objects.exists()
     assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is False
 
+    # check _should_notify_user_about_shift_swap_request is True when info notifications are disabled
     mobile_app_settings = MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=False)
-    assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is False
+    with patch.object(benefactor, "is_in_working_hours", return_value=True):
+        with patch("apps.mobile_app.tasks._has_user_been_notified_for_shift_swap_request", return_value=False):
+            assert _should_notify_user_about_shift_swap_request(shift_swap_request, benefactor, now) is True
 
     mobile_app_settings.info_notifications_enabled = True
     mobile_app_settings.save(update_fields=["info_notifications_enabled"])

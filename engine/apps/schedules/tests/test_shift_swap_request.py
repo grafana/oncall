@@ -46,6 +46,14 @@ def test_status_taken(shift_swap_request_setup) -> None:
     assert ssr.status == ShiftSwapRequest.Statuses.TAKEN
     assert ssr.is_taken is True
 
+    # taken in the past it's still taken
+    now = timezone.now()
+    ssr.swap_start = now - timezone.timedelta(days=2)
+    ssr.save()
+    assert ssr.status == ShiftSwapRequest.Statuses.TAKEN
+    assert ssr.is_taken is True
+    assert ssr.is_past_due is False
+
 
 @pytest.mark.django_db
 def test_status_past_due(shift_swap_request_setup) -> None:

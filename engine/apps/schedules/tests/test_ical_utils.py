@@ -16,7 +16,13 @@ from apps.schedules.ical_utils import (
     parse_event_uid,
     users_in_ical,
 )
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
+from apps.schedules.models import (
+    CustomOnCallShift,
+    OnCallSchedule,
+    OnCallScheduleCalendar,
+    OnCallScheduleICal,
+    OnCallScheduleWeb,
+)
 
 
 def test_get_icalendar_tz_or_utc():
@@ -120,6 +126,38 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
 
     assert len(users_on_call) == 1
     assert set(users_on_call) == {user}
+
+
+@pytest.mark.django_db
+def test_list_users_to_notify_from_ical_ignore_cancelled(make_organization_and_user, make_schedule):
+    organization, user = make_organization_and_user()
+    now = timezone.now().replace(second=0, microsecond=0)
+    end = now + timezone.timedelta(minutes=30)
+    ical_data = textwrap.dedent(
+        """
+        BEGIN:VCALENDAR
+        VERSION:2.0
+        CALSCALE:GREGORIAN
+        METHOD:PUBLISH
+        BEGIN:VEVENT
+        SUMMARY:{}
+        DTSTART;VALUE=DATE-TIME:{}
+        DTEND;VALUE=DATE-TIME:{}
+        DTSTAMP;VALUE=DATE-TIME:20230807T001508Z
+        UID:some-uid
+        LOCATION:primary
+        STATUS:CANCELLED
+        END:VEVENT
+        END:VCALENDAR
+    """.format(
+            user.username, now.strftime("%Y%m%dT%H%M%SZ"), end.strftime("%Y%m%dT%H%M%SZ")
+        )
+    )
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleICal, cached_ical_file_primary=ical_data)
+
+    # get users on-call
+    users_on_call = list_users_to_notify_from_ical(schedule, now + timezone.timedelta(minutes=5))
+    assert len(users_on_call) == 0
 
 
 @pytest.mark.django_db
@@ -301,6 +339,20 @@ def test_parse_event_uid_fallback():
     event_uid = "someid@google.com"
     pk, source = parse_event_uid(event_uid)
     assert pk == event_uid
+    assert source is None
+
+
+def test_parse_recurrent_event_uid_fallback_modified():
+    # use ical existing UID for imported events
+    event_uid = "someid@google.com"
+    pk, source = parse_event_uid(event_uid, sequence="2")
+    assert pk == f"{event_uid}_2"
+    assert source is None
+    pk, source = parse_event_uid(event_uid, recurrence_id="other-id")
+    assert pk == f"{event_uid}_other-id"
+    assert source is None
+    pk, source = parse_event_uid(event_uid, sequence="3", recurrence_id="other-id")
+    assert pk == f"{event_uid}_3_other-id"
     assert source is None
 
 
