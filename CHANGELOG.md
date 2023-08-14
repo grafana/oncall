@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Ignore ical cancelled events when calculating shifts ([#2776](https://github.com/grafana/oncall/pull/2776))
+- Fix Slack acknowledgment reminders by @vadimkerr ([#2769](https://github.com/grafana/oncall/pull/2769))
+- Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
+- Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
+
+### Added
+
+- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
+
 ## v1.3.23 (2023-08-10)
 
 ### Added
