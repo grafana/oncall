@@ -139,7 +139,7 @@ class GrafanaAlertingSyncManager:
                     receiver.setdefault(config_field, []).append(oncall_config)
                     break
             if not receiver_found:
-                return False, "Contact point was not found "
+                return False, "Contact point was not found"
 
         response = self.update_alerting_config_for_datasource(self.client, datasource_uid, config, updated_config)
         if response is None:
@@ -281,13 +281,13 @@ class GrafanaAlertingSyncManager:
         return alerting_datasources
 
     @classmethod
-    def get_contact_points_for_datasource(cls, client: "GrafanaAPIClient", datasource_uid: str) -> Optional[list]:
+    def get_contact_points_for_datasource(cls, client: "GrafanaAPIClient", datasource_uid: str) -> list:
         config = cls.get_alerting_config_for_datasource(client, datasource_uid)
         if config is None:
-            return
+            return []
         alertmanager_config = config.get("alertmanager_config")
         if not alertmanager_config:
-            return
+            return []
         alerting_receivers = alertmanager_config.get("receivers", [])
         contact_points = [receiver["name"] for receiver in alerting_receivers]
         return contact_points
@@ -448,7 +448,7 @@ class GrafanaAlertingSyncManager:
                                 receiver[config_type] = updated_receiver_configs
                             else:
                                 del receiver[config_type]
-                        contact_point_found = True
+                    contact_point_found = True
                 elif contact_point_found:
                     break
         return alertmanager_config, contact_point_found, receiver_found
@@ -463,7 +463,7 @@ class GrafanaAlertingSyncManager:
             for receiver in alerting_receivers:
                 receiver_configs = receiver.get("grafana_managed_receiver_configs")
                 if not receiver_configs:
-                    break
+                    continue
                 updated_receiver_configs = []
                 for receiver_config in receiver_configs:
                     if not (
