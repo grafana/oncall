@@ -25,7 +25,10 @@ import HamburgerMenu from 'components/HamburgerMenu/HamburgerMenu';
 import IntegrationCollapsibleTreeView, {
   IntegrationCollapsibleItem,
 } from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
+import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
+import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
 import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
@@ -64,9 +67,6 @@ import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
-import IntegrationContactPoint from 'components/IntegrationContactPoint/IntegrationContactPoint';
-import IntegrationHowToConnect from 'components/IntegrationHowToConnect/IntegrationHowToConnect';
-import IntegrationSendDemoAlertModal from 'components/IntegrationSendDemoAlertModal/IntegrationSendDemoAlertModal';
 
 const cx = cn.bind(styles);
 
