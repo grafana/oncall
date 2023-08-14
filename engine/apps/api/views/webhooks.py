@@ -144,7 +144,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
             "-timestamp"
         )[:RECENT_RESPONSE_LIMIT]
         response_serializer = WebhookResponseSerializer(queryset, many=True)
-        return Response(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=["post"], detail=True)
     def preview_template(self, request, pk):
