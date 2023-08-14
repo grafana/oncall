@@ -245,7 +245,7 @@ def test_notify_user_about_shift_swap_request(make_organization, make_user, make
     device_to_notify = FCMDevice.objects.create(user=benefactor, registration_id="test_device_id")
     MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=True)
 
-    now = timezone.datetime(2023, 8, 1, 19, 38, tzinfo=timezone.utc)
+    now = timezone.now()
     swap_start = now + timezone.timedelta(days=100)
     swap_end = swap_start + timezone.timedelta(days=1)
 
@@ -282,7 +282,7 @@ def test_notify_user_about_shift_swap_request_info_notifications_disabled(
     FCMDevice.objects.create(user=benefactor, registration_id="test_device_id")
     MobileAppUserSettings.objects.create(user=benefactor, info_notifications_enabled=False)
 
-    now = timezone.datetime(2023, 8, 1, 19, 38, tzinfo=timezone.utc)
+    now = timezone.now()
     swap_start = now + timezone.timedelta(days=100)
     swap_end = swap_start + timezone.timedelta(days=1)
 
