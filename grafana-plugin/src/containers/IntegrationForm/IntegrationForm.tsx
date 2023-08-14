@@ -302,40 +302,42 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
           />
         </div>
 
-        <Field invalid={!!errors['alert_manager']} error={'Alert Manager is required'}>
-          <Select
-            {...register('alert_manager', { required: true })}
-            options={dataSources}
-            onChange={onAlertManagerChange}
-            value={selectedAlertManagerOption}
-            placeholder="Select Alert Manager"
-          />
-        </Field>
-
-        {isExistingContactPoint ? (
-          <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+        <div className={cx('selectors-container')}>
+          <Field invalid={!!errors['alert_manager']} error={'Alert Manager is required'}>
             <Select
-              {...register('contact_point', { required: true })}
-              options={contactPoints}
-              onChange={onContactPointChange}
-              value={selectedContactPointOption}
-              placeholder="Select Contact Point"
+              {...register('alert_manager', { required: true })}
+              options={dataSources}
+              onChange={onAlertManagerChange}
+              value={selectedAlertManagerOption}
+              placeholder="Select Alert Manager"
             />
           </Field>
-        ) : (
-          <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
-            <Input
-              {...register('contact_point', { required: true })}
-              value={selectedContactPointOption}
-              placeholder="Choose Contact Point"
-              onChange={({ target }) => {
-                const value = (target as HTMLInputElement).value;
-                setState({ selectedContactPointOption: value });
-                setValue('contact_point', value);
-              }}
-            />
-          </Field>
-        )}
+
+          {isExistingContactPoint ? (
+            <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+              <Select
+                {...register('contact_point', { required: true })}
+                options={contactPoints}
+                onChange={onContactPointChange}
+                value={selectedContactPointOption}
+                placeholder="Select Contact Point"
+              />
+            </Field>
+          ) : (
+            <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+              <Input
+                {...register('contact_point', { required: true })}
+                value={selectedContactPointOption}
+                placeholder="Choose Contact Point"
+                onChange={({ target }) => {
+                  const value = (target as HTMLInputElement).value;
+                  setState({ selectedContactPointOption: value });
+                  setValue('contact_point', value);
+                }}
+              />
+            </Field>
+          )}
+        </div>
       </VerticalGroup>
     </div>
   );
