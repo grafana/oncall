@@ -298,8 +298,8 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
             onChange={(radioValue) => {
               setState({
                 isExistingContactPoint: radioValue === 'existing',
-                selectedAlertManagerOption: undefined,
-                selectedContactPointOption: undefined,
+                selectedAlertManagerOption: null,
+                selectedContactPointOption: null,
               });
 
               setValue('is_existing', radioValue === 'existing');
@@ -318,8 +318,8 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
             />
           </Field>
 
-          {isExistingContactPoint ? (
-            <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+          <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+            {isExistingContactPoint ? (
               <Select
                 {...register('contact_point', { required: true })}
                 options={contactPoints}
@@ -327,11 +327,8 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
                 value={selectedContactPointOption}
                 placeholder="Select Contact Point"
               />
-            </Field>
-          ) : (
-            <Field invalid={!!errors['contact_point']} error={'Contact Point is required'}>
+            ) : (
               <Input
-                {...register('contact_point', { required: true })}
                 value={selectedContactPointOption}
                 placeholder="Choose Contact Point"
                 onChange={({ target }) => {
@@ -340,8 +337,8 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
                   setValue('contact_point', value);
                 }}
               />
-            </Field>
-          )}
+            )}
+          </Field>
         </div>
       </VerticalGroup>
     </div>
@@ -354,16 +351,12 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
     const newState: Partial<CustomFieldSectionRendererState> = {
       selectedAlertManagerOption: option.value,
-      selectedContactPointOption: undefined,
       contactPoints: contactPointsForCurrentOption,
     };
 
-    if (!isExistingContactPoint) {
-      // reset it if it's a create new contact point
-      newState.selectedContactPointOption = undefined;
-    } else if (!contactPointsForCurrentOption.find((opt) => opt.value === selectedContactPointOption)) {
-      // if we cannot find the contact point in the new alert manager's list of contact points then reset it
-      newState.selectedContactPointOption = undefined;
+    if (isExistingContactPoint) {
+      newState.selectedContactPointOption = null;
+      setValue('contact_point', undefined);
     }
 
     setState(newState);

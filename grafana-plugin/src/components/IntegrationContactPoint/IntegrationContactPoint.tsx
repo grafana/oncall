@@ -144,7 +144,7 @@ const IntegrationContactPoint: React.FC<{
                   If you didn't find relevant Alerting Contact point, you can{' '}
                   <a
                     className={cx('link-flex')}
-                    href={`${window.location.host}/alerting/notifications`}
+                    href={`${window.location.origin}/alerting/notifications`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -206,7 +206,7 @@ const IntegrationContactPoint: React.FC<{
           name="external-link-alt"
           onClick={() => {
             window.open(
-              `${window.location.host}/alerting/notifications/receivers/${item.contactPoint}/edit?alertmanager=${item.dataSourceId}`,
+              `${window.location.origin}/alerting/notifications/receivers/${item.contactPoint}/edit?alertmanager=${item.dataSourceId}`,
               '_blank'
             );
           }}
@@ -292,17 +292,12 @@ const IntegrationContactPoint: React.FC<{
   }
 
   function onAlertManagerChange(option: SelectableValue<string>) {
-    const currentContactPoints = contactPoints
-      .filter((p) => p.dataSourceId === option.value)
-      .map((p) => p.contactPoint);
-
     setState({
       selectedAlertManager: option.value,
-      selectedContactPoint: undefined,
+      selectedContactPoint: null,
       contactPointOptions: allContactPoints
         .find((opt) => opt.uid === option.value)
-        .contact_points?.filter((cp) => currentContactPoints.indexOf(cp) === -1)
-        .map((cp) => ({ value: cp, label: cp })),
+        ?.contact_points.map((cp) => ({ value: cp, label: cp })),
     });
   }
 
