@@ -358,7 +358,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
               (
                 <Text type="primary">
                   Contact point connection required. Click{' '}
-                  <a href="#" onClick={noop}>
+                  <a href="#" onClick={() => document.querySelector<HTMLElement>('#openContactPoint')?.click()}>
                     <Text type="link">here</Text>
                   </a>{' '}
                   to connect Contact point from Alerting.
@@ -1156,7 +1156,9 @@ interface ContactPointComponentState {
   contactPointOptions: Array<{ label: string; value: string }>;
 }
 
-const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = observer(({ id }) => {
+const ContactPointComponent: React.FC<{
+  id: AlertReceiveChannel['id'];
+}> = observer(({ id }) => {
   const { alertReceiveChannelStore } = useStore();
   const contactPoints = alertReceiveChannelStore.connectedContactPoints[id];
   const warnings = contactPoints.filter((cp) => !cp.notificationConnected);
@@ -1298,6 +1300,7 @@ const ContactPointComponent: React.FC<{ id: AlertReceiveChannel['id'] }> = obser
             icon="edit"
             size={'sm'}
             tooltip="Edit"
+            id={'openContactPoint'}
             onClick={() => setState({ isDrawerOpen: true })}
           />
         </div>
