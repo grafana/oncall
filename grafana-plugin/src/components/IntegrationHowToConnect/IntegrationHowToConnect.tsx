@@ -1,16 +1,16 @@
 import React from 'react';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
-import { noop } from 'lodash-es';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { useStore } from 'state/useStore';
 
+import { HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { noop } from 'lodash-es';
 
-import styles from 'pages/integration/Integration.module.scss';
+import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import { HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
-import IntegrationInputField from 'components/IntegrationInputField/IntegrationInputField';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
+import styles from 'pages/integration/Integration.module.scss';
+import { useStore } from 'state/useStore';
 import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);

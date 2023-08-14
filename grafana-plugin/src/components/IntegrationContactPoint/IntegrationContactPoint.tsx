@@ -1,19 +1,20 @@
+import React, { useEffect, useReducer } from 'react';
+
+import { SelectableValue } from '@grafana/data';
 import { Button, Drawer, HorizontalGroup, Icon, IconButton, Select, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import IntegrationBlock from 'components/Integrations/IntegrationBlock';
 import { observer } from 'mobx-react';
-import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
-import React, { useEffect, useReducer } from 'react';
-import { useStore } from 'state/useStore';
 
-import Tag from 'components/Tag/Tag';
-import styles from 'pages/integration/Integration.module.scss';
 import GTable from 'components/GTable/GTable';
+import IntegrationBlock from 'components/Integrations/IntegrationBlock';
+import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import { getVar } from 'utils/DOM';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { AlertReceiveChannel, ContactPoint } from 'models/alert_receive_channel/alert_receive_channel.types';
+import styles from 'pages/integration/Integration.module.scss';
+import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
-import { SelectableValue } from '@grafana/data';
+import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 

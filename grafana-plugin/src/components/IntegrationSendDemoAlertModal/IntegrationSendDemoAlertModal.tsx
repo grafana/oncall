@@ -1,19 +1,20 @@
 import React from 'react';
-import { Button, HorizontalGroup, Icon, Modal, Tooltip, VerticalGroup } from '@grafana/ui';
-import Text from 'components/Text/Text';
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useState } from 'react';
-import Emoji from 'react-emoji-render';
-import { useStore } from 'state/useStore';
-import { debounce } from 'throttle-debounce';
+
+import { Button, HorizontalGroup, Icon, Modal, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import Emoji from 'react-emoji-render';
+import { debounce } from 'throttle-debounce';
+
 import MonacoEditor, { MONACO_LANGUAGE } from 'components/MonacoEditor/MonacoEditor';
 import { MONACO_EDITABLE_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
-import CopyToClipboard from 'react-copy-to-clipboard';
-import { openNotification } from 'utils';
 import PluginLink from 'components/PluginLink/PluginLink';
-
+import Text from 'components/Text/Text';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import styles from 'pages/integration/Integration.module.scss';
+import { useStore } from 'state/useStore';
+import { openNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
