@@ -72,11 +72,16 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const { alertReceiveChannelOptions } = alertReceiveChannelStore;
 
   const options = alertReceiveChannelOptions
-    ? alertReceiveChannelOptions.filter(
-        (option: AlertReceiveChannelOption) =>
+    ? alertReceiveChannelOptions.filter((option: AlertReceiveChannelOption) => {
+        if (option.value === 'grafana_alerting' && !window.grafanaBootData.settings.unifiedAlertingEnabled) {
+          return false;
+        }
+
+        return (
           option.display_name.toLowerCase().includes(filterValue.toLowerCase()) &&
           !option.value.toLowerCase().startsWith('legacy_')
-      )
+        );
+      })
     : [];
 
   const extraGFormProps: { customFieldSectionRenderer?: React.FC<CustomFieldSectionRendererProps> } = {};
@@ -277,6 +282,8 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
     setValue('is_existing', true);
   }, []);
+
+  console.log(window.grafanaBootData);
 
   return (
     <div className={cx('extra-fields')}>
