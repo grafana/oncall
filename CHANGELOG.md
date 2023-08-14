@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
 - Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
 
+### Added
+
+- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
+
 ## v1.3.23 (2023-08-10)
 
 ### Added
