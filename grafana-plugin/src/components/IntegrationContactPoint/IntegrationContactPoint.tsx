@@ -286,7 +286,7 @@ const IntegrationContactPoint: React.FC<{
       selectedAlertManager: option.value,
       selectedContactPoint: undefined,
       contactPointOptions: allContactPoints
-        .find((opt) => opt.uid == option.value)
+        .find((opt) => opt.uid === option.value)
         .contact_points?.filter((cp) => currentContactPoints.indexOf(cp) === -1)
         .map((cp) => ({ value: cp, label: cp })),
     });

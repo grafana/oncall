@@ -351,7 +351,7 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
 
   function onAlertManagerChange(option: SelectableValue<string>) {
     const contactPointsForCurrentOption = allContactPoints
-      .find((opt) => opt.uid == option.value)
+      .find((opt) => opt.uid === option.value)
       .contact_points?.map((cp) => ({ value: cp, label: cp }));
 
     const newState: Partial<CustomFieldSectionRendererState> = {
