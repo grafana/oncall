@@ -257,10 +257,14 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
-    "PREPROCESSING_HOOKS": ["engine.included_path.custom_preprocessing_hook"],
+    "PREPROCESSING_HOOKS": [
+        "engine.included_path.custom_preprocessing_hook"
+    ],  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+    "SERVE_URLCONF": ("apps.api.urls"),
+    "SWAGGER_UI_SETTINGS": {"supportedSubmitMethods": []},  # Disable "Try it out" button for all endpoints
 }
 
-SPECTACULAR_WHITELISTED_PATHS = [
+SPECTACULAR_INCLUDED_PATHS = [
     "/features",
     "/alertgroups",
 ]

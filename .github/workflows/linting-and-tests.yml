@@ -128,50 +128,6 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
           python manage.py lintmigrations
 
-  validate-api-internal-openapi-schema:
-    name: "Validate opeanapi schema for api-internal"
-    runs-on: ubuntu-latest
-    env:
-      DATABASE_HOST: localhost
-      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@localhost:5672
-      DJANGO_SETTINGS_MODULE: settings.ci-test
-      SLACK_CLIENT_OAUTH_ID: 1
-    services:
-      rabbit_test:
-        image: rabbitmq:3.12.0
-        env:
-          RABBITMQ_DEFAULT_USER: rabbitmq
-          RABBITMQ_DEFAULT_PASS: rabbitmq
-        ports:
-          - 5672:5672
-      mysql_test:
-        image: mysql:8.0.32
-        env:
-          MYSQL_DATABASE: oncall_local_dev
-          MYSQL_ROOT_PASSWORD: local_dev_pwd
-        ports:
-          - 3306:3306
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11.4"
-          cache: "pip"
-          cache-dependency-path: |
-            engine/requirements.txt
-            engine/requirements-dev.txt
-      - name: Validate openapi schema
-        working-directory: engine
-        run: |
-          pip install --quiet -r requirements.txt -r requirements-dev.txt
-          python manage.py spectacular --color --file api-internal-openapi-schema-NEW.yml --api-version api-internal
-          if cmp -s api-internal-openapi-schema.yml api-internal-openapi-schema-NEW.yml
-          then
-            echo "api-internal-openapi-schema.yml is relevant"
-          else
-            echo "api-internal-openapi-schema.yml does not match to api-internal. Run `make backend-gen-openapi-schema`"
-          fi
-
   unit-test-helm-chart:
     name: "Helm Chart Unit Tests"
     runs-on: ubuntu-latest
