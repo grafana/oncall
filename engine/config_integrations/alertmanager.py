@@ -22,26 +22,27 @@ acknowledge_condition = None
 
 # Web
 web_title = """\
-{%- set groupLabels = payload.groupLabels.copy() -%}
-{%- set alertname = groupLabels.pop('alertname') | default("") -%}
+{%- set groupLabels = payload.get("groupLabels", {}).copy() -%}
+{%- set alertname = groupLabels.pop('alertname', "")  -%}
 
 
-[{{ payload.status }}{% if payload.status == 'firing' %}:{{ payload.numFiring }}{% endif %}] {{ alertname }} {% if groupLabels | length > 0 %}({{ groupLabels|join(", ") }}){% endif %}
-"""  # noqa
+[{{ payload.status }}{% if payload.status == 'firing' and payload.numFiring %}:{{ payload.numFiring }}{% endif %}] {{ alertname }} {% if groupLabels | length > 0 %}({{ groupLabels|join(", ") }}){% endif %}"""  # noqa
 
 web_message = """\
-{%- set annotations = payload.commonAnnotations.copy() -%}
+{%- set annotations = payload.get("commonAnnotations", {}).copy() -%}
+{%- set groupLabels = payload.get("groupLabels", {}) -%}
+{%- set commonLabels = payload.get("commonLabels", {}) -%}
+{%- set severity = groupLabels.severity -%}
 
-{% set severity = payload.groupLabels.severity -%}
 {% if severity %}
 {%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
 Severity: {{ severity }} {{ severity_emoji }}
 {% endif %}
 
-{%- set status = payload.status | default("Unknown") %}
+{%- set status = payload.get("status", "Unknown") %}
 {%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
 Status: {{ status }} {{ status_emoji }} (on the source)
-{% if status == "firing" %}
+{% if status == "firing" and payload.numFiring %}
 Firing alerts – {{ payload.numFiring }}
 Resolved alerts – {{ payload.numResolved }}
 {% endif %}
@@ -56,12 +57,14 @@ Resolved alerts – {{ payload.numResolved }}
 {%- set _ = annotations.pop('runbook_url_internal') -%}
 {%- endif %}
 
+{% if groupLabels | length > 0 -%}
 GroupLabels:
-{%- for k, v in payload["groupLabels"].items() %}
+{%- for k, v in groupLabels.items() %}
 - {{ k }}: {{ v }}
 {%- endfor %}
+{% endif %}
 
-{% if payload["commonLabels"] | length > 0 -%}
+{% if commonLabels | length > 0 -%}
 CommonLabels:
 {%- for k, v in payload["commonLabels"].items() %}
 - {{ k }}: {{ v }}
@@ -82,7 +85,7 @@ Annotations:
 # Slack
 slack_title = """\
 {%- set groupLabels = payload.groupLabels.copy() -%}
-{%- set alertname = groupLabels.pop('alertname') | default("") -%}
+{%- set alertname = groupLabels.pop('alertname', "") -%}
 *<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
