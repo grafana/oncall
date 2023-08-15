@@ -23,18 +23,18 @@ To request a shift swap, you can use the OnCall mobile app or the web UI in a sc
 In the app, clicking on one of your shifts will show you an option to setup a swap request for that
 event. You can customize other parameters from there too.
 
-It is also possible to setup a request from a schedule view, tapping on the `request a swap` button.
+It is also possible to setup a request from a schedule view, tapping on the `request a swap`
+button (<img src="/static/img/oncall/swap-mobile-icon.jpeg" width="25px">) displayed in the top-right corner.
 You will need to specify a starting and ending datetimes and an optional description that will be
 displayed when notifying other users about the request.
 
-[screenshot swap request button / config screen]
+<img src="/static/img/oncall/swap-mobile-request.jpeg" width="300px">
 
 In the web UI, you can follow a similar flow via the `Request shift swap` button, available in the `Rotations` lane
 of a schedule, or clicking the button shown when hovering on a particular shift event in which you are on-call.
 
 <img src="/static/img/oncall/swap-web-hover.png">
 <img src="/static/img/oncall/swap-web-request.png">
-
 
 >**Note**: no recurrence rules support is available when requesting a shift swap. If you need to recurrently change a shift,
 consider creating a higher level layer rotation with the desired updates.
@@ -44,8 +44,6 @@ schedule, if there is one. Besides, people participating in the schedule may rec
 with the details.
 
 <img src="/static/img/oncall/swap-slack-notification.png">
-
-[screenshot mobile notification]
 
 You can delete the swap request at any time. If the swap has been taken, it will automatically be undone upon removal.
 
@@ -66,11 +64,13 @@ will remain on-call if there is a shift at that time.
 
 Before taking a swap, you can review the involved shifts times.
 
+<img src="/static/img/oncall/swap-mobile-details.jpeg" width="300px">
+
+You can also check (and take) a swap request details in the web UI.
+
 <img src="/static/img/oncall/swap-web-take.png">
 
 Once a swap is taken, the affected rotations and the final schedule will reflect the changes.
-
-[screenshot swap taken]
 
 {{% docs/reference %}}
 [shift-swap-notifications]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/mobile-app/push-notifications#shift-swap-notifications"
