@@ -1,10 +1,9 @@
 from django.conf import settings
-from django.http import JsonResponse
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.auth_token.auth import PluginAuthentication
+from apps.auth_token.auth import BasePluginAuthentication
 from apps.base.models import DynamicSetting
 from apps.grafana_plugin.helpers import GrafanaAPIClient
 from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
@@ -16,7 +15,7 @@ from common.api_helpers.mixins import GrafanaHeadersMixin
 class StatusView(GrafanaHeadersMixin, APIView):
     authentication_classes = (
         MobileAppAuthTokenAuthentication,
-        PluginAuthentication,
+        BasePluginAuthentication,
     )
 
     def post(self, request: Request) -> Response:
@@ -27,8 +26,8 @@ class StatusView(GrafanaHeadersMixin, APIView):
         """
         # Check if the plugin is currently undergoing maintenance, and return response without querying db
         if settings.CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE:
-            return JsonResponse(
-                {
+            return Response(
+                data={
                     "currently_undergoing_maintenance_message": settings.CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE,
                 }
             )
@@ -53,7 +52,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
             )[0].boolean_value
 
         # Check if current user is in OnCall database
-        user_is_present_in_org = PluginAuthentication.is_user_from_request_present_in_organization(
+        user_is_present_in_org = BasePluginAuthentication.is_user_from_request_present_in_organization(
             request, organization
         )
         # If user is not present in OnCall database, set token_ok to False, which will trigger reinstall

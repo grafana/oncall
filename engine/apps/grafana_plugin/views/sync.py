@@ -6,7 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.auth_token.auth import PluginAuthentication
+from apps.auth_token.auth import BasePluginAuthentication
 from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
 from apps.user_management.models import Organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class PluginSyncView(GrafanaHeadersMixin, APIView):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (BasePluginAuthentication,)
 
     def post(self, request: Request) -> Response:
         """Deprecated. May be used for the plugins with versions < 1.3.17"""
@@ -30,7 +30,7 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
             if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
                 is_installed = True
 
-            user_is_present_in_org = PluginAuthentication.is_user_from_request_present_in_organization(
+            user_is_present_in_org = BasePluginAuthentication.is_user_from_request_present_in_organization(
                 request, organization
             )
             if not user_is_present_in_org:
