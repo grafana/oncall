@@ -116,13 +116,6 @@ class BasePluginAuthentication(BaseAuthentication):
         except User.DoesNotExist:
             return None
 
-    @classmethod
-    def is_user_from_request_present_in_organization(cls, request: Request, organization: Organization) -> bool:
-        try:
-            return cls._get_user(request, organization) is not None
-        except exceptions.AuthenticationFailed:
-            return False
-
 
 class PluginAuthentication(BasePluginAuthentication):
     @staticmethod

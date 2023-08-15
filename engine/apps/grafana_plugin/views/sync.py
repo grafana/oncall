@@ -30,10 +30,7 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
             if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
                 is_installed = True
 
-            user_is_present_in_org = BasePluginAuthentication.is_user_from_request_present_in_organization(
-                request, organization
-            )
-            if not user_is_present_in_org:
+            if not request.auth.user:
                 organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
                 organization.save(update_fields=["api_token_status"])
 

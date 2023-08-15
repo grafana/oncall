@@ -51,12 +51,8 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 name="allow_plugin_organization_signup", defaults={"boolean_value": True}
             )[0].boolean_value
 
-        # Check if current user is in OnCall database
-        user_is_present_in_org = BasePluginAuthentication.is_user_from_request_present_in_organization(
-            request, organization
-        )
         # If user is not present in OnCall database, set token_ok to False, which will trigger reinstall
-        if not user_is_present_in_org:
+        if not request.user:
             token_ok = False
             organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
             organization.save(update_fields=["api_token_status"])
@@ -69,7 +65,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 "is_installed": is_installed,
                 "token_ok": token_ok,
                 "allow_signup": allow_signup,
-                "is_user_anonymous": self.grafana_context.get("IsAnonymous", False),
+                "is_user_anonymous": self.grafana_context.get("IsAnonymous", request.user is None),
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
                 "recaptcha_site_key": settings.RECAPTCHA_V3_SITE_KEY,
@@ -102,7 +98,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 "is_installed": is_installed,
                 "token_ok": token_ok,
                 "allow_signup": allow_signup,
-                "is_user_anonymous": self.grafana_context.get("IsAnonymous", False),
+                "is_user_anonymous": self.grafana_context.get("IsAnonymous", _request.user is None),
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
             }
