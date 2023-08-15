@@ -14,7 +14,7 @@ from common.api_helpers.mixins import GrafanaHeadersMixin
 
 
 class StatusView(GrafanaHeadersMixin, APIView):
-    permission_classes = PluginTokenVerified
+    permission_classes = (PluginTokenVerified,)
 
     def post(self, request: Request) -> Response:
         """
