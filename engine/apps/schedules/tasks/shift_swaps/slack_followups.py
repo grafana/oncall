@@ -47,7 +47,7 @@ def _get_shift_swap_request_pks_in_followup_window(now: datetime.datetime) -> li
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
 )
 def send_shift_swap_request_slack_followup(shift_swap_request_pk: int) -> None:
     try:

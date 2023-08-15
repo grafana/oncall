@@ -227,7 +227,7 @@ class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
                         "type": "mrkdwn",
                         "text": (
                             f":exclamation: This shift swap request is still open and will start in {delta}.\n"
-                            "Jump back into the thread to accept it if you're available!"
+                            "Jump back into the thread and accept it if you're available!"
                         ),
                     },
                 },
