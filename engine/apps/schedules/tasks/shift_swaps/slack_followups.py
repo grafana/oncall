@@ -11,6 +11,7 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 task_logger = get_task_logger(__name__)
 
+# When to send followups before the swap start time
 FOLLOWUP_OFFSETS = [
     datetime.timedelta(weeks=4),
     datetime.timedelta(weeks=3),
@@ -21,26 +22,34 @@ FOLLOWUP_OFFSETS = [
     datetime.timedelta(days=1),
     datetime.timedelta(hours=12),
 ]
+
+# FOLLOWUP_WINDOW is used by _get_shift_swap_requests_in_followup_window and _mark_followup_sent to:
+# 1. Determine which SSRs to send followups for when the periodic task is run
+# 2. Prevent sending multiple followups for a single SSRS in a short period
 FOLLOWUP_WINDOW = datetime.timedelta(hours=1)
 
 
 @shared_dedicated_queue_retry_task()
 def send_shift_swap_request_slack_followups() -> None:
-    for shift_swap_request_pk in _get_shift_swap_request_pks_in_followup_window(timezone.now()):
-        send_shift_swap_request_slack_followup.delay(shift_swap_request_pk)
+    """A periodic task to send Slack followups for shift swap requests."""
+
+    for shift_swap_request in _get_shift_swap_requests_in_followup_window(timezone.now()):
+        if not _has_followup_been_sent(shift_swap_request):
+            send_shift_swap_request_slack_followup.delay(shift_swap_request.pk)
+            _mark_followup_sent(shift_swap_request)
 
 
-def _get_shift_swap_request_pks_in_followup_window(now: datetime.datetime) -> list[int]:
+def _get_shift_swap_requests_in_followup_window(now: datetime.datetime) -> list[ShiftSwapRequest]:
+    """Get all SSRs that are in the followup window."""
+
     shift_swap_requests_in_notification_window = []
-    for shift_swap_request in ShiftSwapRequest.objects.filter(benefactor__isnull=True, swap_start__gt=now).only(
-        "pk", "swap_start"
-    ):
+    for shift_swap_request in ShiftSwapRequest.objects.filter(benefactor__isnull=True, swap_start__gt=now):
         for offset in FOLLOWUP_OFFSETS:
             notification_window_start = shift_swap_request.swap_start - offset
             notification_window_end = notification_window_start + FOLLOWUP_WINDOW
 
             if notification_window_start <= now <= notification_window_end:
-                shift_swap_requests_in_notification_window.append(shift_swap_request.pk)
+                shift_swap_requests_in_notification_window.append(shift_swap_request)
                 break
 
     return shift_swap_requests_in_notification_window
@@ -50,6 +59,8 @@ def _get_shift_swap_request_pks_in_followup_window(now: datetime.datetime) -> li
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 10
 )
 def send_shift_swap_request_slack_followup(shift_swap_request_pk: int) -> None:
+    """Send a Slack followup message for a particular SSR."""
+
     try:
         shift_swap_request = ShiftSwapRequest.objects.get(pk=shift_swap_request_pk)
     except ShiftSwapRequest.DoesNotExist:
@@ -59,11 +70,6 @@ def send_shift_swap_request_slack_followup(shift_swap_request_pk: int) -> None:
     if shift_swap_request.slack_channel_id is None:
         task_logger.warning(f"ShiftSwapRequest {shift_swap_request_pk} does not have an associated Slack channel")
         return
-
-    if _has_followup_been_sent(shift_swap_request):
-        task_logger.info(f"ShiftSwapRequest {shift_swap_request_pk} followup has already been sent")
-        return
-    _mark_followup_sent(shift_swap_request)
 
     task_logger.info(f"Sending Slack followup for ShiftSwapRequest {shift_swap_request_pk}")
     step = ShiftSwapRequestFollowUp(
