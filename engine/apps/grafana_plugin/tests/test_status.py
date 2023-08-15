@@ -59,8 +59,28 @@ def test_allow_signup(make_organization_and_user_with_plugin_token, make_user_au
     )
     response = client.get(reverse("grafana-plugin:status"), format="json", **auth_headers)
 
-    # if the org doesn't exist this will never return 200 due to
-    # the PluginTokenVerified permission class..
     # should consider removing the DynamicSetting logic because technically this
     # condition will never be reached in the code...
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_status_mobile_app_auth_token(
+    make_organization_and_user_with_mobile_app_auth_token,
+    make_user_auth_headers,
+):
+    organization, user, auth_token = make_organization_and_user_with_mobile_app_auth_token()
+
+    client = APIClient()
+    url = reverse("grafana-plugin:status")
+
+    response = client.post(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    auth_headers = make_user_auth_headers(
+        user,
+        auth_token,
+    )
+
+    response = client.post(url, format="json", **auth_headers)
+    assert response.status_code == status.HTTP_200_OK

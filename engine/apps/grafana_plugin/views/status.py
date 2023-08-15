@@ -7,14 +7,17 @@ from rest_framework.views import APIView
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models import DynamicSetting
 from apps.grafana_plugin.helpers import GrafanaAPIClient
-from apps.grafana_plugin.permissions import PluginTokenVerified
 from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
 
 
 class StatusView(GrafanaHeadersMixin, APIView):
-    permission_classes = (PluginTokenVerified,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
 
     def post(self, request: Request) -> Response:
         """
@@ -67,7 +70,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 "is_installed": is_installed,
                 "token_ok": token_ok,
                 "allow_signup": allow_signup,
-                "is_user_anonymous": self.grafana_context["IsAnonymous"],
+                "is_user_anonymous": self.grafana_context.get("IsAnonymous", False),
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
                 "recaptcha_site_key": settings.RECAPTCHA_V3_SITE_KEY,
@@ -100,7 +103,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 "is_installed": is_installed,
                 "token_ok": token_ok,
                 "allow_signup": allow_signup,
-                "is_user_anonymous": self.grafana_context["IsAnonymous"],
+                "is_user_anonymous": self.grafana_context.get("IsAnonymous", False),
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
             }

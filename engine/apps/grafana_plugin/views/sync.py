@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
-from apps.grafana_plugin.permissions import PluginTokenVerified
 from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
 from apps.user_management.models import Organization
 from common.api_helpers.mixins import GrafanaHeadersMixin
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class PluginSyncView(GrafanaHeadersMixin, APIView):
-    permission_classes = (PluginTokenVerified,)
+    authentication_classes = (PluginAuthentication,)
 
     def post(self, request: Request) -> Response:
         """Deprecated. May be used for the plugins with versions < 1.3.17"""
