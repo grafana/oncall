@@ -24,6 +24,8 @@ from apps.schedules.constants import (
     ICAL_LOCATION,
     ICAL_RECURRENCE_ID,
     ICAL_SEQUENCE,
+    ICAL_STATUS,
+    ICAL_STATUS_CANCELLED,
     ICAL_SUMMARY,
     ICAL_UID,
     RE_EVENT_UID_V1,
@@ -200,6 +202,10 @@ def get_shifts_dict(
     result_datetime = []
     result_date = []
     for event in events:
+        status = event.get(ICAL_STATUS)
+        if status == ICAL_STATUS_CANCELLED:
+            # ignore cancelled events
+            continue
         sequence = event.get(ICAL_SEQUENCE)
         recurrence_id = event.get(ICAL_RECURRENCE_ID)
         if recurrence_id:

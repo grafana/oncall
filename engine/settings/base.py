@@ -209,7 +209,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
-    "ordered_model",
     "mirage",
     "engine",
     "apps.user_management",
@@ -501,11 +500,16 @@ CELERY_BEAT_SCHEDULE = {
     },
     "notify_shift_swap_requests": {
         "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
-        "schedule": 10 * 60,
+        "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
     },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
         "schedule": 60 * 30,
+        "args": (),
+    },
+    "check_heartbeats": {
+        "task": "apps.heartbeat.tasks.check_heartbeats",
+        "schedule": crontab(minute="*/2"),  # every 2 minutes
         "args": (),
     },
 }

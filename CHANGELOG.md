@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Ignore ical cancelled events when calculating shifts ([#2776](https://github.com/grafana/oncall/pull/2776))
+- Fix Slack acknowledgment reminders by @vadimkerr ([#2769](https://github.com/grafana/oncall/pull/2769))
+- Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
+- Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
+
+### Added
+
+- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
+
+## v1.3.23 (2023-08-10)
+
 ### Added
 
 - Shift Swap Requests Web UI ([#2593](https://github.com/grafana/oncall/issues/2593))
@@ -17,11 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add stack slug to organization options for direct paging Slash command by @vadimkerr ([#2743](https://github.com/grafana/oncall/pull/2743))
 - Avoid creating (or notifying about) potential event splits resulting from untaken swap requests ([#2748](https://github.com/grafana/oncall/pull/2748))
+- Refactor heartbeats into a periodic task ([2723](https://github.com/grafana/oncall/pull/2723))
 
 ### Fixed
 
 - Do not show override shortcut when web overrides are disabled ([#2745](https://github.com/grafana/oncall/pull/2745))
 - Handle ical schedule import with duplicated event UIDs ([#2760](https://github.com/grafana/oncall/pull/2760))
+- Allow Editor to access Phone Verification ([#2772](https://github.com/grafana/oncall/pull/2772))
 
 ## v1.3.22 (2023-08-03)
 
