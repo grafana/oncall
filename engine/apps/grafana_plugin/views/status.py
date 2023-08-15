@@ -14,7 +14,7 @@ from common.api_helpers.mixins import GrafanaHeadersMixin
 
 
 class StatusView(GrafanaHeadersMixin, APIView):
-    permission_classes = (PluginTokenVerified,)
+    permission_classes = PluginTokenVerified
 
     def post(self, request: Request) -> Response:
         """
@@ -36,11 +36,14 @@ class StatusView(GrafanaHeadersMixin, APIView):
         is_installed = False
         token_ok = False
         allow_signup = True
+        api_url = settings.BASE_URL
 
         # Check if organization is in OnCall database
         if organization := Organization.objects.get(stack_id=stack_id, org_id=org_id):
             is_installed = True
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
+            if organization.is_moved:
+                api_url = organization.migration_destination.oncall_backend_url
         else:
             allow_signup = DynamicSetting.objects.get_or_create(
                 name="allow_plugin_organization_signup", defaults={"boolean_value": True}
@@ -69,6 +72,7 @@ class StatusView(GrafanaHeadersMixin, APIView):
                 "version": settings.VERSION,
                 "recaptcha_site_key": settings.RECAPTCHA_V3_SITE_KEY,
                 "currently_undergoing_maintenance_message": settings.CURRENTLY_UNDERGOING_MAINTENANCE_MESSAGE,
+                "api_url": api_url,
             }
         )
 
