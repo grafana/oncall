@@ -163,7 +163,7 @@ jobs:
       - name: Validate openapi schema
         working-directory: engine
         run: |
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install --quiet -r requirements.txt -r requirements-dev.txt
           python manage.py spectacular --color --file api-internal-openapi-schema-NEW.yml --api-version api-internal
           if cmp -s api-internal-openapi-schema.yml api-internal-openapi-schema-NEW.yml
           then
