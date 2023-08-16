@@ -40,7 +40,7 @@ correct configuration of **Do Not Disturb** and **Volume** overrides.
 ### Android
 
 On Android, we leverage the "Notification channels" system feature.
-Each type of notification (**important**, **default**, and **on-call shifts**) registers a channel.
+Each type of notification (**important**, **default**, and **info**) registers a channel.
 In this channel, you may configure the sound style, vibration, and so on.
 **Customize notifications** takes you to this system menu, while hitting the **back** button or swiping left (if enabled) takes you back to the application.
 
@@ -72,7 +72,7 @@ notifications triggered by the application, which is described above.
 
 On iOS, all configuration (such as sound selection, Do Not Disturb override, etc) happens inside the app.
 
-For every type of notification (**important**, **default**, and **on-call shifts**), you can configure the sound and its style (constant vs intensifying).
+For every type of notification (**important**, **default**, and **info**), you can configure the sound and its style (constant vs intensifying).
 
 You can also enable or disable Do Not Disturb override for **important** notifications.
 
@@ -83,17 +83,17 @@ You can also enable or disable Do Not Disturb override for **important** notific
 
 On-call shift notifications are sent to announce upcoming shifts, roughly ~15 minutes in advance.
 
-To enable or disable on-call shift notifications, use the **On-call shift notifications** section in the **Push notifications** settings.
+To enable or disable on-call shift notifications, use the **info notifications** section in the **Push notifications** settings.
 
 ### Shift swap notifications
 
-Shift swap notifications are generated when a [shift swap request][shift-swaps] is created,
+Shift swap notifications are generated when a [shift swap ][shift-swaps] is created,
 informing all users in the on-call schedule (except the initiator) about potential schedule changes.
 
 Shift swap notifications are sent one month ahead of the requested shift swap, or shortly after creation in case the shift swap start time is less then a month away, but always during users' working hours
 (by default 9am-5pm on weekdays, according to the user's mobile device timezone).
 
-To enable or disable shift swap notifications, use the **On-call shift notifications** section in the **Push notifications** settings.
+To enable or disable shift swap notifications, use the **info notifications** section in the **Push notifications** settings.
 
 {{% docs/reference %}}
 [shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
