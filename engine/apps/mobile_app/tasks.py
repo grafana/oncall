@@ -511,7 +511,7 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[ShiftSwap
     """
 
     shift_swap_requests_in_notification_window = []
-    for shift_swap_request in ShiftSwapRequest.objects.filter(benefactor__isnull=True, swap_start__gt=now):
+    for shift_swap_request in ShiftSwapRequest.objects.get_open_requests(now):
         notification_window_start = max(
             shift_swap_request.created_at, shift_swap_request.swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET
         )

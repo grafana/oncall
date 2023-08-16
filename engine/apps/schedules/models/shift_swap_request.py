@@ -44,6 +44,9 @@ class ShiftSwapRequestManager(models.Manager):
     def hard_delete(self):
         return self.get_queryset().hard_delete()
 
+    def get_open_requests(self, now):
+        return self.get_queryset().filter(benefactor__isnull=True, swap_start__gt=now)
+
 
 class ShiftSwapRequest(models.Model):
     beneficiary: "User"

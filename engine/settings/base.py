@@ -505,6 +505,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
         "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
     },
+    "send_shift_swap_request_slack_followups": {
+        "task": "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups",
+        "schedule": 10 * 60,
+    },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
         "schedule": 60 * 30,
