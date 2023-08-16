@@ -43,7 +43,7 @@ def _get_shift_swap_requests_in_followup_window(now: datetime.datetime) -> list[
     """Get all SSRs that are in the followup window."""
 
     shift_swap_requests_in_notification_window = []
-    for shift_swap_request in ShiftSwapRequest.objects.filter(benefactor__isnull=True, swap_start__gt=now):
+    for shift_swap_request in ShiftSwapRequest.objects.get_open_requests(now):
         for offset in FOLLOWUP_OFFSETS:
             notification_window_start = shift_swap_request.swap_start - offset
             notification_window_end = notification_window_start + FOLLOWUP_WINDOW
