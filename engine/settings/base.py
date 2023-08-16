@@ -250,6 +250,9 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "Grafana OnCall Private API",
     "DESCRIPTION": "Internal API docs. This is not meant to be used by end users. API endpoints will be kept added/removed/changed without notice.",

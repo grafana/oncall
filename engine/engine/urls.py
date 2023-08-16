@@ -74,7 +74,7 @@ if settings.DEBUG:
 if settings.SILK_PROFILER_ENABLED:
     urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
 
-if settings.DEBUG:
+if settings.DRF_SPECTACULAR_ENABLED:
     from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
     urlpatterns += [
