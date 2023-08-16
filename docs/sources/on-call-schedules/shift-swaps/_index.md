@@ -11,22 +11,22 @@ title: Shift swap requests
 weight: 400
 ---
 
-# Shift swap requests
+# Shift swaps
 
-A shift swap request allows users to seek volunteers among their teammates to cover their on-call shifts
-in a schedule for a specified time span.
+Shift swaps provide a convenient way for on-call engineers to find team members to exchange on-call shifts
+in a schedule for a specified time span to covered planned or unplanned unavailability.
 
 ## Make a swap request
 
 To request a shift swap, you can use the OnCall mobile app or the web UI in a schedule details page.
 
-In the app, clicking on one of your shifts will show you an option to setup a swap request for that
-event. You can customize other parameters from there too.
+In the app, tapping one of your shifts presents an option to construct a shift swap request for that and/or
+other shifts.
 
 It is also possible to setup a request from a schedule view, tapping on the `request a swap`
 button (<img src="/static/img/oncall/swap-mobile-icon.jpeg" width="25px">) displayed in the top-right corner.
-You will need to specify a starting and ending datetimes and an optional description that will be
-displayed when notifying other users about the request.
+Include shifts by tapping them and/or specify starting and ending datetimes (they don't need to match
+shifts exactly).  The optional description will be displayed when notifying other users about the request.
 
 <img src="/static/img/oncall/swap-mobile-request.jpeg" width="300px">
 
@@ -40,8 +40,8 @@ of a schedule, or clicking the button shown when hovering on a particular shift 
 consider creating a higher level layer rotation with the desired updates.
 
 Upon submitting the request, a Slack notification will be sent to the channel associated to the correspondent
-schedule, if there is one. Besides, people participating in the schedule may receive a [mobile push notification][shift-swap-notifications]
-with the details.
+schedule, if there is one.  A [mobile push notification][shift-swap-notifications] will be sent to team members who
+participate in the schedule and have the notifications enabled.
 
 <img src="/static/img/oncall/swap-slack-notification.png">
 
