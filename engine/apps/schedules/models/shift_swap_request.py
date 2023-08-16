@@ -57,6 +57,18 @@ class ShiftSwapRequest(models.Model):
     objects: models.Manager["ShiftSwapRequest"] = ShiftSwapRequestManager()
     objects_with_deleted: models.Manager["ShiftSwapRequest"] = models.Manager()
 
+    FOLLOWUP_OFFSETS = [
+        timezone.timedelta(weeks=4),
+        timezone.timedelta(weeks=3),
+        timezone.timedelta(weeks=2),
+        timezone.timedelta(weeks=1),
+        timezone.timedelta(days=3),
+        timezone.timedelta(days=2),
+        timezone.timedelta(days=1),
+        timezone.timedelta(hours=12),
+    ]
+    """When to send followups before the swap start time"""
+
     public_primary_key = models.CharField(
         max_length=20,
         validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],

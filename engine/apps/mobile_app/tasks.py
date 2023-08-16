@@ -499,13 +499,15 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[tuple[Shi
     This method can return the same shift swap request multiple times while it's in the notification window,
     but users are only notified once per shift swap request (see _mark_shift_swap_request_notified_for_user).
     """
-    # avoid circular import
-    from apps.schedules.tasks.shift_swaps.slack_followups import FOLLOWUP_OFFSETS
 
     shift_swap_requests_in_notification_window = []
     for shift_swap_request in ShiftSwapRequest.objects.get_open_requests(now):
-        for idx, offset in enumerate(FOLLOWUP_OFFSETS):
-            next_offset = FOLLOWUP_OFFSETS[idx + 1] if idx + 1 < len(FOLLOWUP_OFFSETS) else datetime.timedelta(0)
+        for idx, offset in enumerate(ShiftSwapRequest.FOLLOWUP_OFFSETS):
+            next_offset = (
+                ShiftSwapRequest.FOLLOWUP_OFFSETS[idx + 1]
+                if idx + 1 < len(ShiftSwapRequest.FOLLOWUP_OFFSETS)
+                else datetime.timedelta(0)
+            )
             window = offset - next_offset - timezone.timedelta(microseconds=1)  # check SSRs up to the next offset
 
             notification_window_start = shift_swap_request.swap_start - offset
