@@ -45,7 +45,11 @@ participate in the schedule and have the notifications enabled.
 
 <img src="/static/img/oncall/swap-slack-notification.png">
 
-As long as the request is open, there will be follow-up notifications posted to the same Slack channel
+Push notifications are sent 4 weeks ahead of the requested shift swap, or shortly after creation in case
+the shift swap start time is less than 4 weeks away, but always during users' working hours (by default 9am-5pm on
+weekdays, according to the user's mobile device timezone).
+
+As long as the request is open, there will be follow-up mobile notifications as well as Slack updates
 to remind about the request.
 The follow-up notifications will be sent at the following intervals before the swap start:
 
