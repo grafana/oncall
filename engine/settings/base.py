@@ -237,6 +237,7 @@ INSTALLED_APPS = [
     "fcm_django",
     "django_dbconn_retry",
     "apps.phone_notifications",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
@@ -246,7 +247,29 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Grafana OnCall Private API",
+    "DESCRIPTION": "Internal API docs. This is not meant to be used by end users. API endpoints will be kept added/removed/changed without notice.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # OTHER SETTINGS
+    "PREPROCESSING_HOOKS": [
+        "engine.included_path.custom_preprocessing_hook"
+    ],  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+    "SERVE_URLCONF": ("apps.api.urls"),
+    "SWAGGER_UI_SETTINGS": {"supportedSubmitMethods": []},  # Disable "Try it out" button for all endpoints
+}
+
+SPECTACULAR_INCLUDED_PATHS = [
+    "/features",
+    "/alertgroups",
+]
 
 MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
