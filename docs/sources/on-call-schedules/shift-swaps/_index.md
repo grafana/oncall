@@ -28,7 +28,7 @@ button (<img src="/static/img/oncall/swap-mobile-button.png" width="25px">) disp
 Include shifts by tapping them and/or specify starting and ending datetimes (they don't need to match
 shifts exactly). The optional description will be displayed when notifying other users about the request.
 
-<img src="/static/img/oncall/swap-mobile-request.png" width="300px">
+<img src="/static/img/oncall/swap-mobile-request-2.png" width="300px">
 
 In the web UI, you can follow a similar flow via the `Request shift swap` button, available in the `Rotations` lane
 of a schedule, or clicking the button shown when hovering on a particular shift event in which you are on-call.
@@ -80,7 +80,7 @@ will remain on-call if there is a shift at that time.
 
 Before taking a swap, you can review the involved shifts times.
 
-<img src="/static/img/oncall/swap-mobile-details.png" width="300px">
+<img src="/static/img/oncall/swap-mobile-details-2.png" width="300px">
 
 You can also check (and take) a swap request details in the web UI.
 
