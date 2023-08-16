@@ -513,7 +513,7 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[tuple[Shi
 
             if notification_window_start <= now <= notification_window_end:
                 next_notification_dt = shift_swap_request.swap_start - next_offset
-                timeout = int((next_notification_dt - now).total_seconds())  # don't send notifications twice
+                timeout = math.ceil((next_notification_dt - now).total_seconds())  # don't send notifications twice
 
                 shift_swap_requests_in_notification_window.append((shift_swap_request, timeout))
                 break

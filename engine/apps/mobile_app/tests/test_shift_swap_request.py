@@ -79,6 +79,10 @@ def test_get_shift_swap_requests_to_notify(make_organization, make_user, make_sc
     assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(seconds=1)) == [
         (shift_swap_request, _timeout(seconds=1))
     ]
+    # check that the timeout is ceil-ed to the next second
+    assert _get_shift_swap_requests_to_notify(
+        swap_start - timezone.timedelta(seconds=1) + timezone.timedelta(milliseconds=600)
+    ) == [(shift_swap_request, _timeout(seconds=1))]
     assert _get_shift_swap_requests_to_notify(swap_start) == []
 
 
