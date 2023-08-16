@@ -4,7 +4,6 @@ from kombu.utils.uuid import uuid as celery_uuid
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
-from .compare_escalations import compare_escalations
 from .task_logger import task_logger
 
 
@@ -27,7 +26,10 @@ def escalate_alert_group(alert_group_pk):
         except IndexError:
             return f"Alert group with pk {alert_group_pk} doesn't exist"
 
-        if not compare_escalations(escalate_alert_group.request.id, alert_group.active_escalation_id):
+        if (
+            alert_group.active_escalation_id is not None
+            and alert_group.active_escalation_id != escalate_alert_group.request.id
+        ):
             return "Active escalation ID mismatch. Duplication or non-active escalation triggered. Active: {}".format(
                 alert_group.active_escalation_id
             )

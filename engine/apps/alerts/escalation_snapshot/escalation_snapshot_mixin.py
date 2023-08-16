@@ -246,13 +246,19 @@ class EscalationSnapshotMixin:
             self.build_raw_escalation_snapshot() if not self.pause_escalation else self.raw_escalation_snapshot
         )
         task_id = celery_uuid()
-
-        AlertGroup.objects.filter(pk=self.pk).update(
+        AlertGroup.objects.get(pk=self.pk).update(
             active_escalation_id=task_id,
             is_escalation_finished=False,
             raw_escalation_snapshot=raw_escalation_snapshot,
         )
-        escalate_alert_group.apply_async((self.pk,), countdown=countdown, immutable=True, eta=eta, task_id=task_id)
+        try:
+            escalate_alert_group.apply_async((self.pk,), countdown=countdown, immutable=True, eta=eta, task_id=task_id)
+        except Exception:
+            AlertGroup.objects.get(pk=self.pk).update(
+                active_escalation_id=None,
+                is_escalation_finished=False,
+                raw_escalation_snapshot=raw_escalation_snapshot,
+            )
 
     def stop_escalation(self):
         self.is_escalation_finished = True
