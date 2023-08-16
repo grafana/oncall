@@ -483,18 +483,6 @@ def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> No
 
 # TODO: break down tasks.py into multiple files
 
-# Don't send notifications for shift swap requests that start more than 4 weeks in the future
-SSR_NOTIFICATION_OFFSETS = [
-    datetime.timedelta(weeks=4),
-    datetime.timedelta(weeks=3),
-    datetime.timedelta(weeks=2),
-    datetime.timedelta(weeks=1),
-    datetime.timedelta(days=3),
-    datetime.timedelta(days=2),
-    datetime.timedelta(days=1),
-    datetime.timedelta(hours=12),
-]
-
 
 @shared_dedicated_queue_retry_task()
 def notify_shift_swap_requests() -> None:
@@ -511,21 +499,21 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[tuple[Shi
     This method can return the same shift swap request multiple times while it's in the notification window,
     but users are only notified once per shift swap request (see _mark_shift_swap_request_notified_for_user).
     """
+    # avoid circular import
+    from apps.schedules.tasks.shift_swaps.slack_followups import FOLLOWUP_OFFSETS
 
     shift_swap_requests_in_notification_window = []
     for shift_swap_request in ShiftSwapRequest.objects.get_open_requests(now):
-        for idx, offset in enumerate(SSR_NOTIFICATION_OFFSETS):
-            next_offset = (
-                SSR_NOTIFICATION_OFFSETS[idx + 1] if idx + 1 < len(SSR_NOTIFICATION_OFFSETS) else datetime.timedelta(0)
-            )
-            window = offset - next_offset - timezone.timedelta(microseconds=1)
+        for idx, offset in enumerate(FOLLOWUP_OFFSETS):
+            next_offset = FOLLOWUP_OFFSETS[idx + 1] if idx + 1 < len(FOLLOWUP_OFFSETS) else datetime.timedelta(0)
+            window = offset - next_offset - timezone.timedelta(microseconds=1)  # check SSRs up to the next offset
 
             notification_window_start = shift_swap_request.swap_start - offset
             notification_window_end = notification_window_start + window
 
             if notification_window_start <= now <= notification_window_end:
                 next_notification_dt = shift_swap_request.swap_start - next_offset
-                timeout = int((next_notification_dt - now).total_seconds())
+                timeout = int((next_notification_dt - now).total_seconds())  # don't send notifications twice
 
                 shift_swap_requests_in_notification_window.append((shift_swap_request, timeout))
                 break
