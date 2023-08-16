@@ -483,27 +483,17 @@ def conditionally_send_going_oncall_push_notifications_for_all_schedules() -> No
 
 # TODO: break down tasks.py into multiple files
 
-# Don't send notifications for shift swap requests that start more than 4 weeks in the future
-SSR_EARLIEST_NOTIFICATION_OFFSET = datetime.timedelta(weeks=4)
-
-# Once it's time to send out notifications, send them over the course of a week.
-# This is because users can be in multiple timezones / have different working hours configured,
-# so we can't just send all notifications at once, but need to wait for the users to be in their working hours.
-# Once a notification is sent to a user, they won't be notified again for the same shift swap request for a week.
-# After a week, the shift swap request won't be in the notification window anymore (see _get_shift_swap_requests_to_notify).
-SSR_NOTIFICATION_WINDOW = datetime.timedelta(weeks=1)
-
 
 @shared_dedicated_queue_retry_task()
 def notify_shift_swap_requests() -> None:
     """
     A periodic task that notifies users about shift swap requests.
     """
-    for shift_swap_request in _get_shift_swap_requests_to_notify(timezone.now()):
-        notify_shift_swap_request.delay(shift_swap_request.pk)
+    for shift_swap_request, timeout in _get_shift_swap_requests_to_notify(timezone.now()):
+        notify_shift_swap_request.delay(shift_swap_request.pk, timeout)
 
 
-def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[ShiftSwapRequest]:
+def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[tuple[ShiftSwapRequest, int]]:
     """
     Returns shifts swap requests that are open and are in the notification window.
     This method can return the same shift swap request multiple times while it's in the notification window,
@@ -512,19 +502,29 @@ def _get_shift_swap_requests_to_notify(now: datetime.datetime) -> list[ShiftSwap
 
     shift_swap_requests_in_notification_window = []
     for shift_swap_request in ShiftSwapRequest.objects.get_open_requests(now):
-        notification_window_start = max(
-            shift_swap_request.created_at, shift_swap_request.swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET
-        )
-        notification_window_end = min(notification_window_start + SSR_NOTIFICATION_WINDOW, shift_swap_request.swap_end)
+        for idx, offset in enumerate(ShiftSwapRequest.FOLLOWUP_OFFSETS):
+            next_offset = (
+                ShiftSwapRequest.FOLLOWUP_OFFSETS[idx + 1]
+                if idx + 1 < len(ShiftSwapRequest.FOLLOWUP_OFFSETS)
+                else datetime.timedelta(0)
+            )
+            window = offset - next_offset - timezone.timedelta(microseconds=1)  # check SSRs up to the next offset
 
-        if notification_window_start <= now <= notification_window_end:
-            shift_swap_requests_in_notification_window.append(shift_swap_request)
+            notification_window_start = shift_swap_request.swap_start - offset
+            notification_window_end = notification_window_start + window
+
+            if notification_window_start <= now <= notification_window_end:
+                next_notification_dt = shift_swap_request.swap_start - next_offset
+                timeout = math.ceil((next_notification_dt - now).total_seconds())  # don't send notifications twice
+
+                shift_swap_requests_in_notification_window.append((shift_swap_request, timeout))
+                break
 
     return shift_swap_requests_in_notification_window
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
-def notify_shift_swap_request(shift_swap_request_pk: int) -> None:
+def notify_shift_swap_request(shift_swap_request_pk: int, timeout: int) -> None:
     """
     Notify relevant users for an individual shift swap request.
     """
@@ -538,7 +538,7 @@ def notify_shift_swap_request(shift_swap_request_pk: int) -> None:
     for user in shift_swap_request.possible_benefactors:
         if _should_notify_user_about_shift_swap_request(shift_swap_request, user, now):
             notify_user_about_shift_swap_request.delay(shift_swap_request.pk, user.pk)
-            _mark_shift_swap_request_notified_for_user(shift_swap_request, user)
+            _mark_shift_swap_request_notified_for_user(shift_swap_request, user, timeout)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -602,9 +602,9 @@ def _should_notify_user_about_shift_swap_request(
     )
 
 
-def _mark_shift_swap_request_notified_for_user(shift_swap_request: ShiftSwapRequest, user: User) -> None:
+def _mark_shift_swap_request_notified_for_user(shift_swap_request: ShiftSwapRequest, user: User, timeout: int) -> None:
     key = _shift_swap_request_cache_key(shift_swap_request, user)
-    cache.set(key, True, timeout=SSR_NOTIFICATION_WINDOW.total_seconds())
+    cache.set(key, True, timeout=timeout)
 
 
 def _has_user_been_notified_for_shift_swap_request(shift_swap_request: ShiftSwapRequest, user: User) -> bool:

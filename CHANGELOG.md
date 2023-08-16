@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
 - Shift swap request Slack follow-ups by @vadimkerr ([#2798](https://github.com/grafana/oncall/pull/2798))
+- Shift swap request push notification follow-ups by @vadimkerr ([#2805](https://github.com/grafana/oncall/pull/2805))
 
 ## v1.3.23 (2023-08-10)
 

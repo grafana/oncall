@@ -11,18 +11,6 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 task_logger = get_task_logger(__name__)
 
-# When to send followups before the swap start time
-FOLLOWUP_OFFSETS = [
-    datetime.timedelta(weeks=4),
-    datetime.timedelta(weeks=3),
-    datetime.timedelta(weeks=2),
-    datetime.timedelta(weeks=1),
-    datetime.timedelta(days=3),
-    datetime.timedelta(days=2),
-    datetime.timedelta(days=1),
-    datetime.timedelta(hours=12),
-]
-
 # FOLLOWUP_WINDOW is used by _get_shift_swap_requests_in_followup_window and _mark_followup_sent to:
 # 1. Determine which SSRs to send followups for when the periodic task is run
 # 2. Prevent sending multiple followups for a single SSRS in a short period
@@ -44,7 +32,7 @@ def _get_shift_swap_requests_in_followup_window(now: datetime.datetime) -> list[
 
     shift_swap_requests_in_notification_window = []
     for shift_swap_request in ShiftSwapRequest.objects.get_open_requests(now):
-        for offset in FOLLOWUP_OFFSETS:
+        for offset in ShiftSwapRequest.FOLLOWUP_OFFSETS:
             notification_window_start = shift_swap_request.swap_start - offset
             notification_window_end = notification_window_start + FOLLOWUP_WINDOW
 

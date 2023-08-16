@@ -7,8 +7,6 @@ from firebase_admin.messaging import Message
 
 from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
 from apps.mobile_app.tasks import (
-    SSR_EARLIEST_NOTIFICATION_OFFSET,
-    SSR_NOTIFICATION_WINDOW,
     _get_shift_swap_requests_to_notify,
     _has_user_been_notified_for_shift_swap_request,
     _mark_shift_swap_request_notified_for_user,
@@ -22,88 +20,70 @@ from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
 
 MICROSECOND = timezone.timedelta(microseconds=1)
-
-
-def test_window_more_than_24_hours():
-    """
-    SSR_NOTIFICATION_WINDOW must be more than one week, otherwise it's not possible to guarantee that the
-    notification will be sent according to users' working hours. For example, if user only works on Fridays 10am-2pm,
-    and a shift swap request is created on Friday 3pm, we must wait for a whole week to send the notification.
-    """
-    assert SSR_NOTIFICATION_WINDOW >= timezone.timedelta(weeks=1)
+TIMEOUT = 123
 
 
 @pytest.mark.django_db
-def test_get_shift_swap_requests_to_notify_starts_soon(
-    make_organization, make_user, make_schedule, make_shift_swap_request
-):
+def test_get_shift_swap_requests_to_notify(make_organization, make_user, make_schedule, make_shift_swap_request):
     organization = make_organization()
     user = make_user(organization=organization)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
 
-    now = timezone.now()
-    swap_start = now + timezone.timedelta(days=10)
+    swap_start = timezone.now()
     swap_end = swap_start + timezone.timedelta(days=1)
 
     shift_swap_request = make_shift_swap_request(
-        schedule, user, swap_start=swap_start, swap_end=swap_end, created_at=now
+        schedule, user, swap_start=swap_start, swap_end=swap_end, created_at=swap_start - timezone.timedelta(days=27)
     )
 
-    assert _get_shift_swap_requests_to_notify(now - MICROSECOND) == []
-    assert _get_shift_swap_requests_to_notify(now) == [shift_swap_request]
-    assert _get_shift_swap_requests_to_notify(now + SSR_NOTIFICATION_WINDOW) == [shift_swap_request]
-    assert _get_shift_swap_requests_to_notify(now + SSR_NOTIFICATION_WINDOW + MICROSECOND) == []
+    def _timeout(**kwargs):
+        return int(timezone.timedelta(**kwargs).total_seconds())
 
-
-@pytest.mark.django_db
-def test_get_shift_swap_requests_to_notify_starts_very_soon(
-    make_organization, make_user, make_schedule, make_shift_swap_request
-):
-    organization = make_organization()
-    user = make_user(organization=organization)
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-
-    now = timezone.now()
-    swap_start = now + timezone.timedelta(minutes=1)
-    swap_end = swap_start + timezone.timedelta(minutes=10)
-
-    shift_swap_request = make_shift_swap_request(
-        schedule, user, swap_start=swap_start, swap_end=swap_end, created_at=now
-    )
-
-    assert _get_shift_swap_requests_to_notify(now - MICROSECOND) == []
-    assert _get_shift_swap_requests_to_notify(now) == [shift_swap_request]
-    assert _get_shift_swap_requests_to_notify(now + timezone.timedelta(minutes=1)) == []
-
-
-@pytest.mark.django_db
-def test_get_shift_swap_requests_to_notify_starts_not_soon(
-    make_organization, make_user, make_schedule, make_shift_swap_request
-):
-    organization = make_organization()
-    user = make_user(organization=organization)
-    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-
-    now = timezone.now()
-    swap_start = now + timezone.timedelta(days=100)
-    swap_end = swap_start + timezone.timedelta(days=1)
-
-    shift_swap_request = make_shift_swap_request(
-        schedule, user, swap_start=swap_start, swap_end=swap_end, created_at=now
-    )
-
-    assert _get_shift_swap_requests_to_notify(now) == []
-    assert _get_shift_swap_requests_to_notify(swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET - MICROSECOND) == []
-    assert _get_shift_swap_requests_to_notify(swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET) == [shift_swap_request]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=28, microseconds=1)) == []
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=28)) == [
+        (shift_swap_request, _timeout(days=7))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=27)) == [
+        (shift_swap_request, _timeout(days=6))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=21)) == [
+        (shift_swap_request, _timeout(days=7))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=14)) == [
+        (shift_swap_request, _timeout(days=7))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=10)) == [
+        (shift_swap_request, _timeout(days=3))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=7)) == [
+        (shift_swap_request, _timeout(days=4))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=3)) == [
+        (shift_swap_request, _timeout(days=1))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=2)) == [
+        (shift_swap_request, _timeout(days=1))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(days=1)) == [
+        (shift_swap_request, _timeout(hours=12))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(hours=18)) == [
+        (shift_swap_request, _timeout(hours=6))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(hours=12)) == [
+        (shift_swap_request, _timeout(hours=12))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(hours=11)) == [
+        (shift_swap_request, _timeout(hours=11))
+    ]
+    assert _get_shift_swap_requests_to_notify(swap_start - timezone.timedelta(seconds=1)) == [
+        (shift_swap_request, _timeout(seconds=1))
+    ]
+    # check that the timeout is ceil-ed to the next second
     assert _get_shift_swap_requests_to_notify(
-        swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET + SSR_NOTIFICATION_WINDOW
-    ) == [shift_swap_request]
-    assert (
-        _get_shift_swap_requests_to_notify(
-            swap_start - SSR_EARLIEST_NOTIFICATION_OFFSET + SSR_NOTIFICATION_WINDOW + MICROSECOND
-        )
-        == []
-    )
+        swap_start - timezone.timedelta(seconds=1) + timezone.timedelta(milliseconds=600)
+    ) == [(shift_swap_request, _timeout(seconds=1))]
+    assert _get_shift_swap_requests_to_notify(swap_start) == []
 
 
 @pytest.mark.django_db
@@ -123,12 +103,12 @@ def test_notify_shift_swap_requests(make_organization, make_user, make_schedule,
     with patch.object(notify_shift_swap_request, "delay") as mock_notify_shift_swap_request:
         with patch(
             "apps.mobile_app.tasks._get_shift_swap_requests_to_notify",
-            return_value=ShiftSwapRequest.objects.filter(pk=shift_swap_request.pk),
+            return_value=[(ShiftSwapRequest.objects.filter(pk=shift_swap_request.pk).first(), TIMEOUT)],
         ) as mock_get_shift_swap_requests_to_notify:
             notify_shift_swap_requests()
 
     mock_get_shift_swap_requests_to_notify.assert_called_once()
-    mock_notify_shift_swap_request.assert_called_once_with(shift_swap_request.pk)
+    mock_notify_shift_swap_request.assert_called_once_with(shift_swap_request.pk, TIMEOUT)
 
 
 @pytest.mark.django_db
@@ -153,7 +133,7 @@ def test_notify_shift_swap_request(make_organization, make_user, make_schedule, 
                 "possible_benefactors",
                 new_callable=PropertyMock(return_value=User.objects.filter(pk=other_user.pk)),
             ):
-                notify_shift_swap_request(shift_swap_request.pk)
+                notify_shift_swap_request(shift_swap_request.pk, TIMEOUT)
 
     mock_notify_user_about_shift_swap_request.assert_called_once_with(shift_swap_request.pk, other_user.pk)
 
@@ -182,7 +162,7 @@ def test_notify_shift_swap_request_should_not_notify_user(
                 "possible_benefactors",
                 new_callable=PropertyMock(return_value=User.objects.filter(pk=other_user.pk)),
             ):
-                notify_shift_swap_request(shift_swap_request.pk)
+                notify_shift_swap_request(shift_swap_request.pk, TIMEOUT)
 
     mock_notify_user_about_shift_swap_request.assert_not_called()
 
@@ -230,7 +210,7 @@ def test_notify_shift_swap_request_success(
     )
 
     with patch.object(notify_user_about_shift_swap_request, "delay") as mock_notify_user_about_shift_swap_request:
-        notify_shift_swap_request(shift_swap_request.pk)
+        notify_shift_swap_request(shift_swap_request.pk, TIMEOUT)
 
     mock_notify_user_about_shift_swap_request.assert_called_once_with(shift_swap_request.pk, benefactor.pk)
 
@@ -353,9 +333,9 @@ def test_mark_notified(make_organization, make_user, make_schedule, make_shift_s
 
     cache.clear()
     assert _has_user_been_notified_for_shift_swap_request(shift_swap_request, benefactor) is False
-    _mark_shift_swap_request_notified_for_user(shift_swap_request, benefactor)
+    _mark_shift_swap_request_notified_for_user(shift_swap_request, benefactor, TIMEOUT)
     assert _has_user_been_notified_for_shift_swap_request(shift_swap_request, benefactor) is True
 
     with patch.object(cache, "set") as mock_cache_set:
-        _mark_shift_swap_request_notified_for_user(shift_swap_request, benefactor)
-        assert mock_cache_set.call_args.kwargs["timeout"] == SSR_NOTIFICATION_WINDOW.total_seconds()
+        _mark_shift_swap_request_notified_for_user(shift_swap_request, benefactor, TIMEOUT)
+        assert mock_cache_set.call_args.kwargs["timeout"] == TIMEOUT

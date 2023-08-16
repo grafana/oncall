@@ -5,10 +5,9 @@ import pytest
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.schedules.models import OnCallScheduleWeb
+from apps.schedules.models import OnCallScheduleWeb, ShiftSwapRequest
 from apps.schedules.tasks.shift_swaps import send_shift_swap_request_slack_followups
 from apps.schedules.tasks.shift_swaps.slack_followups import (
-    FOLLOWUP_OFFSETS,
     FOLLOWUP_WINDOW,
     _get_shift_swap_requests_in_followup_window,
     _mark_followup_sent,
@@ -103,7 +102,7 @@ def test_get_shift_swap_requests_in_followup_window(shift_swap_request_test_setu
     swap_end = swap_start + timezone.timedelta(days=1)
     shift_swap_request = shift_swap_request_test_setup(swap_start=swap_start, swap_end=swap_end)
 
-    for offset in FOLLOWUP_OFFSETS:
+    for offset in ShiftSwapRequest.FOLLOWUP_OFFSETS:
         # not yet
         assert (
             _get_shift_swap_requests_in_followup_window(swap_start - offset - datetime.timedelta(microseconds=1)) == []
@@ -150,9 +149,9 @@ def test_get_shift_swap_requests_in_followup_not_open(shift_swap_request_test_se
 
 
 def test_followup_offsets():
-    for idx in range(1, len(FOLLOWUP_OFFSETS)):
-        assert FOLLOWUP_OFFSETS[idx - 1] - FOLLOWUP_OFFSETS[idx] > FOLLOWUP_WINDOW
-        assert FOLLOWUP_OFFSETS[idx] > FOLLOWUP_WINDOW
+    for idx in range(1, len(ShiftSwapRequest.FOLLOWUP_OFFSETS)):
+        assert ShiftSwapRequest.FOLLOWUP_OFFSETS[idx - 1] - ShiftSwapRequest.FOLLOWUP_OFFSETS[idx] > FOLLOWUP_WINDOW
+        assert ShiftSwapRequest.FOLLOWUP_OFFSETS[idx] > FOLLOWUP_WINDOW
 
 
 @patch("apps.slack.slack_client.SlackClientWithErrorHandling.api_call")
