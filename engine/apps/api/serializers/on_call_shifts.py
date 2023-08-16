@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleWeb
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
     OrganizationFilteredPrimaryKeyRelatedField,
@@ -87,6 +87,11 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                     raise serializers.ValidationError(["Invalid day value."])
         return by_day
 
+    def _validate_type(self, schedule, event_type):
+        if schedule and not isinstance(schedule, OnCallScheduleWeb) and event_type != CustomOnCallShift.TYPE_OVERRIDE:
+            # if this is not related to a web schedule, only allow override web events
+            raise serializers.ValidationError({"type": ["Invalid event type"]})
+
     def validate_week_start(self, week_start):
         if week_start is None:
             week_start = CustomOnCallShift.MONDAY
@@ -158,6 +163,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "priority_level",
             "rotation_start",
         ]
+        self._validate_type(validated_data.get("schedule"), event_type)
         if event_type == CustomOnCallShift.TYPE_OVERRIDE:
             for field in fields_to_update_for_overrides:
                 value = None
