@@ -45,6 +45,18 @@ participate in the schedule and have the notifications enabled.
 
 <img src="/static/img/oncall/swap-slack-notification.png">
 
+As long as the request is open, there will be follow-up notifications posted to the same Slack channel to remind about the request.
+The follow-up notifications will be sent at the following intervals before the swap start:
+
+- 4 weeks
+- 3 weeks
+- 2 weeks
+- 1 week
+- 3 days
+- 2 days
+- 1 day
+- 12 hours
+
 You can delete the swap request at any time. If the swap has been taken, it will automatically be undone upon removal.
 
 ## Check existing swap requests

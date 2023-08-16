@@ -90,8 +90,20 @@ To enable or disable on-call shift notifications, use the **info notifications**
 Shift swap notifications are generated when a [shift swap ][shift-swaps] is created,
 informing all users in the on-call schedule (except the initiator) about potential schedule changes.
 
-Shift swap notifications are sent one month ahead of the requested shift swap, or shortly after creation in case the shift swap start time is less then a month away, but always during users' working hours
-(by default 9am-5pm on weekdays, according to the user's mobile device timezone).
+Shift swap notifications are sent 4 weeks ahead of the requested shift swap, or shortly after creation in case
+the shift swap start time is less than 4 weeks away, but always during users' working hours (by default 9am-5pm on
+weekdays, according to the user's mobile device timezone).
+
+As long as the shift swap request is open, there will be follow-up push notifications at the following intervals before the swap start:
+
+- 4 weeks
+- 3 weeks
+- 2 weeks
+- 1 week
+- 3 days
+- 2 days
+- 1 day
+- 12 hours
 
 To enable or disable shift swap notifications, use the **info notifications** section in the **Push notifications** settings.
 
