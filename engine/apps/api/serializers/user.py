@@ -239,3 +239,25 @@ class FilterUserSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "pk",
             "username",
         ]
+
+
+class UserShortSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()
+    pk = serializers.CharField(source="public_primary_key")
+    avatar = serializers.CharField(source="avatar_url")
+    avatar_full = serializers.CharField(source="avatar_full_url")
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
+        ]
+        read_only_fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
+        ]

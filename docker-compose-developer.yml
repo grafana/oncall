@@ -336,6 +336,7 @@ services:
         required: false
     profiles:
       - grafana
+
 volumes:
   redisdata_dev:
     labels: *oncall-labels
