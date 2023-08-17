@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.3.24 (2023-08-17)
+
+### Added
+
+- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
+- Shift swap request Slack follow-ups by @vadimkerr ([#2798](https://github.com/grafana/oncall/pull/2798))
+- Shift swap request push notification follow-ups by @vadimkerr ([#2805](https://github.com/grafana/oncall/pull/2805))
+
+### Changed
+
+- Improve default AlertManager template ([#2794](https://github.com/grafana/oncall/pull/2794))
 
 ### Fixed
 
@@ -13,10 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Slack acknowledgment reminders by @vadimkerr ([#2769](https://github.com/grafana/oncall/pull/2769))
 - Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
 - Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
-
-### Added
-
-- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
+- Add schedule shift type validation on create/preview ([#2789](https://github.com/grafana/oncall/pull/2789))
 
 ## v1.3.23 (2023-08-10)
 
