@@ -206,3 +206,17 @@ def test_get_or_create_manual_integration_deleted_team(make_organization, make_t
         organization=organization, team=None, integration=AlertReceiveChannel.INTEGRATION_MANUAL, defaults={}
     )
     assert integration == general_manual
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "integration",
+    [
+        AlertReceiveChannel.INTEGRATION_LEGACY_ALERTMANAGER,
+        AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
+    ],
+)
+def test_alertmanager_available_for_heartbeat(make_organization, make_alert_receive_channel, integration):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization, integration=integration)
+    assert alert_receive_channel.is_available_for_integration_heartbeat
