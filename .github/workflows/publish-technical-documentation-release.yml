@@ -68,7 +68,7 @@ jobs:
         run: |
           git clone --single-branch --no-tags --depth 1 \
           -b master https://grafanabot:${{ secrets.WEBSITE_SYNC_TOKEN }}@github.com/grafana/website-sync \
-          ./.github/actions/website-sync"
+          ./.github/actions/website-sync
 
       - name: "Publish to website repository (release)"
         if: "steps.has-matching-release-tag.outputs.bool == 'true'"
