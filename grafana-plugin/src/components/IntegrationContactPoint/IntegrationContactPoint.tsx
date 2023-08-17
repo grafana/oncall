@@ -253,7 +253,7 @@ const IntegrationContactPoint: React.FC<{
 
         {!item.notificationConnected && (
           <Tooltip
-            content={'Check the notification policy for the contact point in Grafana Alerting'}
+            content={'Check the notification policy for this contact point in Grafana Alerting'}
             placement={'top'}
           >
             {renderExclamationIcon()}

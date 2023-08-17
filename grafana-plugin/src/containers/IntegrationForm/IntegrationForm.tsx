@@ -298,11 +298,14 @@ const CustomFieldSectionRenderer: React.FC<CustomFieldSectionRendererProps> = ({
             onChange={(radioValue) => {
               setState({
                 isExistingContactPoint: radioValue === 'existing',
+                contactPoints: [],
                 selectedAlertManagerOption: null,
                 selectedContactPointOption: null,
               });
 
               setValue('is_existing', radioValue === 'existing');
+              setValue('alert_manager', undefined);
+              setValue('contact_point', undefined);
             }}
           />
         </div>
