@@ -63,6 +63,23 @@ else
 	BROKER_TYPE=$(REDIS_PROFILE)
 endif
 
+# TODO: remove this when docker-compose local setup is removed
+# https://stackoverflow.com/a/649462
+define _DEPRECATION_MESSAGE
+⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
+NOTE: docker-compose based make commands will be released on (or around) October 1, 2023, in favour of
+helm/k8s based commands. Please familirize yourself with the helm/k8s commands.
+
+See https://github.com/grafana/oncall/pull/2751 for instructions on how to use the helm/k8s commands.
+⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️ ⚠️
+
+
+endef
+export _DEPRECATION_MESSAGE
+define echo_deprecation_message
+	@echo "$$_DEPRECATION_MESSAGE"
+endef
+
 # SQLITE_DB_FiLE is set to properly mount the sqlite db file
 DOCKER_COMPOSE_ENV_VARS := COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE)
 ifeq ($(DB),$(SQLITE_PROFILE))
@@ -70,6 +87,7 @@ ifeq ($(DB),$(SQLITE_PROFILE))
 endif
 
 define run_docker_compose_command
+	$(call echo_deprecation_message)
 	$(DOCKER_COMPOSE_ENV_VARS) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
 endef
 
@@ -103,7 +121,7 @@ start-k8s:  ## NOTE: beta - deploy all containers locally via helm
 		--values ./dev/helm-local.yml \
 		--values $(DEV_HELM_FILE) \
 		--set cwd=$(shell pwd) \
-		--set-json "grafana.extraVolumeMounts=[{\"name\":\"plugins\",\"mountPath\":\"/var/lib/grafana/plugins/grafana-plugin\",\"hostPath\":\"$(shell pwd)/grafana-plugin\",\"readOnly\":true}]" \
+		--set-json "grafana.extraVolumeMounts=[{\"name\":\"plugins\",\"mountPath\":\"/var/lib/grafana/plugins/grafana-plugin\",\"hostPath\":\"$(shell pwd)/grafana-plugin\",\"readOnly\":true}, {\"name\":\"configuration-file\",\"mountPath\":\"/var/lib/grafana/grafana.ini\",\"hostPath\":\"$(shell pwd)/dev/grafana/grafana.dev.ini\",\"readOnly\":true}, {\"name\":\"provisioning\",\"mountPath\":\"/var/lib/grafana/provisioning\",\"hostPath\":\"$(shell pwd)/dev/grafana/provisioning\",\"readOnly\":true}]" \
 		./helm/oncall
 
 cleanup-k8s: ## NOTE: beta - remove all k8s resources
@@ -141,6 +159,7 @@ build:  ## rebuild images (e.g. when changing requirements.txt)
 
 cleanup: stop  ## this will remove all of the images, containers, volumes, and networks
                ## associated with your local OnCall developer setup
+	$(call echo_deprecation_message)
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
 
 install-pre-commit:

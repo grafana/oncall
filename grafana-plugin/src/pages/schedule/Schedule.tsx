@@ -331,7 +331,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             {showEditForm && schedule && (
               <ScheduleForm
                 id={scheduleId}
-                onUpdate={this.update}
+                onSubmit={this.update}
                 onHide={() => {
                   this.setState({ showEditForm: false });
                 }}

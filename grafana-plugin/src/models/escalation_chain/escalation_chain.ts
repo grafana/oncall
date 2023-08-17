@@ -134,10 +134,9 @@ export class EscalationChainStore extends BaseStore {
     return this.searchResult[query].map((escalationChainId: EscalationChain['id']) => this.items[escalationChainId]);
   }
 
-  async clone(escalationChainId: EscalationChain['id'], data: Partial<EscalationChain>) {
-    return await makeRequest(`${this.path}${escalationChainId}/copy/`, {
+  clone = (escalationChainId: EscalationChain['id'], data: Partial<EscalationChain>): Promise<EscalationChain> =>
+    makeRequest<EscalationChain>(`${this.path}${escalationChainId}/copy/`, {
       method: 'POST',
       data,
     });
-  }
 }
