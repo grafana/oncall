@@ -76,7 +76,7 @@ GroupLabels:
 
 {% if commonLabels | length > 0 -%}
 CommonLabels:
-{% for k, v in payload["commonLabels"].items() -%}
+{% for k, v in commonLabels.items() -%}
 - {{ k }}: {{ v }}
 {% endfor %}
 {% endif -%}
@@ -163,7 +163,7 @@ GroupLabels:
 
 {% if commonLabels | length > 0 -%}
 CommonLabels:
-{% for k, v in payload["commonLabels"].items() -%}
+{% for k, v in commonLabels.items() -%}
 - {{ k }}: {{ v }}
 {% endfor %}
 {% endif -%}
@@ -246,7 +246,7 @@ GroupLabels:
 
 {% if commonLabels | length > 0 -%}
 CommonLabels:
-{% for k, v in payload["commonLabels"].items() -%}
+{% for k, v in commonLabels.items() -%}
 - {{ k }}: {{ v }}
 {% endfor %}
 {% endif -%}
