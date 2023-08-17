@@ -111,11 +111,11 @@ init-k8s:  ## build the docker images required to run the helm chart locally
 	docker build ./grafana-plugin -f ./grafana-plugin/Dockerfile.dev -t oncall/ui:dev --load
 
 start-k8s:  ## NOTE: beta - deploy all containers locally via helm
+	kubectl config use-context docker-desktop
 	helm upgrade $(HELM_RELEASE_NAME) \
 		--install \
 		--create-namespace \
 		--wait \
-		--wait-for-jobs \
 		--timeout 30m \
 		--namespace $(K8S_NAMESPACE) \
 		--values ./dev/helm-local.yml \
@@ -127,8 +127,8 @@ start-k8s:  ## NOTE: beta - deploy all containers locally via helm
 cleanup-k8s: ## NOTE: beta - remove all k8s resources
 	helm delete $(HELM_RELEASE_NAME) --namespace $(K8S_NAMESPACE)
 	kubectl delete pvc --all --namespace $(K8S_NAMESPACE)
-	docker rmi oncall/engine:dev
-	docker rmi oncall/ui:dev
+	docker rmi oncall/engine:dev --force
+	docker rmi oncall/ui:dev --force
 
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
 start:  ## start all of the docker containers

@@ -5,7 +5,8 @@ import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { waitForSms } from '../utils/phone';
 import { configureUserNotificationSettings, verifyUserPhoneNumber } from '../utils/userSettings';
 
-test('we can verify our phone number + receive an SMS alert @expensive', async ({ adminRolePage }) => {
+// TODO: enable once we've signed up for a MailSlurp account to receieve SMSes
+test.skip('we can verify our phone number + receive an SMS alert @expensive', async ({ adminRolePage }) => {
   const { page, userName } = adminRolePage;
   const escalationChainName = generateRandomValue();
   const integrationName = generateRandomValue();
