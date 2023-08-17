@@ -11,11 +11,12 @@ weight: 200
 
 # Push notifications
 
-There are three types of push notifications for the mobile app:
+There are four types of push notifications for the mobile app:
 
 - **Mobile push** - Sends a typical push notification to your mobile device.  Intended for all types of alerts.
 - **Mobile push important** - Sends a push notification for important alerts.  We recommend (and default) to louder notifications.
-- **On-Call Shift Notifications** - Sends announcements for upcoming shifts (optional).
+- **On-call shift notifications** - Sends announcements for upcoming shifts (optional).
+- **Shift swap notifications** - Sends announcements for [shift swap requests][shift-swaps] (optional).
 
 ## Add mobile app to notification policies
 
@@ -39,7 +40,7 @@ correct configuration of **Do Not Disturb** and **Volume** overrides.
 ### Android
 
 On Android, we leverage the "Notification channels" system feature.
-Each type of notification (**important**, **default**, and **on-call shifts**) registers a channel.
+Each type of notification (**important**, **default**, and **info**) registers a channel.
 In this channel, you may configure the sound style, vibration, and so on.
 **Customize notifications** takes you to this system menu, while hitting the **back** button or swiping left (if enabled) takes you back to the application.
 
@@ -71,7 +72,7 @@ notifications triggered by the application, which is described above.
 
 On iOS, all configuration (such as sound selection, Do Not Disturb override, etc) happens inside the app.
 
-For every type of notification (**important**, **default**, and **on-call shifts**), you can configure the sound and its style (constant vs intensifying).
+For every type of notification (**important**, **default**, and **info**), you can configure the sound and its style (constant vs intensifying).
 
 You can also enable or disable Do Not Disturb override for **important** notifications.
 
@@ -82,4 +83,17 @@ You can also enable or disable Do Not Disturb override for **important** notific
 
 On-call shift notifications are sent to announce upcoming shifts, roughly ~15 minutes in advance.
 
-To enable or disable on-call shift notifications, use the **On-call shift notifications** section in the **Push notifications** settings.
+To enable or disable on-call shift notifications, use the **info notifications** section in the **Push notifications** settings.
+
+### Shift swap notifications
+
+Shift swap notifications are generated when a [shift swap ][shift-swaps] is requested,
+informing all users in the on-call schedule (except the initiator) about it.
+
+To enable or disable shift swap notifications and their follow-ups, use the **info notifications** section
+in the **Push notifications** settings.
+
+{{% docs/reference %}}
+[shift-swaps]: "/docs/oncall/ -> /docs/oncall/<ONCALL VERSION>/on-call-schedules/shift-swaps"
+[shift-swaps]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/alerting-and-irm/oncall/on-call-schedules/shift-swaps"
+{{% /docs/reference %}}
