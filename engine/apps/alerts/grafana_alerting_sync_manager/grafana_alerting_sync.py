@@ -106,12 +106,12 @@ class GrafanaAlertingSyncManager:
         config = self.get_alerting_config_for_datasource(self.client, datasource_uid)
         if config is None or config.get("alertmanager_config") is None:
             # Config was probably deleted. Grafana Alertmanager should return config in any case. Try to get default
-            # config from another endpoint if it's not Grafana Alertmanager and it's needed to create new contact point
-            if not create_new or is_grafana_datasource:
+            # config from another endpoint if it's not Grafana Alertmanager
+            if is_grafana_datasource:
                 return False, "Failed to get Alertmanager config"
-            default_config, response_info = self.get_default_mimir_alertmanager_config_for_datasource(
-                self.client, datasource_uid
-            )
+            default_config = self.get_default_mimir_alertmanager_config_for_datasource(self.client, datasource_uid)
+            if default_config is None:
+                return False, "Failed to get Alertmanager config"
             updated_config = default_config
         else:
             updated_config = copy.deepcopy(config)
@@ -280,13 +280,19 @@ class GrafanaAlertingSyncManager:
         return alerting_datasources
 
     @classmethod
-    def get_contact_points_for_datasource(cls, client: "GrafanaAPIClient", datasource_uid: str) -> list:
+    def get_contact_points_for_datasource(cls, client: "GrafanaAPIClient", datasource_uid: str) -> Optional[list]:
+        is_grafana_datasource = datasource_uid == cls.GRAFANA_ALERTING_DATASOURCE
         config = cls.get_alerting_config_for_datasource(client, datasource_uid)
-        if config is None:
-            return []
+        if config is None or config.get("alertmanager_config") is None:
+            # Config was probably deleted. Grafana Alertmanager should return config in any case. Try to get default
+            # config from another endpoint if it's not Grafana Alertmanager
+            if not is_grafana_datasource:
+                config = cls.get_default_mimir_alertmanager_config_for_datasource(client, datasource_uid)
+            if is_grafana_datasource or config is None:
+                return
         alertmanager_config = config.get("alertmanager_config")
         if not alertmanager_config:
-            return []
+            return
         alerting_receivers = alertmanager_config.get("receivers", [])
         contact_points = [receiver["name"] for receiver in alerting_receivers]
         return contact_points

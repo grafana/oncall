@@ -363,22 +363,39 @@ def test_get_contact_points_from_config(make_alert_receive_channel):
         "apps.grafana_plugin.helpers.GrafanaAPIClient.get_alerting_config",
         return_value=(GRAFANA_ALERTMANAGER_CONFIG, {}),
     ):
-        connected_contact_points = GrafanaAlertingSyncManager.get_contact_points_for_datasource(client, "grafana")
-        assert connected_contact_points == expected_contact_points
+        contact_points = GrafanaAlertingSyncManager.get_contact_points_for_datasource(client, "grafana")
+        assert contact_points == expected_contact_points
 
     with patch(
         "apps.grafana_plugin.helpers.GrafanaAPIClient.get_alerting_config",
         return_value=(MIMIR_ALERTMANAGER_CONFIG, {}),
     ):
-        connected_contact_points = GrafanaAlertingSyncManager.get_contact_points_for_datasource(client, "some_uid")
-        assert connected_contact_points == expected_contact_points
+        contact_points = GrafanaAlertingSyncManager.get_contact_points_for_datasource(client, "some_uid")
+        assert contact_points == expected_contact_points
 
     with patch(
         "apps.grafana_plugin.helpers.GrafanaAPIClient.get_alerting_config",
         return_value=(None, {}),
     ):
-        result = GrafanaAlertingSyncManager.get_contact_points_for_datasource(client, "some_uid")
-        assert result == []
+        with patch(
+            "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.get_default_mimir_alertmanager_config_for_datasource",
+            return_value=None,
+        ) as mocked_get_default_config:
+            result = GrafanaAlertingSyncManager.get_contact_points_for_datasource(client, "some_uid")
+            assert result is None
+            assert mocked_get_default_config.called
+
+    with patch(
+        "apps.grafana_plugin.helpers.GrafanaAPIClient.get_alerting_config",
+        return_value=(None, {}),
+    ):
+        with patch(
+            "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.get_default_mimir_alertmanager_config_for_datasource",
+            return_value=None,
+        ) as mocked_get_default_config:
+            result = GrafanaAlertingSyncManager.get_contact_points_for_datasource(client, "grafana")
+            assert result is None
+            assert not mocked_get_default_config.called
 
 
 @patch(
