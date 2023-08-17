@@ -7,9 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Public API for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+
 ### Changed
 
-- Public api for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+- Public API for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+
+## v1.3.24 (2023-08-17)
+
+### Added
+
+- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
+- Shift swap request Slack follow-ups by @vadimkerr ([#2798](https://github.com/grafana/oncall/pull/2798))
+- Shift swap request push notification follow-ups by @vadimkerr ([#2805](https://github.com/grafana/oncall/pull/2805))
+
+### Changed
+
+- Improve default AlertManager template ([#2794](https://github.com/grafana/oncall/pull/2794))
 
 ### Fixed
 
@@ -18,13 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
 - Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
 - Add schedule shift type validation on create/preview ([#2789](https://github.com/grafana/oncall/pull/2789))
-
-### Added
-
-- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
-- Shift swap request Slack follow-ups by @vadimkerr ([#2798](https://github.com/grafana/oncall/pull/2798))
-- Shift swap request push notification follow-ups by @vadimkerr ([#2805](https://github.com/grafana/oncall/pull/2805))
-- Public api for webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
+- Add alertmanager integration for heartbeat support ([2807](https://github.com/grafana/oncall/pull/2807))
 
 ## v1.3.23 (2023-08-10)
 
