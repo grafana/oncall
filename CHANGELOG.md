@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Improve default AlertManager template ([#2794](https://github.com/grafana/oncall/pull/2794))
+
 ### Fixed
 
 - Ignore ical cancelled events when calculating shifts ([#2776](https://github.com/grafana/oncall/pull/2776))
