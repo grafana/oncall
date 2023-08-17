@@ -12,21 +12,6 @@ from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
-class WebhookResponseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WebhookResponse
-        fields = [
-            "timestamp",
-            "url",
-            "request_trigger",
-            "request_headers",
-            "request_data",
-            "status_code",
-            "content",
-            "event_data",
-        ]
-
-
 class WebhookTriggerTypeField(fields.CharField):
     def to_representation(self, value):
         return Webhook.PUBLIC_TRIGGER_TYPES_MAP[value]
@@ -41,6 +26,23 @@ class WebhookTriggerTypeField(fields.CharField):
         except IndexError:
             raise BadRequest(detail=f"trigger_type must one of {Webhook.PUBLIC_ALL_TRIGGER_TYPES}")
         return trigger_type
+
+
+class WebhookResponseSerializer(serializers.ModelSerializer):
+    request_trigger = WebhookTriggerTypeField()
+
+    class Meta:
+        model = WebhookResponse
+        fields = [
+            "timestamp",
+            "url",
+            "request_trigger",
+            "request_headers",
+            "request_data",
+            "status_code",
+            "content",
+            "event_data",
+        ]
 
 
 class WebhookCreateSerializer(serializers.ModelSerializer):
@@ -81,10 +83,6 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
-        if instance.trigger_type:
-            result["trigger_type"] = next(
-                filter(lambda trigger_type: trigger_type[0] == instance.trigger_type, Webhook.TRIGGER_TYPES)
-            )[1]
         if instance.password:
             result["password"] = WEBHOOK_FIELD_PLACEHOLDER
         if instance.authorization_header:
