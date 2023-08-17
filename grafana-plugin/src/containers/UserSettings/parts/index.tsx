@@ -8,7 +8,6 @@ import Block from 'components/GBlock/Block';
 import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
-import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
 import PhoneVerification from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import TelegramInfo from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
@@ -16,6 +15,8 @@ import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/User
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+
+import CloudPhoneSettings from './tabs/CloudPhoneSettings/CloudPhoneSettings';
 
 import styles from 'containers/UserSettings/parts/index.module.css';
 
@@ -54,6 +55,7 @@ export const Tabs = ({
         label="User Info"
         key={UserSettingsTab.UserInfo}
         onChangeTab={getTabClickHandler(UserSettingsTab.UserInfo)}
+        data-testid="tab-user-info"
       />
       {showNotificationSettingsTab && (
         <Tab
@@ -61,6 +63,7 @@ export const Tabs = ({
           label="Notification Settings"
           key={UserSettingsTab.NotificationSettings}
           onChangeTab={getTabClickHandler(UserSettingsTab.NotificationSettings)}
+          data-testid="tab-notification-settings"
         />
       )}
       <Tab
@@ -68,6 +71,7 @@ export const Tabs = ({
         label="Phone Verification"
         key={UserSettingsTab.PhoneVerification}
         onChangeTab={getTabClickHandler(UserSettingsTab.PhoneVerification)}
+        data-testid="tab-phone-verification"
       />
       {showMobileAppConnectionTab && (
         <Tab
@@ -75,6 +79,7 @@ export const Tabs = ({
           label="Mobile App Connection"
           key={UserSettingsTab.MobileAppConnection}
           onChangeTab={getTabClickHandler(UserSettingsTab.MobileAppConnection)}
+          data-testid="tab-mobile-app"
         />
       )}
       {showSlackConnectionTab && (
@@ -83,6 +88,7 @@ export const Tabs = ({
           label="Slack Connection"
           key={UserSettingsTab.SlackInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.SlackInfo)}
+          data-testid="tab-slack"
         />
       )}
       {showTelegramConnectionTab && (
@@ -91,6 +97,7 @@ export const Tabs = ({
           label="Telegram Connection"
           key={UserSettingsTab.TelegramInfo}
           onChangeTab={getTabClickHandler(UserSettingsTab.TelegramInfo)}
+          data-testid="tab-telegram"
         />
       )}
     </TabsBar>
@@ -116,10 +123,10 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
       {activeTab === UserSettingsTab.UserInfo &&
         (isDesktopOrLaptop ? (
           <div className={cx('columns')}>
-            <Block shadowed bordered style={{ width: '30%' }} className={cx('col', 'left')}>
+            <Block shadowed bordered style={{ width: '40%' }} className={cx('col', 'left')}>
               <UserInfoTab id={id} onTabChange={onTabChange} />
             </Block>
-            <Block shadowed bordered style={{ width: '70%' }} className={cx('col', 'right')}>
+            <Block shadowed bordered style={{ width: '60%' }} className={cx('col', 'right')}>
               <NotificationSettingsTab id={id} />
             </Block>
           </div>

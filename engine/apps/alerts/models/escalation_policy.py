@@ -3,8 +3,8 @@ import datetime
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from ordered_model.models import OrderedModel
 
+from common.ordered_model.ordered_model import OrderedModel
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -23,7 +23,7 @@ def generate_public_primary_key_for_escalation_policy():
 
 
 class EscalationPolicy(OrderedModel):
-    order_with_respect_to = "escalation_chain"
+    order_with_respect_to = ["escalation_chain_id"]
 
     MAX_TIMES_REPEAT = 5
 
@@ -129,7 +129,7 @@ class EscalationPolicy(OrderedModel):
         STEP_TRIGGER_CUSTOM_WEBHOOK: ("Trigger webhook {{custom_webhook}}", "Trigger webhook"),
         STEP_NOTIFY_USERS_QUEUE: ("Round robin notification for {{users}}", "Notify users one by one (round-robin)"),
         STEP_NOTIFY_IF_TIME: (
-            "Continue escalation if current time is in {{timerange}} ",
+            "Continue escalation if current UTC time is in {{timerange}}",
             "Continue escalation if current time is in range",
         ),
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: (
@@ -311,6 +311,12 @@ class EscalationPolicy(OrderedModel):
     # fields needed for escalation step "Continue escalation if >X alerts per Y minutes"
     num_alerts_in_window = models.PositiveIntegerField(null=True, default=None)
     num_minutes_in_window = models.PositiveIntegerField(null=True, default=None)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(fields=["escalation_chain_id", "order"], name="unique_escalation_policy_order")
+        ]
 
     def __str__(self):
         return f"{self.pk}: {self.step_type_verbal}"

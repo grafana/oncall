@@ -1,0 +1,37 @@
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-top: 12px;
+}
+
+.header__title {
+  display: flex;
+  align-items: baseline;
+}
+
+.hamburgerMenu {
+  display: flex;
+  flex-direction: column;
+  width: 225px;
+  border-radius: 2px;
+}
+
+.hamburgerMenu__item {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  min-width: 84px;
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+
+  &:hover {
+    background: var(--cards-background);
+  }
+}

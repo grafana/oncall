@@ -16,7 +16,7 @@ repos:
         args: [--settings-file=dev/scripts/.isort.cfg, --filter-files]
 
   - repo: https://github.com/psf/black
-    rev: 22.3.0
+    rev: 23.7.0
     hooks:
       - id: black
         files: ^engine
@@ -29,7 +29,7 @@ repos:
         files: ^dev/scripts
 
   - repo: https://github.com/pycqa/flake8
-    rev: 3.9.2
+    rev: 6.0.0
     hooks:
       - id: flake8
         files: ^engine
@@ -40,24 +40,14 @@ repos:
         name: flake8 - pd-migrator
         files: ^tools/pagerduty-migrator
         # Make sure config is compatible with black
-        # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length
-        args:
-          [
-            --max-line-length=88,
-            "--select=C,E,F,W,B,B950",
-            "--extend-ignore=E203,E501",
-          ]
+        # https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#flake8
+        args: ["--max-line-length=88", "--extend-ignore=E203,E501"]
       - id: flake8
         name: flake8 - dev/scripts
         files: ^dev/scripts
         # Make sure config is compatible with black
-        # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length
-        args:
-          [
-            --max-line-length=88,
-            "--select=C,E,F,W,B,B950",
-            "--extend-ignore=E203,E501",
-          ]
+        # https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#flake8
+        args: ["--max-line-length=88", "--extend-ignore=E203,E501"]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.25.0
@@ -105,7 +95,16 @@ repos:
     hooks:
       - id: markdownlint
         name: markdownlint
-        entry: markdownlint --fix --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
+        entry: >
+          markdownlint --fix --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
       - id: markdownlint
-        name: markdownlint - docs
-        entry: markdownlint --fix -c ./docs/.markdownlint.json ./docs/**/*.md
+        name: markdownlint - docs/sources
+        entry: markdownlint --fix --ignore README.md -c ./docs/.markdownlint.json ./docs/sources/**/*.md
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.32.0
+    hooks:
+      - id: yamllint
+        name: yamllint
+        entry: yamllint -c .yamllint.yml
+        types: [yaml]

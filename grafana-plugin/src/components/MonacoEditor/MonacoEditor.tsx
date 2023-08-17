@@ -11,7 +11,7 @@ declare const monaco: any;
 interface MonacoEditorProps {
   value: string;
   disabled?: boolean;
-  height?: string;
+  height?: string | number;
   focus?: boolean;
   data: any;
   showLineNumbers?: boolean;
@@ -20,6 +20,7 @@ interface MonacoEditorProps {
   onChange?: (value: string) => void;
   loading?: boolean;
   monacoOptions?: any;
+  suggestionPrefix?: string;
 }
 
 export enum MONACO_LANGUAGE {
@@ -48,15 +49,18 @@ const MonacoEditor: FC<MonacoEditorProps> = (props) => {
     monacoOptions,
     showLineNumbers = true,
     loading = false,
+    suggestionPrefix = 'payload.',
   } = props;
 
   const autoCompleteList = useCallback(
     () =>
-      [...PREDEFINED_TERMS, ...getPaths(data?.payload_example).map((str) => `payload.${str}`)].map((str) => ({
-        label: str,
-        insertText: str,
-        kind: CodeEditorSuggestionItemKind.Field,
-      })),
+      [...PREDEFINED_TERMS, ...getPaths(data?.payload_example).map((str) => `${suggestionPrefix}${str}`)].map(
+        (str) => ({
+          label: str,
+          insertText: str,
+          kind: CodeEditorSuggestionItemKind.Field,
+        })
+      ),
     [data?.payload_example]
   );
 

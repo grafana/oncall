@@ -2,7 +2,6 @@ import json
 from unittest.mock import patch
 
 import pytest
-from django.apps import apps
 from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
@@ -148,7 +147,8 @@ def test_if_organization_does_not_exist_it_is_created(
     url = reverse("grafana-plugin:self-hosted-install")
     response = client.post(url, format="json", **make_self_hosted_install_header(GRAFANA_TOKEN))
 
-    Organization = apps.get_model("user_management", "Organization")
+    from apps.user_management.models import Organization
+
     organization = Organization.objects.filter(stack_id=STACK_ID, org_id=ORG_ID).first()
 
     assert mocked_grafana_api_client.called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)

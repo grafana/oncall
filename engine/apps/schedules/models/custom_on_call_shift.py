@@ -8,7 +8,6 @@ from uuid import uuid4
 
 import pytz
 from dateutil import relativedelta
-from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
@@ -53,6 +52,7 @@ def generate_public_primary_key_for_custom_oncall_shift():
 
 
 class CustomOnCallShift(models.Model):
+    parent_shift: typing.Optional["CustomOnCallShift"]
     schedules: "RelatedManager['OnCallSchedule']"
 
     (
@@ -623,7 +623,8 @@ class CustomOnCallShift(models.Model):
         return pytz.timezone(time_zone).localize(start_naive, is_dst=None)
 
     def get_rolling_users(self):
-        User = apps.get_model("user_management", "User")
+        from apps.user_management.models import User
+
         all_users_pks = set()
         users_queue = []
         if self.rolling_users is not None:

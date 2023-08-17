@@ -11,8 +11,8 @@
     },
     "keywords": ["oncall", "irm", "incident", "response"],
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "assets/img/logo.svg",
+      "large": "assets/img/logo.svg"
     },
     "links": [
       {
@@ -24,7 +24,7 @@
         "url": "https://github.com/grafana/oncall/blob/main/LICENSE"
       }
     ],
-    "screenshots": [{ "name": "Escalation chain", "path": "img/screenshot.png" }],
+    "screenshots": [{ "name": "Escalation chain", "path": "assets/img/screenshot.png" }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
@@ -85,14 +85,6 @@
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
       "addToNav": true
-    },
-    {
-      "type": "page",
-      "name": "Outgoing webhooks 2",
-      "path": "/a/grafana-oncall-app/outgoing_webhooks_2",
-      "role": "Viewer",
-      "action": "grafana-oncall-app.outgoing-webhooks:read",
-      "addToNav": false
     },
     {
       "type": "page",
@@ -347,6 +339,7 @@
           { "action": "grafana-oncall-app.chatops:read" },
           { "action": "grafana-oncall-app.outgoing-webhooks:read" },
           { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.notifications:read" },
           { "action": "grafana-oncall-app.notification-settings:read" },
           { "action": "grafana-oncall-app.user-settings:read" },
           { "action": "grafana-oncall-app.other-settings:read" }

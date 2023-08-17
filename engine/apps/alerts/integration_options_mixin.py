@@ -25,6 +25,8 @@ class IntegrationOptionsMixin:
     for integration_config in _config:
         vars()[f"INTEGRATION_{integration_config.slug.upper()}"] = integration_config.slug
 
+    INTEGRATION_TYPES = {integration_config.slug for integration_config in _config}
+
     INTEGRATION_CHOICES = tuple(
         (
             (
@@ -36,15 +38,9 @@ class IntegrationOptionsMixin:
     )
 
     # Following attributes are generated from _config for backwards compatibility and used across the codebase
-    INTEGRATIONS_TO_REVERSE_URL_MAP = {
-        integration_config.slug: integration_config.slug for integration_config in _config
-    }
     WEB_INTEGRATION_CHOICES = [
         integration_config.slug for integration_config in _config if integration_config.is_displayed_on_web
     ]
-    INTEGRATIONS_TO_INSTRUCTIONS_WEB = {
-        integration_config.slug: f"html/integration_{integration_config.slug}.html" for integration_config in _config
-    }
     INTEGRATION_SHORT_DESCRIPTION = {
         integration_config.slug: integration_config.short_description for integration_config in _config
     }

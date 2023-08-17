@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import sys
@@ -9,6 +10,7 @@ import pytest
 from celery import Task
 from django.db.models.signals import post_save
 from django.urls import clear_url_caches
+from django.utils import timezone
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 from telegram import Bot
@@ -19,7 +21,6 @@ from apps.alerts.models import (
     AlertReceiveChannel,
     MaintainableObject,
     ResolutionNote,
-    listen_for_alert_model_save,
     listen_for_alertgrouplogrecord,
     listen_for_alertreceivechannel_model_save,
 )
@@ -44,7 +45,7 @@ from apps.api.permissions import (
     LegacyAccessControlRole,
     RBACPermission,
 )
-from apps.auth_token.models import ApiAuthToken, PluginAuthToken
+from apps.auth_token.models import ApiAuthToken, PluginAuthToken, SlackAuthToken
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
     listen_for_usernotificationpolicylogrecord_model_save,
@@ -60,11 +61,13 @@ from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToke
 from apps.phone_notifications.phone_backend import PhoneBackend
 from apps.phone_notifications.tests.factories import PhoneCallRecordFactory, SMSRecordFactory
 from apps.phone_notifications.tests.mock_phone_provider import MockPhoneProvider
+from apps.schedules.models import OnCallScheduleWeb
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
     OnCallScheduleFactory,
     OnCallScheduleICalFactory,
+    ShiftSwapRequestFactory,
 )
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.tests.factories import (
@@ -96,6 +99,7 @@ register(EscalationPolicyFactory)
 register(OnCallScheduleICalFactory)
 register(OnCallScheduleCalendarFactory)
 register(CustomOnCallShiftFactory)
+register(ShiftSwapRequestFactory)
 register(AlertFactory)
 register(AlertGroupFactory)
 register(AlertGroupLogRecordFactory)
@@ -146,7 +150,7 @@ def mock_slack_api_call(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_telegram_bot_username(monkeypatch):
     def mock_username(*args, **kwargs):
-        return "amixr_bot"
+        return "oncall_bot"
 
     monkeypatch.setattr(Bot, "username", mock_username)
 
@@ -208,6 +212,14 @@ def make_mobile_app_auth_token_for_user():
         return MobileAppAuthToken.create_auth_token(user, organization)
 
     return _make_mobile_app_auth_token_for_user
+
+
+@pytest.fixture
+def make_slack_token_for_user():
+    def _make_slack_token_for_user(user):
+        return SlackAuthToken.create_auth_token(organization=user.organization, user=user)
+
+    return _make_slack_token_for_user
 
 
 @pytest.fixture
@@ -382,8 +394,8 @@ def make_slack_user_identity():
 
 @pytest.fixture
 def make_slack_message():
-    def _make_slack_message(alert_group, **kwargs):
-        organization = alert_group.channel.organization
+    def _make_slack_message(alert_group=None, organization=None, **kwargs):
+        organization = organization or alert_group.channel.organization
         slack_message = SlackMessageFactory(
             alert_group=alert_group,
             organization=organization,
@@ -600,9 +612,7 @@ def make_resolution_note_slack_message():
 @pytest.fixture
 def make_alert():
     def _make_alert(alert_group, raw_request_data, **kwargs):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = AlertFactory(group=alert_group, raw_request_data=raw_request_data, **kwargs)
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert
@@ -620,7 +630,6 @@ def make_alert_with_custom_create_method():
         raw_request_data,
         **kwargs,
     ):
-        post_save.disconnect(listen_for_alert_model_save, sender=Alert)
         alert = Alert.create(
             title,
             message,
@@ -631,7 +640,6 @@ def make_alert_with_custom_create_method():
             raw_request_data,
             **kwargs,
         )
-        post_save.connect(listen_for_alert_model_save, sender=Alert)
         return alert
 
     return _make_alert_with_custom_create_method
@@ -872,3 +880,30 @@ def make_organization_and_user_with_token(make_organization_and_user, make_publi
         return organization, user, token
 
     return _make_organization_and_user_with_token
+
+
+@pytest.fixture
+def make_shift_swap_request():
+    def _make_shift_swap_request(schedule, beneficiary, **kwargs):
+        return ShiftSwapRequestFactory(schedule=schedule, beneficiary=beneficiary, **kwargs)
+
+    return _make_shift_swap_request
+
+
+@pytest.fixture
+def shift_swap_request_setup(
+    make_schedule, make_organization_and_user, make_user_for_organization, make_shift_swap_request
+):
+    def _shift_swap_request_setup(**kwargs):
+        organization, beneficiary = make_organization_and_user()
+        benefactor = make_user_for_organization(organization)
+
+        schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+        tomorrow = timezone.now() + datetime.timedelta(days=1)
+        two_days_from_now = tomorrow + datetime.timedelta(days=1)
+
+        ssr = make_shift_swap_request(schedule, beneficiary, swap_start=tomorrow, swap_end=two_days_from_now, **kwargs)
+
+        return ssr, beneficiary, benefactor
+
+    return _shift_swap_request_setup

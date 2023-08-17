@@ -1,6 +1,6 @@
 {
   "name": "grafana-oncall-app",
-  "version": "1.0.0",
+  "version": "dev-oss",
   "description": "Grafana OnCall Plugin",
   "scripts": {
     "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 ./src",
@@ -11,7 +11,7 @@
     "build:dev": "grafana-toolkit plugin:build --skipTest --skipLint",
     "test": "jest --verbose",
     "test:silent": "jest --silent",
-    "test:integration": "yarn playwright test",
+    "test:e2e": "yarn playwright test",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch",
     "sign": "grafana-toolkit plugin:sign",

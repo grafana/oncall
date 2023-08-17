@@ -11,14 +11,17 @@ from apps.base.utils import live_settings
 from apps.oss_installation.utils import cloud_user_identity_status
 from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
+from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, TimeZoneField
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import check_phone_number_is_valid
-from common.timezones import TimeZoneField
 
 from .custom_serializers import DynamicFieldsModelSerializer
 from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
+
+
+class UserPermissionSerializer(serializers.Serializer):
+    action = serializers.CharField(read_only=True)
 
 
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
@@ -156,6 +159,17 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return f"{HIDE_SYMBOL * (len(number) - SHOW_LAST_SYMBOLS)}{number[-SHOW_LAST_SYMBOLS:]}"
 
 
+class CurrentUserSerializer(UserSerializer):
+    rbac_permissions = UserPermissionSerializer(read_only=True, many=True, source="permissions")
+
+    class Meta:
+        model = User
+        fields = UserSerializer.Meta.fields + [
+            "rbac_permissions",
+        ]
+        read_only_fields = UserSerializer.Meta.read_only_fields
+
+
 class UserHiddenFieldsSerializer(UserSerializer):
     fields_available_for_all_users = [
         "pk",
@@ -224,4 +238,26 @@ class FilterUserSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         read_only_fields = [
             "pk",
             "username",
+        ]
+
+
+class UserShortSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()
+    pk = serializers.CharField(source="public_primary_key")
+    avatar = serializers.CharField(source="avatar_url")
+    avatar_full = serializers.CharField(source="avatar_full_url")
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
+        ]
+        read_only_fields = [
+            "username",
+            "pk",
+            "avatar",
+            "avatar_full",
         ]

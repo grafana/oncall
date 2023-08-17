@@ -3,7 +3,6 @@ import re
 from urllib.parse import urlparse
 
 import phonenumbers
-from django.apps import apps
 from django.conf import settings
 from phonenumbers import NumberParseException
 from telegram import Bot
@@ -15,17 +14,19 @@ from common.api_helpers.utils import create_engine_url
 
 class LiveSettingProxy:
     def __dir__(self):
-        LiveSetting = apps.get_model("base", "LiveSetting")
+        from apps.base.models import LiveSetting
+
         return LiveSetting.AVAILABLE_NAMES
 
     def __getattr__(self, item):
-        LiveSetting = apps.get_model("base", "LiveSetting")
+        from apps.base.models import LiveSetting
 
         value = LiveSetting.get_setting(item)
         return value
 
     def __setattr__(self, key, value):
-        LiveSetting = apps.get_model("base", "LiveSetting")
+        from apps.base.models import LiveSetting
+
         LiveSetting.objects.update_or_create(name=key, defaults={"value": value})
 
 

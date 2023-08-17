@@ -85,10 +85,6 @@ features:
     display_name: <YOUR_BOT_NAME>
     always_online: true
   shortcuts:
-    - name: Create a new incident
-      type: message
-      callback_id: incident_create
-      description: Creates a new OnCall incident
     - name: Add to resolution note
       type: message
       callback_id: add_resolution_note
@@ -226,12 +222,12 @@ Zvonok.com, complete the following steps:
 2. Create a public API key on the Profile->Settings page, and assign its value to `ZVONOK_API_KEY`.
 3. Create campaign and assign its ID value to `ZVONOK_CAMPAIGN_ID`.
 4. If you are planning to use pre-recorded audio instead of a speech synthesizer, you can copy the ID of the audio clip
-to the variable `ZVONOK_AUDIO_ID` (optional step).
+   to the variable `ZVONOK_AUDIO_ID` (optional step).
 5. To make a call with a specific voice, you can set the `ZVONOK_SPEAKER_ID`.
-By default, the ID used is `Salli` (optional step).
+   By default, the ID used is `Salli` (optional step).
 6. To process the call status, it is required to add a postback with the GET/POST method on the side of the zvonok.com
-service with the following format (optional step):
-`${ONCALL_BASE_URL}/zvonok/call_status_events?campaign_id={ct_campaign_id}&call_id={ct_call_id}&status={ct_status}&user_choice={ct_user_choice}`
+   service with the following format (optional step):
+   `${ONCALL_BASE_URL}/zvonok/call_status_events?campaign_id={ct_campaign_id}&call_id={ct_call_id}&status={ct_status}&user_choice={ct_user_choice}`
 
 The names of the transmitted parameters can be redefined through environment variables:
 
@@ -307,7 +303,7 @@ To configure this feature as such:
 
 1. Create a Webhook, or Formatted Webhook, Integration type.
 1. Under the "Heartbeat" tab in the Integration modal, copy the unique heartbeat URL that is shown.
-1. Set the hearbeat's expected time interval to 15 minutes (see note below regarding `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL`)
+1. Set the heartbeat's expected time interval to 15 minutes (see note below regarding `ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL`)
 1. Configure the integration's escalation chain as necessary
 1. Populate the following env variables:
 
@@ -316,3 +312,6 @@ To configure this feature as such:
   task runs every 13 minutes so we therefore recommend setting the heartbeat's expected time interval to 15 minutes. If you
   would like to modify this, we recommend configuring this env variable to 1 or 2 minutes less than the value set for the
   integration's heartbeat expected time interval.
+
+Additionally, if you prefer to disable this feature, you can set the `ESCALATION_AUDITOR_ENABLED` environment variable
+to `False`.

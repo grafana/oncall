@@ -18,7 +18,7 @@ import { User } from 'models/user/user.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, getVar, waitForElement } from 'utils/DOM';
-import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
+import { GRAFANA_HEADER_HEIGHT } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import DateTimePicker from './parts/DateTimePicker';
@@ -88,7 +88,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         const coords = getCoords(elm);
 
         const offsetTop = Math.min(
-          Math.max(coords.top - modal?.offsetHeight - 10, GRAFANA_HEADER_HEIGTH + 10),
+          Math.max(coords.top - modal?.offsetHeight - 10, GRAFANA_HEADER_HEIGHT + 10),
           document.body.offsetHeight - modal?.offsetHeight - 10
         );
 

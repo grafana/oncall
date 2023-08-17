@@ -234,7 +234,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderHeader = () => {
     const {
       store,
-      query: { cursor, start, perpage },
+      query,
       match: {
         params: { id },
       },
@@ -255,12 +255,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
-              <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
+              <PluginLink query={{ page: 'alert-groups', ...query }}>
                 <IconButton name="arrow-left" size="xl" />
               </PluginLink>
               {/* @ts-ignore*/}
               <HorizontalGroup align="baseline">
-                <Text.Title level={3}>
+                <Text.Title level={3} data-testid="incident-title">
                   #{incident.inside_organization_number} {incident.render_for_web.title}
                 </Text.Title>
                 {incident.root_alert_group && (
@@ -647,6 +647,7 @@ function Incident({ incident }: { incident: Alert; datetimeReference: string }) 
         dangerouslySetInnerHTML={{
           __html: sanitize(incident.render_for_web.message),
         }}
+        data-testid="incident-message"
       />
       {incident.render_for_web.image_url && <img className={cx('image')} src={incident.render_for_web.image_url} />}
     </div>

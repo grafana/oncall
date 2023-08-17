@@ -1,6 +1,6 @@
+import typing
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -46,7 +46,7 @@ class PhoneProvider(ABC):
         TwilioPhoneProvider as example of complicated phone provider which supports status callbacks and gather actions.
     """
 
-    def make_notification_call(self, number: str, text: str) -> Optional[ProviderPhoneCall]:
+    def make_notification_call(self, number: str, text: str) -> typing.Optional[ProviderPhoneCall]:
         """
         make_notification_call makes a call to notify about alert group and optionally returns unsaved ProviderPhoneCall
         instance. If returned, instance will be linked to PhoneCallRecord and saved by PhoneBackend.
@@ -68,7 +68,7 @@ class PhoneProvider(ABC):
         """
         raise ProviderNotSupports
 
-    def send_notification_sms(self, number: str, message: str) -> Optional[ProviderSMS]:
+    def send_notification_sms(self, number: str, message: str) -> typing.Optional[ProviderSMS]:
         """
         send_notification_sms sends a sms to notify about alert group.
 
@@ -147,7 +147,7 @@ class PhoneProvider(ABC):
         """
         raise ProviderNotSupports
 
-    def finish_verification(self, number: str, code: str) -> Optional[str]:
+    def finish_verification(self, number: str, code: str) -> typing.Optional[str]:
         """
         finish_verification validates the verification code.
 
@@ -172,7 +172,7 @@ class PhoneProvider(ABC):
         raise NotImplementedError
 
 
-_providers = {}
+_providers: typing.Dict[str, PhoneProvider] = {}
 
 
 def get_phone_provider() -> PhoneProvider:
@@ -181,4 +181,8 @@ def get_phone_provider() -> PhoneProvider:
     if len(_providers) == 0:
         for provider_alias, importpath in settings.PHONE_PROVIDERS.items():
             _providers[provider_alias] = import_string(importpath)()
+
+    if live_settings.PHONE_PROVIDER not in settings.PHONE_PROVIDERS.keys():
+        return _providers[settings.DEFAULT_PHONE_PROVIDER]
+
     return _providers[live_settings.PHONE_PROVIDER]

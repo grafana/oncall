@@ -34,6 +34,41 @@ def test_get_alert_receive_channel(alert_receive_channel_internal_api_setup, mak
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query_param,should_be_unpaginated",
+    [
+        ("True", True),
+        ("true", True),
+        ("TRUE", True),
+        ("", False),
+        ("False", False),
+        ("false", False),
+        ("FALSE", False),
+    ],
+)
+def test_list_alert_receive_channel_skip_pagination_for_grafana_alerting(
+    alert_receive_channel_internal_api_setup,
+    make_user_auth_headers,
+    query_param,
+    should_be_unpaginated,
+):
+    user, token, _ = alert_receive_channel_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:alert_receive_channel-list")
+    response = client.get(f"{url}?skip_pagination={query_param}", format="json", **make_user_auth_headers(user, token))
+    results = response.json()
+    assert response.status_code == status.HTTP_200_OK
+
+    if should_be_unpaginated:
+        assert type(results) == list
+        assert len(results) > 0
+    else:
+        assert type(results["results"]) == list
+        assert len(results["results"]) > 0
+
+
+@pytest.mark.django_db
 def test_heartbeat_data_absence_alert_receive_channel(alert_receive_channel_internal_api_setup, make_user_auth_headers):
     """
     We get AlertReceiveChannel and there is no related heartbeat model object.
@@ -100,6 +135,27 @@ def test_create_invalid_alert_receive_channel(alert_receive_channel_internal_api
     data = {"integration": AlertReceiveChannel.INTEGRATION_GRAFANA, "verbal_name": ""}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_create_invalid_alert_receive_channel_type(alert_receive_channel_internal_api_setup, make_user_auth_headers):
+    user, token, _ = alert_receive_channel_internal_api_setup
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+
+    response_1 = client.post(
+        url,
+        data={"integration": "random123", "verbal_name": "Random 123"},
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    response_2 = client.post(
+        url, data={"verbal_name": "Random 123"}, format="json", **make_user_auth_headers(user, token)
+    )
+
+    assert response_1.status_code == status.HTTP_400_BAD_REQUEST
+    assert response_2.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -676,23 +732,6 @@ def test_alert_receive_channel_counters_per_integration_permissions(
 
 
 @pytest.mark.django_db
-def test_get_alert_receive_channels_direct_paging_hidden_from_list(
-    make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    make_alert_receive_channel(user.organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
-
-    client = APIClient()
-    url = reverse("api-internal:alert_receive_channel-list")
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-
-    # Check no direct paging integrations in the response
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["count"] == 0
-    assert len(response.json()["results"]) == 0
-
-
-@pytest.mark.django_db
 def test_get_alert_receive_channels_direct_paging_present_for_filters(
     make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
 ):
@@ -708,6 +747,74 @@ def test_get_alert_receive_channels_direct_paging_present_for_filters(
     # Check direct paging integration is in the response
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["results"][0]["value"] == alert_receive_channel.public_primary_key
+
+
+@pytest.mark.django_db
+def test_create_alert_receive_channels_direct_paging(
+    make_organization_and_user_with_plugin_token, make_team, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+
+    response_1 = client.post(
+        url, data={"integration": "direct_paging"}, format="json", **make_user_auth_headers(user, token)
+    )
+    response_2 = client.post(
+        url, data={"integration": "direct_paging"}, format="json", **make_user_auth_headers(user, token)
+    )
+
+    response_3 = client.post(
+        url,
+        data={"integration": "direct_paging", "team": team.public_primary_key},
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+    response_4 = client.post(
+        url,
+        data={"integration": "direct_paging", "team": team.public_primary_key},
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    # Check direct paging integration for "No team" is created
+    assert response_1.status_code == status.HTTP_201_CREATED
+    # Check direct paging integration is not created, as it already exists for "No team"
+    assert response_2.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Check direct paging integration for team is created
+    assert response_3.status_code == status.HTTP_201_CREATED
+    # Check direct paging integration is not created, as it already exists for team
+    assert response_4.status_code == status.HTTP_400_BAD_REQUEST
+    assert response_4.json()["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channels_direct_paging(
+    make_organization_and_user_with_plugin_token, make_team, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    team = make_team(organization)
+    integration = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=None
+    )
+    make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING, team=team)
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-detail", kwargs={"pk": integration.public_primary_key})
+
+    # Move direct paging integration from "No team" to team
+    response = client.put(
+        url,
+        data={"integration": "direct_paging", "team": team.public_primary_key},
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["detail"] == AlertReceiveChannel.DuplicateDirectPagingError.DETAIL
 
 
 @pytest.mark.django_db

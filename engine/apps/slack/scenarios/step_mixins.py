@@ -2,8 +2,9 @@ import json
 import logging
 
 from apps.alerts.models import AlertGroup
-from apps.api.permissions import user_is_authorized
+from apps.api.permissions import LegacyAccessControlCompatiblePermissions, user_is_authorized
 from apps.slack.models import SlackMessage, SlackTeamIdentity
+from apps.slack.types import EventPayload
 from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -16,9 +17,9 @@ class AlertGroupActionsMixin:
 
     user: User | None
 
-    REQUIRED_PERMISSIONS = []
+    REQUIRED_PERMISSIONS: LegacyAccessControlCompatiblePermissions = []
 
-    def get_alert_group(self, slack_team_identity: SlackTeamIdentity, payload: dict) -> AlertGroup:
+    def get_alert_group(self, slack_team_identity: SlackTeamIdentity, payload: EventPayload) -> AlertGroup:
         """
         Get AlertGroup instance on Slack message button click or select menu change.
         """
@@ -46,7 +47,7 @@ class AlertGroupActionsMixin:
             and user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
         )
 
-    def open_unauthorized_warning(self, payload: dict) -> None:
+    def open_unauthorized_warning(self, payload: EventPayload) -> None:
         self.open_warning_window(
             payload,
             warning_text="You do not have permission to perform this action. Ask an admin to upgrade your permissions.",
@@ -54,7 +55,7 @@ class AlertGroupActionsMixin:
         )
 
     def _repair_alert_group(
-        self, slack_team_identity: SlackTeamIdentity, alert_group: AlertGroup, payload: dict
+        self, slack_team_identity: SlackTeamIdentity, alert_group: AlertGroup, payload: EventPayload
     ) -> None:
         """
         There's a possibility that OnCall failed to create a SlackMessage instance for an AlertGroup, but the message
@@ -78,7 +79,7 @@ class AlertGroupActionsMixin:
         alert_group.slack_message = slack_message
         alert_group.save(update_fields=["slack_message"])
 
-    def _get_alert_group_from_action(self, payload: dict) -> AlertGroup | None:
+    def _get_alert_group_from_action(self, payload: EventPayload) -> AlertGroup | None:
         """
         Get AlertGroup instance from action data in payload. Action data is data encoded into buttons and select
         menus in apps.alerts.incident_appearance.renderers.slack_renderer.AlertGroupSlackRenderer._get_buttons_blocks.
@@ -104,9 +105,9 @@ class AlertGroupActionsMixin:
         except (KeyError, TypeError):
             return None
 
-        return AlertGroup.all_objects.get(pk=alert_group_pk)
+        return AlertGroup.objects.get(pk=alert_group_pk)
 
-    def _get_alert_group_from_message(self, payload: dict) -> AlertGroup | None:
+    def _get_alert_group_from_message(self, payload: EventPayload) -> AlertGroup | None:
         """
         Get AlertGroup instance from message data in payload. It's similar to _get_alert_group_from_action,
         but it tries to get alert_group_pk from ANY button in the message, not just the one that was clicked.
@@ -134,11 +135,11 @@ class AlertGroupActionsMixin:
             except (KeyError, TypeError):
                 continue
 
-            return AlertGroup.all_objects.get(pk=alert_group_pk)
+            return AlertGroup.objects.get(pk=alert_group_pk)
         return None
 
     def _get_alert_group_from_slack_message_in_db(
-        self, slack_team_identity: SlackTeamIdentity, payload: dict
+        self, slack_team_identity: SlackTeamIdentity, payload: EventPayload
     ) -> AlertGroup:
         """
         Get AlertGroup instance from SlackMessage instance.
@@ -160,15 +161,3 @@ class AlertGroupActionsMixin:
             channel_id=channel_id,
         )
         return slack_message.get_alert_group()
-
-
-class CheckAlertIsUnarchivedMixin:
-    def check_alert_is_unarchived(self, slack_team_identity, payload, alert_group, warning=True):
-        alert_group_is_unarchived = alert_group.started_at.date() > self.organization.archive_alerts_from
-        if not alert_group_is_unarchived:
-            if warning:
-                warning_text = "Action is impossible: the Alert is archived."
-                self.open_warning_window(payload, warning_text)
-            if not alert_group.resolved or not alert_group.is_archived:
-                alert_group.resolve_by_archivation()
-        return alert_group_is_unarchived

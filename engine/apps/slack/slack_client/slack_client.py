@@ -1,6 +1,6 @@
 import logging
+from typing import Optional, Tuple
 
-from django.apps import apps
 from django.utils import timezone
 from slackclient import SlackClient
 from slackclient.exceptions import TokenRefreshError
@@ -12,7 +12,6 @@ from .exceptions import (
     SlackAPIException,
     SlackAPIRateLimitException,
     SlackAPITokenException,
-    SlackClientException,
 )
 from .slack_client_server import SlackClientServer
 
@@ -54,18 +53,40 @@ class SlackClientWithErrorHandling(SlackClient):
 
         return cumulative_response
 
+    def paginated_api_call_with_ratelimit(self, *args, **kwargs) -> Tuple[dict, Optional[str], bool]:
+        """
+        This method do paginated api call and handle slack rate limit error in order to return collected data and have
+        ability to continue doing paginated requests from the last successful cursor. Return last successful cursor
+        instead of next cursor to avoid data loss during delay time
+        """
+        # It's a key from response which is paginated. For example "users" or "channels"
+        listed_key = kwargs["paginated_key"]
+        cumulative_response = {}
+        cursor = kwargs.get("cursor")
+        rate_limited = False
+
+        try:
+            response = self.api_call(*args, **kwargs)
+            cumulative_response = response
+            cursor = response["response_metadata"]["next_cursor"]
+
+            while (
+                "response_metadata" in response
+                and "next_cursor" in response["response_metadata"]
+                and response["response_metadata"]["next_cursor"] != ""
+            ):
+                next_cursor = response["response_metadata"]["next_cursor"]
+                kwargs["cursor"] = next_cursor
+                response = self.api_call(*args, **kwargs)
+                cumulative_response[listed_key] += response[listed_key]
+                cursor = next_cursor
+
+        except SlackAPIRateLimitException:
+            rate_limited = True
+
+        return cumulative_response, cursor, rate_limited
+
     def api_call(self, *args, **kwargs):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
-
-        simulate_slack_downtime = DynamicSetting.objects.get_or_create(
-            name="simulate_slack_downtime", defaults={"boolean_value": False}
-        )[0]
-
-        if simulate_slack_downtime.boolean_value:
-            # When slack is down it returns 503 with no response.text which leads to JSONDecodeError.
-            # We handle it in SlackClientServer and raise SlackClientException instead
-            raise SlackClientException("Slack Downtime Simulation")
-
         response = super(SlackClientWithErrorHandling, self).api_call(*args, **kwargs)
 
         if not response["ok"]:

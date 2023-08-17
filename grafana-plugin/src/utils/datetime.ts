@@ -1,23 +1,5 @@
 import { TimeOption, TimeRange, TimeZone, rangeUtil } from '@grafana/data';
 
-export const toHHmmss = (s: number) => {
-  let hours = Math.floor(s / 3600);
-  let minutes = Math.floor((s - hours * 3600) / 60);
-
-  let time = '';
-  if (hours > 0) {
-    time += hours + 'h';
-  }
-  if (minutes > 0) {
-    if (minutes < 10 && hours > 0) {
-      time += '0';
-    }
-    time += minutes + 'm';
-  }
-
-  return time || '0m';
-};
-
 // Valid mapping accepted by @grafana/ui and @grafana/data packages
 export const quickOptions = [
   { from: 'now-5m', to: 'now', display: 'Last 5 minutes' },

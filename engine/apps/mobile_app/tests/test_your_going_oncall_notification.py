@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from apps.mobile_app import tasks
 from apps.mobile_app.models import FCMDevice, MobileAppUserSettings
+from apps.mobile_app.types import MessageType, Platform
 from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.schedules.models.on_call_schedule import ScheduleEvent
 
@@ -95,11 +96,9 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     # same day shift
     ##################
     same_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
-    same_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
-        schedule, same_day_shift, maus, user.timezone
-    )
+    same_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(schedule, same_day_shift, maus)
     same_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
-        schedule, same_day_shift, maus_no_locale, user2.timezone
+        schedule, same_day_shift, maus_no_locale
     )
 
     assert same_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
@@ -111,10 +110,10 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
     ##################
     multiple_day_shift_title = tasks._get_youre_going_oncall_notification_title(seconds_until_going_oncall)
     multiple_day_shift_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
-        schedule, multiple_day_shift, maus, user.timezone
+        schedule, multiple_day_shift, maus
     )
     multiple_day_shift_no_locale_subtitle = tasks._get_youre_going_oncall_notification_subtitle(
-        schedule, multiple_day_shift, maus_no_locale, user2.timezone
+        schedule, multiple_day_shift, maus_no_locale
     )
 
     assert multiple_day_shift_title == f"Your on-call shift starts in {humanized_time_until_going_oncall}"
@@ -128,9 +127,8 @@ def test_get_youre_going_oncall_notification_title(make_organization_and_user, m
 @pytest.mark.parametrize(
     "user_timezone,expected_shift_times",
     [
-        (None, "9:00 AM - 5:00 PM"),
+        ("UTC", "9:00 AM - 5:00 PM"),
         ("Europe/Amsterdam", "11:00 AM - 7:00 PM"),
-        ("asdfasdfasdf", "9:00 AM - 5:00 PM"),
     ],
 )
 @pytest.mark.django_db
@@ -140,9 +138,9 @@ def test_get_youre_going_oncall_notification_subtitle(
     schedule_name = "asdfasdfasdfasdf"
 
     organization = make_organization()
-    user = make_user_for_organization(organization, _timezone=user_timezone)
+    user = make_user_for_organization(organization)
     user_pk = user.public_primary_key
-    maus = MobileAppUserSettings.objects.create(user=user)
+    maus = MobileAppUserSettings.objects.create(user=user, time_zone=user_timezone)
 
     schedule = make_schedule(organization, name=schedule_name, schedule_class=OnCallScheduleWeb)
 
@@ -161,7 +159,7 @@ def test_get_youre_going_oncall_notification_subtitle(
     )
 
     assert (
-        tasks._get_youre_going_oncall_notification_subtitle(schedule, shift, maus, user.timezone)
+        tasks._get_youre_going_oncall_notification_subtitle(schedule, shift, maus)
         == f"{expected_shift_times}\nSchedule {schedule_name}"
     )
 
@@ -188,7 +186,7 @@ def test_get_youre_going_oncall_fcm_message(
 ):
     mock_fcm_message = "mncvmnvcmnvcnmvcmncvmn"
     mock_notification_title = "asdfasdf"
-    mock_notification_subtitle = f"9:06\u202fAM - 9:06\u202fAM\nSchedule XYZ"
+    mock_notification_subtitle = "9:06\u202fAM - 9:06\u202fAM\nSchedule XYZ"
     shift_pk = "mncvmnvc"
     seconds_until_going_oncall = 600
 
@@ -198,7 +196,7 @@ def test_get_youre_going_oncall_fcm_message(
 
     organization = make_organization()
     user_tz = "Europe/Amsterdam"
-    user = make_user_for_organization(organization, _timezone=user_tz)
+    user = make_user_for_organization(organization)
     user_pk = user.public_primary_key
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     notification_thread_id = f"{schedule.public_primary_key}:{user_pk}:going-oncall"
@@ -215,14 +213,12 @@ def test_get_youre_going_oncall_fcm_message(
     )
 
     device = FCMDevice.objects.create(user=user)
-    maus = MobileAppUserSettings.objects.create(user=user)
+    maus = MobileAppUserSettings.objects.create(user=user, time_zone=user_tz)
 
     data = {
         "title": mock_notification_title,
         "subtitle": mock_notification_subtitle,
-        "info_notification_sound_name": (
-            maus.info_notification_sound_name + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
-        ),
+        "info_notification_sound_name": maus.get_notification_sound_name(MessageType.INFO, Platform.ANDROID),
         "info_notification_volume_type": maus.info_notification_volume_type,
         "info_notification_volume": str(maus.info_notification_volume),
         "info_notification_volume_override": json.dumps(maus.info_notification_volume_override),
@@ -236,7 +232,7 @@ def test_get_youre_going_oncall_fcm_message(
 
     mock_aps_alert.assert_called_once_with(title=mock_notification_title, subtitle=mock_notification_subtitle)
     mock_critical_sound.assert_called_once_with(
-        critical=False, name=maus.info_notification_sound_name + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION
+        critical=False, name=maus.get_notification_sound_name(MessageType.INFO, Platform.IOS)
     )
     mock_aps.assert_called_once_with(
         thread_id=notification_thread_id,
@@ -248,11 +244,11 @@ def test_get_youre_going_oncall_fcm_message(
     )
     mock_apns_payload.assert_called_once_with(aps=mock_aps.return_value)
 
-    mock_get_youre_going_oncall_notification_subtitle.assert_called_once_with(schedule, schedule_event, maus, user_tz)
+    mock_get_youre_going_oncall_notification_subtitle.assert_called_once_with(schedule, schedule_event, maus)
     mock_get_youre_going_oncall_notification_title.assert_called_once_with(seconds_until_going_oncall)
 
     mock_construct_fcm_message.assert_called_once_with(
-        tasks.MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
+        MessageType.INFO, device, notification_thread_id, data, mock_apns_payload.return_value
     )
 
 

@@ -7,7 +7,7 @@
   - [Enabling RBAC for OnCall for local development](#enabling-rbac-for-oncall-for-local-development)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
-- [UI Integration Tests](#ui-integration-tests)
+- [UI E2E Tests](#ui-e2e-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -35,7 +35,7 @@ environment variable.
    **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose
    v2. For instructions on how to enable this (if you haven't already done so),
    see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/). Ensure you have Docker Compose
-   version 2.10 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
+   version 2.20.2 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
 2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
@@ -190,7 +190,7 @@ By default everything runs inside Docker. If you would like to run the backend s
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
 
-## UI Integration Tests
+## UI E2E Tests
 
 We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
 are run on pull request CI builds. New features should ideally include a new/modified integration test.
@@ -199,10 +199,10 @@ To run these tests locally simply do the following:
 
 ```bash
 npx playwright install  # install playwright dependencies
-cp ./grafana-plugin/integration-tests/.env.example ./grafana-plugin/integration-tests/.env
+cp ./grafana-plugin/e2e-tests/.env.example ./grafana-plugin/e2e-tests/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
 cd grafana-plugin
-yarn test:integration
+yarn test:e2e
 ```
 
 ## Useful `make` commands
@@ -428,3 +428,32 @@ backwards compatible
 
 See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
 for the common mistakes and best practices
+
+### Removing a nullable field from a model
+
+> This only works for nullable fields (fields with `null=True` in the field definition).
+>
+> DO NOT USE THIS APPROACH FOR NON-NULLABLE FIELDS, IT CAN BREAK THINGS!
+
+1. Remove all usages of the field you want to remove. Make sure the field is not used anywhere, including filtering,
+querying, or explicit field referencing from views, models, forms, serializers, etc.
+2. Remove the field from the model definition.
+3. Generate migrations using the following management command:
+
+    ```python
+    python manage.py remove_field <APP_LABEL> <MODEL_NAME> <FIELD_NAME>
+    ```
+
+    Example: `python manage.py remove_field alerts AlertReceiveChannel restricted_at`
+
+    This command will generate two migrations that **MUST BE DEPLOYED IN TWO SEPARATE RELEASES**:
+   - Migration #1 will remove the field from Django's state, but not from the database. Release #1 must include
+   migration #1, and must not include migration #2.
+   - Migration #2 will remove the field from the database. Stash this migration for use in a future release.
+
+4. Make release #1 (removal of the field + migration #1). Once released and deployed, Django will not be
+aware of this field anymore, but the field will be still present in the database. This allows for a gradual migration,
+where the field is no longer used in new code, but still exists in the database for backward compatibility with old code.
+5. In any subsequent release, include migration #2 (the one that removes the field from the database).
+6. After releasing and deploying migration #2, the field will be removed both from the database and Django state,
+without backward compatibility issues or downtime 🎉

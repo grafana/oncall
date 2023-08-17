@@ -30,10 +30,10 @@ The above command returns JSON structured in the following way:
 }
 ```
 
-| Parameter       | Required | Description                                                                                                                                                                                                                                                                                         |
-| --------------- | :------: | :--------------------- |
-| `alert_group_id`|   Yes    | Alert group ID         |                                                                                                                                                                                                                                                                                    |
-| `text`          |   Yes    | Resolution note text   |
+| Parameter        | Required | Description          |
+| ---------------- | :------: | :------------------- | --- |
+| `alert_group_id` |   Yes    | Alert group ID       |     |
+| `text`           |   Yes    | Resolution note text |
 
 **HTTP request**
 
@@ -90,7 +90,10 @@ The above command returns JSON structured in the following way:
       "created_at": "2020-06-19T12:40:01.429805Z",
       "text": "Demo resolution note"
     }
-  ]
+  ],
+  "current_page_number": 1,
+  "page_size": 50,
+  "total_pages": 1
 }
 ```
 

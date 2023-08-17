@@ -1,13 +1,16 @@
-from django.apps import apps
+import typing
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
+from apps.slack.types import Block
+
+if typing.TYPE_CHECKING:
+    from apps.alerts.models import AlertGroupLogRecord
 
 
 class NotificationDeliveryStep(scenario_step.ScenarioStep):
-    def process_signal(self, log_record):
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-        UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
+    def process_signal(self, log_record: "AlertGroupLogRecord") -> None:
+        from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
         user = log_record.author
         alert_group = log_record.alert_group
@@ -56,8 +59,8 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                             alert_group.slack_message.channel_id,
                         )
 
-    def _post_message_to_channel(self, text, channel):
-        blocks = [
+    def _post_message_to_channel(self, text: str, channel: str) -> None:
+        blocks: Block.AnyBlocks = [
             {
                 "type": "section",
                 "block_id": "alert",

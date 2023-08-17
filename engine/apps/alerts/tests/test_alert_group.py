@@ -33,12 +33,11 @@ def test_render_for_phone_call(
             "startsAt": "2018-12-25T15:47:47.377363608Z",
             "endsAt": "0001-01-01T00:00:00Z",
             "generatorURL": "",
-            "amixr_demo": True,
         },
     )
 
     expected_verbose_name = (
-        f"to check an incident from Grafana OnCall. "
+        f"to check an Alert Group from Grafana OnCall. "
         f"Alert via {alert_receive_channel.verbal_name} - Grafana with title TestAlert triggered 1 times"
     )
     rendered_text = AlertGroupPhoneCallRenderer(alert_group).render()

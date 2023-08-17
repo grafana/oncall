@@ -5,7 +5,8 @@ from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
-from rest_framework import mixins, status, viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
@@ -242,7 +243,7 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
                     organization_id=self.request.auth.organization.id,
                 ).values_list("id", flat=True)
             )
-            queryset = AlertGroup.unarchived_objects.filter(
+            queryset = AlertGroup.objects.filter(
                 channel__in=alert_receive_channels_ids,
             ).only("public_primary_key")
 
@@ -331,7 +332,7 @@ class AlertGroupView(
 
         alert_receive_channels_ids = list(alert_receive_channels_qs.values_list("id", flat=True))
 
-        queryset = AlertGroup.unarchived_objects.filter(
+        queryset = AlertGroup.objects.filter(
             channel__in=alert_receive_channels_ids,
         )
 
@@ -362,10 +363,7 @@ class AlertGroupView(
 
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
-        queryset = AlertGroup.all_objects.filter(pk__in=alert_group_pks).order_by("-pk")
-
-        # do not load cached_render_for_web as it's deprecated and can be very large
-        queryset = queryset.defer("cached_render_for_web")
+        queryset = AlertGroup.objects.filter(pk__in=alert_group_pks).order_by("-pk")
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
@@ -398,8 +396,10 @@ class AlertGroupView(
 
         return alert_groups
 
+    @extend_schema(responses=inline_serializer(name="AlertGroupStats", fields={"count": serializers.IntegerField()}))
     @action(detail=False)
     def stats(self, *args, **kwargs):
+        """Return number of alert groups capped at 100001"""
         MAX_COUNT = 100001
         alert_groups = self.filter_queryset(self.get_queryset())[:MAX_COUNT]
         count = alert_groups.count()
@@ -495,6 +495,9 @@ class AlertGroupView(
 
     @action(methods=["post"], detail=True)
     def attach(self, request, pk=None):
+        """
+        Attach alert group to another alert group
+        """
         alert_group = self.get_object()
         if alert_group.is_maintenance_incident:
             raise BadRequest(detail="Can't attach maintenance alert group")
@@ -540,6 +543,13 @@ class AlertGroupView(
         alert_group.silence_by_user(request.user, silence_delay=delay, action_source=ActionSource.WEB)
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
+    @extend_schema(
+        responses=inline_serializer(
+            name="silence_options",
+            fields={"value": serializers.CharField(), "display_name": serializers.CharField()},
+            many=True,
+        )
+    )
     @action(methods=["get"], detail=False)
     def silence_options(self, request):
         data = [
@@ -691,7 +701,7 @@ class AlertGroupView(
                 raise BadRequest(detail="Please specify a delay for silence")
             kwargs["silence_delay"] = delay
 
-        alert_groups = AlertGroup.unarchived_objects.filter(
+        alert_groups = AlertGroup.objects.filter(
             channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_public_pks
         )
 

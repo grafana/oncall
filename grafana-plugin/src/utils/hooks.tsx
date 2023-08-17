@@ -39,11 +39,6 @@ export function useQueryParams(): URLSearchParams {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-export function useQueryPath(): string {
-  const location = useLocation();
-  return React.useMemo(() => location.pathname, [location]);
-}
-
 export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {
   // track args & timeout handle between calls
   const argsRef = useRef<A>();

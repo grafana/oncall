@@ -11,8 +11,8 @@ from django.utils import timezone
 from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
-from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
 from apps.webhooks.utils import (
+    OUTGOING_WEBHOOK_TIMEOUT,
     InvalidWebhookData,
     InvalidWebhookHeaders,
     InvalidWebhookTrigger,
@@ -112,7 +112,7 @@ class Webhook(models.Model):
     name = models.CharField(max_length=100, null=True, default=None)
     username = models.CharField(max_length=100, null=True, default=None)
     password = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
-    authorization_header = mirage_fields.EncryptedCharField(max_length=1000, null=True, default=None)
+    authorization_header = mirage_fields.EncryptedCharField(max_length=2000, null=True, default=None)
     trigger_template = models.TextField(null=True, default=None)
     headers = models.TextField(null=True, default=None)
     url = models.TextField(null=True, default=None)
@@ -293,6 +293,7 @@ class WebhookResponse(models.Model):
     url = models.TextField(null=True, default=None)
     status_code = models.IntegerField(default=None, null=True)
     content = models.TextField(null=True, default=None)
+    event_data = models.TextField(null=True, default=None)
 
     def json(self):
         if self.content:

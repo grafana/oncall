@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel
+from apps.alerts.models import AlertGroup, AlertGroupLogRecord
 from apps.api.errors import AlertGroupAPIError
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models import UserNotificationPolicyLogRecord
@@ -77,7 +77,7 @@ def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_he
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
-        url + f"?started_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
+        url + "?started_at=1970-01-01T00:00:00/2099-01-01T23:59:59",
         format="json",
         **make_user_auth_headers(user, token),
     )
@@ -653,7 +653,7 @@ def test_get_filter_mine(
     url = reverse("api-internal:alertgroup-list")
 
     first_response = client.get(
-        url + f"?mine=true",
+        url + "?mine=true",
         format="json",
         **make_user_auth_headers(first_user, token),
     )
@@ -661,7 +661,7 @@ def test_get_filter_mine(
     assert len(first_response.data["results"]) == 1
 
     second_response = client.get(
-        url + f"?mine=false",
+        url + "?mine=false",
         format="json",
         **make_user_auth_headers(first_user, token),
     )
@@ -1811,28 +1811,6 @@ def test_alert_group_paged_users(
     url = reverse("api-internal:alertgroup-detail", kwargs={"pk": new_alert_group.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.json()["paged_users"] == [user2.short()]
-
-
-@pytest.mark.django_db
-def test_direct_paging_integration_treated_as_deleted(
-    make_organization_and_user_with_plugin_token,
-    make_alert_receive_channel,
-    alert_group_internal_api_setup,
-    make_channel_filter,
-    make_alert_group,
-    make_user_auth_headers,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
-    )
-    alert_group = make_alert_group(alert_receive_channel)
-
-    client = APIClient()
-    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
-
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.json()["alert_receive_channel"]["deleted"] is True
 
 
 @pytest.mark.django_db

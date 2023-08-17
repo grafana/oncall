@@ -10,7 +10,6 @@ export enum FilteringTermType {
 
 export interface ChannelFilter {
   id: string;
-  order: number;
   alert_receive_channel: AlertReceiveChannel['id'];
   slack_channel_id?: SlackChannel['id'];
   slack_channel?: SlackChannel;

@@ -6,6 +6,8 @@ import cn from 'classnames/bind';
 
 import Collapse from 'components/Collapse/Collapse';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import MonacoEditor from 'components/MonacoEditor/MonacoEditor';
+import { MONACO_READONLY_CONFIG } from 'components/MonacoEditor/MonacoEditor.config';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 
@@ -17,13 +19,26 @@ interface GFormProps {
   form: { name: string; fields: FormItem[] };
   data: any;
   onSubmit: (data: any) => void;
+  onFieldRender?: (
+    formItem: FormItem,
+    disabled: boolean,
+    renderedControl: React.ReactElement,
+    values: any,
+    setValue: (value: string) => void
+  ) => React.ReactElement;
 }
 
 const nullNormalizer = (value: string) => {
   return value || null;
 };
 
-function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: (field, value) => void) {
+function renderFormControl(
+  formItem: FormItem,
+  register: any,
+  control: any,
+  disabled,
+  onChangeFn: (field, value) => void
+) {
   switch (formItem.type) {
     case FormItemType.Input:
       return (
@@ -110,6 +125,28 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
         />
       );
 
+    case FormItemType.Monaco:
+      return (
+        <InputControl
+          control={control}
+          name={formItem.name}
+          render={({ field: { ...field } }) => {
+            return (
+              <MonacoEditor
+                {...field}
+                {...formItem.extra}
+                showLineNumbers={false}
+                monacoOptions={{
+                  ...MONACO_READONLY_CONFIG,
+                  readOnly: disabled,
+                }}
+                onChange={(value) => onChangeFn(field, value)}
+              />
+            );
+          }}
+        />
+      );
+
     default:
       return null;
   }
@@ -117,7 +154,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
 
 class GForm extends React.Component<GFormProps, {}> {
   render() {
-    const { form, data } = this.props;
+    const { form, data, onFieldRender } = this.props;
 
     const openFields = form.fields.filter((field) => !field.collapsed);
     const collapsedfields = form.fields.filter((field) => field.collapsed);
@@ -130,20 +167,31 @@ class GForm extends React.Component<GFormProps, {}> {
               setValue(formItem.name, undefined); // clear input value on hide
               return null;
             }
+            const disabled = formItem.disabled
+              ? true
+              : formItem.getDisabled
+              ? formItem.getDisabled(getValues())
+              : false;
+
+            const formControl = renderFormControl(formItem, register, control, disabled, (field, value) => {
+              field?.onChange(value);
+              this.forceUpdate();
+            });
 
             return (
               <Field
                 key={formIndex}
-                disabled={formItem.getDisabled ? formItem.getDisabled(getValues()) : false}
+                disabled={disabled}
                 label={formItem.label || capitalCase(formItem.name)}
                 invalid={!!errors[formItem.name]}
                 error={formItem.label ? `${formItem.label} is required` : `${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
-                {renderFormControl(formItem, register, control, (field, value) => {
-                  field?.onChange(value);
-                  this.forceUpdate();
-                })}
+                {onFieldRender
+                  ? onFieldRender(formItem, disabled, formControl, getValues(), (value) =>
+                      setValue(formItem.name, value)
+                    )
+                  : formControl}
               </Field>
             );
           };

@@ -12,6 +12,224 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use Telegram polling protocol instead of a webhook if `FEATURE_TELEGRAM_LONG_POLLING_ENABLED` set to `True` by @alexintech
   ([#2250](https://github.com/grafana/oncall/pull/2250))
 
+## v1.3.24 (2023-08-17)
+
+### Added
+
+- Shift swap requests public API ([#2775](https://github.com/grafana/oncall/pull/2775))
+- Shift swap request Slack follow-ups by @vadimkerr ([#2798](https://github.com/grafana/oncall/pull/2798))
+- Shift swap request push notification follow-ups by @vadimkerr ([#2805](https://github.com/grafana/oncall/pull/2805))
+
+### Changed
+
+- Improve default AlertManager template ([#2794](https://github.com/grafana/oncall/pull/2794))
+
+### Fixed
+
+- Ignore ical cancelled events when calculating shifts ([#2776](https://github.com/grafana/oncall/pull/2776))
+- Fix Slack acknowledgment reminders by @vadimkerr ([#2769](https://github.com/grafana/oncall/pull/2769))
+- Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
+- Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
+- Add schedule shift type validation on create/preview ([#2789](https://github.com/grafana/oncall/pull/2789))
+
+## v1.3.23 (2023-08-10)
+
+### Added
+
+- Shift Swap Requests Web UI ([#2593](https://github.com/grafana/oncall/issues/2593))
+- Final schedule shifts should lay in one line ([#1665](https://github.com/grafana/oncall/issues/1665))
+- Add backend support for push notification sounds with custom extensions by @vadimkerr ([#2759](https://github.com/grafana/oncall/pull/2759))
+
+### Changed
+
+- Add stack slug to organization options for direct paging Slash command by @vadimkerr ([#2743](https://github.com/grafana/oncall/pull/2743))
+- Avoid creating (or notifying about) potential event splits resulting from untaken swap requests ([#2748](https://github.com/grafana/oncall/pull/2748))
+- Refactor heartbeats into a periodic task ([2723](https://github.com/grafana/oncall/pull/2723))
+
+### Fixed
+
+- Do not show override shortcut when web overrides are disabled ([#2745](https://github.com/grafana/oncall/pull/2745))
+- Handle ical schedule import with duplicated event UIDs ([#2760](https://github.com/grafana/oncall/pull/2760))
+- Allow Editor to access Phone Verification ([#2772](https://github.com/grafana/oncall/pull/2772))
+
+## v1.3.22 (2023-08-03)
+
+### Added
+
+- Add mobile app push notifications for shift swap requests by @vadimkerr ([#2717](https://github.com/grafana/oncall/pull/2717))
+
+### Changed
+
+- Skip past due swap requests when calculating events ([2718](https://github.com/grafana/oncall/pull/2718))
+- Update schedule slack notifications to use schedule final events by @Ferril ([#2710](https://github.com/grafana/oncall/pull/2710))
+
+### Fixed
+
+- Fix schedule final_events datetime filtering when splitting override ([#2715](https://github.com/grafana/oncall/pull/2715))
+- Fix swap requests event filter limits in schedule events ([#2716](https://github.com/grafana/oncall/pull/2716))
+- Fix Alerting contact point auto-creation ([2721](https://github.com/grafana/oncall/pull/2721))
+
+## v1.3.21 (2023-08-01)
+
+### Added
+
+- [Helm] Add `extraContainers` for engine, celery and migrate-job pods to define sidecars by @lu1as ([#2650](https://github.com/grafana/oncall/pull/2650))
+  – Rework of AlertManager integration ([#2643](https://github.com/grafana/oncall/pull/2643))
+
+## v1.3.20 (2023-07-31)
+
+### Added
+
+- Add filter_shift_swaps endpoint to schedules API ([#2684](https://github.com/grafana/oncall/pull/2684))
+- Add shifts endpoint to shift swap API ([#2697](https://github.com/grafana/oncall/pull/2697/))
+
+### Fixed
+
+- Fix helm env variable validation logic when specifying Twilio auth related values by @njohnstone2 ([#2674](https://github.com/grafana/oncall/pull/2674))
+- Fixed mobile app verification not sending SMS to phone number ([#2687](https://github.com/grafana/oncall/issues/2687))
+
+## v1.3.19 (2023-07-28)
+
+### Fixed
+
+- Fix one of the latest migrations failing on SQLite by @vadimkerr ([#2680](https://github.com/grafana/oncall/pull/2680))
+
+### Added
+
+- Apply swap requests details to schedule events ([#2677](https://github.com/grafana/oncall/pull/2677))
+
+## v1.3.18 (2023-07-28)
+
+### Changed
+
+- Update the direct paging feature to page for acknowledged & silenced alert groups,
+  and show a warning for resolved alert groups by @vadimkerr ([#2639](https://github.com/grafana/oncall/pull/2639))
+- Change calls to get instances from GCOM to paginate by @mderynck ([#2669](https://github.com/grafana/oncall/pull/2669))
+- Update checking on-call users to use schedule final events ([#2651](https://github.com/grafana/oncall/pull/2651))
+
+### Fixed
+
+- Remove checks delaying plugin load and cause "Initializing plugin..." ([2624](https://github.com/grafana/oncall/pull/2624))
+- Fix "Continue escalation if >X alerts per Y minutes" escalation step by @vadimkerr ([#2636](https://github.com/grafana/oncall/pull/2636))
+- Post to Telegram ChatOps channel option is not showing in the integrations page
+  by @alexintech ([#2498](https://github.com/grafana/oncall/pull/2498))
+
+## v1.3.17 (2023-07-25)
+
+### Added
+
+- Added banner on the ChatOps screen for OSS to let the user know if no chatops integration is enabled
+  ([#1735](https://github.com/grafana/oncall/issues/1735))
+- Add `rbac_enabled` to `GET /api/internal/v1/current_team` response schema + `rbac_permissions` to `GET /api/internal/v1/user`
+  response schema by @joeyorlando ([#2611](https://github.com/grafana/oncall/pull/2611))
+
+### Fixed
+
+- Bring heartbeats back to UI by @maskin25 ([#2550](https://github.com/grafana/oncall/pull/2550))
+- Address issue when Grafana feature flags which were enabled via the `feature_flags.enabled` were only properly being
+  parsed, when they were space-delimited. This fix allows them to be _either_ space or comma-delimited.
+  by @joeyorlando ([#2623](https://github.com/grafana/oncall/pull/2623))
+
+## v1.3.16 (2023-07-21)
+
+### Added
+
+- Allow persisting mobile app's timezone, to allow for more accurate datetime related notifications by @joeyorlando
+  ([#2601](https://github.com/grafana/oncall/pull/2601))
+- Add filter integrations by type ([2609](https://github.com/grafana/oncall/pull/2609))
+
+### Changed
+
+- Update direct paging docs by @vadimkerr ([#2600](https://github.com/grafana/oncall/pull/2600))
+- Improve APIs for creating/updating direct paging integrations by @vadimkerr ([#2603](https://github.com/grafana/oncall/pull/2603))
+- Remove unnecessary team checks in public API by @vadimkerr ([#2606](https://github.com/grafana/oncall/pull/2606))
+
+### Fixed
+
+- Fix Slack direct paging issue when there are more than 100 schedules by @vadimkerr ([#2594](https://github.com/grafana/oncall/pull/2594))
+- Fix webhooks unable to be copied if they contain password or authorization header ([#2608](https://github.com/grafana/oncall/pull/2608))
+
+## v1.3.15 (2023-07-19)
+
+### Changed
+
+- Deprecate `AlertGroup.is_archived` column. Column will be removed in a subsequent release. By @joeyorlando ([#2524](https://github.com/grafana/oncall/pull/2524)).
+- Update Slack "invite" feature to use direct paging by @vadimkerr ([#2562](https://github.com/grafana/oncall/pull/2562))
+- Change "Current responders" to "Additional Responders" in web UI by @vadimkerr ([#2567](https://github.com/grafana/oncall/pull/2567))
+
+### Fixed
+
+- Fix duplicate orders on routes and escalation policies by @vadimkerr ([#2568](https://github.com/grafana/oncall/pull/2568))
+- Fixed Slack channels sync by @Ferril ([#2571](https://github.com/grafana/oncall/pull/2571))
+- Fixed rendering of slack connection errors ([#2526](https://github.com/grafana/oncall/pull/2526))
+
+## v1.3.14 (2023-07-17)
+
+### Changed
+
+- Added `PHONE_PROVIDER` configuration check by @sreway ([#2523](https://github.com/grafana/oncall/pull/2523))
+- Deprecate `/oncall` Slack command, update direct paging functionality by @vadimkerr ([#2537](https://github.com/grafana/oncall/pull/2537))
+- Change plugin version to drop the `v` prefix. ([#2540](https://github.com/grafana/oncall/pull/2540))
+
+## v1.3.13 (2023-07-17)
+
+### Changed
+
+- Remove deprecated `heartbeat.HeartBeat` model/table by @joeyorlando ([#2534](https://github.com/grafana/oncall/pull/2534))
+
+## v1.3.12 (2023-07-14)
+
+### Added
+
+- Add `page_size`, `current_page_number`, and `total_pages` attributes to paginated API responses by @joeyorlando ([#2471](https://github.com/grafana/oncall/pull/2471))
+
+### Fixed
+
+- New webhooks incorrectly masking authorization header by @mderynck ([#2541](https://github.com/grafana/oncall/pull/2541))
+
+## v1.3.11 (2023-07-13)
+
+### Added
+
+- Release new webhooks functionality by @mderynck @matiasb @maskin25 @teodosii @raphael-batte ([#1830](https://github.com/grafana/oncall/pull/1830))
+
+### Changed
+
+- Custom button webhooks are deprecated, they will be automatically migrated to new webhooks. ([#1830](https://github.com/grafana/oncall/pull/1830))
+
+## v1.3.10 (2023-07-13)
+
+### Added
+
+- [Helm] Added ability to specify `resources` definition within the `wait-for-db` init container by @Shelestov7
+  ([#2501](https://github.com/grafana/oncall/pull/2501))
+- Added index on `started_at` column in `alerts_alertgroup` table. This substantially speeds up query used by the `check_escalation_finished_task`
+  task. By @joeyorlando and @Konstantinov-Innokentii ([#2516](https://github.com/grafana/oncall/pull/2516)).
+
+### Changed
+
+- Deprecated `/maintenance` web UI page. Maintenance is now handled at the integration level and can be performed
+  within a single integration's page. by @Ukochka ([#2497](https://github.com/grafana/oncall/issues/2497))
+
+### Fixed
+
+- Fixed a bug in the integration maintenance mode workflow where a user could not start/stop an integration's
+  maintenance mode by @joeyorlando ([#2511](https://github.com/grafana/oncall/issues/2511))
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup [#1002](https://github.com/grafana/oncall/issues/1002)
+- New schedules white theme issues [#2356](https://github.com/grafana/oncall/issues/2356)
+
+## v1.3.9 (2023-07-12)
+
+### Added
+
+- Bring new Jinja editor to webhooks ([#2344](https://github.com/grafana/oncall/issues/2344))
+
+### Fixed
+
+- Add debounce on Select UI components to avoid making API search requests on each key-down event by
+  @maskin25 ([#2466](https://github.com/grafana/oncall/pull/2466))
+- Make Direct paging integration configurable ([2483](https://github.com/grafana/oncall/pull/2483))
+
 ## v1.3.8 (2023-07-11)
 
 ### Added

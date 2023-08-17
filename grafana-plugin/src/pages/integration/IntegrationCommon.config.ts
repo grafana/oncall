@@ -3,33 +3,6 @@ import { KeyValuePair } from 'utils';
 export const TEXTAREA_ROWS_COUNT = 4;
 export const MAX_CHARACTERS_COUNT = 50;
 
-// Mostly used for input fields where we're hiding scrollbars
-export const MONACO_OPTIONS = {
-  renderLineHighlight: false,
-  readOnly: true,
-  scrollbar: {
-    vertical: 'hidden',
-    horizontal: 'hidden',
-    verticalScrollbarSize: 0,
-    handleMouseWheel: false,
-  },
-  hideCursorInOverviewRuler: true,
-  minimap: { enabled: false },
-  cursorStyle: {
-    display: 'none',
-  },
-};
-
-export const MONACO_PAYLOAD_OPTIONS = {
-  renderLineHighlight: false,
-  readOnly: false,
-  hideCursorInOverviewRuler: true,
-  minimap: { enabled: false },
-  cursorStyle: {
-    display: 'none',
-  },
-};
-
 export const MONACO_INPUT_HEIGHT_SMALL = '32px';
 export const MONACO_INPUT_HEIGHT_TALL = '120px';
 

@@ -10,6 +10,13 @@ chart:
 tests:
   - it: database.type=mysql -> should create initContainer for MySQL database (default)
     set:
+      init.resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
       telegramPolling.enabled: true
       database.type: mysql
     asserts:
@@ -31,6 +38,13 @@ tests:
       telegramPolling.enabled: true
       database.type: postgresql
       externalPostgresql.host: some-postgresql-host
+      init.resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
     asserts:
       - contains:
           path: spec.template.spec.initContainers
@@ -44,4 +58,3 @@ tests:
             value: postgresql
       - matchSnapshot:
           path: spec.template.spec.initContainers
-

@@ -1,7 +1,6 @@
 import logging
 from time import perf_counter
 
-from django.apps import apps
 from django.core import serializers
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
@@ -26,7 +25,8 @@ class AlertChannelDefiningMixin(object):
     CACHE_SHORT_TERM_TIMEOUT = 5
 
     def dispatch(self, *args, **kwargs):
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        from apps.alerts.models import AlertReceiveChannel
+
         logger.info("AlertChannelDefiningMixin started")
         start = perf_counter()
         alert_receive_channel = None
@@ -83,7 +83,8 @@ class AlertChannelDefiningMixin(object):
         return super(AlertChannelDefiningMixin, self).dispatch(*args, **kwargs)
 
     def update_alert_receive_channel_cache(self):
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        from apps.alerts.models import AlertReceiveChannel
+
         logger.info("Caching alert receive channels from database.")
         serialized = serializers.serialize("json", AlertReceiveChannel.objects.all())
         # Caching forever, re-caching is managed by "obsolete key"

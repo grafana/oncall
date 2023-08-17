@@ -5,8 +5,8 @@ x-environment: &oncall-environment
   BROKER_TYPE: redis
   BASE_URL: $DOMAIN
   SECRET_KEY: $SECRET_KEY
-  FEATURE_PROMETHEUS_EXPORTER_ENABLED: $FEATURE_PROMETHEUS_EXPORTER_ENABLED
-  PROMETHEUS_EXPORTER_SECRET: $PROMETHEUS_EXPORTER_SECRET
+  FEATURE_PROMETHEUS_EXPORTER_ENABLED: ${FEATURE_PROMETHEUS_EXPORTER_ENABLED:-false}
+  PROMETHEUS_EXPORTER_SECRET: ${PROMETHEUS_EXPORTER_SECRET:-}
   REDIS_URI: redis://redis:6379/0
   DJANGO_SETTINGS_MODULE: settings.hobby
   CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
@@ -22,8 +22,7 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    command: >
-      sh -c "uwsgi --ini uwsgi.ini"
+    command: sh -c "uwsgi --ini uwsgi.ini"
     environment: *oncall-environment
     volumes:
       - oncall_data:/var/lib/oncall

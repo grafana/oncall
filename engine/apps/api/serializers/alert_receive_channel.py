@@ -1,10 +1,8 @@
 from collections import OrderedDict
 
-from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.template.loader import render_to_string
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -14,6 +12,7 @@ from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import Graf
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.channel_filter import ChannelFilter
 from apps.base.messaging import get_messaging_backends
+from apps.integrations.legacy_prefix import has_legacy_prefix
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
@@ -54,6 +53,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     routes_count = serializers.SerializerMethodField()
     connected_escalations_chains_count = serializers.SerializerMethodField()
     inbound_email = serializers.CharField(required=False)
+    is_legacy = serializers.SerializerMethodField()
 
     # integration heartbeat is in PREFETCH_RELATED not by mistake.
     # With using of select_related ORM builds strange join
@@ -92,6 +92,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "is_legacy",
         ]
         read_only_fields = [
             "created_at",
@@ -107,37 +108,56 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
             "connected_escalations_chains_count",
             "is_based_on_alertmanager",
             "inbound_email",
+            "is_legacy",
         ]
         extra_kwargs = {"integration": {"required": True}}
 
     def create(self, validated_data):
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
+        if has_legacy_prefix(integration):
+            raise BadRequest(detail="This integration is deprecated")
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise BadRequest(detail=connection_error)
-        instance = AlertReceiveChannel.create(
-            **validated_data, organization=organization, author=self.context["request"].user
-        )
+        for _integration in AlertReceiveChannel._config:
+            if _integration.slug == integration:
+                is_able_to_autoresolve = _integration.is_able_to_autoresolve
+
+        try:
+            instance = AlertReceiveChannel.create(
+                **validated_data,
+                organization=organization,
+                author=self.context["request"].user,
+                allow_source_based_resolving=is_able_to_autoresolve,
+            )
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
 
         return instance
 
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except AlertReceiveChannel.DuplicateDirectPagingError:
+            raise BadRequest(detail=AlertReceiveChannel.DuplicateDirectPagingError.DETAIL)
+
     def get_instructions(self, obj):
-        if obj.integration in [AlertReceiveChannel.INTEGRATION_MAINTENANCE]:
-            return ""
-
-        rendered_instruction_for_web = render_to_string(
-            AlertReceiveChannel.INTEGRATIONS_TO_INSTRUCTIONS_WEB[obj.integration], {"alert_receive_channel": obj}
-        )
-
-        return rendered_instruction_for_web
+        # Deprecated, kept for api-backward compatibility
+        return ""
 
     # MethodFields are used instead of relevant properties because of properties hit db on each instance in queryset
     def get_default_channel_filter(self, obj):
         for filter in obj.channel_filters.all():
             if filter.is_default:
                 return filter.public_primary_key
+
+    @staticmethod
+    def validate_integration(integration):
+        if integration is None or integration not in AlertReceiveChannel.WEB_INTEGRATION_CHOICES:
+            raise BadRequest(detail="invalid integration")
+        return integration
 
     def validate_verbal_name(self, verbal_name):
         organization = self.context["request"].auth.organization
@@ -171,9 +191,15 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
     def get_routes_count(self, obj) -> int:
         return obj.channel_filters.count()
 
+    def get_is_legacy(self, obj) -> bool:
+        return has_legacy_prefix(obj.integration)
+
     def get_connected_escalations_chains_count(self, obj) -> int:
-        return len(
-            set(ChannelFilter.objects.filter(alert_receive_channel=obj).values_list("escalation_chain", flat=True))
+        return (
+            ChannelFilter.objects.filter(alert_receive_channel=obj, escalation_chain__isnull=False)
+            .values("escalation_chain")
+            .distinct()
+            .count()
         )
 
 
@@ -192,8 +218,7 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         fields = ["id", "integration", "verbal_name", "deleted"]
 
     def get_deleted(self, obj):
-        # Treat direct paging integrations as deleted, so integration settings are disabled on the frontend
-        return obj.deleted_at is not None or obj.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+        return obj.deleted_at is not None
 
 
 class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
@@ -202,7 +227,7 @@ class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AlertReceiveChannel
-        fields = ["value", "display_name"]
+        fields = ["value", "display_name", "integration_url"]
 
     def get_value(self, obj):
         return obj.public_primary_key
@@ -229,7 +254,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         extra_kwargs = {"integration": {"required": True}}
 
     def get_payload_example(self, obj):
-        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        from apps.alerts.models import AlertGroup
+
         if "alert_group_id" in self.context["request"].query_params:
             alert_group_id = self.context["request"].query_params.get("alert_group_id")
             try:
@@ -245,7 +271,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 return None
 
     def get_is_based_on_alertmanager(self, obj):
-        return obj.has_alertmanager_payload_structure
+        return obj.based_on_alertmanager
 
     # Override method to pass field_name directly in set_value to handle None values for WritableSerializerField
     def to_internal_value(self, data):

@@ -11,6 +11,7 @@ from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
+ADMIN_ENABLED = False  # disable django admin panel
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
@@ -60,10 +61,10 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
-FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
 FEATURE_PROMETHEUS_EXPORTER_ENABLED = getenv_boolean("FEATURE_PROMETHEUS_EXPORTER_ENABLED", default=False)
+FEATURE_GRAFANA_ALERTING_V2_ENABLED = getenv_boolean("FEATURE_GRAFANA_ALERTING_V2_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 TELEGRAM_LONG_POLLING_ENABLED = getenv_boolean("TELEGRAM_LONG_POLLING_ENABLED", default=False)
@@ -209,7 +210,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "django_filters",
-    "ordered_model",
     "mirage",
     "engine",
     "apps.user_management",
@@ -238,6 +238,7 @@ INSTALLED_APPS = [
     "fcm_django",
     "django_dbconn_retry",
     "apps.phone_notifications",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
@@ -247,7 +248,29 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+
+DRF_SPECTACULAR_ENABLED = getenv_boolean("DRF_SPECTACULAR_ENABLED", default=False)
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Grafana OnCall Private API",
+    "DESCRIPTION": "Internal API docs. This is not meant to be used by end users. API endpoints will be kept added/removed/changed without notice.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # OTHER SETTINGS
+    "PREPROCESSING_HOOKS": [
+        "engine.included_path.custom_preprocessing_hook"
+    ],  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+    "SERVE_URLCONF": ("apps.api.urls"),
+    "SWAGGER_UI_SETTINGS": {"supportedSubmitMethods": []},  # Disable "Try it out" button for all endpoints
+}
+
+SPECTACULAR_INCLUDED_PATHS = [
+    "/features",
+    "/alertgroups",
+]
 
 MIDDLEWARE = [
     "log_request_id.middleware.RequestIDMiddleware",
@@ -409,25 +432,12 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
+ESCALATION_AUDITOR_ENABLED = getenv_boolean("ESCALATION_AUDITOR_ENABLED", default=True)
 ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
     "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
 )
 
 CELERY_BEAT_SCHEDULE = {
-    "restore_heartbeat_tasks": {
-        "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
-        "schedule": 10 * 60,
-        "args": (),
-    },
-    "check_escalations": {
-        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
-        # the task should be executed a minute or two less than the integration's configured interval
-        #
-        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
-        # to something like 13 * 60 (every 13 minutes)
-        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
-        "args": (),
-    },
     "start_refresh_ical_final_schedules": {
         "task": "apps.schedules.tasks.refresh_ical_files.start_refresh_ical_final_schedules",
         "schedule": crontab(minute=15, hour=0),
@@ -492,12 +502,36 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.mobile_app.tasks.conditionally_send_going_oncall_push_notifications_for_all_schedules",
         "schedule": 10 * 60,
     },
+    "notify_shift_swap_requests": {
+        "task": "apps.mobile_app.tasks.notify_shift_swap_requests",
+        "schedule": getenv_integer("NOTIFY_SHIFT_SWAP_REQUESTS_INTERVAL", default=10 * 60),
+    },
+    "send_shift_swap_request_slack_followups": {
+        "task": "apps.schedules.tasks.shift_swaps.slack_followups.send_shift_swap_request_slack_followups",
+        "schedule": 10 * 60,
+    },
     "save_organizations_ids_in_cache": {
         "task": "apps.metrics_exporter.tasks.save_organizations_ids_in_cache",
         "schedule": 60 * 30,
         "args": (),
     },
+    "check_heartbeats": {
+        "task": "apps.heartbeat.tasks.check_heartbeats",
+        "schedule": crontab(minute="*/2"),  # every 2 minutes
+        "args": (),
+    },
 }
+
+if ESCALATION_AUDITOR_ENABLED:
+    CELERY_BEAT_SCHEDULE["check_escalations"] = {
+        "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
+        # the task should be executed a minute or two less than the integration's configured interval
+        #
+        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
+        # to something like 13 * 60 (every 13 minutes)
+        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
+        "args": (),
+    }
 
 INTERNAL_IPS = ["127.0.0.1"]
 
@@ -525,11 +559,6 @@ if SILK_PROFILER_ENABLED:
 
     if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
         SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
-
-# get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
-ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
-
-ADMIN_SITE_HEADER = "OnCall Admin Panel"
 
 # Social auth settings
 SOCIAL_AUTH_USER_MODEL = "user_management.User"
@@ -670,10 +699,11 @@ INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
 INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "config_integrations.alertmanager_v2",
     "config_integrations.alertmanager",
+    "config_integrations.legacy_alertmanager",
     "config_integrations.grafana",
     "config_integrations.grafana_alerting",
+    "config_integrations.legacy_grafana_alerting",
     "config_integrations.formatted_webhook",
     "config_integrations.webhook",
     "config_integrations.kapacitor",
@@ -727,6 +757,7 @@ PYROSCOPE_AUTH_TOKEN = os.getenv("PYROSCOPE_AUTH_TOKEN", "")
 
 # map of phone provider alias to importpath.
 # Used in get_phone_provider function to dynamically load current provider.
+DEFAULT_PHONE_PROVIDER = "twilio"
 PHONE_PROVIDERS = {
     "twilio": "apps.twilioapp.phone_provider.TwilioPhoneProvider",
     # "simple": "apps.phone_notifications.simple_phone_provider.SimplePhoneProvider",
@@ -735,7 +766,7 @@ PHONE_PROVIDERS = {
 if IS_OPEN_SOURCE:
     PHONE_PROVIDERS["zvonok"] = "apps.zvonok.phone_provider.ZvonokPhoneProvider"
 
-PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default="twilio")
+PHONE_PROVIDER = os.environ.get("PHONE_PROVIDER", default=DEFAULT_PHONE_PROVIDER)
 
 ZVONOK_API_KEY = os.getenv("ZVONOK_API_KEY", None)
 ZVONOK_CAMPAIGN_ID = os.getenv("ZVONOK_CAMPAIGN_ID", None)

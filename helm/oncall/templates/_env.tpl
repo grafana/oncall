@@ -128,11 +128,13 @@
     secretKeyRef:
       name: {{ .existingSecret }}
       key: {{ required "oncall.twilio.accountSid is required if oncall.twilio.existingSecret is not empty" .accountSid | quote }}
+{{- if .authTokenKey }}
 - name: TWILIO_AUTH_TOKEN
   valueFrom:
     secretKeyRef:
       name: {{ .existingSecret }}
       key: {{ required "oncall.twilio.authTokenKey is required if oncall.twilio.existingSecret is not empty" .authTokenKey | quote }}
+{{- end }}
 - name: TWILIO_NUMBER
   valueFrom:
     secretKeyRef:
@@ -143,6 +145,7 @@
     secretKeyRef:
       name: {{ .existingSecret }}
       key: {{ required "oncall.twilio.verifySidKey is required if oncall.twilio.existingSecret is not empty" .verifySidKey | quote }}
+{{- if and .apiKeySidKey .apiKeySecretKey }}
 - name: TWILIO_API_KEY_SID
   valueFrom:
     secretKeyRef:
@@ -153,6 +156,7 @@
     secretKeyRef:
       name: {{ .existingSecret }}
       key: {{ required "oncall.twilio.apiKeySecretKey is required if oncall.twilio.existingSecret is not empty" .apiKeySecretKey | quote }}
+{{- end }}
 {{- else }}
 {{- if .accountSid }}
 - name: TWILIO_ACCOUNT_SID

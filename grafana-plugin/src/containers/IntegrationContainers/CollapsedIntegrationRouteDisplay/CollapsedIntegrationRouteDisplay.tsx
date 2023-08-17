@@ -123,7 +123,7 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                 )}
 
                 <div className={cx('collapsedRoute__item')}>
-                  <div className={cx('u-flex', 'u-align-items-center', 'u-flex-xs')}>
+                  <div className={cx('u-flex', 'u-align-items-center', 'u-flex-gap-xs')}>
                     <Icon name="list-ui-alt" />
                     <Text type="secondary" className={cx('u-margin-right-xs')}>
                       Trigger escalation chain
@@ -141,11 +141,13 @@ const CollapsedIntegrationRouteDisplay: React.FC<CollapsedIntegrationRouteDispla
                   )}
 
                   {!escalationChain?.name && (
-                    <div className={cx('u-flex', 'u-align-items-center', 'u-flex-xs')}>
+                    <div className={cx('u-flex', 'u-align-items-center', 'u-flex-gap-xs')}>
                       <div className={cx('icon-exclamation')}>
                         <Icon name="exclamation-triangle" />
                       </div>
-                      <Text type="primary">Not selected</Text>
+                      <Text type="primary" data-testid="integration-escalation-chain-not-selected">
+                        Not selected
+                      </Text>
                     </div>
                   )}
                 </div>

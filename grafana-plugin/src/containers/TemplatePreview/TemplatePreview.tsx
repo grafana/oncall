@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import Text from 'components/Text/Text';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
@@ -23,28 +24,43 @@ interface TemplatePreviewProps {
   templateIsRoute?: boolean;
   payload?: JSON;
   alertReceiveChannelId: AlertReceiveChannel['id'];
-  onEditClick?: () => void;
   alertGroupId?: Alert['pk'];
-  active?: boolean;
-  onResult?: (result) => void;
+  outgoingWebhookId?: OutgoingWebhook['id'];
+  templatePage: TEMPLATE_PAGE;
 }
 interface ConditionalResult {
   isResult?: boolean;
   value?: string;
 }
 
+export enum TEMPLATE_PAGE {
+  Integrations,
+  Webhooks,
+}
+
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, templateType, payload, alertReceiveChannelId, alertGroupId, templateIsRoute } =
-    props;
+  const {
+    templateName,
+    templateBody,
+    templateType,
+    payload,
+    alertReceiveChannelId,
+    outgoingWebhookId,
+    alertGroupId,
+    templateIsRoute,
+    templatePage,
+  } = props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
   const [conditionalResult, setConditionalResult] = useState<ConditionalResult>({});
 
   const store = useStore();
-  const { alertReceiveChannelStore, alertGroupStore } = store;
+  const { alertReceiveChannelStore, alertGroupStore, outgoingWebhookStore } = store;
 
   const handleTemplateBodyChange = useDebouncedCallback(() => {
-    (alertGroupId
+    (templatePage === TEMPLATE_PAGE.Webhooks
+      ? outgoingWebhookStore.renderPreview(outgoingWebhookId, templateName, templateBody, payload)
+      : alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
       : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody, payload)
     )

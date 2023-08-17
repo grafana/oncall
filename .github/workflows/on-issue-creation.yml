@@ -1,6 +1,6 @@
 name: On issue creation
 
-on:
+"on":
   issues:
     types:
       - opened
@@ -35,15 +35,19 @@ jobs:
         uses: peter-evans/create-or-update-comment@5f728c3dae25f329afbe34ee4d08eef25569d79f
         with:
           issue-number: ${{ github.event.issue.number }}
-          body: |
-            The current version of Grafana OnCall, at the time this issue was opened, is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall, please be sure to list it in the PR description. Thank you :smile:!
+          body: >
+            The current version of Grafana OnCall, at the time this issue was opened,
+            is ${{ steps.get-latest-tag.outputs.tag }}. If your issue pertains to an older version of Grafana OnCall,
+            please be sure to list it in the PR description. Thank you :smile:!
 
   map-selected-product-areas-to-labels-and-assignees:
     name: Map selected product areas to labels and assignees
     runs-on: ubuntu-latest
     # try to avoid running this job for an issue that is created via a tasklist
     # only run it for issues created via the bug or feature request issue templates
-    if: contains(github.event.issue.labels.*.name, 'bug') || contains(github.event.issue.labels.*.name, 'feature request')
+    if: >
+      contains(github.event.issue.labels.*.name, 'bug') ||
+      contains(github.event.issue.labels.*.name, 'feature request')
     permissions:
       issues: write
     steps:
@@ -69,6 +73,7 @@ jobs:
         # github actions have a weird ternary operator, see below for more details
         # https://docs.github.com/en/actions/learn-github-actions/expressions#literals:~:text=GitHub%20offers%20ternary%20operator%20like%20behaviour%20that%20you%20can%20use%20in%20expressions
         with:
+          # yamllint disable rule:line-length
           labels: |
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Alert Flow & Configuration') && 'part:alert flow & configuration' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Auth') && 'part:auth/teams' || '' }}
@@ -78,3 +83,4 @@ jobs:
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Schedules') && 'part:schedules' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Terraform') && 'part:API/Terraform' || '' }}
             ${{ contains(steps.issue-form-values.outputs.issueparser_product_area, 'Other') && 'no info or need to discuss' || '' }}
+          # yamllint enable rule:line-length

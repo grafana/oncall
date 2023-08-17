@@ -18,6 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
 )
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
+from apps.integrations.legacy_prefix import has_legacy_prefix, remove_legacy_prefix
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
@@ -37,7 +38,7 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
-    integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
+    integration = filters.MultipleChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
     team = TeamModelMultipleChoiceFilter()
 
     class Meta:
@@ -101,14 +102,9 @@ class AlertReceiveChannelView(
         "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "start_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "stop_maintenance": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "validate_name": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "migrate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
-
-    def create(self, request, *args, **kwargs):
-        if request.data["integration"] is not None and (
-            request.data["integration"] in AlertReceiveChannel.WEB_INTEGRATION_CHOICES
-        ):
-            return super().create(request, *args, **kwargs)
-        return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
         prev_state = serializer.instance.insight_logs_serialized
@@ -147,11 +143,16 @@ class AlertReceiveChannelView(
         if not ignore_filtering_by_available_teams:
             queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
-        # Hide direct paging integrations from the list view, but not from the filters
-        if not is_filters_request:
-            queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
-
         return queryset
+
+    def paginate_queryset(self, queryset):
+        """
+        If `skip_pagination` is provided and is equal to "true" (or "True"), it will return
+        a non paginated list of results. This is useful for Grafana Alerting
+        """
+        if self.request.query_params.get("skip_pagination", "false").lower() == "true":
+            return None
+        return super().paginate_queryset(queryset)
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
@@ -258,6 +259,12 @@ class AlertReceiveChannelView(
                 "href": api_root + "teams/",
                 "global": True,
             },
+            {
+                "name": "integration",
+                "display_name": "Type",
+                "type": "options",
+                "href": api_root + "alert_receive_channels/integration_options/",
+            },
         ]
 
         if filter_name is not None:
@@ -301,3 +308,56 @@ class AlertReceiveChannelView(
         user = request.user
         instance.force_disable_maintenance(user)
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def migrate(self, request, pk):
+        instance = self.get_object()
+        integration_type = instance.integration
+        if not has_legacy_prefix(integration_type):
+            raise BadRequest(detail="Integration is not legacy")
+
+        instance.integration = remove_legacy_prefix(instance.integration)
+
+        # drop all templates since they won't work for new payload shape
+        templates = [
+            "web_title_template",
+            "web_message_template",
+            "web_image_url_template",
+            "sms_title_template",
+            "phone_call_title_template",
+            "source_link_template",
+            "grouping_id_template",
+            "resolve_condition_template",
+            "acknowledge_condition_template",
+            "slack_title_template",
+            "slack_message_template",
+            "slack_image_url_template",
+            "telegram_title_template",
+            "telegram_message_template",
+            "telegram_image_url_template",
+            "messaging_backends_templates",
+        ]
+
+        for f in templates:
+            setattr(instance, f, None)
+
+        instance.save()
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"])
+    def validate_name(self, request):
+        """
+        Checks if verbal_name is available.
+        It is needed for OnCall <-> Alerting integration.
+        """
+        verbal_name = self.request.query_params.get("verbal_name")
+        if verbal_name is None:
+            raise BadRequest("verbal_name is required")
+        organization = self.request.auth.organization
+        name_used = AlertReceiveChannel.objects.filter(organization=organization, verbal_name=verbal_name).exists()
+        if name_used:
+            r = Response(status=status.HTTP_409_CONFLICT)
+        else:
+            r = Response(status=status.HTTP_200_OK)
+
+        return r

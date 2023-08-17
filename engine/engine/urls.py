@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.urls import include, path
 
 from .views import HealthCheckView, MaintenanceModeStatusView, ReadinessCheckView, StartupProbeView
@@ -31,9 +30,6 @@ paths_to_work_even_when_maintenance_mode_is_active = [
 
 urlpatterns = [
     *paths_to_work_even_when_maintenance_mode_is_active,
-    # path('slow/', SlowView.as_view()),
-    # path('exception/', ExceptionView.as_view()),
-    path(settings.ONCALL_DJANGO_ADMIN_PATH, admin.site.urls),
     path("api/gi/v1/", include("apps.api_for_grafana_incident.urls", namespace="api-gi")),
     path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),
     path("api/internal/v1/", include("social_django.urls", namespace="social")),
@@ -78,4 +74,10 @@ if settings.DEBUG:
 if settings.SILK_PROFILER_ENABLED:
     urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
 
-admin.site.site_header = settings.ADMIN_SITE_HEADER
+if settings.DRF_SPECTACULAR_ENABLED:
+    from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+    urlpatterns += [
+        path("internal/schema/", SpectacularAPIView.as_view(api_version="internal/v1"), name="schema"),
+        path("internal/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    ]
