@@ -95,14 +95,14 @@ class Webhook(models.Model):
     )
 
     PUBLIC_TRIGGER_TYPES_MAP = {
-        TRIGGER_ESCALATION_STEP: "escalation step",
+        TRIGGER_ESCALATION_STEP: "escalation",
         TRIGGER_ALERT_GROUP_CREATED: "alert group created",
-        TRIGGER_ACKNOWLEDGE: "acknowledged",
-        TRIGGER_RESOLVE: "resolved",
-        TRIGGER_SILENCE: "silenced",
-        TRIGGER_UNSILENCE: "unsilenced",
-        TRIGGER_UNRESOLVE: "unresolved",
-        TRIGGER_UNACKNOWLEDGE: "unacknowledged",
+        TRIGGER_ACKNOWLEDGE: "acknowledge",
+        TRIGGER_RESOLVE: "resolve",
+        TRIGGER_SILENCE: "silence",
+        TRIGGER_UNSILENCE: "unsilence",
+        TRIGGER_UNRESOLVE: "unresolve",
+        TRIGGER_UNACKNOWLEDGE: "unacknowledge",
     }
 
     PUBLIC_ALL_TRIGGER_TYPES = [i for i in PUBLIC_TRIGGER_TYPES_MAP.values()]

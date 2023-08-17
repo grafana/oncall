@@ -148,7 +148,7 @@ def test_create_webhook(make_organization_and_user_with_token):
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    data["trigger_type"] = "escalation step"
+    data["trigger_type"] = "escalation"
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -175,7 +175,7 @@ def test_create_webhook_nested_data(make_organization_and_user_with_token):
         "url": "https://example.com",
         "data": '{"nested_item": "{{ alert_payload.foo.bar | to_json }}"}',
         "http_method": "POST",
-        "trigger_type": "acknowledged",
+        "trigger_type": "acknowledge",
     }
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
