@@ -1,7 +1,7 @@
 import React, { useEffect, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, HorizontalGroup, Icon, IconButton, Select, VerticalGroup } from '@grafana/ui';
+import { Button, Drawer, HorizontalGroup, Icon, IconButton, Select, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -85,7 +85,7 @@ const IntegrationContactPoint: React.FC<{
       heading={
         <div className={cx('u-flex', 'u-flex-space-between')}>
           {isDrawerOpen && (
-            <Drawer scrollableContent title="Contact Points" onClose={closeDrawer} closeOnMaskClick={false}>
+            <Drawer scrollableContent title="Connected Contact Points" onClose={closeDrawer} closeOnMaskClick={false}>
               <div className={cx('contactpoints__drawer')}>
                 <GTable
                   className={cx('contactpoints__table')}
@@ -169,10 +169,15 @@ const IntegrationContactPoint: React.FC<{
                   {contactPoints.length} contact point{contactPoints.length === 1 ? '' : 's'} connected
                 </Text>
                 {warnings.length > 0 && (
-                  <HorizontalGroup spacing="xs">
-                    {renderExclamationIcon()}
-                    <Text type="primary">{warnings.length} with error</Text>
-                  </HorizontalGroup>
+                  <Tooltip
+                    content={'Check the notification policy for the contact point in Grafana Alerting'}
+                    placement={'top'}
+                  >
+                    <div className={cx('u-flex', 'u-flex-gap-xs')}>
+                      {renderExclamationIcon()}
+                      <Text type="primary">{warnings.length} with error</Text>
+                    </div>
+                  </Tooltip>
                 )}
               </HorizontalGroup>
             ) : (
@@ -247,9 +252,12 @@ const IntegrationContactPoint: React.FC<{
         <Text type="primary">{item.contactPoint}</Text>
 
         {!item.notificationConnected && (
-          <div className={cx('icon-exclamation')}>
-            <Icon name="exclamation-triangle" />
-          </div>
+          <Tooltip
+            content={'Check the notification policy for the contact point in Grafana Alerting'}
+            placement={'top'}
+          >
+            {renderExclamationIcon()}
+          </Tooltip>
         )}
       </HorizontalGroup>
     );
