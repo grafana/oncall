@@ -5,7 +5,7 @@ import { generateRandomValue } from '../utils/forms';
 import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { createOnCallSchedule } from '../utils/schedule';
 
-test.only('we can create an oncall schedule + receive an alert', async ({ adminRolePage }) => {
+test('we can create an oncall schedule + receive an alert', async ({ adminRolePage }) => {
   // this test does a lot of stuff, lets give it adequate time to do its thing
   test.slow();
 
