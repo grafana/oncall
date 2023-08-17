@@ -73,3 +73,11 @@ if settings.DEBUG:
 
 if settings.SILK_PROFILER_ENABLED:
     urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
+
+if settings.DRF_SPECTACULAR_ENABLED:
+    from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+    urlpatterns += [
+        path("internal/schema/", SpectacularAPIView.as_view(api_version="internal/v1"), name="schema"),
+        path("internal/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    ]

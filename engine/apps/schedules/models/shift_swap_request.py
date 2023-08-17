@@ -44,6 +44,9 @@ class ShiftSwapRequestManager(models.Manager):
     def hard_delete(self):
         return self.get_queryset().hard_delete()
 
+    def get_open_requests(self, now):
+        return self.get_queryset().filter(benefactor__isnull=True, swap_start__gt=now)
+
 
 class ShiftSwapRequest(models.Model):
     beneficiary: "User"
@@ -53,6 +56,18 @@ class ShiftSwapRequest(models.Model):
 
     objects: models.Manager["ShiftSwapRequest"] = ShiftSwapRequestManager()
     objects_with_deleted: models.Manager["ShiftSwapRequest"] = models.Manager()
+
+    FOLLOWUP_OFFSETS = [
+        timezone.timedelta(weeks=4),
+        timezone.timedelta(weeks=3),
+        timezone.timedelta(weeks=2),
+        timezone.timedelta(weeks=1),
+        timezone.timedelta(days=3),
+        timezone.timedelta(days=2),
+        timezone.timedelta(days=1),
+        timezone.timedelta(hours=12),
+    ]
+    """When to send followups before the swap start time"""
 
     public_primary_key = models.CharField(
         max_length=20,

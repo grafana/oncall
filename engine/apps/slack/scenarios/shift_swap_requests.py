@@ -2,6 +2,9 @@ import json
 import logging
 import typing
 
+import humanize
+from django.utils import timezone
+
 from apps.slack.constants import DIVIDER
 from apps.slack.models import SlackMessage
 from apps.slack.scenarios import scenario_step
@@ -207,6 +210,38 @@ class AcceptShiftSwapRequestStep(BaseShiftSwapRequestStep):
             return
 
         self.update_message(shift_swap_request)
+
+
+class ShiftSwapRequestFollowUp(scenario_step.ScenarioStep):
+    @staticmethod
+    def _generate_blocks(shift_swap_request: "ShiftSwapRequest") -> Block.AnyBlocks:
+        # Time until shift swap starts (example: "14 days", "2 hours")
+        delta = humanize.naturaldelta(timezone.now() - shift_swap_request.swap_start)
+
+        return [
+            typing.cast(
+                Block.Section,
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": (
+                            f":exclamation: This shift swap request is still open and will start in {delta}.\n"
+                            "Jump back into the thread and accept it if you're available!"
+                        ),
+                    },
+                },
+            )
+        ]
+
+    def post_message(self, shift_swap_request: "ShiftSwapRequest") -> None:
+        self._slack_client.api_call(
+            "chat.postMessage",
+            channel=shift_swap_request.slack_message.channel_id,
+            thread_ts=shift_swap_request.slack_message.slack_id,
+            reply_broadcast=True,
+            blocks=self._generate_blocks(shift_swap_request),
+        )
 
 
 STEPS_ROUTING: ScenarioRoute.RoutingSteps = [

@@ -27,6 +27,22 @@ def test_get_organization_rbac_enabled(
 
 
 @pytest.mark.django_db
+def test_update_organization_settings(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:api-organization")
+    data = {"is_resolution_note_required": True}
+
+    assert organization.is_resolution_note_required is False
+
+    response = client.put(url, format="json", data=data, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    organization.refresh_from_db()
+    assert organization.is_resolution_note_required is True
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
