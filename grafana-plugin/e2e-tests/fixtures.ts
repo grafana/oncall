@@ -37,7 +37,7 @@ type Fixtures = {
 /**
  * NOTE: currently videos are not generated automatically because of how we generate a browserContext within our
  * auth fixtures (which is how Playwright suggested setting up multi-role authnz tests..). There's a GitHub
- * Issue here that tracks this issue https://github.com/microsoft/playwright/issues/24542
+ * Issue here that tracks this issue https://github.com/microsoft/playwright/issues/14813
  *
  * Here's a temporary workaround on this, which is what this function does
  * https://github.com/microsoft/playwright/issues/14813#issuecomment-1582499142
