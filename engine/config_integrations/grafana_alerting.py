@@ -11,6 +11,7 @@ is_featured = True
 featured_tag_name = "Quick Connect"
 is_able_to_autoresolve = True
 is_demo_alert_enabled = True
+based_on_alertmanager = True
 
 
 # Behaviour
@@ -22,69 +23,91 @@ resolve_condition = """{{ payload.status == "resolved" }}"""
 
 acknowledge_condition = None
 
-
+# Web
 web_title = """\
-{%- set groupLabels = payload.groupLabels.copy() -%}
-{%- set alertname = groupLabels.pop('alertname') | default("") -%}
+{% set groupLabels = payload.get("groupLabels", {}).copy() -%}
+{% if "labels" in payload -%}
+{# backward compatibility with legacy alertmanager integration -#}
+{% set alertname = payload.get("labels", {}).get("alertname", "") -%} 
+{% else -%}
+{% set alertname = groupLabels.pop("alertname", "")  -%}
+{% endif -%}
 
-
-[{{ payload.status }}{% if payload.status == 'firing' %}:{{ payload.numFiring }}{% endif %}] {{ alertname }} {% if groupLabels | length > 0 %}({{ groupLabels|join(", ") }}){% endif %}
+[{{ payload.status }}{% if payload.status == 'firing' and payload.numFiring %}:{{ payload.numFiring }}{% endif %}] {{ alertname }} {% if groupLabels | length > 0 %}({{ groupLabels.values()|join(", ") }}){% endif %}
 """  # noqa
 
 web_message = """\
-{%- set annotations = payload.commonAnnotations.copy() -%}
+{% set annotations = payload.get("commonAnnotations", {}).copy() -%}
+{% set groupLabels = payload.get("groupLabels", {}) -%}
+{% set commonLabels = payload.get("commonLabels", {}) -%}
+{% set severity = groupLabels.severity -%}
+{% set legacyLabels = payload.get("labels", {}) -%}
+{% set legacyAnnotations = payload.get("annotations", {}) -%}
 
-{% set severity = payload.groupLabels.severity -%}
-{% if severity %}
-{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
+{% if severity -%}
+{% set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
 Severity: {{ severity }} {{ severity_emoji }}
-{% endif %}
+{% endif -%}
 
-{%- set status = payload.status | default("Unknown") %}
-{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
+{% set status = payload.get("status", "Unknown") -%}
+{% set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") -%}
 Status: {{ status }} {{ status_emoji }} (on the source)
-{% if status == "firing" %}
+{% if status == "firing" and payload.numFiring -%}
 Firing alerts – {{ payload.numFiring }}
 Resolved alerts – {{ payload.numResolved }}
-{% endif %}
+{% endif -%}
 
 {% if "runbook_url" in annotations -%}
 [:book: Runbook:link:]({{ annotations.runbook_url }})
-{%- set _ = annotations.pop('runbook_url') -%}
-{%- endif %}
+{% set _ = annotations.pop('runbook_url') -%}
+{% endif -%}
 
-{%- if "runbook_url_internal" in annotations -%}
+{% if "runbook_url_internal" in annotations -%}
 [:closed_book: Runbook (internal):link:]({{ annotations.runbook_url_internal }})
-{%- set _ = annotations.pop('runbook_url_internal') -%}
-{%- endif %}
-
-GroupLabels:
-{%- for k, v in payload["groupLabels"].items() %}
-- {{ k }}: {{ v }}
-{%- endfor %}
-
-{% if payload["commonLabels"] | length > 0 -%}
-CommonLabels:
-{%- for k, v in payload["commonLabels"].items() %}
-- {{ k }}: {{ v }}
-{%- endfor %}
+{% set _ = annotations.pop('runbook_url_internal') -%}
 {% endif %}
+
+{%- if groupLabels | length > 0 %}
+GroupLabels:
+{% for k, v in groupLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
+
+{% if commonLabels | length > 0 -%}
+CommonLabels:
+{% for k, v in commonLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
 
 {% if annotations | length > 0 -%}
 Annotations:
-{%- for k, v in annotations.items() %}
+{% for k, v in annotations.items() -%}
 - {{ k }}: {{ v }}
-{%- endfor %}
-{% endif %}
+{% endfor %}
+{% endif -%}
 
+{# backward compatibility with legacy alertmanager integration -#}
+{% if legacyLabels | length > 0 -%}
+Labels:
+{% for k, v in legacyLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
+
+{% if legacyAnnotations | length > 0 -%}
+Annotations:
+{% for k, v in legacyAnnotations.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
 [View in AlertManager]({{ source_link }})
 """
 
 
-# Slack templates
+# Slack
 slack_title = """\
-{%- set groupLabels = payload.groupLabels.copy() -%}
-{%- set alertname = groupLabels.pop('alertname') | default("") -%}
 *<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ web_title }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
@@ -101,50 +124,71 @@ slack_title = """\
 # """
 
 slack_message = """\
-{%- set annotations = payload.commonAnnotations.copy() -%}
+{% set annotations = payload.get("commonAnnotations", {}).copy() -%}
+{% set groupLabels = payload.get("groupLabels", {}) -%}
+{% set commonLabels = payload.get("commonLabels", {}) -%}
+{% set severity = groupLabels.severity -%}
+{% set legacyLabels = payload.get("labels", {}) -%}
+{% set legacyAnnotations = payload.get("annotations", {}) -%}
 
-{% set severity = payload.groupLabels.severity -%}
-{% if severity %}
-{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
+{% if severity -%}
+{% set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
 Severity: {{ severity }} {{ severity_emoji }}
-{% endif %}
+{% endif -%}
 
-{%- set status = payload.status | default("Unknown") %}
-{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
+{% set status = payload.get("status", "Unknown") -%}
+{% set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") -%}
 Status: {{ status }} {{ status_emoji }} (on the source)
-{% if status == "firing" %}
+{% if status == "firing" and payload.numFiring -%}
 Firing alerts – {{ payload.numFiring }}
 Resolved alerts – {{ payload.numResolved }}
-{% endif %}
+{% endif -%}
 
 {% if "runbook_url" in annotations -%}
 <{{ annotations.runbook_url }}|:book: Runbook:link:>
-{%- set _ = annotations.pop('runbook_url') -%}
-{%- endif %}
+{% set _ = annotations.pop('runbook_url') -%}
+{% endif -%}
 
-{%- if "runbook_url_internal" in annotations -%}
+{% if "runbook_url_internal" in annotations -%}
 <{{ annotations.runbook_url_internal }}|:closed_book: Runbook (internal):link:>
-{%- set _ = annotations.pop('runbook_url_internal') -%}
-{%- endif %}
-
-GroupLabels:
-{%- for k, v in payload["groupLabels"].items() %}
-- {{ k }}: {{ v }}
-{%- endfor %}
-
-{% if payload["commonLabels"] | length > 0 -%}
-CommonLabels:
-{%- for k, v in payload["commonLabels"].items() %}
-- {{ k }}: {{ v }}
-{%- endfor %}
+{% set _ = annotations.pop('runbook_url_internal') -%}
 {% endif %}
+
+{%- if groupLabels | length > 0 %}
+GroupLabels:
+{% for k, v in groupLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
+
+{% if commonLabels | length > 0 -%}
+CommonLabels:
+{% for k, v in commonLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
 
 {% if annotations | length > 0 -%}
 Annotations:
-{%- for k, v in annotations.items() %}
+{% for k, v in annotations.items() -%}
 - {{ k }}: {{ v }}
-{%- endfor %}
-{% endif %}
+{% endfor %}
+{% endif -%}
+
+{# backward compatibility with legacy alertmanager integration -#}
+{% if legacyLabels | length > 0 -%}
+Labels:
+{% for k, v in legacyLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
+
+{% if legacyAnnotations | length > 0 -%}
+Annotations:
+{% for k, v in legacyAnnotations.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
 """
 # noqa: W291
 
@@ -153,59 +197,81 @@ slack_image_url = None
 
 web_image_url = None
 
+# SMS
 sms_title = web_title
 
+# Phone
+phone_call_title = """{{ payload.get("groupLabels", {}).values() |join(", ") }}"""
 
-phone_call_title = """{{ payload.groupLabels|join(", ") }}"""
-
+# Telegram
 telegram_title = web_title
 
 telegram_message = """\
-{%- set annotations = payload.commonAnnotations.copy() -%}
+{% set annotations = payload.get("commonAnnotations", {}).copy() -%}
+{% set groupLabels = payload.get("groupLabels", {}) -%}
+{% set commonLabels = payload.get("commonLabels", {}) -%}
+{% set severity = groupLabels.severity -%}
+{% set legacyLabels = payload.get("labels", {}) -%}
+{% set legacyAnnotations = payload.get("annotations", {}) -%}
 
-{% set severity = payload.groupLabels.severity -%}
-{% if severity %}
-{%- set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
+{% if severity -%}
+{% set severity_emoji = {"critical": ":rotating_light:", "warning": ":warning:" }[severity] | default(":question:") -%}
 Severity: {{ severity }} {{ severity_emoji }}
-{% endif %}
+{% endif -%}
 
-{%- set status = payload.status | default("Unknown") %}
-{%- set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") %}
+{% set status = payload.get("status", "Unknown") -%}
+{% set status_emoji = {"firing": ":fire:", "resolved": ":white_check_mark:"}[status] | default(":warning:") -%}
 Status: {{ status }} {{ status_emoji }} (on the source)
-{% if status == "firing" %}
+{% if status == "firing" and payload.numFiring -%}
 Firing alerts – {{ payload.numFiring }}
 Resolved alerts – {{ payload.numResolved }}
-{% endif %}
+{% endif -%}
 
 {% if "runbook_url" in annotations -%}
 <a href='{{ annotations.runbook_url }}'>:book: Runbook:link:</a>
-{%- set _ = annotations.pop('runbook_url') -%}
-{%- endif %}
+{% set _ = annotations.pop('runbook_url') -%}
+{% endif -%}
 
-{%- if "runbook_url_internal" in annotations -%}
+{% if "runbook_url_internal" in annotations -%}
 <a href='{{ annotations.runbook_url_internal }}'>:closed_book: Runbook (internal):link:</a>
-{%- set _ = annotations.pop('runbook_url_internal') -%}
-{%- endif %}
-
-GroupLabels:
-{%- for k, v in payload["groupLabels"].items() %}
-- {{ k }}: {{ v }}
-{%- endfor %}
-
-{% if payload["commonLabels"] | length > 0 -%}
-CommonLabels:
-{%- for k, v in payload["commonLabels"].items() %}
-- {{ k }}: {{ v }}
-{%- endfor %}
+{% set _ = annotations.pop('runbook_url_internal') -%}
 {% endif %}
+
+{%- if groupLabels | length > 0 %}
+GroupLabels:
+{% for k, v in groupLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
+
+{% if commonLabels | length > 0 -%}
+CommonLabels:
+{% for k, v in commonLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
 
 {% if annotations | length > 0 -%}
 Annotations:
-{%- for k, v in annotations.items() %}
+{% for k, v in annotations.items() -%}
 - {{ k }}: {{ v }}
-{%- endfor %}
-{% endif %}
+{% endfor %}
+{% endif -%}
 
+{# backward compatibility with legacy alertmanager integration -#}
+{% if legacyLabels | length > 0 -%}
+Labels:
+{% for k, v in legacyLabels.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
+
+{% if legacyAnnotations | length > 0 -%}
+Annotations:
+{% for k, v in legacyAnnotations.items() -%}
+- {{ k }}: {{ v }}
+{% endfor %}
+{% endif -%}
 <a href='{{ source_link }}'>View in AlertManager</a>
 """
 

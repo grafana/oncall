@@ -12,6 +12,7 @@ from .phone_notifications import MakeCallView, SendSMSView  # noqa: F401
 from .resolution_notes import ResolutionNoteView  # noqa: F401
 from .routes import ChannelFilterView  # noqa: F401
 from .schedules import OnCallScheduleChannelView  # noqa: F401
+from .shift_swap import ShiftSwapViewSet  # noqa: F401
 from .slack_channels import SlackChannelView  # noqa: F401
 from .teams import TeamView  # noqa: F401
 from .user_groups import UserGroupView  # noqa: F401
