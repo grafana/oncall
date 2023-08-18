@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.3.25 (2023-08-18)
+
+### Changed
+
+- Improve Grafana Alerting integration by @Ferril @teodosii ([#2742](https://github.com/grafana/oncall/pull/2742))
+- Fixed UTC conversion for escalation chain step of timerange
+  ([#2781](https://github.com/grafana/oncall/issues/2781))
+
+### Fixed
+
+- Check for possible split events in range when resolving schedule ([#2828](https://github.com/grafana/oncall/pull/2828))
+
 ## v1.3.24 (2023-08-17)
 
 ### Added
@@ -24,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue with updating "Require resolution note" setting by @Ferril ([#2782](https://github.com/grafana/oncall/pull/2782))
 - Don't send notifications about past SSRs when turning on info notifications by @vadimkerr ([#2783](https://github.com/grafana/oncall/pull/2783))
 - Add schedule shift type validation on create/preview ([#2789](https://github.com/grafana/oncall/pull/2789))
+- Add alertmanager integration for heartbeat support ([2807](https://github.com/grafana/oncall/pull/2807))
 
 ## v1.3.23 (2023-08-10)
 
