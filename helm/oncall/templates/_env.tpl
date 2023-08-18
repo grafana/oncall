@@ -376,7 +376,6 @@
 {{- end }}
 
 {{- define "snippet.rabbitmq.env" }}
-{{- if eq .Values.broker.type "rabbitmq" -}}
 - name: RABBITMQ_USERNAME
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
   valueFrom:
@@ -399,7 +398,6 @@
   value: {{ include "snippet.rabbitmq.protocol" . | quote }}
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . | quote }}
-{{- end }}
 {{- end }}
 
 {{- define "snippet.rabbitmq.user" -}}
@@ -514,6 +512,26 @@
     secretKeyRef:
       name: {{ include "snippet.redis.password.secret.name" . }}
       key: {{ include "snippet.redis.password.secret.key" . | quote}}
+{{- end }}
+
+{{- define "snippet.broker.env" -}}
+{{- if eq .Values.broker.type "redis" }}
+{{- include "snippet.redis.env" . }}
+{{- else if eq .Values.broker.type "rabbitmq" }}
+{{- include "snippet.rabbitmq.env" . }}
+{{- else -}}
+{{- fail "value for .Values.broker.type must be either 'redis' or 'rabbitmq'" }}
+{{- end }}
+{{- end }}
+
+{{- define "snippet.db.env" -}}
+{{- if eq .Values.database.type "mysql" }}
+{{- include "snippet.mysql.env" . }}
+{{- else if eq .Values.database.type "postgresql" }}
+{{- include "snippet.postgresql.env" . }}
+{{- else -}}
+{{- fail "value for .Values.db.type must be either 'mysql' or 'postgresql'" }}
+{{- end }}
 {{- end }}
 
 {{- define "snippet.oncall.smtp.env" -}}

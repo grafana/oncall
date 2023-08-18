@@ -7,14 +7,47 @@ env:
 image:
   tag: latest
   pullPolicy: Always
+broker:
+  type: redis
+redis:
+  architecture: standalone # don't run replicas, just eats up resources
+  master:
+    resources:
+      requests:
+        cpu: "0.1"
+      limits:
+        cpu: "0.3"
+rabbitmq:
+  enabled: false
+migrate:
+  resources:
+    requests:
+      cpu: "0.1"
+    limits:
+      cpu: "0.3"
 engine:
-  replicaCount: 2
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: "1.7"
+    limits:
+      cpu: "2.0"
 celery:
-  replicaCount: 2
+  replicaCount: 1
   worker_beat_enabled: false
+  resources:
+    requests:
+      cpu: "1.0"
+    limits:
+      cpu: "1.5"
 
 grafana:
-  replicas: 2
+  replicas: 1
+  resources:
+    requests:
+      cpu: "0.3"
+    limits:
+      cpu: "0.5"
   extraInitContainers:
     - name: create-db-if-not-exists
       image: mysql:8.0.32
@@ -60,6 +93,11 @@ database:
 mariadb:
   enabled: true
   primary:
+    resources:
+      requests:
+        cpu: "2.0"
+      limits:
+        cpu: "2.5"
     extraEnvVars:
       # https://hub.docker.com/r/bitnami/mariadb#:~:text=Passing%20extra%20command%2Dline%20flags%20to%20mysqld%20startup
       #
@@ -81,7 +119,6 @@ ingress-nginx:
   enabled: false
 cert-manager:
   enabled: false
-
 service:
   enabled: true
   type: NodePort

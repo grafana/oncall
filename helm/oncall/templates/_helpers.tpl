@@ -97,8 +97,7 @@ Create the name of the service account to use
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
     {{- include "snippet.mysql.env" . | nindent 4 }}
-    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
-    {{- include "snippet.redis.env" . | nindent 4 }}
+    {{- include "snippet.broker.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
   {{- if .Values.dev_mode }}
   volumeMounts:
@@ -118,15 +117,24 @@ Create the name of the service account to use
   {{ toYaml .Values.init.resources | nindent 4 }}
   env:
     {{- include "snippet.oncall.env" . | nindent 4 }}
-    {{- include "snippet.postgresql.env" . | nindent 4 }}
-    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
-    {{- include "snippet.redis.env" . | nindent 4 }}
+    {{- include "snippet.db.env" . | nindent 4 }}
+    {{- include "snippet.broker.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
   {{- if .Values.dev_mode }}
   volumeMounts:
     - mountPath: /etc/app
       name: dev-reloaded-engine
   {{- end }}
+{{- end }}
+
+{{- define "oncall.initContainer" -}}
+{{- if eq .Values.database.type "mysql" }}
+{{- include "oncall.mariadb.wait-for-db" . }}
+{{- else if eq .Values.database.type "postgresql" }}
+{{- include "oncall.postgresql.wait-for-db" . }}
+{{- else -}}
+{{- fail "value for .Values.db.type must be either 'mysql' or 'postgresql'" }}
+{{- end }}
 {{- end }}
 
 {{- define "oncall.extraEnvs" -}}

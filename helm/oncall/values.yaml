@@ -260,6 +260,14 @@ migrate:
   #     - --private-ip
   #     - --port=5432
   #     - example:europe-west3:grafana-oncall-db
+  resources:
+    {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
 
 # Sets environment variables with name capitalized and prefixed with UWSGI_,
 # and dashes are substituted with underscores.

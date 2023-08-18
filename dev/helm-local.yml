@@ -9,11 +9,42 @@ image:
   repository: oncall/engine
   tag: dev
   pullPolicy: IfNotPresent
+broker:
+  type: redis
+redis:
+  architecture: standalone # don't run replicas, just eats up resources
+  image:
+    repository: redis # the default, bitnami/redis does not support ARM64
+    tag: 7.0.5
+  master:
+    resources:
+      requests:
+        cpu: "0.1"
+      limits:
+        cpu: "0.3"
+rabbitmq:
+  enabled: false
+migrate:
+  resources:
+    requests:
+      cpu: "0.1"
+    limits:
+      cpu: "0.3"
 engine:
-  replicaCount: 3
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: "1.7"
+    limits:
+      cpu: "2.0"
 celery:
-  replicaCount: 3
+  replicaCount: 1
   worker_beat_enabled: false
+  resources:
+    requests:
+      cpu: "1.0"
+    limits:
+      cpu: "1.5"
 
 ui:
   env:
@@ -21,9 +52,14 @@ ui:
     MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
 
 grafana:
-  replicas: 3
+  replicas: 1
   image:
     tag: latest
+  resources:
+    requests:
+      cpu: "0.3"
+    limits:
+      cpu: "0.5"
   extraInitContainers:
     - name: create-db-if-not-exists
       image: mysql:8.0.32
@@ -72,6 +108,11 @@ mariadb:
     service:
       type: NodePort
       nodePort: 30003
+    resources:
+      requests:
+        cpu: "2.0"
+      limits:
+        cpu: "2.5"
     extraEnvVars:
       # https://hub.docker.com/r/bitnami/mariadb#:~:text=Passing%20extra%20command%2Dline%20flags%20to%20mysqld%20startup
       #
@@ -86,11 +127,6 @@ mariadb:
         value: utf8mb4
       - name: MARIADB_COLLATE
         value: utf8mb4_unicode_ci
-
-redis:
-  image:
-    repository: redis # the default, bitnami/redis does not support ARM64
-    tag: 7.0.5
 
 ingress:
   enabled: false
