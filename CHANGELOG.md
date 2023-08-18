@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Public API for actions now wraps webhooks @mderynck ([#2790](https://github.com/grafana/oncall/pull/2790))
 
+## v1.3.25 (2023-08-18)
+
+### Changed
+
+- Improve Grafana Alerting integration by @Ferril @teodosii ([#2742](https://github.com/grafana/oncall/pull/2742))
+- Fixed UTC conversion for escalation chain step of timerange
+  ([#2781](https://github.com/grafana/oncall/issues/2781))
+
+### Fixed
+
+- Check for possible split events in range when resolving schedule ([#2828](https://github.com/grafana/oncall/pull/2828))
+
 ## v1.3.24 (2023-08-17)
 
 ### Added

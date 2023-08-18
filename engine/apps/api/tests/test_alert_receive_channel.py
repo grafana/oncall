@@ -919,3 +919,281 @@ def test_alert_receive_channel_send_demo_alert_not_enabled(
 
     response = client.post(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_alert_receive_channel_get_connected_contact_points_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    )
+
+    url = reverse(
+        "api-internal:alert_receive_channel-connected-contact-points",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    with patch(
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.connected_contact_points",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_alert_receive_channel_get_contact_points_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel-contact-points",
+    )
+
+    with patch(
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.contact_points",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_alert_receive_channel_connect_contact_point_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    )
+
+    url = reverse(
+        "api-internal:alert_receive_channel-connect-contact-point",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    with patch(
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.connect_contact_point",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_201_CREATED),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_alert_receive_channel_create_contact_point_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    )
+
+    url = reverse(
+        "api-internal:alert_receive_channel-create-contact-point",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    with patch(
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.create_contact_point",
+        return_value=Response(
+            status=status.HTTP_201_CREATED,
+        ),
+    ):
+        response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_alert_receive_channel_disconnect_contact_point_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    )
+
+    url = reverse(
+        "api-internal:alert_receive_channel-disconnect-contact-point",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+
+    with patch(
+        "apps.api.views.alert_receive_channel.AlertReceiveChannelView.disconnect_contact_point",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+
+@patch(
+    "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.get_connected_contact_points",
+    return_value=True,
+)
+@patch(
+    "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.connect_contact_point",
+    return_value=(True, ""),
+)
+@patch(
+    "apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.disconnect_contact_point",
+    return_value=(True, ""),
+)
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "endpoint,expected_status",
+    [
+        ("connected-contact-points", status.HTTP_200_OK),
+        ("connect-contact-point", status.HTTP_200_OK),
+        ("create-contact-point", status.HTTP_201_CREATED),
+        ("disconnect-contact-point", status.HTTP_200_OK),
+    ],
+)
+def test_alert_receive_channel_contact_points_endpoints(
+    mocked_get_connected_contact_points,
+    mocked_get_connect_contact_point,
+    mocked_get_disconnect_contact_point,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    endpoint,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING
+    )
+
+    url = reverse(
+        f"api-internal:alert_receive_channel-{endpoint}",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+    if endpoint == "connected-contact-points":
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    else:
+        data = {
+            "datasource_uid": "test_datasource",
+            "contact_point_name": "test contact point",
+        }
+        response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
+    assert response.status_code == expected_status
+
+
+@patch("apps.alerts.grafana_alerting_sync_manager.GrafanaAlertingSyncManager.get_contact_points", return_value=[])
+@pytest.mark.django_db
+def test_alert_receive_channel_get_contact_points(
+    mocked_get_contact_points,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-contact-points")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "endpoint",
+    ["connected-contact-points", "connect-contact-point", "create-contact-point", "disconnect-contact-point"],
+)
+def test_alert_receive_channel_contact_points_wrong_integration(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+    endpoint,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    alert_receive_channel = make_alert_receive_channel(
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
+    )
+
+    url = reverse(
+        f"api-internal:alert_receive_channel-{endpoint}",
+        kwargs={"pk": alert_receive_channel.public_primary_key},
+    )
+    if endpoint == "connected-contact-points":
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    else:
+        response = client.post(url, format="json", data={}, **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
