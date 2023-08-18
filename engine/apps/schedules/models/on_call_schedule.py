@@ -812,6 +812,10 @@ class OnCallSchedule(PolymorphicModel):
                 # exclude events without active users
                 continue
 
+            if ev["start"] >= datetime_end or ev["end"] <= datetime_start:
+                # avoid including split events which now are outside the requested time range
+                continue
+
             # api/terraform shifts could be missing a priority; assume None means 0
             priority = ev["priority_level"] or 0
             if priority != current_priority or current_type != ev["calendar_type"]:
