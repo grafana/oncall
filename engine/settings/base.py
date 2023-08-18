@@ -268,7 +268,7 @@ SPECTACULAR_SETTINGS = {
     },
     "SERVE_PUBLIC": False,
 }
-# Use custom scheme if env var exists directory-oncall/schema/
+# Use custom scheme if env var exists
 SWAGGER_UI_SETTINGS_URL = os.getenv("SWAGGER_UI_SETTINGS_URL")
 if SWAGGER_UI_SETTINGS_URL:
     SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = SWAGGER_UI_SETTINGS_URL
