@@ -13,12 +13,13 @@ interface TimeRangeProps {
   from: string | null;
   to: string | null;
   disabled?: boolean;
+  convertToUTC?: boolean;
   onChange: (value: string[]) => void;
 }
 
-function getMoments(from: string, to: string) {
-  let fromMoment;
-  let toMoment;
+function getMoments(from: string, to: string, convertToUTC: boolean) {
+  let fromMoment: moment.Moment;
+  let toMoment: moment.Moment;
 
   if (!from || !to) {
     fromMoment = moment().startOf('hour');
@@ -29,33 +30,33 @@ function getMoments(from: string, to: string) {
     }
   } else {
     const [fh, fm] = from.split(':').map(Number);
-    fromMoment = moment().utc().hour(fh).minute(fm).second(0).local();
+    fromMoment = (convertToUTC ? moment().utc() : moment()).hour(fh).minute(fm).second(0).local();
 
     const [th, tm] = to.split(':').map(Number);
-    toMoment = moment().utc().hour(th).minute(tm).second(0).local();
+    toMoment = (convertToUTC ? moment().utc() : moment()).hour(th).minute(tm).second(0).local();
   }
 
   return [fromMoment, toMoment];
 }
 
-function getRangeStrings(from: moment.Moment, to: moment.Moment) {
-  const fromString = from.clone().utc().format('HH:mm:00');
-  const toString = to.clone().utc().format('HH:mm:00');
+function getRangeStrings(from: moment.Moment, to: moment.Moment, convertToUTC: boolean) {
+  const fromString = (convertToUTC ? from.clone().utc() : from.clone()).format('HH:mm:00');
+  const toString = (convertToUTC ? to.clone().utc() : to.clone()).format('HH:mm:00');
 
   return [fromString, toString];
 }
 
 const TimeRange = (props: TimeRangeProps) => {
-  const { className, from: f, to: t, onChange, disabled } = props;
+  const { className, from: f, to: t, onChange, disabled, convertToUTC = true } = props;
 
   // @ts-ignore
-  const [from, setFrom] = useState<moment.Moment>(getMoments(f, t)[0]);
+  const [from, setFrom] = useState<moment.Moment>(getMoments(f, t, convertToUTC)[0]);
   // @ts-ignore
-  const [to, setTo] = useState<moment.Moment>(getMoments(f, t)[1]);
+  const [to, setTo] = useState<moment.Moment>(getMoments(f, t, convertToUTC)[1]);
 
   useEffect(() => {
     if (!f || !t) {
-      onChange(getRangeStrings(from, to));
+      onChange(getRangeStrings(from, to, convertToUTC));
     }
   }, []);
 
@@ -66,9 +67,9 @@ const TimeRange = (props: TimeRangeProps) => {
       if (value.isSame(to, 'minute')) {
         const newTo = to.subtract(5, 'minute');
         setTo(newTo);
-        onChange(getRangeStrings(value, newTo));
+        onChange(getRangeStrings(value, newTo, convertToUTC));
       } else {
-        onChange(getRangeStrings(value, to));
+        onChange(getRangeStrings(value, to, convertToUTC));
       }
     },
     [to]
@@ -81,9 +82,9 @@ const TimeRange = (props: TimeRangeProps) => {
       if (value.isSame(from, 'minute')) {
         const newFrom = from.add(5, 'minute');
         setFrom(newFrom);
-        onChange(getRangeStrings(newFrom, value));
+        onChange(getRangeStrings(newFrom, value, convertToUTC));
       } else {
-        onChange(getRangeStrings(from, value));
+        onChange(getRangeStrings(from, value, convertToUTC));
       }
     },
     [from]

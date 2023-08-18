@@ -231,6 +231,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         <TimeRange
           from={data.from_time}
           to={data.to_time}
+          convertToUTC={false}
           disabled={isDisabled}
           onChange={this._getOnTimeRangeChangeHandler()}
           className={cx('select', 'control')}
