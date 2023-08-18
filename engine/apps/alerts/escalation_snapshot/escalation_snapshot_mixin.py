@@ -20,6 +20,7 @@ if typing.TYPE_CHECKING:
     from apps.alerts.models import ChannelFilter
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Is a delay to prevent intermediate activity by system in case user is doing some multi-step action.
 # For example if user wants to unack and ack we don't need to launch escalation right after unack.
