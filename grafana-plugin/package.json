@@ -109,9 +109,6 @@
   "engines": {
     "node": ">=14"
   },
-  "browser": {
-    "crypto": false
-  },
   "dependencies": {
     "@grafana/data": "^9.2.4",
     "@grafana/faro-web-sdk": "^1.0.0-beta4",
