@@ -37,7 +37,10 @@ heartbeat_expired_payload = {
     "numResolved": 0,
     "commonLabels": {"alertname": "OnCallHeartBeatMissing"},
     "truncatedAlerts": 0,
-    "commonAnnotations": {},
+    "commonAnnotations": {
+        "title": heartbeat_expired_title,
+        "description": heartbeat_expired_message,
+    },
 }
 
 heartbeat_restored_title = heartbeat_text.heartbeat_restored_title
@@ -61,7 +64,7 @@ heartbeat_restored_payload = {
             "generatorURL": "",
         },
     ],
-    "status": "firing",
+    "status": "resolved",
     "version": "4",
     "groupKey": '{}:{alertname="OnCallHeartBeatMissing"}',
     "receiver": "",
@@ -71,5 +74,8 @@ heartbeat_restored_payload = {
     "numResolved": 1,
     "commonLabels": {"alertname": "OnCallHeartBeatMissing"},
     "truncatedAlerts": 0,
-    "commonAnnotations": {},
+    "commonAnnotations": {
+        "title": heartbeat_restored_title,
+        "description": heartbeat_restored_message,
+    },
 }

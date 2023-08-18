@@ -3,7 +3,7 @@ version: "3.9"
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
-x-user: &oncall-user "appuser"
+x-user: &oncall-user "root"
 
 x-oncall-build: &oncall-build-args
   context: ./engine

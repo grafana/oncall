@@ -87,8 +87,6 @@ class ShiftSwapViewSet(PublicPrimaryKeyMixin[ShiftSwapRequest], BaseShiftSwapVie
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        # TODO: add note to public documentation about these permissions also giving access to shift swaps
-        # unless we want to make a separate resource type for them?
         "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
         "list": [RBACPermission.Permissions.SCHEDULES_READ],
         "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
