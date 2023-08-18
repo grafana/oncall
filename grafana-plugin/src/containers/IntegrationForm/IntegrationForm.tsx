@@ -63,6 +63,13 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
   const [showIntegrarionsListDrawer, setShowIntegrarionsListDrawer] = useState(id === 'new');
+  const [allContactPoints, setAllContactPoints] = useState(undefined);
+
+  useEffect(() => {
+    (async function () {
+      setAllContactPoints(await alertReceiveChannelStore.getGrafanaAlertingContactPoints());
+    })();
+  }, []);
 
   const data =
     id === 'new'
@@ -154,6 +161,20 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   );
 
   function handleSubmit(data) {
+    const { alert_manager, contact_point, is_existing: isExisting } = data;
+
+    const matchingAlertManager = allContactPoints.find((cp) => cp.uid === alert_manager);
+    const hasContactPointInput = alert_manager && contact_point;
+
+    if (
+      !isExisting &&
+      hasContactPointInput &&
+      matchingAlertManager?.contact_points.find((cp) => cp === contact_point)
+    ) {
+      openErrorNotification('A contact point already exists for this data source');
+      return;
+    }
+
     (id === 'new' ? createNewIntegration() : alertReceiveChannelStore.update(id, data)).then(() => {
       onHide();
       onUpdate();
@@ -175,8 +196,8 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
               ? alertReceiveChannelStore.connectContactPoint(response.id, data.alert_manager, data.contact_point)
               : alertReceiveChannelStore.createContactPoint(response.id, data.alert_manager, data.contact_point)
           )
-            .then(() => pushHistory(response.id))
-            .catch(onCatch);
+            .catch(onCatch)
+            .finally(() => pushHistory(response.id));
         })
         .catch(onCatch);
 
