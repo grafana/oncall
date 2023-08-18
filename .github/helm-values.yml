@@ -8,13 +8,13 @@ image:
   tag: latest
   pullPolicy: Always
 engine:
-  replicaCount: 3
+  replicaCount: 2
 celery:
-  replicaCount: 3
+  replicaCount: 2
   worker_beat_enabled: false
 
 grafana:
-  replicas: 3
+  replicas: 2
   extraInitContainers:
     - name: create-db-if-not-exists
       image: mysql:8.0.32
