@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-### Fixed
+### Changed
 
+- Improve Grafana Alerting integration by @Ferril @teodosii ([#2742](https://github.com/grafana/oncall/pull/2742))
 - Fixed UTC conversion for escalation chain step of timerange
   ([#2781](https://github.com/grafana/oncall/issues/2781))
 
