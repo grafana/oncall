@@ -272,3 +272,49 @@ def test_get_webhook_responses(
     assert webhook_response["event_data"] == '{"test": "abc"}'
     assert response.data["count"] == 20
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_webhook_validate_integration_filters(
+    make_organization_and_user_with_token,
+    make_custom_webhook,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    webhook = make_custom_webhook(organization=organization)
+    url = reverse("api-public:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
+    data = {"integration_filter": alert_receive_channel.public_primary_key}
+
+    client = APIClient()
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == 400
+
+    data["integration_filter"] = ["abc"]
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == 400
+
+    data["integration_filter"] = [alert_receive_channel.public_primary_key, alert_receive_channel.public_primary_key]
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == 400
+
+    data["integration_filter"] = [alert_receive_channel.public_primary_key]
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    webhook.refresh_from_db()
+    assert response.status_code == 200
+    assert response.data["integration_filter"] == data["integration_filter"]
+    assert webhook.integration_filter == data["integration_filter"]
+
+    data["integration_filter"] = []
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    webhook.refresh_from_db()
+    assert response.status_code == 200
+    assert response.data["integration_filter"] == data["integration_filter"]
+    assert webhook.integration_filter == data["integration_filter"]
+
+    data["integration_filter"] = None
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    webhook.refresh_from_db()
+    assert response.status_code == 200
+    assert response.data["integration_filter"] == data["integration_filter"]
+    assert webhook.integration_filter == data["integration_filter"]

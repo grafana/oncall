@@ -3,6 +3,7 @@ from collections import defaultdict
 from rest_framework import fields, serializers
 from rest_framework.validators import UniqueTogetherValidator
 
+from apps.alerts.models import AlertReceiveChannel
 from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.models.webhook import PUBLIC_WEBHOOK_HTTP_METHODS, WEBHOOK_FIELD_PLACEHOLDER
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
@@ -10,6 +11,8 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
+
+INTEGRATION_FILTER_MESSAGE = "integration_filter must be a list of valid integration ids"
 
 
 class WebhookTriggerTypeField(fields.CharField):
@@ -29,8 +32,6 @@ class WebhookTriggerTypeField(fields.CharField):
 
 
 class WebhookResponseSerializer(serializers.ModelSerializer):
-    request_trigger = WebhookTriggerTypeField()
-
     class Meta:
         model = WebhookResponse
         fields = [
@@ -143,6 +144,17 @@ class WebhookCreateSerializer(serializers.ModelSerializer):
         if http_method not in PUBLIC_WEBHOOK_HTTP_METHODS:
             raise serializers.ValidationError(f"Must be one of {PUBLIC_WEBHOOK_HTTP_METHODS}")
         return http_method
+
+    def validate_integration_filter(self, integration_filter):
+        if integration_filter:
+            if type(integration_filter) is not list:
+                raise serializers.ValidationError(INTEGRATION_FILTER_MESSAGE)
+            integrations = AlertReceiveChannel.objects.filter(
+                organization=self.context["request"].auth.organization, public_primary_key__in=integration_filter
+            )
+            if len(integrations) != len(integration_filter):
+                raise serializers.ValidationError(INTEGRATION_FILTER_MESSAGE)
+        return integration_filter
 
 
 class WebhookUpdateSerializer(WebhookCreateSerializer):
