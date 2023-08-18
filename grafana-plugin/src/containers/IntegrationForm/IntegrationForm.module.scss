@@ -73,3 +73,25 @@
 .integration-info-item {
   margin-left: 16px;
 }
+
+.extra-fields {
+  padding: 12px;
+  margin-bottom: 24px;
+  border: var(--border-weak);
+  border-radius: var(--border-radius);
+
+  &__radio {
+    margin-bottom: 12px;
+  }
+
+  &__icon {
+    margin-top: -4px;
+  }
+}
+
+.selectors-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: -15px;
+}

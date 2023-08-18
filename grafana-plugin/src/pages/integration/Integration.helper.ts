@@ -6,7 +6,7 @@
 import { IconName } from '@grafana/ui';
 import dayjs from 'dayjs';
 
-import { MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { RootStore } from 'state';
 import { AppFeature } from 'state/features';
@@ -14,6 +14,14 @@ import { AppFeature } from 'state/features';
 import { MAX_CHARACTERS_COUNT, TEXTAREA_ROWS_COUNT } from './IntegrationCommon.config';
 
 const IntegrationHelper = {
+  isGrafanaAlerting: (alertReceiveChannel: AlertReceiveChannel | string) => {
+    if (typeof alertReceiveChannel === 'string') {
+      return alertReceiveChannel === 'grafana_alerting';
+    }
+
+    return alertReceiveChannel.integration === 'grafana_alerting';
+  },
+
   getFilteredTemplate: (template: string, isTextArea: boolean): string => {
     if (!template) {
       return '';

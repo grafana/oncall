@@ -260,11 +260,18 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
     "PREPROCESSING_HOOKS": [
-        "engine.included_path.custom_preprocessing_hook"
-    ],  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+        "engine.included_path.custom_preprocessing_hook"  # Custom hook to include only paths from SPECTACULAR_INCLUDED_PATHS
+    ],
     "SERVE_URLCONF": ("apps.api.urls"),
-    "SWAGGER_UI_SETTINGS": {"supportedSubmitMethods": []},  # Disable "Try it out" button for all endpoints
+    "SWAGGER_UI_SETTINGS": {
+        "supportedSubmitMethods": [],  # Disable "Try it out" button for all endpoints
+    },
+    "SERVE_PUBLIC": False,
 }
+# Use custom scheme if env var exists
+SWAGGER_UI_SETTINGS_URL = os.getenv("SWAGGER_UI_SETTINGS_URL")
+if SWAGGER_UI_SETTINGS_URL:
+    SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = SWAGGER_UI_SETTINGS_URL
 
 SPECTACULAR_INCLUDED_PATHS = [
     "/features",

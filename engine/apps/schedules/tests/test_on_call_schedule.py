@@ -2095,6 +2095,62 @@ def test_swap_request_split_end(
 
 
 @pytest.mark.django_db
+def test_swap_request_split_final_events_range(
+    make_organization,
+    make_user_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_shift_swap_request,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start = today + timezone.timedelta(hours=10)
+    duration = timezone.timedelta(hours=8)
+    data = {
+        "start": start,
+        "rotation_start": start,
+        "duration": duration,
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    tomorrow = today + timezone.timedelta(days=1)
+    # setup swap request
+    swap_request = make_shift_swap_request(
+        schedule,
+        user,
+        swap_start=tomorrow + timezone.timedelta(hours=16),
+        swap_end=tomorrow + timezone.timedelta(hours=18),
+    )
+    swap_request.take(other_user)
+
+    # check final events for tomorrow while swap in progress
+    now = tomorrow + timezone.timedelta(hours=16, minutes=10)
+    events = schedule.final_events(now, now)
+
+    assert len(events) == 1
+    expected = [
+        # start, end, on-call user
+        (
+            tomorrow + timezone.timedelta(hours=16),
+            tomorrow + timezone.timedelta(hours=18),
+            other_user.public_primary_key,
+        ),
+    ]
+    returned = [(e["start"], e["end"], e["users"][0]["pk"]) for e in events]
+    assert returned == expected
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("swap_taken", [False, True])
 def test_swap_request_split_both(
     make_organization,

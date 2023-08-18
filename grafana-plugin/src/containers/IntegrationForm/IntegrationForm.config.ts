@@ -8,12 +8,14 @@ export const form: { name: string; fields: FormItem[] } = {
       label: 'Name',
       name: 'verbal_name',
       type: FormItemType.Input,
+      placeholder: 'Integration Name',
       validation: { required: true },
     },
     {
       label: 'Description',
       name: 'description_short',
       type: FormItemType.TextArea,
+      placeholder: 'Integration Description',
     },
     {
       name: 'team',
@@ -27,6 +29,23 @@ export const form: { name: string; fields: FormItem[] } = {
         showSearch: true,
         allowClear: true,
       },
+    },
+    {
+      name: 'alert_manager',
+      type: FormItemType.Other,
+    },
+    {
+      name: 'contact_point',
+      type: FormItemType.Other,
+    },
+    {
+      name: 'is_existing',
+      type: FormItemType.Other,
+    },
+    {
+      name: 'alerting',
+      type: FormItemType.Other,
+      render: true,
     },
   ],
 };
