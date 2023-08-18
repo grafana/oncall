@@ -17,8 +17,8 @@ interface TimeRangeProps {
 }
 
 function getMoments(from: string, to: string) {
-  let fromMoment;
-  let toMoment;
+  let fromMoment: moment.Moment;
+  let toMoment: moment.Moment;
 
   if (!from || !to) {
     fromMoment = moment().startOf('hour');
@@ -29,18 +29,18 @@ function getMoments(from: string, to: string) {
     }
   } else {
     const [fh, fm] = from.split(':').map(Number);
-    fromMoment = moment().utc().hour(fh).minute(fm).second(0).local();
+    fromMoment = moment().hour(fh).minute(fm).second(0).local();
 
     const [th, tm] = to.split(':').map(Number);
-    toMoment = moment().utc().hour(th).minute(tm).second(0).local();
+    toMoment = moment().hour(th).minute(tm).second(0).local();
   }
 
   return [fromMoment, toMoment];
 }
 
 function getRangeStrings(from: moment.Moment, to: moment.Moment) {
-  const fromString = from.clone().utc().format('HH:mm:00');
-  const toString = to.clone().utc().format('HH:mm:00');
+  const fromString = from.clone().format('HH:mm:00');
+  const toString = to.clone().format('HH:mm:00');
 
   return [fromString, toString];
 }
@@ -48,9 +48,7 @@ function getRangeStrings(from: moment.Moment, to: moment.Moment) {
 const TimeRange = (props: TimeRangeProps) => {
   const { className, from: f, to: t, onChange, disabled } = props;
 
-  // @ts-ignore
   const [from, setFrom] = useState<moment.Moment>(getMoments(f, t)[0]);
-  // @ts-ignore
   const [to, setTo] = useState<moment.Moment>(getMoments(f, t)[1]);
 
   useEffect(() => {
