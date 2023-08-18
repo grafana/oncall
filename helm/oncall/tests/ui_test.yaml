@@ -1,0 +1,39 @@
+suite: test ui dev container
+templates:
+  - ui/deployment.yaml
+release:
+  name: oncall
+tests:
+  - it: doesn't create deployment if dev_mode is disabled
+    set:
+      dev_mode: false
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: creates deployment if dev_mode is enabled
+    set:
+      dev_mode: true
+      cwd: /hello/123
+    asserts:
+      - matchSnapshot: {}
+  - it: doesn't add env vars if none are supplied
+    set:
+      dev_mode: true
+    asserts:
+      - isEmpty:
+          path: spec.template.spec.containers[0].env
+  - it: adds env vars if they are supplied
+    set:
+      dev_mode: true
+      ui:
+        env:
+          FOO: bar
+          ABC: 123
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: ABC
+              value: "123"
+            - name: FOO
+              value: bar

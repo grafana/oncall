@@ -5,7 +5,6 @@
 base_url: example.com
 base_url_protocol: https
 
-# TODO: add unit tests for this
 # this is intended to be used for local development. In short, it will spin up an additional container
 # running the plugin frontend, such that hot reloading can be enabled. NOTE: it should always be enabled
 # in conjuction with cwd setting. This should be set to the value of pwd.
@@ -492,7 +491,6 @@ init:
     #   cpu: 100m
     #   memory: 128Mi
 
-# TODO: add unit tests for this
 # NOTE: a UI container is only ever created if the "dev_mode" setting is true
 ui:
   # Additional env vars for the ui container

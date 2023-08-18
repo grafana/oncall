@@ -1,6 +1,6 @@
 suite: test extra containers for celery pod
 templates:
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
 release:
   name: oncall
 tests:

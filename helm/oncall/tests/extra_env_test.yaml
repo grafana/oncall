@@ -2,7 +2,7 @@ suite: test extra envs for deployments
 templates:
   - engine/deployment.yaml
   - engine/job-migrate.yaml
-  - celery/deployment-celery.yaml
+  - celery/deployment.yaml
 release:
   name: oncall
 tests:
@@ -38,7 +38,7 @@ tests:
   - it: env=[] -> should add envs into initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       env:
         - name: SOME_VAR
@@ -53,7 +53,7 @@ tests:
   - it: env=map[] -> should add envs into initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       env:
         SOME_VAR: some_value
@@ -73,7 +73,7 @@ tests:
   - it: database.type=postgresql and env=map[] -> should add envs into initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       database.type: postgresql
       postgresql.enabled: true
@@ -95,7 +95,7 @@ tests:
   - it: database.type=postgresql and env=[] -> should support old style for initContainer
     templates:
       - engine/deployment.yaml
-      - celery/deployment-celery.yaml
+      - celery/deployment.yaml
     set:
       database.type: postgresql
       postgresql.enabled: true
