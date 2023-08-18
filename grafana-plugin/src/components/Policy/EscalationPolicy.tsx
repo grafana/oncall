@@ -231,8 +231,6 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         <TimeRange
           from={data.from_time}
           to={data.to_time}
-          // user inputted strings should not be converted to UTC
-          convertToUTC={false}
           disabled={isDisabled}
           onChange={this._getOnTimeRangeChangeHandler()}
           className={cx('select', 'control')}
