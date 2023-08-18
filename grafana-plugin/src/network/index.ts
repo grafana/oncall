@@ -1,6 +1,7 @@
 import { SpanStatusCode } from '@opentelemetry/api';
 import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 import axios from 'axios';
+// import { randomUUID } from 'crypto';
 import qs from 'query-string';
 
 import FaroHelper from 'utils/faro';
@@ -66,7 +67,19 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
           params,
           data,
           validateStatus,
-          headers,
+          headers: {
+            ...headers,
+            /**
+             * In short, this header will tell the Grafana plugin proxy, a Go service which use Go's HTTP Transport,
+             * to retry POST requests (and other non-idempotent requests). This doesn't necessarily make these requests
+             * idempotent, but it will make them retry-able from Go's (read: net/http) perspective.
+             *
+             * https://stackoverflow.com/questions/42847294/how-to-catch-http-server-closed-idle-connection-error/62292758#62292758
+             * https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692280544382739?thread_ts=1692279329.797149&cid=C01C4K8DETW
+             */
+            'X-Idempotency-Key': 'abcd',
+            // randomUUID()
+          },
         })
           .then((response) => {
             FaroHelper.faro.api.pushEvent('Request completed', { url });

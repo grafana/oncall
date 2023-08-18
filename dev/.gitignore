@@ -11,6 +11,7 @@
 !README.md
 !scripts/
 !scripts/*
+!helm-local.yml
 
 # only source control grafana/provisioning/datasources/automatic.yml
 # any other files under ./grafana will be ignored
@@ -18,6 +19,3 @@
 !grafana/provisioning/
 !grafana/provisioning/datasources/
 !grafana/provisioning/datasources/automatic.yml
-
-# local helm chart stuff
-!helm-local.yml

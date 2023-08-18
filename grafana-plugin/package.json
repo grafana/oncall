@@ -13,6 +13,8 @@
     "test:silent": "jest --silent",
     "test:e2e": "yarn playwright test --grep-invert @expensive",
     "test:e2e-expensive": "yarn playwright test --grep @expensive",
+    "cleanup-e2e-results": "rm -rf playwright-report && rm -rf test-results",
+    "e2e-show-report": "yarn playwright show-report",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch",
     "sign": "grafana-toolkit plugin:sign",
@@ -106,6 +108,9 @@
   },
   "engines": {
     "node": ">=14"
+  },
+  "browser": {
+    "crypto": false
   },
   "dependencies": {
     "@grafana/data": "^9.2.4",

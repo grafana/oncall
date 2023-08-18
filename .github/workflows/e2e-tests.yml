@@ -44,7 +44,7 @@ jobs:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
         with:
-          config: ./helm/kind.yml
+          config: ./.github/kind.yml
 
       - uses: actions/setup-node@v3
         with:
@@ -97,6 +97,7 @@ jobs:
       # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
       # OnCall plugin rather than the latest published version
       # the /oncall-plugin hostPath refers to the kind volumeMount that points to the ./grafana-plugin dir
+      # the /dev-config hostPath refers to the kind volumeMount that points to the ./dev dir
       # see ./helm/kind.yml for more details
       - name: Install helm chart
         # yamllint disable rule:line-length
@@ -108,6 +109,7 @@ jobs:
             --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
             --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
             --set grafana.image.tag=${{ inputs.grafana-image-tag }} \
+            --set-json "mariadb.primary.extraVolumeMounts=[{\"name\":\"config\",\"mountPath\":\"/etc/mysql/conf.d/custom_config.cnf\",\"hostPath\":\"/dev-config/mariadb.cnf\",\"readOnly\":true}]" \
             --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
         # yamllint enable rule:line-length

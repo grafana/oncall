@@ -51,7 +51,10 @@ const _recordTestVideo = async (
 ) => {
   const videoDir = path.join(testInfo.outputPath(), 'videos');
 
-  const context = await browser.newContext({ storageState: storageStateLocation, recordVideo: { dir: videoDir } });
+  const context = await browser.newContext({
+    storageState: storageStateLocation,
+    recordVideo: { dir: videoDir },
+  });
   const page = new RolePage(await context.newPage());
 
   try {

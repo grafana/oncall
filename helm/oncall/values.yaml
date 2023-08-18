@@ -3,6 +3,7 @@
 # Set the domain name Grafana OnCall will be installed on.
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
+base_url_protocol: https
 
 # TODO: add unit tests for this
 # this is intended to be used for local development. In short, it will spin up an additional container

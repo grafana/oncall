@@ -1,6 +1,6 @@
 {{- define "snippet.oncall.env" -}}
 - name: BASE_URL
-  value: https://{{ .Values.base_url }}
+  value: {{ .Values.base_url_protocol }}://{{ .Values.base_url }}
 - name: SECRET_KEY
   valueFrom:
     secretKeyRef:

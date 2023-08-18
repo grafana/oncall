@@ -24,6 +24,7 @@ test.describe('maintenance mode works', () => {
 
   const _openIntegrationSettingsPopup = async (page: Page): Promise<Locator> => {
     const integrationSettingsPopupElement = page.getByTestId('integration-settings-context-menu');
+    await integrationSettingsPopupElement.waitFor({ state: 'visible' });
     await integrationSettingsPopupElement.click();
     return integrationSettingsPopupElement;
   };

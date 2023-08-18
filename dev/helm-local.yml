@@ -1,6 +1,7 @@
 dev_mode: true
 
-base_url: 172.17.0.1:30001
+base_url: localhost:30001
+base_url_protocol: http
 env:
   - name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
     value: "False"
@@ -67,6 +68,24 @@ database:
   type: mysql
 mariadb:
   enabled: true
+  primary:
+    service:
+      type: NodePort
+      nodePort: 30003
+    extraEnvVars:
+      # https://hub.docker.com/r/bitnami/mariadb#:~:text=Passing%20extra%20command%2Dline%20flags%20to%20mysqld%20startup
+      #
+      # max_allowed_packet is set to 128mb in bytes
+      #
+      # this avoids "Got an error reading communication packets" errors that arise from the grafana container
+      # apparently sending too much data to mariadb at once
+      # https://mariadb.com/docs/skysql-dbaas/ref/mdb/system-variables/max_allowed_packet/
+      - name: MARIADB_EXTRA_FLAGS
+        value: "--max_allowed_packet=134217728 --max_connections=1024"
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
 
 redis:
   image:
