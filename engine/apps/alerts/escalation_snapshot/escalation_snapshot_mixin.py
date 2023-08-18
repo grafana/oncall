@@ -229,13 +229,13 @@ class EscalationSnapshotMixin:
         """
         from apps.alerts.models import AlertGroup
 
-        is_on_maintenace_or_debug_mode = self.channel.maintenance_mode is not None
+        is_on_maintenance_or_debug_mode = self.channel.maintenance_mode is not None
 
-        if self.is_restricted or is_on_maintenace_or_debug_mode or not self.escalation_chain_exists:
+        if self.is_restricted or is_on_maintenance_or_debug_mode or not self.escalation_chain_exists:
             logger.debug(
                 f"Not escalating alert group w/ pk: {self.pk}\n"
                 f"is_restricted: {self.is_restricted}\n"
-                f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
+                f"is_on_maintenance_or_debug_mode: {is_on_maintenance_or_debug_mode}\n"
                 f"escalation_chain_exists: {self.escalation_chain_exists}"
             )
             # set is_escalation_finished to True as this alert group won't be escalated
