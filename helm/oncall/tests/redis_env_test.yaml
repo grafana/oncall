@@ -79,6 +79,7 @@ tests:
 
   - it: redis.enabled=false -> should fail if host not set
     set:
+      broker.type: redis
       redis.enabled: false
       externalRedis:
         existingSecret: some-redis-secret

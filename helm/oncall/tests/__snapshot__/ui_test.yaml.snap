@@ -21,6 +21,11 @@ creates deployment if dev_mode is enabled:
               image: oncall/ui:dev
               imagePullPolicy: IfNotPresent
               name: oncall-ui
+              resources:
+                limits:
+                  cpu: "1.5"
+                requests:
+                  cpu: "1.0"
               volumeMounts:
                 - mountPath: /etc/app
                   name: hot-reloaded-plugin
