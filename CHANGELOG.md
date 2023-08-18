@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Check for possible split events in range when resolving schedule ([#2828](https://github.com/grafana/oncall/pull/2828))
+- Fix public api docs for escalation policies by @Ferril ([#2830](https://github.com/grafana/oncall/pull/2830))
 
 ## v1.3.24 (2023-08-17)
 
