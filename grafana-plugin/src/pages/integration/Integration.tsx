@@ -13,7 +13,7 @@ import {
   Alert,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
+import { get, noop } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
@@ -106,27 +106,13 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
   }
 
   async componentDidMount() {
-    const {
-      match: {
-        params: { id },
-      },
-      query,
-    } = this.props;
-
-    const {
-      store,
-      store: { alertReceiveChannelStore },
-    } = this.props;
+    const { query } = this.props;
 
     if (query?.template) {
       this.openEditTemplateModal(query.template, query.routeId && query.routeId);
     }
 
-    await Promise.all([
-      this.loadIntegration(),
-      IntegrationHelper.fetchChatOps(store),
-      alertReceiveChannelStore.updateTemplates(id),
-    ]);
+    await this.loadIntegration();
   }
 
   render() {
@@ -416,7 +402,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
                         Grouping:
                       </Text>
                       <Text type="primary">
-                        {IntegrationHelper.truncateLine(templates['grouping_id_template'] || '')}
+                        {IntegrationHelper.truncateLine(templates?.['grouping_id_template'] || '')}
                       </Text>
                     </div>
 
@@ -671,6 +657,7 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
 
   async loadIntegration() {
     const {
+      store,
       store: { alertReceiveChannelStore },
       match: {
         params: { id },
@@ -685,17 +672,21 @@ class Integration extends React.Component<IntegrationProps, IntegrationState> {
       promises.push(alertReceiveChannelStore.loadItem(id));
     }
 
-    if (!alertReceiveChannelStore.counters?.length) {
+    if (!alertReceiveChannelStore.counters[id]) {
       promises.push(alertReceiveChannelStore.updateCounters());
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
-      promises.push(await alertReceiveChannelStore.updateChannelFilters(id));
+      promises.push(alertReceiveChannelStore.updateChannelFilters(id));
     }
+
+    promises.push(alertReceiveChannelStore.updateTemplates(id));
+
+    promises.push(IntegrationHelper.fetchChatOps(store));
 
     // skip checking for grafana alerting so that we don't wait for the first request to complete
     // at the cost of getting a failed network request for all other types other than alerting
-    promises.push(alertReceiveChannelStore.updateConnectedContactPoints(id));
+    promises.push(alertReceiveChannelStore.updateConnectedContactPoints(id).catch(noop));
 
     await Promise.all(promises)
       .catch(() => {
