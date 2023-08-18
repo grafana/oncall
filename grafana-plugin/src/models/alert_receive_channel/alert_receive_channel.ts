@@ -19,6 +19,7 @@ import {
   AlertReceiveChannel,
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
+  ContactPoint,
   MaintenanceMode,
 } from './alert_receive_channel.types';
 
@@ -54,6 +55,9 @@ export class AlertReceiveChannelStore extends BaseStore {
 
   @observable.shallow
   templates: { [id: string]: AlertTemplatesDTO[] } = {};
+
+  @observable
+  connectedContactPoints: { [id: string]: ContactPoint[] } = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -363,6 +367,74 @@ export class AlertReceiveChannelStore extends BaseStore {
       ...this.templates,
       [alertReceiveChannelId]: response,
     };
+  }
+
+  async getGrafanaAlertingContactPoints() {
+    return await makeRequest(`${this.path}contact_points/`, {}).catch(showApiError);
+  }
+
+  @action
+  async updateConnectedContactPoints(alertReceiveChannelId: AlertReceiveChannel['id']) {
+    const response = await makeRequest(`${this.path}${alertReceiveChannelId}/connected_contact_points `, {});
+
+    this.connectedContactPoints = {
+      ...this.connectedContactPoints,
+
+      [alertReceiveChannelId]: response.reduce((list: ContactPoint[], payload) => {
+        payload.contact_points.forEach((contactPoint: { name: string; notification_connected: boolean }) => {
+          list.push({
+            dataSourceName: payload.name,
+            dataSourceId: payload.uid,
+            contactPoint: contactPoint.name,
+            notificationConnected: contactPoint.notification_connected,
+          } as ContactPoint);
+        });
+
+        return list;
+      }, []),
+    };
+  }
+
+  async connectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/connect_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
+  async disconnectContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/disconnect_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
+  }
+
+  async createContactPoint(
+    alertReceiveChannelId: AlertReceiveChannel['id'],
+    datasource_uid: string,
+    contact_point_name: string
+  ) {
+    return await makeRequest(`${this.path}${alertReceiveChannelId}/create_contact_point`, {
+      method: 'POST',
+      data: {
+        datasource_uid,
+        contact_point_name,
+      },
+    });
   }
 
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {
