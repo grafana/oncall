@@ -220,7 +220,6 @@ class ShiftSwapRequest(models.Model):
 
     @property
     def insight_logs_type_verbal(self):
-        # TODO: add this resource type to the insight logs public docs
         return "shift_swap_request"
 
     @property

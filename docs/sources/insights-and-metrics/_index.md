@@ -177,7 +177,8 @@ Logs contain the following fields, where the fields followed by * are always ava
 
 resource types are: `integration_heartbeat`, `escalation_chain`, `integration`, `outgoing_webhook`,
 `escalation_policy`, `public_api_token`, `schedule_export_token`,`user_schedule_export_token`,
-`oncall_shift`, `web_schedule`, `ical_schedule`, `calendar_schedule`, `organization`, `user`, `webhook`.
+`oncall_shift`, `web_schedule`, `ical_schedule`, `calendar_schedule`, `shift_swap_request`, `organization`,
+`user`, `webhook`.
 
 ### Maintenance insight logs
 
