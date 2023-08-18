@@ -109,7 +109,6 @@ jobs:
             --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
             --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
             --set grafana.image.tag=${{ inputs.grafana-image-tag }} \
-            --set-json "mariadb.primary.extraVolumeMounts=[{\"name\":\"config\",\"mountPath\":\"/etc/mysql/conf.d/custom_config.cnf\",\"hostPath\":\"/dev-config/mariadb.cnf\",\"readOnly\":true}]" \
             --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
         # yamllint enable rule:line-length
