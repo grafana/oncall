@@ -238,6 +238,8 @@ class EscalationSnapshotMixin:
                 f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
                 f"escalation_chain_exists: {self.escalation_chain_exists}"
             )
+            # set is_escalation_finished to True as this alert group won't be escalated
+            AlertGroup.objects.filter(pk=self.pk).update(is_escalation_finished=True)
             return
 
         logger.debug(f"Start escalation for alert group with pk: {self.pk}")
