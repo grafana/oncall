@@ -1,7 +1,6 @@
 import { SpanStatusCode } from '@opentelemetry/api';
 import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 import axios from 'axios';
-// import { randomUUID } from 'crypto';
 import qs from 'query-string';
 
 import FaroHelper from 'utils/faro';
@@ -77,8 +76,7 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
              * https://stackoverflow.com/questions/42847294/how-to-catch-http-server-closed-idle-connection-error/62292758#62292758
              * https://raintank-corp.slack.com/archives/C01C4K8DETW/p1692280544382739?thread_ts=1692279329.797149&cid=C01C4K8DETW
              */
-            'X-Idempotency-Key': 'abcd',
-            // randomUUID()
+            'X-Idempotency-Key': `${Date.now()}-${Math.random()}`,
           },
         })
           .then((response) => {
