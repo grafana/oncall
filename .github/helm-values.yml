@@ -37,9 +37,9 @@ celery:
   worker_beat_enabled: false
   resources:
     requests:
-      cpu: "1.0"
+      cpu: "0.8"
     limits:
-      cpu: "1.5"
+      cpu: "1.2"
 
 grafana:
   replicas: 1
@@ -95,9 +95,9 @@ mariadb:
   primary:
     resources:
       requests:
-        cpu: "2.0"
+        cpu: "1.5"
       limits:
-        cpu: "2.5"
+        cpu: "2.0"
     extraEnvVars:
       # https://hub.docker.com/r/bitnami/mariadb#:~:text=Passing%20extra%20command%2Dline%20flags%20to%20mysqld%20startup
       #
