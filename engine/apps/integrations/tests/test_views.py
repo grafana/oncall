@@ -52,7 +52,7 @@ def test_integration_form_data_too_big(settings, make_organization_and_user, mak
     [
         arc_type
         for arc_type in AlertReceiveChannel.INTEGRATION_TYPES
-        if arc_type not in ["grafana", "alertmanager", "grafana_alerting", "maintenance"]
+        if arc_type not in ["amazon_sns", "grafana", "alertmanager", "grafana_alerting", "maintenance"]
     ],
 )
 @pytest.mark.django_db
