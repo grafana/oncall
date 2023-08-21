@@ -31,5 +31,5 @@ creates deployment if dev_mode is enabled:
                   name: hot-reloaded-plugin
           volumes:
             - hostPath:
-                path: /hello/123/grafana-plugin
+                path: /oncall-plugin
               name: hot-reloaded-plugin

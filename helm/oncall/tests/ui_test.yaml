@@ -13,7 +13,6 @@ tests:
   - it: creates deployment if dev_mode is enabled
     set:
       dev_mode: true
-      cwd: /hello/123
     asserts:
       - matchSnapshot: {}
   - it: doesn't add env vars if none are supplied

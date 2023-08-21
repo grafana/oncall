@@ -82,17 +82,8 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.celery.resources | nindent 12 }}
-          {{- if .Values.dev_mode }}
-          volumeMounts:
-            - mountPath: /etc/app
-              name: dev-reloaded-engine
-          {{- end }}
+          {{- include "oncall.volumeMounts" . | nindent 10 }}
       {{- with .Values.celery.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
-      {{- if .Values.dev_mode }}
-      volumes:
-        - name: dev-reloaded-engine
-          hostPath:
-            path: {{ .Values.cwd }}/engine
-      {{- end }}
+      {{- include "oncall.volumes" . | nindent 6 }}

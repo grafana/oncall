@@ -311,6 +311,13 @@
       key: {{ include "snippet.postgresql.password.secret.key" . | quote }}
 {{- end }}
 
+{{- define "snippet.sqlite.env" -}}
+- name: DATABASE_TYPE
+  value: sqlite3
+- name: DATABASE_NAME
+  value: /etc/app/oncall.db
+{{- end }}
+
 {{- define "snippet.postgresql.password.secret.name" -}}
 {{ if .Values.postgresql.enabled -}}
   {{ if .Values.postgresql.auth.existingSecret -}}
@@ -529,8 +536,10 @@
 {{- include "snippet.mysql.env" . }}
 {{- else if eq .Values.database.type "postgresql" }}
 {{- include "snippet.postgresql.env" . }}
+{{- else if eq .Values.database.type "sqlite" -}}
+{{- include "snippet.sqlite.env" . }}
 {{- else -}}
-{{- fail "value for .Values.db.type must be either 'mysql' or 'postgresql'" }}
+{{- fail "value for .Values.db.type must be either 'mysql', 'postgresql', or 'sqlite'" }}
 {{- end }}
 {{- end }}
 

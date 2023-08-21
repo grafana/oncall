@@ -17,5 +17,3 @@ nodes:
       # but for now it works... alternative would be to use something like $(pwd)/grafana-plugin
       - hostPath: ./grafana-plugin
         containerPath: /oncall-plugin
-      - hostPath: ./dev
-        containerPath: /dev-config

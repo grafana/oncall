@@ -6,10 +6,8 @@ base_url: example.com
 base_url_protocol: https
 
 # this is intended to be used for local development. In short, it will spin up an additional container
-# running the plugin frontend, such that hot reloading can be enabled. NOTE: it should always be enabled
-# in conjuction with cwd setting. This should be set to the value of pwd.
+# running the plugin frontend, such that hot reloading can be enabled
 dev_mode: false
-cwd: null
 
 ## Optionally specify an array of imagePullSecrets.
 ## Secrets must be manually created in the namespace.

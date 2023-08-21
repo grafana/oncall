@@ -11,108 +11,39 @@ broker:
   type: redis
 redis:
   architecture: standalone # don't run replicas, just eats up resources
-  master:
-    resources:
-      requests:
-        cpu: "0.1"
-      limits:
-        cpu: "0.3"
 rabbitmq:
   enabled: false
-migrate:
-  resources:
-    requests:
-      cpu: "0.1"
-    limits:
-      cpu: "0.3"
 engine:
   replicaCount: 1
-  resources:
-    requests:
-      cpu: "1.7"
-    limits:
-      cpu: "2.0"
 celery:
   replicaCount: 1
   worker_beat_enabled: false
-  resources:
-    requests:
-      cpu: "0.8"
-    limits:
-      cpu: "1.2"
 
 grafana:
   replicas: 1
-  resources:
-    requests:
-      cpu: "0.3"
-    limits:
-      cpu: "0.5"
-  extraInitContainers:
-    - name: create-db-if-not-exists
-      image: mysql:8.0.32
-      command:
-        # yamllint disable rule:line-length
-        [
-          "bash",
-          "-c",
-          'while ! mysqladmin ping -h "$DATABASE_HOST" --silent; do echo ''awaiting mysql db to be available'' && sleep 1; done && mysql -h "$DATABASE_HOST" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -e ''CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;''',
-        ]
-        # yamllint enable rule:line-length
-      env:
-        - name: DATABASE_HOST
-          value: helm-testing-mariadb
-        - name: DATABASE_USER
-          value: root
-        - name: DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: helm-testing-mariadb
-              key: mariadb-root-password
   env:
     GF_FEATURE_TOGGLES_ENABLE: topnav
     GF_SECURITY_ADMIN_PASSWORD: oncall
     GF_SECURITY_ADMIN_USER: oncall
     GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
-    GF_DATABASE_TYPE: mysql
-    GF_DATABASE_HOST: helm-testing-mariadb:3306
-    GF_DATABASE_USER: root
     GF_DATABASE_SSL_MODE: disable
-  envValueFrom:
-    GF_DATABASE_PASSWORD:
-      secretKeyRef:
-        name: helm-testing-mariadb
-        key: mariadb-root-password
+  # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
+  # OnCall plugin rather than the latest published version
   plugins: []
+  extraVolumeMounts:
+    - name: plugins
+      mountPath: /var/lib/grafana/plugins/grafana-plugin
+      # hostPath is defined in .github/kind.yml
+      hostPath: /oncall-plugin
+      readOnly: true
   service:
     type: NodePort
     nodePort: 30002
 
-database:
-  type: mysql
 mariadb:
-  enabled: true
-  primary:
-    resources:
-      requests:
-        cpu: "1.5"
-      limits:
-        cpu: "2.0"
-    extraEnvVars:
-      # https://hub.docker.com/r/bitnami/mariadb#:~:text=Passing%20extra%20command%2Dline%20flags%20to%20mysqld%20startup
-      #
-      # max_allowed_packet is set to 128mb in bytes
-      #
-      # this avoids "Got an error reading communication packets" errors that arise from the grafana container
-      # apparently sending too much data to mariadb at once
-      # https://mariadb.com/docs/skysql-dbaas/ref/mdb/system-variables/max_allowed_packet/
-      - name: MARIADB_EXTRA_FLAGS
-        value: "--max_allowed_packet=134217728 --max_connections=1024"
-      - name: MARIADB_CHARACTER_SET
-        value: utf8mb4
-      - name: MARIADB_COLLATE
-        value: utf8mb4_unicode_ci
-
+  enabled: false
+database:
+  type: sqlite
 ingress:
   enabled: false
 ingress-nginx:

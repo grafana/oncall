@@ -15,7 +15,6 @@ tests:
   - it: does add a volume and volume mount when dev_mode is enabled
     set:
       dev_mode: true
-      cwd: /abc/123
     asserts:
       - matchSnapshot:
           path: spec.template.spec.containers[0].volumeMounts

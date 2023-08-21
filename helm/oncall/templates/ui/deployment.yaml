@@ -21,16 +21,11 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             {{- include "ui.env" . | nindent 12 }}
-          resources:
-            requests:
-              cpu: "1.0"
-            limits:
-              cpu: "1.5"
           volumeMounts:
             - mountPath: /etc/app
               name: hot-reloaded-plugin
       volumes:
         - name: hot-reloaded-plugin
           hostPath:
-            path: {{ .Values.cwd }}/grafana-plugin
+            path: /oncall-plugin
 {{- end }}

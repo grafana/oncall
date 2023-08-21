@@ -85,28 +85,24 @@ Create the name of the service account to use
 {{- printf "%s-%s" .Release.Name "redis" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "oncall.mariadb.wait-for-db" }}
-- name: wait-for-db
-  image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-  imagePullPolicy: {{ .Values.image.pullPolicy }}
-  command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
-  securityContext:
-  {{ toYaml .Values.init.securityContext | nindent 4 }}
-  resources:
-  {{ toYaml .Values.init.resources | nindent 4 }}
-  env:
-    {{- include "snippet.oncall.env" . | nindent 4 }}
-    {{- include "snippet.mysql.env" . | nindent 4 }}
-    {{- include "snippet.broker.env" . | nindent 4 }}
-    {{- include "oncall.extraEnvs" . | nindent 4 }}
-  {{- if .Values.dev_mode }}
-  volumeMounts:
-    - mountPath: /etc/app
-      name: dev-reloaded-engine
-  {{- end }}
+{{- define "oncall.volumes" -}}
+{{- if .Values.dev_mode }}
+volumes:
+  - name: dev-reloaded-engine
+    hostPath:
+      path: /engine
+{{- end }}
 {{- end }}
 
-{{- define "oncall.postgresql.wait-for-db" }}
+{{- define "oncall.volumeMounts" -}}
+{{- if .Values.dev_mode }}
+volumeMounts:
+  - mountPath: /etc/app
+    name: dev-reloaded-engine
+{{- end }}
+{{- end }}
+
+{{- define "oncall.initContainer" }}
 - name: wait-for-db
   image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
   imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -120,21 +116,7 @@ Create the name of the service account to use
     {{- include "snippet.db.env" . | nindent 4 }}
     {{- include "snippet.broker.env" . | nindent 4 }}
     {{- include "oncall.extraEnvs" . | nindent 4 }}
-  {{- if .Values.dev_mode }}
-  volumeMounts:
-    - mountPath: /etc/app
-      name: dev-reloaded-engine
-  {{- end }}
-{{- end }}
-
-{{- define "oncall.initContainer" -}}
-{{- if eq .Values.database.type "mysql" }}
-{{- include "oncall.mariadb.wait-for-db" . }}
-{{- else if eq .Values.database.type "postgresql" }}
-{{- include "oncall.postgresql.wait-for-db" . }}
-{{- else -}}
-{{- fail "value for .Values.db.type must be either 'mysql' or 'postgresql'" }}
-{{- end }}
+  {{- include "oncall.volumeMounts" . | nindent 2 }}
 {{- end }}
 
 {{- define "oncall.extraEnvs" -}}

@@ -73,11 +73,7 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
-          {{- if .Values.dev_mode }}
-          volumeMounts:
-            - mountPath: /etc/app
-              name: dev-reloaded-engine
-          {{- end }}
+          {{- include "oncall.volumeMounts" . | nindent 10 }}
       {{- with .Values.engine.extraContainers }}
         {{- tpl . $ | nindent 8 }}
       {{- end }}
@@ -100,9 +96,4 @@ spec:
       {{- with .Values.engine.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
-      {{- if .Values.dev_mode }}
-      volumes:
-        - name: dev-reloaded-engine
-          hostPath:
-            path: {{ .Values.cwd }}/engine
-      {{- end }}
+      {{- include "oncall.volumes" . | nindent 6 }}

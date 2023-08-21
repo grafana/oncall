@@ -94,13 +94,7 @@ jobs:
       - name: Load engine Docker image on the nodes of the cluster
         run: kind load image-archive --name=chart-testing /tmp/oncall-engine.tar
 
-      # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
-      # OnCall plugin rather than the latest published version
-      # the /oncall-plugin hostPath refers to the kind volumeMount that points to the ./grafana-plugin dir
-      # the /dev-config hostPath refers to the kind volumeMount that points to the ./dev dir
-      # see ./helm/kind.yml for more details
       - name: Install helm chart
-        # yamllint disable rule:line-length
         run: |
           helm install helm-testing \
             --values ./.github/helm-values.yml \
@@ -109,9 +103,7 @@ jobs:
             --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
             --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
             --set grafana.image.tag=${{ inputs.grafana-image-tag }} \
-            --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
-        # yamllint enable rule:line-length
 
       # helpful reference for properly caching the playwright binaries/dependencies
       # https://playwrightsolutions.com/playwright-github-action-to-cache-the-browser-binaries/
