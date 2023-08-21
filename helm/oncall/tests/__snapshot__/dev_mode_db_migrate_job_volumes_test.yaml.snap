@@ -1,4 +1,4 @@
-does add a volume and volume mount when dev_mode is enabled:
+does add a volume and volume mount when oncall.devMode is enabled:
   1: |
     - mountPath: /etc/app
       name: dev-reloaded-engine

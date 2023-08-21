@@ -1,4 +1,4 @@
-creates deployment if dev_mode is enabled:
+creates deployment if ui.enabled is true:
   1: |
     apiVersion: apps/v1
     kind: Deployment

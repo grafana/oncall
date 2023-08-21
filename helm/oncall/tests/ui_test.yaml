@@ -4,27 +4,30 @@ templates:
 release:
   name: oncall
 tests:
-  - it: doesn't create deployment if dev_mode is disabled
+  - it: doesn't create deployment if ui.enabled is false
     set:
-      dev_mode: false
+      ui:
+        enabled: false
     asserts:
       - hasDocuments:
           count: 0
-  - it: creates deployment if dev_mode is enabled
+  - it: creates deployment if ui.enabled is true
     set:
-      dev_mode: true
+      ui:
+        enabled: true
     asserts:
       - matchSnapshot: {}
   - it: doesn't add env vars if none are supplied
     set:
-      dev_mode: true
+      ui:
+        enabled: true
     asserts:
       - isEmpty:
           path: spec.template.spec.containers[0].env
   - it: adds env vars if they are supplied
     set:
-      dev_mode: true
       ui:
+        enabled: true
         env:
           FOO: bar
           ABC: 123

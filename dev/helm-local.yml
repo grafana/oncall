@@ -1,5 +1,3 @@
-dev_mode: true
-
 base_url: localhost:30001
 base_url_protocol: http
 env:
@@ -18,12 +16,15 @@ redis:
     tag: 7.0.5
 rabbitmq:
   enabled: false
+oncall:
+  devMode: true
 engine:
   replicaCount: 1
 celery:
   replicaCount: 1
 
 ui:
+  enabled: true
   env:
     ONCALL_API_URL: http://oncall-dev-engine-external:8080
     MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds

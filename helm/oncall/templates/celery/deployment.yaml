@@ -52,7 +52,7 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          {{- if .Values.dev_mode }}
+          {{- if .Values.oncall.devMode }}
           command: ["python", "manage.py", "start_celery"]
           {{- else }}
           command: ["./celery_with_exporter.sh"]

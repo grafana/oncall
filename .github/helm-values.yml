@@ -13,6 +13,8 @@ redis:
   architecture: standalone # don't run replicas, just eats up resources
 rabbitmq:
   enabled: false
+oncall:
+  devMode: true
 engine:
   replicaCount: 1
 celery:

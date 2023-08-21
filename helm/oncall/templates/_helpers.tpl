@@ -86,7 +86,7 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "oncall.volumes" -}}
-{{- if .Values.dev_mode }}
+{{- if .Values.oncall.devMode }}
 volumes:
   - name: dev-reloaded-engine
     hostPath:
@@ -95,7 +95,7 @@ volumes:
 {{- end }}
 
 {{- define "oncall.volumeMounts" -}}
-{{- if .Values.dev_mode }}
+{{- if .Values.oncall.devMode }}
 volumeMounts:
   - mountPath: /etc/app
     name: dev-reloaded-engine
